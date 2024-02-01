@@ -11,6 +11,7 @@ import {
 import {
   CfnIdentityPool,
   CfnUserPoolClient,
+  ProviderAttribute,
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
@@ -1720,6 +1721,116 @@ void describe('Auth construct', () => {
       template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
         ...ExpectedGoogleIDPProperties,
         ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedOidcIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+          'accounts.google.com': googleClientId,
+          'appleid.apple.com': appleClientId,
+          'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+    
+    void it('automatically maps email attributes for external providers and keeps existing configuration', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+              attributeMapping: {
+                fullname: ProviderAttribute.GOOGLE_NAME,
+              },
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+              attributeMapping: {
+                fullname: ProviderAttribute.FACEBOOK_NAME,
+              },
+            },
+            signInWithApple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+              attributeMapping: {
+                fullname: ProviderAttribute.APPLE_NAME,
+              },
+            },
+            loginWithAmazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+              attributeMapping: {
+                fullname: ProviderAttribute.AMAZON_NAME,
+              },
+            },
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      const expectedAutoMappedAttributes = {
+        AttributeMapping: {
+          // 'email' is a standardized claim for oauth and oidc IDPS
+          // so we can map it to cognito's 'email' claim
+          email: 'email',
+        },
+      };
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAmazonIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.AMAZON_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAppleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.APPLE_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedFacebookIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.FACEBOOK_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedGoogleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.GOOGLE_NAME.attributeName,
+          },
+        },
       });
       template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
         ...ExpectedOidcIDPProperties,

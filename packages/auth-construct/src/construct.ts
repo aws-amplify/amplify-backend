@@ -609,6 +609,14 @@ export class AmplifyAuth
     }
     if (external.google) {
       const googleProps = external.google;
+      const attributeMapping = {
+        ...googleProps.attributeMapping,
+        ...(shouldMapEmailAttributes
+          ? googleProps.attributeMapping?.email || {
+              email: { attributeName: 'email' },
+            }
+          : googleProps.attributeMapping?.email),
+      };
       result.google = new cognito.UserPoolIdentityProviderGoogle(
         this,
         `${this.name}GoogleIdP`,
@@ -616,14 +624,7 @@ export class AmplifyAuth
           userPool,
           clientId: googleProps.clientId,
           clientSecretValue: googleProps.clientSecret,
-          attributeMapping:
-            googleProps.attributeMapping ?? shouldMapEmailAttributes
-              ? {
-                  email: {
-                    attributeName: 'email',
-                  },
-                }
-              : undefined,
+          attributeMapping,
           scopes: googleProps.scopes,
         }
       );
@@ -637,14 +638,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.facebook,
-          attributeMapping:
-            external.facebook.attributeMapping ?? shouldMapEmailAttributes
-              ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+          attributeMapping: {
+            ...external.facebook.attributeMapping,
+            ...(shouldMapEmailAttributes
+              ? external.facebook.attributeMapping?.email || {
+                  email: { attributeName: 'email' },
                 }
-              : undefined,
+              : external.facebook.attributeMapping?.email),
+          },
         }
       );
       result.oauthMappings[authProvidersList.facebook] =
@@ -658,15 +659,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.loginWithAmazon,
-          attributeMapping:
-            external.loginWithAmazon.attributeMapping ??
-            shouldMapEmailAttributes
-              ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+          attributeMapping: {
+            ...external.loginWithAmazon.attributeMapping,
+            ...(shouldMapEmailAttributes
+              ? external.loginWithAmazon.attributeMapping?.email || {
+                  email: { attributeName: 'email' },
                 }
-              : undefined,
+              : external.loginWithAmazon.attributeMapping?.email),
+          },
         }
       );
       result.oauthMappings[authProvidersList.amazon] =
@@ -680,15 +680,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.signInWithApple,
-          attributeMapping:
-            external.signInWithApple.attributeMapping ??
-            shouldMapEmailAttributes
-              ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+          attributeMapping: {
+            ...external.signInWithApple.attributeMapping,
+            ...(shouldMapEmailAttributes
+              ? external.signInWithApple.attributeMapping?.email || {
+                  email: { attributeName: 'email' },
                 }
-              : undefined,
+              : external.signInWithApple.attributeMapping?.email),
+          },
         }
       );
       result.oauthMappings[authProvidersList.apple] =
@@ -702,14 +701,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.oidc,
-          attributeMapping:
-            external.oidc.attributeMapping ?? shouldMapEmailAttributes
-              ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+          attributeMapping: {
+            ...external.oidc.attributeMapping,
+            ...(shouldMapEmailAttributes
+              ? external.oidc.attributeMapping?.email || {
+                  email: { attributeName: 'email' },
                 }
-              : undefined,
+              : external.oidc.attributeMapping?.email),
+          },
         }
       );
       result.providersList.push('OIDC');
