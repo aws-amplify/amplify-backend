@@ -122,7 +122,7 @@ export class AmplifyAuth
     this.computedUserPoolProps = this.getUserPoolProps(props);
     this.userPool = new cognito.UserPool(
       this,
-      `${this.name ?? ''}UserPool`,
+      `${this.name}UserPool`,
       this.computedUserPoolProps
     );
 
@@ -137,7 +137,7 @@ export class AmplifyAuth
       this.domainPrefix &&
       this.providerSetupResult.providersList.length > 0
     ) {
-      this.userPool.addDomain(`${this.name ?? ''}UserPoolDomain`, {
+      this.userPool.addDomain(`${this.name}UserPoolDomain`, {
         cognitoDomain: { domainPrefix: this.domainPrefix },
       });
     } else if (
@@ -178,7 +178,7 @@ export class AmplifyAuth
     // UserPool Client
     const userPoolClient = new cognito.UserPoolClient(
       this,
-      `${this.name ?? ''}UserPoolAppClient`,
+      `${this.name}UserPoolAppClient`,
       {
         userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
@@ -248,7 +248,7 @@ export class AmplifyAuth
    */
   private setupAuthAndUnAuthRoles = (identityPoolId: string): DefaultRoles => {
     const result: DefaultRoles = {
-      auth: new Role(this, `${this.name ?? ''}authenticatedUserRole`, {
+      auth: new Role(this, `${this.name}authenticatedUserRole`, {
         assumedBy: new FederatedPrincipal(
           'cognito-identity.amazonaws.com',
           {
@@ -262,7 +262,7 @@ export class AmplifyAuth
           'sts:AssumeRoleWithWebIdentity'
         ),
       }),
-      unAuth: new Role(this, `${this.name ?? ''}unauthenticatedUserRole`, {
+      unAuth: new Role(this, `${this.name}unauthenticatedUserRole`, {
         assumedBy: new FederatedPrincipal(
           'cognito-identity.amazonaws.com',
           {
@@ -292,7 +292,7 @@ export class AmplifyAuth
     const region = Stack.of(this).region;
     const identityPool = new cognito.CfnIdentityPool(
       this,
-      `${this.name ?? ''}IdentityPool`,
+      `${this.name}IdentityPool`,
       {
         allowUnauthenticatedIdentities:
           DEFAULTS.ALLOW_UNAUTHENTICATED_IDENTITIES,
@@ -302,7 +302,7 @@ export class AmplifyAuth
     const identityPoolRoleAttachment =
       new cognito.CfnIdentityPoolRoleAttachment(
         this,
-        `${this.name ?? ''}IdentityPoolRoleAttachment`,
+        `${this.name}IdentityPoolRoleAttachment`,
         {
           identityPoolId: identityPool.ref,
           roles: {
@@ -611,7 +611,7 @@ export class AmplifyAuth
       const googleProps = external.google;
       result.google = new cognito.UserPoolIdentityProviderGoogle(
         this,
-        `${this.name ?? ''}GoogleIdP`,
+        `${this.name}GoogleIdP`,
         {
           userPool,
           clientId: googleProps.clientId,
@@ -633,7 +633,7 @@ export class AmplifyAuth
     if (external.facebook) {
       result.facebook = new cognito.UserPoolIdentityProviderFacebook(
         this,
-        `${this.name ?? ''}FacebookIDP`,
+        `${this.name}FacebookIDP`,
         {
           userPool,
           ...external.facebook,
@@ -654,7 +654,7 @@ export class AmplifyAuth
     if (external.loginWithAmazon) {
       result.amazon = new cognito.UserPoolIdentityProviderAmazon(
         this,
-        `${this.name ?? ''}AmazonIDP`,
+        `${this.name}AmazonIDP`,
         {
           userPool,
           ...external.loginWithAmazon,
@@ -676,7 +676,7 @@ export class AmplifyAuth
     if (external.signInWithApple) {
       result.apple = new cognito.UserPoolIdentityProviderApple(
         this,
-        `${this.name ?? ''}AppleIDP`,
+        `${this.name}AppleIDP`,
         {
           userPool,
           ...external.signInWithApple,
@@ -698,7 +698,7 @@ export class AmplifyAuth
     if (external.oidc) {
       result.oidc = new cognito.UserPoolIdentityProviderOidc(
         this,
-        `${this.name ?? ''}OidcIDP`,
+        `${this.name}OidcIDP`,
         {
           userPool,
           ...external.oidc,
@@ -718,7 +718,7 @@ export class AmplifyAuth
       const saml = external.saml;
       result.saml = new cognito.UserPoolIdentityProviderSaml(
         this,
-        `${this.name ?? ''}SamlIDP`,
+        `${this.name}SamlIDP`,
         {
           userPool,
           attributeMapping: saml.attributeMapping,
