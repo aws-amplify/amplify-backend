@@ -556,6 +556,7 @@ void describe('Auth construct', () => {
             verificationMechanisms: '["EMAIL"]',
             usernameAttributes: '["EMAIL"]',
             googleClientId: 'googleClientId',
+            oauthClientId: expectedWebClientId, // same thing
             oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
             oauthScope: '["email","profile"]',
             oauthRedirectSignIn: 'http://callback.com',

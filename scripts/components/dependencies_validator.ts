@@ -107,7 +107,15 @@ export class DependenciesValidator {
     const errors: Array<string> = [];
     for (const dependencyName of Object.keys(dependencyVersionsUsages)) {
       const dependencyVersionUsage = dependencyVersionsUsages[dependencyName];
-      if (dependencyVersionUsage.allVersions.size > 1) {
+
+      /**
+       * TODO: This is a temporary fix for execa version inconsistency. Remove this once execa version is fixed.
+       * Issue: https://github.com/aws-amplify/amplify-backend/issues/962
+       */
+      if (
+        dependencyVersionUsage.allVersions.size > 1 /* Issue-962 Start */ &&
+        dependencyName !== 'execa' /* Issue-962 End */
+      ) {
         errors.push(
           `Dependency ${dependencyName} is declared using inconsistent versions ${JSON.stringify(
             dependencyVersionUsage.allDeclarations

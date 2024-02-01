@@ -6,6 +6,8 @@
 
 /// <reference types="node" />
 
+import { PackageManagerController } from '@aws-amplify/plugin-types';
+
 // @public
 export class AmplifyPrompter {
     static input: (options: {
@@ -39,6 +41,12 @@ export enum LogLevel {
     ERROR = 0,
     // (undocumented)
     INFO = 1
+}
+
+// @public
+export class PackageManagerControllerFactory {
+    constructor(cwd: string, printer: Printer);
+    getPackageManagerController(): PackageManagerController;
 }
 
 // @public

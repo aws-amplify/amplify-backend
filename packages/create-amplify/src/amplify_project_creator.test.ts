@@ -1,5 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
+import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { printer } from './printer.js';
 
@@ -13,20 +14,25 @@ void describe('AmplifyProjectCreator', () => {
   });
 
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
-    const packageManagerControllerMock = { installDependencies: mock.fn() };
+    const packageManagerControllerMock = {
+      getWelcomeMessage: mock.fn(() => ''),
+      initializeProject: mock.fn(() => Promise.resolve()),
+      initializeTsConfig: mock.fn(() => Promise.resolve()),
+      installDependencies: mock.fn(() => Promise.resolve()),
+      runWithPackageManager: mock.fn(() => Promise.resolve() as never),
+      getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
+    };
     const projectRootValidatorMock = { validate: mock.fn() };
     const initialProjectFileGeneratorMock = {
       generateInitialProjectFiles: mock.fn(),
     };
-    const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
+      'testProjectRoot',
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      initialProjectFileGeneratorMock as never,
-      npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      process.cwd()
+      initialProjectFileGeneratorMock as never
     );
     await amplifyProjectCreator.create();
     assert.equal(
@@ -39,12 +45,8 @@ void describe('AmplifyProjectCreator', () => {
       1
     );
     assert.equal(
-      npmInitializedEnsurerMock.ensureInitialized.mock.callCount(),
-      1
-    );
-    assert.equal(
       logSpy.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `npx amplify sandbox`.'
+      "Welcome to AWS Amplify! \nNavigate to your project directory using\n'cd .testProjectRoot'.\nThen get started with the following commands:\n\n"
     );
     assert.equal(
       logSpy.mock.calls[5].arguments[0],
@@ -53,26 +55,31 @@ void describe('AmplifyProjectCreator', () => {
   });
 
   void it('should instruct users to use the custom project root', async () => {
-    const packageManagerControllerMock = { installDependencies: mock.fn() };
+    const packageManagerControllerMock: PackageManagerController = {
+      getWelcomeMessage: mock.fn(() => ''),
+      initializeProject: mock.fn(() => Promise.resolve()),
+      initializeTsConfig: mock.fn(() => Promise.resolve()),
+      installDependencies: mock.fn(() => Promise.resolve()),
+      runWithPackageManager: mock.fn(() => Promise.resolve() as never),
+      getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
+    };
     const projectRootValidatorMock = { validate: mock.fn() };
+    const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const initialProjectFileGeneratorMock = {
       generateInitialProjectFiles: mock.fn(),
     };
-    const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
-    const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
+      'testProjectRoot',
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      initialProjectFileGeneratorMock as never,
-      npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      '/project/root'
+      initialProjectFileGeneratorMock as never
     );
     await amplifyProjectCreator.create();
 
     assert.equal(
       logSpy.mock.calls[4].arguments[0],
-      'Welcome to AWS Amplify! \nRun `npx amplify help` for a list of available commands. \nGet started by running `cd ./project/root; npx amplify sandbox`.'
+      "Welcome to AWS Amplify! \nNavigate to your project directory using\n'cd .testProjectRoot'.\nThen get started with the following commands:\n\n"
     );
     assert.equal(
       logSpy.mock.calls[5].arguments[0],

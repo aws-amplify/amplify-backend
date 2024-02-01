@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.7.0
+
+### Minor Changes
+
+- 4c1485aa4: print out file written for amplify generate commands
+
 ## 0.6.1
 
 ### Patch Changes

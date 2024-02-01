@@ -87,9 +87,11 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       );
     }
 
-    if (authOutput.payload.oauthDomain) {
+    if (authOutput.payload.oauthClientId) {
       authClientConfig.oauth = {};
-      authClientConfig.oauth.domain = authOutput.payload.oauthDomain;
+      if (authOutput.payload.oauthDomain) {
+        authClientConfig.oauth.domain = authOutput.payload.oauthDomain;
+      }
       parseAndAssignObject(
         authClientConfig.oauth,
         'scope',

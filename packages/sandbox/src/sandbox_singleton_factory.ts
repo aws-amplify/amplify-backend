@@ -1,10 +1,13 @@
+import {
+  PackageManagerControllerFactory,
+  Printer,
+} from '@aws-amplify/cli-core';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { BackendIdSandboxResolver, Sandbox } from './sandbox.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { getSecretClient } from '@aws-amplify/backend-secret';
-import { Printer } from '@aws-amplify/cli-core';
 
 /**
  * Factory to create a new sandbox
@@ -24,10 +27,15 @@ export class SandboxSingletonFactory {
    */
   getInstance = async (): Promise<Sandbox> => {
     if (!this.instance) {
+      const packageManagerControllerFactory =
+        new PackageManagerControllerFactory(process.cwd(), this.printer);
+      const backendDeployerFactory = new BackendDeployerFactory(
+        packageManagerControllerFactory.getPackageManagerController()
+      );
       this.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
         new AmplifySandboxExecutor(
-          BackendDeployerFactory.getInstance(),
+          backendDeployerFactory.getInstance(),
           getSecretClient(),
           this.printer
         ),

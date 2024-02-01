@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { beforeEach, describe, it, mock } from 'node:test';
-import { executeWithDebugLogger } from './execute_with_logger.js';
+import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 const execaMock = mock.fn();
 
@@ -42,7 +42,7 @@ void describe(() => {
       throw new Error('test error');
     });
 
-    await assert.rejects(
+    assert.throws(
       () =>
         executeWithDebugLogger(
           '/testProjectRoot',

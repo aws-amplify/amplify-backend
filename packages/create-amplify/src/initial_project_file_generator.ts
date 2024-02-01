@@ -1,10 +1,9 @@
-import path from 'path';
-import _fs from 'fs/promises';
-import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_logger.js';
-import { execa } from 'execa';
+import _path from 'path';
+import _fsp from 'fs/promises';
+import { type PackageManagerController } from '@aws-amplify/plugin-types';
 
 /**
- *
+ * InitialProjectFileGenerator is responsible for copying getting started template to a new project directory
  */
 export class InitialProjectFileGenerator {
   /**
@@ -13,45 +12,29 @@ export class InitialProjectFileGenerator {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly fs = _fs,
-    private readonly executeWithDebugLogger = _executeWithDebugLogger
+    private readonly packageManagerController: PackageManagerController,
+    private readonly fsp = _fsp,
+    private readonly path = _path
   ) {}
 
   /**
    * Copies the template directory to an amplify folder within the projectRoot
    */
   generateInitialProjectFiles = async (): Promise<void> => {
-    const targetDir = path.resolve(this.projectRoot, 'amplify');
-    await this.fs.mkdir(targetDir, { recursive: true });
-    await this.fs.cp(
+    const targetDir = this.path.resolve(this.projectRoot, 'amplify');
+    await this.fsp.mkdir(targetDir, { recursive: true });
+    await this.fsp.cp(
       new URL('../templates/basic-auth-data/amplify', import.meta.url),
       targetDir,
       { recursive: true }
     );
 
     const packageJsonContent = { type: 'module' };
-    await this.fs.writeFile(
-      path.resolve(targetDir, 'package.json'),
+    await this.fsp.writeFile(
+      this.path.resolve(targetDir, 'package.json'),
       JSON.stringify(packageJsonContent, null, 2)
     );
 
-    await this.initializeTsConfig(targetDir);
-  };
-
-  private initializeTsConfig = async (targetDir: string): Promise<void> => {
-    const tscArgs = [
-      'tsc',
-      '--init',
-      '--resolveJsonModule',
-      'true',
-      '--module',
-      'es2022',
-      '--moduleResolution',
-      'bundler',
-      '--target',
-      'es2022',
-    ];
-
-    await this.executeWithDebugLogger(targetDir, 'npx', tscArgs, execa);
+    await this.packageManagerController.initializeTsConfig(targetDir);
   };
 }
