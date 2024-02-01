@@ -39,26 +39,29 @@ export class StackMetadataBackendOutputStorageStrategy
   /**
    * Creates a backend output entry that can be appended to.
    */
-  addAppendableBackendOutputEntry = (
+  addAppendableBackendOutputEntry = <U extends BackendOutputEntry>(
     keyName: string,
-    version: string
-  ): AppendableBackendOutputEntry => {
-    const outputs: Record<string, string> = {};
+    initialEntry: U
+  ): AppendableBackendOutputEntry<U> => {
+    Object.entries(initialEntry.payload).forEach(([key, value]) => {
+      new CfnOutput(this.stack, key, { value });
+    });
+    const entry = initialEntry;
     this.stack.addMetadata(keyName, {
-      version,
+      version: entry.version,
       stackOutputs: Lazy.list({
         produce: () => {
-          return Object.keys(outputs);
+          return Object.keys(entry.payload);
         },
       }),
     });
     return {
-      version,
+      version: entry.version,
       addToPayload: (key: string, value: string) => {
-        if (key in outputs) {
+        if (key in entry.payload) {
           throw new Error(`Output ${key} is already defined`);
         }
-        outputs[key] = value;
+        entry.payload[key] = value;
         new CfnOutput(this.stack, key, { value });
       },
     };

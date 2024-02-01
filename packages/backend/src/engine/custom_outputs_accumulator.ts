@@ -4,15 +4,23 @@ import {
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import { ClientConfig } from '@aws-amplify/client-config';
-import { customOutputKey } from '@aws-amplify/backend-output-schemas';
+import {
+  CustomOutput,
+  customOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 
 /**
  * Accumulates custom outputs as they're added to the backend.
  */
 export class CustomOutputsAccumulator {
-  private _backendOutputEntry: AppendableBackendOutputEntry | undefined;
+  private _backendOutputEntry:
+    | AppendableBackendOutputEntry<CustomOutput>
+    | undefined;
   private _customOutputCount = 0;
 
+  /**
+   * Creates custom outputs accumulator.
+   */
   constructor(
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ) {}
@@ -20,12 +28,15 @@ export class CustomOutputsAccumulator {
   /**
    * Gets or creates backend output entry.
    */
-  private get backendOutputEntry(): AppendableBackendOutputEntry {
+  private get backendOutputEntry(): AppendableBackendOutputEntry<CustomOutput> {
     if (!this._backendOutputEntry) {
       this._backendOutputEntry =
-        this.outputStorageStrategy.addAppendableBackendOutputEntry(
+        this.outputStorageStrategy.addAppendableBackendOutputEntry<CustomOutput>(
           customOutputKey,
-          '1'
+          {
+            version: '1',
+            payload: {},
+          }
         );
     }
     return this._backendOutputEntry;

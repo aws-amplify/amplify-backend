@@ -8,8 +8,8 @@ import {
  */
 export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
   addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
-  addAppendableBackendOutputEntry: (
+  addAppendableBackendOutputEntry: <U extends BackendOutputEntry>(
     keyName: string,
-    version: string
-  ) => AppendableBackendOutputEntry;
+    initialEntry: U
+  ) => AppendableBackendOutputEntry<U>;
 };
