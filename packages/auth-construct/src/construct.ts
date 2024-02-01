@@ -885,7 +885,7 @@ export class AmplifyAuth
         output.oauthRedirectSignOut = this.oAuthSettings.logoutUrls
           ? this.oAuthSettings.logoutUrls.join(',')
           : '';
-        output.webClientId = this.resources.userPoolClient.userPoolClientId;
+        output.oauthClientId = this.resources.userPoolClient.userPoolClientId;
         output.oauthResponseType = 'code';
       }
     }
