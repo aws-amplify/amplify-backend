@@ -1,9 +1,9 @@
 import * as assert from 'node:assert';
-import * as test from 'node:test';
+import { describe, it, mock } from 'node:test';
 import { execa } from 'execa';
 import { CdkInfoProvider } from './cdk_info_provider.js';
 
-void test.describe('CDK Info', () => {
+void describe('CDK Info', () => {
   const mockValue: string = `
 ℹ️ CDK Version: 2.110.1 (build 0d37f0d)
 ℹ️ AWS environment variables:
@@ -18,14 +18,14 @@ void test.describe('CDK Info', () => {
   - CDK_DISABLE_VERSION_CHECK = true
 `.trim();
 
-  const execaMock = test.mock.fn(() => {
+  const execaMock = mock.fn(() => {
     return Promise.resolve({
       all: mockValue,
       stderr: mockValue,
     });
   });
 
-  void test.it('gets info', async () => {
+  void it('gets info', async () => {
     const cdkInfoProvider = new CdkInfoProvider(
       execaMock as unknown as typeof execa
     );

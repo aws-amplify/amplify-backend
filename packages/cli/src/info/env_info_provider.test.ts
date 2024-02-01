@@ -1,10 +1,10 @@
 import * as os from 'node:os';
 import * as assert from 'node:assert';
-import * as test from 'node:test';
+import { describe, it, mock } from 'node:test';
 import { EnvironmentInfoProvider } from './env_info_provider.js';
 import envinfo from 'envinfo';
 
-void test.describe('Env Info', () => {
+void describe('Env Info', () => {
   const mockValue = {
     System: {
       CPU: 'fake',
@@ -41,13 +41,11 @@ void test.describe('Env Info', () => {
     },
   };
 
-  const infoMock = test.mock.fn(() =>
-    Promise.resolve(JSON.stringify(mockValue))
-  );
+  const infoMock = mock.fn(() => Promise.resolve(JSON.stringify(mockValue)));
 
-  test.mock.method(envinfo, 'run', infoMock);
+  mock.method(envinfo, 'run', infoMock);
 
-  void test.it('gets info', async () => {
+  void it('gets info', async () => {
     const expectedLines = [
       'System:',
       `  CPU: ${mockValue.System.CPU}`,
