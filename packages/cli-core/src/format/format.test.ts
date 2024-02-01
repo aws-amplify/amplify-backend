@@ -3,7 +3,7 @@ import * as assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { format } from './format.js';
 
-void describe('format utilities', () => {
+void describe('format', () => {
   void it('should create a list with each line preceded by a dash', () => {
     const lines = ['Item 1', 'Item 2', 'Item 3'];
     const expectedOutput = ` - Item 1${os.EOL} - Item 2${os.EOL} - Item 3`;

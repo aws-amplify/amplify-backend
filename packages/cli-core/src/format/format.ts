@@ -1,7 +1,7 @@
 import * as os from 'node:os';
 
 /**
- * Provides formatting utilities.
+ * Formats various inputs into single string.
  */
 export const format = {
   list: (lines: string[]) =>
