@@ -225,7 +225,6 @@ class AmplifyFunction
   implements ResourceProvider<FunctionResources>, ResourceAccessAcceptorFactory
 {
   readonly resources: FunctionResources;
-  private readonly lambda: NodejsFunction;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
@@ -234,11 +233,6 @@ class AmplifyFunction
     backendSecretResolver: BackendSecretResolver
   ) {
     super(scope, id);
-    this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
-      scope,
-      props['environment'],
-      backendSecretResolver
-    );
 
     const require = createRequire(import.meta.url);
     const bannerCodeFile = require.resolve('./resolve_secret_banner');
@@ -263,32 +257,20 @@ class AmplifyFunction
       },
     });
 
+    this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
+      functionLambda,
+      props['environment'],
+      backendSecretResolver
+    );
+
     this.resources = {
       lambda: functionLambda,
     };
-    this.lambda = functionLambda;
-
-    // this is a bit of a hack in order to late-bind resolution of ssm environment variables to the end of the synth process
-    this.node.addValidation({
-      validate: (): string[] => {
-        Object.entries(
-          this.functionEnvironmentTranslator.getEnvironmentRecord()
-        ).forEach(([envVarName, value]) => {
-          this.lambda.addEnvironment(envVarName, value);
-        });
-        const ssmPolicy =
-          this.functionEnvironmentTranslator.getSsmPolicyStatement();
-        if (ssmPolicy) {
-          functionLambda.grantPrincipal.addToPrincipalPolicy(ssmPolicy);
-        }
-        return [];
-      },
-    });
   }
 
   getResourceAccessAcceptor =
     () => (policy: Policy, ssmEnvironmentEntries: SsmEnvironmentEntry[]) => {
-      const role = this.lambda.role;
+      const role = this.resources.lambda.role;
       if (!role) {
         // This should never happen since we are using the Function L2 construct
         throw new Error(

@@ -56,7 +56,7 @@ export type AuthResources = {
   cfnResources: AuthCfnResources;
 };
 
-export type AuthRole = keyof Pick<
+export type AuthRoleName = keyof Pick<
   AuthResources,
   'authenticatedUserIamRole' | 'unauthenticatedUserIamRole'
 >;
