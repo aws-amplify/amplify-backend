@@ -1,5 +1,4 @@
 ---
-'@aws-amplify/integration-tests': minor
 '@aws-amplify/backend-deployer': minor
 'create-amplify': minor
 '@aws-amplify/plugin-types': minor
