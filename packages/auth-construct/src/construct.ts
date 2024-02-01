@@ -609,14 +609,6 @@ export class AmplifyAuth
     }
     if (external.google) {
       const googleProps = external.google;
-      const attributeMapping = {
-        ...googleProps.attributeMapping,
-        ...(shouldMapEmailAttributes
-          ? googleProps.attributeMapping?.email || {
-              email: { attributeName: 'email' },
-            }
-          : googleProps.attributeMapping?.email),
-      };
       result.google = new cognito.UserPoolIdentityProviderGoogle(
         this,
         `${this.name}GoogleIdP`,
@@ -624,7 +616,14 @@ export class AmplifyAuth
           userPool,
           clientId: googleProps.clientId,
           clientSecretValue: googleProps.clientSecret,
-          attributeMapping,
+          attributeMapping: {
+            ...googleProps.attributeMapping,
+            ...(shouldMapEmailAttributes
+              ? googleProps.attributeMapping?.email || {
+                  email: { attributeName: 'email' },
+                }
+              : googleProps.attributeMapping?.email),
+          };
           scopes: googleProps.scopes,
         }
       );
