@@ -39,7 +39,7 @@ export const storageAccessBuilder: EntityAccessBuilder = {
           'authenticatedUserIamRole'
         ),
       actions,
-      resourceSuffix: '',
+      resourceSuffix: '*',
     }),
   },
   unauthenticated: {
@@ -50,7 +50,7 @@ export const storageAccessBuilder: EntityAccessBuilder = {
           'unauthenticatedUserIamRole'
         ),
       actions,
-      resourceSuffix: '',
+      resourceSuffix: '*',
     }),
   },
   owner: {
@@ -61,7 +61,7 @@ export const storageAccessBuilder: EntityAccessBuilder = {
           'authenticatedUserIamRole'
         ),
       actions,
-      resourceSuffix: 'cognito-identity.amazon.com:sub',
+      resourceSuffix: '${cognito-identity.amazon.com:sub}/*',
     }),
   },
   resource: (other) => ({
@@ -69,7 +69,7 @@ export const storageAccessBuilder: EntityAccessBuilder = {
       getResourceAccessAcceptor: (getInstanceProps) =>
         other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
       actions,
-      resourceSuffix: '',
+      resourceSuffix: '*',
     }),
   }),
 };

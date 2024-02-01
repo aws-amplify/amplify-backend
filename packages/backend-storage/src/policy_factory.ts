@@ -37,7 +37,7 @@ export class BucketPolicyFactory {
     new PolicyStatement({
       actions: permission.actions.map((action) => actionMap[action]).flat(),
       resources: permission.resources.map(
-        (prefix) => `${this.bucket.bucketArn}/${prefix}`
+        (s3Prefix) => `${this.bucket.bucketArn}/${s3Prefix}`
       ),
     });
 }
