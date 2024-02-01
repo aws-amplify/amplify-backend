@@ -144,8 +144,7 @@ void describe('YarnModernPackageManagerController', () => {
           executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
-      // const writeFileMock = mock.fn(() => Promise.resolve());
-      // mock.method(fsp, 'writeFile', writeFileMock);
+
       await yarnModernPackageManagerController.initializeTsConfig('./amplify');
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
       assert.equal(fspMock.writeFile.mock.callCount(), 1);
