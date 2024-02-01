@@ -27,6 +27,12 @@ export enum COLOR {
     RED = "31m"
 }
 
+// @public
+export const format: {
+    list: (lines: string[]) => string;
+    indent: (message: string) => string;
+};
+
 // @public (undocumented)
 export enum LogLevel {
     // (undocumented)

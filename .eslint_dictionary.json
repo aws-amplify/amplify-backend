@@ -32,6 +32,7 @@
   "ecma",
   "enum",
   "enums",
+  "envinfo",
   "esbuild",
   "esnext",
   "execa",
