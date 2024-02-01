@@ -1239,6 +1239,20 @@ void describe('Auth construct', () => {
               clientSecret: oidcClientSecret,
               issuerUrl: oidcIssuerUrl,
               name: oidcProviderName,
+              attributeMapping: {
+                email: {
+                  attributeName: 'email',
+                },
+              },
+              attributeRequestMethod: 'POST',
+              endpoints: {
+                authorization: 'http://localhost:3000/authorization',
+                jwksUri: 'https://localhost:3000/jwksuri',
+                token: 'http://localhost:3000/token',
+                userInfo: 'http://localhost:3000/userinfo',
+              },
+              identifiers: ['one', 'two'],
+              scopes: ['scope1', 'scope2'],
             },
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
