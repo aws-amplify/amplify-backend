@@ -243,6 +243,10 @@ export type TriggerEvent = (typeof triggerEvents)[number];
  */
 export type AuthProps = {
   /**
+   * Specify a name which will aid in generating resource names.
+   */
+  name?: string;
+  /**
    * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
    */
   loginWith: {

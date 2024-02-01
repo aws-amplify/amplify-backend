@@ -31,6 +31,7 @@ export type AppleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAppleP
 
 // @public
 export type AuthProps = {
+    name?: string;
     loginWith: {
         email?: EmailLogin;
         phone?: PhoneNumberLogin;
