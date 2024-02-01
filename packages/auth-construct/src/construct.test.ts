@@ -1735,7 +1735,7 @@ void describe('Auth construct', () => {
         },
       });
     });
-    
+
     void it('automatically maps email attributes for external providers and keeps existing configuration', () => {
       const app = new App();
       const stack = new Stack(app);
