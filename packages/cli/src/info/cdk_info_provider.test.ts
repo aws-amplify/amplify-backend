@@ -8,6 +8,8 @@ void test.describe('CDK Info', () => {
 ℹ️ CDK Version: 2.110.1 (build 0d37f0d)
 ℹ️ AWS environment variables:
   - AWS_SESSION_TOKEN = <redacted>
+  - AWS_SECRET_ACCESS_KEY = <redacted>
+  - AWS_ACCESS_KEY_ID = <redacted>
   - AWS_STS_REGIONAL_ENDPOINTS = regional
   - AWS_NODEJS_CONNECTION_REUSE_ENABLED = 1
   - AWS_SDK_LOAD_CONFIG = 1

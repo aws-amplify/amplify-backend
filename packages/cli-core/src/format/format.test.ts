@@ -11,29 +11,26 @@ void test.describe('format utilities', () => {
     assert.strictEqual(actualOutput, expectedOutput);
   });
 
-  void test.it(
-    'should indent the message with the specified number of spaces',
-    () => {
-      const message = 'Hello\nWorld';
-      const expectedOutput = '  Hello\n  World';
-      const actualOutput = format.indent(message, 2);
-      assert.strictEqual(actualOutput, expectedOutput);
-    }
-  );
+  void test.it('should indent the message by two spaces', () => {
+    const message = `Hello${os.EOL}World`;
+    const expectedOutput = `  Hello${os.EOL}  World`;
+    const actualOutput = format.indent(message);
+    assert.strictEqual(actualOutput, expectedOutput);
+  });
 
-  void test.it('should not indent the message if the indent value is 0', () => {
-    const message = 'Hello\nWorld';
-    const expectedOutput = 'Hello\nWorld';
-    const actualOutput = format.indent(message, 0);
+  void test.it('should return an empty string when the input is empty', () => {
+    const message = '';
+    const expectedOutput = '';
+    const actualOutput = format.indent(message);
     assert.strictEqual(actualOutput, expectedOutput);
   });
 
   void test.it(
-    'should return the same message if the indent value is negative',
+    'should allow chaining indent calls to increase indentation',
     () => {
-      const message = 'Hello\nWorld';
-      const expectedOutput = 'Hello\nWorld';
-      const actualOutput = format.indent(message, -2);
+      const message = `Hello${os.EOL}World`;
+      const expectedOutput = `    Hello${os.EOL}    World`;
+      const actualOutput = format.indent(format.indent(message));
       assert.strictEqual(actualOutput, expectedOutput);
     }
   );

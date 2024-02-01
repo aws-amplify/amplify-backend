@@ -6,14 +6,14 @@ import * as os from 'node:os';
 export const format = {
   list: (lines: string[]) =>
     lines.map((line: string) => ` - ${line}`).join(os.EOL),
-  indent: (message: string, indentLevel: number) => {
-    if (indentLevel < 0) {
-      return message;
+  indent: (message: string) => {
+    if (message === '') {
+      return '';
     }
-    const spaces = ' '.repeat(indentLevel);
+    const spaces = '  '; // Two spaces for indentation
     return message
       .split('\n')
       .map((line) => `${spaces}${line}`)
-      .join('\n');
+      .join(os.EOL);
   },
 };

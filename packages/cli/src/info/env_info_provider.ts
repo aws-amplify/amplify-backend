@@ -39,24 +39,24 @@ export class EnvironmentInfoProvider {
       'System:',
       ...Object.entries(info.System).map(([part, details]) => {
         if (typeof details !== 'string') {
-          return format.indent(`${part}: ${details.path}`, 2);
+          return format.indent(`${part}: ${details.path}`);
         }
-        return format.indent(`${part}: ${details}`, 2);
+        return format.indent(`${part}: ${details}`);
       }),
     ];
     const binaries = [
       'Binaries:',
       ...Object.entries(info.Binaries).map(([name, binary]) => {
-        return format.indent(`${name}: ${binary.version} - ${binary.path}`, 2);
+        return format.indent(`${name}: ${binary.version} - ${binary.path}`);
       }),
     ];
     const npmPackages = [
       'NPM Packages:',
       ...Object.entries(info.npmPackages).map(([name, details]) => {
         if (typeof details !== 'string') {
-          return format.indent(`${name}: ${details.installed}`, 2);
+          return format.indent(`${name}: ${details.installed}`);
         }
-        return format.indent(`${name}: ${details}`, 2);
+        return format.indent(`${name}: ${details}`);
       }),
     ];
 

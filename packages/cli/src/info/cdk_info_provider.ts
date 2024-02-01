@@ -37,31 +37,26 @@ export class CdkInfoProvider {
     ];
 
     const lines = info.split(/\r\n|\r|\n/);
-    const formattedLines = lines.map((line) => {
-      //removes emoji from output
-      let formattedLine = line.replace(/[^\x20-\x7E]/g, '').trim();
+    const formattedLines = lines
+      .filter((line) => !sensitiveKeys.some((key) => line.includes(key)))
+      .map((line) => {
+        //removes emoji from output
+        let formattedLine = line.replace(/[^\x20-\x7E]/g, '').trim();
 
-      const containsSensitiveInfo = sensitiveKeys.some((key) =>
-        formattedLine.includes(key)
-      );
-      if (containsSensitiveInfo) {
-        return null;
-      }
+        if (
+          formattedLine.startsWith('AWS_') ||
+          formattedLine.startsWith('CDK_')
+        ) {
+          formattedLine = format.indent(formattedLine);
+        } else if (formattedLine.startsWith('- ')) {
+          formattedLine = format.indent(formattedLine.substring(2));
+        }
 
-      if (
-        formattedLine.startsWith('AWS_') ||
-        formattedLine.startsWith('CDK_')
-      ) {
-        formattedLine = format.indent(formattedLine, 2);
-      } else if (formattedLine.startsWith('- ')) {
-        formattedLine = format.indent(formattedLine.substring(2), 2);
-      }
-
-      return formattedLine;
-    });
+        return formattedLine;
+      });
 
     return formattedLines
-      .filter((line) => line !== null && !line.startsWith('CDK Version'))
+      .filter((line) => !line.startsWith('CDK Version'))
       .join('\n');
   }
 }
