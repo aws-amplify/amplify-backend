@@ -1,29 +1,29 @@
 import { BackendSecretResolver } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { Arn, Lazy, Stack } from 'aws-cdk-lib';
 import { FunctionProps } from './factory.js';
-import * as iam from 'aws-cdk-lib/aws-iam';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 /**
  * Translates function environment props into appropriate environment records and builds a policy statement
  * in order to resolve secrets in environment props.
  */
 export class FunctionEnvironmentTranslator {
-  private ssmPaths: string[] = [];
-  private environmentRecord: Record<string, string> = {};
+  private readonly ssmPaths: string[] = [];
   private readonly ssmEnvVars: SsmEnvVars = {};
+
   private readonly amplifySsmEnvConfigKey = 'AMPLIFY_SSM_ENV_CONFIG';
+  private readonly ssmValuePlaceholderText =
+    '<value will be resolved during runtime>';
 
   /**
    * Initialize translated environment variable records
    */
   constructor(
-    private readonly scope: Construct,
+    private readonly lambda: NodejsFunction, // we need to use a specific type here so that we have all the method goodies
     private readonly functionEnvironmentProp: Required<FunctionProps>['environment'],
     private readonly backendSecretResolver: BackendSecretResolver
   ) {
-    const ssmValuePlaceholderText = '<value will be resolved during runtime>';
-
     for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
       if (key === this.amplifySsmEnvConfigKey) {
         throw new Error(
@@ -33,46 +33,55 @@ export class FunctionEnvironmentTranslator {
       if (typeof value !== 'string') {
         const { branchSecretPath, sharedSecretPath } =
           this.backendSecretResolver.resolvePath(value);
-        this.environmentRecord[key] = ssmValuePlaceholderText;
+        this.lambda.addEnvironment(key, this.ssmValuePlaceholderText);
         this.ssmEnvVars[branchSecretPath] = {
           name: key,
           sharedPath: sharedSecretPath,
         };
         this.ssmPaths.push(branchSecretPath, sharedSecretPath);
       } else {
-        this.environmentRecord[key] = value;
+        this.lambda.addEnvironment(key, value);
       }
     }
+
+    // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
+    this.lambda.addEnvironment(
+      this.amplifySsmEnvConfigKey,
+      Lazy.string({
+        produce: () => JSON.stringify(this.ssmEnvVars),
+      })
+    );
+
+    const ssmAccessPolicy = new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ['ssm:GetParameters'],
+      // the resource list is computed lazily based on additional ssm environment entries that may have been added after initialization
+      resources: Lazy.list({
+        produce: () =>
+          this.ssmPaths.map((path) =>
+            Arn.format(
+              {
+                service: 'ssm',
+                resource: 'parameters',
+                resourceName: path,
+              },
+              Stack.of(this.lambda)
+            )
+          ),
+      }),
+    });
+    this.lambda.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
   }
 
+  /**
+   * Adds an environment variable to the lambda whose value will be fetched from SSM at runtime
+   * @param name The environment variable name
+   * @param ssmPath The SSM path where the value is stored
+   */
   addSsmEnvironmentEntry = (name: string, ssmPath: string) => {
+    this.lambda.addEnvironment(name, this.ssmValuePlaceholderText);
     this.ssmPaths.push(ssmPath);
     this.ssmEnvVars[ssmPath] = { name };
-  };
-
-  getEnvironmentRecord = () => {
-    this.environmentRecord[this.amplifySsmEnvConfigKey] = JSON.stringify(
-      this.ssmEnvVars
-    );
-    return this.environmentRecord;
-  };
-
-  getSsmPolicyStatement = (): iam.PolicyStatement | undefined => {
-    if (this.ssmPaths.length === 0) {
-      return;
-    }
-
-    const stack = Stack.of(this.scope);
-
-    const resourceArns = this.ssmPaths.map(
-      (path) => `arn:aws:ssm:${stack.region}:${stack.account}:parameter${path}`
-    );
-
-    return new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['ssm:GetParameters'],
-      resources: resourceArns,
-    });
   };
 }
 

@@ -5,7 +5,7 @@ import type { SsmEnvVars } from './function_env_translator.js';
 /**
  * The body of this function will be used to resolve secrets for Lambda functions
  */
-export const internalAmplifyFunctionBannerResolveSecrets = async (
+export const internalAmplifyFunctionBannerResolveSsmParams = async (
   client = new SSM()
 ) => {
   const envPathObject: SsmEnvVars = JSON.parse(
@@ -43,14 +43,20 @@ export const internalAmplifyFunctionBannerResolveSecrets = async (
   const response = await resolveSecrets(paths);
 
   const sharedPaths = (response?.InvalidParameters || [])
-    // This assertion is safe because we are filtering out undefined / null in the .filter below()
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    .map((invalidParam) => envPathObject[invalidParam].sharedPath!)
-    .filter((sharedParam) => !!sharedParam);
+    .map((invalidParam) => envPathObject[invalidParam].sharedPath)
+    .filter(
+      (sharedParam) => !!sharedParam
+    ) as string[]; /* this assertion is safe because we are filtering out undefined */
 
   if (sharedPaths.length > 0) {
     await resolveSecrets(sharedPaths);
   }
 };
 
-await internalAmplifyFunctionBannerResolveSecrets();
+await internalAmplifyFunctionBannerResolveSsmParams();
+
+const SSM_PARAMETER_REFRESH_MS = 1000 * 60; /* 1 minute */
+
+setInterval(() => {
+  void internalAmplifyFunctionBannerResolveSsmParams();
+}, SSM_PARAMETER_REFRESH_MS);
