@@ -28,7 +28,7 @@ export enum COLOR {
 // @public
 export const format: {
     list: (lines: string[]) => string;
-    indent: (message: string, indentLevel: number) => string;
+    indent: (message: string) => string;
 };
 
 // @public (undocumented)
