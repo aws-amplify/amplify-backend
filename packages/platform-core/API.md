@@ -64,7 +64,7 @@ export class AmplifyUserError extends AmplifyError {
 }
 
 // @public
-export type AmplifyUserErrorType = 'InvalidPackageJsonError' | 'InvalidSchemaAuthError' | 'InvalidSchemaError' | 'ExpiredTokenError' | 'CloudFormationDeploymentError' | 'CFNUpdateNotSupportedError' | 'SyntaxError' | 'BackendBuildError' | 'BootstrapNotDetectedError' | 'AccessDeniedError' | 'FileConventionError';
+export type AmplifyUserErrorType = 'InvalidPackageJsonError' | 'InvalidSchemaAuthError' | 'InvalidSchemaError' | 'ExpiredTokenError' | 'CloudFormationDeploymentError' | 'CFNUpdateNotSupportedError' | 'SyntaxError' | 'BackendBuildError' | 'BackendConfigurationError' | 'BootstrapNotDetectedError' | 'AccessDeniedError' | 'FileConventionError';
 
 // @public
 export class BackendIdentifierConversions {
@@ -143,8 +143,9 @@ export const packageJsonSchema: z.ZodObject<{
 
 // @public
 export class ParameterPathConversions {
-    static toParameterFullPath(backendId: BackendIdentifier | AppId, secretName: string): string;
+    static toParameterFullPath(backendId: BackendIdentifier | AppId, parameterName: string): string;
     static toParameterPrefix(backendId: BackendIdentifier | AppId): string;
+    static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
 }
 
 // @public

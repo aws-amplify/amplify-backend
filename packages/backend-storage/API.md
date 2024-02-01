@@ -6,12 +6,17 @@
 
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
+import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
-export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'>;
+export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
+    access?: (allow: EntityAccessBuilder) => Record<string, StorageAccess[]>;
+};
 
 // @public (undocumented)
 export type AmplifyStorageProps = {
@@ -20,12 +25,32 @@ export type AmplifyStorageProps = {
 };
 
 // @public
-export const defineStorage: (props: AmplifyStorageProps) => ConstructFactory<ResourceProvider<StorageResources>>;
+export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources>>;
+
+// @public (undocumented)
+export type EntityAccessBuilder = {
+    authenticated: StorageAccessBuilder;
+    unauthenticated: StorageAccessBuilder;
+    owner: StorageAccessBuilder;
+    resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => StorageAccessBuilder;
+};
+
+// @public (undocumented)
+export type StorageAccess = {
+    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
+    actions: StorageAction[];
+    resourceSuffix: string;
+};
 
 // @public (undocumented)
 export type StorageResources = {
     bucket: IBucket;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/access_builder.ts:16:3 - (ae-forgotten-export) The symbol "StorageAction" needs to be exported by the entry point index.d.ts
+// src/access_builder.ts:25:3 - (ae-forgotten-export) The symbol "StorageAccessBuilder" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
