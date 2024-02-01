@@ -4,7 +4,7 @@ import * as path from 'path';
 const amplifyLearnMoreUrl = 'https://docs.amplify.aws/gen2/how-amplify-works/';
 
 /**
- *
+ * ProjectRootValidator is responsible for validating that the given projectRoot path is a valid target for a new Amplify project
  */
 export class ProjectRootValidator {
   /**

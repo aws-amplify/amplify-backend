@@ -1,4 +1,7 @@
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendIdentifier,
+  type PackageManagerController,
+} from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
@@ -39,15 +42,23 @@ export class BackendDeployerFactory {
   private static instance: BackendDeployer | undefined;
 
   /**
+   * constructor - sets the packageManagerController
+   */
+  constructor(
+    private readonly packageManagerController: PackageManagerController
+  ) {}
+
+  /**
    * Returns a single instance of BackendDeployer
    */
-  static getInstance = (): BackendDeployer => {
+  getInstance(): BackendDeployer {
     if (!BackendDeployerFactory.instance) {
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(),
-        new BackendLocator()
+        new BackendLocator(),
+        this.packageManagerController
       );
     }
     return BackendDeployerFactory.instance;
-  };
+  }
 }
