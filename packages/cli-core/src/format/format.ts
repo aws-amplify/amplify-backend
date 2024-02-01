@@ -12,7 +12,7 @@ export const format = {
     }
     const spaces = '  '; // Two spaces for indentation
     return message
-      .split('\n')
+      .split(os.EOL)
       .map((line) => `${spaces}${line}`)
       .join(os.EOL);
   },
