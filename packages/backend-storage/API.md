@@ -43,14 +43,17 @@ export type StorageAccess = {
 };
 
 // @public (undocumented)
+export type StorageAccessBuilder = {
+    to: (...actions: StorageAction[]) => StorageAccess;
+};
+
+// @public (undocumented)
+export type StorageAction = 'read' | 'write' | 'delete';
+
+// @public (undocumented)
 export type StorageResources = {
     bucket: IBucket;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/access_builder.ts:16:3 - (ae-forgotten-export) The symbol "StorageAction" needs to be exported by the entry point index.d.ts
-// src/access_builder.ts:25:3 - (ae-forgotten-export) The symbol "StorageAccessBuilder" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
