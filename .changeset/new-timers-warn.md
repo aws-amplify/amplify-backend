@@ -8,4 +8,4 @@
 '@aws-amplify/backend-cli': minor
 ---
 
-Support additional package managers, such as yarn (version 1 and version 2+), pnpm.
+Support yarn 1, yarn 2+ and pnpm package managers
