@@ -623,7 +623,7 @@ export class AmplifyAuth
                   email: { attributeName: 'email' },
                 }
               : googleProps.attributeMapping?.email),
-          };
+          },
           scopes: googleProps.scopes,
         }
       );
