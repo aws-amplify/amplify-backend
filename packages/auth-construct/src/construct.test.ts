@@ -1231,7 +1231,7 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const authorizationURL = 'http://localhost:3000/authorization';
-      const jwksURL = 'https://localhost:3000/jwksuri';
+      const jwksURI = 'https://localhost:3000/jwksuri';
       const tokensURL = 'http://localhost:3000/token';
       const userInfoURL = 'http://localhost:3000/userinfo';
       const mockIdentifiers = ['one', 'two'];
@@ -1254,7 +1254,7 @@ void describe('Auth construct', () => {
               attributeRequestMethod: attributeRequestMethod,
               endpoints: {
                 authorization: authorizationURL,
-                jwksUri: jwksURL,
+                jwksUri: jwksURI,
                 token: tokensURL,
                 userInfo: userInfoURL,
               },
@@ -1283,7 +1283,7 @@ void describe('Auth construct', () => {
           authorize_url: authorizationURL,
           client_id: oidcClientId,
           client_secret: oidcClientSecret,
-          jwks_url: jwksURL,
+          jwks_uri: jwksURI,
           oidc_issuer: oidcIssuerUrl,
           token_url: tokensURL,
         },
