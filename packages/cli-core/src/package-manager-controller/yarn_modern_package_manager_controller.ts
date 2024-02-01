@@ -71,9 +71,6 @@ export class YarnModernPackageManagerController extends PackageManagerController
     }
   };
 
-  /**
-   * addTypescript - initializes a tsconfig.json file in the project root
-   */
   private addTypescript = async (targetDir: string) => {
     await this.executeWithDebugLogger(
       targetDir,
