@@ -16,6 +16,7 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import fs from 'fs';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -267,6 +268,15 @@ class AmplifyFunction
     this.resources = {
       lambda: functionLambda,
     };
+
+    this.node.addValidation({
+      validate: (): string[] => {
+        const functionEnvironmentTypeGenerator =
+          new FunctionEnvironmentTypeGenerator(id, props.entry);
+        functionEnvironmentTypeGenerator.generateTypeDefFile();
+        return [];
+      },
+    });
   }
 }
 

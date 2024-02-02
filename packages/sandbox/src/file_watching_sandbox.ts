@@ -47,7 +47,7 @@ export const getBootstrapUrl = (region: string) =>
  */
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
-  private outputFilesExcludedFromWatch = ['.amplify'];
+  private outputFilesExcludedFromWatch = ['.amplify', '**/amplify/*_env.ts'];
   private filesChangesTracker: FilesChangesTracker;
 
   /**
