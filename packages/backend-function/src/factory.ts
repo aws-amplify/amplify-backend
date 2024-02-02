@@ -227,9 +227,14 @@ class AmplifyFunction
   ) {
     super(scope, id);
 
+    const runtime = nodeVersionMap[props.runtime];
+
     const require = createRequire(import.meta.url);
-    const ssmResolverPath = require.resolve('./resolve_ssm_params_shim');
-    const cjsShimPath = require.resolve('./cjs_shim'); // replace require to fix dynamic require errors with cjs
+    const ssmResolverPath =
+      runtime === Runtime.NODEJS_16_X
+        ? require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2_shim')
+        : require.resolve('./lambda-shims/resolve_ssm_params_shim');
+    const cjsShimPath = require.resolve('./lambda-shims/cjs_shim'); // replace require to fix dynamic require errors with cjs
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
@@ -260,9 +265,10 @@ const isWholeNumberBetweenInclusive = (
   max: number
 ) => min <= test && test <= max && test % 1 === 0;
 
-export type NodeVersion = 18 | 20;
+export type NodeVersion = 16 | 18 | 20;
 
 const nodeVersionMap: Record<NodeVersion, Runtime> = {
+  16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
 };

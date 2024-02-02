@@ -224,12 +224,12 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets valid runtime', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
-        runtime: 20,
+        runtime: 16,
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(Stack.of(lambda.resources.lambda));
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: Runtime.NODEJS_20_X.name,
+        Runtime: Runtime.NODEJS_16_X.name,
       });
     });
 
@@ -251,7 +251,7 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             runtime: 14 as NodeVersion,
           }).getInstance(getInstanceProps),
-        new Error('runtime must be one of the following: 18, 20')
+        new Error('runtime must be one of the following: 16, 18, 20')
       );
     });
 
