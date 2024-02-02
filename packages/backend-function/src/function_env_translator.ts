@@ -65,7 +65,7 @@ export class FunctionEnvironmentTranslator {
                 Arn.format(
                   {
                     service: 'ssm',
-                    resource: 'parameters',
+                    resource: 'parameter',
                     resourceName: path,
                   },
                   Stack.of(this.lambda)

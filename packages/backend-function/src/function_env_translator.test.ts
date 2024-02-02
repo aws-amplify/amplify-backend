@@ -183,7 +183,7 @@ void describe('FunctionEnvironmentTranslator', () => {
                     {
                       Ref: 'AWS::AccountId',
                     },
-                    ':parameters/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
+                    ':parameter/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
                   ],
                 ],
               },
@@ -203,7 +203,7 @@ void describe('FunctionEnvironmentTranslator', () => {
                     {
                       Ref: 'AWS::AccountId',
                     },
-                    ':parameters/amplify/shared/testBackendId/secretValue',
+                    ':parameter/amplify/shared/testBackendId/secretValue',
                   ],
                 ],
               },
