@@ -35,8 +35,10 @@ export type AuthClientConfig = {
     };
 };
 
+// Warning: (ae-forgotten-export) The symbol "CustomClientConfig" needs to be exported by the entry point index.internal.d.ts
+//
 // @public
-export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig & PlatformClientConfig>;
+export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
 
 // @public (undocumented)
 export enum ClientConfigFormat {
