@@ -1,79 +1,107 @@
 import { BackendSecretResolver } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import { Arn, Lazy, Stack } from 'aws-cdk-lib';
 import { FunctionProps } from './factory.js';
-import * as iam from 'aws-cdk-lib/aws-iam';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 /**
  * Translates function environment props into appropriate environment records and builds a policy statement
  * in order to resolve secrets in environment props.
  */
 export class FunctionEnvironmentTranslator {
-  private secretPaths: string[] = [];
-  private environmentRecord: Record<string, string> = {};
+  private readonly ssmPaths: string[] = [];
+  private readonly ssmEnvVars: SsmEnvVars = {};
+
+  private readonly amplifySsmEnvConfigKey = 'AMPLIFY_SSM_ENV_CONFIG';
+  private readonly ssmValuePlaceholderText =
+    '<value will be resolved during runtime>';
 
   /**
    * Initialize translated environment variable records
    */
   constructor(
-    private readonly scope: Construct,
+    private readonly lambda: NodejsFunction, // we need to use a specific type here so that we have all the method goodies
     private readonly functionEnvironmentProp: Required<FunctionProps>['environment'],
     private readonly backendSecretResolver: BackendSecretResolver
   ) {
-    const secretPlaceholderText = '<value will be resolved during runtime>';
-    const amplifySecretPaths = 'AMPLIFY_SECRET_PATHS';
-    const secretPathEnvVars: AmplifySecretPaths = {};
-
     for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
-      if (key === amplifySecretPaths) {
+      if (key === this.amplifySsmEnvConfigKey) {
         throw new Error(
-          `${amplifySecretPaths} is a reserved environment variable name`
+          `${this.amplifySsmEnvConfigKey} is a reserved environment variable name`
         );
       }
       if (typeof value !== 'string') {
         const { branchSecretPath, sharedSecretPath } =
           this.backendSecretResolver.resolvePath(value);
-        this.environmentRecord[key] = secretPlaceholderText;
-        secretPathEnvVars[branchSecretPath] = {
+        this.lambda.addEnvironment(key, this.ssmValuePlaceholderText);
+        this.ssmEnvVars[branchSecretPath] = {
           name: key,
           sharedPath: sharedSecretPath,
         };
-        this.secretPaths.push(branchSecretPath, sharedSecretPath);
+        this.ssmPaths.push(branchSecretPath, sharedSecretPath);
       } else {
-        this.environmentRecord[key] = value;
+        this.lambda.addEnvironment(key, value);
       }
     }
 
-    this.environmentRecord[amplifySecretPaths] =
-      JSON.stringify(secretPathEnvVars);
-  }
-
-  getEnvironmentRecord = () => {
-    return this.environmentRecord;
-  };
-
-  getSecretPolicyStatement = (): iam.PolicyStatement | undefined => {
-    if (this.secretPaths.length === 0) {
-      return;
-    }
-
-    const stack = Stack.of(this.scope);
-
-    const resourceArns = this.secretPaths.map(
-      (path) => `arn:aws:ssm:${stack.region}:${stack.account}:parameter${path}`
+    // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
+    this.lambda.addEnvironment(
+      this.amplifySsmEnvConfigKey,
+      Lazy.string({
+        produce: () => JSON.stringify(this.ssmEnvVars),
+      })
     );
 
-    return new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
+    const ssmAccessPolicy = new PolicyStatement({
+      effect: Effect.ALLOW,
       actions: ['ssm:GetParameters'],
-      resources: resourceArns,
+      // the resource list is computed lazily based on additional ssm environment entries that may have been added after initialization
+      resources: Lazy.list({
+        produce: () =>
+          this.ssmPaths
+            .map((path) => (path.startsWith('/') ? path.slice(1) : path)) // the Arn formatter will add a leading slash between the resource and resourceName
+            .map((path) =>
+              Arn.format(
+                {
+                  service: 'ssm',
+                  resource: 'parameters',
+                  resourceName: path,
+                },
+                Stack.of(this.lambda)
+              )
+            ),
+      }),
     });
+    this.lambda.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
+  }
+
+  /**
+   * Adds an environment variable to the lambda whose value will be fetched from SSM at runtime
+   * @param name The environment variable name
+   * @param ssmPath The SSM path where the value is stored
+   */
+  addSsmEnvironmentEntry = (name: string, ssmPath: string) => {
+    this.lambda.addEnvironment(name, this.ssmValuePlaceholderText);
+    this.ssmPaths.push(ssmPath);
+    this.ssmEnvVars[ssmPath] = { name };
   };
 }
 
-export type AmplifySecretPaths = {
+/**
+ * Defines metadata around environment variable values that are fetched from SSM during runtime of the lambda function
+ */
+export type SsmEnvVars = {
+  /**
+   * The record key names are the branch-specific SSM paths to fetch the value from
+   */
   [branchPath: string]: {
+    /**
+     * The environment variable name to place the resolved value in
+     */
     name: string;
-    sharedPath: string;
+    /**
+     * An optional "fallback" SSM path where the value will be looked up if not found at the branch-specific path
+     */
+    sharedPath?: string;
   };
 };

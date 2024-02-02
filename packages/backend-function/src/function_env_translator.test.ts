@@ -7,9 +7,11 @@ import {
   BackendSecretResolver,
   ResolvePathResult,
 } from '@aws-amplify/plugin-types';
-import { SecretValue } from 'aws-cdk-lib';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Template } from 'aws-cdk-lib/assertions';
 
 const testStack = {} as Construct;
 
@@ -47,7 +49,7 @@ class TestBackendSecret implements BackendSecret {
   };
 }
 
-void describe('functionEnvironmentTranslator', () => {
+void describe('FunctionEnvironmentTranslator', () => {
   const backendResolver = new TestBackendSecretResolver();
 
   void it('translates env props that do not contain secrets', () => {
@@ -55,15 +57,23 @@ void describe('functionEnvironmentTranslator', () => {
       TEST_VAR: 'testValue',
     };
 
-    const functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
-      testStack,
+    const testLambda = getTestLambda();
+
+    new FunctionEnvironmentTranslator(
+      testLambda,
       functionEnvProp,
       backendResolver
     );
 
-    assert.deepEqual(functionEnvironmentTranslator.getEnvironmentRecord(), {
-      AMPLIFY_SECRET_PATHS: '{}',
-      TEST_VAR: 'testValue',
+    const template = Template.fromStack(Stack.of(testLambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Environment: {
+        Variables: {
+          AMPLIFY_SSM_ENV_CONFIG: '{}',
+          TEST_VAR: 'testValue',
+        },
+      },
     });
   });
 
@@ -73,35 +83,124 @@ void describe('functionEnvironmentTranslator', () => {
       TEST_SECRET: new TestBackendSecret('secretValue'),
     };
 
-    const functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
-      testStack,
+    const testLambda = getTestLambda();
+
+    new FunctionEnvironmentTranslator(
+      testLambda,
       functionEnvProp,
       backendResolver
     );
 
-    assert.deepEqual(functionEnvironmentTranslator.getEnvironmentRecord(), {
-      AMPLIFY_SECRET_PATHS: JSON.stringify({
-        '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue': {
-          name: 'TEST_SECRET',
-          sharedPath: '/amplify/shared/testBackendId/secretValue',
+    const template = Template.fromStack(Stack.of(testLambda));
+
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Environment: {
+        Variables: {
+          AMPLIFY_SSM_ENV_CONFIG: JSON.stringify({
+            '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue':
+              {
+                name: 'TEST_SECRET',
+                sharedPath: '/amplify/shared/testBackendId/secretValue',
+              },
+          }),
+          TEST_SECRET: '<value will be resolved during runtime>',
+          TEST_VAR: 'testValue',
         },
-      }),
-      TEST_SECRET: '<value will be resolved during runtime>',
-      TEST_VAR: 'testValue',
+      },
     });
   });
 
   void it('throws if function prop contains a reserved env name', () => {
     const functionEnvProp = {
-      AMPLIFY_SECRET_PATHS: 'test',
+      AMPLIFY_SSM_ENV_CONFIG: 'test',
     };
+
     assert.throws(
       () =>
         new FunctionEnvironmentTranslator(
-          testStack,
+          getTestLambda(),
           functionEnvProp,
           backendResolver
         )
     );
   });
+
+  void it('grants SSM read permissions for secret paths', () => {
+    const functionEnvProp = {
+      TEST_VAR: 'testValue',
+      TEST_SECRET: new TestBackendSecret('secretValue'),
+    };
+
+    const testLambda = getTestLambda();
+
+    new FunctionEnvironmentTranslator(
+      testLambda,
+      functionEnvProp,
+      backendResolver
+    );
+
+    const template = Template.fromStack(Stack.of(testLambda));
+
+    template.resourceCountIs('AWS::IAM::Policy', 1);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'ssm:GetParameters',
+            Resource: [
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    'arn:',
+                    {
+                      Ref: 'AWS::Partition',
+                    },
+                    ':ssm:',
+                    {
+                      Ref: 'AWS::Region',
+                    },
+                    ':',
+                    {
+                      Ref: 'AWS::AccountId',
+                    },
+                    ':parameters/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
+                  ],
+                ],
+              },
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    'arn:',
+                    {
+                      Ref: 'AWS::Partition',
+                    },
+                    ':ssm:',
+                    {
+                      Ref: 'AWS::Region',
+                    },
+                    ':',
+                    {
+                      Ref: 'AWS::AccountId',
+                    },
+                    ':parameters/amplify/shared/testBackendId/secretValue',
+                  ],
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+  });
 });
+
+const getTestLambda = () =>
+  new Function(new Stack(new App()), 'testFunction', {
+    code: Code.fromInline('test code'),
+    runtime: Runtime.NODEJS_20_X,
+    handler: 'handler',
+  });

@@ -1,11 +1,5 @@
 # @aws-amplify/backend-function
 
-## 0.6.4
-
-### Patch Changes
-
-- f2d829641: Inject shim for cjs require for functions
-
 ## 0.6.3
 
 ### Patch Changes

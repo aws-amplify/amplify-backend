@@ -13,7 +13,6 @@ import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import fs from 'fs';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 
@@ -75,6 +74,7 @@ export type FunctionProps = {
  * Create Lambda functions in the context of an Amplify backend definition
  */
 class FunctionFactory implements ConstructFactory<AmplifyFunction> {
+  provides?: string | undefined;
   private generator: ConstructContainerEntryGenerator;
   /**
    * Create a new AmplifyFunctionFactory
@@ -220,6 +220,7 @@ class AmplifyFunction
   implements ResourceProvider<FunctionResources>
 {
   readonly resources: FunctionResources;
+  private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
     id: string,
@@ -227,42 +228,28 @@ class AmplifyFunction
     backendSecretResolver: BackendSecretResolver
   ) {
     super(scope, id);
-    const functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
-      scope,
-      props['environment'],
-      backendSecretResolver
-    );
-    const environmentRecord =
-      functionEnvironmentTranslator.getEnvironmentRecord();
-    const secretPolicyStatement =
-      functionEnvironmentTranslator.getSecretPolicyStatement();
 
     const require = createRequire(import.meta.url);
-    const bannerCodeFile = require.resolve('./resolve_secret_banner');
-    const bannerCode = fs
-      .readFileSync(bannerCodeFile, 'utf-8')
-      .replaceAll('\n', '')
-      .replaceAll('\r', '')
-      .split('//#')[0]; // remove source map
-
-    const cjsShimRequire = require.resolve('./cjs_shim');
+    const ssmResolverPath = require.resolve('./resolve_ssm_params_shim');
+    const cjsShimPath = require.resolve('./cjs_shim'); // replace require to fix dynamic require errors with cjs
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
-      environment: environmentRecord as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
       timeout: Duration.seconds(props.timeoutSeconds),
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
       bundling: {
-        banner: bannerCode,
+        externalModules: ['@aws-sdk'],
         format: OutputFormat.ESM,
-        inject: [cjsShimRequire], // replace require to fix dynamic require errors with cjs
+        inject: [cjsShimPath, ssmResolverPath],
       },
     });
 
-    if (secretPolicyStatement) {
-      functionLambda.grantPrincipal.addToPrincipalPolicy(secretPolicyStatement);
-    }
+    this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
+      functionLambda,
+      props['environment'],
+      backendSecretResolver
+    );
 
     this.resources = {
       lambda: functionLambda,
