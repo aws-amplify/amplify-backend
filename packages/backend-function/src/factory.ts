@@ -234,7 +234,7 @@ class AmplifyFunction
     super(scope, id);
 
     const require = createRequire(import.meta.url);
-    const ssmResolverPath = require.resolve('./resolve_ssm_params');
+    const ssmResolverPath = require.resolve('./resolve_ssm_params_shim');
     const cjsShimPath = require.resolve('./cjs_shim'); // replace require to fix dynamic require errors with cjs
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
@@ -243,6 +243,7 @@ class AmplifyFunction
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
       bundling: {
+        externalModules: ['@aws-sdk'],
         format: OutputFormat.ESM,
         inject: [cjsShimPath, ssmResolverPath],
       },

@@ -60,7 +60,7 @@ void describe('FunctionEnvironmentTranslator', () => {
     const testLambda = getTestLambda();
 
     new FunctionEnvironmentTranslator(
-      getTestLambda(),
+      testLambda,
       functionEnvProp,
       backendResolver
     );
@@ -69,8 +69,10 @@ void describe('FunctionEnvironmentTranslator', () => {
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Environment: {
-        AMPLIFY_SSM_ENV_CONFIG: '{}',
-        TEST_VAR: 'testValue',
+        Variables: {
+          AMPLIFY_SSM_ENV_CONFIG: '{}',
+          TEST_VAR: 'testValue',
+        },
       },
     });
   });
@@ -94,15 +96,17 @@ void describe('FunctionEnvironmentTranslator', () => {
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Environment: {
-        AMPLIFY_SSM_ENV_CONFIG: JSON.stringify({
-          '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue':
-            {
-              name: 'TEST_SECRET',
-              sharedPath: '/amplify/shared/testBackendId/secretValue',
-            },
-        }),
-        TEST_SECRET: '<value will be resolved during runtime>',
-        TEST_VAR: 'testValue',
+        Variables: {
+          AMPLIFY_SSM_ENV_CONFIG: JSON.stringify({
+            '/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue':
+              {
+                name: 'TEST_SECRET',
+                sharedPath: '/amplify/shared/testBackendId/secretValue',
+              },
+          }),
+          TEST_SECRET: '<value will be resolved during runtime>',
+          TEST_VAR: 'testValue',
+        },
       },
     });
   });
