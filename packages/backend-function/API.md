@@ -23,7 +23,7 @@ export type FunctionProps = {
 };
 
 // @public (undocumented)
-export type NodeVersion = 18 | 20;
+export type NodeVersion = 16 | 18 | 20;
 
 // (No @packageDocumentation comment for this package)
 
