@@ -455,7 +455,6 @@ void describe('Auth construct', () => {
     const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
       {
         addBackendOutputEntry: storeOutputMock,
-        addAppendableBackendOutputEntry: mock.fn(),
       };
 
     void beforeEach(() => {
