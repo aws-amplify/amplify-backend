@@ -9,7 +9,7 @@ import type { SsmEnvVars } from './function_env_translator.js';
  * Reads SSM environment context from a known Amplify environment variable,
  * fetches values from SSM and places those values in the corresponding environment variables
  */
-export const internalAmplifyFunctionBannerResolveSsmParams = async (
+export const internalAmplifyFunctionResolveSsmParams = async (
   client = new SSM()
 ) => {
   const envPathObject: SsmEnvVars = JSON.parse(

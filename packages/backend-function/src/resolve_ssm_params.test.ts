@@ -1,6 +1,6 @@
 import { SSM } from '@aws-sdk/client-ssm';
 import { after, describe, it, mock } from 'node:test';
-import { internalAmplifyFunctionBannerResolveSsmParams } from './resolve_ssm_params.js';
+import { internalAmplifyFunctionResolveSsmParams } from './resolve_ssm_params.js';
 import assert from 'node:assert';
 
 void describe('internalAmplifyFunctionBannerResolveSsmParams', () => {
@@ -15,7 +15,7 @@ void describe('internalAmplifyFunctionBannerResolveSsmParams', () => {
   void it('noop if there are no secret path env vars', async () => {
     delete process.env.AMPLIFY_SSM_ENV_CONFIG;
     const mockGetParameters = mock.method(client, 'getParameters', mock.fn());
-    await internalAmplifyFunctionBannerResolveSsmParams(client);
+    await internalAmplifyFunctionResolveSsmParams(client);
     assert.equal(mockGetParameters.mock.callCount(), 0);
   });
 
@@ -39,7 +39,7 @@ void describe('internalAmplifyFunctionBannerResolveSsmParams', () => {
         ],
       })
     );
-    await internalAmplifyFunctionBannerResolveSsmParams(client);
+    await internalAmplifyFunctionResolveSsmParams(client);
     assert.equal(mockGetParameters.mock.callCount(), 1);
     assert.equal(process.env[envName], secretValue);
   });
