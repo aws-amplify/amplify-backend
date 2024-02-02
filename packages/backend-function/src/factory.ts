@@ -220,7 +220,6 @@ class AmplifyFunction
   implements ResourceProvider<FunctionResources>
 {
   readonly resources: FunctionResources;
-  private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
     id: string,
@@ -239,13 +238,12 @@ class AmplifyFunction
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
       bundling: {
-        externalModules: ['@aws-sdk'],
         format: OutputFormat.ESM,
         inject: [cjsShimPath, ssmResolverPath],
       },
     });
 
-    this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
+    new FunctionEnvironmentTranslator(
       functionLambda,
       props['environment'],
       backendSecretResolver
@@ -263,10 +261,9 @@ const isWholeNumberBetweenInclusive = (
   max: number
 ) => min <= test && test <= max && test % 1 === 0;
 
-export type NodeVersion = 16 | 18 | 20;
+export type NodeVersion = 18 | 20;
 
 const nodeVersionMap: Record<NodeVersion, Runtime> = {
-  16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
 };
