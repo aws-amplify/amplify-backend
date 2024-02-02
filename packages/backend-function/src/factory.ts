@@ -15,7 +15,6 @@ import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import fs from 'fs';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { Policy } from 'aws-cdk-lib/aws-iam';
@@ -235,25 +234,17 @@ class AmplifyFunction
     super(scope, id);
 
     const require = createRequire(import.meta.url);
-    const bannerCodeFile = require.resolve('./resolve_secret_banner');
-    const bannerCode = fs
-      .readFileSync(bannerCodeFile, 'utf-8')
-      .replaceAll('\n', '')
-      .replaceAll('\r', '')
-      .split('//#')[0]; // remove source map
+    const ssmResolverPath = require.resolve('./resolve_ssm_params');
+    const cjsShimPath = require.resolve('./cjs_shim'); // replace require to fix dynamic require errors with cjs
 
-    const cjsShimRequire = require.resolve('./cjs_shim');
-
-    // note that environment config is late-bound in the validation callback
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
       timeout: Duration.seconds(props.timeoutSeconds),
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
       bundling: {
-        banner: bannerCode,
         format: OutputFormat.ESM,
-        inject: [cjsShimRequire], // replace require to fix dynamic require errors with cjs
+        inject: [cjsShimPath, ssmResolverPath],
       },
     });
 

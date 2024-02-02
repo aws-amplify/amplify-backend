@@ -1,6 +1,6 @@
 import { SSM } from '@aws-sdk/client-ssm';
 import { after, describe, it, mock } from 'node:test';
-import { internalAmplifyFunctionBannerResolveSsmParams } from './resolve_ssm_params_banner.js';
+import { internalAmplifyFunctionBannerResolveSsmParams } from './resolve_ssm_params.js';
 import assert from 'node:assert';
 
 void describe('internalAmplifyFunctionBannerResolveSsmParams', () => {

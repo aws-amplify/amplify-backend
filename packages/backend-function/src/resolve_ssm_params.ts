@@ -1,9 +1,13 @@
-/* The code in this line replaces placeholder text in environment variables for secrets with values fetched from SSM, this is a noop if there are no secrets */
+/**
+ * This code loads environment values from SSM and places them in their corresponding environment variables.
+ * If there are no SSM environment values for this function, this is a noop.
+ */
 import { SSM } from '@aws-sdk/client-ssm';
 import type { SsmEnvVars } from './function_env_translator.js';
 
 /**
- * The body of this function will be used to resolve secrets for Lambda functions
+ * Reads SSM environment context from a known Amplify environment variable,
+ * fetches values from SSM and places those values in the corresponding environment variables
  */
 export const internalAmplifyFunctionBannerResolveSsmParams = async (
   client = new SSM()
@@ -44,19 +48,21 @@ export const internalAmplifyFunctionBannerResolveSsmParams = async (
 
   const sharedPaths = (response?.InvalidParameters || [])
     .map((invalidParam) => envPathObject[invalidParam].sharedPath)
-    .filter(
-      (sharedParam) => !!sharedParam
-    ) as string[]; /* this assertion is safe because we are filtering out undefined */
+    .filter((sharedParam) => !!sharedParam) as string[]; // this assertion is safe because we are filtering out undefined
 
   if (sharedPaths.length > 0) {
     await resolveSecrets(sharedPaths);
   }
 };
 
+// populate the ssm environment variables
 await internalAmplifyFunctionBannerResolveSsmParams();
 
 const SSM_PARAMETER_REFRESH_MS = 1000 * 60; /* 1 minute */
 
+// Schedule a refresh of the values.
+// This ensures that values stabilize after deployment.
+// And if a deployment is made that only affects SSM parameter values, this ensures those new values are picked up within the refresh rate
 setInterval(() => {
   void internalAmplifyFunctionBannerResolveSsmParams();
 }, SSM_PARAMETER_REFRESH_MS);

@@ -1,5 +1,5 @@
 import {
-  AuthRole,
+  AuthRoleName,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ResourceAccessAcceptor,
@@ -76,11 +76,11 @@ export const storageAccessBuilder: EntityAccessBuilder = {
 
 const getAuthRoleResourceAccessAcceptor = (
   getInstanceProps: ConstructFactoryGetInstanceProps,
-  roleName: AuthRole
+  roleName: AuthRoleName
 ) => {
   const resourceAccessAcceptor = getInstanceProps.constructContainer
     .getConstructFactory<
-      ResourceProvider & ResourceAccessAcceptorFactory<AuthRole>
+      ResourceProvider & ResourceAccessAcceptorFactory<AuthRoleName>
     >('AuthResources')
     ?.getInstance(getInstanceProps)
     .getResourceAccessAcceptor(roleName);
