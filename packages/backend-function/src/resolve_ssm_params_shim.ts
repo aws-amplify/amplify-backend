@@ -3,7 +3,7 @@ import { internalAmplifyFunctionResolveSsmParams } from './resolve_ssm_params.js
 // populate the ssm environment variables
 await internalAmplifyFunctionResolveSsmParams();
 
-const SSM_PARAMETER_REFRESH_MS = 1000 * 60; /* 1 minute */
+const SSM_PARAMETER_REFRESH_MS = 1000 * 60; // 1 minute
 
 // Schedule a refresh of the values.
 // This ensures that values stabilize after deployment.
