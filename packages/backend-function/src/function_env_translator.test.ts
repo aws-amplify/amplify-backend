@@ -126,6 +126,23 @@ void describe('FunctionEnvironmentTranslator', () => {
     );
   });
 
+  void it('does not add SSM policy if no ssm paths are present', () => {
+    const functionEnvProp = {
+      TEST_VAR: 'testValue',
+    };
+
+    const testLambda = getTestLambda();
+
+    new FunctionEnvironmentTranslator(
+      testLambda,
+      functionEnvProp,
+      backendResolver
+    );
+
+    const template = Template.fromStack(Stack.of(testLambda));
+    template.resourceCountIs('AWS::IAM::Policy', 0);
+  });
+
   void it('grants SSM read permissions for secret paths', () => {
     const functionEnvProp = {
       TEST_VAR: 'testValue',

@@ -52,27 +52,31 @@ export class FunctionEnvironmentTranslator {
       })
     );
 
-    const ssmAccessPolicy = new PolicyStatement({
-      effect: Effect.ALLOW,
-      actions: ['ssm:GetParameters'],
-      // the resource list is computed lazily based on additional ssm environment entries that may have been added after initialization
-      resources: Lazy.list({
-        produce: () =>
-          this.ssmPaths
-            .map((path) => (path.startsWith('/') ? path.slice(1) : path)) // the Arn formatter will add a leading slash between the resource and resourceName
-            .map((path) =>
-              Arn.format(
-                {
-                  service: 'ssm',
-                  resource: 'parameters',
-                  resourceName: path,
-                },
-                Stack.of(this.lambda)
-              )
-            ),
-      }),
+    this.lambda.node.addValidation({
+      validate: () => {
+        // only add the ssm access policy if there are ssm paths
+        if (this.ssmPaths.length > 0) {
+          const ssmAccessPolicy = new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ['ssm:GetParameters'],
+            resources: this.ssmPaths
+              .map((path) => (path.startsWith('/') ? path.slice(1) : path)) // the Arn formatter will add a leading slash between the resource and resourceName
+              .map((path) =>
+                Arn.format(
+                  {
+                    service: 'ssm',
+                    resource: 'parameters',
+                    resourceName: path,
+                  },
+                  Stack.of(this.lambda)
+                )
+              ),
+          });
+          this.lambda.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
+        }
+        return [];
+      },
     });
-    this.lambda.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
   }
 
   /**
