@@ -3,6 +3,7 @@ import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas'
 import { ClientConfig } from './client-config-types/client_config.js';
 import { ClientConfigContributor } from './client-config-contributor/client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
+import _ from 'lodash';
 
 /**
  * Right now this is mostly a stub. This will become a translation layer between backend output and frontend config
@@ -26,12 +27,12 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
       await this.fetchOutput()
     );
 
-    let accumulator = {};
+    const accumulator = {};
     for (const contributor of this.clientConfigContributors) {
-      accumulator = {
-        ...accumulator,
-        ...(await contributor.contribute(backendOutput)),
-      };
+      const clientConfigContribution = await contributor.contribute(
+        backendOutput
+      );
+      _.merge(accumulator, clientConfigContribution);
     }
     return accumulator;
   };
