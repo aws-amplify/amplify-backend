@@ -26,7 +26,7 @@ export class CustomOutputsAccumulator {
       this.outputStorageStrategy.addBackendOutputEntry(customOutputKey, {
         version: '1',
         payload: {
-          customClientConfig: Lazy.string({
+          customOutputs: Lazy.string({
             produce: () => {
               return JSON.stringify(this.accumulatedClientConfig);
             },

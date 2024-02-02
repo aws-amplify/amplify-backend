@@ -92,7 +92,7 @@ class CustomOutputsTestProject extends TestProjectBase {
     );
     assert.ok(clientConfig.custom?.restApiUrl);
     assert.ok(
-      /https:\/\/\S+\.execute-api\.\S+\.amazonaws\.com\/prod\//.test(
+      /^https:\/\/\S+\.execute-api\.\S+\.amazonaws\.com\/prod\//.test(
         clientConfig.custom?.restApiUrl ?? 'undefined'
       )
     );

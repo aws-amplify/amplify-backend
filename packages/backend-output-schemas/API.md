@@ -311,13 +311,23 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     }>]>>;
     "AWS::Amplify::Custom": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
-        payload: z.ZodRecord<z.ZodString, z.ZodString>;
+        payload: z.ZodObject<{
+            customOutputs: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            customOutputs: string;
+        }, {
+            customOutputs: string;
+        }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
-        payload: Record<string, string>;
+        payload: {
+            customOutputs: string;
+        };
     }, {
         version: "1";
-        payload: Record<string, string>;
+        payload: {
+            customOutputs: string;
+        };
     }>]>>;
 }, "strip", z.ZodTypeAny, {
     "AWS::Amplify::Platform"?: {
@@ -377,7 +387,9 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     } | undefined;
     "AWS::Amplify::Custom"?: {
         version: "1";
-        payload: Record<string, string>;
+        payload: {
+            customOutputs: string;
+        };
     } | undefined;
 }, {
     "AWS::Amplify::Platform"?: {
@@ -437,7 +449,9 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     } | undefined;
     "AWS::Amplify::Custom"?: {
         version: "1";
-        payload: Record<string, string>;
+        payload: {
+            customOutputs: string;
+        };
     } | undefined;
 }>;
 
@@ -576,13 +590,23 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
 // @public (undocumented)
 export const versionedCustomOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
     version: z.ZodLiteral<"1">;
-    payload: z.ZodRecord<z.ZodString, z.ZodString>;
+    payload: z.ZodObject<{
+        customOutputs: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        customOutputs: string;
+    }, {
+        customOutputs: string;
+    }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
-    payload: Record<string, string>;
+    payload: {
+        customOutputs: string;
+    };
 }, {
     version: "1";
-    payload: Record<string, string>;
+    payload: {
+        customOutputs: string;
+    };
 }>]>;
 
 // @public (undocumented)
