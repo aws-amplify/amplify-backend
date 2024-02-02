@@ -54,7 +54,6 @@ In this example, you will create a stack with email, phone, and external login p
 ```ts
 import { App, Stack, SecretValue } from 'aws-cdk-lib';
 import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
-import { UserPoolIdentityProviderSamlMetadataType } from 'aws-cdk-lib/aws-cognito';
 
 const app = new App();
 const stack = new Stack(app, 'AuthStack');
@@ -101,7 +100,7 @@ new AmplifyAuth(stack, 'Auth', {
         name: 'samlProviderName',
         metadata: {
           metadataContent: 'samlMetadataContent',
-          metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+          metadataType: 'FILE',
         },
       },
     },

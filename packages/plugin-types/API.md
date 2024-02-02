@@ -9,10 +9,12 @@ import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
+import { ExecaChildProcess } from 'execa';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { Options } from 'execa';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
@@ -74,13 +76,13 @@ export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
 // @public (undocumented)
 export type BackendSecret = {
     resolve: (scope: Construct, backendIdentifier: BackendIdentifier) => SecretValue;
-    resolvePath: (backendIdentifier: BackendIdentifier) => string;
+    resolvePath: (backendIdentifier: BackendIdentifier) => ResolvePathResult;
 };
 
 // @public (undocumented)
 export type BackendSecretResolver = {
     resolveSecret: (backendSecret: BackendSecret) => SecretValue;
-    resolvePath: (backendSecret: BackendSecret) => string;
+    resolvePath: (backendSecret: BackendSecret) => ResolvePathResult;
 };
 
 // @public (undocumented)
@@ -136,7 +138,23 @@ export type MainStackNameResolver = {
 };
 
 // @public (undocumented)
+export type PackageManagerController = {
+    getWelcomeMessage: () => string;
+    initializeProject: () => Promise<void>;
+    initializeTsConfig: (targetDir: string) => Promise<void>;
+    installDependencies: (packageNames: string[], type: 'dev' | 'prod') => Promise<void>;
+    runWithPackageManager: (args: string[] | undefined, dir: string, options?: Options<'utf8'>) => ExecaChildProcess;
+    getCommand: (args: string[]) => string;
+};
+
+// @public (undocumented)
 export type ProjectName = string;
+
+// @public (undocumented)
+export type ResolvePathResult = {
+    branchSecretPath: string;
+    sharedSecretPath: string;
+};
 
 // @public
 export type ResourceProvider<T extends object = object> = {

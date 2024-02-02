@@ -76,6 +76,14 @@ export class SomeDerivedClass2<T1, T2 extends SampleType, T3, T4, T5, T6>
   someProperty: T1;
 }
 
+export class SomeClassWithTemplateMethodAndVarArg {
+  someTemplateMethodWithVarArg = <T extends Record<string | number, string>>(
+    ...objects: T[]
+  ): void => {
+    throw new Error();
+  };
+}
+
 export const someFunction1 = (): void => {
   throw new Error();
 };
@@ -89,6 +97,9 @@ export const someFunction4 = <T1, T2, T3>(
   param1: T1,
   param2?: T2
 ): Promise<T3> => {
+  throw new Error();
+};
+export const someFunction5 = (param1: string, ...param2: number[]): string => {
   throw new Error();
 };
 

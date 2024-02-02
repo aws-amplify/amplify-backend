@@ -19,6 +19,7 @@ import {
   UserPoolIdentityProviderGoogle,
   UserPoolIdentityProviderOidc,
   UserPoolIdentityProviderSaml,
+  UserPoolIdentityProviderSamlMetadataType,
   UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
@@ -102,6 +103,8 @@ export class AmplifyAuth
 
   private readonly oAuthSettings: cognito.OAuthSettings | undefined;
 
+  private readonly name: string;
+
   /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
@@ -113,11 +116,13 @@ export class AmplifyAuth
   ) {
     super(scope, id);
 
+    this.name = props.name ?? '';
+
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
     this.userPool = new cognito.UserPool(
       this,
-      'UserPool',
+      `${this.name}UserPool`,
       this.computedUserPoolProps
     );
 
@@ -132,7 +137,7 @@ export class AmplifyAuth
       this.domainPrefix &&
       this.providerSetupResult.providersList.length > 0
     ) {
-      this.userPool.addDomain('UserPoolDomain', {
+      this.userPool.addDomain(`${this.name}UserPoolDomain`, {
         cognitoDomain: { domainPrefix: this.domainPrefix },
       });
     } else if (
@@ -173,7 +178,7 @@ export class AmplifyAuth
     // UserPool Client
     const userPoolClient = new cognito.UserPoolClient(
       this,
-      'UserPoolAppClient',
+      `${this.name}UserPoolAppClient`,
       {
         userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
@@ -243,7 +248,7 @@ export class AmplifyAuth
    */
   private setupAuthAndUnAuthRoles = (identityPoolId: string): DefaultRoles => {
     const result: DefaultRoles = {
-      auth: new Role(this, 'authenticatedUserRole', {
+      auth: new Role(this, `${this.name}authenticatedUserRole`, {
         assumedBy: new FederatedPrincipal(
           'cognito-identity.amazonaws.com',
           {
@@ -257,7 +262,7 @@ export class AmplifyAuth
           'sts:AssumeRoleWithWebIdentity'
         ),
       }),
-      unAuth: new Role(this, 'unauthenticatedUserRole', {
+      unAuth: new Role(this, `${this.name}unauthenticatedUserRole`, {
         assumedBy: new FederatedPrincipal(
           'cognito-identity.amazonaws.com',
           {
@@ -285,14 +290,19 @@ export class AmplifyAuth
   ) => {
     // setup identity pool
     const region = Stack.of(this).region;
-    const identityPool = new cognito.CfnIdentityPool(this, 'IdentityPool', {
-      allowUnauthenticatedIdentities: DEFAULTS.ALLOW_UNAUTHENTICATED_IDENTITIES,
-    });
+    const identityPool = new cognito.CfnIdentityPool(
+      this,
+      `${this.name}IdentityPool`,
+      {
+        allowUnauthenticatedIdentities:
+          DEFAULTS.ALLOW_UNAUTHENTICATED_IDENTITIES,
+      }
+    );
     const roles = this.setupAuthAndUnAuthRoles(identityPool.ref);
     const identityPoolRoleAttachment =
       new cognito.CfnIdentityPoolRoleAttachment(
         this,
-        'IdentityPoolRoleAttachment',
+        `${this.name}IdentityPoolRoleAttachment`,
         {
           identityPoolId: identityPool.ref,
           roles: {
@@ -583,6 +593,11 @@ export class AmplifyAuth
     userPool: UserPool,
     loginOptions: AuthProps['loginWith']
   ): IdentityProviderSetupResult => {
+    /**
+     * If email is enabled, and is the only required attribute, we are able to
+     * automatically map the email attribute from external providers, excluding SAML.
+     */
+    const shouldMapEmailAttributes = loginOptions.email && !loginOptions.phone;
     const result: IdentityProviderSetupResult = {
       oauthMappings: {},
       providersList: [],
@@ -596,12 +611,19 @@ export class AmplifyAuth
       const googleProps = external.google;
       result.google = new cognito.UserPoolIdentityProviderGoogle(
         this,
-        'GoogleIdP',
+        `${this.name}GoogleIdP`,
         {
           userPool,
           clientId: googleProps.clientId,
           clientSecretValue: googleProps.clientSecret,
-          attributeMapping: googleProps.attributeMapping,
+          attributeMapping:
+            googleProps.attributeMapping ?? shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
           scopes: googleProps.scopes,
         }
       );
@@ -611,10 +633,18 @@ export class AmplifyAuth
     if (external.facebook) {
       result.facebook = new cognito.UserPoolIdentityProviderFacebook(
         this,
-        'FacebookIDP',
+        `${this.name}FacebookIDP`,
         {
           userPool,
           ...external.facebook,
+          attributeMapping:
+            external.facebook.attributeMapping ?? shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
         }
       );
       result.oauthMappings[authProvidersList.facebook] =
@@ -624,10 +654,19 @@ export class AmplifyAuth
     if (external.loginWithAmazon) {
       result.amazon = new cognito.UserPoolIdentityProviderAmazon(
         this,
-        'AmazonIDP',
+        `${this.name}AmazonIDP`,
         {
           userPool,
           ...external.loginWithAmazon,
+          attributeMapping:
+            external.loginWithAmazon.attributeMapping ??
+            shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
         }
       );
       result.oauthMappings[authProvidersList.amazon] =
@@ -637,10 +676,19 @@ export class AmplifyAuth
     if (external.signInWithApple) {
       result.apple = new cognito.UserPoolIdentityProviderApple(
         this,
-        'AppleIDP',
+        `${this.name}AppleIDP`,
         {
           userPool,
           ...external.signInWithApple,
+          attributeMapping:
+            external.signInWithApple.attributeMapping ??
+            shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
         }
       );
       result.oauthMappings[authProvidersList.apple] =
@@ -648,17 +696,44 @@ export class AmplifyAuth
       result.providersList.push('APPLE');
     }
     if (external.oidc) {
-      result.oidc = new cognito.UserPoolIdentityProviderOidc(this, 'OidcIDP', {
-        userPool,
-        ...external.oidc,
-      });
+      result.oidc = new cognito.UserPoolIdentityProviderOidc(
+        this,
+        `${this.name}OidcIDP`,
+        {
+          userPool,
+          ...external.oidc,
+          attributeMapping:
+            external.oidc.attributeMapping ?? shouldMapEmailAttributes
+              ? {
+                  email: {
+                    attributeName: 'email',
+                  },
+                }
+              : undefined,
+        }
+      );
       result.providersList.push('OIDC');
     }
     if (external.saml) {
-      result.saml = new cognito.UserPoolIdentityProviderSaml(this, 'SamlIDP', {
-        userPool,
-        ...external.saml,
-      });
+      const saml = external.saml;
+      result.saml = new cognito.UserPoolIdentityProviderSaml(
+        this,
+        `${this.name}SamlIDP`,
+        {
+          userPool,
+          attributeMapping: saml.attributeMapping,
+          identifiers: saml.identifiers,
+          idpSignout: saml.idpSignout,
+          metadata: {
+            metadataContent: saml.metadata.metadataContent,
+            metadataType:
+              saml.metadata.metadataType === 'FILE'
+                ? UserPoolIdentityProviderSamlMetadataType.FILE
+                : UserPoolIdentityProviderSamlMetadataType.URL,
+          },
+          name: saml.name,
+        }
+      );
       result.providersList.push('SAML');
     }
     return result;
@@ -695,8 +770,12 @@ export class AmplifyAuth
       webClientId: this.resources.userPoolClient.userPoolClientId,
       identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
+      allowUnauthenticatedIdentities:
+        this.resources.cfnResources.cfnIdentityPool
+          .allowUnauthenticatedIdentities === true
+          ? 'true'
+          : 'false',
     };
-
     if (this.computedUserPoolProps.standardAttributes) {
       const signupAttributes = Object.entries(
         this.computedUserPoolProps.standardAttributes
@@ -823,7 +902,7 @@ export class AmplifyAuth
         output.oauthRedirectSignOut = this.oAuthSettings.logoutUrls
           ? this.oAuthSettings.logoutUrls.join(',')
           : '';
-        output.webClientId = this.resources.userPoolClient.userPoolClientId;
+        output.oauthClientId = this.resources.userPoolClient.userPoolClientId;
         output.oauthResponseType = 'code';
       }
     }

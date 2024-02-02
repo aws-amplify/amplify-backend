@@ -4,13 +4,14 @@ import {
   generateCommandFailureHandler,
 } from './error_handler.js';
 import { Argv } from 'yargs';
-import { COLOR, Printer } from '@aws-amplify/cli-core';
+import { COLOR } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
 import { InvalidCredentialError } from './error/credential_error.js';
+import { printer } from './printer.js';
+
+const mockPrint = mock.method(printer, 'print');
 
 void describe('generateCommandFailureHandler', () => {
-  const mockPrint = mock.method(Printer, 'print');
-
   const mockShowHelp = mock.fn();
   const mockExit = mock.fn();
 
@@ -71,11 +72,24 @@ void describe('generateCommandFailureHandler', () => {
     assert.match(mockPrint.mock.calls[0].arguments[0], new RegExp(errMsg));
     assert.equal(mockPrint.mock.calls[0].arguments[1], COLOR.RED);
   });
+
+  void it('prints error cause message, if any', () => {
+    const errorMessage = 'this is the upstream cause';
+    generateCommandFailureHandler(parser)(
+      '',
+      new Error('some error msg', { cause: new Error(errorMessage) })
+    );
+    assert.equal(mockExit.mock.callCount(), 1);
+    assert.equal(mockPrint.mock.callCount(), 2);
+    assert.match(
+      mockPrint.mock.calls[1].arguments[0],
+      new RegExp(errorMessage)
+    );
+    assert.equal(mockPrint.mock.calls[1].arguments[1], COLOR.RED);
+  });
 });
 
 void describe('attachUnhandledExceptionListeners', { concurrency: 1 }, () => {
-  const mockPrint = mock.method(Printer, 'print');
-
   before(() => {
     attachUnhandledExceptionListeners();
   });

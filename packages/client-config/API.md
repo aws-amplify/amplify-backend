@@ -24,6 +24,7 @@ export type AuthClientConfig = {
     };
     aws_cognito_verification_mechanisms?: string[];
     aws_cognito_social_providers?: string[];
+    allowUnauthenticatedIdentities?: string;
     oauth?: {
         domain?: string;
         scope?: string[];
@@ -55,7 +56,7 @@ export enum ClientConfigFormat {
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier) => Promise<ClientConfig>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat) => Promise<void>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
 
 // @public
 export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;

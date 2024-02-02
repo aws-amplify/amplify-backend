@@ -35,6 +35,10 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       aws_user_pools_web_client_id: authOutput.payload.webClientId,
       aws_cognito_identity_pool_id: authOutput.payload.identityPoolId,
     };
+    if (authOutput.payload.allowUnauthenticatedIdentities !== undefined) {
+      authClientConfig.allowUnauthenticatedIdentities =
+        authOutput.payload.allowUnauthenticatedIdentities;
+    }
 
     parseAndAssignObject(
       authClientConfig,
@@ -83,9 +87,11 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       );
     }
 
-    if (authOutput.payload.oauthDomain) {
+    if (authOutput.payload.oauthClientId) {
       authClientConfig.oauth = {};
-      authClientConfig.oauth.domain = authOutput.payload.oauthDomain;
+      if (authOutput.payload.oauthDomain) {
+        authClientConfig.oauth.domain = authOutput.payload.oauthDomain;
+      }
       parseAndAssignObject(
         authClientConfig.oauth,
         'scope',

@@ -1,5 +1,25 @@
 # @aws-amplify/model-generator
 
+## 0.3.0
+
+### Minor Changes
+
+- 4c1485aa4: print out file written for amplify generate commands
+
+## 0.2.7
+
+### Patch Changes
+
+- Updated dependencies [618a2ea71]
+  - @aws-amplify/backend-output-schemas@0.5.2
+  - @aws-amplify/deployed-backend-client@0.3.9
+
+## 0.2.6
+
+### Patch Changes
+
+- @aws-amplify/deployed-backend-client@0.3.8
+
 ## 0.2.5
 
 ### Patch Changes

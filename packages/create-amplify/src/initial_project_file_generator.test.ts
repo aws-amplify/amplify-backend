@@ -10,15 +10,24 @@ void describe('InitialProjectFileGenerator', () => {
     writeFile: mock.fn(),
   };
   const executeWithDebugLoggerMock = mock.fn();
+  const packageManagerControllerMock = {
+    getWelcomeMessage: mock.fn(() => ''),
+    initializeProject: mock.fn(() => Promise.resolve()),
+    initializeTsConfig: mock.fn(() => Promise.resolve()),
+    installDependencies: mock.fn(() => Promise.resolve()),
+    runWithPackageManager: mock.fn(() => Promise.resolve() as never),
+    getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
+  };
   beforeEach(() => {
     executeWithDebugLoggerMock.mock.resetCalls();
+    packageManagerControllerMock.initializeTsConfig.mock.resetCalls();
   });
 
   void it('creates target directory and copies files', async () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       path.join(process.cwd(), 'testDir'),
-      fsMock as never,
-      executeWithDebugLoggerMock as never
+      packageManagerControllerMock,
+      fsMock as never
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
 
@@ -44,29 +53,21 @@ void describe('InitialProjectFileGenerator', () => {
   void it('creates default tsconfig file', async () => {
     const initialProjectFileGenerator = new InitialProjectFileGenerator(
       path.join(process.cwd(), 'testDir'),
-      fsMock as never,
-      executeWithDebugLoggerMock as never
+      packageManagerControllerMock,
+      fsMock as never
     );
     await initialProjectFileGenerator.generateInitialProjectFiles();
-    assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
+
+    assert.equal(
+      packageManagerControllerMock.initializeTsConfig.mock.callCount(),
+      1
+    );
     assert.deepStrictEqual(
-      executeWithDebugLoggerMock.mock.calls[0].arguments.slice(0, 3),
-      [
-        path.join(process.cwd(), 'testDir', 'amplify'),
-        'npx',
-        [
-          'tsc',
-          '--init',
-          '--resolveJsonModule',
-          'true',
-          '--module',
-          'es2022',
-          '--moduleResolution',
-          'bundler',
-          '--target',
-          'es2022',
-        ],
-      ]
+      packageManagerControllerMock.initializeTsConfig.mock.calls[0].arguments.slice(
+        0,
+        3
+      ),
+      [path.join(process.cwd(), 'testDir', 'amplify')]
     );
   });
 });

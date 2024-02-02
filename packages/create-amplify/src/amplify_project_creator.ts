@@ -1,10 +1,10 @@
 import kleur from 'kleur';
-import { PackageManagerController } from './package_manager_controller.js';
+import { LogLevel } from '@aws-amplify/cli-core';
+import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { ProjectRootValidator } from './project_root_validator.js';
-import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { NpmProjectInitializer } from './npm_project_initializer.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
-import { logger } from './logger.js';
+import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import { printer } from './printer.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK = kleur.blue(
   `https://docs.amplify.aws/gen2/reference/telemetry`
@@ -17,9 +17,8 @@ export class AmplifyProjectCreator {
   private readonly defaultDevPackages = [
     '@aws-amplify/backend',
     '@aws-amplify/backend-cli',
-    // TODO figure out how do we manage CDK version here as part of https://github.com/aws-amplify/amplify-backend/issues/392
-    'aws-cdk@2.110.1',
-    'aws-cdk-lib@2.110.1',
+    'aws-cdk@^2',
+    'aws-cdk-lib@^2',
     'constructs@^10.0.0',
     'typescript@^5.0.0',
   ];
@@ -31,35 +30,37 @@ export class AmplifyProjectCreator {
    * Delegates out to other classes that handle parts of the getting started experience
    */
   constructor(
+    private readonly projectRoot: string,
     private readonly packageManagerController: PackageManagerController,
     private readonly projectRootValidator: ProjectRootValidator,
-    private readonly initialProjectFileGenerator: InitialProjectFileGenerator,
-    private readonly npmInitializedEnsurer: NpmProjectInitializer,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
-    private readonly projectRoot: string
+    private readonly initialProjectFileGenerator: InitialProjectFileGenerator
   ) {}
 
   /**
    * Executes the create-amplify workflow
    */
   create = async (): Promise<void> => {
-    logger.debug(kleur.dim(`Validating current state of target directory...`));
+    printer.log(
+      `Validating current state of target directory...`,
+      LogLevel.DEBUG
+    );
     await this.projectRootValidator.validate();
 
-    await this.npmInitializedEnsurer.ensureInitialized();
+    await this.packageManagerController.initializeProject();
 
-    logger.log('\nInstalling devDependencies:');
+    printer.log('\nInstalling devDependencies:');
     this.defaultDevPackages.forEach((dep) => {
-      logger.log(kleur.blue(`- ${dep}`));
+      printer.log(kleur.blue(`- ${dep}`));
     });
 
-    logger.log('\nInstalling dependencies:');
+    printer.log('\nInstalling dependencies:');
     this.defaultProdPackages.forEach((dep) => {
-      logger.log(kleur.blue(`- ${dep}`));
+      printer.log(kleur.blue(`- ${dep}`));
     });
 
-    logger.log('\n');
-    await logger.indicateSpinnerProgress(
+    printer.log('\n');
+    await printer.indicateSpinnerProgress(
       [
         async () =>
           this.packageManagerController.installDependencies(
@@ -76,7 +77,7 @@ export class AmplifyProjectCreator {
       'Dependencies installed'
     );
 
-    await logger.indicateSpinnerProgress(
+    await printer.indicateSpinnerProgress(
       [
         async () => {
           await this.gitIgnoreInitializer.ensureInitialized();
@@ -87,9 +88,9 @@ export class AmplifyProjectCreator {
       'Template files created'
     );
 
-    logger.log(kleur.green().bold('Successfully created a new project!\n'));
+    printer.log(kleur.green().bold('Successfully created a new project!\n'));
 
-    const cdCommand =
+    const cdPreamble =
       process.cwd() === this.projectRoot
         ? null
         : `Change directory by running ${kleur
@@ -98,10 +99,10 @@ export class AmplifyProjectCreator {
               'cd .' + this.projectRoot.replace(process.cwd(), '') + ''
             )} and then:`;
 
-    logger.log(kleur.cyan('Welcome to AWS Amplify!\n'));
+    printer.log(kleur.cyan('Welcome to AWS Amplify!\n'));
 
     const instructionSteps = [
-      cdCommand,
+      cdPreamble,
       `- Get started with your project by running ${kleur
         .yellow()
         .bold('npx amplify sandbox')}.`,
@@ -112,9 +113,9 @@ export class AmplifyProjectCreator {
       .filter(Boolean)
       .join('\n');
 
-    logger.log(instructionSteps);
+    printer.log(instructionSteps);
 
-    logger.log(
+    printer.log(
       kleur.dim(`\nAmplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
 Participation is optional, and you may opt-out by using ${kleur
         .yellow()

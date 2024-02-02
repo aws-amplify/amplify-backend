@@ -1,8 +1,12 @@
 import kleur from 'kleur';
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
+import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
-import { logger } from './logger.js';
+import { printer } from './printer.js';
+
+const logSpy = mock.method(printer, 'log');
+const indicateProgressSpy = mock.method(printer, 'indicateProgress');
 
 const expectedLogCalls = [
   '\nInstalling devDependencies:',
@@ -23,29 +27,32 @@ const expectedLogCalls = [
 ];
 
 void describe('AmplifyProjectCreator', () => {
+  beforeEach(() => {
+    logSpy.mock.resetCalls();
+    indicateProgressSpy.mock.resetCalls();
+  });
+
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
-    const logMock = {
-      log: mock.fn(),
-      debug: mock.fn(),
-      startAnimatingEllipsis: mock.fn(),
-      stopAnimatingEllipsis: mock.fn(),
+    const packageManagerControllerMock = {
+      getWelcomeMessage: mock.fn(() => ''),
+      initializeProject: mock.fn(() => Promise.resolve()),
+      initializeTsConfig: mock.fn(() => Promise.resolve()),
+      installDependencies: mock.fn(() => Promise.resolve()),
+      runWithPackageManager: mock.fn(() => Promise.resolve() as never),
+      getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
     };
-    const packageManagerControllerMock = { installDependencies: mock.fn() };
     const projectRootValidatorMock = { validate: mock.fn() };
     const initialProjectFileGeneratorMock = {
       generateInitialProjectFiles: mock.fn(),
     };
-    const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
+      'testProjectRoot',
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      initialProjectFileGeneratorMock as never,
-      npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      process.cwd()
+      initialProjectFileGeneratorMock as never
     );
-    mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
     assert.equal(
       packageManagerControllerMock.installDependencies.mock.callCount(),
@@ -56,20 +63,13 @@ void describe('AmplifyProjectCreator', () => {
       initialProjectFileGeneratorMock.generateInitialProjectFiles.mock.callCount(),
       1
     );
-    assert.equal(
-      npmInitializedEnsurerMock.ensureInitialized.mock.callCount(),
-      1
-    );
 
     for (let i = 0; i < expectedLogCalls.length; i++) {
-      assert.equal(
-        logMock.log.mock.calls[i + 1].arguments[0],
-        expectedLogCalls[i]
-      );
+      assert.equal(logSpy.mock.calls[i + 1].arguments[0], expectedLogCalls[i]);
     }
 
     assert.equal(
-      logMock.log.mock.calls[16].arguments[0],
+      logSpy.mock.calls[16].arguments[0],
       `- Get started with your project by running ${kleur
         .yellow()
         .bold('npx amplify sandbox')}.\n- Run ${kleur
@@ -77,7 +77,7 @@ void describe('AmplifyProjectCreator', () => {
         .bold('npx amplify help')} for a list of available commands.`
     );
     assert.equal(
-      logMock.log.mock.calls[17].arguments[0],
+      logSpy.mock.calls[17].arguments[0],
       kleur.dim(
         `\nAmplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.\nParticipation is optional, and you may opt-out by using ${kleur
           .yellow()
@@ -91,32 +91,30 @@ void describe('AmplifyProjectCreator', () => {
   });
 
   void it('should instruct users to use the custom project root', async () => {
-    const logMock = {
-      log: mock.fn(),
-      debug: mock.fn(),
-      startAnimatingEllipsis: mock.fn(),
-      stopAnimatingEllipsis: mock.fn(),
+    const packageManagerControllerMock: PackageManagerController = {
+      getWelcomeMessage: mock.fn(() => ''),
+      initializeProject: mock.fn(() => Promise.resolve()),
+      initializeTsConfig: mock.fn(() => Promise.resolve()),
+      installDependencies: mock.fn(() => Promise.resolve()),
+      runWithPackageManager: mock.fn(() => Promise.resolve() as never),
+      getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
     };
-    const packageManagerControllerMock = { installDependencies: mock.fn() };
     const projectRootValidatorMock = { validate: mock.fn() };
+    const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const initialProjectFileGeneratorMock = {
       generateInitialProjectFiles: mock.fn(),
     };
-    const npmInitializedEnsurerMock = { ensureInitialized: mock.fn() };
-    const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
     const amplifyProjectCreator = new AmplifyProjectCreator(
+      'testProjectRoot',
       packageManagerControllerMock as never,
       projectRootValidatorMock as never,
-      initialProjectFileGeneratorMock as never,
-      npmInitializedEnsurerMock as never,
       gitIgnoreInitializerMock as never,
-      '/project/root'
+      initialProjectFileGeneratorMock as never
     );
-    mock.method(logger, 'log', logMock.log);
     await amplifyProjectCreator.create();
 
     assert.equal(
-      logMock.log.mock.calls[16].arguments[0],
+      logSpy.mock.calls[16].arguments[0],
       `Change directory by running ${kleur
         .yellow()
         .bold(

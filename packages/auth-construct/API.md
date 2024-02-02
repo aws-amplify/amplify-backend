@@ -14,6 +14,7 @@ import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
+import { UserPoolIdentityProviderSamlMetadata } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
@@ -30,6 +31,7 @@ export type AppleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAppleP
 
 // @public
 export type AuthProps = {
+    name?: string;
     loginWith: {
         email?: EmailLogin;
         phone?: PhoneNumberLogin;
@@ -95,7 +97,11 @@ export type PhoneNumberLogin = true | {
 };
 
 // @public
-export type SamlProviderProps = Omit<aws_cognito.UserPoolIdentityProviderSamlProps, 'userPool'>;
+export type SamlProviderProps = Omit<aws_cognito.UserPoolIdentityProviderSamlProps, 'userPool' | 'metadata'> & {
+    metadata: Omit<UserPoolIdentityProviderSamlMetadata, 'metadataType'> & {
+        metadataType: 'URL' | 'FILE';
+    };
+};
 
 // @public
 export type TriggerEvent = (typeof triggerEvents)[number];

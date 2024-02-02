@@ -2,7 +2,10 @@ import { SecretValue, aws_cognito as cognito } from 'aws-cdk-lib';
 import { triggerEvents } from './trigger_events.js';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
-import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
+import {
+  StandardAttributes,
+  UserPoolIdentityProviderSamlMetadata,
+} from 'aws-cdk-lib/aws-cognito';
 
 /**
  * Email login settings object
@@ -144,8 +147,24 @@ export type OidcProviderProps = Omit<
  */
 export type SamlProviderProps = Omit<
   cognito.UserPoolIdentityProviderSamlProps,
-  'userPool'
->;
+  'userPool' | 'metadata'
+> & {
+  /**
+   * The SAML metadata.
+   */
+  metadata: Omit<UserPoolIdentityProviderSamlMetadata, 'metadataType'> & {
+    /**
+     * Metadata types that can be used for a SAML user pool identity provider.
+     * @example 'URL'
+     *
+     * For details about each option, see below.
+     *
+     * 'URL' - Metadata provided via a URL.
+     * 'FILE' - Metadata provided via the contents of a file.
+     */
+    metadataType: 'URL' | 'FILE';
+  };
+};
 
 /**
  * External provider options.
@@ -223,6 +242,10 @@ export type TriggerEvent = (typeof triggerEvents)[number];
  * Input props for the AmplifyAuth construct
  */
 export type AuthProps = {
+  /**
+   * Specify a name which will aid in generating resource names.
+   */
+  name?: string;
   /**
    * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
    */

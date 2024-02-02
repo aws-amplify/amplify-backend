@@ -1,5 +1,17 @@
 # @aws-amplify/integration-tests
 
+## 0.4.3
+
+### Patch Changes
+
+- 6a001bfe8: Make shared secret names unique for e2e tests
+
+## 0.4.2
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+
 ## 0.4.1
 
 ### Patch Changes

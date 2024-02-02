@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
+    { "path": "../backend-deployer" },
     { "path": "../backend-output-schemas" },
     { "path": "../backend-secret" },
     { "path": "../cli-core" },

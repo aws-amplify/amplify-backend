@@ -13,7 +13,6 @@ import {
   CfnUserPoolClient,
   UserPool,
   UserPoolClient,
-  UserPoolIdentityProviderSamlMetadataType,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -88,6 +87,15 @@ const ExpectedSAMLIDPProperties = {
   ProviderDetails: {
     IDPSignout: false,
     MetadataFile: samlMetadataContent,
+  },
+  ProviderName: samlProviderName,
+  ProviderType: 'SAML',
+};
+const samlMetadataUrl = 'https://localhost:3000';
+const ExpectedSAMLIDPViaURLProperties = {
+  ProviderDetails: {
+    IDPSignout: false,
+    MetadataURL: samlMetadataUrl,
   },
   ProviderName: samlProviderName,
   ProviderType: 'SAML',
@@ -493,6 +501,7 @@ void describe('Auth construct', () => {
             signupAttributes: '["EMAIL"]',
             verificationMechanisms: '["EMAIL"]',
             usernameAttributes: '["EMAIL"]',
+            allowUnauthenticatedIdentities: 'true',
           },
         },
       ]);
@@ -547,12 +556,14 @@ void describe('Auth construct', () => {
             verificationMechanisms: '["EMAIL"]',
             usernameAttributes: '["EMAIL"]',
             googleClientId: 'googleClientId',
+            oauthClientId: expectedWebClientId, // same thing
             oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
             oauthScope: '["email","profile"]',
             oauthRedirectSignIn: 'http://callback.com',
             oauthRedirectSignOut: 'http://logout.com',
             oauthResponseType: 'code',
             socialProviders: '["GOOGLE"]',
+            allowUnauthenticatedIdentities: 'true',
           },
         },
       ]);
@@ -626,6 +637,7 @@ void describe('Auth construct', () => {
               'webClientId',
               'identityPoolId',
               'authRegion',
+              'allowUnauthenticatedIdentities',
               'signupAttributes',
               'usernameAttributes',
               'verificationMechanisms',
@@ -1320,7 +1332,7 @@ void describe('Auth construct', () => {
               name: samlProviderName,
               metadata: {
                 metadataContent: samlMetadataContent,
-                metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+                metadataType: 'FILE',
               },
             },
             callbackUrls: ['https://redirect.com'],
@@ -1366,7 +1378,7 @@ void describe('Auth construct', () => {
               name: samlProviderName,
               metadata: {
                 metadataContent: samlMetadataContent,
-                metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+                metadataType: 'FILE',
               },
             },
             callbackUrls: ['https://redirect.com'],
@@ -1382,6 +1394,52 @@ void describe('Auth construct', () => {
       template.hasResourceProperties(
         'AWS::Cognito::UserPoolIdentityProvider',
         ExpectedSAMLIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SamlProviderARNs: [
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':saml-provider/',
+                { Ref: 'testSamlIDP7B98F3F4' },
+              ],
+            ],
+          }),
+        ],
+      });
+    });
+    void it('supports saml via URL and email', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            saml: {
+              name: samlProviderName,
+              metadata: {
+                metadataContent: samlMetadataUrl,
+                metadataType: 'URL',
+              },
+            },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedSAMLIDPViaURLProperties
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         SamlProviderARNs: [
@@ -1552,7 +1610,7 @@ void describe('Auth construct', () => {
               name: samlProviderName,
               metadata: {
                 metadataContent: samlMetadataContent,
-                metadataType: UserPoolIdentityProviderSamlMetadataType.FILE,
+                metadataType: 'FILE',
               },
             },
             callbackUrls: ['https://redirect.com'],
@@ -1597,6 +1655,233 @@ void describe('Auth construct', () => {
           'graph.facebook.com': facebookClientId,
         },
       });
+    });
+
+    void it('automatically maps email attributes for external providers excluding SAML', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+            },
+            signInWithApple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+            },
+            loginWithAmazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+            },
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      const expectedAutoMappedAttributes = {
+        AttributeMapping: {
+          // 'email' is a standardized claim for oauth and oidc IDPS
+          // so we can map it to cognito's 'email' claim
+          email: 'email',
+        },
+      };
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAmazonIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAppleIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedFacebookIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedGoogleIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedOidcIDPProperties,
+        ...expectedAutoMappedAttributes,
+      });
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+          'accounts.google.com': googleClientId,
+          'appleid.apple.com': appleClientId,
+          'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+
+    void it('does not automatically map email attributes if phone is also enabled', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          phone: true, // this makes phone_number a required attribute
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+            },
+            signInWithApple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+            },
+            loginWithAmazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+            },
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email', 'phone_number'],
+        AutoVerifiedAttributes: ['email', 'phone_number'],
+      });
+      const mappingThatShouldNotExist = {
+        AttributeMapping: {
+          email: 'email',
+        },
+      };
+      assert.throws(() => {
+        template.hasResourceProperties(
+          'AWS::Cognito::UserPoolIdentityProvider',
+          {
+            ...ExpectedAmazonIDPProperties,
+            ...mappingThatShouldNotExist,
+          }
+        );
+      });
+      assert.throws(() => {
+        template.hasResourceProperties(
+          'AWS::Cognito::UserPoolIdentityProvider',
+          {
+            ...ExpectedAppleIDPProperties,
+            ...mappingThatShouldNotExist,
+          }
+        );
+      });
+      assert.throws(() => {
+        template.hasResourceProperties(
+          'AWS::Cognito::UserPoolIdentityProvider',
+          {
+            ...ExpectedFacebookIDPProperties,
+            ...mappingThatShouldNotExist,
+          }
+        );
+      });
+      assert.throws(() => {
+        template.hasResourceProperties(
+          'AWS::Cognito::UserPoolIdentityProvider',
+          {
+            ...ExpectedGoogleIDPProperties,
+            ...mappingThatShouldNotExist,
+          }
+        );
+      });
+      assert.throws(() => {
+        template.hasResourceProperties(
+          'AWS::Cognito::UserPoolIdentityProvider',
+          {
+            ...ExpectedOidcIDPProperties,
+            ...mappingThatShouldNotExist,
+          }
+        );
+      });
+    });
+  });
+
+  void it('sets resource names based on id and name property', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const stackId = 'test';
+    const name = 'name';
+    const expectedPrefix = stackId + name;
+    new AmplifyAuth(stack, 'test', {
+      name: name,
+      loginWith: {
+        email: true,
+        phone: true,
+        externalProviders: {
+          google: {
+            clientId: googleClientId,
+            clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+          },
+          facebook: {
+            clientId: facebookClientId,
+            clientSecret: facebookClientSecret,
+          },
+          signInWithApple: {
+            clientId: appleClientId,
+            keyId: appleKeyId,
+            privateKey: applePrivateKey,
+            teamId: appleTeamId,
+          },
+          loginWithAmazon: {
+            clientId: amazonClientId,
+            clientSecret: amazonClientSecret,
+          },
+          oidc: {
+            clientId: oidcClientId,
+            clientSecret: oidcClientSecret,
+            issuerUrl: oidcIssuerUrl,
+            name: oidcProviderName,
+          },
+          saml: {
+            name: samlProviderName,
+            metadata: {
+              metadataContent: samlMetadataContent,
+              metadataType: 'FILE',
+            },
+          },
+          callbackUrls: ['https://redirect.com'],
+          logoutUrls: ['https://logout.com'],
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    const resourceNames = Object.keys(template['template']['Resources']);
+    resourceNames.map((name) => {
+      assert.equal(name.startsWith(expectedPrefix), true);
     });
   });
 

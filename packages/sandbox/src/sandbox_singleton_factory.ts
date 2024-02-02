@@ -1,3 +1,7 @@
+import {
+  PackageManagerControllerFactory,
+  Printer,
+} from '@aws-amplify/cli-core';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { BackendIdSandboxResolver, Sandbox } from './sandbox.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
@@ -13,20 +17,30 @@ export class SandboxSingletonFactory {
   /**
    * sandboxIdResolver allows sandbox to lazily load the sandbox backend id on demand
    */
-  constructor(private readonly sandboxIdResolver: BackendIdSandboxResolver) {}
+  constructor(
+    private readonly sandboxIdResolver: BackendIdSandboxResolver,
+    private readonly printer: Printer
+  ) {}
 
   /**
    * Returns a singleton instance of a Sandbox
    */
   getInstance = async (): Promise<Sandbox> => {
     if (!this.instance) {
+      const packageManagerControllerFactory =
+        new PackageManagerControllerFactory(process.cwd(), this.printer);
+      const backendDeployerFactory = new BackendDeployerFactory(
+        packageManagerControllerFactory.getPackageManagerController()
+      );
       this.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
         new AmplifySandboxExecutor(
-          BackendDeployerFactory.getInstance(),
-          getSecretClient()
+          backendDeployerFactory.getInstance(),
+          getSecretClient(),
+          this.printer
         ),
-        new CloudFormationClient()
+        new CloudFormationClient(),
+        this.printer
       );
     }
     return this.instance;

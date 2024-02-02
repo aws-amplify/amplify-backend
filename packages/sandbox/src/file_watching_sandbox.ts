@@ -17,7 +17,12 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
-import { AmplifyPrompter, COLOR, Printer } from '@aws-amplify/cli-core';
+import {
+  AmplifyPrompter,
+  COLOR,
+  LogLevel,
+  Printer,
+} from '@aws-amplify/cli-core';
 import {
   FilesChangesTracker,
   createFilesChangesTracker,
@@ -52,6 +57,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     private readonly backendIdSandboxResolver: BackendIdSandboxResolver,
     private readonly executor: AmplifySandboxExecutor,
     private readonly cfnClient: CloudFormationClient,
+    private readonly printer: Printer,
     private readonly open = _open
   ) {
     process.once('SIGINT', () => void this.stop());
@@ -85,7 +91,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     );
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
-      console.log(
+      this.printer.log(
         'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process and re-run the amplify sandbox command.'
       );
       // get region from an available sdk client;
@@ -98,7 +104,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
 
-    console.debug(`[Sandbox] Initializing...`);
+    this.printer.log(`[Sandbox] Initializing...`, LogLevel.DEBUG);
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
     // introduce a concurrency latch that tracks the state.
     // This way, if file change events arrive when a 'cdk deploy' is still executing,
@@ -124,7 +130,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // TypeScript doesn't realize latch can change between 'awaits' ¯\_(ツ)_/¯,
         // and thinks the above 'while' condition is always 'false' without the cast
         latch = 'deploying';
-        console.log(
+        this.printer.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
         await this.deploy(options);
@@ -140,7 +146,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         await Promise.all(
           events.map(({ type: eventName, path }) => {
             this.filesChangesTracker.trackFileChange(path);
-            console.log(
+            this.printer.log(
               `[Sandbox] Triggered due to a file ${eventName} event: ${path}`
             );
           })
@@ -150,7 +156,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         } else {
           // this means latch is either 'deploying' or 'queued'
           latch = 'queued';
-          console.log(
+          this.printer.log(
             '[Sandbox] Previous deployment is still in progress. ' +
               'Will queue for another deployment after this one finishes'
           );
@@ -171,7 +177,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   stop = async () => {
-    console.debug(`[Sandbox] Shutting down`);
+    this.printer.log(`[Sandbox] Shutting down`, LogLevel.DEBUG);
     // can be undefined if command exits before subscription
     await this.watcherSubscription?.unsubscribe();
   };
@@ -180,14 +186,14 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   delete = async (options: SandboxDeleteOptions) => {
-    console.log(
+    this.printer.log(
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
     await this.executor.destroy(
       await this.backendIdSandboxResolver(options.name)
     );
     this.emit('successfulDeletion');
-    console.log('[Sandbox] Finished deleting.');
+    this.printer.log('[Sandbox] Finished deleting.');
   };
 
   private shouldValidateAppSources = (): boolean => {
@@ -210,11 +216,11 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // not reset tracker prematurely
         this.shouldValidateAppSources
       );
-      console.debug('[Sandbox] Running successfulDeployment event handlers');
+      this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
       this.emit('successfulDeployment', deployResult);
     } catch (error) {
       // Print a meaningful message
-      Printer.print(this.getErrorMessage(error), COLOR.RED);
+      this.printer.print(this.getErrorMessage(error), COLOR.RED);
       this.emit('failedDeployment', error);
 
       // If the error is because of a non-allowed destructive change such as
@@ -239,7 +245,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * Just a shorthand console log to indicate whenever watcher is going idle
    */
   private emitWatching = () => {
-    console.log(`[Sandbox] Watching for file changes...`);
+    this.printer.log(`[Sandbox] Watching for file changes...`);
   };
 
   /**
@@ -255,7 +261,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         )
         .filter((pattern: string) => {
           if (pattern.startsWith('!')) {
-            console.log(
+            this.printer.log(
               `[Sandbox] Pattern ${pattern} found in .gitignore. "${pattern.substring(
                 1
               )}" will not be watched if other patterns in .gitignore are excluding it.`
@@ -327,8 +333,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private handleUnsupportedDestructiveChanges = async (
     options: SandboxOptions
   ) => {
-    console.error(
-      '[Sandbox] We cannot deploy your new changes. You can either revert them or recreate your sandbox with the new changes (deleting all user data)'
+    this.printer.print(
+      '[Sandbox] We cannot deploy your new changes. You can either revert them or recreate your sandbox with the new changes (deleting all user data)',
+      COLOR.RED
     );
     // offer to recreate the sandbox with new properties
     const answer = await AmplifyPrompter.yesOrNo({

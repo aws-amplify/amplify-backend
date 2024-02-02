@@ -1,5 +1,26 @@
 # @aws-amplify/backend-function
 
+## 0.6.4
+
+### Patch Changes
+
+- f2d829641: Inject shim for cjs require for functions
+
+## 0.6.3
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.2.11
+
+## 0.6.2
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+- Updated dependencies [d087313e9]
+  - @aws-amplify/plugin-types@0.7.1
+  - @aws-amplify/backend-output-storage@0.2.10
+
 ## 0.6.1
 
 ### Patch Changes

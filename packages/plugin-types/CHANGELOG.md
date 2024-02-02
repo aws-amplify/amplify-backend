@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.7.1
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+
 ## 0.7.0
 
 ### Minor Changes

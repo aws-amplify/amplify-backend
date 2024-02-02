@@ -40,6 +40,7 @@ void describe('UnifiedClientConfigGenerator', () => {
             verificationMechanisms: '["EMAIL","PHONE"]',
             usernameAttributes: '["EMAIL"]',
             signupAttributes: '["EMAIL"]',
+            allowUnauthenticatedIdentities: 'true',
           },
         },
         [graphqlOutputKey]: {
@@ -102,6 +103,7 @@ void describe('UnifiedClientConfigGenerator', () => {
         aws_appsync_graphqlEndpoint: 'testApiEndpoint',
         aws_appsync_region: 'us-east-1',
         aws_appsync_additionalAuthenticationTypes: 'API_KEY',
+        allowUnauthenticatedIdentities: 'true',
       };
       assert.deepStrictEqual(result, expectedClientConfig);
     });

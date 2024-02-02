@@ -1,5 +1,31 @@
 # @aws-amplify/backend-auth
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [48ca0e703]
+  - @aws-amplify/auth-construct-alpha@0.5.4
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [618a2ea71]
+- Updated dependencies [f70611df3]
+  - @aws-amplify/auth-construct-alpha@0.5.3
+  - @aws-amplify/backend-output-storage@0.2.11
+
+## 0.4.3
+
+### Patch Changes
+
+- d087313e9: Enhance functions to fallback to resolve shared secrets
+- Updated dependencies [d087313e9]
+  - @aws-amplify/plugin-types@0.7.1
+  - @aws-amplify/auth-construct-alpha@0.5.2
+  - @aws-amplify/backend-output-storage@0.2.10
+
 ## 0.4.2
 
 ### Patch Changes

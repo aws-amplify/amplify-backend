@@ -7,6 +7,7 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:amplify-backend-rules/recommended',
     'plugin:jsdoc/recommended-typescript-error',
     'plugin:promise/recommended',
     'prettier',
@@ -29,6 +30,7 @@ module.exports = {
   },
   plugins: [
     '@typescript-eslint',
+    'amplify-backend-rules',
     'unicorn',
     'jsdoc',
     'import',

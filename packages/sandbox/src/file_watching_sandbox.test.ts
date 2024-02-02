@@ -17,7 +17,12 @@ import _open from 'open';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import {
+  AmplifyPrompter,
+  LogLevel,
+  PackageManagerControllerFactory,
+  Printer,
+} from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
@@ -27,8 +32,14 @@ const unsubscribeMockFn = mock.fn();
 const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
-
-const backendDeployer = BackendDeployerFactory.getInstance();
+const packageManagerControllerFactory = new PackageManagerControllerFactory(
+  process.cwd(),
+  new Printer(LogLevel.DEBUG)
+);
+const backendDeployerFactory = new BackendDeployerFactory(
+  packageManagerControllerFactory.getPackageManagerController()
+);
+const backendDeployer = backendDeployerFactory.getInstance();
 
 const secretClient = getSecretClient();
 const newlyUpdatedSecretItem: SecretListItem = {
@@ -48,10 +59,15 @@ const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
     newlyUpdatedSecretItem,
   ])
 );
+const printer = {
+  log: mock.fn(),
+  print: mock.fn(),
+};
 
 const sandboxExecutor = new AmplifySandboxExecutor(
   backendDeployer,
-  secretClient
+  secretClient,
+  printer as unknown as Printer
 );
 
 const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
@@ -113,6 +129,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       async () => testSandboxBackendId,
       sandboxExecutor,
       cfnClientMock,
+      printer as unknown as Printer,
       openMock as never
     );
 
@@ -792,6 +809,7 @@ const setupAndStartSandbox = async (
     }),
     testData.executor,
     testData.cfnClient,
+    printer as unknown as Printer,
     testData.open ?? _open
   );
 

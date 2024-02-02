@@ -1,5 +1,30 @@
 # create-amplify
 
+## 0.5.0
+
+### Minor Changes
+
+- fb07bafce: Refactor Printer class & deprecate Logger
+
+### Patch Changes
+
+- Updated dependencies [fb07bafce]
+  - @aws-amplify/cli-core@0.3.0
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [0809ad36d]
+  - @aws-amplify/platform-core@0.4.3
+
+## 0.4.3
+
+### Patch Changes
+
+- 981bd4423: Use latest CDKv2 version in create amplify flow
+  - @aws-amplify/platform-core@0.4.2
+
 ## 0.4.2
 
 ### Patch Changes
