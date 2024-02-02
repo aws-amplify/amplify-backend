@@ -74,7 +74,6 @@ export type FunctionProps = {
  * Create Lambda functions in the context of an Amplify backend definition
  */
 class FunctionFactory implements ConstructFactory<AmplifyFunction> {
-  provides?: string | undefined;
   private generator: ConstructContainerEntryGenerator;
   /**
    * Create a new AmplifyFunctionFactory
