@@ -4,14 +4,15 @@ import {
   CustomOutput,
   customOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import _ from 'lodash';
 import { Lazy } from 'aws-cdk-lib';
+import { ObjectAccumulator } from '@aws-amplify/platform-core';
 
 /**
  * Accumulates custom outputs as they're added to the backend.
  */
 export class CustomOutputsAccumulator {
-  private readonly accumulatedClientConfig: Partial<ClientConfig> = {};
+  private readonly clientConfigAccumulator: ObjectAccumulator<ClientConfig> =
+    new ObjectAccumulator<ClientConfig>({});
   private hasBackendOutputEntry = false;
 
   /**
@@ -21,6 +22,11 @@ export class CustomOutputsAccumulator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<CustomOutput>
   ) {}
 
+  addOutput = (clientConfigPart: Partial<ClientConfig>) => {
+    this.clientConfigAccumulator.accumulate(clientConfigPart);
+    this.ensureBackendOutputEntry();
+  };
+
   private ensureBackendOutputEntry() {
     if (!this.hasBackendOutputEntry) {
       this.outputStorageStrategy.addBackendOutputEntry(customOutputKey, {
@@ -28,7 +34,9 @@ export class CustomOutputsAccumulator {
         payload: {
           customOutputs: Lazy.string({
             produce: () => {
-              return JSON.stringify(this.accumulatedClientConfig);
+              return JSON.stringify(
+                this.clientConfigAccumulator.getAccumulatedObject()
+              );
             },
           }),
         },
@@ -36,11 +44,4 @@ export class CustomOutputsAccumulator {
       this.hasBackendOutputEntry = true;
     }
   }
-
-  addOutput = (clientConfigPart: Partial<ClientConfig>) => {
-    _.mergeWith(this.accumulatedClientConfig, clientConfigPart, () => {
-      return undefined;
-    });
-    this.ensureBackendOutputEntry();
-  };
 }

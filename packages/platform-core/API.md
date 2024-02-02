@@ -116,6 +116,15 @@ export class FilePathExtractor {
 // @public (undocumented)
 export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
+// @public
+export class ObjectAccumulator<T> {
+    constructor(accumulator: Partial<T>);
+    // (undocumented)
+    accumulate: (part: Partial<T>) => void;
+    // (undocumented)
+    getAccumulatedObject: () => Partial<T>;
+}
+
 // @public (undocumented)
 export type PackageJson = z.infer<typeof packageJsonSchema>;
 
