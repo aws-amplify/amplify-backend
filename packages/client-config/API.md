@@ -35,8 +35,6 @@ export type AuthClientConfig = {
     };
 };
 
-// Warning: (ae-forgotten-export) The symbol "CustomClientConfig" needs to be exported by the entry point index.internal.d.ts
-//
 // @public
 export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
 
@@ -53,6 +51,11 @@ export enum ClientConfigFormat {
     // (undocumented)
     TS = "ts"
 }
+
+// @public (undocumented)
+export type CustomClientConfig = {
+    custom: Record<string, string>;
+};
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier) => Promise<ClientConfig>;
