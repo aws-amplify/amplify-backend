@@ -41,7 +41,7 @@ export type AuthResources = {
 };
 
 // @public (undocumented)
-export type AuthRole = keyof Pick<AuthResources, 'authenticatedUserIamRole' | 'unauthenticatedUserIamRole'>;
+export type AuthRoleName = keyof Pick<AuthResources, 'authenticatedUserIamRole' | 'unauthenticatedUserIamRole'>;
 
 // @public
 export type BackendIdentifier = {

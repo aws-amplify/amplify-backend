@@ -7,7 +7,7 @@
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import { AuthResources } from '@aws-amplify/plugin-types';
-import { AuthRole } from '@aws-amplify/plugin-types';
+import { AuthRoleName } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
@@ -23,11 +23,11 @@ import { UserPoolIdentityProviderSamlMetadata } from 'aws-cdk-lib/aws-cognito';
 export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
 
 // @public
-export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources>, ResourceAccessAcceptorFactory<AuthRole> {
+export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources>, ResourceAccessAcceptorFactory<AuthRoleName> {
     constructor(scope: Construct, id: string, props?: AuthProps);
     addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
     // (undocumented)
-    getResourceAccessAcceptor: (roleName: AuthRole) => (policy: Policy) => void;
+    getResourceAccessAcceptor: (roleName: AuthRoleName) => (policy: Policy) => void;
     readonly resources: AuthResources;
 }
 
