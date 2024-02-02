@@ -7,11 +7,10 @@
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
-import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;
+export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
 
 // @public (undocumented)
 export type FunctionProps = {
@@ -24,7 +23,7 @@ export type FunctionProps = {
 };
 
 // @public (undocumented)
-export type NodeVersion = 16 | 18 | 20;
+export type NodeVersion = 18 | 20;
 
 // (No @packageDocumentation comment for this package)
 
