@@ -4,7 +4,10 @@ import assert from 'node:assert';
 import { AmplifyError, BackendLocator } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  BackendIdentifier,
+  PackageManagerController,
+} from '@aws-amplify/plugin-types';
 
 void describe('invokeCDKCommand', () => {
   const branchBackendId: BackendIdentifier = {
@@ -26,9 +29,21 @@ void describe('invokeCDKCommand', () => {
   // This is needed for `getRelativeBackendEntryPoint` to ensure that backend file exists correctly
   const locateMock = mock.fn(() => 'amplify/backend.ts');
   const backendLocator = { locate: locateMock } as unknown as BackendLocator;
+  const packageManagerControllerMock: PackageManagerController = {
+    getWelcomeMessage: mock.fn(() => ''),
+    initializeProject: mock.fn(() => Promise.resolve()),
+    initializeTsConfig: mock.fn(() => Promise.resolve()),
+    installDependencies: mock.fn(() => Promise.resolve()),
+    runWithPackageManager: mock.fn(() => Promise.resolve() as never),
+    getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
+  };
 
-  const invoker = new CDKDeployer(new CdkErrorMapper(), backendLocator);
-  const execaMock = mock.method(invoker, 'executeChildProcess', () =>
+  const invoker = new CDKDeployer(
+    new CdkErrorMapper(),
+    backendLocator,
+    packageManagerControllerMock as never
+  );
+  const execaMock = mock.method(invoker, 'executeCommand', () =>
     Promise.resolve()
   );
 
@@ -43,8 +58,8 @@ void describe('invokeCDKCommand', () => {
   void it('handles options for branch deployments', async () => {
     await invoker.deploy(branchBackendId);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 16);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 16);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
       'cdk',
       'deploy',
       '--ci',
@@ -67,8 +82,8 @@ void describe('invokeCDKCommand', () => {
   void it('handles deployProps for sandbox', async () => {
     await invoker.deploy(sandboxBackendId, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 18);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 18);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
       'cdk',
       'deploy',
       '--ci',
@@ -95,8 +110,8 @@ void describe('invokeCDKCommand', () => {
   void it('handles options and deployProps for sandbox', async () => {
     await invoker.deploy(sandboxBackendId, sandboxDeployProps);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 18);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 18);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
       'cdk',
       'deploy',
       '--ci',
@@ -123,8 +138,8 @@ void describe('invokeCDKCommand', () => {
   void it('handles destroy for sandbox', async () => {
     await invoker.destroy(sandboxBackendId);
     assert.strictEqual(execaMock.mock.callCount(), 1);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 15);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 15);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
       'cdk',
       'destroy',
       '--ci',
@@ -148,23 +163,23 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 3);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 4);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
       'tsc',
       '--showConfig',
       '--project',
       'amplify',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 5);
-    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
+    assert.equal(execaMock.mock.calls[1].arguments[0]?.length, 5);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[0], [
       'tsc',
       '--noEmit',
       '--skipLibCheck',
       '--project',
       'amplify',
     ]);
-    assert.equal(execaMock.mock.calls[2].arguments[1]?.length, 16);
-    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[1], [
+    assert.equal(execaMock.mock.calls[2].arguments[0]?.length, 16);
+    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[0], [
       'cdk',
       'deploy',
       '--ci',
@@ -189,23 +204,23 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 3);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 4);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
       'tsc',
       '--showConfig',
       '--project',
       'amplify',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 5);
-    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
+    assert.equal(execaMock.mock.calls[1].arguments[0]?.length, 5);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[0], [
       'tsc',
       '--noEmit',
       '--skipLibCheck',
       '--project',
       'amplify',
     ]);
-    assert.equal(execaMock.mock.calls[2].arguments[1]?.length, 16);
-    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[1], [
+    assert.equal(execaMock.mock.calls[2].arguments[0]?.length, 16);
+    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[0], [
       'cdk',
       'deploy',
       '--ci',
@@ -234,15 +249,15 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 2);
-    assert.equal(execaMock.mock.calls[0].arguments[1]?.length, 4);
-    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[1], [
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 4);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
       'tsc',
       '--showConfig',
       '--project',
       'amplify',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[1]?.length, 16);
-    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[1], [
+    assert.equal(execaMock.mock.calls[1].arguments[0]?.length, 16);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[0], [
       'cdk',
       'deploy',
       '--ci',
@@ -263,7 +278,7 @@ void describe('invokeCDKCommand', () => {
   });
 
   void it('returns human readable errors', async () => {
-    mock.method(invoker, 'executeChildProcess', () => {
+    mock.method(invoker, 'executeCommand', () => {
       throw new Error('Access Denied');
     });
 
