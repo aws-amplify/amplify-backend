@@ -2,31 +2,34 @@ import fs from 'fs';
 import { staticEnvironmentVariables } from './static_env_types.js';
 import path from 'path';
 import os from 'os';
+import { FunctionTypeDefConventionProvider } from '@aws-amplify/platform-core';
 
 /**
  * Generates a type definition file for environment variables
  */
 export class FunctionEnvironmentTypeGenerator {
-  private typeDefLocation: string;
-
-  private typeDefFileName: string;
+  private typeDefFilePath: string;
 
   /**
    * Initialize type definition file name and location
    */
   constructor(functionName: string, functionEntryPath: string) {
-    this.typeDefFileName = `${functionName}_env.ts`;
-    this.typeDefLocation = path.dirname(functionEntryPath) + '/amplify/';
+    this.typeDefFilePath =
+      FunctionTypeDefConventionProvider.getFunctionTypeDefFilePath(
+        functionEntryPath,
+        functionName
+      );
   }
 
   /**
-   * Generate a type definition file `./amplify/<function-name>_env.ts` as a sibling to the function's entry file
+   * Generate a type definition file as a sibling to the function's entry file
    */
   generateTypeDefFile() {
     const declarations = [];
+    const typeDefFileDirname = path.dirname(this.typeDefFilePath);
 
-    if (!fs.existsSync(this.typeDefLocation)) {
-      fs.mkdirSync(this.typeDefLocation);
+    if (!fs.existsSync(typeDefFileDirname)) {
+      fs.mkdirSync(typeDefFileDirname);
     }
 
     for (const key in staticEnvironmentVariables) {
@@ -42,6 +45,6 @@ export class FunctionEnvironmentTypeGenerator {
       declarations.join(os.EOL + os.EOL) +
       `${os.EOL}};`;
 
-    fs.writeFileSync(this.typeDefLocation + this.typeDefFileName, content);
+    fs.writeFileSync(this.typeDefFilePath, content);
   }
 }

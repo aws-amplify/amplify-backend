@@ -113,6 +113,12 @@ export class FilePathExtractor {
     extract: () => string | undefined;
 }
 
+// @public
+export class FunctionTypeDefConventionProvider {
+    static getFunctionTypeDefFilePath(functionEntryPath: string, functionName: string): string;
+    static getFunctionTypeDefIgnorePattern(): string;
+}
+
 // @public (undocumented)
 export type LocalConfigurationFileName = 'usage_data_preferences.json';
 

@@ -704,12 +704,12 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         '.amplify',
-        '**/amplify/*_env.ts',
         'patternWithLeadingSlash',
         'patternWithoutLeadingSlash',
         'someFile.js',
         'overlap/',
         'overlap/file',
+        '**/amplify/*_env.ts',
         'customer_exclude1',
         'customer_exclude2',
       ],
@@ -746,12 +746,12 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
       ignore: [
         '.amplify',
-        '**/amplify/*_env.ts',
         'patternWithLeadingSlash',
         'patternWithoutLeadingSlash',
         'someFile.js',
         'overlap/',
         'overlap/file',
+        '**/amplify/*_env.ts',
         'customer_exclude1',
         'customer_exclude2',
       ],
