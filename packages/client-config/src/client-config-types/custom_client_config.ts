@@ -1,3 +1,3 @@
 export type CustomClientConfig = {
-  custom: Record<string, string>
+  custom: Record<string, string>;
 };
