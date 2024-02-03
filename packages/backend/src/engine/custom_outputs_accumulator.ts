@@ -27,21 +27,22 @@ export class CustomOutputsAccumulator {
     this.ensureBackendOutputEntry();
   };
 
-  private ensureBackendOutputEntry() {
+  private ensureBackendOutputEntry = () => {
     if (!this.hasBackendOutputEntry) {
-      this.outputStorageStrategy.addBackendOutputEntry(customOutputKey, {
-        version: '1',
-        payload: {
-          customOutputs: Lazy.string({
-            produce: () => {
-              return JSON.stringify(
-                this.clientConfigAccumulator.getAccumulatedObject()
-              );
-            },
-          }),
-        },
-      });
-      this.hasBackendOutputEntry = true;
+      return;
     }
-  }
+    this.outputStorageStrategy.addBackendOutputEntry(customOutputKey, {
+      version: '1',
+      payload: {
+        customOutputs: Lazy.string({
+          produce: () => {
+            return JSON.stringify(
+              this.clientConfigAccumulator.getAccumulatedObject()
+            );
+          },
+        }),
+      },
+    });
+    this.hasBackendOutputEntry = true;
+  };
 }
