@@ -120,9 +120,20 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 export class ObjectAccumulator<T> {
     constructor(accumulator: Partial<T>);
     // (undocumented)
-    accumulate: (part: Partial<T>) => void;
+    accumulate: (part: Partial<T>) => ObjectAccumulator<T>;
     // (undocumented)
     getAccumulatedObject: () => Partial<T>;
+}
+
+// @public
+export class ObjectAccumulatorPropertyAlreadyExistsError extends Error {
+    constructor(key: string, existingValue: unknown, incomingValue: unknown);
+    // (undocumented)
+    readonly existingValue: unknown;
+    // (undocumented)
+    readonly incomingValue: unknown;
+    // (undocumented)
+    readonly key: string;
 }
 
 // @public (undocumented)

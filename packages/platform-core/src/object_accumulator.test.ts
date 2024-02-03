@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test';
 import * as assert from 'assert';
-import { ObjectAccumulator } from './object_accumulator';
+import {
+  ObjectAccumulator,
+  ObjectAccumulatorPropertyAlreadyExistsError,
+} from './object_accumulator';
 
 void describe('Object accumulator', () => {
   void it('should merge two non-overlapping objects', () => {
@@ -94,8 +97,11 @@ void describe('Object accumulator', () => {
             },
           });
       },
-      (error: Error) => {
-        assert.strictEqual(error.message, 'key b is already defined');
+      (error: ObjectAccumulatorPropertyAlreadyExistsError) => {
+        assert.strictEqual(error.message, 'Property b already exists');
+        assert.strictEqual(error.key, 'b');
+        assert.strictEqual(error.existingValue, 'b1');
+        assert.strictEqual(error.incomingValue, 'b2');
         return true;
       }
     );

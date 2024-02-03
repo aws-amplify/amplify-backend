@@ -1,6 +1,22 @@
 import _ from 'lodash';
 
 /**
+ * This error is thrown when there's a collision in
+ */
+export class ObjectAccumulatorPropertyAlreadyExistsError extends Error {
+  /**
+   * Creates property already exists error.
+   */
+  constructor(
+    readonly key: string,
+    readonly existingValue: unknown,
+    readonly incomingValue: unknown
+  ) {
+    super(`Property ${key} already exists`);
+  }
+}
+
+/**
  * A class that can accumulate (squash merge) objects into single instance.
  */
 export class ObjectAccumulator<T> {
@@ -10,13 +26,19 @@ export class ObjectAccumulator<T> {
   constructor(private readonly accumulator: Partial<T>) {}
 
   accumulate = (part: Partial<T>): ObjectAccumulator<T> => {
-    _.mergeWith(this.accumulator, part, (objValue, srcValue, key) => {
-      if (_.isArray(objValue)) {
-        return objValue.concat(srcValue);
+    _.mergeWith(this.accumulator, part, (existingValue, incomingValue, key) => {
+      if (_.isArray(existingValue)) {
+        return existingValue.concat(incomingValue);
       }
-      if (objValue && !_.isObject(objValue)) {
-        throw new Error(`key ${key} is already defined`);
+      if (existingValue && !_.isObject(existingValue)) {
+        throw new ObjectAccumulatorPropertyAlreadyExistsError(
+          key,
+          existingValue,
+          incomingValue
+        );
       }
+      // returning undefined falls back to default merge algorithm
+      return undefined;
     });
     return this;
   };
