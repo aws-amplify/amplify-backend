@@ -1,3 +1,4 @@
+import os from 'node:os';
 import fsp from 'fs/promises';
 import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
@@ -75,11 +76,9 @@ void describe('NpmPackageManagerController', () => {
 
       assert.equal(
         npmPackageManagerController.getWelcomeMessage(),
-        ` - Get started by running ${cyan(
-          'npx amplify sandbox'
-        )}.\n - Run ${cyan(
-          'npx amplify help'
-        )} for a list of available commands. `
+        ` - Get started by running ${cyan('npx amplify sandbox')}.${
+          os.EOL
+        } - Run ${cyan('npx amplify help')} for a list of available commands. `
       );
     });
   });
