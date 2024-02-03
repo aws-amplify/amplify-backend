@@ -9,8 +9,16 @@ export class ObjectAccumulator<T> {
    */
   constructor(private readonly accumulator: Partial<T>) {}
 
-  accumulate = (part: Partial<T>) => {
-    _.merge(this.accumulator, part);
+  accumulate = (part: Partial<T>): ObjectAccumulator<T> => {
+    _.mergeWith(this.accumulator, part, (objValue, srcValue, key) => {
+      if (_.isArray(objValue)) {
+        return objValue.concat(srcValue);
+      }
+      if (objValue && !_.isObject(objValue)) {
+        throw new Error(`key ${key} is already defined`);
+      }
+    });
+    return this;
   };
 
   getAccumulatedObject = () => {
