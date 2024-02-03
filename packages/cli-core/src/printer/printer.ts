@@ -1,6 +1,5 @@
 import { COLOR, color } from '../colors.js';
 import { EOL } from 'os';
-import kleur from 'kleur';
 
 export type RecordValue = string | number | string[] | Date;
 
@@ -14,18 +13,7 @@ export class Printer {
   /**
    * Spinner frames
    */
-  private spinnerFrames = [
-    kleur.red('⠋'),
-    kleur.yellow('⠙'),
-    kleur.green('⠹'),
-    kleur.cyan('⠸'),
-    kleur.blue('⠼'),
-    kleur.magenta('⠴'),
-    kleur.red('⠦'),
-    kleur.yellow('⠧'),
-    kleur.green('⠇'),
-    kleur.cyan('⠏'),
-  ];
+  private spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
   private currentSpinnerMessage = '';
 
   /**
@@ -59,18 +47,6 @@ export class Printer {
       this.stdout.write(message);
     }
   };
-
-  /**
-   * Logs a message with animated ellipsis
-   */
-  async indicateProgress(message: string, callback: () => Promise<void>) {
-    try {
-      this.startAnimatingEllipsis(message);
-      await callback();
-    } finally {
-      this.stopAnimatingEllipsis(message);
-    }
-  }
 
   /**
    * Prints a new line to output stream
@@ -108,7 +84,7 @@ export class Printer {
   /**
    * Logs a message with animated spinner
    */
-  async indicateSpinnerProgress(
+  async indicateProgress(
     actions: (() => Promise<void>)[],
     messages: string[],
     successMessage: string
@@ -142,49 +118,6 @@ export class Printer {
     });
     this.stdout.write(message);
   };
-
-  /**
-   * Start animating ellipsis at the end of a log message.
-   */
-  private startAnimatingEllipsis(message: string) {
-    if (!this.isTTY()) {
-      this.log(message, LogLevel.INFO);
-      return;
-    }
-
-    if (this.timerSet) {
-      throw new Error(
-        'Timer is already set to animate ellipsis, stop the current running timer before starting a new one.'
-      );
-    }
-
-    const frameLength = 4; // number of desired dots - 1
-    let frameCount = 0;
-    this.timerSet = true;
-    this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
-    this.stdout.write(message);
-    this.timer = setInterval(() => {
-      this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
-      this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-      this.stdout.write(message + '.'.repeat(++frameCount % frameLength));
-    }, this.refreshRate);
-  }
-
-  /**
-   * Stops animating ellipsis and replace with a log message.
-   */
-  private stopAnimatingEllipsis(message: string) {
-    if (!this.isTTY()) {
-      return;
-    }
-
-    clearInterval(this.timer);
-    this.timerSet = false;
-    this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
-    this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-    this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
-    this.stdout.write(`${message}...${EOL}`);
-  }
 
   /**
    * Writes escape sequence to stdout

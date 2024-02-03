@@ -5,6 +5,7 @@ import * as _path from 'path';
 import { type PackageManagerController } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
+import { format } from '../format/format.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 /**
@@ -52,9 +53,17 @@ export abstract class PackageManagerControllerBase
   /**
    * getWelcomeMessage - returns a welcome message for the customer
    */
-  getWelcomeMessage = () =>
-    `Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
-Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
+  getWelcomeMessage = () => {
+    const welcomeInfo = [
+      `Get started by running ${
+        format.amplifyCommand('sandbox', this.binaryRunner) || ''
+      }.`,
+      `Run ${
+        format.amplifyCommand('help', this.binaryRunner) || ''
+      } for a list of available commands. `,
+    ];
+    return format.list(welcomeInfo);
+  };
 
   /**
    * initializeProject - initializes a project in the project root by checking the package.json file

@@ -3,6 +3,7 @@ import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
+import { cyan } from 'kleur/colors';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
@@ -74,7 +75,11 @@ void describe('PnpmPackageManagerController', () => {
 
       assert.equal(
         pnpmPackageManagerController.getWelcomeMessage(),
-        'Run `pnpm amplify help` for a list of available commands. \nGet started by running `pnpm amplify sandbox`.'
+        ` - Get started by running ${cyan(
+          'pnpm amplify sandbox'
+        )}.\n - Run ${cyan(
+          'pnpm amplify help'
+        )} for a list of available commands. `
       );
     });
   });

@@ -1,14 +1,14 @@
-import kleur from 'kleur';
-import { LogLevel } from '@aws-amplify/cli-core';
+import { blue, bold, cyan, green, grey } from 'kleur/colors';
+import { EOL } from 'os';
+import { LogLevel, format } from '@aws-amplify/cli-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 import { printer } from './printer.js';
 
-const LEARN_MORE_USAGE_DATA_TRACKING_LINK = kleur.blue(
-  `https://docs.amplify.aws/gen2/reference/telemetry`
-);
+const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
+  'https://docs.amplify.aws/gen2/reference/telemetry';
 
 /**
  *
@@ -49,18 +49,16 @@ export class AmplifyProjectCreator {
 
     await this.packageManagerController.initializeProject();
 
-    printer.log('\nInstalling devDependencies:');
-    this.defaultDevPackages.forEach((dep) => {
-      printer.log(kleur.blue(`- ${dep}`));
-    });
+    printer.printNewLine();
+    printer.log(format.sectionHeader(`Installing devDependencies:`));
+    printer.log(format.list(this.defaultDevPackages));
 
-    printer.log('\nInstalling dependencies:');
-    this.defaultProdPackages.forEach((dep) => {
-      printer.log(kleur.blue(`- ${dep}`));
-    });
+    printer.printNewLine();
+    printer.log(format.sectionHeader(`Installing dependencies:`));
+    printer.log(format.list(this.defaultProdPackages));
+    printer.printNewLine();
 
-    printer.log('\n');
-    await printer.indicateSpinnerProgress(
+    await printer.indicateProgress(
       [
         async () =>
           this.packageManagerController.installDependencies(
@@ -77,7 +75,7 @@ export class AmplifyProjectCreator {
       'Dependencies installed'
     );
 
-    await printer.indicateSpinnerProgress(
+    await printer.indicateProgress(
       [
         async () => {
           await this.gitIgnoreInitializer.ensureInitialized();
@@ -88,39 +86,36 @@ export class AmplifyProjectCreator {
       'Template files created'
     );
 
-    printer.log(kleur.green().bold('Successfully created a new project!\n'));
+    printer.log(green('Successfully created a new project!'));
+    printer.printNewLine();
 
     const cdPreamble =
       process.cwd() === this.projectRoot
         ? null
-        : `Change directory by running ${kleur
-            .yellow()
-            .bold(
-              'cd .' + this.projectRoot.replace(process.cwd(), '') + ''
-            )} and then:`;
+        : `Navigate to your project directory using ${cyan(
+            bold('cd .' + this.projectRoot.replace(process.cwd(), '') + '')
+          )} and then:`;
 
-    printer.log(kleur.cyan('Welcome to AWS Amplify!\n'));
+    printer.log(blue(bold(`Welcome to AWS Amplify!`)));
 
     const instructionSteps = [
       cdPreamble,
-      `- Get started with your project by running ${kleur
-        .yellow()
-        .bold('npx amplify sandbox')}.`,
-      `- Run ${kleur
-        .yellow()
-        .bold('npx amplify help')} for a list of available commands.`,
+      this.packageManagerController.getWelcomeMessage(),
     ]
       .filter(Boolean)
-      .join('\n');
+      .join(EOL);
 
     printer.log(instructionSteps);
-
+    printer.printNewLine();
     printer.log(
-      kleur.dim(`\nAmplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
-Participation is optional, and you may opt-out by using ${kleur
-        .yellow()
-        .bold('amplify configure telemetry disable')}.
-To learn more about telemetry, visit ${LEARN_MORE_USAGE_DATA_TRACKING_LINK}\n`)
+      grey(
+        `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
+          'amplify configure telemetry disable'
+        )}. To learn more about telemetry, visit ${format.link(
+          LEARN_MORE_USAGE_DATA_TRACKING_LINK
+        )}`
+      )
     );
+    printer.printNewLine();
   };
 }

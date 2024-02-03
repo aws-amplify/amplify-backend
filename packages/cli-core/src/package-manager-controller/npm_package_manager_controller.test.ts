@@ -3,6 +3,7 @@ import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
+import { cyan } from 'kleur/colors';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
@@ -74,7 +75,11 @@ void describe('NpmPackageManagerController', () => {
 
       assert.equal(
         npmPackageManagerController.getWelcomeMessage(),
-        'Run `npx amplify help` for a list of available commands. \nGet started by running `npx amplify sandbox`.'
+        ` - Get started by running ${cyan(
+          'npx amplify sandbox'
+        )}.\n - Run ${cyan(
+          'npx amplify help'
+        )} for a list of available commands. `
       );
     });
   });
