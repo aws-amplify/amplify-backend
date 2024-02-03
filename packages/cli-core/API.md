@@ -29,6 +29,9 @@ export enum COLOR {
 
 // @public
 export const format: {
+    amplifyCommand: (command: string, binaryRunner?: string) => string | undefined;
+    sectionHeader: (header: string) => string;
+    link: (link: string) => string;
     list: (lines: string[]) => string;
     indent: (message: string) => string;
 };
@@ -52,7 +55,7 @@ export class PackageManagerControllerFactory {
 // @public
 export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream, stderr?: NodeJS.WriteStream, refreshRate?: number);
-    indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
+    indicateProgress(actions: (() => Promise<void>)[], messages: string[], successMessage: string): Promise<void>;
     log(message: string, level?: LogLevel, eol?: boolean): void;
     print: (message: string, colorName?: COLOR) => void;
     printNewLine: () => void;
