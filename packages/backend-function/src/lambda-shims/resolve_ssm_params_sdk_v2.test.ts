@@ -3,7 +3,7 @@ import { after, describe, it, mock } from 'node:test';
 import { internalAmplifyFunctionResolveSsmParams } from './resolve_ssm_params_sdk_v2.js';
 import assert from 'node:assert';
 
-void describe('internalAmplifyFunctionBannerResolveSsmParams', () => {
+void describe('internalAmplifyFunctionResolveSsmParams', () => {
   const originalEnv = process.env;
   const client = new aws.SSM();
 
