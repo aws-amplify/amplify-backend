@@ -51,9 +51,8 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
 
     functionEnvironmentTypeGenerator.generateTypeDefFile();
 
-    assert.doesNotThrow(
-      async () => await import(pathToFileURL(filePath).toString())
-    );
+    // import to validate syntax of type definition file
+    await import(pathToFileURL(filePath).toString());
 
     await fs.promises.rm(targetDirectory, { recursive: true, force: true });
   });
