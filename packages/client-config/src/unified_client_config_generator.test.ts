@@ -123,15 +123,6 @@ void describe('UnifiedClientConfigGenerator', () => {
             userPoolId: 'testUserPoolId',
             webClientId: 'testWebClientId',
             authRegion: 'testRegion',
-            passwordPolicyMinLength: '8',
-            passwordPolicyRequirements:
-              '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
-            mfaTypes: '["SMS","TOTP"]',
-            mfaConfiguration: 'OPTIONAL',
-            verificationMechanisms: '["EMAIL","PHONE"]',
-            usernameAttributes: '["EMAIL"]',
-            signupAttributes: '["EMAIL"]',
-            allowUnauthenticatedIdentities: 'true',
           },
         },
         [customOutputKey]: {
