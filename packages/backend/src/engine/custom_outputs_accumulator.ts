@@ -28,7 +28,7 @@ export class CustomOutputsAccumulator {
   };
 
   private ensureBackendOutputEntry = () => {
-    if (!this.hasBackendOutputEntry) {
+    if (this.hasBackendOutputEntry) {
       return;
     }
     this.outputStorageStrategy.addBackendOutputEntry(customOutputKey, {
