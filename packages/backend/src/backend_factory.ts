@@ -18,6 +18,7 @@ import { Backend, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 import { ClientConfig } from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
+import { ObjectAccumulator } from '@aws-amplify/platform-core';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -62,7 +63,8 @@ export class BackendFactory<
     );
 
     this.customOutputsAccumulator = new CustomOutputsAccumulator(
-      outputStorageStrategy
+      outputStorageStrategy,
+      new ObjectAccumulator<ClientConfig>({})
     );
 
     const backendId = getBackendIdentifier(stack);

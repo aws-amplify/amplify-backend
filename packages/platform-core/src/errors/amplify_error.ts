@@ -127,6 +127,7 @@ export type AmplifyUserErrorType =
   | 'BackendBuildError'
   | 'BootstrapNotDetectedError'
   | 'AccessDeniedError'
+  | 'OutputEntryAlreadyExists'
   | 'FileConventionError';
 
 /**
