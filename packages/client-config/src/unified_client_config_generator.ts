@@ -3,7 +3,11 @@ import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas'
 import { ClientConfig } from './client-config-types/client_config.js';
 import { ClientConfigContributor } from './client-config-contributor/client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
-import { ObjectAccumulator } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  ObjectAccumulator,
+  ObjectAccumulatorPropertyAlreadyExistsError,
+} from '@aws-amplify/platform-core';
 
 /**
  * Right now this is mostly a stub. This will become a translation layer between backend output and frontend config
@@ -32,7 +36,23 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
       const clientConfigContribution = await contributor.contribute(
         backendOutput
       );
-      accumulator.accumulate(clientConfigContribution);
+      try {
+        accumulator.accumulate(clientConfigContribution);
+      } catch (error) {
+        if (error instanceof ObjectAccumulatorPropertyAlreadyExistsError) {
+          throw new AmplifyUserError(
+            'OutputEntryAlreadyExists',
+            {
+              message: `Duplicated entry with key ${error.key} detected in deployment outputs`,
+              resolution:
+                "Check if 'backend.addOutput' is called multiple times with overlapping inputs or" +
+                " if 'backend.addOutput' is called with values overlapping Amplify managed keys",
+            },
+            error
+          );
+        }
+        throw error;
+      }
     }
     return accumulator.getAccumulatedObject();
   };

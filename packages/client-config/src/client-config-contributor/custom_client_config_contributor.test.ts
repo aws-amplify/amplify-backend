@@ -1,7 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { CustomClientConfigContributor } from './custom_client_config_contributor.js';
-import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
+import {
+  UnifiedBackendOutput,
+  customOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from '../client-config-types/client_config.js';
 
 void describe('Custom client config contributor', () => {
@@ -16,7 +19,7 @@ void describe('Custom client config contributor', () => {
       },
     };
     const backendOutput: UnifiedBackendOutput = {
-      'AWS::Amplify::Custom': {
+      [customOutputKey]: {
         version: '1',
         payload: {
           customOutputs: JSON.stringify(customOutputs),
