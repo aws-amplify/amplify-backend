@@ -18,7 +18,7 @@ export class FunctionTypeDefConventionProvider {
    * Get the ignore pattern for type definition files
    */
   static getFunctionTypeDefIgnorePattern(): string {
-    // returns '**/<typeDefParentFolderName>/*<typeDefFileNameSuffix>.ts'
+    // returns '**/amplify/*_env.ts'
     return this.getFunctionTypeDefFilePath('**/*', '*');
   }
 }
