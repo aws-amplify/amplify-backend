@@ -13,7 +13,6 @@ import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import fs from 'fs';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
@@ -228,42 +227,36 @@ class AmplifyFunction
     backendSecretResolver: BackendSecretResolver
   ) {
     super(scope, id);
-    const functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
-      scope,
-      props['environment'],
-      backendSecretResolver
-    );
-    const environmentRecord =
-      functionEnvironmentTranslator.getEnvironmentRecord();
-    const secretPolicyStatement =
-      functionEnvironmentTranslator.getSecretPolicyStatement();
+
+    const runtime = nodeVersionMap[props.runtime];
 
     const require = createRequire(import.meta.url);
-    const bannerCodeFile = require.resolve('./resolve_secret_banner');
-    const bannerCode = fs
-      .readFileSync(bannerCodeFile, 'utf-8')
-      .replaceAll('\n', '')
-      .replaceAll('\r', '')
-      .split('//#')[0]; // remove source map
 
-    const cjsShimRequire = require.resolve('./cjs_shim');
+    const shims =
+      runtime === Runtime.NODEJS_16_X
+        ? // this shim includes the cjs shim because it's required for the v2 sdk to work
+          [require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2_shim')]
+        : [
+            require.resolve('./lambda-shims/cjs_shim'),
+            require.resolve('./lambda-shims/resolve_ssm_params_shim'),
+          ];
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
-      environment: environmentRecord as { [key: string]: string }, // for some reason TS can't figure out that this is the same as Record<string, string>
       timeout: Duration.seconds(props.timeoutSeconds),
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
       bundling: {
-        banner: bannerCode,
         format: OutputFormat.ESM,
-        inject: [cjsShimRequire], // replace require to fix dynamic require errors with cjs
+        inject: shims,
       },
     });
 
-    if (secretPolicyStatement) {
-      functionLambda.grantPrincipal.addToPrincipalPolicy(secretPolicyStatement);
-    }
+    new FunctionEnvironmentTranslator(
+      functionLambda,
+      props['environment'],
+      backendSecretResolver
+    );
 
     this.resources = {
       lambda: functionLambda,

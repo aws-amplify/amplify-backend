@@ -164,28 +164,28 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     // Check that deployed lambda is working correctly
 
     // find lambda function
-    const lambdas = await this.resourceFinder.findByBackendIdentifier(
+    const defaultNodeLambda = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Lambda::Function',
-      (name) => name.includes('specialTestFunction')
+      (name) => name.includes('defaultNodeFunction')
     );
 
-    assert.equal(lambdas.length, 1);
-
-    // invoke the lambda
-    const response = await this.lambdaClient.send(
-      new InvokeCommand({ FunctionName: lambdas[0] })
-    );
-    const responsePayload = JSON.parse(
-      response.Payload?.transformToString() || ''
+    const node16Lambda = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Lambda::Function',
+      (name) => name.includes('node16Function')
     );
 
-    // check expected response
-    assert.equal(
-      responsePayload,
-      // eslint-disable-next-line spellcheck/spell-checker
-      `Your uuid is 6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b. TEST_SECRET env var value is amazonSecret-e2eTestValue. TEST_SHARED_SECRET env var value is ${this.amplifySharedSecret}-e2eTestSharedValue.`
-    );
+    assert.equal(defaultNodeLambda.length, 1);
+    assert.equal(node16Lambda.length, 1);
+
+    const expectedResponse = {
+      testSecret: 'amazonSecret-e2eTestValue',
+      testSharedSecret: `${this.amplifySharedSecret}-e2eTestSharedValue`,
+    };
+
+    await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);
+    await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
   }
 
   private setUpDeployEnvironment = async (
@@ -214,5 +214,21 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       backendId.namespace,
       this.amplifySharedSecret
     );
+  };
+
+  private checkLambdaResponse = async (
+    lambdaName: string,
+    expectedResponse: unknown
+  ) => {
+    // invoke the lambda
+    const response = await this.lambdaClient.send(
+      new InvokeCommand({ FunctionName: lambdaName })
+    );
+    const responsePayload = JSON.parse(
+      response.Payload?.transformToString() || ''
+    );
+
+    // check expected response
+    assert.deepStrictEqual(responsePayload, expectedResponse);
   };
 }
