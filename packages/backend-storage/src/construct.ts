@@ -49,7 +49,7 @@ export class AmplifyStorage
     };
 
     this.resources = {
-      bucket: new Bucket(this, `${id}Bucket`, bucketProps),
+      bucket: new Bucket(this, 'Bucket', bucketProps),
     };
 
     this.storeOutput(props.outputStorageStrategy);

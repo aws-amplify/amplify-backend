@@ -59,7 +59,7 @@ void describe('AmplifyStorage', () => {
       });
 
       const expectedBucketName = (
-        storageConstruct.node.findChild('testBucket') as Bucket
+        storageConstruct.node.findChild('Bucket') as Bucket
       ).bucketName;
       const expectedRegion = Stack.of(storageConstruct).region;
 

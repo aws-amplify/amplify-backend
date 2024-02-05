@@ -39,7 +39,7 @@ void it('data storage auth with triggers', () => {
 
   assertExpectedLogicalIds(templates.storage, 'AWS::S3::Bucket', [
     // eslint-disable-next-line spellcheck/spell-checker
-    'testNametestNameBucketABFD5AA0',
+    'testNameBucketB4152AD5',
   ]);
 });
 
