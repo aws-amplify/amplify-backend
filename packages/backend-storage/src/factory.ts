@@ -60,7 +60,6 @@ class AmplifyStorageFactory
 
 class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'storage';
-  private readonly defaultName = 'amplifyStorage';
 
   constructor(
     private readonly props: AmplifyStorageProps,
@@ -68,7 +67,7 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    return new AmplifyStorage(scope, this.defaultName, {
+    return new AmplifyStorage(scope, `${this.props.name}`, {
       ...this.props,
       outputStorageStrategy: this.outputStorageStrategy,
     });
