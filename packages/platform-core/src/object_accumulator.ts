@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import mergeWith from 'lodash.mergewith';
 
 /**
  * This error is thrown when there's a collision in
@@ -26,11 +26,11 @@ export class ObjectAccumulator<T> {
   constructor(private readonly accumulator: Partial<T>) {}
 
   accumulate = (part: Partial<T>): ObjectAccumulator<T> => {
-    _.mergeWith(this.accumulator, part, (existingValue, incomingValue, key) => {
-      if (_.isArray(existingValue)) {
+    mergeWith(this.accumulator, part, (existingValue, incomingValue, key) => {
+      if (Array.isArray(existingValue)) {
         return existingValue.concat(incomingValue);
       }
-      if (existingValue && !_.isObject(existingValue)) {
+      if (existingValue && typeof existingValue !== 'object') {
         throw new ObjectAccumulatorPropertyAlreadyExistsError(
           key,
           existingValue,

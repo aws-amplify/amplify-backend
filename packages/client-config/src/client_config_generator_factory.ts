@@ -33,6 +33,8 @@ export class ClientConfigGeneratorFactory {
       new AuthClientConfigContributor(),
       new GraphqlClientConfigContributor(modelSchemaAdapter),
       new StorageClientConfigContributor(),
+      // Custom client config contributor must be last in the pipeline
+      // as it has capability of overriding previously defined properties.
       new CustomClientConfigContributor(),
     ]);
   };
