@@ -14,8 +14,8 @@ import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
-import { Policy } from 'aws-cdk-lib/aws-iam';
 import { Options } from 'execa';
+import { Policy } from 'aws-cdk-lib/aws-iam';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
