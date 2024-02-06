@@ -1,5 +1,29 @@
 # @aws-amplify/backend
 
+## 0.11.0
+
+### Minor Changes
+
+- 85ced84f2: Add ability to add custom outputs
+
+### Patch Changes
+
+- Updated dependencies [ccde77a01]
+- Updated dependencies [85ced84f2]
+- Updated dependencies [348717b55]
+- Updated dependencies [b73d76a78]
+- Updated dependencies [84818e3c1]
+  - @aws-amplify/backend-function@0.7.0
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/backend-output-storage@0.3.0
+  - @aws-amplify/client-config@0.7.0
+  - @aws-amplify/plugin-types@0.8.0
+  - @aws-amplify/backend-storage@0.5.0
+  - @aws-amplify/backend-auth@0.4.6
+  - @aws-amplify/backend-data@0.9.6
+  - @aws-amplify/backend-secret@0.4.4
+  - @aws-amplify/platform-core@0.4.4
+
 ## 0.10.3
 
 ### Patch Changes
