@@ -1,4 +1,4 @@
-import { Construct } from 'constructs';
+import { Construct, IConstruct } from 'constructs';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -7,7 +7,11 @@ import {
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { AmplifyData } from '@aws-amplify/data-construct';
+import {
+  AmplifyData,
+  AmplifyDynamoDbTableWrapper,
+  TranslationBehavior,
+} from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { DataProps } from './types.js';
@@ -24,7 +28,8 @@ import {
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
+import { Aspects, IAspect } from 'aws-cdk-lib';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
@@ -145,8 +150,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         error instanceof Error ? error : undefined
       );
     }
-
-    return new AmplifyData(scope, this.defaultName, {
+    const amplifyData = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
       definition: amplifyGraphqlDefinition,
       authorizationModes,
@@ -154,7 +158,36 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       functionNameMap,
       translationBehavior: { sandboxModeEnabled },
     });
+    Aspects.of(amplifyData).add(new AllowDestructiveUpdatesChecker());
+    return amplifyData;
   };
+}
+
+const DESTRUCTIVE_SCHEMA_UPDATES_ATTRIBUTE_NAME: keyof TranslationBehavior =
+  'allowDestructiveGraphqlSchemaUpdates';
+const REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME: keyof TranslationBehavior =
+  'replaceTableUponGsiUpdate';
+/**
+ * Aspect class to modify the amplify managed DynamoDB table
+ * to allow destructive updates when sandbox deployment is detected
+ */
+class AllowDestructiveUpdatesChecker implements IAspect {
+  public visit(scope: IConstruct): void {
+    if (scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox') {
+      if (AmplifyDynamoDbTableWrapper.isAmplifyDynamoDbTableResource(scope)) {
+        // These value setters are not exposed in the wrapper
+        // Need to use the property override to escape the hatch
+        scope.addPropertyOverride(
+          DESTRUCTIVE_SCHEMA_UPDATES_ATTRIBUTE_NAME,
+          true
+        );
+        scope.addPropertyOverride(
+          REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME,
+          true
+        );
+      }
+    }
+  }
 }
 
 /**
