@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 0.4.0
+
+### Minor Changes
+
+- b73d76a78: Support yarn 1, yarn 2+ and pnpm package managers
+
 ## 0.3.0
 
 ### Minor Changes

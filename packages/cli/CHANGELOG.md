@@ -1,5 +1,28 @@
 # @aws-amplify/backend-cli
 
+## 0.11.0
+
+### Minor Changes
+
+- b73d76a78: Support yarn 1, yarn 2+ and pnpm package managers
+- 2a75b08dc: adds info commands that provides troubleshooting info
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [348717b55]
+- Updated dependencies [b73d76a78]
+- Updated dependencies [1814f1a69]
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/client-config@0.7.0
+  - @aws-amplify/backend-deployer@0.5.0
+  - @aws-amplify/cli-core@0.4.0
+  - @aws-amplify/sandbox@0.5.0
+  - @aws-amplify/model-generator@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.10
+  - @aws-amplify/backend-secret@0.4.4
+  - @aws-amplify/platform-core@0.4.4
+
 ## 0.10.0
 
 ### Minor Changes
