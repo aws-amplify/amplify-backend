@@ -54,13 +54,10 @@ export abstract class PackageManagerControllerBase
    * getWelcomeMessage - returns a welcome message for the customer
    */
   getWelcomeMessage = () => {
+    const { amplifyCommand } = format.runner(this.binaryRunner);
     const welcomeInfo = [
-      `Get started by running ${
-        format.amplifyCommand('sandbox', this.binaryRunner) || ''
-      }.`,
-      `Run ${
-        format.amplifyCommand('help', this.binaryRunner) || ''
-      } for a list of available commands. `,
+      `Get started by running ${amplifyCommand('sandbox')}.`,
+      `Run ${amplifyCommand('help')} for a list of available commands. `,
     ];
     return format.list(welcomeInfo);
   };

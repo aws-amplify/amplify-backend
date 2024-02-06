@@ -59,36 +59,17 @@ void describe('Printer', () => {
     assert.strictEqual(mockedWrite.mock.callCount(), 0);
   });
 
-  //   void it('indicateProgress does not animates ellipsis if not TTY & prints log message once', async () => {
-  //     process.stdout.isTTY = false;
-  //     await new Printer(LogLevel.INFO).indicateProgress(
-  //       'loading a long list',
-  //       () => new Promise((resolve) => setTimeout(resolve, 1500))
-  //     );
-  //     // filter out the escape characters.
-  //     const logMessages = mockedWrite.mock.calls
-  //       .filter((message) =>
-  //         message.arguments.toString().match(/loading a long list/)
-  //       )
-  //       .map((call) => call.arguments.toString());
-
-  //     assert.strictEqual(logMessages.length, 1);
-  //     assert.match(logMessages[0], /loading a long list/);
-  //   });
-
   void it('start animating spinner with message and stops animation in TTY terminal', async () => {
     process.stdout.isTTY = true;
 
-    const spinnerMessages = ['Message 1', 'Message 2'];
+    const message = 'Message 1';
     const successMessage = 'Success Message';
 
-    const actions = spinnerMessages.map(() => async () => {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-    });
-
     await new Printer(LogLevel.INFO).indicateProgress(
-      actions,
-      spinnerMessages,
+      async () => {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      },
+      message,
       successMessage
     );
 
@@ -104,16 +85,14 @@ void describe('Printer', () => {
   void it('animating spinner is a noop in non-TTY terminal and instead logs a message at INFO level', async () => {
     process.stdout.isTTY = false;
 
-    const spinnerMessages = ['Message 1', 'Message 2'];
+    const message = 'Message 1';
     const successMessage = 'Success Message';
 
-    const actions = spinnerMessages.map(() => async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-    });
-
     await new Printer(LogLevel.INFO).indicateProgress(
-      actions,
-      spinnerMessages,
+      async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      },
+      message,
       successMessage
     );
 
@@ -121,8 +100,7 @@ void describe('Printer', () => {
       .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
-    assert.strictEqual(logMessages.length, 2);
+    assert.strictEqual(logMessages.length, 1);
     assert.strictEqual(logMessages[0], 'Message 1');
-    assert.strictEqual(logMessages[1], 'Message 2');
   });
 });

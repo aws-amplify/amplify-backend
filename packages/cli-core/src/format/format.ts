@@ -5,15 +5,14 @@ import { blue, bold, cyan, underline } from 'kleur/colors';
  * Formats various inputs into single string.
  */
 export const format = {
-  amplifyCommand: (command: string, binaryRunner?: string) => {
-    if (command === '') {
-      return;
-    }
-    if (!binaryRunner) {
-      return cyan(`npx amplify ${command}`);
-    }
-    return cyan(`${binaryRunner} amplify ${command}`);
-  },
+  runner: (binaryRunner: string) => ({
+    amplifyCommand: (command: string) => {
+      if (command === '') {
+        throw new Error('Command cannot be empty');
+      }
+      return cyan(`${binaryRunner} amplify ${command}`);
+    },
+  }),
   sectionHeader: (header: string) => bold(blue(header)),
   link: (link: string) => underline(blue(link)),
   list: (lines: string[]) =>

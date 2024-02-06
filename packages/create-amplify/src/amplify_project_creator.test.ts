@@ -51,7 +51,10 @@ void describe('AmplifyProjectCreator', () => {
       bold(blue(`Installing devDependencies:`))
     );
 
-    assert.equal(logSpy.mock.calls[6].arguments[0], `Installing dependencies`);
+    assert.equal(
+      logSpy.mock.calls[6].arguments[0],
+      `Installing dependencies...`
+    );
     assert.equal(
       logSpy.mock.calls[8].arguments[0],
       green('Successfully created a new project!')

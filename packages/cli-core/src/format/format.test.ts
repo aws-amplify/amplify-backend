@@ -5,25 +5,23 @@ import { format } from './format.js';
 import { blue, bold, cyan, underline } from 'kleur/colors';
 
 void describe('format', () => {
-  void it('should format amplify command without binary runner', () => {
+  void it('should format amplify command with yarn', () => {
     const command = 'help';
-    const expectedOutput = cyan(`npx amplify help`);
-    const actualOutput = format.amplifyCommand(command);
+    const binaryRunner = 'yarn';
+    const expectedOutput = cyan(`yarn amplify help`);
+    const actualOutput = format.runner(binaryRunner).amplifyCommand(command);
     assert.strictEqual(actualOutput, expectedOutput);
   });
 
-  void it('should format amplify command with binary runner', () => {
-    const command = 'help';
-    const binaryRunner = 'npx';
-    const expectedOutput = cyan(`npx amplify help`);
-    const actualOutput = format.amplifyCommand(command, binaryRunner);
-    assert.strictEqual(actualOutput, expectedOutput);
-  });
-
-  void it('should return undefined for empty amplify command', () => {
-    const command = '';
-    const actualOutput = format.amplifyCommand(command);
-    assert.strictEqual(actualOutput, undefined);
+  void it('should return error for empty amplify command', () => {
+    const binaryRunner = 'yarn';
+    assert.throws(
+      () => {
+        format.runner(binaryRunner).amplifyCommand('');
+      },
+      Error,
+      'Command cannot be empty'
+    );
   });
 
   void it('should format section header in bold and blue', () => {

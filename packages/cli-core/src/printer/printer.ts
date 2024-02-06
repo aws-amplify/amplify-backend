@@ -85,19 +85,13 @@ export class Printer {
    * Logs a message with animated spinner
    */
   async indicateProgress(
-    actions: (() => Promise<void>)[],
-    messages: string[],
+    action: () => Promise<void>,
+    message: string,
     successMessage: string
   ) {
     try {
-      for (let i = 0; i < actions.length; i++) {
-        if (i === 0) {
-          this.startAnimatingSpinner(messages[i]);
-        } else {
-          this.updateSpinnerMessage(messages[i]);
-        }
-        await actions[i]();
-      }
+      this.startAnimatingSpinner(message);
+      await action();
       this.stopAnimatingSpinner(successMessage);
     } catch (error) {
       this.stopAnimatingSpinner('An error occurred');
@@ -156,25 +150,13 @@ export class Printer {
     let frameIndex = 0;
     this.timerSet = true;
     this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
-    this.stdout.write(message);
     this.timer = setInterval(() => {
       this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
       this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
       const frame = this.spinnerFrames[frameIndex];
-      this.stdout.write(`${this.currentSpinnerMessage} ${frame}`);
+      this.stdout.write(`${frame} ${this.currentSpinnerMessage}`);
       frameIndex = (frameIndex + 1) % this.spinnerFrames.length;
     }, this.refreshRate);
-  }
-
-  /**
-   * Updates the message on the animated spinner
-   */
-  private updateSpinnerMessage(message: string) {
-    if (!this.timerSet) {
-      this.startAnimatingSpinner(message);
-    } else {
-      this.currentSpinnerMessage = message;
-    }
   }
 
   /**
@@ -190,7 +172,8 @@ export class Printer {
     this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
     this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
     this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
-    this.stdout.write(`${message} ✔${EOL}`);
+    this.stdout.write(`✔ ${message}`);
+    this.printNewLine();
   }
 }
 
