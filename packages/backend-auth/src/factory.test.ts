@@ -12,14 +12,12 @@ import {
   FunctionResources,
   ImportPathVerifier,
   ResourceProvider,
-  SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import { AmplifyAuth, triggerEvents } from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
-  SsmEnvironmentEntriesGeneratorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 
@@ -37,7 +35,6 @@ void describe('AmplifyAuthFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
-  let ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
   let stack: Stack;
   beforeEach(() => {
@@ -57,13 +54,10 @@ void describe('AmplifyAuthFactory', () => {
 
     importPathVerifier = new ImportPathVerifierStub();
 
-    ssmEnvironmentEntriesGenerator = new SsmEnvironmentEntriesGeneratorStub();
-
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      ssmEnvironmentEntriesGenerator,
     };
   });
 

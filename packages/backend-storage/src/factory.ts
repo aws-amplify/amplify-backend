@@ -128,7 +128,7 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
     const bucketPolicyFactory = new BucketPolicyFactory(bucket);
 
     const ssmEnvironmentEntries =
-      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries(bucket, {
+      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
         STORAGE_BUCKET_NAME: bucket.bucketName,
       });
 

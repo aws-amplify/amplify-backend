@@ -15,11 +15,18 @@ export class BackendIdScopedSsmEnvironmentEntriesGenerator
   /**
    * Initialize with the backend identifier
    */
-  constructor(private readonly backendId: BackendIdentifier) {}
+  constructor(
+    private readonly scope: Construct,
+    private readonly backendId: BackendIdentifier
+  ) {}
 
   /**
-   * Creates SSM parameters in the provided CDK scope that allow the values in scopeContext to be fetched from SSM at runtime without a deploy-time dependency between resources.
-   * For this to work, the CDK tokens in scopeContext _must_ reside in the given scope. Additionally, the returned SsmEnvironmentEntries must _not_ contain CDK tokens to SSM parameters.
+   * Creates SSM parameters for CDK tokens in the scope provided to the constructor.
+   * This allows values in scopeContext to be fetched from SSM at runtime without a deploy-time dependency between resources.
+   * For this to work, the CDK tokens in scopeContext _must_ reside in the scope from the constructor.
+   * This method can be called multiple times but an attempt to insert the same contextKey twice will result in an error.
+   *
+   * The returned SsmEnvironmentEntries must _not_ contain CDK tokens to SSM parameters.
    * Instead the SSM parameters are formatted with a naming convention and the literal string value of the parameter path is returned.
    * @example
    * Consider the following scopeContext input:
@@ -38,20 +45,16 @@ export class BackendIdScopedSsmEnvironmentEntriesGenerator
    * ]
    *
    * The value of this parameter can then be fetched anywhere else without an explicit deploy-time dependency on the storage bucket name
-   * @param scope The CDK scope in which to create SSM parameters for the scopeContext
    * @param scopeContext Key/value pairs of values from the scope that should be stored in SSM and retrievable using the key
    */
-  generateSsmEnvironmentEntries = (
-    scope: Construct,
-    scopeContext: Record<string, string>
-  ) =>
+  generateSsmEnvironmentEntries = (scopeContext: Record<string, string>) =>
     Object.entries(scopeContext).map(([contextKey, contextValue]) => {
       const parameterPath =
         ParameterPathConversions.toResourceReferenceFullPath(
           this.backendId,
           contextKey
         );
-      new StringParameter(scope, `${contextKey}Parameter`, {
+      new StringParameter(this.scope, `${contextKey}Parameter`, {
         parameterName: parameterPath,
         stringValue: contextValue,
       });

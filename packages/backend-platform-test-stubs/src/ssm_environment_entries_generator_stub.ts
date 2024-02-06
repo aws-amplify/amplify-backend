@@ -9,15 +9,17 @@ export class SsmEnvironmentEntriesGeneratorStub
   implements SsmEnvironmentEntriesGenerator
 {
   /**
+   * Constructs a new instance of the SsmEnvironmentEntriesGeneratorStub class.
+   * @param scope The scope of the construct.
+   */
+  constructor(private readonly scope: Construct) {}
+  /**
    * Stub implementation for testing. Synthesizes SSM parameters using a test path.
    */
-  generateSsmEnvironmentEntries = (
-    scope: Construct,
-    scopeContext: Record<string, string>
-  ) =>
+  generateSsmEnvironmentEntries = (scopeContext: Record<string, string>) =>
     Object.entries(scopeContext).map(([contextKey, contextValue]) => {
       const parameterPath = `/this/is/a/test/path/${contextKey}`;
-      new StringParameter(scope, `${contextKey}Parameter`, {
+      new StringParameter(this.scope, `${contextKey}Parameter`, {
         parameterName: parameterPath,
         stringValue: contextValue,
       });

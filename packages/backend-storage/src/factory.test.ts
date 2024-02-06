@@ -11,13 +11,11 @@ import {
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
   ResourceProvider,
-  SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
-  SsmEnvironmentEntriesGeneratorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { StorageResources } from './construct.js';
@@ -37,7 +35,6 @@ void describe('AmplifyStorageFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
-  let ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
 
   beforeEach(() => {
     storageFactory = defineStorage({});
@@ -53,13 +50,10 @@ void describe('AmplifyStorageFactory', () => {
 
     importPathVerifier = new ImportPathVerifierStub();
 
-    ssmEnvironmentEntriesGenerator = new SsmEnvironmentEntriesGeneratorStub();
-
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
-      ssmEnvironmentEntriesGenerator,
     };
   });
   void it('returns singleton instance', () => {

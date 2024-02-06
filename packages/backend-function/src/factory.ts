@@ -5,6 +5,7 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
+  GenerateContainerEntryProps,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
   SsmEnvironmentEntry,
@@ -205,10 +206,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(private readonly props: HydratedFunctionProps) {}
 
-  generateContainerEntry = (
-    scope: Construct,
-    backendSecretResolver: BackendSecretResolver
-  ) => {
+  generateContainerEntry = ({
+    scope,
+    backendSecretResolver,
+  }: GenerateContainerEntryProps) => {
     return new AmplifyFunction(
       scope,
       this.props.name,

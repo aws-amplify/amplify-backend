@@ -3,13 +3,12 @@ import {
   AuthProps,
   TriggerEvent,
 } from '@aws-amplify/auth-construct-alpha';
-import { Construct } from 'constructs';
 import {
-  BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
+  GenerateContainerEntryProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
@@ -77,10 +76,10 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps
   ) {}
 
-  generateContainerEntry = (
-    scope: Construct,
-    backendSecretResolver: BackendSecretResolver
-  ) => {
+  generateContainerEntry = ({
+    scope,
+    backendSecretResolver,
+  }: GenerateContainerEntryProps) => {
     const authProps: AuthProps = {
       ...this.props,
       loginWith: translateToAuthConstructLoginWith(

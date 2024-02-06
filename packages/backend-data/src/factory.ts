@@ -1,10 +1,10 @@
-import { Construct } from 'constructs';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  GenerateContainerEntryProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AmplifyData } from '@aws-amplify/data-construct';
@@ -80,7 +80,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
-  generateContainerEntry = (scope: Construct) => {
+  generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
     let authorizationModes;
 
     try {
