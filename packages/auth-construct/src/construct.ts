@@ -5,6 +5,7 @@ import {
   AuthResources,
   AuthRoleName,
   BackendOutputStorageStrategy,
+  ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
@@ -246,7 +247,9 @@ export class AmplifyAuth
     }
   };
 
-  getResourceAccessAcceptor = (roleName: AuthRoleName) => ({
+  getResourceAccessAcceptor = (
+    roleName: AuthRoleName
+  ): ResourceAccessAcceptor => ({
     acceptResourceAccess: (policy: Policy) => {
       const role = this.resources[roleName];
       policy.attachToRole(role);
