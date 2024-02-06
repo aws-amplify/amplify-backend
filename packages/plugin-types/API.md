@@ -162,7 +162,9 @@ export type ResolvePathResult = {
 };
 
 // @public (undocumented)
-export type ResourceAccessAcceptor = (policy: Policy, ssmEnvironmentEntries: SsmEnvironmentEntry[]) => void;
+export type ResourceAccessAcceptor = {
+    acceptResourceAccess: (policy: Policy, ssmEnvironmentEntries: SsmEnvironmentEntry[]) => void;
+};
 
 // @public (undocumented)
 export type ResourceAccessAcceptorFactory<RoleName extends string | undefined = undefined> = {

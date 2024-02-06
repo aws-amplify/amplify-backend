@@ -27,7 +27,9 @@ export class AmplifyAuth extends Construct implements ResourceProvider<AuthResou
     constructor(scope: Construct, id: string, props?: AuthProps);
     addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
     // (undocumented)
-    getResourceAccessAcceptor: (roleName: AuthRoleName) => (policy: Policy) => void;
+    getResourceAccessAcceptor: (roleName: AuthRoleName) => {
+        acceptResourceAccess: (policy: Policy) => void;
+    };
     readonly resources: AuthResources;
 }
 
