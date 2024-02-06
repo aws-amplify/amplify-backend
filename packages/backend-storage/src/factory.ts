@@ -1,10 +1,11 @@
-import { Construct } from 'constructs';
 import {
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  GenerateContainerEntryProps,
   ResourceAccessAcceptor,
   ResourceProvider,
+  SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
 import {
@@ -80,13 +81,17 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps
   ) {}
 
-  generateContainerEntry = (scope: Construct) => {
+  generateContainerEntry = ({
+    scope,
+    ssmEnvironmentEntriesGenerator,
+  }: GenerateContainerEntryProps) => {
     const amplifyStorage = new AmplifyStorage(scope, this.defaultName, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     });
 
     this.generateAndAttachAccessPolicies(
+      ssmEnvironmentEntriesGenerator,
       this.getInstanceProps,
       amplifyStorage.resources.bucket
     );
@@ -95,10 +100,10 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
   };
 
   private generateAndAttachAccessPolicies = (
+    ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
     getInstanceProps: ConstructFactoryGetInstanceProps,
     bucket: IBucket
   ) => {
-    const { ssmEnvironmentEntriesGenerator } = getInstanceProps;
     const accessDefinition = this.props.access?.(storageAccessBuilder) || {};
 
     const accessMap: Map<ResourceAccessAcceptor, Permission[]> = new Map();
