@@ -11,6 +11,9 @@ import {
   ObjectAccumulatorPropertyAlreadyExistsError,
 } from '@aws-amplify/platform-core';
 import { ClientConfig } from '@aws-amplify/client-config';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import { Stack } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
 
 void describe('Custom outputs accumulator', () => {
   const storeOutputMock = mock.fn();
@@ -19,7 +22,9 @@ void describe('Custom outputs accumulator', () => {
       addBackendOutputEntry: storeOutputMock,
     };
   const objectAccumulator = new ObjectAccumulator<ClientConfig>({});
-  const accumulateMock = mock.method(objectAccumulator, 'accumulate');
+  const accumulateMock = mock.method(objectAccumulator, 'accumulate', () => {
+    // no-op to make sure real implementation is not called.
+  });
 
   beforeEach(() => {
     storeOutputMock.mock.resetCalls();
@@ -88,5 +93,40 @@ void describe('Custom outputs accumulator', () => {
         return true;
       }
     );
+  });
+
+  void it('serializes accumulated config', () => {
+    // This test needs real dependencies to test behavior of cdk.Lazy
+    const stack = new Stack();
+    const accumulator = new CustomOutputsAccumulator(
+      new StackMetadataBackendOutputStorageStrategy(stack),
+      new ObjectAccumulator<ClientConfig>({})
+    );
+
+    accumulator.addOutput({
+      aws_user_pools_id: 'some_user_pool_id',
+      custom: {
+        output1: 'value1',
+      },
+    });
+    accumulator.addOutput({
+      custom: {
+        output2: 'value2',
+      },
+    });
+
+    const expectedAccumulatedOutput: Partial<ClientConfig> = {
+      aws_user_pools_id: 'some_user_pool_id',
+      custom: {
+        output1: 'value1',
+        output2: 'value2',
+      },
+    };
+
+    const template = Template.fromStack(stack);
+
+    const customOutputValue =
+      template.findOutputs('customOutputs').customOutputs.Value;
+    assert.deepEqual(JSON.parse(customOutputValue), expectedAccumulatedOutput);
   });
 });
