@@ -115,8 +115,9 @@ export class FilePathExtractor {
 
 // @public
 export class FunctionTypeDefConventionProvider {
-    static getFunctionTypeDefFilePath(functionEntryPath: string, functionName: string): string;
-    static getFunctionTypeDefIgnorePattern(): string;
+    constructor(functionEntryPath: string, functionName: string);
+    getFunctionTypeDefFilePath(): string;
+    getFunctionTypeDefIgnorePattern(): string;
 }
 
 // @public (undocumented)

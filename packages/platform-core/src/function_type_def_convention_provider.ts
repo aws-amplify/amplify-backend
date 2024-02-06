@@ -5,20 +5,26 @@ import path from 'path';
  */
 export class FunctionTypeDefConventionProvider {
   /**
+   * Constructor for FunctionTypeDefConventionProvider
+   */
+  constructor(
+    private functionEntryPath: string,
+    private functionName: string
+  ) {}
+
+  /**
    * Get the path to the type definition file
    */
-  static getFunctionTypeDefFilePath(
-    functionEntryPath: string,
-    functionName: string
-  ): string {
-    return `${path.dirname(functionEntryPath)}/amplify/${functionName}_env.ts`;
+  getFunctionTypeDefFilePath(): string {
+    return `${path.dirname(this.functionEntryPath)}/amplify/${
+      this.functionName
+    }_env.ts`;
   }
 
   /**
    * Get the ignore pattern for type definition files
    */
-  static getFunctionTypeDefIgnorePattern(): string {
-    // returns '**/amplify/*_env.ts'
-    return this.getFunctionTypeDefFilePath('**/*', '*');
+  getFunctionTypeDefIgnorePattern(): string {
+    return '**/amplify/*_env.ts';
   }
 }

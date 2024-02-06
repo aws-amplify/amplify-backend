@@ -14,11 +14,10 @@ export class FunctionEnvironmentTypeGenerator {
    * Initialize type definition file name and location
    */
   constructor(functionName: string, functionEntryPath: string) {
-    this.typeDefFilePath =
-      FunctionTypeDefConventionProvider.getFunctionTypeDefFilePath(
-        functionEntryPath,
-        functionName
-      );
+    this.typeDefFilePath = new FunctionTypeDefConventionProvider(
+      functionEntryPath,
+      functionName
+    ).getFunctionTypeDefFilePath();
   }
 
   /**

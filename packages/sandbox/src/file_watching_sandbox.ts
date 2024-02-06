@@ -105,7 +105,11 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     const ignoredPaths = this.getGitIgnoredPaths();
     const functionTypeDefIgnorePattern =
-      FunctionTypeDefConventionProvider.getFunctionTypeDefIgnorePattern();
+      // We only need ignore pattern so any strings in constructor will not affect result
+      new FunctionTypeDefConventionProvider(
+        '',
+        ''
+      ).getFunctionTypeDefIgnorePattern();
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(
         ...ignoredPaths,

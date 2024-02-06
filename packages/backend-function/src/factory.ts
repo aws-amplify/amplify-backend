@@ -262,11 +262,13 @@ class AmplifyFunction
       lambda: functionLambda,
     };
 
+    // This is a hack to generate a type definition file after synthesis
     this.node.addValidation({
       validate: (): string[] => {
-        const functionEnvironmentTypeGenerator =
-          new FunctionEnvironmentTypeGenerator(id, props.entry);
-        functionEnvironmentTypeGenerator.generateTypeDefFile();
+        new FunctionEnvironmentTypeGenerator(
+          id,
+          props.entry
+        ).generateTypeDefFile();
         return [];
       },
     });
