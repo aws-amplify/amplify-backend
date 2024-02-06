@@ -9,7 +9,7 @@ import {
 
 export type StorageAction = 'read' | 'write' | 'delete';
 
-export type StorageAccess = {
+export type StorageAccessDefinition = {
   getResourceAccessAcceptor: (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ) => ResourceAccessAcceptor;
@@ -18,10 +18,16 @@ export type StorageAccess = {
 };
 
 export type StorageAccessBuilder = {
-  to: (...actions: StorageAction[]) => StorageAccess;
+  to: (...actions: StorageAction[]) => StorageAccessDefinition;
 };
 
-export type EntityAccessBuilder = {
+/**
+ * !EXPERIMENTAL!
+ *
+ * Resource access patterns are under active development and are subject to breaking changes.
+ * Do not use in production.
+ */
+export type RoleAccessBuilder = {
   authenticated: StorageAccessBuilder;
   unauthenticated: StorageAccessBuilder;
   owner: StorageAccessBuilder;
@@ -30,36 +36,24 @@ export type EntityAccessBuilder = {
   ) => StorageAccessBuilder;
 };
 
-export const storageAccessBuilder: EntityAccessBuilder = {
+export const storageAccessBuilder: RoleAccessBuilder = {
   authenticated: {
     to: (...actions) => ({
-      getResourceAccessAcceptor: (getInstanceProps) =>
-        getAuthRoleResourceAccessAcceptor(
-          getInstanceProps,
-          'authenticatedUserIamRole'
-        ),
+      getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
       resourceSuffix: '*',
     }),
   },
   unauthenticated: {
     to: (...actions) => ({
-      getResourceAccessAcceptor: (getInstanceProps) =>
-        getAuthRoleResourceAccessAcceptor(
-          getInstanceProps,
-          'unauthenticatedUserIamRole'
-        ),
+      getResourceAccessAcceptor: getUnauthRoleResourceAccessAcceptor,
       actions,
       resourceSuffix: '*',
     }),
   },
   owner: {
     to: (...actions) => ({
-      getResourceAccessAcceptor: (getInstanceProps) =>
-        getAuthRoleResourceAccessAcceptor(
-          getInstanceProps,
-          'authenticatedUserIamRole'
-        ),
+      getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
       resourceSuffix: '${cognito-identity.amazon.com:sub}/*',
     }),
@@ -75,6 +69,22 @@ export const storageAccessBuilder: EntityAccessBuilder = {
 };
 
 const getAuthRoleResourceAccessAcceptor = (
+  getInstanceProps: ConstructFactoryGetInstanceProps
+) =>
+  getUserRoleResourceAccessAcceptor(
+    getInstanceProps,
+    'authenticatedUserIamRole'
+  );
+
+const getUnauthRoleResourceAccessAcceptor = (
+  getInstanceProps: ConstructFactoryGetInstanceProps
+) =>
+  getUserRoleResourceAccessAcceptor(
+    getInstanceProps,
+    'unauthenticatedUserIamRole'
+  );
+
+const getUserRoleResourceAccessAcceptor = (
   getInstanceProps: ConstructFactoryGetInstanceProps,
   roleName: AuthRoleName
 ) => {

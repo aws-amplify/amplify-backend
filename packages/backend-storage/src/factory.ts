@@ -13,8 +13,8 @@ import {
   StorageResources,
 } from './construct.js';
 import {
-  EntityAccessBuilder,
-  StorageAccess,
+  RoleAccessBuilder,
+  StorageAccessDefinition,
   storageAccessBuilder,
 } from './access_builder.js';
 import { BucketPolicyFactory, Permission } from './policy_factory.js';
@@ -24,7 +24,9 @@ export type AmplifyStorageFactoryProps = Omit<
   AmplifyStorageProps,
   'outputStorageStrategy'
 > & {
-  access?: (allow: EntityAccessBuilder) => Record<string, StorageAccess[]>;
+  access?: (
+    allow: RoleAccessBuilder
+  ) => Record<string, StorageAccessDefinition[]>;
 };
 
 /**
