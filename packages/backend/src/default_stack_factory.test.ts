@@ -1,8 +1,9 @@
 import { describe, it } from 'node:test';
 import { createDefaultStack } from './default_stack_factory.js';
-import { App } from 'aws-cdk-lib';
+import { App, aws_s3 } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { AmplifyStack } from './engine/amplify_stack.js';
+import { Template } from 'aws-cdk-lib/assertions';
 
 void describe('createDefaultRootStack', () => {
   void it('creates AmplifyStack with backend ID and branch from CDK context', () => {
@@ -56,6 +57,56 @@ void describe('createDefaultRootStack', () => {
     app.node.setContext('amplify-backend-name', 'testEnvName');
     assert.throws(() => createDefaultStack(app), {
       message: `No context value present for amplify-backend-type key`,
+    });
+  });
+
+  void it('adds tags to the stack resources in case of branch deployment', () => {
+    const app = new App();
+    app.node.setContext('amplify-backend-namespace', 'testBackendId');
+    app.node.setContext('amplify-backend-name', 'testBranchName');
+    app.node.setContext('amplify-backend-type', 'branch');
+    const stack = createDefaultStack(app);
+    new aws_s3.Bucket(stack, 'test');
+    Template.fromStack(stack).hasResourceProperties('AWS::S3::Bucket', {
+      Tags: [
+        {
+          Key: 'amplify:app-id',
+          Value: 'testBackendId',
+        },
+        {
+          Key: 'amplify:branch-name',
+          Value: 'testBranchName',
+        },
+        {
+          Key: 'amplify:deployment-type',
+          Value: 'branch',
+        },
+        {
+          Key: 'created-by',
+          Value: 'amplify',
+        },
+      ],
+    });
+  });
+
+  void it('adds tags to the stack resources in case of sandbox deployment', () => {
+    const app = new App();
+    app.node.setContext('amplify-backend-namespace', 'testProjectName');
+    app.node.setContext('amplify-backend-name', 'testUser');
+    app.node.setContext('amplify-backend-type', 'sandbox');
+    const stack = createDefaultStack(app);
+    new aws_s3.Bucket(stack, 'test');
+    Template.fromStack(stack).hasResourceProperties('AWS::S3::Bucket', {
+      Tags: [
+        {
+          Key: 'amplify:deployment-type',
+          Value: 'sandbox',
+        },
+        {
+          Key: 'created-by',
+          Value: 'amplify',
+        },
+      ],
     });
   });
 });
