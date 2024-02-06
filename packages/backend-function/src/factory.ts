@@ -268,8 +268,11 @@ class AmplifyFunction
     };
   }
 
-  getResourceAccessAcceptor =
-    () => (policy: Policy, ssmEnvironmentEntries: SsmEnvironmentEntry[]) => {
+  getResourceAccessAcceptor = () => ({
+    acceptResourceAccess: (
+      policy: Policy,
+      ssmEnvironmentEntries: SsmEnvironmentEntry[]
+    ) => {
       const role = this.resources.lambda.role;
       if (!role) {
         // This should never happen since we are using the Function L2 construct
@@ -281,7 +284,8 @@ class AmplifyFunction
       ssmEnvironmentEntries.forEach(({ name, path }) => {
         this.functionEnvironmentTranslator.addSsmEnvironmentEntry(name, path);
       });
-    };
+    },
+  });
 }
 
 const isWholeNumberBetweenInclusive = (

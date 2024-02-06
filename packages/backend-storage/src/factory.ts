@@ -1,13 +1,10 @@
 import { Construct } from 'constructs';
 import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ResourceAccessAcceptor,
   ResourceProvider,
-  SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
 import {
@@ -37,7 +34,6 @@ class AmplifyStorageFactory
   implements ConstructFactory<ResourceProvider<StorageResources>>
 {
   private generator: ConstructContainerEntryGenerator;
-  private ssmEnvironmentEntries: SsmEnvironmentEntry[] | undefined;
 
   /**
    * Set the properties that will be used to initialize the bucket
@@ -53,8 +49,7 @@ class AmplifyStorageFactory
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ): AmplifyStorage => {
-    const { constructContainer, outputStorageStrategy, importPathVerifier } =
-      getInstanceProps;
+    const { constructContainer, importPathVerifier } = getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'storage', 'resource'),
@@ -63,15 +58,34 @@ class AmplifyStorageFactory
     if (!this.generator) {
       this.generator = new AmplifyStorageGenerator(
         this.props,
-        outputStorageStrategy
+        getInstanceProps
       );
     }
     const amplifyStorage = constructContainer.getOrCompute(
       this.generator
     ) as AmplifyStorage;
 
+    return amplifyStorage;
+  };
+}
+
+class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
+  readonly resourceGroupName = 'storage';
+  private readonly defaultName = 'amplifyStorage';
+
+  constructor(
+    private readonly props: AmplifyStorageFactoryProps,
+    private readonly getInstanceProps: ConstructFactoryGetInstanceProps
+  ) {}
+
+  generateContainerEntry = (scope: Construct) => {
+    const amplifyStorage = new AmplifyStorage(scope, this.defaultName, {
+      ...this.props,
+      outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
+    });
+
     this.generateAndAttachAccessPolicies(
-      getInstanceProps,
+      this.getInstanceProps,
       amplifyStorage.resources.bucket
     );
 
@@ -106,39 +120,16 @@ class AmplifyStorageFactory
 
     const bucketPolicyFactory = new BucketPolicyFactory(bucket);
 
-    // TODO this is a bit unfortunate that this class has to maintain a cache of this value.
-    // Ideally the ssmEnvironmentEntriesGenerator would maintain this cache, but there isn't really anything for it to reliably key off of
-    if (!this.ssmEnvironmentEntries) {
-      this.ssmEnvironmentEntries =
-        ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries(bucket, {
-          STORAGE_BUCKET_NAME: bucket.bucketName,
-        });
-    }
+    const ssmEnvironmentEntries =
+      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries(bucket, {
+        STORAGE_BUCKET_NAME: bucket.bucketName,
+      });
 
     accessMap.forEach((permissions, resourceAccessAcceptor) => {
-      resourceAccessAcceptor(
+      resourceAccessAcceptor.acceptResourceAccess(
         bucketPolicyFactory.createPolicy(permissions),
-        // safe because we checked if it was defined above
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        this.ssmEnvironmentEntries!
+        ssmEnvironmentEntries
       );
-    });
-  };
-}
-
-class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'storage';
-  private readonly defaultName = 'amplifyStorage';
-
-  constructor(
-    private readonly props: AmplifyStorageFactoryProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
-  ) {}
-
-  generateContainerEntry = (scope: Construct) => {
-    return new AmplifyStorage(scope, this.defaultName, {
-      ...this.props,
-      outputStorageStrategy: this.outputStorageStrategy,
     });
   };
 }

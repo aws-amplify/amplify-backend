@@ -11,10 +11,12 @@ export type SsmEnvironmentEntry = {
   path: string;
 };
 
-export type ResourceAccessAcceptor = (
-  policy: Policy,
-  ssmEnvironmentEntries: SsmEnvironmentEntry[]
-) => void;
+export type ResourceAccessAcceptor = {
+  acceptResourceAccess: (
+    policy: Policy,
+    ssmEnvironmentEntries: SsmEnvironmentEntry[]
+  ) => void;
+};
 
 export type ResourceAccessAcceptorFactory<
   RoleName extends string | undefined = undefined

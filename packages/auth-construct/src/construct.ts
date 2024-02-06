@@ -246,10 +246,12 @@ export class AmplifyAuth
     }
   };
 
-  getResourceAccessAcceptor = (roleName: AuthRoleName) => (policy: Policy) => {
-    const role = this.resources[roleName];
-    policy.attachToRole(role);
-  };
+  getResourceAccessAcceptor = (roleName: AuthRoleName) => ({
+    acceptResourceAccess: (policy: Policy) => {
+      const role = this.resources[roleName];
+      policy.attachToRole(role);
+    },
+  });
 
   /**
    * Create Auth/UnAuth Roles
