@@ -3,6 +3,7 @@ import {
   ClientConfigMobile,
   ClientConfigMobileApi,
   ClientConfigMobileAuth,
+  ClientConfigMobileGeo,
 } from '../client-config-types/mobile/client_config_mobile_types.js';
 
 /**
@@ -120,6 +121,28 @@ export class ClientConfigConverter {
           }
         }
       }
+    }
+
+    if (clientConfig.geo) {
+      const geoConfig: ClientConfigMobileGeo = {
+        plugins: {
+          awsLocationGeoPlugin: {
+            region: clientConfig.geo.amazon_location_service.region,
+          },
+        },
+      };
+
+      const maps = clientConfig.geo.amazon_location_service.maps;
+      if (maps) {
+        geoConfig.plugins.awsLocationGeoPlugin.maps = maps;
+      }
+      const searchIndices =
+        clientConfig.geo.amazon_location_service.search_indices;
+      if (searchIndices) {
+        geoConfig.plugins.awsLocationGeoPlugin.searchIndices = searchIndices;
+      }
+
+      mobileConfig.geo = geoConfig;
     }
     return mobileConfig;
   };
