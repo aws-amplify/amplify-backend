@@ -27,7 +27,7 @@ export type AmplifyStorageProps = {
 // @public
 export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources>>;
 
-// @public (undocumented)
+// @public
 export type EntityAccessBuilder = {
     authenticated: StorageAccessBuilder;
     unauthenticated: StorageAccessBuilder;

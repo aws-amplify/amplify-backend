@@ -12,7 +12,7 @@ import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { Policy } from 'aws-cdk-lib/aws-iam';
+import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
@@ -27,9 +27,7 @@ export class AmplifyAuth extends Construct implements ResourceProvider<AuthResou
     constructor(scope: Construct, id: string, props?: AuthProps);
     addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
     // (undocumented)
-    getResourceAccessAcceptor: (roleName: AuthRoleName) => {
-        acceptResourceAccess: (policy: Policy) => void;
-    };
+    getResourceAccessAcceptor: (roleName: AuthRoleName) => ResourceAccessAcceptor;
     readonly resources: AuthResources;
 }
 

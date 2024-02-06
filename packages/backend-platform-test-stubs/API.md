@@ -35,7 +35,8 @@ export class ImportPathVerifierStub implements ImportPathVerifier {
 
 // @public
 export class SsmEnvironmentEntriesGeneratorStub implements SsmEnvironmentEntriesGenerator {
-    generateSsmEnvironmentEntries: (scope: Construct, scopeContext: Record<string, string>) => {
+    constructor(scope: Construct);
+    generateSsmEnvironmentEntries: (scopeContext: Record<string, string>) => {
         name: string;
         path: string;
     }[];

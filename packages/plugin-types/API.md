@@ -102,7 +102,7 @@ export type ConstructContainer = {
 // @public
 export type ConstructContainerEntryGenerator<T extends object = object> = {
     resourceGroupName: string;
-    generateContainerEntry: (scope: Construct, backendSecretResolver: BackendSecretResolver) => ResourceProvider<T>;
+    generateContainerEntry: (props: GenerateContainerEntryProps) => ResourceProvider<T>;
 };
 
 // @public
@@ -115,7 +115,6 @@ export type ConstructFactory<T extends ResourceProvider = ResourceProvider> = {
 export type ConstructFactoryGetInstanceProps = {
     constructContainer: ConstructContainer;
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
-    ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
     importPathVerifier?: ImportPathVerifier;
 };
 
@@ -125,6 +124,13 @@ export type DeploymentType = 'branch' | 'sandbox';
 // @public (undocumented)
 export type FunctionResources = {
     lambda: IFunction;
+};
+
+// @public (undocumented)
+export type GenerateContainerEntryProps = {
+    scope: Construct;
+    backendSecretResolver: BackendSecretResolver;
+    ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
 };
 
 // @public
@@ -181,7 +187,7 @@ export type SandboxName = string;
 
 // @public (undocumented)
 export type SsmEnvironmentEntriesGenerator = {
-    generateSsmEnvironmentEntries: (scope: Construct, scopeContext: Record<string, string>) => SsmEnvironmentEntry[];
+    generateSsmEnvironmentEntries: (scopeContext: Record<string, string>) => SsmEnvironmentEntry[];
 };
 
 // @public (undocumented)
