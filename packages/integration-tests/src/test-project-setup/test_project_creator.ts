@@ -6,6 +6,7 @@ import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typ
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { CustomOutputsTestProjectCreator } from './custom_outputs.js';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -29,7 +30,8 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
       lambdaClient,
       resourceFinder
     ),
-    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient)
+    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient),
+    new CustomOutputsTestProjectCreator(cfnClient)
   );
   return testProjectCreators;
 };

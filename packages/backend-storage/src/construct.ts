@@ -19,6 +19,7 @@ import { fileURLToPath } from 'url';
 const storageStackType = 'storage-S3';
 
 export type AmplifyStorageProps = {
+  name: string;
   versioned?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
 };
@@ -48,7 +49,7 @@ export class AmplifyStorage
     };
 
     this.resources = {
-      bucket: new Bucket(this, `${id}Bucket`, bucketProps),
+      bucket: new Bucket(this, 'Bucket', bucketProps),
     };
 
     this.storeOutput(props.outputStorageStrategy);

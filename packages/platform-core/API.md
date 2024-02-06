@@ -64,7 +64,7 @@ export class AmplifyUserError extends AmplifyError {
 }
 
 // @public
-export type AmplifyUserErrorType = 'InvalidPackageJsonError' | 'InvalidSchemaAuthError' | 'InvalidSchemaError' | 'ExpiredTokenError' | 'CloudFormationDeploymentError' | 'CFNUpdateNotSupportedError' | 'SyntaxError' | 'BackendBuildError' | 'BootstrapNotDetectedError' | 'AccessDeniedError' | 'FileConventionError';
+export type AmplifyUserErrorType = 'InvalidPackageJsonError' | 'InvalidSchemaAuthError' | 'InvalidSchemaError' | 'ExpiredTokenError' | 'CloudFormationDeploymentError' | 'CFNUpdateNotSupportedError' | 'SyntaxError' | 'BackendBuildError' | 'BootstrapNotDetectedError' | 'AccessDeniedError' | 'FileConventionError' | 'OutputEntryAlreadyExistsError' | 'InvalidResourceNameError';
 
 // @public
 export class BackendIdentifierConversions {
@@ -121,6 +121,26 @@ export class FunctionTypeDefConventionProvider {
 
 // @public (undocumented)
 export type LocalConfigurationFileName = 'usage_data_preferences.json';
+
+// @public
+export class ObjectAccumulator<T> {
+    constructor(accumulator: Partial<T>);
+    // (undocumented)
+    accumulate: (part: Partial<T>) => ObjectAccumulator<T>;
+    // (undocumented)
+    getAccumulatedObject: () => Partial<T>;
+}
+
+// @public
+export class ObjectAccumulatorPropertyAlreadyExistsError extends Error {
+    constructor(key: string, existingValue: unknown, incomingValue: unknown);
+    // (undocumented)
+    readonly existingValue: unknown;
+    // (undocumented)
+    readonly incomingValue: unknown;
+    // (undocumented)
+    readonly key: string;
+}
 
 // @public (undocumented)
 export type PackageJson = z.infer<typeof packageJsonSchema>;

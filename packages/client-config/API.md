@@ -36,7 +36,7 @@ export type AuthClientConfig = {
 };
 
 // @public
-export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig & PlatformClientConfig>;
+export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
 
 // @public (undocumented)
 export enum ClientConfigFormat {
@@ -51,6 +51,11 @@ export enum ClientConfigFormat {
     // (undocumented)
     TS = "ts"
 }
+
+// @public (undocumented)
+export type CustomClientConfig = {
+    custom: Record<string, string>;
+};
 
 // @public
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier) => Promise<ClientConfig>;
