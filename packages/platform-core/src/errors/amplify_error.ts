@@ -128,7 +128,8 @@ export type AmplifyUserErrorType =
   | 'BackendConfigurationError'
   | 'BootstrapNotDetectedError'
   | 'AccessDeniedError'
-  | 'FileConventionError';
+  | 'FileConventionError'
+  | 'InvalidResourceNameError';
 
 /**
  * Amplify library fault types

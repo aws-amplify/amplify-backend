@@ -20,6 +20,7 @@ export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorag
 
 // @public (undocumented)
 export type AmplifyStorageProps = {
+    name: string;
     versioned?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
 };
