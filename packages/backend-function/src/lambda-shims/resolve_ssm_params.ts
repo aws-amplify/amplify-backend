@@ -1,15 +1,19 @@
-/* The code in this line replaces placeholder text in environment variables for secrets with values fetched from SSM, this is a noop if there are no secrets */
+/**
+ * This code loads environment values from SSM and places them in their corresponding environment variables.
+ * If there are no SSM environment values for this function, this is a noop.
+ */
 import { SSM } from '@aws-sdk/client-ssm';
-import type { AmplifySecretPaths } from './function_env_translator.js';
+import type { SsmEnvVars } from '../function_env_translator.js';
 
 /**
- * The body of this function will be used to resolve secrets for Lambda functions
+ * Reads SSM environment context from a known Amplify environment variable,
+ * fetches values from SSM and places those values in the corresponding environment variables
  */
-export const internalAmplifyFunctionBannerResolveSecrets = async (
+export const internalAmplifyFunctionResolveSsmParams = async (
   client = new SSM()
 ) => {
-  const envPathObject: AmplifySecretPaths = JSON.parse(
-    process.env.AMPLIFY_SECRET_PATHS ?? '{}'
+  const envPathObject: SsmEnvVars = JSON.parse(
+    process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}'
   );
   const paths = Object.keys(envPathObject);
 
@@ -44,11 +48,9 @@ export const internalAmplifyFunctionBannerResolveSecrets = async (
 
   const sharedPaths = (response?.InvalidParameters || [])
     .map((invalidParam) => envPathObject[invalidParam].sharedPath)
-    .filter((sharedParam) => !!sharedParam);
+    .filter((sharedParam) => !!sharedParam) as string[]; // this assertion is safe because we are filtering out undefined
 
   if (sharedPaths.length > 0) {
     await resolveSecrets(sharedPaths);
   }
 };
-
-await internalAmplifyFunctionBannerResolveSecrets();
