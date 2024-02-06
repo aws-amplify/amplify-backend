@@ -1,5 +1,16 @@
 # @aws-amplify/client-config
 
+## 0.6.0
+
+### Minor Changes
+
+- 4c1485aa4: print out file written for amplify generate commands
+
+### Patch Changes
+
+- Updated dependencies [4c1485aa4]
+  - @aws-amplify/model-generator@0.3.0
+
 ## 0.5.3
 
 ### Patch Changes

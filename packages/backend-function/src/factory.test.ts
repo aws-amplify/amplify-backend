@@ -238,7 +238,7 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
-    void it('defaults to oldest runtime', () => {
+    void it('defaults to oldest LTS runtime', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
       }).getInstance(getInstanceProps);

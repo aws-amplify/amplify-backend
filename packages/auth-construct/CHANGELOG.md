@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.5.4
+
+### Patch Changes
+
+- 48ca0e703: Automatically map email attributes for social providers.
+
 ## 0.5.3
 
 ### Patch Changes

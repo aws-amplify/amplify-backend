@@ -233,9 +233,18 @@ class AmplifyFunction
   ) {
     super(scope, id);
 
+    const runtime = nodeVersionMap[props.runtime];
+
     const require = createRequire(import.meta.url);
-    const ssmResolverPath = require.resolve('./resolve_ssm_params_shim');
-    const cjsShimPath = require.resolve('./cjs_shim'); // replace require to fix dynamic require errors with cjs
+
+    const shims =
+      runtime === Runtime.NODEJS_16_X
+        ? // this shim includes the cjs shim because it's required for the v2 sdk to work
+          [require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2_shim')]
+        : [
+            require.resolve('./lambda-shims/cjs_shim'),
+            require.resolve('./lambda-shims/resolve_ssm_params_shim'),
+          ];
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
@@ -243,9 +252,8 @@ class AmplifyFunction
       memorySize: props.memoryMB,
       runtime: nodeVersionMap[props.runtime],
       bundling: {
-        externalModules: ['@aws-sdk'],
         format: OutputFormat.ESM,
-        inject: [cjsShimPath, ssmResolverPath],
+        inject: shims,
       },
     });
 

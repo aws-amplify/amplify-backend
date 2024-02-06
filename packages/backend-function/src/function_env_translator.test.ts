@@ -125,6 +125,94 @@ void describe('FunctionEnvironmentTranslator', () => {
         )
     );
   });
+
+  void it('does not add SSM policy if no ssm paths are present', () => {
+    const functionEnvProp = {
+      TEST_VAR: 'testValue',
+    };
+
+    const testLambda = getTestLambda();
+
+    new FunctionEnvironmentTranslator(
+      testLambda,
+      functionEnvProp,
+      backendResolver
+    );
+
+    const template = Template.fromStack(Stack.of(testLambda));
+    template.resourceCountIs('AWS::IAM::Policy', 0);
+  });
+
+  void it('grants SSM read permissions for secret paths', () => {
+    const functionEnvProp = {
+      TEST_VAR: 'testValue',
+      TEST_SECRET: new TestBackendSecret('secretValue'),
+    };
+
+    const testLambda = getTestLambda();
+
+    new FunctionEnvironmentTranslator(
+      testLambda,
+      functionEnvProp,
+      backendResolver
+    );
+
+    const template = Template.fromStack(Stack.of(testLambda));
+
+    template.resourceCountIs('AWS::IAM::Policy', 1);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'ssm:GetParameters',
+            Resource: [
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    'arn:',
+                    {
+                      Ref: 'AWS::Partition',
+                    },
+                    ':ssm:',
+                    {
+                      Ref: 'AWS::Region',
+                    },
+                    ':',
+                    {
+                      Ref: 'AWS::AccountId',
+                    },
+                    ':parameter/amplify/testBackendId/testBranchName-branch-e482a1c36f/secretValue',
+                  ],
+                ],
+              },
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    'arn:',
+                    {
+                      Ref: 'AWS::Partition',
+                    },
+                    ':ssm:',
+                    {
+                      Ref: 'AWS::Region',
+                    },
+                    ':',
+                    {
+                      Ref: 'AWS::AccountId',
+                    },
+                    ':parameter/amplify/shared/testBackendId/secretValue',
+                  ],
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+  });
 });
 
 const getTestLambda = () =>

@@ -1,5 +1,6 @@
 import fsp from 'fs/promises';
 import path from 'path';
+import yargs from 'yargs';
 import { AmplifyPrompter, LogLevel } from '@aws-amplify/cli-core';
 import { printer } from './printer.js';
 
@@ -7,7 +8,13 @@ import { printer } from './printer.js';
  * Returns the project root directory.
  */
 export const getProjectRoot = async () => {
-  const useDefault = process.env.npm_config_yes === 'true';
+  const argv = await yargs(process.argv.slice(2)).options({
+    yes: {
+      type: 'boolean',
+      default: false,
+    },
+  }).argv;
+  const useDefault = process.env.npm_config_yes === 'true' || argv.yes === true;
   const defaultProjectRoot = '.';
   let projectRoot: string = useDefault
     ? defaultProjectRoot
