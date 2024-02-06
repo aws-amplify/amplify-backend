@@ -64,7 +64,7 @@ export class AmplifyUserError extends AmplifyError {
 }
 
 // @public
-export type AmplifyUserErrorType = 'InvalidPackageJsonError' | 'InvalidSchemaAuthError' | 'InvalidSchemaError' | 'ExpiredTokenError' | 'CloudFormationDeploymentError' | 'CFNUpdateNotSupportedError' | 'SyntaxError' | 'BackendBuildError' | 'BootstrapNotDetectedError' | 'AccessDeniedError' | 'FileConventionError';
+export type AmplifyUserErrorType = 'InvalidPackageJsonError' | 'InvalidSchemaAuthError' | 'InvalidSchemaError' | 'ExpiredTokenError' | 'CloudFormationDeploymentError' | 'CFNUpdateNotSupportedError' | 'SyntaxError' | 'BackendBuildError' | 'BootstrapNotDetectedError' | 'AccessDeniedError' | 'FileConventionError' | 'InvalidResourceNameError';
 
 // @public
 export class BackendIdentifierConversions {

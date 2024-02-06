@@ -14,7 +14,7 @@ void describe('AmplifyStorage', () => {
   void it('creates a bucket', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyStorage(stack, 'test', {});
+    new AmplifyStorage(stack, 'test', { name: 'testName' });
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::S3::Bucket', 1);
   });
@@ -22,7 +22,7 @@ void describe('AmplifyStorage', () => {
   void it('turns versioning on if specified', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyStorage(stack, 'test', { versioned: true });
+    new AmplifyStorage(stack, 'test', { versioned: true, name: 'testName' });
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::S3::Bucket', 1);
     template.hasResourceProperties('AWS::S3::Bucket', {
@@ -33,7 +33,7 @@ void describe('AmplifyStorage', () => {
   void it('stores attribution data in stack', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyStorage(stack, 'testAuth', {});
+    new AmplifyStorage(stack, 'testAuth', { name: 'testName' });
 
     const template = Template.fromStack(stack);
     assert.equal(
@@ -54,11 +54,12 @@ void describe('AmplifyStorage', () => {
         };
 
       const storageConstruct = new AmplifyStorage(stack, 'test', {
+        name: 'testName',
         outputStorageStrategy: storageStrategy,
       });
 
       const expectedBucketName = (
-        storageConstruct.node.findChild('testBucket') as Bucket
+        storageConstruct.node.findChild('Bucket') as Bucket
       ).bucketName;
       const expectedRegion = Stack.of(storageConstruct).region;
 
@@ -80,7 +81,7 @@ void describe('AmplifyStorage', () => {
       const app = new App();
       const stack = new Stack(app);
 
-      new AmplifyStorage(stack, 'test', {});
+      new AmplifyStorage(stack, 'test', { name: 'testName' });
       const template = Template.fromStack(stack);
       template.templateMatches({
         Metadata: {
