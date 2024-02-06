@@ -41,7 +41,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
       } catch (error) {
         if (error instanceof ObjectAccumulatorPropertyAlreadyExistsError) {
           throw new AmplifyUserError(
-            'OutputEntryAlreadyExists',
+            'OutputEntryAlreadyExistsError',
             {
               message: `Duplicated entry with key ${error.key} detected in deployment outputs`,
               resolution:

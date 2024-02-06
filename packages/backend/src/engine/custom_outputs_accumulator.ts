@@ -31,7 +31,7 @@ export class CustomOutputsAccumulator {
     } catch (error) {
       if (error instanceof ObjectAccumulatorPropertyAlreadyExistsError) {
         throw new AmplifyUserError(
-          'OutputEntryAlreadyExists',
+          'OutputEntryAlreadyExistsError',
           {
             message: `Output entry with key ${error.key} already exists`,
             resolution:
