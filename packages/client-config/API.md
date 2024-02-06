@@ -36,7 +36,7 @@ export type AuthClientConfig = {
 };
 
 // @public
-export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
+export type ClientConfig = Partial<AuthClientConfig & GeoClientConfig & GraphqlClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
 
 // @public (undocumented)
 export enum ClientConfigFormat {
@@ -62,6 +62,29 @@ export const generateClientConfig: (credentialProvider: AwsCredentialIdentityPro
 
 // @public
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
+
+// @public (undocumented)
+export type GeoClientConfig = {
+    geo?: {
+        amazon_location_service: {
+            region: string;
+            maps?: {
+                items: Record<string, {
+                    style: string;
+                }>;
+                default: string;
+            };
+            search_indices?: {
+                items: Array<string>;
+                default: string;
+            };
+            geofenceCollections?: {
+                items: Array<string>;
+                default: string;
+            };
+        };
+    };
+};
 
 // @public
 export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;

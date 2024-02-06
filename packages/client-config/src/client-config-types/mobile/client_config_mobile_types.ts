@@ -3,6 +3,7 @@ export type ClientConfigMobile = {
   Version: '1.0';
   api?: ClientConfigMobileApi;
   auth?: ClientConfigMobileAuth;
+  geo?: ClientConfigMobileGeo;
 };
 
 export type ClientConfigMobileApi = {
@@ -65,6 +66,28 @@ export type ClientConfigMobileAuth = {
       AppSync?: {
         Default: ClientConfigMobileAppsyncAuth;
       } & Record<string, ClientConfigMobileAppsyncAuth>;
+    };
+  };
+};
+
+export type ClientConfigMobileGeo = {
+  plugins: {
+    awsLocationGeoPlugin: {
+      region: string;
+      maps?: {
+        items: Record<
+          string,
+          {
+            style: string;
+          }
+        >;
+
+        default: string;
+      };
+      searchIndices?: {
+        items: Array<string>;
+        default: string;
+      };
     };
   };
 };
