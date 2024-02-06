@@ -18,9 +18,7 @@ export class StackMetadataBackendOutputStorageStrategy
   constructor(private readonly stack: Stack) {}
 
   /**
-   * Store construct output as stack output and add pending metadata to the metadata object.
-   *
-   * Metadata is not written to the stack until flush() is called
+   * Store construct output as stack output and add metadata to the metadata object.
    */
   addBackendOutputEntry = (
     keyName: string,

@@ -184,6 +184,21 @@ void describe('Backend', () => {
       });
     });
   });
+
+  void it('can add custom output', () => {
+    const rootStack = createStackAndSetContext('sandbox');
+    const backend = new BackendFactory({}, rootStack);
+    const clientConfigPartial = {
+      custom: {
+        someCustomOutput: 'someCustomOutputValue',
+      },
+    };
+    backend.addOutput(clientConfigPartial);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    rootStackTemplate.hasOutput('customOutputs', {
+      Value: JSON.stringify(clientConfigPartial),
+    });
+  });
 });
 
 type TestResourceProvider = ResourceProvider<{ bucket: Bucket }>;

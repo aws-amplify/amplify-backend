@@ -6,6 +6,7 @@ import { GraphqlClientConfigContributor } from './client-config-contributor/grap
 import {
   UnifiedBackendOutput,
   authOutputKey,
+  customOutputKey,
   graphqlOutputKey,
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
@@ -13,6 +14,8 @@ import { ClientConfig } from './client-config-types/client_config.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
 import { PlatformClientConfigContributor } from './client-config-contributor/platform_client_config_contributor.js';
+import { CustomClientConfigContributor } from './client-config-contributor/custom_client_config_contributor.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
@@ -106,6 +109,50 @@ void describe('UnifiedClientConfigGenerator', () => {
         allowUnauthenticatedIdentities: 'true',
       };
       assert.deepStrictEqual(result, expectedClientConfig);
+    });
+
+    void it('throws user error if there are overlapping values', async () => {
+      const customOutputs: Partial<ClientConfig> = {
+        aws_user_pools_id: 'overrideUserPoolId',
+      };
+      const stubOutput: UnifiedBackendOutput = {
+        [authOutputKey]: {
+          version: '1',
+          payload: {
+            identityPoolId: 'testIdentityPoolId',
+            userPoolId: 'testUserPoolId',
+            webClientId: 'testWebClientId',
+            authRegion: 'testRegion',
+          },
+        },
+        [customOutputKey]: {
+          version: '1',
+          payload: {
+            customOutputs: JSON.stringify(customOutputs),
+          },
+        },
+      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
+      const configContributors = [
+        new AuthClientConfigContributor(),
+        new CustomClientConfigContributor(),
+      ];
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Duplicated entry with key aws_user_pools_id detected in deployment outputs'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
     });
   });
 });
