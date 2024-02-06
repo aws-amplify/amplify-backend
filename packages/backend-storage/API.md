@@ -15,7 +15,7 @@ import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
-    access?: (allow: EntityAccessBuilder) => Record<string, StorageAccess[]>;
+    access?: (allow: RoleAccessBuilder) => Record<string, StorageAccessDefinition[]>;
 };
 
 // @public (undocumented)
@@ -29,7 +29,7 @@ export type AmplifyStorageProps = {
 export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources>>;
 
 // @public
-export type EntityAccessBuilder = {
+export type RoleAccessBuilder = {
     authenticated: StorageAccessBuilder;
     unauthenticated: StorageAccessBuilder;
     owner: StorageAccessBuilder;
@@ -37,15 +37,15 @@ export type EntityAccessBuilder = {
 };
 
 // @public (undocumented)
-export type StorageAccess = {
-    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
-    actions: StorageAction[];
-    resourceSuffix: string;
+export type StorageAccessBuilder = {
+    to: (...actions: StorageAction[]) => StorageAccessDefinition;
 };
 
 // @public (undocumented)
-export type StorageAccessBuilder = {
-    to: (...actions: StorageAction[]) => StorageAccess;
+export type StorageAccessDefinition = {
+    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
+    actions: StorageAction[];
+    resourceSuffix: string;
 };
 
 // @public (undocumented)
