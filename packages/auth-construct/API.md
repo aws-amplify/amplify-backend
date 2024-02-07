@@ -40,6 +40,7 @@ export type AuthProps = {
     userAttributes?: StandardAttributes;
     multifactor?: MFA;
     accountRecovery?: keyof typeof aws_cognito.AccountRecovery;
+    groups?: string[];
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
 

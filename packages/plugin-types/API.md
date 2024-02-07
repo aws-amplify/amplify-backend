@@ -8,6 +8,7 @@ import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { CfnUserPoolGroup } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 import { ExecaChildProcess } from 'execa';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
@@ -15,6 +16,7 @@ import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Options } from 'execa';
+import { Role } from 'aws-cdk-lib/aws-iam';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
@@ -39,6 +41,11 @@ export type AuthResources = {
     authenticatedUserIamRole: IRole;
     unauthenticatedUserIamRole: IRole;
     cfnResources: AuthCfnResources;
+    groups: {
+        groupName: string;
+        cfnUserGroup: CfnUserPoolGroup;
+        role: Role;
+    }[];
 };
 
 // @public
