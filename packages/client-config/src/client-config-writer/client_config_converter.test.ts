@@ -279,4 +279,193 @@ void describe('client config converter', () => {
 
     assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
   });
+
+  void it('converts analytics config', () => {
+    const clientConfig: ClientConfig = {
+      Analytics: {
+        AWSPinpoint: {
+          appId: 'test_pinpoint_id',
+          region: 'us-west-2',
+        },
+      },
+    };
+
+    const expectedMobileConfig: ClientConfigMobile = {
+      UserAgent: 'test_package_name/test_package_version;',
+      Version: '1.0',
+      analytics: {
+        plugins: {
+          awsPinpointAnalyticsPlugin: {
+            pinpointAnalytics: {
+              appId: 'test_pinpoint_id',
+              region: 'us-west-2',
+            },
+            pinpointTargeting: {
+              region: 'us-west-2',
+            },
+          },
+        },
+      },
+    };
+
+    const actualMobileConfig = converter.convertToMobileConfig(clientConfig);
+
+    assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
+  });
+
+  void it('converts full notifications config', () => {
+    const clientConfig: ClientConfig = {
+      Notifications: {
+        SMS: {
+          AWSPinpoint: {
+            appId: 'sms_app_id',
+            region: 'sms_region',
+          },
+        },
+        EMAIL: {
+          AWSPinpoint: {
+            appId: 'email_app_id',
+            region: 'email_region',
+          },
+        },
+        FCM: {
+          AWSPinpoint: {
+            appId: 'push_app_id',
+            region: 'push_region',
+          },
+        },
+        APNS: {
+          AWSPinpoint: {
+            appId: 'push_app_id',
+            region: 'push_region',
+          },
+        },
+        InAppMessaging: {
+          AWSPinpoint: {
+            appId: 'in_app_messaging_app_id',
+            region: 'in_app_messaging_region',
+          },
+        },
+      },
+    };
+
+    const expectedMobileConfig: ClientConfigMobile = {
+      UserAgent: 'test_package_name/test_package_version;',
+      Version: '1.0',
+      notifications: {
+        plugins: {
+          awsPinpointEmailNotificationsPlugin: {
+            appId: 'email_app_id',
+            region: 'email_region',
+          },
+          awsPinpointInAppMessagingNotificationsPlugin: {
+            appId: 'in_app_messaging_app_id',
+            region: 'in_app_messaging_region',
+          },
+          awsPinpointPushNotificationsPlugin: {
+            appId: 'push_app_id',
+            region: 'push_region',
+          },
+          awsPinpointSmsNotificationsPlugin: {
+            appId: 'sms_app_id',
+            region: 'sms_region',
+          },
+        },
+      },
+    };
+
+    const actualMobileConfig = converter.convertToMobileConfig(clientConfig);
+
+    assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
+  });
+
+  void it('converts apn notifications config', () => {
+    const clientConfig: ClientConfig = {
+      Notifications: {
+        APNS: {
+          AWSPinpoint: {
+            appId: 'push_app_id',
+            region: 'push_region',
+          },
+        },
+      },
+    };
+
+    const expectedMobileConfig: ClientConfigMobile = {
+      UserAgent: 'test_package_name/test_package_version;',
+      Version: '1.0',
+      notifications: {
+        plugins: {
+          awsPinpointPushNotificationsPlugin: {
+            appId: 'push_app_id',
+            region: 'push_region',
+          },
+        },
+      },
+    };
+
+    const actualMobileConfig = converter.convertToMobileConfig(clientConfig);
+
+    assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
+  });
+
+  void it('converts fcm notifications config', () => {
+    const clientConfig: ClientConfig = {
+      Notifications: {
+        FCM: {
+          AWSPinpoint: {
+            appId: 'push_app_id',
+            region: 'push_region',
+          },
+        },
+      },
+    };
+
+    const expectedMobileConfig: ClientConfigMobile = {
+      UserAgent: 'test_package_name/test_package_version;',
+      Version: '1.0',
+      notifications: {
+        plugins: {
+          awsPinpointPushNotificationsPlugin: {
+            appId: 'push_app_id',
+            region: 'push_region',
+          },
+        },
+      },
+    };
+
+    const actualMobileConfig = converter.convertToMobileConfig(clientConfig);
+
+    assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
+  });
+
+  void it('throw on ambiguous push config', () => {
+    const clientConfig: ClientConfig = {
+      Notifications: {
+        FCM: {
+          AWSPinpoint: {
+            appId: 'push_app_id_1',
+            region: 'push_region',
+          },
+        },
+        APNS: {
+          AWSPinpoint: {
+            appId: 'push_app_id_2',
+            region: 'push_region',
+          },
+        },
+      },
+    };
+
+    assert.throws(
+      () => converter.convertToMobileConfig(clientConfig),
+      (error: Error) => {
+        assert.strictEqual(
+          error.message,
+          'Cannot convert client config to mobile config if both FCM and APNS are defined with different AWS Pinpoint instance'
+        );
+        return true;
+      }
+    );
+  });
 });
