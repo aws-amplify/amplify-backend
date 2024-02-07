@@ -1,5 +1,17 @@
 # @aws-amplify/backend
 
+## 0.12.0
+
+### Minor Changes
+
+- bded2772c: Added tags to CFN resources
+
+### Patch Changes
+
+- Updated dependencies [b1c3e0d49]
+- Updated dependencies [6daae6be5]
+  - @aws-amplify/client-config@0.8.0
+
 ## 0.11.0
 
 ### Minor Changes
