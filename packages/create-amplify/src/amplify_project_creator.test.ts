@@ -51,23 +51,20 @@ void describe('AmplifyProjectCreator', () => {
       bold(blue(`Installing devDependencies:`))
     );
 
-    assert.equal(
-      logSpy.mock.calls[6].arguments[0],
-      `Installing dependencies...`
-    );
+    assert.equal(logSpy.mock.calls[6].arguments[0], `Installing dependencies`);
     assert.equal(
       logSpy.mock.calls[8].arguments[0],
       green('Successfully created a new project!')
     );
     assert.equal(
       logSpy.mock.calls[9].arguments[0],
-      blue(bold('Welcome to AWS Amplify!'))
+      bold(blue('Welcome to AWS Amplify!'))
     );
 
     assert.equal(
       logSpy.mock.calls[10].arguments[0],
       `Navigate to your project directory using ${cyan(
-        bold('cd .testProjectRoot')
+        'cd .testProjectRoot'
       )} and then:`
     );
 
@@ -75,7 +72,7 @@ void describe('AmplifyProjectCreator', () => {
       logSpy.mock.calls[11].arguments[0],
       grey(
         `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
-          'amplify configure telemetry disable'
+          'npx amplify configure telemetry disable'
         )}. To learn more about telemetry, visit ${underline(
           blue('https://docs.amplify.aws/gen2/reference/telemetry')
         )}`
@@ -109,7 +106,7 @@ void describe('AmplifyProjectCreator', () => {
     assert.equal(
       logSpy.mock.calls[10].arguments[0],
       `Navigate to your project directory using ${cyan(
-        bold('cd .testProjectRoot')
+        'cd .testProjectRoot'
       )} and then:`
     );
 
@@ -117,7 +114,7 @@ void describe('AmplifyProjectCreator', () => {
       logSpy.mock.calls[11].arguments[0],
       grey(
         `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
-          'amplify configure telemetry disable'
+          'npx amplify configure telemetry disable'
         )}. To learn more about telemetry, visit ${underline(
           blue('https://docs.amplify.aws/gen2/reference/telemetry')
         )}`

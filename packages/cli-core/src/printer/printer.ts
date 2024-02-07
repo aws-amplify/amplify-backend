@@ -84,18 +84,12 @@ export class Printer {
   /**
    * Logs a message with animated spinner
    */
-  async indicateProgress(
-    action: () => Promise<void>,
-    message: string,
-    successMessage: string
-  ) {
+  async indicateProgress(action: () => Promise<void>, message: string) {
     try {
       this.startAnimatingSpinner(message);
       await action();
-      this.stopAnimatingSpinner(successMessage);
-    } catch (error) {
-      this.stopAnimatingSpinner('An error occurred');
-      throw error;
+    } finally {
+      this.stopAnimatingSpinner(message);
     }
   }
 

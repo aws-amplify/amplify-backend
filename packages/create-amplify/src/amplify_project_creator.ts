@@ -1,4 +1,3 @@
-import { blue, bold, cyan, green, grey } from 'kleur/colors';
 import { EOL } from 'os';
 import { LogLevel, format } from '@aws-amplify/cli-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
@@ -64,8 +63,7 @@ export class AmplifyProjectCreator {
           this.defaultDevPackages,
           'dev'
         ),
-      'Installing devDependencies...',
-      'DevDependencies installed'
+      'Installing devDependencies'
     );
 
     await printer.indicateProgress(
@@ -74,30 +72,25 @@ export class AmplifyProjectCreator {
           this.defaultProdPackages,
           'prod'
         ),
-      'Installing dependencies...',
-      'Dependencies installed'
+      'Installing dependencies'
     );
 
-    await printer.indicateProgress(
-      async () => {
-        await this.gitIgnoreInitializer.ensureInitialized();
-        await this.initialProjectFileGenerator.generateInitialProjectFiles();
-      },
-      'Creating template files...',
-      'Template files created'
-    );
+    await printer.indicateProgress(async () => {
+      await this.gitIgnoreInitializer.ensureInitialized();
+      await this.initialProjectFileGenerator.generateInitialProjectFiles();
+    }, 'Creating template files');
 
-    printer.log(green('Successfully created a new project!'));
+    printer.log(format.success('Successfully created a new project!'));
     printer.printNewLine();
 
     const cdPreamble =
       process.cwd() === this.projectRoot
         ? null
-        : `Navigate to your project directory using ${cyan(
-            bold('cd .' + this.projectRoot.replace(process.cwd(), '') + '')
+        : `Navigate to your project directory using ${format.command(
+            'cd .' + this.projectRoot.replace(process.cwd(), '') + ''
           )} and then:`;
 
-    printer.log(blue(bold(`Welcome to AWS Amplify!`)));
+    printer.log(format.sectionHeader(`Welcome to AWS Amplify!`));
 
     const instructionSteps = [
       cdPreamble,
@@ -108,10 +101,11 @@ export class AmplifyProjectCreator {
 
     printer.log(instructionSteps);
     printer.printNewLine();
+
     printer.log(
-      grey(
-        `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
-          'amplify configure telemetry disable'
+      format.infoMessage(
+        `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${format.command(
+          'npx amplify configure telemetry disable'
         )}. To learn more about telemetry, visit ${format.link(
           LEARN_MORE_USAGE_DATA_TRACKING_LINK
         )}`

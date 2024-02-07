@@ -63,15 +63,10 @@ void describe('Printer', () => {
     process.stdout.isTTY = true;
 
     const message = 'Message 1';
-    const successMessage = 'Success Message';
 
-    await new Printer(LogLevel.INFO).indicateProgress(
-      async () => {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      },
-      message,
-      successMessage
-    );
+    await new Printer(LogLevel.INFO).indicateProgress(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }, message);
 
     const logMessages = mockedWrite.mock.calls
       .filter((message) => message.arguments.toString().match(/Message/))
@@ -86,15 +81,10 @@ void describe('Printer', () => {
     process.stdout.isTTY = false;
 
     const message = 'Message 1';
-    const successMessage = 'Success Message';
 
-    await new Printer(LogLevel.INFO).indicateProgress(
-      async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-      },
-      message,
-      successMessage
-    );
+    await new Printer(LogLevel.INFO).indicateProgress(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }, message);
 
     const logMessages = mockedWrite.mock.calls
       .filter((message) => message.arguments.toString().match(/Message/))
@@ -102,5 +92,24 @@ void describe('Printer', () => {
 
     assert.strictEqual(logMessages.length, 1);
     assert.strictEqual(logMessages[0], 'Message 1');
+  });
+
+  void it('indicateProgress stops spinner and propagates error when action fails', async () => {
+    process.stdout.isTTY = true;
+
+    const errorMessage = 'Error message';
+    const message = 'Message 1';
+    let errorCaught = false;
+
+    try {
+      await new Printer(LogLevel.INFO).indicateProgress(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        throw new Error(errorMessage);
+      }, message);
+    } catch (error) {
+      assert.strictEqual((error as Error).message, errorMessage);
+      errorCaught = true;
+    }
+    assert.strictEqual(errorCaught, true, 'Expected error was not thrown.');
   });
 });
