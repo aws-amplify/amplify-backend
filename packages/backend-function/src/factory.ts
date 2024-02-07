@@ -238,20 +238,20 @@ class AmplifyFunction
         ? []
         : [require.resolve('./lambda-shims/cjs_shim')];
 
-    const resolveSsmFile =
+    const ssmResolverFile =
       runtime === Runtime.NODEJS_16_X
-        ? require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2')
+        ? require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2') // use aws cdk v2 in node 16
         : require.resolve('./lambda-shims/resolve_ssm_params');
 
-    // This is a terrible, horrible, no good, very bad hack to invoke the SSM parameter resolution code into the lambda function
-    // If we need to put anything else here, and I mean ANYTHING, then we need a different strategy
-    const ssmResolve = `await internalAmplifyFunctionResolveSsmParams(); const SSM_PARAMETER_REFRESH_MS = 1000 * 60; setInterval(() => { void internalAmplifyFunctionResolveSsmParams(); }, SSM_PARAMETER_REFRESH_MS);`;
+    const invokeSsmResolverFile = require.resolve(
+      './lambda-shims/invoke_ssm_shim'
+    );
 
-    const bannerCode = readFileSync(resolveSsmFile, 'utf-8')
+    const bannerCode = readFileSync(ssmResolverFile, 'utf-8')
+      .concat(readFileSync(invokeSsmResolverFile, 'utf-8'))
       .split(EOL)
       .map((line) => line.replace(/\/\/.*$/, '')) // strip out inline comments because the banner is going to be flattened into a single line
-      .join('')
-      .concat(ssmResolve);
+      .join('');
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
