@@ -216,13 +216,11 @@ export class AmplifyAuth
           assumedBy: new FederatedPrincipal(
             'cognito-identity.amazonaws.com',
             {
-              conditions: {
-                StringEquals: {
-                  'cognito-identity.amazonaws.com:aud': identityPool.ref,
-                },
-                'ForAnyValue:StringLike': {
-                  'cognito-identity.amazonaws.com:amr': 'authenticated',
-                },
+              StringEquals: {
+                'cognito-identity.amazonaws.com:aud': identityPool.ref,
+              },
+              'ForAnyValue:StringLike': {
+                'cognito-identity.amazonaws.com:amr': 'authenticated',
               },
             },
             'sts:AssumeRoleWithWebIdentity'
