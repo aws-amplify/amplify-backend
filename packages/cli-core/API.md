@@ -32,6 +32,9 @@ export const format: {
     runner: (binaryRunner: string) => {
         amplifyCommand: (command: string) => string;
     };
+    infoMessage: (message: string) => string;
+    command: (command: string) => string;
+    success: (message: string) => string;
     sectionHeader: (header: string) => string;
     link: (link: string) => string;
     list: (lines: string[]) => string;
@@ -57,7 +60,7 @@ export class PackageManagerControllerFactory {
 // @public
 export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream, stderr?: NodeJS.WriteStream, refreshRate?: number);
-    indicateProgress(action: () => Promise<void>, message: string, successMessage: string): Promise<void>;
+    indicateProgress(action: () => Promise<void>, message: string): Promise<void>;
     log(message: string, level?: LogLevel, eol?: boolean): void;
     print: (message: string, colorName?: COLOR) => void;
     printNewLine: () => void;
