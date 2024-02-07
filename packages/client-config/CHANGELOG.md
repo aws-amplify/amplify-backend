@@ -1,5 +1,12 @@
 # @aws-amplify/client-config
 
+## 0.8.0
+
+### Minor Changes
+
+- b1c3e0d49: Add typings for geo category in client config
+- 6daae6be5: Add typings for notifications and analytics categories in client config
+
 ## 0.7.0
 
 ### Minor Changes
