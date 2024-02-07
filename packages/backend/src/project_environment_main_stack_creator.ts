@@ -1,6 +1,6 @@
 import { BackendIdentifier, MainStackCreator } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { Stack } from 'aws-cdk-lib';
+import { Stack, Tags } from 'aws-cdk-lib';
 import { AmplifyStack } from './engine/amplify_stack.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
@@ -26,6 +26,16 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
         this.scope,
         BackendIdentifierConversions.toStackName(this.backendId)
       );
+    }
+
+    const deploymentType = this.backendId.type;
+    Tags.of(this.mainStack).add('created-by', 'amplify');
+    if (deploymentType === 'branch') {
+      Tags.of(this.mainStack).add('amplify:app-id', this.backendId.namespace);
+      Tags.of(this.mainStack).add('amplify:branch-name', this.backendId.name);
+      Tags.of(this.mainStack).add('amplify:deployment-type', 'branch');
+    } else if (deploymentType === 'sandbox') {
+      Tags.of(this.mainStack).add('amplify:deployment-type', 'sandbox');
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.mainStack!;

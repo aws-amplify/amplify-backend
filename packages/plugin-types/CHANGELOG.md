@@ -1,5 +1,12 @@
 # @aws-amplify/plugin-types
 
+## 0.8.0
+
+### Minor Changes
+
+- 85ced84f2: Add ability to add custom outputs
+- b73d76a78: Support yarn 1, yarn 2+ and pnpm package managers
+
 ## 0.7.1
 
 ### Patch Changes

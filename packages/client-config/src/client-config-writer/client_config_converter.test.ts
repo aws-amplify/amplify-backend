@@ -219,4 +219,64 @@ void describe('client config converter', () => {
 
     assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
   });
+
+  void it('converts geo config', () => {
+    const clientConfig: ClientConfig = {
+      geo: {
+        amazon_location_service: {
+          region: 'us-west-2',
+          maps: {
+            items: {
+              map1: {
+                style: 'style1',
+              },
+              map2: {
+                style: 'style2',
+              },
+            },
+            default: 'map1',
+          },
+          search_indices: {
+            items: ['index1', 'index2'],
+            default: 'index1',
+          },
+          // these are not in mobile schema, making sure this doesn't derail converter
+          geofenceCollections: {
+            items: ['geoFence1', 'geoFence2'],
+            default: 'geoFence1',
+          },
+        },
+      },
+    };
+
+    const expectedMobileConfig: ClientConfigMobile = {
+      UserAgent: 'test_package_name/test_package_version;',
+      Version: '1.0',
+      geo: {
+        plugins: {
+          awsLocationGeoPlugin: {
+            maps: {
+              default: 'map1',
+              items: {
+                map1: {
+                  style: 'style1',
+                },
+                map2: {
+                  style: 'style2',
+                },
+              },
+            },
+            region: 'us-west-2',
+            searchIndices: {
+              default: 'index1',
+              items: ['index1', 'index2'],
+            },
+          },
+        },
+      },
+    };
+    const actualMobileConfig = converter.convertToMobileConfig(clientConfig);
+
+    assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
+  });
 });
