@@ -16,7 +16,6 @@ import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Options } from 'execa';
-import { Role } from 'aws-cdk-lib/aws-iam';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
@@ -44,7 +43,7 @@ export type AuthResources = {
     groups: {
         groupName: string;
         cfnUserGroup: CfnUserPoolGroup;
-        role: Role;
+        role: IRole;
     }[];
 };
 
