@@ -216,9 +216,7 @@ export class AmplifyAuth
           assumedBy: new ServicePrincipal('cognito-identity.amazonaws.com', {
             conditions: {
               StringEquals: {
-                'cognito-identity.amazonaws.com:aud': {
-                  Ref: identityPool.ref,
-                },
+                'cognito-identity.amazonaws.com:aud': identityPool.ref,
               },
               'ForAnyValue:StringLike': {
                 'cognito-identity.amazonaws.com:amr': 'authenticated',
