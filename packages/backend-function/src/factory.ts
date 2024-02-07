@@ -15,6 +15,8 @@ import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
+import { readFileSync } from 'fs';
+import { EOL } from 'os';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -233,12 +235,23 @@ class AmplifyFunction
 
     const shims =
       runtime === Runtime.NODEJS_16_X
-        ? // this shim includes the cjs shim because it's required for the v2 sdk to work
-          [require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2_shim')]
-        : [
-            require.resolve('./lambda-shims/cjs_shim'),
-            require.resolve('./lambda-shims/resolve_ssm_params_shim'),
-          ];
+        ? []
+        : [require.resolve('./lambda-shims/cjs_shim')];
+
+    const resolveSsmFile =
+      runtime === Runtime.NODEJS_16_X
+        ? require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2')
+        : require.resolve('./lambda-shims/resolve_ssm_params');
+
+    // This is a terrible, horrible, no good, very bad hack to invoke the SSM parameter resolution code into the lambda function
+    // If we need to put anything else here, and I mean ANYTHING, then we need a different strategy
+    const ssmResolve = `await internalAmplifyFunctionResolveSsmParams(); const SSM_PARAMETER_REFRESH_MS = 1000 * 60; setInterval(() => { void internalAmplifyFunctionResolveSsmParams(); }, SSM_PARAMETER_REFRESH_MS);`;
+
+    const bannerCode = readFileSync(resolveSsmFile, 'utf-8')
+      .split(EOL)
+      .map((line) => line.replace(/\/\/.*$/, '')) // strip out inline comments because the banner is going to be flattened into a single line
+      .join('')
+      .concat(ssmResolve);
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
@@ -247,6 +260,7 @@ class AmplifyFunction
       runtime: nodeVersionMap[props.runtime],
       bundling: {
         format: OutputFormat.ESM,
+        banner: bannerCode,
         inject: shims,
       },
     });
