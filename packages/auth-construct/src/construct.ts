@@ -213,16 +213,20 @@ export class AmplifyAuth
     if (props.groups) {
       props.groups.forEach((groupName) => {
         const groupRole = new Role(this, `${this.name}${groupName}GroupRole`, {
-          assumedBy: new ServicePrincipal('cognito-identity.amazonaws.com', {
-            conditions: {
-              StringEquals: {
-                'cognito-identity.amazonaws.com:aud': identityPool.ref,
-              },
-              'ForAnyValue:StringLike': {
-                'cognito-identity.amazonaws.com:amr': 'authenticated',
+          assumedBy: new FederatedPrincipal(
+            'cognito-identity.amazonaws.com',
+            {
+              conditions: {
+                StringEquals: {
+                  'cognito-identity.amazonaws.com:aud': identityPool.ref,
+                },
+                'ForAnyValue:StringLike': {
+                  'cognito-identity.amazonaws.com:amr': 'authenticated',
+                },
               },
             },
-          }),
+            'sts:AssumeRoleWithWebIdentity'
+          ),
         });
         const currentGroup = new CfnUserPoolGroup(
           this,
