@@ -1,9 +1,11 @@
 export type ClientConfigMobile = {
   UserAgent: string;
   Version: '1.0';
+  analytics?: ClientConfigMobileAnalytics;
   api?: ClientConfigMobileApi;
   auth?: ClientConfigMobileAuth;
   geo?: ClientConfigMobileGeo;
+  notifications?: ClientConfigMobileNotifications;
 };
 
 export type ClientConfigMobileApi = {
@@ -88,6 +90,41 @@ export type ClientConfigMobileGeo = {
         items: Array<string>;
         default: string;
       };
+    };
+  };
+};
+
+export type ClientConfigMobileAnalytics = {
+  plugins: {
+    awsPinpointAnalyticsPlugin: {
+      pinpointAnalytics: {
+        appId: string;
+        region: string;
+      };
+      pinpointTargeting: {
+        region: string;
+      };
+    };
+  };
+};
+
+export type ClientConfigMobileNotifications = {
+  plugins: {
+    awsPinpointSmsNotificationsPlugin?: {
+      appId: string;
+      region: string;
+    };
+    awsPinpointEmailNotificationsPlugin?: {
+      appId: string;
+      region: string;
+    };
+    awsPinpointPushNotificationsPlugin?: {
+      appId: string;
+      region: string;
+    };
+    awsPinpointInAppMessagingNotificationsPlugin?: {
+      appId: string;
+      region: string;
     };
   };
 };
