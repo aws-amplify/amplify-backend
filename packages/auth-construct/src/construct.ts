@@ -9,6 +9,7 @@ import {
 import {
   CfnUserPool,
   CfnUserPoolClient,
+  CfnUserPoolGroup,
   Mfa,
   OAuthScope,
   UserPool,
@@ -23,7 +24,12 @@ import {
   UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
-import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
+import {
+  CfnRole,
+  FederatedPrincipal,
+  Role,
+  ServicePrincipal,
+} from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
   AuthProps,
@@ -104,6 +110,12 @@ export class AmplifyAuth
   private readonly oAuthSettings: cognito.OAuthSettings | undefined;
 
   private readonly name: string;
+
+  private readonly groups: {
+    groupName: string;
+    cfnUserGroup: CfnUserPoolGroup;
+    role: Role;
+  }[] = [];
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -198,6 +210,40 @@ export class AmplifyAuth
       this.providerSetupResult
     );
 
+    // Setup UserPool groups
+    if (props.groups) {
+      props.groups.forEach((groupName) => {
+        const groupRole = new Role(this, `${this.name}${groupName}GroupRole`, {
+          assumedBy: new ServicePrincipal('cognito-identity.amazonaws.com', {
+            conditions: {
+              StringEquals: {
+                'cognito-identity.amazonaws.com:aud': {
+                  Ref: identityPool.ref,
+                },
+              },
+              'ForAnyValue:StringLike': {
+                'cognito-identity.amazonaws.com:amr': 'authenticated',
+              },
+            },
+          }),
+        });
+        const currentGroup = new CfnUserPoolGroup(
+          this,
+          `${this.name}${groupName}Group`,
+          {
+            userPoolId: this.userPool.userPoolId,
+            groupName: groupName,
+            roleArn: groupRole.roleArn,
+          }
+        );
+        this.groups.push({
+          groupName: groupName,
+          cfnUserGroup: currentGroup,
+          role: groupRole,
+        });
+      });
+    }
+
     // expose resources
     this.resources = {
       userPool: this.userPool,
@@ -212,6 +258,7 @@ export class AmplifyAuth
         cfnIdentityPool: identityPool,
         cfnIdentityPoolRoleAttachment: identityPoolRoleAttachment,
       },
+      groups: this.groups,
     };
     this.storeOutput(props.outputStorageStrategy);
 

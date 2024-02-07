@@ -302,6 +302,12 @@ export type AuthProps = {
    * 'NONE' - None – users will have to contact an administrator to reset their passwords
    */
   accountRecovery?: keyof typeof cognito.AccountRecovery;
+  /**
+   * Provide a list of user group names which will be created for you.
+   * @example
+   * ['admins']
+   */
+  groups?: string[];
 
   /**
    * @internal
