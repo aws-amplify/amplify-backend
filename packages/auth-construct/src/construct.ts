@@ -25,7 +25,6 @@ import {
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import {
-  CfnRole,
   FederatedPrincipal,
   Role,
   ServicePrincipal,
