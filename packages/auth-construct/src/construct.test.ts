@@ -126,6 +126,64 @@ void describe('Auth construct', () => {
     });
   });
 
+  void it('creates user groups and group roles', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const auth = new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      groups: ['admins', 'managers'],
+    });
+    // validate order of generated resources
+    assert.equal(auth.resources.groups.length, 2);
+    assert.equal(auth.resources.groups[0].groupName, 'admins');
+    assert.equal(auth.resources.groups[1].groupName, 'managers');
+    // validate generated template
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+    });
+    template.hasResourceProperties('AWS::Cognito::UserPoolGroup', {
+      GroupName: 'admins',
+      Precedence: 0,
+    });
+    template.hasResourceProperties('AWS::Cognito::UserPoolGroup', {
+      GroupName: 'managers',
+      Precedence: 1,
+    });
+    // validate the generated policies
+    const idpRef = template['template']['Outputs']['identityPoolId']['Value'];
+    // There should be 3 matching roles, one for the auth role,
+    // and one for each of the 'admins' and 'managers' roles
+    const matchingRoleCount = 3;
+    template.resourcePropertiesCountIs(
+      'AWS::IAM::Role',
+      {
+        AssumeRolePolicyDocument: {
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Action: 'sts:AssumeRoleWithWebIdentity',
+              Effect: 'Allow',
+              Principal: {
+                Federated: 'cognito-identity.amazonaws.com',
+              },
+              Condition: {
+                'ForAnyValue:StringLike': {
+                  'cognito-identity.amazonaws.com:amr': 'authenticated',
+                },
+                StringEquals: {
+                  'cognito-identity.amazonaws.com:aud': idpRef,
+                },
+              },
+            },
+          ],
+        },
+      },
+      matchingRoleCount
+    );
+  });
+
   void it('creates email login mechanism if settings is empty object', () => {
     const app = new App();
     const stack = new Stack(app);
