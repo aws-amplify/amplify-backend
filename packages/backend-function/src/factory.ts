@@ -247,6 +247,10 @@ class AmplifyFunction
       './lambda-shims/invoke_ssm_shim'
     );
 
+    /**
+     * This code concatenates the contents of the ssm resolver and invoker into a single line that can be used as the esbuild banner content
+     * This banner is responsible for resolving the customer's SSM parameters at runtime
+     */
     const bannerCode = readFileSync(ssmResolverFile, 'utf-8')
       .concat(readFileSync(invokeSsmResolverFile, 'utf-8'))
       .split(new RegExp(`${EOL}|\n|\r`, 'g'))
