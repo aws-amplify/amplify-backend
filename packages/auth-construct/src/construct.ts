@@ -211,7 +211,7 @@ export class AmplifyAuth
 
     // Setup UserPool groups
     if (props.groups) {
-      props.groups.forEach((groupName) => {
+      props.groups.forEach((groupName, index) => {
         const groupRole = new Role(this, `${this.name}${groupName}GroupRole`, {
           assumedBy: new FederatedPrincipal(
             'cognito-identity.amazonaws.com',
@@ -233,6 +233,7 @@ export class AmplifyAuth
             userPoolId: this.userPool.userPoolId,
             groupName: groupName,
             roleArn: groupRole.roleArn,
+            precedence: index,
           }
         );
         this.groups.push({
