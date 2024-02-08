@@ -7,6 +7,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
+  CfnIdentityPool,
   CfnUserPool,
   CfnUserPoolClient,
   CfnUserPoolGroup,
@@ -143,6 +144,7 @@ export class AmplifyAuth
       props.loginWith
     );
 
+    // UserPool Domain
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
     if (
       this.domainPrefix &&
@@ -210,39 +212,7 @@ export class AmplifyAuth
     );
 
     // Setup UserPool groups
-    if (props.groups) {
-      props.groups.forEach((groupName, index) => {
-        const groupRole = new Role(this, `${this.name}${groupName}GroupRole`, {
-          assumedBy: new FederatedPrincipal(
-            'cognito-identity.amazonaws.com',
-            {
-              StringEquals: {
-                'cognito-identity.amazonaws.com:aud': identityPool.ref,
-              },
-              'ForAnyValue:StringLike': {
-                'cognito-identity.amazonaws.com:amr': 'authenticated',
-              },
-            },
-            'sts:AssumeRoleWithWebIdentity'
-          ),
-        });
-        const currentGroup = new CfnUserPoolGroup(
-          this,
-          `${this.name}${groupName}Group`,
-          {
-            userPoolId: this.userPool.userPoolId,
-            groupName: groupName,
-            roleArn: groupRole.roleArn,
-            precedence: index,
-          }
-        );
-        this.groups.push({
-          groupName: groupName,
-          cfnUserGroup: currentGroup,
-          role: groupRole,
-        });
-      });
-    }
+    this.setupUserPoolGroups(props.groups, identityPool);
 
     // expose resources
     this.resources = {
@@ -325,6 +295,48 @@ export class AmplifyAuth
       }),
     };
     return result;
+  };
+
+  /**
+   * Auto generate the user pool groups and group roles
+   */
+  private setupUserPoolGroups = (
+    groups: string[] | undefined,
+    identityPool: CfnIdentityPool
+  ) => {
+    if (groups) {
+      groups.forEach((groupName, index) => {
+        const groupRole = new Role(this, `${this.name}${groupName}GroupRole`, {
+          assumedBy: new FederatedPrincipal(
+            'cognito-identity.amazonaws.com',
+            {
+              StringEquals: {
+                'cognito-identity.amazonaws.com:aud': identityPool.ref,
+              },
+              'ForAnyValue:StringLike': {
+                'cognito-identity.amazonaws.com:amr': 'authenticated',
+              },
+            },
+            'sts:AssumeRoleWithWebIdentity'
+          ),
+        });
+        const currentGroup = new CfnUserPoolGroup(
+          this,
+          `${this.name}${groupName}Group`,
+          {
+            userPoolId: this.userPool.userPoolId,
+            groupName: groupName,
+            roleArn: groupRole.roleArn,
+            precedence: index,
+          }
+        );
+        this.groups.push({
+          groupName: groupName,
+          cfnUserGroup: currentGroup,
+          role: groupRole,
+        });
+      });
+    }
   };
 
   /**
