@@ -7,8 +7,12 @@ await new DependenciesValidator(
     'aws-amplify': {
       allowList: ['@aws-amplify/integration-tests'],
     },
-    '@aws-amplify/datastore': { denyAll: true },
-    '@aws-amplify/core': { denyAll: true },
+    '@aws-amplify/datastore': {
+      allowList: ['@aws-amplify/integration-tests'],
+    },
+    '@aws-amplify/core': {
+      allowList: ['@aws-amplify/integration-tests'],
+    },
     '@aws-amplify/cli-core': {
       allowList: [
         '@aws-amplify/backend-cli',
