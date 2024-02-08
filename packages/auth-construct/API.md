@@ -94,7 +94,9 @@ export type MFASettings = {
 };
 
 // @public
-export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool'>;
+export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool' | 'attributeRequestMethod'> & {
+    readonly attributeRequestMethod?: 'GET' | 'POST';
+};
 
 // @public
 export type PhoneNumberLogin = true | {

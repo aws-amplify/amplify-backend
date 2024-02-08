@@ -8,3 +8,4 @@ export * from './errors';
 export { USAGE_DATA_TRACKING_ENABLED } from './usage-data/constants.js';
 export { CDKContextKey } from './cdk_context_key.js';
 export * from './parameter_path_conversions.js';
+export * from './object_accumulator.js';

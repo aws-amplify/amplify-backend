@@ -1,5 +1,28 @@
 # @aws-amplify/client-config
 
+## 0.8.0
+
+### Minor Changes
+
+- b1c3e0d49: Add typings for geo category in client config
+- 6daae6be5: Add typings for notifications and analytics categories in client config
+
+## 0.7.0
+
+### Minor Changes
+
+- 85ced84f2: Add ability to add custom outputs
+
+### Patch Changes
+
+- 348717b55: Fix bug in frontend config where oauth would not be output if domain prefix was not defined.
+- Updated dependencies [85ced84f2]
+- Updated dependencies [1814f1a69]
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/model-generator@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.10
+  - @aws-amplify/platform-core@0.4.4
+
 ## 0.6.0
 
 ### Minor Changes

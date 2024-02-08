@@ -129,6 +129,7 @@ export type AmplifyUserErrorType =
   | 'BootstrapNotDetectedError'
   | 'AccessDeniedError'
   | 'FileConventionError'
+  | 'OutputEntryAlreadyExistsError'
   | 'InvalidResourceNameError';
 
 /**
