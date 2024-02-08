@@ -1619,7 +1619,7 @@ void describe('Auth construct', () => {
               email: true,
               externalProviders: {
                 scopes: ['EMAIL', 'PROFILE'],
-                callbackUrls: [],
+                callbackUrls: ['http://localhost'],
                 logoutUrls: ['http://localhost'],
                 domainPrefix: 'https://localhost',
               },
