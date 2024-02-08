@@ -19,9 +19,12 @@ jobs:
         os: [ubuntu-latest, macos-latest, amplify-backend_windows-latest_8-core]
         node: [lts/hydrogen, lts/iron, latest]
     runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${}
       - uses: ./.github/actions/install_with_cache
   build:
     runs-on: ubuntu-latest

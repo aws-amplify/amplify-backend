@@ -1,5 +1,8 @@
 # basic setup that applies to most jobs
 # checks out the repo and configures node
+strategy:
+  matrix:
+  
 name: setup_node
 runs:
   using: composite
