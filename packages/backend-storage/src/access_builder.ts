@@ -13,8 +13,14 @@ export type StorageAccessDefinition = {
   getResourceAccessAcceptor: (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ) => ResourceAccessAcceptor;
+  /**
+   * Actions to grant to this role on a specific prefix
+   */
   actions: StorageAction[];
-  resourceSuffix: string;
+  /**
+   * The value that will be substituted into the resource string in place of the {owner} token
+   */
+  ownerPlaceholderSubstitution: string;
 };
 
 export type StorageAccessBuilder = {
@@ -29,7 +35,7 @@ export type StorageAccessBuilder = {
  */
 export type RoleAccessBuilder = {
   authenticated: StorageAccessBuilder;
-  unauthenticated: StorageAccessBuilder;
+  guest: StorageAccessBuilder;
   owner: StorageAccessBuilder;
   resource: (
     other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
@@ -41,21 +47,21 @@ export const storageAccessBuilder: RoleAccessBuilder = {
     to: (...actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
-      resourceSuffix: '*',
+      ownerPlaceholderSubstitution: '*',
     }),
   },
-  unauthenticated: {
+  guest: {
     to: (...actions) => ({
       getResourceAccessAcceptor: getUnauthRoleResourceAccessAcceptor,
       actions,
-      resourceSuffix: '*',
+      ownerPlaceholderSubstitution: '*',
     }),
   },
   owner: {
     to: (...actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
-      resourceSuffix: '${cognito-identity.amazon.com:sub}/*',
+      ownerPlaceholderSubstitution: '${cognito-identity.amazon.com:sub}',
     }),
   },
   resource: (other) => ({
@@ -63,7 +69,7 @@ export const storageAccessBuilder: RoleAccessBuilder = {
       getResourceAccessAcceptor: (getInstanceProps) =>
         other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
       actions,
-      resourceSuffix: '*',
+      ownerPlaceholderSubstitution: '*',
     }),
   }),
 };

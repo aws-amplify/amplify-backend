@@ -22,13 +22,15 @@ import {
 import { BucketPolicyFactory, Permission } from './policy_factory.js';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 
+export type StoragePrefix = `/${string}/*` | '/*';
+
 export type AmplifyStorageFactoryProps = Omit<
   AmplifyStorageProps,
   'outputStorageStrategy'
 > & {
   access?: (
     allow: RoleAccessBuilder
-  ) => Record<string, StorageAccessDefinition[]>;
+  ) => Record<StoragePrefix, StorageAccessDefinition[]>;
 };
 
 /**
@@ -112,7 +114,10 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
     getInstanceProps: ConstructFactoryGetInstanceProps,
     bucket: IBucket
   ) => {
-    const accessDefinition = this.props.access?.(storageAccessBuilder) || {};
+    const accessDefinition = this.props.access?.(storageAccessBuilder);
+    if (!accessDefinition) {
+      return;
+    }
 
     const accessMap: Map<ResourceAccessAcceptor, Permission[]> = new Map();
 
@@ -124,7 +129,10 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
           if (!accessMap.has(resourceAccessAcceptor)) {
             accessMap.set(resourceAccessAcceptor, []);
           }
-          const prefix = `${s3Prefix}/${permission.resourceSuffix}`;
+          const prefix = s3Prefix.replaceAll(
+            '{owner}',
+            permission.ownerPlaceholderSubstitution
+          );
           accessMap.get(resourceAccessAcceptor)?.push({
             actions: permission.actions,
             resources: [prefix],

@@ -17,6 +17,7 @@ import {
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { DEFAULTS } from './defaults.js';
+import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
@@ -104,6 +105,73 @@ const defaultPasswordPolicyCharacterRequirements =
   '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE","REQUIRES_SYMBOLS"]';
 
 void describe('Auth construct', () => {
+  void describe('getResourceAccessAcceptor', () => {
+    void it('attaches policies to the authenticated role', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const amplifyAuth = new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+      });
+      const testPolicy = new Policy(stack, 'testPolicy', {
+        statements: [
+          new PolicyStatement({
+            actions: ['s3:GetObject'],
+            resources: ['testBucket/testObject/*'],
+          }),
+        ],
+      });
+      amplifyAuth
+        .getResourceAccessAcceptor('authenticatedUserIamRole')
+        .acceptResourceAccess(testPolicy, [{ name: 'test', path: 'test' }]);
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: 'testBucket/testObject/*',
+            },
+          ],
+        },
+        // eslint-disable-next-line spellcheck/spell-checker
+        Roles: [{ Ref: 'testauthenticatedUserRole3E70BE56' }],
+      });
+    });
+
+    void it('attaches policies to the unauthenticated role', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const amplifyAuth = new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+      });
+      const testPolicy = new Policy(stack, 'testPolicy', {
+        statements: [
+          new PolicyStatement({
+            actions: ['s3:GetObject'],
+            resources: ['testBucket/testObject/*'],
+          }),
+        ],
+      });
+      amplifyAuth
+        .getResourceAccessAcceptor('unauthenticatedUserIamRole')
+        .acceptResourceAccess(testPolicy, [{ name: 'test', path: 'test' }]);
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: 'testBucket/testObject/*',
+            },
+          ],
+        },
+        // eslint-disable-next-line spellcheck/spell-checker
+        Roles: [{ Ref: 'testunauthenticatedUserRole63C9C03F' }],
+      });
+    });
+  });
   void it('creates phone number login mechanism', () => {
     const app = new App();
     const stack = new Stack(app);

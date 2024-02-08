@@ -13,7 +13,6 @@
     "@aws-sdk/client-amplify": "^3.465.0",
     "@aws-sdk/client-cloudformation": "^3.465.0",
     "@aws-sdk/client-lambda": "^3.465.0",
-    "@aws-sdk/client-s3": "^3.509.0",
     "@aws-sdk/credential-providers": "^3.465.0",
     "@smithy/shared-ini-file-loader": "^2.2.5",
     "aws-amplify": "^6.0.15",
