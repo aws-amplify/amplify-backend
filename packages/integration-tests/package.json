@@ -4,8 +4,8 @@
   "version": "0.4.3",
   "type": "module",
   "devDependencies": {
-    "@aws-amplify/auth-construct-alpha": "^0.5.5",
-    "@aws-amplify/backend": "^0.12.0",
+    "@aws-amplify/auth-construct-alpha": "^0.5.6",
+    "@aws-amplify/backend": "^0.12.1",
     "@aws-amplify/backend-secret": "^0.4.4",
     "@aws-amplify/client-config": "^0.8.0",
     "@aws-amplify/data-schema": "^0.12.9",
