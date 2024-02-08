@@ -249,7 +249,7 @@ class AmplifyFunction
 
     const bannerCode = readFileSync(ssmResolverFile, 'utf-8')
       .concat(readFileSync(invokeSsmResolverFile, 'utf-8'))
-      .split(EOL)
+      .split(new RegExp(`${EOL}|\n|\r`, 'g'))
       .map((line) => line.replace(/\/\/.*$/, '')) // strip out inline comments because the banner is going to be flattened into a single line
       .join('');
 
