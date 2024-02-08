@@ -180,6 +180,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(node16Lambda.length, 1);
 
     const expectedResponse = {
+      s3TestContent: 'this is some test content',
       testSecret: 'amazonSecret-e2eTestValue',
       testSharedSecret: `${this.amplifySharedSecret}-e2eTestSharedValue`,
     };

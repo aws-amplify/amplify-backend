@@ -6,7 +6,9 @@ export const myFunc = defineFunction({
   entry: './func-src/handler.ts',
   environment: {
     TEST_SECRET: secret('amazonSecret'),
-    TEST_SHARED_SECRET: secret(process.env[amplifySharedSecretNameKey] as string),
+    TEST_SHARED_SECRET: secret(
+      process.env[amplifySharedSecretNameKey] as string
+    ),
   },
 });
 
@@ -15,7 +17,9 @@ export const node16Func = defineFunction({
   entry: './func-src/handler.ts',
   environment: {
     TEST_SECRET: secret('amazonSecret'),
-    TEST_SHARED_SECRET: secret(process.env[amplifySharedSecretNameKey] as string),
+    TEST_SHARED_SECRET: secret(
+      process.env[amplifySharedSecretNameKey] as string
+    ),
   },
-  runtime: 16
-})
+  runtime: 16,
+});
