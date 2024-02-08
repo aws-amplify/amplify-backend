@@ -17,6 +17,7 @@ jobs:
         # Larger workers use different drive (C: instead of D:) to check out project and NPM installation
         # creates file system links that include drive letter.
         os: [ubuntu-latest, macos-latest, amplify-backend_windows-latest_8-core]
+        node: [lts/hydrogen, lts/iron, latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
