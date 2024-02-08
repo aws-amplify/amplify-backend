@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, amplify-backend_windows-latest_8-core]
         include:
           - os: ubuntu-latest
-            node: lts/hydrogen
+            node: lts/iron
     runs-on: ${{ matrix.os }}
 
     steps:
