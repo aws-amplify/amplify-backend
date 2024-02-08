@@ -1,6 +1,5 @@
 ---
-'create-amplify': patch
 '@aws-amplify/cli-core': patch
 ---
 
-fix pnpm
+fix pnpm Command "tsc" not found
