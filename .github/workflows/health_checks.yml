@@ -21,13 +21,13 @@ jobs:
           - os: ubuntu-latest
             node: lts/iron
     runs-on: ${{ matrix.os }}
+    env:
+      node: ${{ matrix.node }}
 
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       # - uses: actions/setup-node@v3
       - uses: ./.github/actions/setup_node
-        with:
-          node-version: ${{ matrix.node }}
       - uses: ./.github/actions/install_with_cache
   build:
     runs-on: ubuntu-latest
