@@ -10,4 +10,5 @@
 '@aws-amplify/backend-cli': minor
 ---
 
-Expose access mechanism to grant users and lambda access to backend resources
+Introduce initial iteration of access control mechanism between backend resources.
+The APIs and functioality are NOT final and are subject to change without notice.

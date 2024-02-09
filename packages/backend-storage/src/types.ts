@@ -13,6 +13,12 @@ export type AmplifyStorageFactoryProps = Omit<
   AmplifyStorageProps,
   'outputStorageStrategy'
 > & {
+  /**
+   * !EXPERIMENTAL!
+   *
+   * Access control is under active development and is subject to change without notice.
+   * Use at your own risk and do not use in production
+   */
   access?: AccessGenerator;
 };
 
