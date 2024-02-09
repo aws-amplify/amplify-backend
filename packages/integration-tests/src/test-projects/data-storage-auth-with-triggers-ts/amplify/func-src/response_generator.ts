@@ -49,7 +49,7 @@ export const getResponse = async () => {
  * Test that the lambda is able to upload and download using aws-amplify
  * @returns test content from s3
  */
-const s3RoundTrip = async () => {
+const s3RoundTrip = async (): Promise<string> => {
   const filename = 'test.txt';
   await uploadData({
     key: filename,
@@ -63,5 +63,5 @@ const s3RoundTrip = async () => {
     key: filename,
     options: { accessLevel: 'guest' },
   }).result;
-  return downloadResult.body.text() as string;
+  return downloadResult.body.text() as Promise<string>;
 };
