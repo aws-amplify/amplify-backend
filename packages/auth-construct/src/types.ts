@@ -1,24 +1,11 @@
 import { SecretValue, aws_cognito as cognito } from 'aws-cdk-lib';
 import { triggerEvents } from './trigger_events.js';
-import {
-  AmplifyFunction,
-  AuthResources,
-  BackendOutputStorageStrategy,
-  ResourceProvider,
-} from '@aws-amplify/plugin-types';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import {
   StandardAttributes,
   UserPoolIdentityProviderSamlMetadata,
 } from 'aws-cdk-lib/aws-cognito';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
-
-export type AmplifyAuthConstruct = ResourceProvider<AuthResources> & {
-  addTrigger: (
-    event: TriggerEvent,
-    handler: IFunction | AmplifyFunction
-  ) => void;
-};
 
 /**
  * Email login settings object

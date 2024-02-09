@@ -1,10 +1,10 @@
 import {
   AmplifyAuth,
-  AmplifyAuthConstruct,
   AuthProps,
   TriggerEvent,
 } from '@aws-amplify/auth-construct-alpha';
 import {
+  AuthResources,
   AuthRoleName,
   ConstructContainerEntryGenerator,
   ConstructFactory,
@@ -19,6 +19,10 @@ import * as path from 'path';
 import { AuthLoginWithFactoryProps, Expand } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { Policy } from 'aws-cdk-lib/aws-iam';
+import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
+
+export type BackendAuth = ResourceProvider<AuthResources> &
+  ResourceAccessAcceptorFactory<AuthRoleName>;
 
 export type AmplifyAuthProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
@@ -41,12 +45,7 @@ export type AmplifyAuthProps = Expand<
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
-class AmplifyAuthFactory
-  implements
-    ConstructFactory<
-      AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName>
-    >
-{
+class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
   readonly provides = 'AuthResources';
   private generator: ConstructContainerEntryGenerator;
 
@@ -63,7 +62,7 @@ class AmplifyAuthFactory
    */
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps
-  ): AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName> => {
+  ): BackendAuth => {
     const { constructContainer, importPathVerifier } = getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
@@ -73,9 +72,7 @@ class AmplifyAuthFactory
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
     }
-    return constructContainer.getOrCompute(
-      this.generator
-    ) as AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName>;
+    return constructContainer.getOrCompute(this.generator) as BackendAuth;
   };
 }
 
@@ -104,15 +101,14 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     const authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
-        authConstruct.addTrigger(
-          triggerEvent as TriggerEvent, // this type assertion is necessary before .forEach types keys as just "string"
-          handlerFactory.getInstance(this.getInstanceProps)
+        (authConstruct.resources.userPool as UserPool).addTrigger(
+          UserPoolOperation.of(triggerEvent),
+          handlerFactory.getInstance(this.getInstanceProps).resources.lambda
         );
       }
     );
 
-    const authConstructMixin: AmplifyAuthConstruct &
-      ResourceAccessAcceptorFactory<AuthRoleName> = {
+    const authConstructMixin: BackendAuth = {
       ...authConstruct,
       getResourceAccessAcceptor: (
         roleName: AuthRoleName
@@ -132,6 +128,5 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
  */
 export const defineAuth = (
   props: AmplifyAuthProps
-): ConstructFactory<
-  AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName>
-> => new AmplifyAuthFactory(props, new Error().stack);
+): ConstructFactory<BackendAuth> =>
+  new AmplifyAuthFactory(props, new Error().stack);

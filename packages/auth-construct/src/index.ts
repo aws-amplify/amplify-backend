@@ -1,6 +1,5 @@
 export {
   AuthProps,
-  AmplifyAuthConstruct,
   EmailLogin,
   EmailLoginSettings,
   GoogleProviderProps,

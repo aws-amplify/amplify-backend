@@ -1,10 +1,9 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { defineAuth } from './factory.js';
+import { BackendAuth, defineAuth } from './factory.js';
 import { App, Stack, aws_lambda } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
-  AuthRoleName,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
@@ -12,13 +11,9 @@ import {
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   ImportPathVerifier,
-  ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import {
-  AmplifyAuthConstruct,
-  triggerEvents,
-} from '@aws-amplify/auth-construct-alpha';
+import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
@@ -37,9 +32,7 @@ const createStackAndSetContext = (): Stack => {
 };
 
 void describe('AmplifyAuthFactory', () => {
-  let authFactory: ConstructFactory<
-    AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName>
-  >;
+  let authFactory: ConstructFactory<BackendAuth>;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
