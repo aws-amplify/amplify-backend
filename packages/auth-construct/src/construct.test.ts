@@ -2068,7 +2068,7 @@ void describe('Auth construct', () => {
     void it('should not override email attribute mapping if customer providers their own mapping', () => {
       const app = new App();
       const stack = new Stack(app);
-      const customEmailMapping = 'custommapping';
+      const customEmailMapping = 'customMapping';
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
