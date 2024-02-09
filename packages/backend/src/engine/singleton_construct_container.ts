@@ -7,7 +7,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
-import { BackendIdScopedSsmEnvironmentEntriesGenerator } from './backend_identifier_scoped_ssm_environment_entries_generator.js';
+import { BackendIdScopedSsmEnvironmentEntriesGenerator } from './backend_id_scoped_ssm_environment_entries_generator.js';
 
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs
