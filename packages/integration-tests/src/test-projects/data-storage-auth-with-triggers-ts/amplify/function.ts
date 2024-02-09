@@ -14,7 +14,7 @@ export const defaultNodeFunc = defineFunction({
 
 export const node16Func = defineFunction({
   name: 'node16Function',
-  entry: './func-src/handler.ts',
+  entry: './func-src/handler_node16.ts',
   environment: {
     TEST_SECRET: secret('amazonSecret'),
     TEST_SHARED_SECRET: secret(
