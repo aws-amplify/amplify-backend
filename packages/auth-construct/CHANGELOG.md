@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.5.6
+
+### Patch Changes
+
+- 29fb32bcf: OIDC attributeRequestMethod no longer requires importing OidcAttributeRequestMethod.
+
 ## 0.5.5
 
 ### Patch Changes
