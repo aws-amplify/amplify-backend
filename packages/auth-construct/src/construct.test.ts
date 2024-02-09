@@ -11,6 +11,7 @@ import {
 import {
   CfnIdentityPool,
   CfnUserPoolClient,
+  ProviderAttribute,
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
@@ -1288,6 +1289,13 @@ void describe('Auth construct', () => {
     void it('supports oidc and email', () => {
       const app = new App();
       const stack = new Stack(app);
+      const authorizationURL = 'http://localhost:3000/authorization';
+      const jwksURI = 'https://localhost:3000/jwksuri';
+      const tokensURL = 'http://localhost:3000/token';
+      const userInfoURL = 'http://localhost:3000/userinfo';
+      const mockIdentifiers = ['one', 'two'];
+      const mockScopes = ['scope1', 'scope2'];
+      const attributeRequestMethod = 'POST';
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -1297,6 +1305,20 @@ void describe('Auth construct', () => {
               clientSecret: oidcClientSecret,
               issuerUrl: oidcIssuerUrl,
               name: oidcProviderName,
+              attributeMapping: {
+                email: {
+                  attributeName: 'email',
+                },
+              },
+              attributeRequestMethod: attributeRequestMethod,
+              endpoints: {
+                authorization: authorizationURL,
+                jwksUri: jwksURI,
+                token: tokensURL,
+                userInfo: userInfoURL,
+              },
+              identifiers: mockIdentifiers,
+              scopes: mockScopes,
             },
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
@@ -1308,10 +1330,106 @@ void describe('Auth construct', () => {
         UsernameAttributes: ['email'],
         AutoVerifiedAttributes: ['email'],
       });
-      template.hasResourceProperties(
-        'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedOidcIDPProperties
-      );
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        AttributeMapping: {
+          email: 'email',
+        },
+        IdpIdentifiers: mockIdentifiers,
+        ProviderDetails: {
+          attributes_request_method: attributeRequestMethod,
+          attributes_url: userInfoURL,
+          authorize_scopes: mockScopes.join(' '),
+          authorize_url: authorizationURL,
+          client_id: oidcClientId,
+          client_secret: oidcClientSecret,
+          jwks_uri: jwksURI,
+          oidc_issuer: oidcIssuerUrl,
+          token_url: tokensURL,
+        },
+        ProviderName: oidcProviderName,
+        ProviderType: 'OIDC',
+      });
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        OpenIdConnectProviderARNs: [
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':oidc-provider/cognito-idp.',
+                { Ref: 'AWS::Region' },
+                '.amazonaws.com/',
+                { Ref: 'testOidcIDP12B3582F' },
+              ],
+            ],
+          }),
+        ],
+      });
+    });
+    void it('oidc defaults to GET for oidc method', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const authorizationURL = 'http://localhost:3000/authorization';
+      const jwksURI = 'https://localhost:3000/jwksuri';
+      const tokensURL = 'http://localhost:3000/token';
+      const userInfoURL = 'http://localhost:3000/userinfo';
+      const mockIdentifiers = ['one', 'two'];
+      const mockScopes = ['scope1', 'scope2'];
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+              attributeMapping: {
+                email: {
+                  attributeName: 'email',
+                },
+              },
+              endpoints: {
+                authorization: authorizationURL,
+                jwksUri: jwksURI,
+                token: tokensURL,
+                userInfo: userInfoURL,
+              },
+              identifiers: mockIdentifiers,
+              scopes: mockScopes,
+            },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        AttributeMapping: {
+          email: 'email',
+        },
+        IdpIdentifiers: mockIdentifiers,
+        ProviderDetails: {
+          attributes_request_method: 'GET',
+          attributes_url: userInfoURL,
+          authorize_scopes: mockScopes.join(' '),
+          authorize_url: authorizationURL,
+          client_id: oidcClientId,
+          client_secret: oidcClientSecret,
+          jwks_uri: jwksURI,
+          oidc_issuer: oidcIssuerUrl,
+          token_url: tokensURL,
+        },
+        ProviderName: oidcProviderName,
+        ProviderType: 'OIDC',
+      });
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         OpenIdConnectProviderARNs: [
           Match.objectEquals({
@@ -1884,6 +2002,256 @@ void describe('Auth construct', () => {
             ...mappingThatShouldNotExist,
           }
         );
+      });
+    });
+
+    void it('automatically maps email attributes for external providers and keeps existing configuration', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+              attributeMapping: {
+                fullname: ProviderAttribute.GOOGLE_NAME,
+              },
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+              attributeMapping: {
+                fullname: ProviderAttribute.FACEBOOK_NAME,
+              },
+            },
+            signInWithApple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+              attributeMapping: {
+                fullname: ProviderAttribute.APPLE_NAME,
+              },
+            },
+            loginWithAmazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+              attributeMapping: {
+                fullname: ProviderAttribute.AMAZON_NAME,
+              },
+            },
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+              attributeMapping: {
+                fullname: {
+                  attributeName: 'name',
+                },
+              },
+            },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      const expectedAutoMappedAttributes = {
+        AttributeMapping: {
+          // 'email' is a standardized claim for oauth and oidc IDPS
+          // so we can map it to cognito's 'email' claim
+          email: 'email',
+        },
+      };
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAmazonIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.AMAZON_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAppleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.APPLE_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedFacebookIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.FACEBOOK_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedGoogleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.GOOGLE_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedOidcIDPProperties,
+        AttributeMapping: {
+          ...expectedAutoMappedAttributes.AttributeMapping,
+          name: 'name',
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+          'accounts.google.com': googleClientId,
+          'appleid.apple.com': appleClientId,
+          'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+
+    void it('should not override email attribute mapping if customer providers their own mapping', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const customEmailMapping = 'customMapping';
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+              attributeMapping: {
+                email: {
+                  attributeName: customEmailMapping,
+                },
+                fullname: ProviderAttribute.GOOGLE_NAME,
+              },
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+              attributeMapping: {
+                email: {
+                  attributeName: customEmailMapping,
+                },
+                fullname: ProviderAttribute.FACEBOOK_NAME,
+              },
+            },
+            signInWithApple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+              attributeMapping: {
+                email: {
+                  attributeName: customEmailMapping,
+                },
+                fullname: ProviderAttribute.APPLE_NAME,
+              },
+            },
+            loginWithAmazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+              attributeMapping: {
+                email: {
+                  attributeName: customEmailMapping,
+                },
+                fullname: ProviderAttribute.AMAZON_NAME,
+              },
+            },
+            oidc: {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+              attributeMapping: {
+                email: {
+                  attributeName: customEmailMapping,
+                },
+                fullname: {
+                  attributeName: 'name',
+                },
+              },
+            },
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      const expectedAutoMappedAttributes = {
+        AttributeMapping: {
+          email: customEmailMapping,
+        },
+      };
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAmazonIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.AMAZON_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAppleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.APPLE_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedFacebookIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.FACEBOOK_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedGoogleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.GOOGLE_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedOidcIDPProperties,
+        AttributeMapping: {
+          ...expectedAutoMappedAttributes.AttributeMapping,
+          name: 'name',
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+          'accounts.google.com': googleClientId,
+          'appleid.apple.com': appleClientId,
+          'graph.facebook.com': facebookClientId,
+        },
       });
     });
   });

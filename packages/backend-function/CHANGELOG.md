@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 0.7.1
+
+### Patch Changes
+
+- adb50ecb6: Fix cjs/top-level-await/esbuild interoperability issue when bundling lambda functions
+
 ## 0.7.0
 
 ### Minor Changes
