@@ -11,6 +11,7 @@ import {
   CfnUserPoolClient,
   Mfa,
   OAuthScope,
+  OidcAttributeRequestMethod,
   ProviderAttribute,
   UserPool,
   UserPoolClient,
@@ -695,12 +696,27 @@ export class AmplifyAuth
       result.providersList.push('APPLE');
     }
     if (external.oidc) {
+      const oidc = external.oidc;
+      const requestMethod =
+        oidc.attributeRequestMethod === undefined
+          ? 'GET' // default if not defined
+          : oidc.attributeRequestMethod;
       result.oidc = new cognito.UserPoolIdentityProviderOidc(
         this,
         `${this.name}OidcIDP`,
         {
           userPool,
-          ...external.oidc,
+          attributeRequestMethod:
+            requestMethod === 'GET'
+              ? OidcAttributeRequestMethod.GET
+              : OidcAttributeRequestMethod.POST,
+          clientId: oidc.clientId,
+          clientSecret: oidc.clientSecret,
+          endpoints: oidc.endpoints,
+          identifiers: oidc.identifiers,
+          issuerUrl: oidc.issuerUrl,
+          name: oidc.name,
+          scopes: oidc.scopes,
           attributeMapping: {
             ...(shouldMapEmailAttributes
               ? {
@@ -709,7 +725,7 @@ export class AmplifyAuth
                   },
                 }
               : undefined),
-            ...external.oidc.attributeMapping,
+            ...oidc.attributeMapping,
           },
         }
       );
