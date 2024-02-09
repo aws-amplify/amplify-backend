@@ -6,3 +6,4 @@ export {
   StorageAccessBuilder,
   StorageAction,
 } from './access_builder.js';
+export * from './types.js';
