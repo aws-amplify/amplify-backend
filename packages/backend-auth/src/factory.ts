@@ -1,19 +1,24 @@
 import {
   AmplifyAuth,
+  AmplifyAuthConstruct,
   AuthProps,
   TriggerEvent,
 } from '@aws-amplify/auth-construct-alpha';
 import {
+  AuthRoleName,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   GenerateContainerEntryProps,
+  ResourceAccessAcceptor,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
 import { AuthLoginWithFactoryProps, Expand } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
+import { Policy } from 'aws-cdk-lib/aws-iam';
 
 export type AmplifyAuthProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
@@ -36,7 +41,12 @@ export type AmplifyAuthProps = Expand<
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
-class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
+class AmplifyAuthFactory
+  implements
+    ConstructFactory<
+      AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName>
+    >
+{
   readonly provides = 'AuthResources';
   private generator: ConstructContainerEntryGenerator;
 
@@ -53,7 +63,7 @@ class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
    */
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps
-  ): AmplifyAuth => {
+  ): AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName> => {
     const { constructContainer, importPathVerifier } = getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
@@ -63,7 +73,9 @@ class AmplifyAuthFactory implements ConstructFactory<AmplifyAuth> {
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyAuth;
+    return constructContainer.getOrCompute(
+      this.generator
+    ) as AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName>;
   };
 }
 
@@ -98,7 +110,20 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
         );
       }
     );
-    return authConstruct;
+
+    const authConstructMixin: AmplifyAuthConstruct &
+      ResourceAccessAcceptorFactory<AuthRoleName> = {
+      ...authConstruct,
+      getResourceAccessAcceptor: (
+        roleName: AuthRoleName
+      ): ResourceAccessAcceptor => ({
+        acceptResourceAccess: (policy: Policy) => {
+          const role = authConstruct.resources[roleName];
+          policy.attachToRole(role);
+        },
+      }),
+    };
+    return authConstructMixin;
   };
 }
 
@@ -107,5 +132,6 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
  */
 export const defineAuth = (
   props: AmplifyAuthProps
-): ConstructFactory<AmplifyAuth> =>
-  new AmplifyAuthFactory(props, new Error().stack);
+): ConstructFactory<
+  AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName>
+> => new AmplifyAuthFactory(props, new Error().stack);

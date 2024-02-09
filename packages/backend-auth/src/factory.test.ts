@@ -4,6 +4,7 @@ import { App, Stack, aws_lambda } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
+  AuthRoleName,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
@@ -11,15 +12,20 @@ import {
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   ImportPathVerifier,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { AmplifyAuth, triggerEvents } from '@aws-amplify/auth-construct-alpha';
+import {
+  AmplifyAuthConstruct,
+  triggerEvents,
+} from '@aws-amplify/auth-construct-alpha';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
+import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -31,7 +37,9 @@ const createStackAndSetContext = (): Stack => {
 };
 
 void describe('AmplifyAuthFactory', () => {
-  let authFactory: ConstructFactory<AmplifyAuth>;
+  let authFactory: ConstructFactory<
+    AmplifyAuthConstruct & ResourceAccessAcceptorFactory<AuthRoleName>
+  >;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
@@ -69,9 +77,11 @@ void describe('AmplifyAuthFactory', () => {
   });
 
   void it('adds construct to stack', () => {
-    const authConstruct = authFactory.getInstance(getInstanceProps);
+    const backendAuth = authFactory.getInstance(getInstanceProps);
 
-    const template = Template.fromStack(Stack.of(authConstruct));
+    const template = Template.fromStack(
+      Stack.of(backendAuth.resources.userPool)
+    );
 
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
   });
@@ -109,10 +119,11 @@ void describe('AmplifyAuthFactory', () => {
         triggers: { [event]: funcStub },
       });
 
-      const authConstruct =
-        authWithTriggerFactory.getInstance(getInstanceProps);
+      const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
 
-      const template = Template.fromStack(Stack.of(authConstruct));
+      const template = Template.fromStack(
+        Stack.of(backendAuth.resources.userPool)
+      );
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         LambdaConfig: {
           // The key in the CFN template is the trigger event name with the first character uppercase
@@ -120,6 +131,82 @@ void describe('AmplifyAuthFactory', () => {
             Ref: Match.stringLikeRegexp('testFunc'),
           },
         },
+      });
+    });
+  });
+
+  void describe('getResourceAccessAcceptor', () => {
+    void it('attaches policies to the authenticated role', () => {
+      const backendAuth = authFactory.getInstance(getInstanceProps);
+      const testPolicy = new Policy(stack, 'testPolicy', {
+        statements: [
+          new PolicyStatement({
+            actions: ['s3:GetObject'],
+            resources: ['testBucket/testObject/*'],
+          }),
+        ],
+      });
+      backendAuth
+        .getResourceAccessAcceptor('authenticatedUserIamRole')
+        .acceptResourceAccess(testPolicy, [{ name: 'test', path: 'test' }]);
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: 'testBucket/testObject/*',
+            },
+          ],
+        },
+        Roles: [
+          {
+            'Fn::GetAtt': [
+              // eslint-disable-next-line spellcheck/spell-checker
+              'authNestedStackauthNestedStackResource179371D7',
+              // eslint-disable-next-line spellcheck/spell-checker
+              'Outputs.authamplifyAuthauthenticatedUserRoleF3353E83Ref',
+            ],
+          },
+        ],
+      });
+    });
+
+    void it('attaches policies to the unauthenticated role', () => {
+      const backendAuth = authFactory.getInstance(getInstanceProps);
+      const testPolicy = new Policy(stack, 'testPolicy', {
+        statements: [
+          new PolicyStatement({
+            actions: ['s3:GetObject'],
+            resources: ['testBucket/testObject/*'],
+          }),
+        ],
+      });
+      backendAuth
+        .getResourceAccessAcceptor('unauthenticatedUserIamRole')
+        .acceptResourceAccess(testPolicy, [{ name: 'test', path: 'test' }]);
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: 'testBucket/testObject/*',
+            },
+          ],
+        },
+        Roles: [
+          {
+            'Fn::GetAtt': [
+              // eslint-disable-next-line spellcheck/spell-checker
+              'authNestedStackauthNestedStackResource179371D7',
+              // eslint-disable-next-line spellcheck/spell-checker
+              'Outputs.authamplifyAuthunauthenticatedUserRoleE350B280Ref',
+            ],
+          },
+        ],
       });
     });
   });

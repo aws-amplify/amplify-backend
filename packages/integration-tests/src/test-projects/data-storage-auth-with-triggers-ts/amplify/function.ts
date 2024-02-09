@@ -1,7 +1,7 @@
 import { defineFunction, secret } from '@aws-amplify/backend';
 import { amplifySharedSecretNameKey } from '../../../shared_secret.js';
 
-export const myFunc = defineFunction({
+export const defaultNodeFunc = defineFunction({
   name: 'defaultNodeFunction',
   entry: './func-src/handler.ts',
   environment: {
