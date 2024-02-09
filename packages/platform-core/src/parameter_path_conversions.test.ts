@@ -104,3 +104,20 @@ void describe('toParameterFullPath', () => {
     assert.equal(actual, '/amplify/shared/someAppId/secretName');
   });
 });
+
+void describe('toResourceReferenceFullPath', () => {
+  void it('constructs path unique to the backend id', () => {
+    const actual = ParameterPathConversions.toResourceReferenceFullPath(
+      {
+        namespace: 'reasonableName',
+        name: 'userName',
+        type: 'sandbox',
+      },
+      'someResourceReferenceName'
+    );
+    assert.equal(
+      actual,
+      '/amplify/resource_reference/reasonableName/userName-sandbox-99c4c0494a/someResourceReferenceName'
+    );
+  });
+});
