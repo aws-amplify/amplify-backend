@@ -1,4 +1,4 @@
-import { execa } from 'execa';
+import { execa, execaCommand } from 'execa';
 import * as fsp from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -67,6 +67,14 @@ void describe('getting started happy path', async () => {
   });
 
   void it('creates new project and deploy them without an error', async () => {
+    /**
+     * delete .bin file in the repo because
+     * 1) e2e tests don't use them
+     * 2) execa would use them if it can not find the binary in the test project
+     */
+    const { stdout } = await execa('npx', ['which', 'amplify']);
+    await execaCommand(`rm -rf ${stdout.replace('/amplify', '')}`);
+
     await runPackageManager(
       packageManager,
       ['create', 'amplify', '--yes'],
