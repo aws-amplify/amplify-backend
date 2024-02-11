@@ -77,7 +77,7 @@ void describe('getting started happy path', async () => {
 
     await runPackageManager(
       packageManager,
-      ['create', 'amplify', '--yes'],
+      ['create', 'amplify@beta', '--yes'], // TODO: remove "@beta" once GA
       tempDir
     ).run();
 
