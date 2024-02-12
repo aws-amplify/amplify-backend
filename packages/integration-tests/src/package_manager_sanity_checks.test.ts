@@ -34,10 +34,18 @@ void describe('getting started happy path', async () => {
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
+    /**
+     * delete .bin folder in the repo because
+     * 1) e2e tests don't use them
+     * 2) execa would use them if it can not find the binary in the test project
+     */
+    const { stdout } = await execa('npx', ['which', 'amplify']);
+    await execaCommand(`rm -rf ${stdout.replace('/amplify', '')}`);
   });
 
   after(async () => {
     // stop the npm proxy
+    await execa('npm', ['install', 'tsx', '-D'], { stdio: 'inherit' }); // add tsx back since we removed all the binaries
     await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
   });
 
@@ -67,14 +75,6 @@ void describe('getting started happy path', async () => {
   });
 
   void it('creates new project and deploy them without an error', async () => {
-    /**
-     * delete .bin file in the repo because
-     * 1) e2e tests don't use them
-     * 2) execa would use them if it can not find the binary in the test project
-     */
-    const { stdout } = await execa('npx', ['which', 'amplify']);
-    await execaCommand(`rm -rf ${stdout.replace('/amplify', '')}`);
-
     await runPackageManager(
       packageManager,
       ['create', 'amplify@beta', '--yes'], // TODO: remove "@beta" once GA
