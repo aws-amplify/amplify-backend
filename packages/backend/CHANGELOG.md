@@ -1,5 +1,18 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.0
+
+### Minor Changes
+
+- 8fd5c5c30: bump data-schema deps to latest
+
+### Patch Changes
+
+- 21f6292a1: Force release to beta tag
+- Updated dependencies [8fd5c5c30]
+  - @aws-amplify/backend-data@0.10.0-beta.0
+  - @aws-amplify/backend-auth@0.4.8-beta.0
+
 ## 0.12.1
 
 ### Patch Changes

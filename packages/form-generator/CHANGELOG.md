@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.8.0-beta.0
+
+### Minor Changes
+
+- 27bcc979a: Fix utils file generator to generate aws-amplify v6 imports
+
 ## 0.7.0
 
 ### Minor Changes

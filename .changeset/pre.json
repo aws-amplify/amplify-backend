@@ -26,5 +26,11 @@
     "@aws-amplify/plugin-types": "0.8.0",
     "@aws-amplify/sandbox": "0.5.1"
   },
-  "changesets": []
+  "changesets": [
+    "brown-otters-smoke",
+    "lemon-peas-sin",
+    "mighty-experts-compare",
+    "smooth-penguins-joke",
+    "three-doors-act"
+  ]
 }
