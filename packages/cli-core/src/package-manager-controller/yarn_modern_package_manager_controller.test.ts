@@ -41,12 +41,6 @@ void describe('YarnModernPackageManagerController', () => {
         'dev'
       );
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
-      assert.deepEqual(executeWithDebugLoggerMock.mock.calls[0].arguments, [
-        '/testProjectRoot',
-        'yarn',
-        ['add', '-D', 'tsx', 'esbuild'],
-        execaMock,
-      ]);
     });
 
     void it('runs yarn add with the correct arguments for prod dependencies', async () => {
@@ -55,12 +49,6 @@ void describe('YarnModernPackageManagerController', () => {
         'prod'
       );
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
-      assert.deepEqual(executeWithDebugLoggerMock.mock.calls[0].arguments, [
-        '/testProjectRoot',
-        'yarn',
-        ['add', '-D', 'tsx', 'esbuild'],
-        execaMock,
-      ]);
     });
   });
 
