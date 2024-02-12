@@ -80,7 +80,7 @@ void describe('getting started happy path', async () => {
         'create',
         `amplify${packageManager.startsWith('yarn') ? '' : '@beta'}`,
         '--yes',
-      ], // TODO: remove "@beta" once GA
+      ], // TODO: remove "@beta" once GA https://github.com/aws-amplify/amplify-backend/issues/1013
       tempDir
     ).run();
 
