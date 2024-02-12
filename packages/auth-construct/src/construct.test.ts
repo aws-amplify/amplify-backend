@@ -32,11 +32,11 @@ const facebookClientSecret = 'facebookClientSecret';
 const oidcClientId = 'oidcClientId';
 const oidcClientSecret = 'oidcClientSecret';
 const oidcIssuerUrl = 'https://mysampleoidcissuer.com';
-const oidcProviderName = 'myOidcProvider';
+const oidcProviderName = 'MyOidcProvider';
 const oidcClientId2 = 'oidcClientId2';
 const oidcClientSecret2 = 'oidcClientSecret2';
 const oidcIssuerUrl2 = 'https://mysampleoidcissuer2.com';
-const oidcProviderName2 = 'myOidcProvider2';
+const oidcProviderName2 = 'MyOidcProvider2';
 const ExpectedGoogleIDPProperties = {
   ProviderDetails: {
     authorize_scopes: 'profile',
@@ -1321,7 +1321,7 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testmyOidcProviderOidcIDPA8443A4C' },
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
               ],
             ],
           }),
@@ -1404,7 +1404,7 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testmyOidcProviderOidcIDPA8443A4C' },
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
               ],
             ],
           }),
@@ -1453,7 +1453,7 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testmyOidcProviderOidcIDPA8443A4C' },
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
               ],
             ],
           }),
@@ -1512,7 +1512,7 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testmyOidcProviderOidcIDPA8443A4C' },
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
               ],
             ],
           }),
@@ -1527,7 +1527,7 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testmyOidcProvider2OidcIDP17A4837A' },
+                { Ref: 'testMyOidcProvider2OidcIDP43D7B07B' },
               ],
             ],
           }),
