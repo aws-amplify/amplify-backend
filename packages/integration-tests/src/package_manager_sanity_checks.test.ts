@@ -74,15 +74,22 @@ void describe('getting started happy path', async () => {
   });
 
   void it('creates new project and deploy them without an error', async () => {
-    await runPackageManager(
-      packageManager,
-      [
-        'create',
-        `amplify${packageManager.startsWith('yarn') ? '' : '@beta'}`,
-        '--yes',
-      ], // TODO: remove "@beta" once GA https://github.com/aws-amplify/amplify-backend/issues/1013
-      tempDir
-    ).run();
+    // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
+    if (packageManager.startsWith('yarn')) {
+      await execa('yarn', ['global','add', 'create-amplify@beta']);
+      process.env.npm_config_user_agent = `yarn/${packageManager === 'yarn-classic' ? '1.22.21': '4.0.1'}`;
+            await runPackageManager(
+        packageManager,
+        ['create', 'amplify', '--yes'],
+        tempDir
+      ).run();
+    } else {
+      await runPackageManager(
+        packageManager,
+        ['create', 'amplify@beta', '--yes'], // TODO: remove "@beta" once GA https://github.com/aws-amplify/amplify-backend/issues/1013
+        tempDir
+      ).run();
+    }
 
     const pathPrefix = path.join(tempDir, 'amplify');
 
