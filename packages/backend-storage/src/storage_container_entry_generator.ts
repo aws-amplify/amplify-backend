@@ -4,7 +4,7 @@ import {
   GenerateContainerEntryProps,
 } from '@aws-amplify/plugin-types';
 import { AmplifyStorage } from './construct.js';
-import { BucketPolicyArbiterFactory } from './policy_arbiter.js';
+import { BucketPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
 import { AmplifyStorageFactoryProps } from './types.js';
 import {
   RoleAccessBuilder,

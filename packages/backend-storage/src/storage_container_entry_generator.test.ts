@@ -16,7 +16,7 @@ import {
   SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
-import { BucketPolicyArbiterFactory } from './policy_arbiter.js';
+import { BucketPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
 import { AmplifyStorage } from './construct.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { RoleAccessBuilder } from './access_builder.js';
@@ -81,15 +81,19 @@ void describe('StorageGenerator', () => {
       );
 
       const authenticatedAccessAcceptorMock = mock.fn(() => ({
+        identifier: 'testAuthenticatedAccessAcceptor',
         acceptResourceAccess: mock.fn(),
       }));
       const guestAccessAcceptorMock = mock.fn(() => ({
+        identifier: 'testGuestAccessAcceptor',
         acceptResourceAccess: mock.fn(),
       }));
       const ownerAccessAcceptorMock = mock.fn(() => ({
+        identifier: 'testOwnerAccessAcceptor',
         acceptResourceAccess: mock.fn(),
       }));
       const resourceAccessAcceptorMock = mock.fn(() => ({
+        identifier: 'testResourceAccessAcceptor',
         acceptResourceAccess: mock.fn(),
       }));
 

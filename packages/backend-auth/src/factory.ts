@@ -113,6 +113,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       getResourceAccessAcceptor: (
         roleName: AuthRoleName
       ): ResourceAccessAcceptor => ({
+        identifier: `${roleName}ResourceAccessAcceptor`,
         acceptResourceAccess: (policy: Policy) => {
           const role = authConstruct.resources[roleName];
           policy.attachToRole(role);

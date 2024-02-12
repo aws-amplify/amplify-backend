@@ -11,7 +11,7 @@ import { Permission, StorageAccessPolicyFactory } from './policy_factory.js';
 /**
  * Middleman between creating bucket policies and attaching those policies to corresponding roles
  */
-export class BucketPolicyArbiter {
+export class StorageAccessPolicyArbiter {
   /**
    * Instantiate with context from the storage factory
    */
@@ -36,7 +36,11 @@ export class BucketPolicyArbiter {
   arbitratePolicies = () => {
     // initialize a map that will be used to group permissions by ResourceAccessAcceptor
     // (a ResourceAccessAcceptor is a wrapper around an IAM role that is also able to accept additional context via ssm params)
-    const accessMap: Map<ResourceAccessAcceptor, Permission[]> = new Map();
+    type AccessMapValue = {
+      permissions: Permission[];
+      resourceAccessAcceptor: ResourceAccessAcceptor;
+    };
+    const accessMap: Map<string, AccessMapValue> = new Map();
 
     // iterate over the access definition and group permissions by ResourceAccessAcceptor
     Object.entries(this.accessDefinition).forEach(
@@ -48,8 +52,12 @@ export class BucketPolicyArbiter {
           const resourceAccessAcceptor = permission.getResourceAccessAcceptor(
             this.getInstanceProps
           );
-          if (!accessMap.has(resourceAccessAcceptor)) {
-            accessMap.set(resourceAccessAcceptor, []);
+          const identifier = resourceAccessAcceptor.identifier;
+          if (!accessMap.has(identifier)) {
+            accessMap.set(identifier, {
+              permissions: [],
+              resourceAccessAcceptor,
+            });
           }
 
           // make the owner placeholder substitution in the s3 prefix
@@ -59,7 +67,7 @@ export class BucketPolicyArbiter {
           );
 
           // add the permission actions and resources to the list of permissions for this ResourceAccessAcceptor
-          accessMap.get(resourceAccessAcceptor)?.push({
+          accessMap.get(identifier)?.permissions?.push({
             actions: permission.actions,
             resources: [prefix],
           });
@@ -74,7 +82,7 @@ export class BucketPolicyArbiter {
       });
 
     // iterate over the access map entries and invoke each ResourceAccessAcceptor to accept the permissions
-    accessMap.forEach((permissions, resourceAccessAcceptor) => {
+    accessMap.forEach(({ resourceAccessAcceptor, permissions }) => {
       resourceAccessAcceptor.acceptResourceAccess(
         // generate an IAM policy from the permissions
         this.bucketPolicyFactory.createPolicy(permissions),
@@ -96,7 +104,7 @@ export class BucketPolicyArbiterFactory {
     bucket: IBucket,
     bucketPolicyFactory = new StorageAccessPolicyFactory(bucket)
   ) =>
-    new BucketPolicyArbiter(
+    new StorageAccessPolicyArbiter(
       name,
       accessDefinition,
       ssmEnvironmentEntriesGenerator,

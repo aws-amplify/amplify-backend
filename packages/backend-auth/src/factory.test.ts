@@ -139,9 +139,18 @@ void describe('AmplifyAuthFactory', () => {
           }),
         ],
       });
-      backendAuth
-        .getResourceAccessAcceptor('authenticatedUserIamRole')
-        .acceptResourceAccess(testPolicy, [{ name: 'test', path: 'test' }]);
+      const resourceAccessAcceptor = backendAuth.getResourceAccessAcceptor(
+        'authenticatedUserIamRole'
+      );
+
+      assert.equal(
+        resourceAccessAcceptor.identifier,
+        'authenticatedUserIamRoleResourceAccessAcceptor'
+      );
+
+      resourceAccessAcceptor.acceptResourceAccess(testPolicy, [
+        { name: 'test', path: 'test' },
+      ]);
       const template = Template.fromStack(stack);
       template.resourceCountIs('AWS::IAM::Policy', 1);
       template.hasResourceProperties('AWS::IAM::Policy', {
@@ -177,9 +186,18 @@ void describe('AmplifyAuthFactory', () => {
           }),
         ],
       });
-      backendAuth
-        .getResourceAccessAcceptor('unauthenticatedUserIamRole')
-        .acceptResourceAccess(testPolicy, [{ name: 'test', path: 'test' }]);
+      const resourceAccessAcceptor = backendAuth.getResourceAccessAcceptor(
+        'unauthenticatedUserIamRole'
+      );
+
+      assert.equal(
+        resourceAccessAcceptor.identifier,
+        'unauthenticatedUserIamRoleResourceAccessAcceptor'
+      );
+
+      resourceAccessAcceptor.acceptResourceAccess(testPolicy, [
+        { name: 'test', path: 'test' },
+      ]);
       const template = Template.fromStack(stack);
       template.resourceCountIs('AWS::IAM::Policy', 1);
       template.hasResourceProperties('AWS::IAM::Policy', {

@@ -12,6 +12,10 @@ export type SsmEnvironmentEntry = {
 };
 
 export type ResourceAccessAcceptor = {
+  /**
+   * String used to uniquely identify this acceptor. Each instance should have it's own identifier.
+   */
+  identifier: string;
   acceptResourceAccess: (
     policy: Policy,
     ssmEnvironmentEntries: SsmEnvironmentEntry[]

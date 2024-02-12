@@ -287,6 +287,7 @@ class AmplifyFunction
   }
 
   getResourceAccessAcceptor = () => ({
+    identifier: `${this.node.id}LambdaResourceAccessAcceptor`,
     acceptResourceAccess: (
       policy: Policy,
       ssmEnvironmentEntries: SsmEnvironmentEntry[]
