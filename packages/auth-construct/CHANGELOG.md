@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.5.7-beta.0
+
+### Patch Changes
+
+- 3cb2a527f: Fix a bug that would cause attribute mappings to be ignored.
+
 ## 0.5.6
 
 ### Patch Changes

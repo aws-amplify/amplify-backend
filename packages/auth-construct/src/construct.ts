@@ -11,6 +11,7 @@ import {
   Mfa,
   OAuthScope,
   OidcAttributeRequestMethod,
+  ProviderAttribute,
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderAmazon,
@@ -593,14 +594,14 @@ export class AmplifyAuth
           userPool,
           clientId: googleProps.clientId,
           clientSecretValue: googleProps.clientSecret,
-          attributeMapping:
-            googleProps.attributeMapping ?? shouldMapEmailAttributes
+          attributeMapping: {
+            ...(shouldMapEmailAttributes
               ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: ProviderAttribute.GOOGLE_EMAIL,
                 }
-              : undefined,
+              : undefined),
+            ...googleProps.attributeMapping,
+          },
           scopes: googleProps.scopes,
         }
       );
@@ -614,14 +615,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.facebook,
-          attributeMapping:
-            external.facebook.attributeMapping ?? shouldMapEmailAttributes
+          attributeMapping: {
+            ...(shouldMapEmailAttributes
               ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: ProviderAttribute.FACEBOOK_EMAIL,
                 }
-              : undefined,
+              : undefined),
+            ...external.facebook.attributeMapping,
+          },
         }
       );
       result.oauthMappings[authProvidersList.facebook] =
@@ -635,15 +636,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.loginWithAmazon,
-          attributeMapping:
-            external.loginWithAmazon.attributeMapping ??
-            shouldMapEmailAttributes
+          attributeMapping: {
+            ...(shouldMapEmailAttributes
               ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: ProviderAttribute.AMAZON_EMAIL,
                 }
-              : undefined,
+              : undefined),
+            ...external.loginWithAmazon.attributeMapping,
+          },
         }
       );
       result.oauthMappings[authProvidersList.amazon] =
@@ -657,15 +657,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.signInWithApple,
-          attributeMapping:
-            external.signInWithApple.attributeMapping ??
-            shouldMapEmailAttributes
+          attributeMapping: {
+            ...(shouldMapEmailAttributes
               ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: ProviderAttribute.APPLE_EMAIL,
                 }
-              : undefined,
+              : undefined),
+            ...external.signInWithApple.attributeMapping,
+          },
         }
       );
       result.oauthMappings[authProvidersList.apple] =
@@ -694,14 +693,16 @@ export class AmplifyAuth
           issuerUrl: oidc.issuerUrl,
           name: oidc.name,
           scopes: oidc.scopes,
-          attributeMapping:
-            oidc.attributeMapping ?? shouldMapEmailAttributes
+          attributeMapping: {
+            ...(shouldMapEmailAttributes
               ? {
                   email: {
                     attributeName: 'email',
                   },
                 }
-              : undefined,
+              : undefined),
+            ...oidc.attributeMapping,
+          },
         }
       );
       result.providersList.push('OIDC');
