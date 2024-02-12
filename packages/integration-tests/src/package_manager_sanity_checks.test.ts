@@ -75,11 +75,9 @@ void describe('getting started happy path', async () => {
 
   void it('creates new project and deploy them without an error', async () => {
     // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
-    if (packageManager.startsWith('yarn')) {
+    if (packageManager === 'yarn-classic') {
       await execa('yarn', ['global', 'add', 'create-amplify@beta']);
-      process.env.npm_config_user_agent = `yarn/${
-        packageManager === 'yarn-classic' ? '1.22.21' : '4.0.1'
-      }`;
+      process.env.npm_config_user_agent = 'yarn/1.22.21';
       await runPackageManager(
         packageManager,
         ['create', 'amplify', '--yes'],

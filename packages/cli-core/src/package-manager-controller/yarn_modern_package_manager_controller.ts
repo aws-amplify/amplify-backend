@@ -36,8 +36,17 @@ export class YarnModernPackageManagerController extends PackageManagerController
     );
   }
 
+  installDependencies: (
+    packageNames: string[],
+    type: 'dev' | 'prod'
+  ) => Promise<void> = async (packageNames, type) => {
+    await this.addDependencies(this.cwd);
+    await super.installDependencies(packageNames, type);
+  };
+
   initializeTsConfig = async (targetDir: string) => {
     await this.addLockFile(targetDir);
+    await this.addTypescript(targetDir);
     await super.initializeTsConfig(targetDir);
   };
 
@@ -60,5 +69,23 @@ export class YarnModernPackageManagerController extends PackageManagerController
         );
       }
     }
+  };
+
+  private addTypescript = async (targetDir: string) => {
+    await this.executeWithDebugLogger(
+      targetDir,
+      'yarn',
+      ['add', 'typescript@^5'],
+      this.execa
+    );
+  };
+
+  private addDependencies = async (targetDir: string) => {
+    await this.executeWithDebugLogger(
+      targetDir,
+      'yarn',
+      ['add', '-D', 'corepack'],
+      this.execa
+    );
   };
 }
