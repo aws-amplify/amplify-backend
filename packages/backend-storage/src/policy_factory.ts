@@ -2,6 +2,7 @@ import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { StorageAction } from './access_builder.js';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
+import { AmplifyFault } from '@aws-amplify/platform-core';
 
 export type Permission = {
   actions: StorageAction[];
@@ -11,7 +12,7 @@ export type Permission = {
 /**
  * Generates IAM policies scoped to a single bucket
  */
-export class BucketPolicyFactory {
+export class StorageAccessPolicyFactory {
   private readonly namePrefix = 'storageAccess';
   private readonly stack: Stack;
 
@@ -26,7 +27,9 @@ export class BucketPolicyFactory {
 
   createPolicy = (permissions: Permission[]) => {
     if (permissions.length < 1) {
-      throw new Error('At least one policy statement must be specified');
+      throw new AmplifyFault('EmptyPolicyFault', {
+        message: 'At least one permission must be specified',
+      });
     }
     return new Policy(this.stack, `${this.namePrefix}${this.policyCount++}`, {
       statements: permissions.map(this.getStatement),
@@ -43,7 +46,7 @@ export class BucketPolicyFactory {
 }
 
 const actionMap: Record<StorageAction, string[]> = {
-  read: ['s3:GetObject', 's3:ListBucket'],
+  read: ['s3:GetObject'],
   write: ['s3:PutObject'],
   delete: ['s3:DeleteObject'],
 };

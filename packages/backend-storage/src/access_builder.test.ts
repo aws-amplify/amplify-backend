@@ -1,6 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { storageAccessBuilder } from './access_builder.js';
+import { roleAccessBuilder } from './access_builder.js';
 import {
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
@@ -40,7 +40,7 @@ void describe('storageAccessBuilder', () => {
   });
 
   void it('builds storage access definition for authenticated role', () => {
-    const accessDefinition = storageAccessBuilder.authenticated.to(
+    const accessDefinition = roleAccessBuilder.authenticated.to(
       'read',
       'write',
       'delete'
@@ -65,7 +65,7 @@ void describe('storageAccessBuilder', () => {
     );
   });
   void it('builds storage access definition for guest role', () => {
-    const accessDefinition = storageAccessBuilder.guest.to(
+    const accessDefinition = roleAccessBuilder.guest.to(
       'read',
       'write',
       'delete'
@@ -90,7 +90,7 @@ void describe('storageAccessBuilder', () => {
     );
   });
   void it('builds storage access definition for owner', () => {
-    const accessDefinition = storageAccessBuilder.owner.to(
+    const accessDefinition = roleAccessBuilder.owner.to(
       'read',
       'write',
       'delete'
@@ -119,7 +119,7 @@ void describe('storageAccessBuilder', () => {
   });
 
   void it('builds storage access definition for resources', () => {
-    const accessDefinition = storageAccessBuilder
+    const accessDefinition = roleAccessBuilder
       .resource({
         getInstance: () =>
           ({

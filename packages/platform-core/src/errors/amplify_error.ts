@@ -135,4 +135,4 @@ export type AmplifyUserErrorType =
 /**
  * Amplify library fault types
  */
-export type AmplifyLibraryFaultType = 'UnknownFault';
+export type AmplifyLibraryFaultType = 'UnknownFault' | 'EmptyPolicyFault';

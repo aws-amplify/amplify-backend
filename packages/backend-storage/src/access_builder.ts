@@ -42,7 +42,7 @@ export type RoleAccessBuilder = {
   ) => StorageAccessBuilder;
 };
 
-export const storageAccessBuilder: RoleAccessBuilder = {
+export const roleAccessBuilder: RoleAccessBuilder = {
   authenticated: {
     to: (...actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,

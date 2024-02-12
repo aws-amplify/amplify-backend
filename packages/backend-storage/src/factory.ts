@@ -8,7 +8,7 @@ import * as path from 'path';
 import { AmplifyStorage, StorageResources } from './construct.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { AmplifyStorageFactoryProps } from './types.js';
-import { StorageGenerator } from './storage_generator.js';
+import { StorageContainerEntryGenerator } from './storage_container_entry_generator.js';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
@@ -40,7 +40,10 @@ class AmplifyStorageFactory
     );
     this.validateName(this.props.name);
     if (!this.generator) {
-      this.generator = new StorageGenerator(this.props, getInstanceProps);
+      this.generator = new StorageContainerEntryGenerator(
+        this.props,
+        getInstanceProps
+      );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyStorage;
   };

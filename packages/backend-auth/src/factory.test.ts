@@ -143,6 +143,7 @@ void describe('AmplifyAuthFactory', () => {
         .getResourceAccessAcceptor('authenticatedUserIamRole')
         .acceptResourceAccess(testPolicy, [{ name: 'test', path: 'test' }]);
       const template = Template.fromStack(stack);
+      template.resourceCountIs('AWS::IAM::Policy', 1);
       template.hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: [
@@ -180,6 +181,7 @@ void describe('AmplifyAuthFactory', () => {
         .getResourceAccessAcceptor('unauthenticatedUserIamRole')
         .acceptResourceAccess(testPolicy, [{ name: 'test', path: 'test' }]);
       const template = Template.fromStack(stack);
+      template.resourceCountIs('AWS::IAM::Policy', 1);
       template.hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: [
