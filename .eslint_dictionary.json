@@ -20,6 +20,7 @@
   "codegen",
   "cognito",
   "commonjs",
+  "corepack",
   "ctor",
   "darwin",
   "datastore",
