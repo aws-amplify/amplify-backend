@@ -38,7 +38,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
   };
 
   emitFailure = async (
-    error: AmplifyError<string>,
+    error: AmplifyError,
     dimensions?: Record<string, string>
   ) => {
     const data = await this.getUsageData({
@@ -53,7 +53,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     state: 'SUCCEEDED' | 'FAILED';
     metrics?: Record<string, number>;
     dimensions?: Record<string, string>;
-    error?: AmplifyError<string>;
+    error?: AmplifyError;
   }) => {
     return {
       accountId: await this.accountIdFetcher.fetch(),

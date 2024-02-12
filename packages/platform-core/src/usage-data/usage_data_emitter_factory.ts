@@ -10,7 +10,7 @@ export type UsageDataEmitter = {
     dimensions?: Record<string, string>
   ) => Promise<void>;
   emitFailure: (
-    error: AmplifyError<string>,
+    error: AmplifyError,
     dimensions?: Record<string, string>
   ) => Promise<void>;
 };

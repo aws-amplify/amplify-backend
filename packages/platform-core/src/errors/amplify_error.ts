@@ -3,7 +3,7 @@ import { AmplifyFault, AmplifyUserError } from '.';
 /**
  * Base class for all Amplify errors or faults
  */
-export abstract class AmplifyError<T extends string> extends Error {
+export abstract class AmplifyError<T extends string = string> extends Error {
   public serializedError?: string;
   public readonly message: string;
   public readonly resolution?: string;
@@ -55,9 +55,7 @@ export abstract class AmplifyError<T extends string> extends Error {
     });
   }
 
-  static fromStderr = <T extends string>(
-    _stderr: string
-  ): AmplifyError<T> | undefined => {
+  static fromStderr = (_stderr: string): AmplifyError | undefined => {
     const extractionRegex = /["']?serializedError["']?:[ ]?["'](.*)["']/;
     const serialized = _stderr.match(extractionRegex);
     if (serialized && serialized.length == 2) {

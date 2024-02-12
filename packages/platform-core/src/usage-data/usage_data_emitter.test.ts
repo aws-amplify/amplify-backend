@@ -124,7 +124,7 @@ void describe('UsageDataEmitter', () => {
    */
   const setupAndInvokeUsageEmitter = async (testData: {
     isSuccess: boolean;
-    error?: AmplifyError<string>;
+    error?: AmplifyError;
     metrics?: Record<string, number>;
   }) => {
     const reqEndHandlerAttached = new Promise<void>((resolve) => {
