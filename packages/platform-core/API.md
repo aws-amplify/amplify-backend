@@ -56,7 +56,7 @@ export class AmplifyFault extends AmplifyError {
 }
 
 // @public
-export type AmplifyLibraryFaultType = 'UnknownFault';
+export type AmplifyLibraryFaultType = 'UnknownFault' | 'EmptyPolicyFault';
 
 // @public
 export class AmplifyUserError extends AmplifyError {
