@@ -9,7 +9,7 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import z from 'zod';
 
 // @public
-export abstract class AmplifyError<T extends string> extends Error {
+export abstract class AmplifyError<T extends string = string> extends Error {
     constructor(name: T, classification: AmplifyErrorClassification, options: AmplifyErrorOptions, cause?: Error | undefined);
     // (undocumented)
     readonly cause?: Error | undefined;
@@ -22,7 +22,7 @@ export abstract class AmplifyError<T extends string> extends Error {
     // (undocumented)
     static fromError: (error: unknown) => AmplifyError<'UnknownFault'>;
     // (undocumented)
-    static fromStderr: <T_1 extends string>(_stderr: string) => AmplifyError<T_1> | undefined;
+    static fromStderr: (_stderr: string) => AmplifyError | undefined;
     // (undocumented)
     readonly link?: string;
     // (undocumented)
@@ -164,7 +164,7 @@ export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 // @public (undocumented)
 export type UsageDataEmitter = {
     emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
-    emitFailure: (error: AmplifyError<string>, dimensions?: Record<string, string>) => Promise<void>;
+    emitFailure: (error: AmplifyError, dimensions?: Record<string, string>) => Promise<void>;
 };
 
 // @public
