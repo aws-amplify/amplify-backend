@@ -39,8 +39,12 @@ void describe('getting started happy path', async () => {
      * 1) e2e tests don't use them
      * 2) execa would use them if it can not find the binary in the test project
      */
-    const { stdout } = await execa('npx', ['which', 'amplify']);
-    await execaCommand(`rm -rf ${stdout.replace('/amplify', '')}`);
+    try {
+      await execa('npx', ['which', 'amplify']);
+    } catch (error) {
+      console.error(error);
+    }
+    await execaCommand(`rm -rf ${process.cwd()}/node_modules/.bin`);
   });
 
   after(async () => {
