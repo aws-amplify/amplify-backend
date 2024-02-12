@@ -1242,26 +1242,28 @@ void describe('Auth construct', () => {
         loginWith: {
           email: true,
           externalProviders: {
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-              attributeMapping: {
-                email: {
-                  attributeName: 'email',
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  email: {
+                    attributeName: 'email',
+                  },
                 },
+                attributeRequestMethod: attributeRequestMethod,
+                endpoints: {
+                  authorization: authorizationURL,
+                  jwksUri: jwksURI,
+                  token: tokensURL,
+                  userInfo: userInfoURL,
+                },
+                identifiers: mockIdentifiers,
+                scopes: mockScopes,
               },
-              attributeRequestMethod: attributeRequestMethod,
-              endpoints: {
-                authorization: authorizationURL,
-                jwksUri: jwksURI,
-                token: tokensURL,
-                userInfo: userInfoURL,
-              },
-              identifiers: mockIdentifiers,
-              scopes: mockScopes,
-            },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1324,25 +1326,27 @@ void describe('Auth construct', () => {
         loginWith: {
           email: true,
           externalProviders: {
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-              attributeMapping: {
-                email: {
-                  attributeName: 'email',
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  email: {
+                    attributeName: 'email',
+                  },
                 },
+                endpoints: {
+                  authorization: authorizationURL,
+                  jwksUri: jwksURI,
+                  token: tokensURL,
+                  userInfo: userInfoURL,
+                },
+                identifiers: mockIdentifiers,
+                scopes: mockScopes,
               },
-              endpoints: {
-                authorization: authorizationURL,
-                jwksUri: jwksURI,
-                token: tokensURL,
-                userInfo: userInfoURL,
-              },
-              identifiers: mockIdentifiers,
-              scopes: mockScopes,
-            },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1399,12 +1403,14 @@ void describe('Auth construct', () => {
         loginWith: {
           phone: true,
           externalProviders: {
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1718,12 +1724,14 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             saml: {
               name: samlProviderName,
               metadata: {
@@ -1800,12 +1808,14 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1879,12 +1889,14 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1984,17 +1996,19 @@ void describe('Auth construct', () => {
                 fullname: ProviderAttribute.AMAZON_NAME,
               },
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-              attributeMapping: {
-                fullname: {
-                  attributeName: 'name',
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  fullname: {
+                    attributeName: 'name',
+                  },
                 },
               },
-            },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -2115,20 +2129,22 @@ void describe('Auth construct', () => {
                 fullname: ProviderAttribute.AMAZON_NAME,
               },
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-              attributeMapping: {
-                email: {
-                  attributeName: customEmailMapping,
-                },
-                fullname: {
-                  attributeName: 'name',
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  email: {
+                    attributeName: customEmailMapping,
+                  },
+                  fullname: {
+                    attributeName: 'name',
+                  },
                 },
               },
-            },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -2228,12 +2244,14 @@ void describe('Auth construct', () => {
             clientId: amazonClientId,
             clientSecret: amazonClientSecret,
           },
-          oidc: {
-            clientId: oidcClientId,
-            clientSecret: oidcClientSecret,
-            issuerUrl: oidcIssuerUrl,
-            name: oidcProviderName,
-          },
+          oidc: [
+            {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+          ],
           saml: {
             name: samlProviderName,
             metadata: {

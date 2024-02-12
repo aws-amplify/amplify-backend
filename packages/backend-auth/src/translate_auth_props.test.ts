@@ -87,11 +87,13 @@ void describe('translateToAuthConstructLoginWith', () => {
           clientId: new TestBackendSecret(amazonClientId),
           clientSecret: new TestBackendSecret(amazonClientSecret),
         },
-        oidc: {
-          clientId: new TestBackendSecret(oidcClientId),
-          clientSecret: new TestBackendSecret(oidcClientSecret),
-          issuerUrl: oidcIssueURL,
-        },
+        oidc: [
+          {
+            clientId: new TestBackendSecret(oidcClientId),
+            clientSecret: new TestBackendSecret(oidcClientSecret),
+            issuerUrl: oidcIssueURL,
+          },
+        ],
         signInWithApple: {
           clientId: new TestBackendSecret(appleClientId),
           teamId: new TestBackendSecret(appleTeamId),
@@ -123,11 +125,13 @@ void describe('translateToAuthConstructLoginWith', () => {
           clientId: amazonClientId,
           clientSecret: amazonClientSecret,
         },
-        oidc: {
-          clientId: oidcClientId,
-          clientSecret: oidcClientSecret,
-          issuerUrl: oidcIssueURL,
-        },
+        oidc: [
+          {
+            clientId: oidcClientId,
+            clientSecret: oidcClientSecret,
+            issuerUrl: oidcIssueURL,
+          },
+        ],
         signInWithApple: {
           clientId: appleClientId,
           teamId: appleTeamId,
