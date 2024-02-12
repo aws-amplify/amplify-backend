@@ -77,7 +77,11 @@ void describe('getting started happy path', async () => {
   void it('creates new project and deploy them without an error', async () => {
     await runPackageManager(
       packageManager,
-      ['create', 'amplify@beta', '--yes'], // TODO: remove "@beta" once GA
+      [
+        'create',
+        `amplify${packageManager.startsWith('yarn') ? '' : '@beta'}`,
+        '--yes',
+      ], // TODO: remove "@beta" once GA
       tempDir
     ).run();
 
