@@ -33,6 +33,10 @@ const oidcClientId = 'oidcClientId';
 const oidcClientSecret = 'oidcClientSecret';
 const oidcIssuerUrl = 'https://mysampleoidcissuer.com';
 const oidcProviderName = 'myOidcProvider';
+const oidcClientId2 = 'oidcClientId2';
+const oidcClientSecret2 = 'oidcClientSecret2';
+const oidcIssuerUrl2 = 'https://mysampleoidcissuer2.com';
+const oidcProviderName2 = 'myOidcProvider2';
 const ExpectedGoogleIDPProperties = {
   ProviderDetails: {
     authorize_scopes: 'profile',
@@ -80,6 +84,17 @@ const ExpectedOidcIDPProperties = {
     oidc_issuer: oidcIssuerUrl,
   },
   ProviderName: oidcProviderName,
+  ProviderType: 'OIDC',
+};
+const ExpectedOidcIDPProperties2 = {
+  ProviderDetails: {
+    attributes_request_method: 'GET',
+    authorize_scopes: 'openid',
+    client_id: oidcClientId2,
+    client_secret: oidcClientSecret2,
+    oidc_issuer: oidcIssuerUrl2,
+  },
+  ProviderName: oidcProviderName2,
   ProviderType: 'OIDC',
 };
 const samlProviderName = 'samlProviderName';
@@ -1427,6 +1442,80 @@ void describe('Auth construct', () => {
       );
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         OpenIdConnectProviderARNs: [
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':oidc-provider/cognito-idp.',
+                { Ref: 'AWS::Region' },
+                '.amazonaws.com/',
+                { Ref: 'testOidcIDP12B3582F' },
+              ],
+            ],
+          }),
+        ],
+      });
+    });
+    void it('supports multiple oidc providers', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+              {
+                clientId: oidcClientId2,
+                clientSecret: oidcClientSecret2,
+                issuerUrl: oidcIssuerUrl2,
+                name: oidcProviderName2,
+              },
+            ],
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedOidcIDPProperties
+      );
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedOidcIDPProperties2
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        OpenIdConnectProviderARNs: [
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':oidc-provider/cognito-idp.',
+                { Ref: 'AWS::Region' },
+                '.amazonaws.com/',
+                { Ref: 'testOidcIDP12B3582F' },
+              ],
+            ],
+          }),
           Match.objectEquals({
             'Fn::Join': [
               '',

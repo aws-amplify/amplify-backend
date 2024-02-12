@@ -700,8 +700,8 @@ export class AmplifyAuth
       result.providersList.push('APPLE');
     }
     if (external.oidc && external.oidc.length > 0) {
-      const oidcProviders = [];
-      for (const provider of external.oidc) {
+      const oidcProviders: UserPoolIdentityProviderOidc[] = [];
+      external.oidc.forEach((provider, index) => {
         const requestMethod =
           provider.attributeRequestMethod === undefined
             ? 'GET' // default if not defined
@@ -709,7 +709,7 @@ export class AmplifyAuth
         oidcProviders.push(
           new cognito.UserPoolIdentityProviderOidc(
             this,
-            `${this.name}OidcIDP`,
+            `${this.name}${provider.name ?? index}OidcIDP`,
             {
               userPool,
               attributeRequestMethod:
@@ -736,7 +736,7 @@ export class AmplifyAuth
             }
           )
         );
-      }
+      });
       result.oidc = oidcProviders;
       result.providersList.push('OIDC');
     }
