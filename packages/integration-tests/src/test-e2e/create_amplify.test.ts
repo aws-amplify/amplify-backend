@@ -8,6 +8,7 @@ import assert from 'assert';
 import { glob } from 'glob';
 import { testConcurrencyLevel } from './test_concurrency.js';
 import { findBaselineCdkVersion } from '../cdk_version_finder.js';
+import { amplifyAtTag } from '../constants.js';
 
 void describe(
   'create-amplify script',
@@ -31,7 +32,7 @@ void describe(
       // Force 'create-amplify' installation in npx cache by executing help command
       // before tests run. Otherwise, installing 'create-amplify' concurrently
       // may lead to race conditions and corrupted npx cache.
-      await execa('npm', ['create', 'amplify', '--yes', '--', '--help'], {
+      await execa('npm', ['create', amplifyAtTag, '--yes', '--', '--help'], {
         // Command must run outside of 'amplify-backend' workspace.
         cwd: os.homedir(),
         stdio: 'inherit',
@@ -80,7 +81,7 @@ void describe(
             );
           }
 
-          await execa('npm', ['create', 'amplify', '--yes'], {
+          await execa('npm', ['create', amplifyAtTag, '--yes'], {
             cwd: tempDir,
             stdio: 'inherit',
           });
@@ -236,7 +237,7 @@ void describe(
         const amplifyDirPath = path.join(tempDir, 'amplify');
         await fs.mkdir(amplifyDirPath, { recursive: true });
 
-        const result = await execa('npm', ['create', 'amplify', '--yes'], {
+        const result = await execa('npm', ['create', amplifyAtTag, '--yes'], {
           cwd: tempDir,
           stdio: 'pipe',
           reject: false,
