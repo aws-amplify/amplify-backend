@@ -6,8 +6,6 @@ import {
 import { it } from 'node:test';
 import { dataWithoutAuth } from '../test-projects/standalone-data-auth-modes/amplify/test_factories.js';
 import { dataWithoutAuthNoAuthMode } from '../test-projects/standalone-data-sandbox-mode/amplify/test_factories.js';
-import assert from 'node:assert';
-import { Match } from 'aws-cdk-lib/assertions';
 
 /**
  * This test suite is meant to provide a fast feedback loop to sanity check that different feature verticals are working properly together.
