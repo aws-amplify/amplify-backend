@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Bucket, BucketProps, IBucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, BucketProps, HttpMethods, IBucket } from 'aws-cdk-lib/aws-s3';
 import {
   BackendOutputStorageStrategy,
   ResourceProvider,
@@ -46,6 +46,26 @@ export class AmplifyStorage
 
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
+      cors: [
+        {
+          maxAge: 3000,
+          exposedHeaders: [
+            'x-amz-server-side-encryption',
+            'x-amz-request-id',
+            'x-amz-id-2',
+            'ETag',
+          ],
+          allowedHeaders: ['*'],
+          allowedOrigins: ['*'],
+          allowedMethods: [
+            HttpMethods.GET,
+            HttpMethods.HEAD,
+            HttpMethods.PUT,
+            HttpMethods.POST,
+            HttpMethods.DELETE,
+          ],
+        },
+      ],
     };
 
     this.resources = {
