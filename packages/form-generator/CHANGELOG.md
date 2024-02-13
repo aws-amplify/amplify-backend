@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.8.0-beta.1
+
+### Patch Changes
+
+- 8901779: fix test assertions compatible with new @aws-amplify/codegen-ui-react package
+
 ## 0.8.0-beta.0
 
 ### Minor Changes
