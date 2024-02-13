@@ -44,7 +44,7 @@ void describe('getting started happy path', async () => {
 
   after(async () => {
     // stop the npm proxy
-    await execa('npm', ['install', 'tsx', '-D'], { stdio: 'inherit' }); // add tsx back since we removed all the binaries
+    await execa('npm', ['run', 'setup:local'], { stdio: 'inherit' }); // add tsx back since we removed all the binaries
     await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
   });
 
