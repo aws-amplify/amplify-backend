@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 0.5.1-beta.0
+
+### Patch Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+- Updated dependencies [74cbda0]
+  - @aws-amplify/platform-core@0.5.0-beta.0
+
 ## 0.5.0
 
 ### Minor Changes

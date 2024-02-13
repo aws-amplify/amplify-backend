@@ -1,5 +1,12 @@
 # create-amplify
 
+## 0.6.1-beta.1
+
+### Patch Changes
+
+- Updated dependencies [74cbda0]
+  - @aws-amplify/platform-core@0.5.0-beta.0
+
 ## 0.6.1-beta.0
 
 ### Patch Changes

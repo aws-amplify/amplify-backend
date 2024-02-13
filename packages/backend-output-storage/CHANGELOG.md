@@ -1,5 +1,12 @@
 # @aws-amplify/backend-output-storage
 
+## 0.3.1-beta.0
+
+### Patch Changes
+
+- Updated dependencies [74cbda0]
+  - @aws-amplify/platform-core@0.5.0-beta.0
+
 ## 0.3.0
 
 ### Minor Changes
