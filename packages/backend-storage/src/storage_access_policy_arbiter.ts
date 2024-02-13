@@ -27,7 +27,7 @@ export class StorageAccessPolicyArbiter {
     private readonly ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly bucket: IBucket,
-    private readonly bucketPolicyFactory = new StorageAccessPolicyFactory(
+    private readonly storageAccessPolicyFactory = new StorageAccessPolicyFactory(
       bucket
     )
   ) {}
@@ -88,7 +88,7 @@ export class StorageAccessPolicyArbiter {
     accessMap.forEach(({ resourceAccessAcceptor, permissions }) => {
       resourceAccessAcceptor.acceptResourceAccess(
         // generate an IAM policy from the permissions
-        this.bucketPolicyFactory.createPolicy(permissions),
+        this.storageAccessPolicyFactory.createPolicy(permissions),
         ssmEnvironmentEntries
       );
     });
