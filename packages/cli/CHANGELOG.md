@@ -1,5 +1,13 @@
 # @aws-amplify/backend-cli
 
+## 0.11.2-beta.0
+
+### Patch Changes
+
+- 21f6292a1: Force release to beta tag
+- Updated dependencies [27bcc979a]
+  - @aws-amplify/form-generator@0.8.0-beta.0
+
 ## 0.11.1
 
 ### Patch Changes

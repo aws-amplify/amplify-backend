@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.6.1-beta.0
+
+### Patch Changes
+
+- 21f6292a1: Force release to beta tag
+
 ## 0.6.0
 
 ### Minor Changes
