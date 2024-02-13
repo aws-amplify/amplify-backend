@@ -36,8 +36,8 @@ void describe('getting started happy path', async () => {
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
     /**
      * delete .bin folder in the repo because
-     * 1) e2e tests don't use them
-     * 2) execa would use them if it can not find the binary in the test project
+     * 1) e2e tests should not depend on them
+     * 2) execa would have package managers to use them if it can not find the binary in the test project
      */
     await execaCommand(`rm -rf ${process.cwd()}/node_modules/.bin`);
   });
