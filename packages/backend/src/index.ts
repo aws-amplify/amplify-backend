@@ -1,6 +1,3 @@
-import { defineFunction } from '@aws-amplify/backend-function';
-import { defineStorage } from '@aws-amplify/backend-storage';
-
 export { defineBackend } from './backend_factory.js';
 export * from './backend.js';
 export * from './secret.js';
@@ -19,12 +16,3 @@ export { defineStorage } from '@aws-amplify/backend-storage';
 
 // function
 export { defineFunction } from '@aws-amplify/backend-function';
-
-const onDeleteHandler = defineFunction();
-
-defineStorage({
-  name: 'myStorage',
-  triggers: {
-    onDelete: onDeleteHandler,
-  },
-});

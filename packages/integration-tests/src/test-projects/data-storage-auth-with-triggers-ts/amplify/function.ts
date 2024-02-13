@@ -20,6 +20,5 @@ export const node16Func = defineFunction({
   runtime: 16
 })
 
-
 export const onDelete = defineFunction({ 'name': 'onDelete', entry: './func-src/handler.ts' });
 export const onUpload = defineFunction({ 'name': 'onUpload', entry: './func-src/handler.ts' });
