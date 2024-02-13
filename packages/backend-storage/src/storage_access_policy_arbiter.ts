@@ -6,7 +6,10 @@ import {
 import { StoragePrefix } from './types.js';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { StorageAccessDefinition } from './access_builder.js';
-import { Permission, StorageAccessPolicyFactory } from './policy_factory.js';
+import {
+  Permission,
+  StorageAccessPolicyFactory,
+} from './storage_access_policy_factory.js';
 
 /**
  * Middleman between creating bucket policies and attaching those policies to corresponding roles
@@ -95,7 +98,7 @@ export class StorageAccessPolicyArbiter {
 /**
  * This factory is really only necessary for allowing us to mock the BucketPolicyArbiter in tests
  */
-export class BucketPolicyArbiterFactory {
+export class StorageAccessPolicyArbiterFactory {
   getInstance = (
     name: string,
     accessDefinition: Record<StoragePrefix, StorageAccessDefinition[]>,

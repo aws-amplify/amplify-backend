@@ -17,6 +17,7 @@ import {
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
+
 void describe('StorageAccessPolicyArbiter', () => {
   void describe('arbitratePolicies', () => {
     let stack: Stack;

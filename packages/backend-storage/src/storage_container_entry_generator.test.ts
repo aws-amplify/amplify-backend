@@ -16,7 +16,7 @@ import {
   SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
-import { BucketPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
+import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
 import { AmplifyStorage } from './construct.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { RoleAccessBuilder } from './access_builder.js';
@@ -59,7 +59,7 @@ void describe('StorageGenerator', () => {
       const storageGenerator = new StorageContainerEntryGenerator(
         { name: 'testName' },
         getInstanceProps,
-        new BucketPolicyArbiterFactory()
+        new StorageAccessPolicyArbiterFactory()
       );
 
       const storageInstance = storageGenerator.generateContainerEntry(
@@ -71,7 +71,8 @@ void describe('StorageGenerator', () => {
 
     void it('invokes the policy arbiter with correct accessDefinition if access is defined', () => {
       const arbitratePoliciesMock = mock.fn();
-      const bucketPolicyArbiterFactory = new BucketPolicyArbiterFactory();
+      const bucketPolicyArbiterFactory =
+        new StorageAccessPolicyArbiterFactory();
       const getInstanceMock = mock.method(
         bucketPolicyArbiterFactory,
         'getInstance',

@@ -1,12 +1,12 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { beforeEach, describe, it } from 'node:test';
-import { StorageAccessPolicyFactory } from './policy_factory.js';
+import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import assert from 'node:assert';
 import { Template } from 'aws-cdk-lib/assertions';
 import { AccountPrincipal, Policy, Role } from 'aws-cdk-lib/aws-iam';
 
-void describe('BucketPolicyFactory', () => {
+void describe('StorageAccessPolicyFactory', () => {
   let bucket: Bucket;
   let stack: Stack;
 
