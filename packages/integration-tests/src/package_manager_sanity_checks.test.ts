@@ -49,7 +49,7 @@ void describe('getting started happy path', async () => {
       await execa('yarn', ['global', 'remove', 'create-amplify']);
     }
     // stop the npm proxy
-    await execa('npm', ['run', 'setup:local'], { stdio: 'inherit' }); // add tsx back since we removed all the binaries
+    await execa('npm', ['install'], { stdio: 'inherit' }); // add tsx back since we removed all the binaries
     await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
   });
 
