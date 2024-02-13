@@ -14,7 +14,6 @@ import {
   StorageResources,
 } from './construct.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
   FunctionInstanceProvider,
   buildConstructFactoryFunctionInstanceProvider,
@@ -27,10 +26,6 @@ export type AmplifyStorageFactoryProps = Omit<
 >;
 
 export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
-
-export type AmplifyStorageTriggerHandlers = Partial<
-  Record<AmplifyStorageTriggerEvent, IFunction>
->;
 
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
