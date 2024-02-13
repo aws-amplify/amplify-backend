@@ -75,7 +75,9 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
 
       assert(
         writeFileArgs.some((fileContent) =>
-          fileContent.includes('import { signOut } from "aws-amplify/auth')
+          fileContent.includes(
+            'import { fetchUserAttributes, signOut } from "aws-amplify/auth'
+          )
         )
       );
 
