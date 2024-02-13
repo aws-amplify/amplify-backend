@@ -1,7 +1,6 @@
 import { Construct } from 'constructs';
 import { Bucket, BucketProps, EventType, IBucket } from 'aws-cdk-lib/aws-s3';
 import {
-  AmplifyFunction,
   BackendOutputStorageStrategy,
   ConstructFactory,
   FunctionResources,
@@ -17,10 +16,6 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'url';
-import {
-  FunctionInstanceProvider,
-  addEventSource,
-} from './function_instance_provider.js';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { AmplifyStorageTriggerEvent } from './factory.js';
 import { S3EventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
@@ -54,7 +49,6 @@ export class AmplifyStorage
   implements ResourceProvider<StorageResources>
 {
   readonly resources: StorageResources;
-  private readonly functionInstanceProvider: FunctionInstanceProvider;
   /**
    * Create a new AmplifyStorage instance
    */
@@ -64,11 +58,10 @@ export class AmplifyStorage
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
     };
-    const bucket = new Bucket(this, 'Bucket', bucketProps);
-
     this.resources = {
-      bucket,
+      bucket: new Bucket(this, 'Bucket', bucketProps),
     };
+
     this.storeOutput(props.outputStorageStrategy);
 
     new AttributionMetadataStorage().storeAttributionMetadata(

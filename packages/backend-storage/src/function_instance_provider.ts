@@ -4,11 +4,6 @@ import {
   ConstructFactoryGetInstanceProps,
 } from '@aws-amplify/plugin-types';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import {
-  S3EventSource,
-  S3EventSourceProps,
-} from 'aws-cdk-lib/aws-lambda-event-sources';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
 
 export type FunctionInstanceProvider = {
   provide: (func: ConstructFactory<AmplifyFunction>) => IFunction;
@@ -23,14 +18,3 @@ export const buildConstructFactoryFunctionInstanceProvider = (
   provide: (func: ConstructFactory<AmplifyFunction>): IFunction =>
     func.getInstance(props).resources.lambda,
 });
-
-/**
- * Add s3 event source for lambda function.
- */
-export const addEventSource = (
-  bucket: Bucket,
-  lambda: IFunction,
-  eventSourceProp: S3EventSourceProps
-) => {
-  lambda.addEventSource(new S3EventSource(bucket, eventSourceProp));
-};
