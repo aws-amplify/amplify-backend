@@ -8,7 +8,6 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
@@ -25,9 +24,6 @@ export type AmplifyStorageProps = {
 
 // @public (undocumented)
 export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
-
-// @public (undocumented)
-export type AmplifyStorageTriggerHandlers = Partial<Record<AmplifyStorageTriggerEvent, IFunction>>;
 
 // @public
 export const defineStorage: (props: AmplifyStorageProps) => ConstructFactory<ResourceProvider<StorageResources>>;
