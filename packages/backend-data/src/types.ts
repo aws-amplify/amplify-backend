@@ -133,3 +133,5 @@ export type DataProps = {
    */
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
 };
+
+export type AmplifyDataError = 'InvalidSchemaAuthError' | 'InvalidSchemaError';
