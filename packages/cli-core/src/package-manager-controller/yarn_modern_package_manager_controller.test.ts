@@ -40,7 +40,7 @@ void describe('YarnModernPackageManagerController', () => {
         ['testPackage1', 'testPackage2'],
         'dev'
       );
-      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
+      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     });
 
     void it('runs yarn add with the correct arguments for prod dependencies', async () => {
@@ -48,7 +48,7 @@ void describe('YarnModernPackageManagerController', () => {
         ['testPackage1', 'testPackage2'],
         'prod'
       );
-      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
+      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     });
   });
 
