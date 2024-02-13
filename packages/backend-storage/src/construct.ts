@@ -1,7 +1,10 @@
 import { Construct } from 'constructs';
-import { Bucket, BucketProps, IBucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket, BucketProps, EventType, IBucket } from 'aws-cdk-lib/aws-s3';
 import {
+  AmplifyFunction,
   BackendOutputStorageStrategy,
+  ConstructFactory,
+  FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
@@ -14,6 +17,13 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'url';
+import {
+  FunctionInstanceProvider,
+  addEventSource,
+} from './function_instance_provider.js';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { AmplifyStorageTriggerEvent } from './factory.js';
+import { S3EventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
@@ -22,6 +32,12 @@ export type AmplifyStorageProps = {
   name: string;
   versioned?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+  triggers?: Partial<
+    Record<
+      AmplifyStorageTriggerEvent,
+      ConstructFactory<ResourceProvider<FunctionResources>>
+    >
+  >;
 };
 
 export type StorageResources = {
@@ -38,6 +54,7 @@ export class AmplifyStorage
   implements ResourceProvider<StorageResources>
 {
   readonly resources: StorageResources;
+  private readonly functionInstanceProvider: FunctionInstanceProvider;
   /**
    * Create a new AmplifyStorage instance
    */
@@ -47,11 +64,11 @@ export class AmplifyStorage
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
     };
+    const bucket = new Bucket(this, 'Bucket', bucketProps);
 
     this.resources = {
-      bucket: new Bucket(this, 'Bucket', bucketProps),
+      bucket,
     };
-
     this.storeOutput(props.outputStorageStrategy);
 
     new AttributionMetadataStorage().storeAttributionMetadata(
@@ -60,6 +77,17 @@ export class AmplifyStorage
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
   }
+
+  /**
+   * Attach a Lambda function trigger handler to the S3 events
+   * @param events - list of S3 events that will trigger the handler
+   * @param handler - The function that will handle the event
+   */
+  addTrigger = (events: EventType[], handler: IFunction): void => {
+    handler.addEventSource(
+      new S3EventSource(this.resources.bucket as Bucket, { events })
+    );
+  };
 
   /**
    * Store storage outputs using provided strategy

@@ -6,6 +6,8 @@ import {
 import { it } from 'node:test';
 import { dataWithoutAuth } from '../test-projects/standalone-data-auth-modes/amplify/test_factories.js';
 import { dataWithoutAuthNoAuthMode } from '../test-projects/standalone-data-sandbox-mode/amplify/test_factories.js';
+import assert from 'node:assert';
+import { Match } from 'aws-cdk-lib/assertions';
 
 /**
  * This test suite is meant to provide a fast feedback loop to sanity check that different feature verticals are working properly together.
@@ -41,6 +43,23 @@ void it('data storage auth with triggers', () => {
     // eslint-disable-next-line spellcheck/spell-checker
     'testNameBucketB4152AD5',
   ]);
+
+  /* eslint-disable spellcheck/spell-checker */
+  templates.storage.hasResource('Custom::S3BucketNotifications', {
+    DependsOn: [
+      'testNameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononDeletelambda572CB9D7EA473960',
+      'testNameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononUploadlambda74F01BD6AFF08959',
+    ],
+  });
+
+  templates.myFunc.hasResource('AWS::Lambda::Function', {
+    DependsOn: ['onDeletelambdaServiceRole3B882F08'],
+  });
+
+  templates.myFunc.hasResource('AWS::Lambda::Function', {
+    DependsOn: ['onUploadlambdaServiceRoleDBC7D933'],
+  });
+  /* eslint-enable spellcheck/spell-checker */
 });
 
 void it('data without auth with lambda auth mode', () => {
