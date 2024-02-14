@@ -1,6 +1,7 @@
 import {
   BackendOutputStorageStrategy,
   BackendSecret,
+  BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -14,6 +15,7 @@ import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
+import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { readFileSync } from 'fs';
 import { EOL } from 'os';
 import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
@@ -30,9 +32,8 @@ let functionOutputsAccumulator: FunctionOutputsAccumulator | undefined;
  */
 export const defineFunction = (
   props: FunctionProps = {}
-): ConstructFactory<ResourceProvider<FunctionResources>> => {
-  return new FunctionFactory(props, new Error().stack);
-};
+): ConstructFactory<ResourceProvider<FunctionResources>> =>
+  new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {
   /**
@@ -227,11 +228,15 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     this.functionAccumulator = functionOutputsAccumulator;
   }
 
-  generateContainerEntry = (scope: Construct) => {
+  generateContainerEntry = (
+    scope: Construct,
+    backendSecretResolver: BackendSecretResolver
+  ) => {
     return new AmplifyFunction(
       scope,
       this.props.name,
       this.props,
+      backendSecretResolver,
       this.functionAccumulator
     );
   };
@@ -246,6 +251,7 @@ class AmplifyFunction
     scope: Construct,
     id: string,
     props: HydratedFunctionProps,
+    backendSecretResolver: BackendSecretResolver,
     functionOutputsAccumulator: FunctionOutputsAccumulator
   ) {
     super(scope, id);
@@ -289,6 +295,12 @@ class AmplifyFunction
         inject: shims,
       },
     });
+
+    new FunctionEnvironmentTranslator(
+      functionLambda,
+      props['environment'],
+      backendSecretResolver
+    );
 
     this.resources = {
       lambda: functionLambda,
