@@ -74,6 +74,7 @@ export type BackendMetadata = {
         lastUpdated: Date | undefined;
         s3BucketName: string;
     };
+    functionConfigurations?: FunctionConfiguration[];
 };
 
 // @public
@@ -162,6 +163,13 @@ export type DeployedBackendResource = {
     resourceType?: string;
     physicalResourceId?: string;
     arn?: string;
+};
+
+// @public (undocumented)
+export type FunctionConfiguration = {
+    status: BackendDeploymentStatus;
+    lastUpdated: Date | undefined;
+    functionName: string;
 };
 
 // @public (undocumented)

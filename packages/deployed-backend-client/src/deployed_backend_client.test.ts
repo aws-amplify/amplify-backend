@@ -10,6 +10,7 @@ import {
 import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
 import {
   authOutputKey,
+  functionOutputKey,
   graphqlOutputKey,
   platformOutputKey,
   storageOutputKey,
@@ -53,6 +54,13 @@ const stackSummaries = [
     CreationTime: new Date(0),
     LastUpdatedTime: new Date(1),
   },
+  {
+    StackName: 'amplify-test-testBranch-function',
+    StackStatus: StackStatus.CREATE_COMPLETE,
+    ParentId: 'testStackId',
+    CreationTime: new Date(0),
+    LastUpdatedTime: new Date(2),
+  },
 ];
 
 const deleteStackMock = undefined;
@@ -72,6 +80,11 @@ const listStackResourcesMock = {
     {
       PhysicalResourceId:
         'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-auth/randomString',
+      ResourceType: 'AWS::CloudFormation::Stack',
+    },
+    {
+      PhysicalResourceId:
+        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-function/randomString',
       ResourceType: 'AWS::CloudFormation::Stack',
     },
     {
@@ -103,7 +116,33 @@ const getOutputMockResponse = {
       awsAppsyncApiId: 'awsAppsyncApiId',
     },
   },
+  [functionOutputKey]: {
+    payload: {
+      customerFunctions: JSON.stringify(['function1', 'function2']),
+    },
+  },
 };
+
+const deployedResources = [
+  {
+    logicalResourceId: 'function1234',
+    lastUpdated: new Date(1),
+    resourceStatus: StackStatus.UPDATE_COMPLETE,
+    resourceType: 'AWS::CloudFormation::Stack',
+  },
+  {
+    logicalResourceId: 'function1lambda1234',
+    lastUpdated: new Date(1),
+    resourceStatus: StackStatus.CREATE_COMPLETE,
+    resourceType: 'AWS::Lambda::Function',
+  },
+  {
+    logicalResourceId: 'function2lambda1234',
+    lastUpdated: new Date(2),
+    resourceStatus: StackStatus.UPDATE_COMPLETE,
+    resourceType: 'AWS::Lambda::Function',
+  },
+];
 
 void describe('Deployed Backend Client', () => {
   const mockCfnClient = new CloudFormation();
@@ -150,7 +189,12 @@ void describe('Deployed Backend Client', () => {
       new ArnGenerator(),
       new ArnParser()
     );
-    mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
+
+    mock.method(
+      deployedResourcesEnumerator,
+      'listDeployedResources',
+      () => deployedResources
+    );
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
@@ -183,7 +227,7 @@ void describe('Deployed Backend Client', () => {
       name: validTestBranchName,
       lastUpdated: new Date(0),
       status: BackendDeploymentStatus.DEPLOYED,
-      resources: [],
+      resources: deployedResources,
       authConfiguration: {
         userPoolId: 'testUserPoolId',
         lastUpdated: new Date(1),
@@ -203,6 +247,18 @@ void describe('Deployed Backend Client', () => {
         conflictResolutionMode: undefined,
         apiId: 'awsAppsyncApiId',
       },
+      functionConfigurations: [
+        {
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: new Date(1),
+          functionName: 'function1',
+        },
+        {
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: new Date(2),
+          functionName: 'function2',
+        },
+      ],
     });
   });
 });

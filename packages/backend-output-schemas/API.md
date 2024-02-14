@@ -55,6 +55,12 @@ export type CustomOutput = z.infer<typeof versionedCustomOutputSchema>;
 export const customOutputKey = "AWS::Amplify::Custom";
 
 // @public (undocumented)
+export type FunctionOutput = z.infer<typeof versionedFunctionOutputSchema>;
+
+// @public
+export const functionOutputKey = "AWS::Amplify::Function";
+
+// @public (undocumented)
 export type GraphqlOutput = z.infer<typeof versionedGraphqlOutputSchema>;
 
 // @public
@@ -329,6 +335,26 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             customOutputs: string;
         };
     }>]>>;
+    "AWS::Amplify::Function": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            customerFunctions: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            customerFunctions: string;
+        }, {
+            customerFunctions: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            customerFunctions: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            customerFunctions: string;
+        };
+    }>]>>;
 }, "strip", z.ZodTypeAny, {
     "AWS::Amplify::Platform"?: {
         version: "1";
@@ -391,6 +417,12 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             customOutputs: string;
         };
     } | undefined;
+    "AWS::Amplify::Function"?: {
+        version: "1";
+        payload: {
+            customerFunctions: string;
+        };
+    } | undefined;
 }, {
     "AWS::Amplify::Platform"?: {
         version: "1";
@@ -451,6 +483,12 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             customOutputs: string;
+        };
+    } | undefined;
+    "AWS::Amplify::Function"?: {
+        version: "1";
+        payload: {
+            customerFunctions: string;
         };
     } | undefined;
 }>;
@@ -606,6 +644,28 @@ export const versionedCustomOutputSchema: z.ZodDiscriminatedUnion<"version", [z.
     version: "1";
     payload: {
         customOutputs: string;
+    };
+}>]>;
+
+// @public (undocumented)
+export const versionedFunctionOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        customerFunctions: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        customerFunctions: string;
+    }, {
+        customerFunctions: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        customerFunctions: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        customerFunctions: string;
     };
 }>]>;
 

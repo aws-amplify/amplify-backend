@@ -1,6 +1,6 @@
 import {
+  BackendOutputStorageStrategy,
   BackendSecret,
-  BackendSecretResolver,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -14,17 +14,25 @@ import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
-import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { readFileSync } from 'fs';
 import { EOL } from 'os';
+import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
+import {
+  FunctionConfig,
+  FunctionOutputsAccumulator,
+} from './function_outputs_accumulator.js';
+import { ObjectAccumulator } from '@aws-amplify/platform-core';
+
+let functionOutputsAccumulator: FunctionOutputsAccumulator | undefined;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
  */
 export const defineFunction = (
   props: FunctionProps = {}
-): ConstructFactory<ResourceProvider<FunctionResources>> =>
-  new FunctionFactory(props, new Error().stack);
+): ConstructFactory<ResourceProvider<FunctionResources>> => {
+  return new FunctionFactory(props, new Error().stack);
+};
 
 export type FunctionProps = {
   /**
@@ -90,9 +98,13 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
    */
   getInstance = ({
     constructContainer,
+    outputStorageStrategy,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
-      this.generator = new FunctionGenerator(this.hydrateDefaults());
+      this.generator = new FunctionGenerator(
+        this.hydrateDefaults(),
+        outputStorageStrategy
+      );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
   };
@@ -200,18 +212,27 @@ type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
+  private functionAccumulator: FunctionOutputsAccumulator;
 
-  constructor(private readonly props: HydratedFunctionProps) {}
+  constructor(
+    private readonly props: HydratedFunctionProps,
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+  ) {
+    if (!functionOutputsAccumulator) {
+      functionOutputsAccumulator = new FunctionOutputsAccumulator(
+        this.outputStorageStrategy,
+        new ObjectAccumulator<FunctionConfig>({})
+      );
+    }
+    this.functionAccumulator = functionOutputsAccumulator;
+  }
 
-  generateContainerEntry = (
-    scope: Construct,
-    backendSecretResolver: BackendSecretResolver
-  ) => {
+  generateContainerEntry = (scope: Construct) => {
     return new AmplifyFunction(
       scope,
       this.props.name,
       this.props,
-      backendSecretResolver
+      this.functionAccumulator
     );
   };
 }
@@ -225,7 +246,7 @@ class AmplifyFunction
     scope: Construct,
     id: string,
     props: HydratedFunctionProps,
-    backendSecretResolver: BackendSecretResolver
+    functionOutputsAccumulator: FunctionOutputsAccumulator
   ) {
     super(scope, id);
 
@@ -269,15 +290,11 @@ class AmplifyFunction
       },
     });
 
-    new FunctionEnvironmentTranslator(
-      functionLambda,
-      props['environment'],
-      backendSecretResolver
-    );
-
     this.resources = {
       lambda: functionLambda,
     };
+
+    functionOutputsAccumulator.addOutput({ customerFunctions: [props.name] });
   }
 }
 
