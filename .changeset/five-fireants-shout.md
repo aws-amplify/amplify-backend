@@ -1,14 +1,14 @@
 ---
-'@aws-amplify/backend-platform-test-stubs': minor
-'@aws-amplify/backend-output-storage': minor
-'@aws-amplify/integration-tests': minor
-'@aws-amplify/backend-function': minor
-'@aws-amplify/backend-storage': minor
-'@aws-amplify/auth-construct-alpha': minor
-'@aws-amplify/backend-auth': minor
-'@aws-amplify/backend-data': minor
-'@aws-amplify/plugin-types': minor
-'@aws-amplify/backend': minor
+'@aws-amplify/backend-platform-test-stubs': patch
+'@aws-amplify/backend-output-storage': patch
+'@aws-amplify/integration-tests': patch
+'@aws-amplify/backend-function': patch
+'@aws-amplify/backend-storage': patch
+'@aws-amplify/auth-construct-alpha': patch
+'@aws-amplify/backend-auth': patch
+'@aws-amplify/backend-data': patch
+'@aws-amplify/plugin-types': patch
+'@aws-amplify/backend': patch
 ---
 
 bump aws-cdk-lib to 2.127.0
