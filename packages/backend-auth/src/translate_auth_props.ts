@@ -137,20 +137,25 @@ const translateFacebookProps = (
 
 const translateOidcProps = (
   backendSecretResolver: BackendSecretResolver,
-  oidcProviderProps?: OidcProviderFactoryProps
-): OidcProviderProps | undefined => {
-  if (!oidcProviderProps) {
+  oidcProviderProps?: OidcProviderFactoryProps[]
+): OidcProviderProps[] | undefined => {
+  if (!oidcProviderProps || oidcProviderProps.length === 0) {
     return undefined;
   }
 
-  const { clientId, clientSecret, ...noSecretProps } = oidcProviderProps;
-  return {
-    ...noSecretProps,
-    clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
-    clientSecret: backendSecretResolver
-      .resolveSecret(clientSecret)
-      .unsafeUnwrap(),
-  };
+  const result = [];
+  for (const provider of oidcProviderProps) {
+    const { clientId, clientSecret, ...noSecretProps } = provider;
+    result.push({
+      ...noSecretProps,
+      clientId: backendSecretResolver.resolveSecret(clientId).unsafeUnwrap(),
+      clientSecret: backendSecretResolver
+        .resolveSecret(clientSecret)
+        .unsafeUnwrap(),
+    });
+  }
+
+  return result;
 };
 
 const translateGoogleProps = (

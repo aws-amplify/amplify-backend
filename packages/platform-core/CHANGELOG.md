@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.5.0-beta.0
+
+### Minor Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+
 ## 0.4.4
 
 ### Patch Changes

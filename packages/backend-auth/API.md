@@ -59,7 +59,7 @@ export type ExternalProviderSpecificFactoryProps = ExternalProviderGeneralFactor
     signInWithApple?: AppleProviderFactoryProps;
     loginWithAmazon?: AmazonProviderFactoryProps;
     facebook?: FacebookProviderFactoryProps;
-    oidc?: OidcProviderFactoryProps;
+    oidc?: OidcProviderFactoryProps[];
     google?: GoogleProviderFactoryProps;
 };
 
