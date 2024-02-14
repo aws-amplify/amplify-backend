@@ -22,6 +22,8 @@ export class AmplifyProjectCreator {
     'aws-cdk-lib@^2',
     'constructs@^10.0.0',
     'typescript@^5.0.0',
+    'tsx',
+    'esbuild',
   ];
 
   private readonly defaultProdPackages = ['aws-amplify'];

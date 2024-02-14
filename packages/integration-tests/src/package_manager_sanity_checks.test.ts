@@ -1,4 +1,4 @@
-import { execa } from 'execa';
+import { execa, execaCommand } from 'execa';
 import * as fsp from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -34,10 +34,22 @@ void describe('getting started happy path', async () => {
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
+    /**
+     * delete .bin folder in the repo because
+     * 1) e2e tests should not depend on them
+     * 2) execa would have package managers to use them if it can not find the binary in the test project
+     */
+    await execaCommand(`rm -rf ${process.cwd()}/node_modules/.bin`);
   });
 
   after(async () => {
+    // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
+    // create-amplify has been installed globally, we need to remove it before running `setup:local`
+    if (packageManager === 'yarn-classic') {
+      await execa('yarn', ['global', 'remove', 'create-amplify']);
+    }
     // stop the npm proxy
+    await execa('npm', ['install'], { stdio: 'inherit' }); // add tsx back since we removed all the binaries
     await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
   });
 
@@ -67,11 +79,22 @@ void describe('getting started happy path', async () => {
   });
 
   void it('creates new project and deploy them without an error', async () => {
-    await runPackageManager(
-      packageManager,
-      ['create', 'amplify', '--yes'],
-      tempDir
-    ).run();
+    // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
+    if (packageManager === 'yarn-classic') {
+      await execa('yarn', ['global', 'add', 'create-amplify@beta']);
+      process.env.npm_config_user_agent = 'yarn/1.22.21';
+      await runPackageManager(
+        packageManager,
+        ['create', 'amplify', '--yes'],
+        tempDir
+      ).run();
+    } else {
+      await runPackageManager(
+        packageManager,
+        ['create', 'amplify@beta', '--yes'], // TODO: remove "@beta" once GA https://github.com/aws-amplify/amplify-backend/issues/1013
+        tempDir
+      ).run();
+    }
 
     const pathPrefix = path.join(tempDir, 'amplify');
 

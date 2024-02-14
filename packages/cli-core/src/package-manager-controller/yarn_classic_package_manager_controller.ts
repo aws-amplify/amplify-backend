@@ -33,21 +33,4 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
       existsSync
     );
   }
-
-  initializeTsConfig = async (targetDir: string) => {
-    await this.addTypescript(targetDir);
-    await super.initializeTsConfig(targetDir);
-  };
-
-  /**
-   * addTypescript - initializes a tsconfig.json file in the project root
-   */
-  private addTypescript = async (targetDir: string) => {
-    await this.executeWithDebugLogger(
-      targetDir,
-      'yarn',
-      ['add', 'typescript@^5'],
-      this.execa
-    );
-  };
 }
