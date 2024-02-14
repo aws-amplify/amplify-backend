@@ -15,6 +15,6 @@ export type FunctionInstanceProvider = {
 export const buildConstructFactoryFunctionInstanceProvider = (
   props: ConstructFactoryGetInstanceProps
 ) => ({
-  provide: (func: ConstructFactory<AmplifyFunction>): IFunction =>
+  provide: (functionFactory: ConstructFactory<AmplifyFunction>): IFunction =>
     func.getInstance(props).resources.lambda,
 });
