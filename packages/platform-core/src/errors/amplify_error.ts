@@ -3,7 +3,7 @@ import { AmplifyFault, AmplifyUserError } from '.';
 /**
  * Base class for all Amplify errors or faults
  */
-export abstract class AmplifyError extends Error {
+export abstract class AmplifyError<T extends string = string> extends Error {
   public serializedError?: string;
   public readonly message: string;
   public readonly resolution?: string;
@@ -26,7 +26,7 @@ export abstract class AmplifyError extends Error {
    * }
    */
   constructor(
-    public readonly name: AmplifyErrorType,
+    public readonly name: T,
     public readonly classification: AmplifyErrorClassification,
     private readonly options: AmplifyErrorOptions,
     public readonly cause?: Error
@@ -64,8 +64,8 @@ export abstract class AmplifyError extends Error {
           serialized[1]
         );
         return classification === 'ERROR'
-          ? new AmplifyUserError(name as AmplifyUserErrorType, options, cause)
-          : new AmplifyFault(name as AmplifyLibraryFaultType, options, cause);
+          ? new AmplifyUserError(name, options, cause)
+          : new AmplifyFault(name, options, cause);
       } catch (error) {
         // cannot deserialize
         return undefined;
@@ -74,7 +74,7 @@ export abstract class AmplifyError extends Error {
     return undefined;
   };
 
-  static fromError = (error: unknown): AmplifyError => {
+  static fromError = (error: unknown): AmplifyError<'UnknownFault'> => {
     const errorMessage =
       error instanceof Error
         ? `${error.name}: ${error.message}`
@@ -107,31 +107,3 @@ export type AmplifyErrorOptions = {
   // CloudFormation or NodeJS error codes
   code?: string;
 };
-
-/**
- * Amplify error types
- */
-export type AmplifyErrorType = AmplifyUserErrorType | AmplifyLibraryFaultType;
-
-/**
- * Amplify error types
- */
-export type AmplifyUserErrorType =
-  | 'InvalidPackageJsonError'
-  | 'InvalidSchemaAuthError'
-  | 'InvalidSchemaError'
-  | 'ExpiredTokenError'
-  | 'CloudFormationDeploymentError'
-  | 'CFNUpdateNotSupportedError'
-  | 'SyntaxError'
-  | 'BackendBuildError'
-  | 'BootstrapNotDetectedError'
-  | 'AccessDeniedError'
-  | 'FileConventionError'
-  | 'OutputEntryAlreadyExistsError'
-  | 'InvalidResourceNameError';
-
-/**
- * Amplify library fault types
- */
-export type AmplifyLibraryFaultType = 'UnknownFault';

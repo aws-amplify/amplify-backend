@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/client-config",
-  "version": "0.7.0",
+  "version": "0.8.1-beta.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -24,9 +24,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.6.0",
-    "@aws-amplify/deployed-backend-client": "^0.3.10",
-    "@aws-amplify/model-generator": "^0.4.0",
-    "@aws-amplify/platform-core": "^0.4.4",
+    "@aws-amplify/deployed-backend-client": "^0.3.11-beta.0",
+    "@aws-amplify/model-generator": "^0.4.1-beta.0",
+    "@aws-amplify/platform-core": "^0.5.0-beta.0",
     "@aws-sdk/client-amplify": "^3.465.0",
     "@aws-sdk/client-cloudformation": "^3.465.0",
     "@aws-sdk/client-ssm": "^3.465.0",

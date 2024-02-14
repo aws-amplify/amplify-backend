@@ -6,7 +6,7 @@ import {
   DeployResult,
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
-import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
 import {
   BackendIdentifier,
   type PackageManagerController,
@@ -153,7 +153,7 @@ export class CDKDeployer implements BackendDeployer {
         dirname(this.backendLocator.locate()),
       ]);
     } catch (err) {
-      throw new AmplifyUserError(
+      throw new AmplifyUserError<CDKDeploymentError>(
         'SyntaxError',
         {
           message:

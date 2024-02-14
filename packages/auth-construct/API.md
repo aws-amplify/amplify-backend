@@ -59,7 +59,7 @@ export type ExternalProviderOptions = {
     facebook?: FacebookProviderProps;
     loginWithAmazon?: AmazonProviderProps;
     signInWithApple?: AppleProviderProps;
-    oidc?: OidcProviderProps;
+    oidc?: OidcProviderProps[];
     saml?: SamlProviderProps;
     scopes?: ('PHONE' | 'EMAIL' | 'OPENID' | 'PROFILE' | 'COGNITO_ADMIN')[];
     callbackUrls: string[];
@@ -89,7 +89,9 @@ export type MFASettings = {
 };
 
 // @public
-export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool'>;
+export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool' | 'attributeRequestMethod'> & {
+    readonly attributeRequestMethod?: 'GET' | 'POST';
+};
 
 // @public
 export type PhoneNumberLogin = true | {

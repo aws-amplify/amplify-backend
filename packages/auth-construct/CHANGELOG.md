@@ -1,5 +1,23 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.5.7-beta.1
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.3.1-beta.0
+
+## 0.5.7-beta.0
+
+### Patch Changes
+
+- 3cb2a527f: Fix a bug that would cause attribute mappings to be ignored.
+
+## 0.5.6
+
+### Patch Changes
+
+- 29fb32bcf: OIDC attributeRequestMethod no longer requires importing OidcAttributeRequestMethod.
+
 ## 0.5.5
 
 ### Patch Changes

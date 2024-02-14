@@ -4,14 +4,18 @@ import { PlatformClientConfig } from './platform_client_config.js';
 import { StorageClientConfig } from './storage_client_config.js';
 import { CustomClientConfig } from './custom_client_config.js';
 import { GeoClientConfig } from './geo_client_config.js';
+import { AnalyticsClientConfig } from './analytics_client_config.js';
+import { NotificationsClientConfig } from './notifications_client_config.js';
 
 /**
  * Merged type of all category client config types
  */
 export type ClientConfig = Partial<
-  AuthClientConfig &
+  AnalyticsClientConfig &
+    AuthClientConfig &
     GeoClientConfig &
     GraphqlClientConfig &
+    NotificationsClientConfig &
     StorageClientConfig &
     PlatformClientConfig &
     CustomClientConfig

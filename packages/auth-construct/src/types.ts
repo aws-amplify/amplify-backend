@@ -139,8 +139,19 @@ export type FacebookProviderProps = Omit<
  */
 export type OidcProviderProps = Omit<
   cognito.UserPoolIdentityProviderOidcProps,
-  'userPool'
->;
+  'userPool' | 'attributeRequestMethod'
+> & {
+  /**
+   * The method to use to request attributes
+   * @default 'GET'
+   *
+   * For details about each option, see below.
+   *
+   * 'GET' - use GET
+   * 'POST' - use POST
+   */
+  readonly attributeRequestMethod?: 'GET' | 'POST';
+};
 
 /**
  * SAML provider.
@@ -189,7 +200,7 @@ export type ExternalProviderOptions = {
   /**
    * OIDC Settings
    */
-  oidc?: OidcProviderProps;
+  oidc?: OidcProviderProps[];
   /**
    * SAML Settings
    */

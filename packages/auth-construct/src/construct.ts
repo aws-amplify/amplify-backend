@@ -11,6 +11,8 @@ import {
   CfnUserPoolClient,
   Mfa,
   OAuthScope,
+  OidcAttributeRequestMethod,
+  ProviderAttribute,
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderAmazon,
@@ -49,7 +51,7 @@ type IdentityProviderSetupResult = {
   facebook?: UserPoolIdentityProviderFacebook;
   amazon?: UserPoolIdentityProviderAmazon;
   apple?: UserPoolIdentityProviderApple;
-  oidc?: UserPoolIdentityProviderOidc;
+  oidc?: UserPoolIdentityProviderOidc[];
   saml?: UserPoolIdentityProviderSaml;
 };
 const authProvidersList = {
@@ -330,14 +332,18 @@ export class AmplifyAuth
     // add other providers
     identityPool.supportedLoginProviders = providerSetupResult.oauthMappings;
     if (providerSetupResult.oidc) {
-      identityPool.openIdConnectProviderArns = [
-        arnBuilder({
-          service: 'iam',
-          region,
-          accountId: Stack.of(this).account,
-          resource: `oidc-provider/cognito-idp.${region}.amazonaws.com/${providerSetupResult.oidc.providerName}`,
-        }),
-      ];
+      const oidcArns = [];
+      for (const oidcProvider of providerSetupResult.oidc) {
+        oidcArns.push(
+          arnBuilder({
+            service: 'iam',
+            region,
+            accountId: Stack.of(this).account,
+            resource: `oidc-provider/cognito-idp.${region}.amazonaws.com/${oidcProvider.providerName}`,
+          })
+        );
+      }
+      identityPool.openIdConnectProviderArns = oidcArns;
     }
     if (providerSetupResult.saml) {
       identityPool.samlProviderArns = [
@@ -616,14 +622,14 @@ export class AmplifyAuth
           userPool,
           clientId: googleProps.clientId,
           clientSecretValue: googleProps.clientSecret,
-          attributeMapping:
-            googleProps.attributeMapping ?? shouldMapEmailAttributes
+          attributeMapping: {
+            ...(shouldMapEmailAttributes
               ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: ProviderAttribute.GOOGLE_EMAIL,
                 }
-              : undefined,
+              : undefined),
+            ...googleProps.attributeMapping,
+          },
           scopes: googleProps.scopes,
         }
       );
@@ -637,14 +643,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.facebook,
-          attributeMapping:
-            external.facebook.attributeMapping ?? shouldMapEmailAttributes
+          attributeMapping: {
+            ...(shouldMapEmailAttributes
               ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: ProviderAttribute.FACEBOOK_EMAIL,
                 }
-              : undefined,
+              : undefined),
+            ...external.facebook.attributeMapping,
+          },
         }
       );
       result.oauthMappings[authProvidersList.facebook] =
@@ -658,15 +664,14 @@ export class AmplifyAuth
         {
           userPool,
           ...external.loginWithAmazon,
-          attributeMapping:
-            external.loginWithAmazon.attributeMapping ??
-            shouldMapEmailAttributes
+          attributeMapping: {
+            ...(shouldMapEmailAttributes
               ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: ProviderAttribute.AMAZON_EMAIL,
                 }
-              : undefined,
+              : undefined),
+            ...external.loginWithAmazon.attributeMapping,
+          },
         }
       );
       result.oauthMappings[authProvidersList.amazon] =
@@ -680,38 +685,59 @@ export class AmplifyAuth
         {
           userPool,
           ...external.signInWithApple,
-          attributeMapping:
-            external.signInWithApple.attributeMapping ??
-            shouldMapEmailAttributes
+          attributeMapping: {
+            ...(shouldMapEmailAttributes
               ? {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: ProviderAttribute.APPLE_EMAIL,
                 }
-              : undefined,
+              : undefined),
+            ...external.signInWithApple.attributeMapping,
+          },
         }
       );
       result.oauthMappings[authProvidersList.apple] =
         external.signInWithApple.clientId;
       result.providersList.push('APPLE');
     }
-    if (external.oidc) {
-      result.oidc = new cognito.UserPoolIdentityProviderOidc(
-        this,
-        `${this.name}OidcIDP`,
-        {
-          userPool,
-          ...external.oidc,
-          attributeMapping:
-            external.oidc.attributeMapping ?? shouldMapEmailAttributes
-              ? {
-                  email: {
-                    attributeName: 'email',
-                  },
-                }
-              : undefined,
-        }
-      );
+    if (external.oidc && external.oidc.length > 0) {
+      const oidcProviders: UserPoolIdentityProviderOidc[] = [];
+      external.oidc.forEach((provider, index) => {
+        const requestMethod =
+          provider.attributeRequestMethod === undefined
+            ? 'GET' // default if not defined
+            : provider.attributeRequestMethod;
+        oidcProviders.push(
+          new cognito.UserPoolIdentityProviderOidc(
+            this,
+            `${this.name}${provider.name ?? index}OidcIDP`,
+            {
+              userPool,
+              attributeRequestMethod:
+                requestMethod === 'GET'
+                  ? OidcAttributeRequestMethod.GET
+                  : OidcAttributeRequestMethod.POST,
+              clientId: provider.clientId,
+              clientSecret: provider.clientSecret,
+              endpoints: provider.endpoints,
+              identifiers: provider.identifiers,
+              issuerUrl: provider.issuerUrl,
+              name: provider.name,
+              scopes: provider.scopes,
+              attributeMapping: {
+                ...(shouldMapEmailAttributes
+                  ? {
+                      email: {
+                        attributeName: 'email',
+                      },
+                    }
+                  : undefined),
+                ...provider.attributeMapping,
+              },
+            }
+          )
+        );
+      });
+      result.oidc = oidcProviders;
       result.providersList.push('OIDC');
     }
     if (external.saml) {
