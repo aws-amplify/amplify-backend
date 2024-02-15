@@ -1,13 +1,9 @@
 import {
   AmplifyError,
   AmplifyErrorClassification,
-  AmplifyErrorType,
   AmplifyFault,
-  AmplifyLibraryFaultType,
   AmplifyUserError,
-  AmplifyUserErrorType,
 } from '@aws-amplify/platform-core';
-
 /**
  * Transforms CDK error messages to human readable ones
  */
@@ -15,7 +11,7 @@ export class CdkErrorMapper {
   private knownErrors: Array<{
     errorRegex: RegExp;
     humanReadableErrorMessage: string;
-    errorName: AmplifyErrorType;
+    errorName: CDKDeploymentError;
     classification: AmplifyErrorClassification;
   }> = [
     {
@@ -96,7 +92,9 @@ export class CdkErrorMapper {
     },
   ];
 
-  getAmplifyError = (error: Error): AmplifyError => {
+  getAmplifyError = (
+    error: Error
+  ): AmplifyError<CDKDeploymentError | string> => {
     // Check if there was an Amplify error thrown during child process execution
     const amplifyError = AmplifyError.fromStderr(error.message);
     if (amplifyError) {
@@ -117,12 +115,12 @@ export class CdkErrorMapper {
 
       return matchingError.classification === 'ERROR'
         ? new AmplifyUserError(
-            matchingError.errorName as AmplifyUserErrorType,
+            matchingError.errorName,
             { message: matchingError.humanReadableErrorMessage },
             error
           )
         : new AmplifyFault(
-            matchingError.errorName as AmplifyLibraryFaultType,
+            matchingError.errorName,
             { message: matchingError.humanReadableErrorMessage },
             error
           );
@@ -130,3 +128,15 @@ export class CdkErrorMapper {
     return AmplifyError.fromError(error);
   };
 }
+
+export type CDKDeploymentError =
+  | 'ExpiredTokenError'
+  | 'AccessDeniedError'
+  | 'BootstrapNotDetectedError'
+  | 'SyntaxError'
+  | 'FileConventionError'
+  | 'FileConventionError'
+  | 'BackendBuildError'
+  | 'CFNUpdateNotSupportedError'
+  | 'CFNUpdateNotSupportedError'
+  | 'CloudFormationDeploymentError';

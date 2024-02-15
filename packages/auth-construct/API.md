@@ -60,7 +60,7 @@ export type ExternalProviderOptions = {
     facebook?: FacebookProviderProps;
     loginWithAmazon?: AmazonProviderProps;
     signInWithApple?: AppleProviderProps;
-    oidc?: OidcProviderProps;
+    oidc?: OidcProviderProps[];
     saml?: SamlProviderProps;
     scopes?: ('PHONE' | 'EMAIL' | 'OPENID' | 'PROFILE' | 'COGNITO_ADMIN')[];
     callbackUrls: string[];

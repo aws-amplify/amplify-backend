@@ -14,11 +14,18 @@ import {
   StorageResources,
 } from './construct.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  FunctionInstanceProvider,
+  buildConstructFactoryFunctionInstanceProvider,
+} from './function_instance_provider.js';
+import { EventType } from 'aws-cdk-lib/aws-s3';
 
 export type AmplifyStorageFactoryProps = Omit<
   AmplifyStorageProps,
   'outputStorageStrategy'
 >;
+
+export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
@@ -39,11 +46,9 @@ class AmplifyStorageFactory
   /**
    * Get a singleton instance of the Bucket
    */
-  getInstance = ({
-    constructContainer,
-    outputStorageStrategy,
-    importPathVerifier,
-  }: ConstructFactoryGetInstanceProps): AmplifyStorage => {
+  getInstance = (props: ConstructFactoryGetInstanceProps): AmplifyStorage => {
+    const { constructContainer, outputStorageStrategy, importPathVerifier } =
+      props;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'storage', 'resource'),
@@ -53,6 +58,7 @@ class AmplifyStorageFactory
     if (!this.generator) {
       this.generator = new AmplifyStorageGenerator(
         this.props,
+        buildConstructFactoryFunctionInstanceProvider(props),
         outputStorageStrategy
       );
     }
@@ -76,14 +82,34 @@ class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: AmplifyStorageProps,
+    private readonly functionInstanceProvider: FunctionInstanceProvider,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
   ) {}
 
   generateContainerEntry = (scope: Construct) => {
-    return new AmplifyStorage(scope, `${this.props.name}`, {
+    const storageConstruct = new AmplifyStorage(scope, `${this.props.name}`, {
       ...this.props,
       outputStorageStrategy: this.outputStorageStrategy,
     });
+
+    Object.entries(this.props.triggers || {}).forEach(
+      ([triggerEvent, handlerFactory]) => {
+        const events = [];
+        const handler = this.functionInstanceProvider.provide(handlerFactory);
+        // triggerEvent is converted string from Object.entries
+        switch (triggerEvent as AmplifyStorageTriggerEvent) {
+          case 'onDelete':
+            events.push(EventType.OBJECT_REMOVED);
+            break;
+          case 'onUpload':
+            events.push(EventType.OBJECT_CREATED);
+            break;
+        }
+        storageConstruct.addTrigger(events, handler);
+      }
+    );
+
+    return storageConstruct;
   };
 }
 

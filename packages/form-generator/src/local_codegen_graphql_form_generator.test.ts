@@ -60,14 +60,27 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       );
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
+      const writeFileMock = mock.fn();
       fsMock.mock.mockImplementation(async () => ({
-        writeFile: async () => undefined,
+        writeFile: writeFileMock,
         stat: async () => ({}),
         close: async () => undefined,
       }));
       const mockLog = mock.fn();
       await output.writeToDirectory('./', (message) => mockLog(message));
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
+      const writeFileArgs = writeFileMock.mock.calls.flatMap(
+        (c) => c.arguments[0]
+      );
+
+      assert(
+        writeFileArgs.some((fileContent) =>
+          fileContent.includes(
+            'import { fetchUserAttributes, signOut } from "aws-amplify/auth'
+          )
+        )
+      );
+
       const utilFSWriteArgs = writeArgs.filter((e) =>
         /utils\.[jt]s[x]?/.test(e.toString())
       );

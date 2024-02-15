@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/auth-construct-alpha",
-  "version": "0.5.6",
+  "version": "0.5.7-beta.1",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -19,12 +19,12 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.6.0",
-    "@aws-amplify/backend-output-storage": "^0.3.0",
+    "@aws-amplify/backend-output-storage": "^0.3.1-beta.0",
     "@aws-amplify/plugin-types": "^0.8.0",
     "@aws-sdk/util-arn-parser": "^3.465.0"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.110.1",
+    "aws-cdk-lib": "^2.127.0",
     "constructs": "^10.0.0"
   }
 }

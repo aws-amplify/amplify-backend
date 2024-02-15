@@ -1,5 +1,32 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.1
+
+### Patch Changes
+
+- Updated dependencies [74cbda0]
+  - @aws-amplify/backend-data@0.10.0-beta.1
+  - @aws-amplify/platform-core@0.5.0-beta.0
+  - @aws-amplify/backend-auth@0.4.8-beta.1
+  - @aws-amplify/backend-function@0.7.2-beta.0
+  - @aws-amplify/backend-output-storage@0.3.1-beta.0
+  - @aws-amplify/backend-secret@0.4.5-beta.0
+  - @aws-amplify/backend-storage@0.5.1-beta.0
+  - @aws-amplify/client-config@0.8.1-beta.0
+
+## 0.13.0-beta.0
+
+### Minor Changes
+
+- 8fd5c5c30: bump data-schema deps to latest
+
+### Patch Changes
+
+- 21f6292a1: Force release to beta tag
+- Updated dependencies [8fd5c5c30]
+  - @aws-amplify/backend-data@0.10.0-beta.0
+  - @aws-amplify/backend-auth@0.4.8-beta.0
+
 ## 0.12.1
 
 ### Patch Changes

@@ -200,7 +200,7 @@ export type ExternalProviderOptions = {
   /**
    * OIDC Settings
    */
-  oidc?: OidcProviderProps;
+  oidc?: OidcProviderProps[];
   /**
    * SAML Settings
    */
