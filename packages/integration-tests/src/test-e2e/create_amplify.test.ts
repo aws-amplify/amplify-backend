@@ -114,6 +114,8 @@ void describe(
               'aws-cdk',
               'aws-cdk-lib',
               'constructs',
+              'esbuild',
+              'tsx',
               'typescript',
             ]
           );

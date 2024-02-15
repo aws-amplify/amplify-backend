@@ -118,7 +118,8 @@ export abstract class PackageManagerControllerBase
       targetDir,
       this.binaryRunner,
       tscArgs,
-      this.execa
+      this.execa,
+      { preferLocal: true, localDir: targetDir }
     );
   }
 

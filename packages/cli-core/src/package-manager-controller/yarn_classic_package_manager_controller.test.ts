@@ -142,7 +142,7 @@ void describe('YarnClassicPackageManagerController', () => {
           existsSyncMock
         );
       await yarnClassicPackageManagerController.initializeTsConfig('./amplify');
-      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
+      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
     });
   });
 });
