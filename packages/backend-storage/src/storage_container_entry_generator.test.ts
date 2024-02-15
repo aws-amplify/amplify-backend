@@ -10,6 +10,7 @@ import {
 import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  FunctionResources,
   GenerateContainerEntryProps,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
@@ -20,6 +21,8 @@ import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbit
 import { AmplifyStorage } from './construct.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { RoleAccessBuilder } from './access_builder.js';
+import { Function, InlineCode, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Template } from 'aws-cdk-lib/assertions';
 
 void describe('StorageGenerator', () => {
   void describe('generateContainerEntry', () => {
@@ -59,7 +62,6 @@ void describe('StorageGenerator', () => {
       const storageGenerator = new StorageContainerEntryGenerator(
         { name: 'testName' },
         getInstanceProps,
-        undefined,
         new StorageAccessPolicyArbiterFactory()
       );
 
@@ -149,7 +151,6 @@ void describe('StorageGenerator', () => {
           }),
         },
         getInstanceProps,
-        undefined,
         bucketPolicyArbiterFactory,
         stubRoleAccessBuilder
       );
@@ -184,8 +185,57 @@ void describe('StorageGenerator', () => {
     });
 
     void it('configures S3 triggers if defined', () => {
-      // add test
-      assert.fail('TODO');
+      let counter = 1;
+      const stubFunctionFactory: ConstructFactory<
+        ResourceProvider<FunctionResources>
+      > = {
+        getInstance: () => ({
+          resources: {
+            lambda: new Function(stack, `testFunction${counter++}`, {
+              code: new InlineCode('testCode'),
+              handler: 'test.handler',
+              runtime: Runtime.NODEJS_LATEST,
+            }),
+          },
+        }),
+      };
+
+      const storageGenerator = new StorageContainerEntryGenerator(
+        {
+          name: 'testName',
+          triggers: {
+            onUpload: stubFunctionFactory,
+            onDelete: stubFunctionFactory,
+          },
+        },
+        getInstanceProps,
+        new StorageAccessPolicyArbiterFactory()
+      );
+
+      storageGenerator.generateContainerEntry(generateContainerEntryProps);
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('Custom::S3BucketNotifications', {
+        BucketName: {
+          Ref: 'testNameBucketB4152AD5',
+        },
+        NotificationConfiguration: {
+          LambdaFunctionConfigurations: [
+            {
+              Events: ['s3:ObjectCreated:*'],
+              LambdaFunctionArn: {
+                'Fn::GetAtt': ['testFunction19495DDB4', 'Arn'],
+              },
+            },
+            {
+              Events: ['s3:ObjectRemoved:*'],
+              LambdaFunctionArn: {
+                'Fn::GetAtt': ['testFunction25A740180', 'Arn'],
+              },
+            },
+          ],
+        },
+      });
     });
   });
 });

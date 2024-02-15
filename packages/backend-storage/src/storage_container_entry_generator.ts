@@ -13,10 +13,6 @@ import {
   RoleAccessBuilder,
   roleAccessBuilder as _roleAccessBuilder,
 } from './access_builder.js';
-import {
-  FunctionInstanceProvider,
-  buildConstructFactoryFunctionInstanceProvider,
-} from './function_instance_provider.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
 
 /**
@@ -33,9 +29,6 @@ export class StorageContainerEntryGenerator
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly functionInstanceProvider: FunctionInstanceProvider = buildConstructFactoryFunctionInstanceProvider(
-      getInstanceProps
-    ),
     private readonly bucketPolicyArbiterFactory: StorageAccessPolicyArbiterFactory = new StorageAccessPolicyArbiterFactory(),
     private readonly roleAccessBuilder: RoleAccessBuilder = _roleAccessBuilder
   ) {}
@@ -52,7 +45,8 @@ export class StorageContainerEntryGenerator
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
         const events = [];
-        const handler = this.functionInstanceProvider.provide(handlerFactory!);
+        const handler = handlerFactory.getInstance(this.getInstanceProps)
+          .resources.lambda;
         // triggerEvent is converted string from Object.entries
         switch (triggerEvent as AmplifyStorageTriggerEvent) {
           case 'onDelete':
