@@ -134,7 +134,7 @@ void describe('Auth construct', () => {
       loginWith: { email: true },
       groups: ['admins', 'managers'],
     });
-    // validate order of generated resources
+    // validate the generated resources
     assert.equal(Object.keys(auth.resources.groups).length, 2);
     assert.equal(auth.resources.groups['admins'].groupName, 'admins');
     assert.equal(auth.resources.groups['managers'].groupName, 'managers');
