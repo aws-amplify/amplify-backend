@@ -61,28 +61,28 @@ export class AmplifyProjectCreator {
     printer.log(format.list(this.defaultProdPackages));
     printer.printNewLine();
 
-    await printer.indicateProgress(
-      () =>
-        this.packageManagerController.installDependencies(
-          this.defaultDevPackages,
-          'dev'
-        ),
-      'Installing devDependencies'
+    await printer.indicateProgress('Installing devDependencies', () =>
+      this.packageManagerController.installDependencies(
+        this.defaultDevPackages,
+        'dev'
+      )
     );
-
-    await printer.indicateProgress(
-      () =>
-        this.packageManagerController.installDependencies(
-          this.defaultProdPackages,
-          'prod'
-        ),
-      'Installing dependencies'
+    printer.print(`✔ DevDependencies installed`);
+    printer.printNewLine();
+    await printer.indicateProgress('Installing dependencies', () =>
+      this.packageManagerController.installDependencies(
+        this.defaultProdPackages,
+        'prod'
+      )
     );
-
-    await printer.indicateProgress(async () => {
+    printer.print(`✔ Dependencies installed`);
+    printer.printNewLine();
+    await printer.indicateProgress('Creating template files', async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
       await this.initialProjectFileGenerator.generateInitialProjectFiles();
-    }, 'Creating template files');
+    });
+    printer.print(`✔ Template files created`);
+    printer.printNewLine();
 
     printer.log(format.success('Successfully created a new project!'));
     printer.printNewLine();
@@ -107,7 +107,7 @@ export class AmplifyProjectCreator {
     printer.printNewLine();
 
     printer.log(
-      format.infoMessage(
+      format.note(
         `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${format.command(
           'npx amplify configure telemetry disable'
         )}. To learn more about telemetry, visit ${format.link(

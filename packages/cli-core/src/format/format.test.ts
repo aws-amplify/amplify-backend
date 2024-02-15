@@ -1,6 +1,6 @@
 import * as os from 'node:os';
 import * as assert from 'node:assert';
-import { afterEach, beforeEach, describe, it } from 'node:test';
+import { after, before, describe, it } from 'node:test';
 import { format } from './format.js';
 import { $, blue, bold, cyan, green, underline } from 'kleur/colors';
 
@@ -77,17 +77,17 @@ void describe('format', () => {
   });
 });
 
-void describe('format utility with manual color toggling', async () => {
+void describe('format when terminal colors disabled', async () => {
   // disable color, https://github.com/lukeed/kleur#individual-colors
-  beforeEach(() => {
+  before(() => {
     $.enabled = false;
   });
 
-  afterEach(() => {
+  after(() => {
     $.enabled = true;
   });
 
-  void it('section header should not include ANSI color codes in strings when color is disabled', () => {
+  void it('prints plain section header', () => {
     const message = 'Hello';
     const coloredMessage = format.sectionHeader(message);
 
@@ -96,10 +96,11 @@ void describe('format utility with manual color toggling', async () => {
       false,
       'Color codes should not be present'
     );
+    assert.strictEqual(coloredMessage, 'Hello');
   });
 
-  void it('amplify command should not include ANSI color codes in strings when color is disabled', () => {
-    const message = 'Hello';
+  void it('prints plain command', () => {
+    const message = 'hello';
     const coloredMessage = format.runner('yarn').amplifyCommand(message);
 
     assert.strictEqual(
@@ -107,5 +108,6 @@ void describe('format utility with manual color toggling', async () => {
       false,
       'Color codes should not be present'
     );
+    assert.strictEqual(coloredMessage, 'yarn amplify hello');
   });
 });

@@ -64,9 +64,9 @@ void describe('Printer', () => {
 
     const message = 'Message 1';
 
-    await new Printer(LogLevel.INFO).indicateProgress(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }, message);
+    await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    });
 
     const logMessages = mockedWrite.mock.calls
       .filter((message) => message.arguments.toString().match(/Message/))
@@ -82,9 +82,9 @@ void describe('Printer', () => {
 
     const message = 'Message 1';
 
-    await new Printer(LogLevel.INFO).indicateProgress(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-    }, message);
+    await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    });
 
     const logMessages = mockedWrite.mock.calls
       .filter((message) => message.arguments.toString().match(/Message/))
@@ -102,10 +102,10 @@ void describe('Printer', () => {
     let errorCaught = false;
 
     try {
-      await new Printer(LogLevel.INFO).indicateProgress(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         throw new Error(errorMessage);
-      }, message);
+      });
     } catch (error) {
       assert.strictEqual((error as Error).message, errorMessage);
       errorCaught = true;

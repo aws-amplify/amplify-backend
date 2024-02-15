@@ -14,7 +14,6 @@ export class Printer {
    * Spinner frames
    */
   private spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-  private currentSpinnerMessage = '';
 
   /**
    * Sets default configs
@@ -84,12 +83,12 @@ export class Printer {
   /**
    * Logs a message with animated spinner
    */
-  async indicateProgress(action: () => Promise<void>, message: string) {
+  async indicateProgress(message: string, callback: () => Promise<void>) {
     try {
       this.startAnimatingSpinner(message);
-      await action();
+      await callback();
     } finally {
-      this.stopAnimatingSpinner(message);
+      this.stopAnimatingSpinner();
     }
   }
 
@@ -129,7 +128,6 @@ export class Printer {
    * Start animating spinner at the end of a log message.
    */
   private startAnimatingSpinner(message: string) {
-    this.currentSpinnerMessage = message;
     if (!this.isTTY()) {
       this.log(message, LogLevel.INFO);
       return;
@@ -148,7 +146,7 @@ export class Printer {
       this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
       this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
       const frame = this.spinnerFrames[frameIndex];
-      this.stdout.write(`${frame} ${this.currentSpinnerMessage}`);
+      this.stdout.write(`${frame} ${message}`);
       frameIndex = (frameIndex + 1) % this.spinnerFrames.length;
     }, this.refreshRate);
   }
@@ -156,7 +154,7 @@ export class Printer {
   /**
    * Stops animating spinner and replace with a log message.
    */
-  private stopAnimatingSpinner(message: string) {
+  private stopAnimatingSpinner() {
     if (!this.isTTY()) {
       return;
     }
@@ -166,8 +164,6 @@ export class Printer {
     this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
     this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
     this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
-    this.stdout.write(`✔ ${message}`);
-    this.printNewLine();
   }
 }
 

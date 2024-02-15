@@ -13,7 +13,7 @@ export const format = {
       return cyan(`${binaryRunner} amplify ${command}`);
     },
   }),
-  infoMessage: (message: string) => grey(message),
+  note: (message: string) => grey(message),
   command: (command: string) => cyan(command),
   success: (message: string) => green(message),
   sectionHeader: (header: string) => bold(blue(header)),
