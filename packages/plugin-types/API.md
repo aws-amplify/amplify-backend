@@ -41,10 +41,12 @@ export type AuthResources = {
     unauthenticatedUserIamRole: IRole;
     cfnResources: AuthCfnResources;
     groups: {
-        groupName: string;
-        cfnUserGroup: CfnUserPoolGroup;
-        role: IRole;
-    }[];
+        [key: string]: {
+            groupName: string;
+            cfnUserGroup: CfnUserPoolGroup;
+            role: IRole;
+        };
+    };
 };
 
 // @public
