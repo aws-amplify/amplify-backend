@@ -112,7 +112,8 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       targetDir,
       this.binaryRunner,
       tscArgs,
-      this.execa
+      this.execa,
+      { preferLocal: true, localDir: targetDir }
     );
   }
 
