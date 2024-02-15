@@ -91,7 +91,7 @@ export class AmplifyProjectCreator {
       process.cwd() === this.projectRoot
         ? null
         : `Navigate to your project directory using ${format.command(
-            'cd .' + this.projectRoot.replace(process.cwd(), '') + ''
+            `cd .${this.projectRoot.replace(process.cwd(), '')}`
           )} and then:`;
 
     printer.log(format.sectionHeader(`Welcome to AWS Amplify!`));

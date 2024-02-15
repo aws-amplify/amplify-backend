@@ -82,6 +82,7 @@ export class Printer {
 
   /**
    * Logs a message with animated spinner
+   * If stdout is not a TTY, the message is logged at the info level without a spinner
    */
   async indicateProgress(message: string, callback: () => Promise<void>) {
     try {
@@ -125,18 +126,18 @@ export class Printer {
   }
 
   /**
-   * Start animating spinner at the end of a log message.
+   * Starts animating spinner with a message.
    */
   private startAnimatingSpinner(message: string) {
-    if (!this.isTTY()) {
-      this.log(message, LogLevel.INFO);
-      return;
-    }
-
     if (this.timerSet) {
       throw new Error(
         'Timer is already set to animate spinner, stop the current running timer before starting a new one.'
       );
+    }
+
+    if (!this.isTTY()) {
+      this.log(message, LogLevel.INFO);
+      return;
     }
 
     let frameIndex = 0;
@@ -152,7 +153,7 @@ export class Printer {
   }
 
   /**
-   * Stops animating spinner and replace with a log message.
+   * Stops animating spinner.
    */
   private stopAnimatingSpinner() {
     if (!this.isTTY()) {
