@@ -110,7 +110,6 @@ export class AmplifyAuth
 
   private readonly groups: {
     [key: string]: {
-      groupName: string;
       cfnUserGroup: CfnUserPoolGroup;
       role: Role;
     };
@@ -286,7 +285,6 @@ export class AmplifyAuth
         }
       );
       this.groups[groupName] = {
-        groupName: groupName,
         cfnUserGroup: currentGroup,
         role: groupRole,
       };
