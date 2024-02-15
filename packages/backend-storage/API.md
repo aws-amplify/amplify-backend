@@ -6,11 +6,8 @@
 
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-<<<<<<< HEAD
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-=======
 import { FunctionResources } from '@aws-amplify/plugin-types';
->>>>>>> origin/main
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
