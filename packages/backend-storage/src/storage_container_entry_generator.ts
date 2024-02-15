@@ -5,11 +5,19 @@ import {
 } from '@aws-amplify/plugin-types';
 import { AmplifyStorage } from './construct.js';
 import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
-import { AmplifyStorageFactoryProps } from './types.js';
+import {
+  AmplifyStorageFactoryProps,
+  AmplifyStorageTriggerEvent,
+} from './types.js';
 import {
   RoleAccessBuilder,
   roleAccessBuilder as _roleAccessBuilder,
 } from './access_builder.js';
+import {
+  FunctionInstanceProvider,
+  buildConstructFactoryFunctionInstanceProvider,
+} from './function_instance_provider.js';
+import { EventType } from 'aws-cdk-lib/aws-s3';
 
 /**
  * Generates a single instance of storage resources
@@ -25,6 +33,9 @@ export class StorageContainerEntryGenerator
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
+    private readonly functionInstanceProvider: FunctionInstanceProvider = buildConstructFactoryFunctionInstanceProvider(
+      getInstanceProps
+    ),
     private readonly bucketPolicyArbiterFactory: StorageAccessPolicyArbiterFactory = new StorageAccessPolicyArbiterFactory(),
     private readonly roleAccessBuilder: RoleAccessBuilder = _roleAccessBuilder
   ) {}
@@ -37,6 +48,23 @@ export class StorageContainerEntryGenerator
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     });
+
+    Object.entries(this.props.triggers || {}).forEach(
+      ([triggerEvent, handlerFactory]) => {
+        const events = [];
+        const handler = this.functionInstanceProvider.provide(handlerFactory!);
+        // triggerEvent is converted string from Object.entries
+        switch (triggerEvent as AmplifyStorageTriggerEvent) {
+          case 'onDelete':
+            events.push(EventType.OBJECT_REMOVED);
+            break;
+          case 'onUpload':
+            events.push(EventType.OBJECT_CREATED);
+            break;
+        }
+        amplifyStorage.addTrigger(events, handler);
+      }
+    );
 
     if (!this.props.access) {
       return amplifyStorage;

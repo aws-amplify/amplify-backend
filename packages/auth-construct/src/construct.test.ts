@@ -30,7 +30,11 @@ const facebookClientSecret = 'facebookClientSecret';
 const oidcClientId = 'oidcClientId';
 const oidcClientSecret = 'oidcClientSecret';
 const oidcIssuerUrl = 'https://mysampleoidcissuer.com';
-const oidcProviderName = 'myOidcProvider';
+const oidcProviderName = 'MyOidcProvider';
+const oidcClientId2 = 'oidcClientId2';
+const oidcClientSecret2 = 'oidcClientSecret2';
+const oidcIssuerUrl2 = 'https://mysampleoidcissuer2.com';
+const oidcProviderName2 = 'MyOidcProvider2';
 const ExpectedGoogleIDPProperties = {
   ProviderDetails: {
     authorize_scopes: 'profile',
@@ -78,6 +82,17 @@ const ExpectedOidcIDPProperties = {
     oidc_issuer: oidcIssuerUrl,
   },
   ProviderName: oidcProviderName,
+  ProviderType: 'OIDC',
+};
+const ExpectedOidcIDPProperties2 = {
+  ProviderDetails: {
+    attributes_request_method: 'GET',
+    authorize_scopes: 'openid',
+    client_id: oidcClientId2,
+    client_secret: oidcClientSecret2,
+    oidc_issuer: oidcIssuerUrl2,
+  },
+  ProviderName: oidcProviderName2,
   ProviderType: 'OIDC',
 };
 const samlProviderName = 'samlProviderName';
@@ -1240,26 +1255,28 @@ void describe('Auth construct', () => {
         loginWith: {
           email: true,
           externalProviders: {
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-              attributeMapping: {
-                email: {
-                  attributeName: 'email',
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  email: {
+                    attributeName: 'email',
+                  },
                 },
+                attributeRequestMethod: attributeRequestMethod,
+                endpoints: {
+                  authorization: authorizationURL,
+                  jwksUri: jwksURI,
+                  token: tokensURL,
+                  userInfo: userInfoURL,
+                },
+                identifiers: mockIdentifiers,
+                scopes: mockScopes,
               },
-              attributeRequestMethod: attributeRequestMethod,
-              endpoints: {
-                authorization: authorizationURL,
-                jwksUri: jwksURI,
-                token: tokensURL,
-                userInfo: userInfoURL,
-              },
-              identifiers: mockIdentifiers,
-              scopes: mockScopes,
-            },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1302,7 +1319,7 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testOidcIDP12B3582F' },
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
               ],
             ],
           }),
@@ -1322,25 +1339,27 @@ void describe('Auth construct', () => {
         loginWith: {
           email: true,
           externalProviders: {
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-              attributeMapping: {
-                email: {
-                  attributeName: 'email',
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  email: {
+                    attributeName: 'email',
+                  },
                 },
+                endpoints: {
+                  authorization: authorizationURL,
+                  jwksUri: jwksURI,
+                  token: tokensURL,
+                  userInfo: userInfoURL,
+                },
+                identifiers: mockIdentifiers,
+                scopes: mockScopes,
               },
-              endpoints: {
-                authorization: authorizationURL,
-                jwksUri: jwksURI,
-                token: tokensURL,
-                userInfo: userInfoURL,
-              },
-              identifiers: mockIdentifiers,
-              scopes: mockScopes,
-            },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1383,7 +1402,7 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testOidcIDP12B3582F' },
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
               ],
             ],
           }),
@@ -1397,12 +1416,14 @@ void describe('Auth construct', () => {
         loginWith: {
           phone: true,
           externalProviders: {
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1430,7 +1451,81 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testOidcIDP12B3582F' },
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
+              ],
+            ],
+          }),
+        ],
+      });
+    });
+    void it('supports multiple oidc providers', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+              {
+                clientId: oidcClientId2,
+                clientSecret: oidcClientSecret2,
+                issuerUrl: oidcIssuerUrl2,
+                name: oidcProviderName2,
+              },
+            ],
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedOidcIDPProperties
+      );
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedOidcIDPProperties2
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        OpenIdConnectProviderARNs: [
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':oidc-provider/cognito-idp.',
+                { Ref: 'AWS::Region' },
+                '.amazonaws.com/',
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
+              ],
+            ],
+          }),
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':oidc-provider/cognito-idp.',
+                { Ref: 'AWS::Region' },
+                '.amazonaws.com/',
+                { Ref: 'testMyOidcProvider2OidcIDP43D7B07B' },
               ],
             ],
           }),
@@ -1716,12 +1811,14 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             saml: {
               name: samlProviderName,
               metadata: {
@@ -1798,12 +1895,14 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1877,12 +1976,14 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1982,17 +2083,19 @@ void describe('Auth construct', () => {
                 fullname: ProviderAttribute.AMAZON_NAME,
               },
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-              attributeMapping: {
-                fullname: {
-                  attributeName: 'name',
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  fullname: {
+                    attributeName: 'name',
+                  },
                 },
               },
-            },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -2113,20 +2216,22 @@ void describe('Auth construct', () => {
                 fullname: ProviderAttribute.AMAZON_NAME,
               },
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-              attributeMapping: {
-                email: {
-                  attributeName: customEmailMapping,
-                },
-                fullname: {
-                  attributeName: 'name',
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  email: {
+                    attributeName: customEmailMapping,
+                  },
+                  fullname: {
+                    attributeName: 'name',
+                  },
                 },
               },
-            },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -2226,12 +2331,14 @@ void describe('Auth construct', () => {
             clientId: amazonClientId,
             clientSecret: amazonClientSecret,
           },
-          oidc: {
-            clientId: oidcClientId,
-            clientSecret: oidcClientSecret,
-            issuerUrl: oidcIssuerUrl,
-            name: oidcProviderName,
-          },
+          oidc: [
+            {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+          ],
           saml: {
             name: samlProviderName,
             metadata: {

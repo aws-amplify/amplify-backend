@@ -59,6 +59,7 @@ void describe('StorageGenerator', () => {
       const storageGenerator = new StorageContainerEntryGenerator(
         { name: 'testName' },
         getInstanceProps,
+        undefined,
         new StorageAccessPolicyArbiterFactory()
       );
 
@@ -148,6 +149,7 @@ void describe('StorageGenerator', () => {
           }),
         },
         getInstanceProps,
+        undefined,
         bucketPolicyArbiterFactory,
         stubRoleAccessBuilder
       );
@@ -179,6 +181,11 @@ void describe('StorageGenerator', () => {
           },
         ],
       });
+    });
+
+    void it('configures S3 triggers if defined', () => {
+      // add test
+      assert.fail('TODO');
     });
   });
 });

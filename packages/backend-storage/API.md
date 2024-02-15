@@ -6,7 +6,11 @@
 
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+<<<<<<< HEAD
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+=======
+import { FunctionResources } from '@aws-amplify/plugin-types';
+>>>>>>> origin/main
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
@@ -26,7 +30,11 @@ export type AmplifyStorageProps = {
     name: string;
     versioned?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+    triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
+
+// @public (undocumented)
+export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 // @public
 export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources>>;

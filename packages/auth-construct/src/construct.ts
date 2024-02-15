@@ -47,7 +47,7 @@ type IdentityProviderSetupResult = {
   facebook?: UserPoolIdentityProviderFacebook;
   amazon?: UserPoolIdentityProviderAmazon;
   apple?: UserPoolIdentityProviderApple;
-  oidc?: UserPoolIdentityProviderOidc;
+  oidc?: UserPoolIdentityProviderOidc[];
   saml?: UserPoolIdentityProviderSaml;
 };
 const authProvidersList = {
@@ -308,14 +308,18 @@ export class AmplifyAuth
     // add other providers
     identityPool.supportedLoginProviders = providerSetupResult.oauthMappings;
     if (providerSetupResult.oidc) {
-      identityPool.openIdConnectProviderArns = [
-        arnBuilder({
-          service: 'iam',
-          region,
-          accountId: Stack.of(this).account,
-          resource: `oidc-provider/cognito-idp.${region}.amazonaws.com/${providerSetupResult.oidc.providerName}`,
-        }),
-      ];
+      const oidcArns = [];
+      for (const oidcProvider of providerSetupResult.oidc) {
+        oidcArns.push(
+          arnBuilder({
+            service: 'iam',
+            region,
+            accountId: Stack.of(this).account,
+            resource: `oidc-provider/cognito-idp.${region}.amazonaws.com/${oidcProvider.providerName}`,
+          })
+        );
+      }
+      identityPool.openIdConnectProviderArns = oidcArns;
     }
     if (providerSetupResult.saml) {
       identityPool.samlProviderArns = [
@@ -671,40 +675,45 @@ export class AmplifyAuth
         external.signInWithApple.clientId;
       result.providersList.push('APPLE');
     }
-    if (external.oidc) {
-      const oidc = external.oidc;
-      const requestMethod =
-        oidc.attributeRequestMethod === undefined
-          ? 'GET' // default if not defined
-          : oidc.attributeRequestMethod;
-      result.oidc = new cognito.UserPoolIdentityProviderOidc(
-        this,
-        `${this.name}OidcIDP`,
-        {
-          userPool,
-          attributeRequestMethod:
-            requestMethod === 'GET'
-              ? OidcAttributeRequestMethod.GET
-              : OidcAttributeRequestMethod.POST,
-          clientId: oidc.clientId,
-          clientSecret: oidc.clientSecret,
-          endpoints: oidc.endpoints,
-          identifiers: oidc.identifiers,
-          issuerUrl: oidc.issuerUrl,
-          name: oidc.name,
-          scopes: oidc.scopes,
-          attributeMapping: {
-            ...(shouldMapEmailAttributes
-              ? {
-                  email: {
-                    attributeName: 'email',
-                  },
-                }
-              : undefined),
-            ...oidc.attributeMapping,
-          },
-        }
-      );
+    if (external.oidc && external.oidc.length > 0) {
+      const oidcProviders: UserPoolIdentityProviderOidc[] = [];
+      external.oidc.forEach((provider, index) => {
+        const requestMethod =
+          provider.attributeRequestMethod === undefined
+            ? 'GET' // default if not defined
+            : provider.attributeRequestMethod;
+        oidcProviders.push(
+          new cognito.UserPoolIdentityProviderOidc(
+            this,
+            `${this.name}${provider.name ?? index}OidcIDP`,
+            {
+              userPool,
+              attributeRequestMethod:
+                requestMethod === 'GET'
+                  ? OidcAttributeRequestMethod.GET
+                  : OidcAttributeRequestMethod.POST,
+              clientId: provider.clientId,
+              clientSecret: provider.clientSecret,
+              endpoints: provider.endpoints,
+              identifiers: provider.identifiers,
+              issuerUrl: provider.issuerUrl,
+              name: provider.name,
+              scopes: provider.scopes,
+              attributeMapping: {
+                ...(shouldMapEmailAttributes
+                  ? {
+                      email: {
+                        attributeName: 'email',
+                      },
+                    }
+                  : undefined),
+                ...provider.attributeMapping,
+              },
+            }
+          )
+        );
+      });
+      result.oidc = oidcProviders;
       result.providersList.push('OIDC');
     }
     if (external.saml) {

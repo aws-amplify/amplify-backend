@@ -4,6 +4,8 @@ import {
 } from './access_builder.js';
 import { AmplifyStorageProps } from './construct.js';
 
+export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
+
 /**
  * Storage access keys must start with / and end with /*
  */

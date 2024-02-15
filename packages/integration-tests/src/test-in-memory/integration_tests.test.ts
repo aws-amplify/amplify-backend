@@ -37,10 +37,28 @@ void it('data storage auth with triggers', () => {
     'amplifyDataTodoNestedStackTodoNestedStackResource551CEA56',
   ]);
 
+  /* eslint-disable spellcheck/spell-checker */
   assertExpectedLogicalIds(templates.storage, 'AWS::S3::Bucket', [
-    // eslint-disable-next-line spellcheck/spell-checker
     'testNameBucketB4152AD5',
   ]);
+
+  assertExpectedLogicalIds(templates.storage, 'Custom::S3BucketNotifications', [
+    'testNameBucketNotificationsB9BE9A01',
+  ]);
+
+  assertExpectedLogicalIds(templates.storage, 'AWS::Lambda::Permission', [
+    'testNameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononDeletelambda572CB9D7EA473960',
+    'testNameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononUploadlambda74F01BD6AFF08959',
+  ]);
+
+  assertExpectedLogicalIds(templates.defaultNodeFunc, 'AWS::Lambda::Function', [
+    'defaultNodeFunctionlambda5C194062',
+    'echoFunclambdaE17DCA46',
+    'node16Functionlambda97ECC775',
+    'onUploadlambdaA252C959',
+    'onDeletelambda96BB6F15',
+  ]);
+  /* eslint-enable spellcheck/spell-checker */
 });
 
 void it('data without auth with lambda auth mode', () => {
