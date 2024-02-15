@@ -97,7 +97,7 @@ void describe('DataFactory', () => {
               { identityPoolId: 'identityPool' }
             ),
           },
-          groups: [],
+          groups: {},
         },
       }),
     });

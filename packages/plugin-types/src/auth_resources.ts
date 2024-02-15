@@ -56,20 +56,22 @@ export type AuthResources = {
    */
   cfnResources: AuthCfnResources;
   /**
-   * The generated resources for user pool groups
+   * A map containing the generated resources for user pool groups
    */
   groups: {
-    /**
-     * The group name
-     */
-    groupName: string;
-    /**
-     * The generated CfnUserPoolGroup for this group
-     */
-    cfnUserGroup: CfnUserPoolGroup;
-    /**
-     * The generated Role for this group
-     */
-    role: IRole;
-  }[];
+    [key: string]: {
+      /**
+       * The group name
+       */
+      groupName: string;
+      /**
+       * The generated CfnUserPoolGroup for this group
+       */
+      cfnUserGroup: CfnUserPoolGroup;
+      /**
+       * The generated Role for this group
+       */
+      role: IRole;
+    };
+  };
 };

@@ -109,10 +109,12 @@ export class AmplifyAuth
   private readonly domainPrefix: string | undefined;
 
   private readonly groups: {
-    groupName: string;
-    cfnUserGroup: CfnUserPoolGroup;
-    role: Role;
-  }[] = [];
+    [key: string]: {
+      groupName: string;
+      cfnUserGroup: CfnUserPoolGroup;
+      role: Role;
+    };
+  } = {};
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -284,11 +286,11 @@ export class AmplifyAuth
             precedence: index,
           }
         );
-        this.groups.push({
+        this.groups[groupName] = {
           groupName: groupName,
           cfnUserGroup: currentGroup,
           role: groupRole,
-        });
+        };
       });
     }
   };
