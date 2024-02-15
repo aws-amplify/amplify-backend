@@ -260,39 +260,37 @@ export class AmplifyAuth
     groups: string[] | undefined,
     identityPool: CfnIdentityPool
   ) => {
-    if (groups) {
-      groups.forEach((groupName, index) => {
-        const groupRole = new Role(this, `${this.name}${groupName}GroupRole`, {
-          assumedBy: new FederatedPrincipal(
-            'cognito-identity.amazonaws.com',
-            {
-              StringEquals: {
-                'cognito-identity.amazonaws.com:aud': identityPool.ref,
-              },
-              'ForAnyValue:StringLike': {
-                'cognito-identity.amazonaws.com:amr': 'authenticated',
-              },
-            },
-            'sts:AssumeRoleWithWebIdentity'
-          ),
-        });
-        const currentGroup = new CfnUserPoolGroup(
-          this,
-          `${this.name}${groupName}Group`,
+    (groups || []).forEach((groupName, index) => {
+      const groupRole = new Role(this, `${this.name}${groupName}GroupRole`, {
+        assumedBy: new FederatedPrincipal(
+          'cognito-identity.amazonaws.com',
           {
-            userPoolId: this.userPool.userPoolId,
-            groupName: groupName,
-            roleArn: groupRole.roleArn,
-            precedence: index,
-          }
-        );
-        this.groups[groupName] = {
-          groupName: groupName,
-          cfnUserGroup: currentGroup,
-          role: groupRole,
-        };
+            StringEquals: {
+              'cognito-identity.amazonaws.com:aud': identityPool.ref,
+            },
+            'ForAnyValue:StringLike': {
+              'cognito-identity.amazonaws.com:amr': 'authenticated',
+            },
+          },
+          'sts:AssumeRoleWithWebIdentity'
+        ),
       });
-    }
+      const currentGroup = new CfnUserPoolGroup(
+        this,
+        `${this.name}${groupName}Group`,
+        {
+          userPoolId: this.userPool.userPoolId,
+          groupName: groupName,
+          roleArn: groupRole.roleArn,
+          precedence: index,
+        }
+      );
+      this.groups[groupName] = {
+        groupName: groupName,
+        cfnUserGroup: currentGroup,
+        role: groupRole,
+      };
+    });
   };
 
   /**

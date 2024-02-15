@@ -151,8 +151,14 @@ void describe('Auth construct', () => {
     });
     // validate the generated resources
     assert.equal(Object.keys(auth.resources.groups).length, 2);
-    assert.equal(auth.resources.groups['admins'].groupName, 'admins');
-    assert.equal(auth.resources.groups['managers'].groupName, 'managers');
+    assert.equal(
+      auth.resources.groups['admins'].cfnUserGroup.groupName,
+      'admins'
+    );
+    assert.equal(
+      auth.resources.groups['managers'].cfnUserGroup.groupName,
+      'managers'
+    );
     // validate generated template
     const template = Template.fromStack(stack);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
