@@ -22,6 +22,7 @@ import {
   runPackageManager,
   runWithPackageManager,
 } from './process-controller/process_controller.js';
+import { cwd } from 'process';
 
 void describe('getting started happy path', async () => {
   let branchBackendIdentifier: BackendIdentifier;
@@ -43,11 +44,6 @@ void describe('getting started happy path', async () => {
   });
 
   after(async () => {
-    // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
-    // create-amplify has been installed globally, we need to remove it before running `setup:local`
-    if (packageManager === 'yarn-classic') {
-      await execa('yarn', ['global', 'remove', 'create-amplify']);
-    }
     // stop the npm proxy
     await execa('npm', ['install'], { stdio: 'inherit' }); // add tsx back since we removed all the binaries
     await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
@@ -81,13 +77,9 @@ void describe('getting started happy path', async () => {
   void it('creates new project and deploy them without an error', async () => {
     // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
     if (packageManager === 'yarn-classic') {
-      await execa('yarn', ['global', 'add', 'create-amplify@beta']);
+      await execa('yarn', ['add', 'create-amplify@beta'], {cwd: tempDir});
       process.env.npm_config_user_agent = 'yarn/1.22.21';
-      await runPackageManager(
-        packageManager,
-        ['create', 'amplify', '--yes'],
-        tempDir
-      ).run();
+      await execaCommand('./node_modules/.bin/create-amplify --yes --debug', {cwd: tempDir});
     } else {
       await runPackageManager(
         packageManager,
