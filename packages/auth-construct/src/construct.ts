@@ -38,7 +38,6 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
-import { coreAttributeNameMap } from './string_maps.js';
 import { build as arnBuilder } from '@aws-sdk/util-arn-parser';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
@@ -824,27 +823,21 @@ export class AmplifyAuth
           ? 'true'
           : 'false',
     };
-    if (this.computedUserPoolProps.standardAttributes) {
-      const signupAttributes = Object.entries(
-        this.computedUserPoolProps.standardAttributes
-      ).reduce((acc: string[], [attributeName, attribute]) => {
-        if (attribute?.required) {
-          const treatedAttributeName = coreAttributeNameMap.find(
-            ({ standardAttributeName }) =>
-              standardAttributeName === attributeName
-          );
 
-          if (treatedAttributeName) {
-            return [
-              ...acc,
-              treatedAttributeName.userpoolAttributeName.toUpperCase(),
-            ];
-          }
+    // extract signupAttributes from UserPool schema's required attributes
+    const requiredAttributes: string[] = [];
+    if (this.resources.cfnResources.cfnUserPool.schema) {
+      const schema = this.resources.cfnResources.cfnUserPool
+        .schema as CfnUserPool.SchemaAttributeProperty[];
+      schema.forEach((attribute) => {
+        if (attribute.required && attribute.name) {
+          requiredAttributes.push(attribute.name);
         }
-        return acc;
-      }, []);
-      output.signupAttributes = JSON.stringify(signupAttributes);
+      });
     }
+    output.signupAttributes = JSON.stringify(
+      requiredAttributes.map((attr) => attr.toUpperCase())
+    );
 
     if (this.computedUserPoolProps.signInAliases) {
       const usernameAttributes = [];
