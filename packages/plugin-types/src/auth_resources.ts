@@ -71,3 +71,8 @@ export type AuthResources = {
     };
   };
 };
+
+export type AuthRoleName = keyof Pick<
+  AuthResources,
+  'authenticatedUserIamRole' | 'unauthenticatedUserIamRole'
+>;

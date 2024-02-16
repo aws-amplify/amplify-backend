@@ -51,7 +51,7 @@ void it('data storage auth with triggers', () => {
     'testNameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononUploadlambda74F01BD6AFF08959',
   ]);
 
-  assertExpectedLogicalIds(templates.myFunc, 'AWS::Lambda::Function', [
+  assertExpectedLogicalIds(templates.defaultNodeFunc, 'AWS::Lambda::Function', [
     'defaultNodeFunctionlambda5C194062',
     'echoFunclambdaE17DCA46',
     'node16Functionlambda97ECC775',

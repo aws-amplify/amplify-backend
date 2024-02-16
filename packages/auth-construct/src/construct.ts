@@ -1,7 +1,6 @@
 import { Construct } from 'constructs';
 import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
-  AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
   ResourceProvider,
@@ -24,7 +23,6 @@ import {
   UserPoolIdentityProviderOidc,
   UserPoolIdentityProviderSaml,
   UserPoolIdentityProviderSamlMetadataType,
-  UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
@@ -33,10 +31,8 @@ import {
   AuthProps,
   EmailLoginSettings,
   ExternalProviderOptions,
-  TriggerEvent,
 } from './types.js';
 import { DEFAULTS } from './defaults.js';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
@@ -193,26 +189,6 @@ export class AmplifyAuth
       path.resolve(__dirname, '..', 'package.json')
     );
   }
-
-  /**
-   * Attach a Lambda function trigger handler to the UserPool in this construct
-   * @param event - The trigger event operation
-   * @param handler - The function that will handle the event
-   */
-  addTrigger = (
-    event: TriggerEvent,
-    handler: IFunction | AmplifyFunction
-  ): void => {
-    if ('resources' in handler) {
-      this.userPool.addTrigger(
-        UserPoolOperation.of(event),
-        handler.resources.lambda
-      );
-    } else {
-      // handler is an IFunction
-      this.userPool.addTrigger(UserPoolOperation.of(event), handler);
-    }
-  };
 
   /**
    * Create Auth/UnAuth Roles

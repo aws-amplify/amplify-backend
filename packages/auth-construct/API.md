@@ -4,13 +4,11 @@
 
 ```ts
 
-import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
@@ -22,7 +20,6 @@ export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazo
 // @public
 export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
-    addTrigger: (event: TriggerEvent, handler: IFunction | AmplifyFunction) => void;
     readonly resources: AuthResources;
 }
 

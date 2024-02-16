@@ -81,12 +81,9 @@ void describe('AmplifyStorageFactory', () => {
         addBackendOutputEntry: storeOutputMock,
       };
 
-    const importPathVerifier = new ImportPathVerifierStub();
-
     storageFactory.getInstance({
+      ...getInstanceProps,
       outputStorageStrategy,
-      constructContainer,
-      importPathVerifier,
     });
 
     assert.strictEqual(storeOutputMock.mock.callCount(), 1);

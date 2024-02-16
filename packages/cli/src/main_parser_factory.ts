@@ -19,7 +19,11 @@ export const createMainParser = (): Argv => {
     .version(packageJson.version ?? '')
     // This option is being used indirectly to configure the log level of the Printer instance.
     // refer: https://github.com/aws-amplify/amplify-backend/blob/main/packages/cli/src/printer.ts
-    .options('debug', { type: 'boolean', default: false })
+    .options('debug', {
+      type: 'boolean',
+      default: false,
+      description: 'Print debug logs to the console',
+    })
     .command(createGenerateCommand())
     .command(createSandboxCommand())
     .command(createPipelineDeployCommand())

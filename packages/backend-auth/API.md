@@ -5,9 +5,10 @@
 ```ts
 
 import { AmazonProviderProps } from '@aws-amplify/auth-construct-alpha';
-import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
 import { AppleProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { AuthProps } from '@aws-amplify/auth-construct-alpha';
+import { AuthResources } from '@aws-amplify/plugin-types';
+import { AuthRoleName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
@@ -15,6 +16,7 @@ import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { OidcProviderProps } from '@aws-amplify/auth-construct-alpha';
+import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
@@ -43,8 +45,11 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
     externalProviders?: ExternalProviderSpecificFactoryProps;
 };
 
+// @public (undocumented)
+export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName>;
+
 // @public
-export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<AmplifyAuth>;
+export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth>;
 
 // @public
 export type Expand<T> = T extends infer O ? {

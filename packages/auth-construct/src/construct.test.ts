@@ -4,7 +4,6 @@ import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
-  AmplifyFunction,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
@@ -16,7 +15,6 @@ import {
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { DEFAULTS } from './defaults.js';
 
 const googleClientId = 'googleClientId';
@@ -2421,85 +2419,6 @@ void describe('Auth construct', () => {
     const resourceNames = Object.keys(template['template']['Resources']);
     resourceNames.map((name) => {
       assert.equal(name.startsWith(expectedPrefix), true);
-    });
-  });
-
-  void describe('addTrigger', () => {
-    void it('attaches lambda function to UserPool Lambda config', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      const testFunc = new Function(stack, 'testFunc', {
-        code: Code.fromInline('test code'),
-        handler: 'index.handler',
-        runtime: Runtime.NODEJS_18_X,
-      });
-      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
-        loginWith: { email: true },
-      });
-      authConstruct.addTrigger('createAuthChallenge', testFunc);
-      const template = Template.fromStack(stack);
-      const lambdas = template.findResources('AWS::Lambda::Function');
-      if (Object.keys(lambdas).length !== 1) {
-        assert.fail(
-          'Expected one and only one lambda function in the template'
-        );
-      }
-      const handlerLogicalId = Object.keys(lambdas)[0];
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        LambdaConfig: {
-          CreateAuthChallenge: {
-            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
-          },
-        },
-      });
-    });
-
-    void it('attaches AmplifyFunction to UserPool Lambda config', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      const testFunc = new Function(stack, 'testFunc', {
-        code: Code.fromInline('test code'),
-        handler: 'index.handler',
-        runtime: Runtime.NODEJS_18_X,
-      });
-      const amplifyFuncStub: AmplifyFunction = {
-        resources: {
-          lambda: testFunc,
-        },
-      };
-      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
-        loginWith: { email: true },
-      });
-      authConstruct.addTrigger('createAuthChallenge', amplifyFuncStub);
-      const template = Template.fromStack(stack);
-      const lambdas = template.findResources('AWS::Lambda::Function');
-      if (Object.keys(lambdas).length !== 1) {
-        assert.fail(
-          'Expected one and only one lambda function in the template'
-        );
-      }
-      const handlerLogicalId = Object.keys(lambdas)[0];
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        LambdaConfig: {
-          CreateAuthChallenge: {
-            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
-          },
-        },
-      });
-    });
-
-    void it('stores attribution data in stack', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      new AmplifyAuth(stack, 'testAuth', {
-        loginWith: { email: true },
-      });
-
-      const template = Template.fromStack(stack);
-      assert.equal(
-        JSON.parse(template.toJSON().Description).stackType,
-        'auth-Cognito'
-      );
     });
   });
 });

@@ -154,8 +154,9 @@ export const packageJsonSchema: z.ZodObject<{
 
 // @public
 export class ParameterPathConversions {
-    static toParameterFullPath(backendId: BackendIdentifier | AppId, secretName: string): string;
+    static toParameterFullPath(backendId: BackendIdentifier | AppId, parameterName: string): string;
     static toParameterPrefix(backendId: BackendIdentifier | AppId): string;
+    static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
 }
 
 // @public

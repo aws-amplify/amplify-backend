@@ -1,5 +1,5 @@
 import { defineFunction } from '@aws-amplify/backend';
 
-export const myFunc = defineFunction({
+export const defaultNodeFunc = defineFunction({
   entry: './func-src/handler.ts',
 });

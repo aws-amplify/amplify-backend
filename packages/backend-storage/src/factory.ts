@@ -1,31 +1,14 @@
-import { Construct } from 'constructs';
 import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
-import {
-  AmplifyStorage,
-  AmplifyStorageProps,
-  StorageResources,
-} from './construct.js';
+import { AmplifyStorage, StorageResources } from './construct.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import {
-  FunctionInstanceProvider,
-  buildConstructFactoryFunctionInstanceProvider,
-} from './function_instance_provider.js';
-import { EventType } from 'aws-cdk-lib/aws-s3';
-
-export type AmplifyStorageFactoryProps = Omit<
-  AmplifyStorageProps,
-  'outputStorageStrategy'
->;
-
-export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
+import { AmplifyStorageFactoryProps } from './types.js';
+import { StorageContainerEntryGenerator } from './storage_container_entry_generator.js';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
@@ -46,9 +29,10 @@ class AmplifyStorageFactory
   /**
    * Get a singleton instance of the Bucket
    */
-  getInstance = (props: ConstructFactoryGetInstanceProps): AmplifyStorage => {
-    const { constructContainer, outputStorageStrategy, importPathVerifier } =
-      props;
+  getInstance = (
+    getInstanceProps: ConstructFactoryGetInstanceProps
+  ): AmplifyStorage => {
+    const { constructContainer, importPathVerifier } = getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'storage', 'resource'),
@@ -56,10 +40,9 @@ class AmplifyStorageFactory
     );
     this.validateName(this.props.name);
     if (!this.generator) {
-      this.generator = new AmplifyStorageGenerator(
+      this.generator = new StorageContainerEntryGenerator(
         this.props,
-        buildConstructFactoryFunctionInstanceProvider(props),
-        outputStorageStrategy
+        getInstanceProps
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyStorage;
@@ -77,46 +60,10 @@ class AmplifyStorageFactory
   };
 }
 
-class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'storage';
-
-  constructor(
-    private readonly props: AmplifyStorageProps,
-    private readonly functionInstanceProvider: FunctionInstanceProvider,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
-  ) {}
-
-  generateContainerEntry = (scope: Construct) => {
-    const storageConstruct = new AmplifyStorage(scope, `${this.props.name}`, {
-      ...this.props,
-      outputStorageStrategy: this.outputStorageStrategy,
-    });
-
-    Object.entries(this.props.triggers || {}).forEach(
-      ([triggerEvent, handlerFactory]) => {
-        const events = [];
-        const handler = this.functionInstanceProvider.provide(handlerFactory);
-        // triggerEvent is converted string from Object.entries
-        switch (triggerEvent as AmplifyStorageTriggerEvent) {
-          case 'onDelete':
-            events.push(EventType.OBJECT_REMOVED);
-            break;
-          case 'onUpload':
-            events.push(EventType.OBJECT_CREATED);
-            break;
-        }
-        storageConstruct.addTrigger(events, handler);
-      }
-    );
-
-    return storageConstruct;
-  };
-}
-
 /**
  * Creates a factory that implements ConstructFactory<AmplifyStorage>
  */
 export const defineStorage = (
-  props: AmplifyStorageProps
+  props: AmplifyStorageFactoryProps
 ): ConstructFactory<ResourceProvider<StorageResources>> =>
   new AmplifyStorageFactory(props, new Error().stack);

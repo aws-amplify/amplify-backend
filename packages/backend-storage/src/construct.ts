@@ -23,8 +23,8 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { AmplifyStorageTriggerEvent } from './factory.js';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { AmplifyStorageTriggerEvent } from './types.js';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';

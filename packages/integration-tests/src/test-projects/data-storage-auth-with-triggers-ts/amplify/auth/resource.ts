@@ -1,5 +1,5 @@
 import { defineAuth, secret } from '@aws-amplify/backend';
-import { myFunc } from '../function.js';
+import { defaultNodeFunc } from '../function.js';
 
 export const auth = defineAuth({
   loginWith: {
@@ -22,6 +22,6 @@ export const auth = defineAuth({
     },
   },
   triggers: {
-    postConfirmation: myFunc,
+    postConfirmation: defaultNodeFunc,
   },
 });
