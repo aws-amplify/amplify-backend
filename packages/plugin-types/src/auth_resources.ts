@@ -4,6 +4,7 @@ import {
   CfnIdentityPoolRoleAttachment,
   CfnUserPool,
   CfnUserPoolClient,
+  CfnUserPoolGroup,
   IUserPool,
   IUserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
@@ -54,4 +55,19 @@ export type AuthResources = {
    * L1 Cfn Resources, for when dipping down a level of abstraction is desirable.
    */
   cfnResources: AuthCfnResources;
+  /**
+   * A map of group names to the generated resources for that group.
+   */
+  groups: {
+    [groupName: string]: {
+      /**
+       * The generated CfnUserPoolGroup for this group
+       */
+      cfnUserGroup: CfnUserPoolGroup;
+      /**
+       * The generated Role for this group
+       */
+      role: IRole;
+    };
+  };
 };
