@@ -51,6 +51,14 @@ export class StackMetadataBackendOutputStorageStrategy
     const version = backendOutputEntry.version;
 
     Object.entries(backendOutputEntry.payload).forEach(([listName, value]) => {
+      // prevent prototype-polluting assignment
+      if (
+        value === '__proto__' ||
+        value === 'constructor' ||
+        value === 'prototype'
+      ) {
+        return;
+      }
       if (this.lazyLists[keyName]?.[listName]) {
         this.lazyLists[keyName][listName].push(value);
       } else {
