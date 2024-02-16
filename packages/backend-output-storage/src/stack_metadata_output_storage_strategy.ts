@@ -53,9 +53,9 @@ export class StackMetadataBackendOutputStorageStrategy
     Object.entries(backendOutputEntry.payload).forEach(([listName, value]) => {
       // prevent prototype-polluting assignment
       if (
-        value === '__proto__' ||
-        value === 'constructor' ||
-        value === 'prototype'
+        keyName === '__proto__' ||
+        keyName === 'constructor' ||
+        keyName === 'prototype'
       ) {
         return;
       }
