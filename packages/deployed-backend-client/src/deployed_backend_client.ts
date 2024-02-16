@@ -252,10 +252,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         region
       );
 
-    const functionResources = resources.filter(
-      (resource) => resource.resourceType === 'AWS::Lambda::Function'
-    );
-
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[platformOutputKey].payload
         .deploymentType as DeploymentType,
@@ -311,14 +307,17 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     if (functionStack) {
+      const functionResources = resources.filter(
+        (resource) => resource.resourceType === 'AWS::Lambda::Function'
+      );
       const functionConfigurations: FunctionConfiguration[] = [];
       const customerFunctionsString =
         backendOutput[functionOutputKey]?.payload.customerFunctions;
-      const customerFunctions = customerFunctionsString
+      const customerFunctionNames = customerFunctionsString
         ? (JSON.parse(customerFunctionsString) as string[])
         : [];
 
-      customerFunctions.forEach((functionName) => {
+      customerFunctionNames.forEach((functionName) => {
         const resource = functionResources.find(
           (func) => func.physicalResourceId === functionName
         );
