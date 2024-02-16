@@ -871,20 +871,19 @@ export class AmplifyAuth
       output.passwordPolicyRequirements = JSON.stringify(requirements);
     }
 
-    if (this.computedUserPoolProps.mfa) {
-      output.mfaConfiguration = this.computedUserPoolProps.mfa;
-
-      const mfaTypes = [];
-      if (this.computedUserPoolProps.mfaSecondFactor?.otp) {
-        mfaTypes.push('TOTP');
-      }
-      if (this.computedUserPoolProps.mfaSecondFactor?.sms) {
+    // extract the MFA settings from the UserPool resource
+    output.mfaConfiguration = cfnUserPool.mfaConfiguration ?? 'OFF';
+    const mfaTypes: string[] = [];
+    (cfnUserPool.enabledMfas ?? []).forEach((type) => {
+      if (type === 'SMS_MFA') {
         mfaTypes.push('SMS');
       }
-      if (mfaTypes.length > 0) {
-        output.mfaTypes = JSON.stringify(mfaTypes);
+      if (type === 'SOFTWARE_TOKEN_MFA') {
+        mfaTypes.push('TOTP');
       }
-    }
+    });
+    output.mfaTypes = JSON.stringify(mfaTypes);
+
     const oAuthMappings = this.providerSetupResult.oAuthMappings;
     if (oAuthMappings[authProvidersList.amazon]) {
       output.amazonClientId = oAuthMappings[authProvidersList.amazon];
