@@ -824,11 +824,12 @@ export class AmplifyAuth
           : 'false',
     };
 
+    const cfnUserPool = this.resources.cfnResources.cfnUserPool;
     // extract signupAttributes from UserPool schema's required attributes
     const requiredAttributes: string[] = [];
-    if (this.resources.cfnResources.cfnUserPool.schema) {
-      const schema = this.resources.cfnResources.cfnUserPool
-        .schema as CfnUserPool.SchemaAttributeProperty[];
+    if (cfnUserPool.schema) {
+      const schema =
+        cfnUserPool.schema as CfnUserPool.SchemaAttributeProperty[];
       schema.forEach((attribute) => {
         if (attribute.required && attribute.name) {
           requiredAttributes.push(attribute.name);
@@ -839,59 +840,35 @@ export class AmplifyAuth
       requiredAttributes.map((attr) => attr.toUpperCase())
     );
 
-    if (this.computedUserPoolProps.signInAliases) {
-      const usernameAttributes = [];
-      if (this.computedUserPoolProps.signInAliases.email) {
-        usernameAttributes.push('EMAIL');
-      }
-      if (this.computedUserPoolProps.signInAliases.phone) {
-        usernameAttributes.push('PHONE_NUMBER');
-      }
-      if (
-        this.computedUserPoolProps.signInAliases.preferredUsername ||
-        this.computedUserPoolProps.signInAliases.username
-      ) {
-        usernameAttributes.push('PREFERRED_USERNAME');
-      }
-      if (usernameAttributes.length > 0) {
-        output.usernameAttributes = JSON.stringify(usernameAttributes);
-      }
-    }
+    // extract usernameAttributes from UserPool's usernameAttributes
+    const usernameAttributes: string[] = cfnUserPool.usernameAttributes ?? [];
+    output.usernameAttributes = JSON.stringify(
+      usernameAttributes.map((attr) => attr.toUpperCase())
+    );
 
-    if (this.computedUserPoolProps.autoVerify) {
-      const verificationMechanisms = [];
-      if (this.computedUserPoolProps.autoVerify.email) {
-        verificationMechanisms.push('EMAIL');
+    // extract verificationMechanisms from UserPool's autoVerifiedAttributes
+    const verificationMechanism: string[] = [];
+    (cfnUserPool.autoVerifiedAttributes ?? []).forEach((attr) => {
+      if (attr === 'phone_number') {
+        verificationMechanism.push('PHONE');
       }
-      if (this.computedUserPoolProps.autoVerify.phone) {
-        verificationMechanisms.push('PHONE');
+      if (attr === 'email') {
+        verificationMechanism.push('EMAIL');
       }
-      if (verificationMechanisms.length > 0) {
-        output.verificationMechanisms = JSON.stringify(verificationMechanisms);
-      }
-    }
+    });
+    output.verificationMechanisms = JSON.stringify(verificationMechanism);
 
-    if (this.computedUserPoolProps.passwordPolicy) {
-      output.passwordPolicyMinLength =
-        this.computedUserPoolProps.passwordPolicy.minLength?.toString();
-
+    // extract the passwordPolicy from the UserPool policies
+    if (cfnUserPool.policies) {
+      const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
+        .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
+      output.passwordPolicyMinLength = policy.minimumLength?.toString();
       const requirements = [];
-      if (this.computedUserPoolProps.passwordPolicy.requireDigits) {
-        requirements.push('REQUIRES_NUMBERS');
-      }
-      if (this.computedUserPoolProps.passwordPolicy.requireLowercase) {
-        requirements.push('REQUIRES_LOWERCASE');
-      }
-      if (this.computedUserPoolProps.passwordPolicy.requireUppercase) {
-        requirements.push('REQUIRES_UPPERCASE');
-      }
-      if (this.computedUserPoolProps.passwordPolicy.requireSymbols) {
-        requirements.push('REQUIRES_SYMBOLS');
-      }
-
-      if (requirements.length > 0) {
-        output.passwordPolicyRequirements = JSON.stringify(requirements);
-      }
+      policy.requireNumbers && requirements.push('REQUIRES_NUMBERS');
+      policy.requireLowercase && requirements.push('REQUIRES_LOWERCASE');
+      policy.requireUppercase && requirements.push('REQUIRES_UPPERCASE');
+      policy.requireSymbols && requirements.push('REQUIRES_SYMBOLS');
+      output.passwordPolicyRequirements = JSON.stringify(requirements);
     }
 
     if (this.computedUserPoolProps.mfa) {
