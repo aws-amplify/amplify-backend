@@ -12,20 +12,19 @@ import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { readFileSync } from 'fs';
 import { EOL } from 'os';
-import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
 import {
-  FunctionConfig,
-  FunctionOutputsAccumulator,
-} from './function_outputs_accumulator.js';
-import { ObjectAccumulator } from '@aws-amplify/platform-core';
+  FunctionOutput,
+  functionOutputKey,
+} from '@aws-amplify/backend-output-schemas';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
-let functionOutputsAccumulator: FunctionOutputsAccumulator | undefined;
+// let functionOutputsAccumulator: FunctionOutputsAccumulator | undefined;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -213,19 +212,19 @@ type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
-  private functionAccumulator: FunctionOutputsAccumulator;
+  // private functionAccumulator: FunctionOutputsAccumulator;
 
   constructor(
     private readonly props: HydratedFunctionProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
-    if (!functionOutputsAccumulator) {
-      functionOutputsAccumulator = new FunctionOutputsAccumulator(
-        this.outputStorageStrategy,
-        new ObjectAccumulator<FunctionConfig>({})
-      );
-    }
-    this.functionAccumulator = functionOutputsAccumulator;
+    // if (!functionOutputsAccumulator) {
+    //   functionOutputsAccumulator = new FunctionOutputsAccumulator(
+    //     this.outputStorageStrategy,
+    //     new ObjectAccumulator<FunctionConfig>({})
+    //   );
+    // }
+    // this.functionAccumulator = functionOutputsAccumulator;
   }
 
   generateContainerEntry = (
@@ -237,7 +236,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
       this.props.name,
       this.props,
       backendSecretResolver,
-      this.functionAccumulator
+      this.outputStorageStrategy
+      // this.functionAccumulator
     );
   };
 }
@@ -252,7 +252,8 @@ class AmplifyFunction
     id: string,
     props: HydratedFunctionProps,
     backendSecretResolver: BackendSecretResolver,
-    functionOutputsAccumulator: FunctionOutputsAccumulator
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    // functionOutputsAccumulator: FunctionOutputsAccumulator
   ) {
     super(scope, id);
 
@@ -306,8 +307,24 @@ class AmplifyFunction
       lambda: functionLambda,
     };
 
-    functionOutputsAccumulator.addOutput({ customerFunctions: [props.name] });
+    this.storeOutput(outputStorageStrategy);
   }
+
+  /**
+   * Store storage outputs using provided strategy
+   */
+  private storeOutput = (
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput> = new StackMetadataBackendOutputStorageStrategy(
+      Stack.of(this)
+    )
+  ): void => {
+    outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
+      version: '1',
+      payload: {
+        customerFunctions: this.resources.lambda.functionName,
+      },
+    });
+  };
 }
 
 const isWholeNumberBetweenInclusive = (

@@ -24,8 +24,14 @@ import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
 
-// eslint-disable-next-line spellcheck/spell-checker
+/* eslint-disable spellcheck/spell-checker */
 const validTestBranchName = 'amplify-test-testBranch-branch-5c6fa1ef9a';
+const functionStackName = 'amplify-test-testBranch-function';
+const function1PhysicalResourceId =
+  'amplify-test-testBranch-function1lambda0D228327-dEw8Nyq8WDO5';
+const function2PhysicalResourceId =
+  'amplify-test-testBranch-function2lambdaB8666-7ea0koMMFzHL';
+/* eslint-enable spellcheck/spell-checker */
 
 const stackSummaries = [
   {
@@ -55,7 +61,7 @@ const stackSummaries = [
     LastUpdatedTime: new Date(1),
   },
   {
-    StackName: 'amplify-test-testBranch-function',
+    StackName: functionStackName,
     StackStatus: StackStatus.CREATE_COMPLETE,
     ParentId: 'testStackId',
     CreationTime: new Date(0),
@@ -118,7 +124,10 @@ const getOutputMockResponse = {
   },
   [functionOutputKey]: {
     payload: {
-      customerFunctions: JSON.stringify(['function1', 'function2']),
+      customerFunctions: JSON.stringify([
+        function1PhysicalResourceId,
+        function2PhysicalResourceId,
+      ]),
     },
   },
 };
@@ -129,18 +138,21 @@ const deployedResources = [
     lastUpdated: new Date(1),
     resourceStatus: StackStatus.UPDATE_COMPLETE,
     resourceType: 'AWS::CloudFormation::Stack',
+    physicalResourceId: functionStackName,
   },
   {
     logicalResourceId: 'function1lambda1234',
     lastUpdated: new Date(1),
     resourceStatus: StackStatus.CREATE_COMPLETE,
     resourceType: 'AWS::Lambda::Function',
+    physicalResourceId: function1PhysicalResourceId,
   },
   {
     logicalResourceId: 'function2lambda1234',
     lastUpdated: new Date(2),
     resourceStatus: StackStatus.UPDATE_COMPLETE,
     resourceType: 'AWS::Lambda::Function',
+    physicalResourceId: function2PhysicalResourceId,
   },
 ];
 
@@ -251,12 +263,12 @@ void describe('Deployed Backend Client', () => {
         {
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(1),
-          functionName: 'function1',
+          functionName: function1PhysicalResourceId,
         },
         {
           status: BackendDeploymentStatus.DEPLOYED,
           lastUpdated: new Date(2),
-          functionName: 'function2',
+          functionName: function2PhysicalResourceId,
         },
       ],
     });

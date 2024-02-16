@@ -317,12 +317,10 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       const customerFunctions = customerFunctionsString
         ? (JSON.parse(customerFunctionsString) as string[])
         : [];
-      // sort from longest to shortest function name in order to avoid mismatch due to shorter functions that can be a substring of longer functions
-      customerFunctions.sort((a, b) => b.length - a.length);
 
       customerFunctions.forEach((functionName) => {
-        const resource = functionResources.find((func) =>
-          func.logicalResourceId?.startsWith(functionName)
+        const resource = functionResources.find(
+          (func) => func.physicalResourceId === functionName
         );
 
         if (resource) {

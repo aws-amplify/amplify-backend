@@ -2,7 +2,11 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import { CfnOutput, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Lazy, Stack } from 'aws-cdk-lib';
+
+// Aliased strings for readability
+type MetadataKey = string;
+type OutputKey = string;
 
 /**
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs
@@ -10,6 +14,8 @@ import { CfnOutput, Stack } from 'aws-cdk-lib';
 export class StackMetadataBackendOutputStorageStrategy
   implements BackendOutputStorageStrategy<BackendOutputEntry>
 {
+  private lazyLists: Record<MetadataKey, Record<OutputKey, string[]>> = {};
+
   /**
    * Initialize the instance with a stack.
    *
@@ -32,6 +38,53 @@ export class StackMetadataBackendOutputStorageStrategy
     this.stack.addMetadata(keyName, {
       version: backendOutputEntry.version,
       stackOutputs: Object.keys(backendOutputEntry.payload),
+    });
+  };
+
+  /**
+   * Lazily construct and append to output list as stack output and add metadata to the metadata object.
+   */
+  appendToBackendOutputList = (
+    keyName: string,
+    backendOutputEntry: BackendOutputEntry
+  ): void => {
+    const version = backendOutputEntry.version;
+
+    Object.entries(backendOutputEntry.payload).forEach(([listName, value]) => {
+      if (this.lazyLists[keyName]?.[listName]) {
+        this.lazyLists[keyName][listName].push(value);
+      } else {
+        const outputList: string[] = [value];
+        if (this.lazyLists[keyName]) {
+          this.lazyLists[keyName][listName] = outputList;
+        } else {
+          this.lazyLists[keyName] = {
+            [listName]: outputList,
+          };
+        }
+        new CfnOutput(this.stack, listName, {
+          value: Lazy.string({ produce: () => JSON.stringify(outputList) }),
+        });
+
+        const existingMetadataEntry = this.stack.node.metadata.find(
+          (entry) => entry.type === keyName
+        );
+
+        if (existingMetadataEntry) {
+          if (existingMetadataEntry.data.version !== version) {
+            throw new Error(
+              `Metadata entry for ${keyName} at version ${existingMetadataEntry.data.version} already exists. Cannot add another entry for the same key at version ${version}`
+            );
+          }
+        } else {
+          this.stack.addMetadata(keyName, {
+            version,
+            stackOutputs: Lazy.list({
+              produce: () => Object.keys(this.lazyLists[keyName]),
+            }),
+          });
+        }
+      }
     });
   };
 }

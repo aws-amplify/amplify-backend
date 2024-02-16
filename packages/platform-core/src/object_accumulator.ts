@@ -30,7 +30,11 @@ export class ObjectAccumulator<T> {
       if (Array.isArray(existingValue)) {
         return existingValue.concat(incomingValue);
       }
-      if (existingValue && typeof existingValue !== 'object') {
+      if (
+        existingValue &&
+        typeof existingValue !== 'object' &&
+        existingValue !== incomingValue
+      ) {
         throw new ObjectAccumulatorPropertyAlreadyExistsError(
           key,
           existingValue,

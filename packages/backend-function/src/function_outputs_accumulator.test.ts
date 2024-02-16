@@ -18,6 +18,7 @@ void describe('FunctionOutputsAccumulator', () => {
   const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
     {
       addBackendOutputEntry: storeOutputMock,
+      appendToBackendOutputList: storeOutputMock,
     };
   const objectAccumulator = new ObjectAccumulator<FunctionConfig>({});
   const accumulateMock = mock.method(objectAccumulator, 'accumulate', () => {
