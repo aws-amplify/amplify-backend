@@ -28,8 +28,6 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
-// let functionOutputsAccumulator: FunctionOutputsAccumulator | undefined;
-
 /**
  * Entry point for defining a function in the Amplify ecosystem
  */
@@ -217,20 +215,11 @@ type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
-  // private functionAccumulator: FunctionOutputsAccumulator;
 
   constructor(
     private readonly props: HydratedFunctionProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-  ) {
-    // if (!functionOutputsAccumulator) {
-    //   functionOutputsAccumulator = new FunctionOutputsAccumulator(
-    //     this.outputStorageStrategy,
-    //     new ObjectAccumulator<FunctionConfig>({})
-    //   );
-    // }
-    // this.functionAccumulator = functionOutputsAccumulator;
-  }
+  ) {}
 
   generateContainerEntry = ({
     scope,
@@ -259,7 +248,6 @@ class AmplifyFunction
     props: HydratedFunctionProps,
     backendSecretResolver: BackendSecretResolver,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-    // functionOutputsAccumulator: FunctionOutputsAccumulator
   ) {
     super(scope, id);
 
