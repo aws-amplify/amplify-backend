@@ -3,6 +3,7 @@ import { StackMetadataBackendOutputStorageStrategy } from './stack_metadata_outp
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { backendOutputStackMetadataSchema } from '@aws-amplify/backend-output-schemas';
+import assert from 'assert';
 
 void describe('StackMetadataBackendOutputStorageStrategy', () => {
   void describe('addBackendOutputEntry', () => {
@@ -106,6 +107,33 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
           },
         },
       });
+    });
+
+    void it('throws when trying to add to same list with different version', () => {
+      const app = new App();
+      const stack = new Stack(app);
+
+      const outputStorage = new StackMetadataBackendOutputStorageStrategy(
+        stack
+      );
+      stack.node.addMetadata('TestStorageOutput', {
+        version: '1',
+        stackOutputs: ['special'],
+      });
+
+      assert.throws(
+        () =>
+          outputStorage.appendToBackendOutputList('TestStorageOutput', {
+            version: '2',
+            payload: {
+              something: 'otherSpecial',
+            },
+          }),
+        {
+          message:
+            'Metadata entry for TestStorageOutput at version 1 already exists. Cannot add another entry for the same key at version 2.',
+        }
+      );
     });
   });
 });

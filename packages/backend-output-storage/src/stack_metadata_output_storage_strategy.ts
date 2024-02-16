@@ -77,7 +77,7 @@ export class StackMetadataBackendOutputStorageStrategy
         if (existingMetadataEntry) {
           if (existingMetadataEntry.data.version !== version) {
             throw new Error(
-              `Metadata entry for ${keyName} at version ${existingMetadataEntry.data.version} already exists. Cannot add another entry for the same key at version ${version}`
+              `Metadata entry for ${keyName} at version ${existingMetadataEntry.data.version} already exists. Cannot add another entry for the same key at version ${version}.`
             );
           }
         } else {
