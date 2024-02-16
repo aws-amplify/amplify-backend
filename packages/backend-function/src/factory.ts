@@ -231,7 +231,6 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
       this.props,
       backendSecretResolver,
       this.outputStorageStrategy
-      // this.functionAccumulator
     );
   };
 }
