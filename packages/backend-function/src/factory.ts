@@ -316,22 +316,6 @@ class AmplifyFunction
     this.storeOutput(outputStorageStrategy);
   }
 
-  /**
-   * Store storage outputs using provided strategy
-   */
-  private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput> = new StackMetadataBackendOutputStorageStrategy(
-      Stack.of(this)
-    )
-  ): void => {
-    outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
-      version: '1',
-      payload: {
-        customerFunctions: this.resources.lambda.functionName,
-      },
-    });
-  };
-
   getResourceAccessAcceptor = () => ({
     identifier: `${this.node.id}LambdaResourceAccessAcceptor`,
     acceptResourceAccess: (
@@ -351,6 +335,22 @@ class AmplifyFunction
       });
     },
   });
+
+  /**
+   * Store storage outputs using provided strategy
+   */
+  private storeOutput = (
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput> = new StackMetadataBackendOutputStorageStrategy(
+      Stack.of(this)
+    )
+  ): void => {
+    outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
+      version: '1',
+      payload: {
+        customerFunctions: this.resources.lambda.functionName,
+      },
+    });
+  };
 }
 
 const isWholeNumberBetweenInclusive = (
