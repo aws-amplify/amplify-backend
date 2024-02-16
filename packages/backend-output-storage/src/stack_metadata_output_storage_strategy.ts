@@ -14,7 +14,7 @@ type OutputKey = string;
 export class StackMetadataBackendOutputStorageStrategy
   implements BackendOutputStorageStrategy<BackendOutputEntry>
 {
-  private lazyLists: Record<MetadataKey, Record<OutputKey, string[]>> = {};
+  private lazyLists: Map<MetadataKey, Map<OutputKey, string[]>> = new Map();
 
   /**
    * Initialize the instance with a stack.
@@ -51,25 +51,21 @@ export class StackMetadataBackendOutputStorageStrategy
     const version = backendOutputEntry.version;
 
     Object.entries(backendOutputEntry.payload).forEach(([listName, value]) => {
-      // prevent prototype-polluting assignment
-      if (
-        keyName === '__proto__' ||
-        keyName === 'constructor' ||
-        keyName === 'prototype'
-      ) {
-        return;
+      let listsMap = this.lazyLists.get(keyName);
+
+      if (!listsMap) {
+        listsMap = new Map();
+        this.lazyLists.set(keyName, listsMap);
       }
-      if (this.lazyLists[keyName]?.[listName]) {
-        this.lazyLists[keyName][listName].push(value);
+
+      let outputList = listsMap.get(listName);
+
+      if (outputList) {
+        outputList.push(value);
       } else {
-        const outputList: string[] = [value];
-        if (this.lazyLists[keyName]) {
-          this.lazyLists[keyName][listName] = outputList;
-        } else {
-          this.lazyLists[keyName] = {
-            [listName]: outputList,
-          };
-        }
+        outputList = [value];
+        listsMap.set(listName, outputList);
+
         new CfnOutput(this.stack, listName, {
           value: Lazy.string({ produce: () => JSON.stringify(outputList) }),
         });
@@ -88,7 +84,7 @@ export class StackMetadataBackendOutputStorageStrategy
           this.stack.addMetadata(keyName, {
             version,
             stackOutputs: Lazy.list({
-              produce: () => Object.keys(this.lazyLists[keyName]),
+              produce: () => Array.from(listsMap ? listsMap.keys() : []),
             }),
           });
         }
