@@ -571,6 +571,8 @@ void describe('Auth construct', () => {
             userPoolId: expectedUserPoolId,
             webClientId: expectedWebClientId,
             identityPoolId: expectedIdentityPoolId,
+            mfaConfiguration: 'OFF',
+            mfaTypes: '[]',
             authRegion: expectedRegion,
             passwordPolicyMinLength:
               DEFAULTS.PASSWORD_POLICY.minLength.toString(),
@@ -625,6 +627,8 @@ void describe('Auth construct', () => {
             userPoolId: expectedUserPoolId,
             webClientId: expectedWebClientId,
             identityPoolId: expectedIdentityPoolId,
+            mfaConfiguration: 'OFF',
+            mfaTypes: '[]',
             authRegion: expectedRegion,
             passwordPolicyMinLength:
               DEFAULTS.PASSWORD_POLICY.minLength.toString(),
@@ -685,7 +689,7 @@ void describe('Auth construct', () => {
       const { payload } = storeOutputMock.mock.calls[0].arguments[1];
 
       assert.equal(payload.mfaConfiguration, 'OFF');
-      assert.equal(payload.mfaTypes, []);
+      assert.equal(payload.mfaTypes, '[]');
     });
 
     void it('userAttributes prop should update signupAttributes', () => {
@@ -748,6 +752,8 @@ void describe('Auth construct', () => {
               'verificationMechanisms',
               'passwordPolicyMinLength',
               'passwordPolicyRequirements',
+              'mfaConfiguration',
+              'mfaTypes',
             ],
           },
         },
