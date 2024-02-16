@@ -21,6 +21,7 @@
   "cognito",
   "commonjs",
   "corepack",
+  "cors",
   "ctor",
   "darwin",
   "datastore",
