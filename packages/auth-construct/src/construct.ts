@@ -1,14 +1,15 @@
 import { Construct } from 'constructs';
 import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
 import {
-  AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
+  CfnIdentityPool,
   CfnUserPool,
   CfnUserPoolClient,
+  CfnUserPoolGroup,
   Mfa,
   OAuthScope,
   OidcAttributeRequestMethod,
@@ -22,7 +23,6 @@ import {
   UserPoolIdentityProviderOidc,
   UserPoolIdentityProviderSaml,
   UserPoolIdentityProviderSamlMetadataType,
-  UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
@@ -31,10 +31,8 @@ import {
   AuthProps,
   EmailLoginSettings,
   ExternalProviderOptions,
-  TriggerEvent,
 } from './types.js';
 import { DEFAULTS } from './defaults.js';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
@@ -45,8 +43,9 @@ import { build as arnBuilder } from '@aws-sdk/util-arn-parser';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
-  oauthMappings: Record<string, string>;
+  oAuthMappings: Record<string, string>;
   providersList: string[];
+  oAuthSettings: cognito.OAuthSettings | undefined;
   google?: UserPoolIdentityProviderGoogle;
   facebook?: UserPoolIdentityProviderFacebook;
   amazon?: UserPoolIdentityProviderAmazon;
@@ -101,11 +100,16 @@ export class AmplifyAuth
 
   private readonly computedUserPoolProps: UserPoolProps;
 
+  private readonly name: string;
+
   private readonly domainPrefix: string | undefined;
 
-  private readonly oAuthSettings: cognito.OAuthSettings | undefined;
-
-  private readonly name: string;
+  private readonly groups: {
+    [key: string]: {
+      cfnUserGroup: CfnUserPoolGroup;
+      role: Role;
+    };
+  } = {};
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -119,6 +123,7 @@ export class AmplifyAuth
     super(scope, id);
 
     this.name = props.name ?? '';
+    this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
 
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
@@ -128,55 +133,12 @@ export class AmplifyAuth
       this.computedUserPoolProps
     );
 
-    // UserPool - Identity Providers
-    this.providerSetupResult = this.setupIdentityProviders(
+    // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
+    this.providerSetupResult = this.setupExternalProviders(
       this.userPool,
       props.loginWith
     );
 
-    this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
-    if (
-      this.domainPrefix &&
-      this.providerSetupResult.providersList.length > 0
-    ) {
-      this.userPool.addDomain(`${this.name}UserPoolDomain`, {
-        cognitoDomain: { domainPrefix: this.domainPrefix },
-      });
-    } else if (
-      this.domainPrefix &&
-      this.providerSetupResult.providersList.length === 0
-    ) {
-      throw new Error(
-        'You cannot configure a domain prefix if there are no external providers configured.'
-      );
-    }
-
-    // if oauth is enabled, prepare the oauth settings for the UserPool client
-    const oauthEnabled = this.providerSetupResult.providersList.length > 0;
-    const externalProviders = props.loginWith.externalProviders;
-    if (oauthEnabled && externalProviders) {
-      // make sure logout/callback urls are not empty
-      if (externalProviders.logoutUrls.length === 0) {
-        throw Error(
-          'You must define logoutUrls when configuring external login providers.'
-        );
-      }
-      if (externalProviders.callbackUrls.length === 0) {
-        throw Error(
-          'You must define callbackUrls when configuring external login providers.'
-        );
-      }
-      this.oAuthSettings = {
-        callbackUrls: externalProviders.callbackUrls,
-        logoutUrls: externalProviders.logoutUrls,
-        scopes: externalProviders.scopes
-          ? this.getOAuthScopes(externalProviders.scopes)
-          : DEFAULT_OAUTH_SCOPES,
-        flows: {
-          authorizationCodeGrant: true,
-        },
-      };
-    }
     // UserPool Client
     const userPoolClient = new cognito.UserPoolClient(
       this,
@@ -185,7 +147,7 @@ export class AmplifyAuth
         userPool: this.userPool,
         authFlows: DEFAULTS.AUTH_FLOWS,
         preventUserExistenceErrors: DEFAULTS.PREVENT_USER_EXISTENCE_ERRORS,
-        oAuth: this.oAuthSettings,
+        oAuth: this.providerSetupResult.oAuthSettings,
       }
     );
 
@@ -199,6 +161,9 @@ export class AmplifyAuth
       userPoolClient,
       this.providerSetupResult
     );
+
+    // Setup UserPool groups
+    this.setupUserPoolGroups(props.groups, identityPool);
 
     // expose resources
     this.resources = {
@@ -214,6 +179,7 @@ export class AmplifyAuth
         cfnIdentityPool: identityPool,
         cfnIdentityPoolRoleAttachment: identityPoolRoleAttachment,
       },
+      groups: this.groups,
     };
     this.storeOutput(props.outputStorageStrategy);
 
@@ -223,26 +189,6 @@ export class AmplifyAuth
       path.resolve(__dirname, '..', 'package.json')
     );
   }
-
-  /**
-   * Attach a Lambda function trigger handler to the UserPool in this construct
-   * @param event - The trigger event operation
-   * @param handler - The function that will handle the event
-   */
-  addTrigger = (
-    event: TriggerEvent,
-    handler: IFunction | AmplifyFunction
-  ): void => {
-    if ('resources' in handler) {
-      this.userPool.addTrigger(
-        UserPoolOperation.of(event),
-        handler.resources.lambda
-      );
-    } else {
-      // handler is an IFunction
-      this.userPool.addTrigger(UserPoolOperation.of(event), handler);
-    }
-  };
 
   /**
    * Create Auth/UnAuth Roles
@@ -280,6 +226,45 @@ export class AmplifyAuth
       }),
     };
     return result;
+  };
+
+  /**
+   * Auto generate the user pool groups and group roles
+   */
+  private setupUserPoolGroups = (
+    groups: string[] | undefined,
+    identityPool: CfnIdentityPool
+  ) => {
+    (groups || []).forEach((groupName, index) => {
+      const groupRole = new Role(this, `${this.name}${groupName}GroupRole`, {
+        assumedBy: new FederatedPrincipal(
+          'cognito-identity.amazonaws.com',
+          {
+            StringEquals: {
+              'cognito-identity.amazonaws.com:aud': identityPool.ref,
+            },
+            'ForAnyValue:StringLike': {
+              'cognito-identity.amazonaws.com:amr': 'authenticated',
+            },
+          },
+          'sts:AssumeRoleWithWebIdentity'
+        ),
+      });
+      const currentGroup = new CfnUserPoolGroup(
+        this,
+        `${this.name}${groupName}Group`,
+        {
+          userPoolId: this.userPool.userPoolId,
+          groupName: groupName,
+          roleArn: groupRole.roleArn,
+          precedence: index,
+        }
+      );
+      this.groups[groupName] = {
+        cfnUserGroup: currentGroup,
+        role: groupRole,
+      };
+    });
   };
 
   /**
@@ -330,7 +315,7 @@ export class AmplifyAuth
       },
     ];
     // add other providers
-    identityPool.supportedLoginProviders = providerSetupResult.oauthMappings;
+    identityPool.supportedLoginProviders = providerSetupResult.oAuthMappings;
     if (providerSetupResult.oidc) {
       const oidcArns = [];
       for (const oidcProvider of providerSetupResult.oidc) {
@@ -593,9 +578,10 @@ export class AmplifyAuth
   };
 
   /**
-   * Setup Identity Providers (OAuth/OIDC/SAML)
+   * Setup External Providers (OAuth/OIDC/SAML) and related settings
+   * such as OAuth settings and User Pool Domains
    */
-  private setupIdentityProviders = (
+  private setupExternalProviders = (
     userPool: UserPool,
     loginOptions: AuthProps['loginWith']
   ): IdentityProviderSetupResult => {
@@ -605,13 +591,25 @@ export class AmplifyAuth
      */
     const shouldMapEmailAttributes = loginOptions.email && !loginOptions.phone;
     const result: IdentityProviderSetupResult = {
-      oauthMappings: {},
+      oAuthMappings: {},
       providersList: [],
+      oAuthSettings: undefined,
     };
     // external providers
     const external = loginOptions.externalProviders;
     if (!external) {
       return result;
+    }
+    // make sure logout/callback urls are not empty
+    if (external.logoutUrls.length === 0) {
+      throw Error(
+        'You must define logoutUrls when configuring external login providers.'
+      );
+    }
+    if (external.callbackUrls.length === 0) {
+      throw Error(
+        'You must define callbackUrls when configuring external login providers.'
+      );
     }
     if (external.google) {
       const googleProps = external.google;
@@ -633,7 +631,7 @@ export class AmplifyAuth
           scopes: googleProps.scopes,
         }
       );
-      result.oauthMappings[authProvidersList.google] = external.google.clientId;
+      result.oAuthMappings[authProvidersList.google] = external.google.clientId;
       result.providersList.push('GOOGLE');
     }
     if (external.facebook) {
@@ -653,7 +651,7 @@ export class AmplifyAuth
           },
         }
       );
-      result.oauthMappings[authProvidersList.facebook] =
+      result.oAuthMappings[authProvidersList.facebook] =
         external.facebook.clientId;
       result.providersList.push('FACEBOOK');
     }
@@ -674,7 +672,7 @@ export class AmplifyAuth
           },
         }
       );
-      result.oauthMappings[authProvidersList.amazon] =
+      result.oAuthMappings[authProvidersList.amazon] =
         external.loginWithAmazon.clientId;
       result.providersList.push('AMAZON');
     }
@@ -695,7 +693,7 @@ export class AmplifyAuth
           },
         }
       );
-      result.oauthMappings[authProvidersList.apple] =
+      result.oAuthMappings[authProvidersList.apple] =
         external.signInWithApple.clientId;
       result.providersList.push('APPLE');
     }
@@ -762,6 +760,30 @@ export class AmplifyAuth
       );
       result.providersList.push('SAML');
     }
+
+    // UserPool Domain
+    if (this.domainPrefix && result.providersList.length > 0) {
+      this.userPool.addDomain(`${this.name}UserPoolDomain`, {
+        cognitoDomain: { domainPrefix: this.domainPrefix },
+      });
+    } else if (this.domainPrefix && result.providersList.length === 0) {
+      throw new Error(
+        'You cannot configure a domain prefix if there are no external providers configured.'
+      );
+    }
+
+    // oauth settings for the UserPool client
+    result.oAuthSettings = {
+      callbackUrls: external.callbackUrls,
+      logoutUrls: external.logoutUrls,
+      scopes: external.scopes
+        ? this.getOAuthScopes(external.scopes)
+        : DEFAULT_OAUTH_SCOPES,
+      flows: {
+        authorizationCodeGrant: true,
+      },
+    };
+
     return result;
   };
 
@@ -893,18 +915,18 @@ export class AmplifyAuth
         output.mfaTypes = JSON.stringify(mfaTypes);
       }
     }
-    const oauthMappings = this.providerSetupResult.oauthMappings;
-    if (oauthMappings[authProvidersList.amazon]) {
-      output.amazonClientId = oauthMappings[authProvidersList.amazon];
+    const oAuthMappings = this.providerSetupResult.oAuthMappings;
+    if (oAuthMappings[authProvidersList.amazon]) {
+      output.amazonClientId = oAuthMappings[authProvidersList.amazon];
     }
-    if (oauthMappings[authProvidersList.facebook]) {
-      output.facebookClientId = oauthMappings[authProvidersList.facebook];
+    if (oAuthMappings[authProvidersList.facebook]) {
+      output.facebookClientId = oAuthMappings[authProvidersList.facebook];
     }
-    if (oauthMappings[authProvidersList.google]) {
-      output.googleClientId = oauthMappings[authProvidersList.google];
+    if (oAuthMappings[authProvidersList.google]) {
+      output.googleClientId = oAuthMappings[authProvidersList.google];
     }
-    if (oauthMappings[authProvidersList.apple]) {
-      output.appleClientId = oauthMappings[authProvidersList.apple];
+    if (oAuthMappings[authProvidersList.apple]) {
+      output.appleClientId = oAuthMappings[authProvidersList.apple];
     }
 
     if (this.providerSetupResult.providersList.length > 0) {
@@ -912,7 +934,8 @@ export class AmplifyAuth
         this.providerSetupResult.providersList
       );
       // if any providers were defined, we must expose the oauth settings to the output
-      if (this.oAuthSettings) {
+      const oAuthSettings = this.providerSetupResult.oAuthSettings;
+      if (oAuthSettings) {
         if (this.domainPrefix) {
           output.oauthDomain = `${this.domainPrefix}.auth.${
             Stack.of(this).region
@@ -920,13 +943,13 @@ export class AmplifyAuth
         }
 
         output.oauthScope = JSON.stringify(
-          this.oAuthSettings.scopes?.map((s) => s.scopeName) ?? []
+          oAuthSettings.scopes?.map((s) => s.scopeName) ?? []
         );
-        output.oauthRedirectSignIn = this.oAuthSettings.callbackUrls
-          ? this.oAuthSettings.callbackUrls.join(',')
+        output.oauthRedirectSignIn = oAuthSettings.callbackUrls
+          ? oAuthSettings.callbackUrls.join(',')
           : '';
-        output.oauthRedirectSignOut = this.oAuthSettings.logoutUrls
-          ? this.oAuthSettings.logoutUrls.join(',')
+        output.oauthRedirectSignOut = oAuthSettings.logoutUrls
+          ? oAuthSettings.logoutUrls.join(',')
           : '';
         output.oauthClientId = this.resources.userPoolClient.userPoolClientId;
         output.oauthResponseType = 'code';

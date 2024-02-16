@@ -6,7 +6,10 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
+  GenerateContainerEntryProps,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
+  SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -16,6 +19,7 @@ import { Duration, Stack } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
+import { Policy } from 'aws-cdk-lib/aws-iam';
 import { readFileSync } from 'fs';
 import { EOL } from 'os';
 import {
@@ -31,8 +35,9 @@ import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-
  */
 export const defineFunction = (
   props: FunctionProps = {}
-): ConstructFactory<ResourceProvider<FunctionResources>> =>
-  new FunctionFactory(props, new Error().stack);
+): ConstructFactory<
+  ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
+> => new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {
   /**
@@ -227,10 +232,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     // this.functionAccumulator = functionOutputsAccumulator;
   }
 
-  generateContainerEntry = (
-    scope: Construct,
-    backendSecretResolver: BackendSecretResolver
-  ) => {
+  generateContainerEntry = ({
+    scope,
+    backendSecretResolver,
+  }: GenerateContainerEntryProps) => {
     return new AmplifyFunction(
       scope,
       this.props.name,
@@ -244,9 +249,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
 class AmplifyFunction
   extends Construct
-  implements ResourceProvider<FunctionResources>
+  implements ResourceProvider<FunctionResources>, ResourceAccessAcceptorFactory
 {
   readonly resources: FunctionResources;
+  private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
     id: string,
@@ -297,7 +303,7 @@ class AmplifyFunction
       },
     });
 
-    new FunctionEnvironmentTranslator(
+    this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
       functionLambda,
       props['environment'],
       backendSecretResolver
@@ -325,6 +331,26 @@ class AmplifyFunction
       },
     });
   };
+
+  getResourceAccessAcceptor = () => ({
+    identifier: `${this.node.id}LambdaResourceAccessAcceptor`,
+    acceptResourceAccess: (
+      policy: Policy,
+      ssmEnvironmentEntries: SsmEnvironmentEntry[]
+    ) => {
+      const role = this.resources.lambda.role;
+      if (!role) {
+        // This should never happen since we are using the Function L2 construct
+        throw new Error(
+          'No execution role found to attach lambda permissions to'
+        );
+      }
+      policy.attachToRole(role);
+      ssmEnvironmentEntries.forEach(({ name, path }) => {
+        this.functionEnvironmentTranslator.addSsmEnvironmentEntry(name, path);
+      });
+    },
+  });
 }
 
 const isWholeNumberBetweenInclusive = (

@@ -42,6 +42,32 @@ void describe('AmplifyStorage', () => {
     );
   });
 
+  void it('enables cors on the bucket', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testAuth', { name: 'testName' });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      CorsConfiguration: {
+        CorsRules: [
+          {
+            AllowedHeaders: ['*'],
+            AllowedMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE'],
+            AllowedOrigins: ['*'],
+            ExposedHeaders: [
+              'x-amz-server-side-encryption',
+              'x-amz-request-id',
+              'x-amz-id-2',
+              'ETag',
+            ],
+            MaxAge: 3000,
+          },
+        ],
+      },
+    });
+  });
+
   void describe('storeOutput', () => {
     void it('stores output using the provided strategy', () => {
       const app = new App();

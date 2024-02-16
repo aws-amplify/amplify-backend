@@ -4,7 +4,6 @@ import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
-  AmplifyFunction,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
@@ -16,7 +15,6 @@ import {
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { DEFAULTS } from './defaults.js';
 
 const googleClientId = 'googleClientId';
@@ -140,6 +138,70 @@ void describe('Auth construct', () => {
       UsernameAttributes: ['email'],
       AutoVerifiedAttributes: ['email'],
     });
+  });
+
+  void it('creates user groups and group roles', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const auth = new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      groups: ['admins', 'managers'],
+    });
+    // validate the generated resources
+    assert.equal(Object.keys(auth.resources.groups).length, 2);
+    assert.equal(
+      auth.resources.groups['admins'].cfnUserGroup.groupName,
+      'admins'
+    );
+    assert.equal(
+      auth.resources.groups['managers'].cfnUserGroup.groupName,
+      'managers'
+    );
+    // validate generated template
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+    });
+    template.hasResourceProperties('AWS::Cognito::UserPoolGroup', {
+      GroupName: 'admins',
+      Precedence: 0,
+    });
+    template.hasResourceProperties('AWS::Cognito::UserPoolGroup', {
+      GroupName: 'managers',
+      Precedence: 1,
+    });
+    // validate the generated policies
+    const idpRef = template['template']['Outputs']['identityPoolId']['Value'];
+    // There should be 3 matching roles, one for the auth role,
+    // and one for each of the 'admins' and 'managers' roles
+    const matchingRoleCount = 3;
+    template.resourcePropertiesCountIs(
+      'AWS::IAM::Role',
+      {
+        AssumeRolePolicyDocument: {
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Action: 'sts:AssumeRoleWithWebIdentity',
+              Effect: 'Allow',
+              Principal: {
+                Federated: 'cognito-identity.amazonaws.com',
+              },
+              Condition: {
+                'ForAnyValue:StringLike': {
+                  'cognito-identity.amazonaws.com:amr': 'authenticated',
+                },
+                StringEquals: {
+                  'cognito-identity.amazonaws.com:aud': idpRef,
+                },
+              },
+            },
+          ],
+        },
+      },
+      matchingRoleCount
+    );
   });
 
   void it('creates email login mechanism if settings is empty object', () => {
@@ -1775,7 +1837,7 @@ void describe('Auth construct', () => {
               email: true,
               externalProviders: {
                 scopes: ['EMAIL', 'PROFILE'],
-                callbackUrls: [],
+                callbackUrls: ['http://localhost'],
                 logoutUrls: ['http://localhost'],
                 domainPrefix: 'https://localhost',
               },
@@ -2358,85 +2420,6 @@ void describe('Auth construct', () => {
     const resourceNames = Object.keys(template['template']['Resources']);
     resourceNames.map((name) => {
       assert.equal(name.startsWith(expectedPrefix), true);
-    });
-  });
-
-  void describe('addTrigger', () => {
-    void it('attaches lambda function to UserPool Lambda config', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      const testFunc = new Function(stack, 'testFunc', {
-        code: Code.fromInline('test code'),
-        handler: 'index.handler',
-        runtime: Runtime.NODEJS_18_X,
-      });
-      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
-        loginWith: { email: true },
-      });
-      authConstruct.addTrigger('createAuthChallenge', testFunc);
-      const template = Template.fromStack(stack);
-      const lambdas = template.findResources('AWS::Lambda::Function');
-      if (Object.keys(lambdas).length !== 1) {
-        assert.fail(
-          'Expected one and only one lambda function in the template'
-        );
-      }
-      const handlerLogicalId = Object.keys(lambdas)[0];
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        LambdaConfig: {
-          CreateAuthChallenge: {
-            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
-          },
-        },
-      });
-    });
-
-    void it('attaches AmplifyFunction to UserPool Lambda config', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      const testFunc = new Function(stack, 'testFunc', {
-        code: Code.fromInline('test code'),
-        handler: 'index.handler',
-        runtime: Runtime.NODEJS_18_X,
-      });
-      const amplifyFuncStub: AmplifyFunction = {
-        resources: {
-          lambda: testFunc,
-        },
-      };
-      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
-        loginWith: { email: true },
-      });
-      authConstruct.addTrigger('createAuthChallenge', amplifyFuncStub);
-      const template = Template.fromStack(stack);
-      const lambdas = template.findResources('AWS::Lambda::Function');
-      if (Object.keys(lambdas).length !== 1) {
-        assert.fail(
-          'Expected one and only one lambda function in the template'
-        );
-      }
-      const handlerLogicalId = Object.keys(lambdas)[0];
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        LambdaConfig: {
-          CreateAuthChallenge: {
-            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
-          },
-        },
-      });
-    });
-
-    void it('stores attribution data in stack', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      new AmplifyAuth(stack, 'testAuth', {
-        loginWith: { email: true },
-      });
-
-      const template = Template.fromStack(stack);
-      assert.equal(
-        JSON.parse(template.toJSON().Description).stackType,
-        'auth-Cognito'
-      );
     });
   });
 });

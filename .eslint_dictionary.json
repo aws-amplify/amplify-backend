@@ -1,4 +1,6 @@
 [
+  "acceptor",
+  "acceptors",
   "aggregator",
   "amazonaws",
   "amazoncognito",
@@ -21,6 +23,7 @@
   "cognito",
   "commonjs",
   "corepack",
+  "cors",
   "ctor",
   "darwin",
   "datastore",

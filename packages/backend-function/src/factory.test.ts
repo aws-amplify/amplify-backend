@@ -12,6 +12,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -263,6 +264,44 @@ void describe('AmplifyFunctionFactory', () => {
       const currentDate = new Date();
 
       assert.ok(endDate > currentDate);
+    });
+  });
+
+  void describe('resourceAccessAcceptor', () => {
+    void it('attaches policy to execution role and configures ssm environment context', () => {
+      const functionFactory = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        name: 'myCoolLambda',
+      });
+      const lambda = functionFactory.getInstance(getInstanceProps);
+      const stack = Stack.of(lambda.resources.lambda);
+      const policy = new Policy(stack, 'testPolicy', {
+        statements: [
+          new PolicyStatement({
+            actions: ['s3:GetObject'],
+            resources: ['testBucket/testPath'],
+          }),
+        ],
+      });
+      lambda
+        .getResourceAccessAcceptor()
+        .acceptResourceAccess(policy, [
+          { name: 'testContext', path: 'testPath' },
+        ]);
+      const template = Template.fromStack(stack);
+      template.resourceCountIs('AWS::Lambda::Function', 1);
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Environment: {
+          Variables: {
+            AMPLIFY_SSM_ENV_CONFIG: '{"testPath":{"name":"testContext"}}',
+            testContext: '<value will be resolved during runtime>',
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        // eslint-disable-next-line spellcheck/spell-checker
+        Roles: [{ Ref: 'myCoolLambdalambdaServiceRoleC9BABDE6' }],
+      });
     });
   });
 });

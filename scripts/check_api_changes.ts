@@ -84,5 +84,10 @@ validationResults.forEach((result) => {
 });
 
 if (errors.length > 0) {
-  throw new AggregateError(errors, 'There are validation failures');
+  throw new AggregateError(
+    errors,
+    `Breaking API changes detected. See below for details.
+    If these changes are intentional, this is okay.
+    Otherwise, update the PR to remove the unintentional breaks`
+  );
 }

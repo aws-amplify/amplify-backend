@@ -33,4 +33,18 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
       existsSync
     );
   }
+
+  initializeTsConfig = async (targetDir: string) => {
+    await this.addTypescript(targetDir);
+    await super.initializeTsConfig(targetDir);
+  };
+
+  private addTypescript = async (targetDir: string) => {
+    await this.executeWithDebugLogger(
+      targetDir,
+      'yarn',
+      ['add', 'typescript@^5'],
+      this.execa
+    );
+  };
 }

@@ -1,24 +1,14 @@
-import { Construct } from 'constructs';
 import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
-import {
-  AmplifyStorage,
-  AmplifyStorageProps,
-  StorageResources,
-} from './construct.js';
+import { AmplifyStorage, StorageResources } from './construct.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-
-export type AmplifyStorageFactoryProps = Omit<
-  AmplifyStorageProps,
-  'outputStorageStrategy'
->;
+import { AmplifyStorageFactoryProps } from './types.js';
+import { StorageContainerEntryGenerator } from './storage_container_entry_generator.js';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
@@ -39,11 +29,10 @@ class AmplifyStorageFactory
   /**
    * Get a singleton instance of the Bucket
    */
-  getInstance = ({
-    constructContainer,
-    outputStorageStrategy,
-    importPathVerifier,
-  }: ConstructFactoryGetInstanceProps): AmplifyStorage => {
+  getInstance = (
+    getInstanceProps: ConstructFactoryGetInstanceProps
+  ): AmplifyStorage => {
+    const { constructContainer, importPathVerifier } = getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'storage', 'resource'),
@@ -51,9 +40,9 @@ class AmplifyStorageFactory
     );
     this.validateName(this.props.name);
     if (!this.generator) {
-      this.generator = new AmplifyStorageGenerator(
+      this.generator = new StorageContainerEntryGenerator(
         this.props,
-        outputStorageStrategy
+        getInstanceProps
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyStorage;
@@ -71,26 +60,10 @@ class AmplifyStorageFactory
   };
 }
 
-class AmplifyStorageGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'storage';
-
-  constructor(
-    private readonly props: AmplifyStorageProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>
-  ) {}
-
-  generateContainerEntry = (scope: Construct) => {
-    return new AmplifyStorage(scope, `${this.props.name}`, {
-      ...this.props,
-      outputStorageStrategy: this.outputStorageStrategy,
-    });
-  };
-}
-
 /**
  * Creates a factory that implements ConstructFactory<AmplifyStorage>
  */
 export const defineStorage = (
-  props: AmplifyStorageProps
+  props: AmplifyStorageFactoryProps
 ): ConstructFactory<ResourceProvider<StorageResources>> =>
   new AmplifyStorageFactory(props, new Error().stack);
