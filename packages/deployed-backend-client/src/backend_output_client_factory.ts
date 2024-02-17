@@ -55,7 +55,7 @@ export class BackendOutputClientFactory {
   /**
    * Returns a single instance of BackendOutputClient
    */
-  static getInstance = (
+  getInstance = (
     options: BackendOutputClientFactoryOptions
   ): BackendOutputClient => {
     if ('cloudFormationClient' in options && 'amplifyClient' in options) {

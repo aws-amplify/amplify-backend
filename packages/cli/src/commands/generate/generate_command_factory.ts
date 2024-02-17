@@ -36,10 +36,12 @@ export const createGenerateCommand = (): CommandModule => {
     backendIdentifierResolver
   );
 
+  const backendOutputClientFactory = new BackendOutputClientFactory();
+
   const generateFormsCommand = new GenerateFormsCommand(
     backendIdentifierResolver,
     () =>
-      BackendOutputClientFactory.getInstance({
+      backendOutputClientFactory.getInstance({
         credentials: credentialProvider,
       }),
     new FormGenerationHandler({ credentialProvider })
