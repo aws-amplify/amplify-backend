@@ -16,7 +16,7 @@ import {
   StorageOutput,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { Stack } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
@@ -83,6 +83,8 @@ export class AmplifyStorage
           ],
         },
       ],
+      autoDeleteObjects: true,
+      removalPolicy: RemovalPolicy.DESTROY,
     };
     this.resources = {
       bucket: new Bucket(this, 'Bucket', bucketProps),
