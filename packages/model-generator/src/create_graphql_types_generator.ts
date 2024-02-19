@@ -29,10 +29,8 @@ export const createGraphqlTypesGenerator = ({
     throw new Error('`credentialProvider` must be defined');
   }
 
-  const backendOutputClientFactory = new BackendOutputClientFactory();
-
   const fetchSchema = async () => {
-    const backendOutputClient = backendOutputClientFactory.getInstance({
+    const backendOutputClient = BackendOutputClientFactory.getInstance({
       credentials: credentialProvider,
     });
     const output = await backendOutputClient.getOutput(backendIdentifier);

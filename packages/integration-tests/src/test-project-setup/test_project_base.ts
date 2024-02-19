@@ -98,11 +98,10 @@ export abstract class TestProjectBase {
         .do(confirmDeleteSandbox())
         .run();
     } else {
-      const backendIdentifierConversions = new BackendIdentifierConversions();
       await this.cfnClient.send(
         new DeleteStackCommand({
           StackName:
-            backendIdentifierConversions.toStackName(backendIdentifier),
+            BackendIdentifierConversions.toStackName(backendIdentifier),
         })
       );
     }

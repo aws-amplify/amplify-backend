@@ -28,8 +28,7 @@ export class DeployedResourcesFinder {
     resourceType: string,
     physicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
   ): Promise<string[]> => {
-    const backendIdentifierConversions = new BackendIdentifierConversions();
-    const stackName = backendIdentifierConversions.toStackName(backendId);
+    const stackName = BackendIdentifierConversions.toStackName(backendId);
     return await this.findByStackName(
       stackName,
       resourceType,

@@ -121,7 +121,7 @@ export class DeployedBackendClientFactory {
   /**
    * Returns a single instance of DeploymentClient
    */
- getInstance(
+  static getInstance(
     options: DeployedBackendClientFactoryOptions
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
@@ -147,13 +147,10 @@ export class DeployedBackendClientFactory {
         arnParser
       );
     }
-
-    const backendOutputClientFactory = new BackendOutputClientFactory();
-
     return new DefaultDeployedBackendClient(
       new CloudFormationClient(options.credentials),
       new S3Client(options.credentials),
-      backendOutputClientFactory.getInstance({
+      BackendOutputClientFactory.getInstance({
         credentials: options.credentials,
       }),
       deployedResourcesEnumerator,

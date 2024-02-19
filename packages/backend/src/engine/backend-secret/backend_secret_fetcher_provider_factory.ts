@@ -42,10 +42,9 @@ export class BackendSecretFetcherProviderFactory {
       handler: 'handler',
     });
 
-    const parameterPathConversions = new ParameterPathConversions();
     const backendParameterPrefix =
-      parameterPathConversions.toParameterPrefix(backendIdentifier);
-    const sharedParameterPrefix = parameterPathConversions.toParameterPrefix(
+      ParameterPathConversions.toParameterPrefix(backendIdentifier);
+    const sharedParameterPrefix = ParameterPathConversions.toParameterPrefix(
       backendIdentifier.namespace
     );
 

@@ -60,13 +60,11 @@ export const createGraphqlModelsFromS3UriGenerator = ({
   );
 };
 
-const backendOutputClientFactory = new BackendOutputClientFactory();
-
 const getModelSchema = async (
   backendIdentifier: DeployedBackendIdentifier,
   credentialProvider: AwsCredentialIdentityProvider
 ): Promise<string> => {
-  const backendOutputClient = backendOutputClientFactory.getInstance({
+  const backendOutputClient = BackendOutputClientFactory.getInstance({
     credentials: credentialProvider,
   });
   const output = await backendOutputClient.getOutput(backendIdentifier);

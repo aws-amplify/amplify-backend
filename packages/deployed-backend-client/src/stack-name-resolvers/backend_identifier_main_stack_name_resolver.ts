@@ -18,8 +18,6 @@ export class BackendIdentifierMainStackNameResolver
   /**
    * Resolve the stack name for this project environment
    */
-  resolveMainStackName = async (): Promise<string> => {
-const backendIdentifierConversions = new BackendIdentifierConversions();
-return backendIdentifierConversions.toStackName(this.backendId);
-}
+  resolveMainStackName = async (): Promise<string> =>
+    BackendIdentifierConversions.toStackName(this.backendId);
 }

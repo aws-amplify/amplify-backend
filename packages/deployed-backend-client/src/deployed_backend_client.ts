@@ -64,8 +64,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   deleteSandbox = async (
     sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ): Promise<void> => {
-    const backendIdentifierConversions = new BackendIdentifierConversions();
-    const stackName = backendIdentifierConversions.toStackName({
+    const stackName = BackendIdentifierConversions.toStackName({
       ...sandboxBackendIdentifier,
       type: 'sandbox',
     });
@@ -77,8 +76,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   getBackendMetadata = async (
     backendId: BackendIdentifier
   ): Promise<BackendMetadata> => {
-    const backendIdentifierConversions = new BackendIdentifierConversions();
-    const stackName = backendIdentifierConversions.toStackName(backendId);
+    const stackName = BackendIdentifierConversions.toStackName(backendId);
     return this.buildBackendMetadata(stackName);
   };
 
@@ -102,10 +100,10 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         })
         .map(async (stackSummary: StackSummary) => {
           const deploymentType = await this.tryGetDeploymentType(stackSummary);
-          const backendIdentifierConversions = new BackendIdentifierConversions();
+
           return {
             name: stackSummary.StackName as string,
-            backendId: backendIdentifierConversions.fromStackName(
+            backendId: BackendIdentifierConversions.fromStackName(
               stackSummary.StackName
             ),
             lastUpdated:
@@ -135,9 +133,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   };
 
   private isSandboxStack = (stackName: string | undefined): boolean => {
-    const backendIdentifierConversions = new BackendIdentifierConversions();
     const backendIdentifier =
-      backendIdentifierConversions.fromStackName(stackName);
+      BackendIdentifierConversions.fromStackName(stackName);
     return backendIdentifier?.type === 'sandbox';
   };
 

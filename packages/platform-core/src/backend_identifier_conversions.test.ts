@@ -3,10 +3,9 @@ import { BackendIdentifierConversions } from './backend_identifier_conversions.j
 import assert from 'node:assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
-const backendIdentifierConversions = new BackendIdentifierConversions();
 void describe('toStackName', () => {
   void it('removes non-alphanumeric chars from namespace and name', () => {
-    const actual = backendIdentifierConversions.toStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace: 't-_e.s,@ t--T@,,  !@#$%^&*(){}:":<>?/|\\[]   H/I. .S',
       name: 't-_h.i,@ ng1-&&%2@@3-   _',
       type: 'branch',
@@ -16,7 +15,7 @@ void describe('toStackName', () => {
   });
 
   void it('truncates long name', () => {
-    const actual = backendIdentifierConversions.toStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace: 'reasonableName',
       name: 'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
       type: 'sandbox',
@@ -28,7 +27,7 @@ void describe('toStackName', () => {
   });
 
   void it('truncates long namespace', () => {
-    const actual = backendIdentifierConversions.toStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace:
         'InsanelyLongNamespaceProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIsStillTheoreticallyPossible',
       name: 'userName',
@@ -42,7 +41,7 @@ void describe('toStackName', () => {
   });
 
   void it('truncates long namespace and name', () => {
-    const actual = backendIdentifierConversions.toStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace:
         'InsanelyLongNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIsStillTheoreticallyPossible',
       name: 'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
@@ -58,7 +57,7 @@ void describe('toStackName', () => {
   });
 
   void it('passes through values within the constraints', () => {
-    const actual = backendIdentifierConversions.toStackName({
+    const actual = BackendIdentifierConversions.toStackName({
       namespace: 'reasonableName',
       name: 'userName',
       type: 'sandbox',
@@ -70,33 +69,33 @@ void describe('toStackName', () => {
 
 void describe('fromStackName', () => {
   void it('returns undefined for undefined stack name', () => {
-    const actual = backendIdentifierConversions.fromStackName(undefined);
+    const actual = BackendIdentifierConversions.fromStackName(undefined);
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack name does not have 5 parts', () => {
-    const actual = backendIdentifierConversions.fromStackName(
+    const actual = BackendIdentifierConversions.fromStackName(
       'amplify-missing-sandbox-testHash'
     );
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack does not start with amplify prefix', () => {
-    const actual = backendIdentifierConversions.fromStackName(
+    const actual = BackendIdentifierConversions.fromStackName(
       'wrong-name-for-amplify-stack'
     );
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack does not include known type suffix', () => {
-    const actual = backendIdentifierConversions.fromStackName(
+    const actual = BackendIdentifierConversions.fromStackName(
       'amplify-wrong-suffix-thing-testHash'
     );
     assert.equal(actual, undefined);
   });
 
   void it('parses valid stack name into parts', () => {
-    const actual = backendIdentifierConversions.fromStackName(
+    const actual = BackendIdentifierConversions.fromStackName(
       'amplify-reasonableName-userName-sandbox-testHash'
     );
     assert.deepStrictEqual(actual, {
@@ -114,11 +113,11 @@ void it('stack name round trips to same name even when replacements are required
     name: 't-_h.i,@ ng1-&&%2@@3-   _',
     type: 'branch',
   };
-  const originalStackName = backendIdentifierConversions.toStackName(backendId);
-  const roundTripStackName = backendIdentifierConversions.toStackName(
+  const originalStackName = BackendIdentifierConversions.toStackName(backendId);
+  const roundTripStackName = BackendIdentifierConversions.toStackName(
     // if this conversion returns undefined, the test will fail anyway
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    backendIdentifierConversions.fromStackName(originalStackName)!
+    BackendIdentifierConversions.fromStackName(originalStackName)!
   );
   assert.equal(
     originalStackName,

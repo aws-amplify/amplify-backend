@@ -96,7 +96,7 @@ export enum BackendOutputClientErrorType {
 
 // @public
 export class BackendOutputClientFactory {
-    getInstance: (options: BackendOutputClientFactoryOptions) => BackendOutputClient;
+    static getInstance: (options: BackendOutputClientFactoryOptions) => BackendOutputClient;
 }
 
 // @public (undocumented)
@@ -132,7 +132,7 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    getInstance(options: DeployedBackendClientFactoryOptions): DeployedBackendClient;
+    static getInstance(options: DeployedBackendClientFactoryOptions): DeployedBackendClient;
 }
 
 // @public (undocumented)

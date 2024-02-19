@@ -2,10 +2,9 @@ import { describe, it } from 'node:test';
 import { ParameterPathConversions } from './parameter_path_conversions';
 import assert from 'node:assert';
 
-const parameterPathConversions = new ParameterPathConversions();
 void describe('toParameterPrefix', () => {
   void it('passes through values for type sandbox', () => {
-    const actual = parameterPathConversions.toParameterPrefix({
+    const actual = ParameterPathConversions.toParameterPrefix({
       namespace: 'reasonableName',
       name: 'userName',
       type: 'sandbox',
@@ -14,12 +13,12 @@ void describe('toParameterPrefix', () => {
   });
 
   void it('passes through values for shared parameter', () => {
-    const actual = parameterPathConversions.toParameterPrefix('someAppId');
+    const actual = ParameterPathConversions.toParameterPrefix('someAppId');
     assert.equal(actual, '/amplify/shared/someAppId');
   });
 
   void it('removes non-alphanumeric chars from namespace and name', () => {
-    const actual = parameterPathConversions.toParameterPrefix({
+    const actual = ParameterPathConversions.toParameterPrefix({
       namespace: 't-_e.s,@ t--T@,,  !@#$%^&*(){}:":<>?/|\\[]   H/I. .S',
       name: 't-_h.i,@ ng1-&&%2@@3-   _',
       type: 'branch',
@@ -29,7 +28,7 @@ void describe('toParameterPrefix', () => {
   });
 
   void it('truncates long name', () => {
-    const actual = parameterPathConversions.toParameterPrefix({
+    const actual = ParameterPathConversions.toParameterPrefix({
       namespace: 'reasonableName',
       name: 'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
       type: 'sandbox',
@@ -41,7 +40,7 @@ void describe('toParameterPrefix', () => {
   });
 
   void it('truncates long namespace', () => {
-    const actual = parameterPathConversions.toParameterPrefix({
+    const actual = ParameterPathConversions.toParameterPrefix({
       namespace:
         'InsanelyLongNamespaceProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIsStillTheoreticallyPossible',
       name: 'userName',
@@ -55,7 +54,7 @@ void describe('toParameterPrefix', () => {
   });
 
   void it('truncates long namespace and name', () => {
-    const actual = parameterPathConversions.toParameterPrefix({
+    const actual = ParameterPathConversions.toParameterPrefix({
       namespace:
         'InsanelyLongNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigNameButItIsStillTheoreticallyPossible',
       name: 'InsanelyLongUserNameProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGreatBigName',
@@ -71,7 +70,7 @@ void describe('toParameterPrefix', () => {
   });
 
   void it('passes through values within the constraints', () => {
-    const actual = parameterPathConversions.toParameterPrefix({
+    const actual = ParameterPathConversions.toParameterPrefix({
       namespace: 'reasonableName',
       name: 'userName',
       type: 'sandbox',
@@ -83,7 +82,7 @@ void describe('toParameterPrefix', () => {
 
 void describe('toParameterFullPath', () => {
   void it('passes through values for type sandbox', () => {
-    const actual = parameterPathConversions.toParameterFullPath(
+    const actual = ParameterPathConversions.toParameterFullPath(
       {
         namespace: 'reasonableName',
         name: 'userName',
@@ -98,7 +97,7 @@ void describe('toParameterFullPath', () => {
   });
 
   void it('passes through values for shared parameter', () => {
-    const actual = parameterPathConversions.toParameterFullPath(
+    const actual = ParameterPathConversions.toParameterFullPath(
       'someAppId',
       'secretName'
     );
@@ -108,7 +107,7 @@ void describe('toParameterFullPath', () => {
 
 void describe('toResourceReferenceFullPath', () => {
   void it('constructs path unique to the backend id', () => {
-    const actual = parameterPathConversions.toResourceReferenceFullPath(
+    const actual = ParameterPathConversions.toResourceReferenceFullPath(
       {
         namespace: 'reasonableName',
         name: 'userName',

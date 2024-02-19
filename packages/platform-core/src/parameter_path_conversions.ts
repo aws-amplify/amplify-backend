@@ -11,7 +11,7 @@ export class ParameterPathConversions {
   /**
    * Convert a BackendIdentifier to a parameter prefix.
    */
-  toParameterPrefix(backendId: BackendIdentifier | AppId): string {
+  static toParameterPrefix(backendId: BackendIdentifier | AppId): string {
     if (typeof backendId === 'object') {
       return getBackendParameterPrefix(backendId);
     }
@@ -21,7 +21,7 @@ export class ParameterPathConversions {
   /**
    * Convert a BackendIdentifier to a parameter full path.
    */
-  toParameterFullPath(
+  static toParameterFullPath(
     backendId: BackendIdentifier | AppId,
     parameterName: string
   ): string {
@@ -34,7 +34,7 @@ export class ParameterPathConversions {
   /**
    * Generate an SSM path for references to other backend resources
    */
-  toResourceReferenceFullPath(
+  static toResourceReferenceFullPath(
     backendId: BackendIdentifier,
     referenceName: string
   ): string {
@@ -53,9 +53,8 @@ const getBackendParameterPrefix = (parts: BackendIdentifier): string => {
  */
 const getBackendIdentifierPathPart = (parts: BackendIdentifier): string => {
   // round trip the backend id through the stack name conversion to ensure we are applying the same sanitization to SSM paths
-  const backendIdentifierConversions = new BackendIdentifierConversions();
-  const sanitizedBackendId = backendIdentifierConversions.fromStackName(
-    backendIdentifierConversions.toStackName(parts)
+  const sanitizedBackendId = BackendIdentifierConversions.fromStackName(
+    BackendIdentifierConversions.toStackName(parts)
   );
   if (!sanitizedBackendId || !sanitizedBackendId.hash) {
     // this *should* never happen

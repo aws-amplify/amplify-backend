@@ -24,8 +24,7 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const backendOutputClientFactory = new BackendOutputClientFactory();
-      const fakedBackendOutputClient = backendOutputClientFactory.getInstance({
+      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
         credentials: credentialProvider,
       });
 
@@ -72,8 +71,7 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const backendOutputClientFactory = new BackendOutputClientFactory();
-      const fakedBackendOutputClient = backendOutputClientFactory.getInstance({
+      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
         credentials: credentialProvider,
       });
 
@@ -120,8 +118,7 @@ void describe('generate forms command', () => {
         credentialProvider,
       });
 
-      const backendOutputClientFactory = new BackendOutputClientFactory();
-      const fakedBackendOutputClient = backendOutputClientFactory.getInstance({
+      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
         credentials: credentialProvider,
       });
 
@@ -181,8 +178,7 @@ void describe('generate forms command', () => {
       credentialProvider,
     });
 
-    const backendOutputClientFactory = new BackendOutputClientFactory();
-    const fakedBackendOutputClient = backendOutputClientFactory.getInstance({
+    const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
       credentials: credentialProvider,
     });
 

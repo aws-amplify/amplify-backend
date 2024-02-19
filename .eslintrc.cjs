@@ -141,10 +141,6 @@ module.exports = {
       'MethodDefinition[kind!=/[constructor|get]/]',
       'FunctionDeclaration',
       'VariableDeclarator > FunctionExpression',
-      {
-        "selector": "MethodDefinition[static=true]",
-        "message": "Static methods are not allowed."
-      }
     ],
     'jsdoc/require-description': 'error',
     'jsdoc/require-jsdoc': [

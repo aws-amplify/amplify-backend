@@ -40,13 +40,12 @@ export class CfnTokenBackendSecret implements BackendSecret {
    * Resolve to the secret path
    */
   resolvePath = (backendIdentifier: BackendIdentifier): ResolvePathResult => {
-    const parameterPathConversions = new ParameterPathConversions();
     return {
-      branchSecretPath: parameterPathConversions.toParameterFullPath(
+      branchSecretPath: ParameterPathConversions.toParameterFullPath(
         backendIdentifier,
         this.name
       ),
-      sharedSecretPath: parameterPathConversions.toParameterFullPath(
+      sharedSecretPath: ParameterPathConversions.toParameterFullPath(
         backendIdentifier.namespace,
         this.name
       ),
