@@ -14,7 +14,8 @@ type OutputKey = string;
 export class StackMetadataBackendOutputStorageStrategy
   implements BackendOutputStorageStrategy<BackendOutputEntry>
 {
-  private lazyLists: Map<MetadataKey, Map<OutputKey, string[]>> = new Map();
+  private lazyListValueMap: Map<MetadataKey, Map<OutputKey, string[]>> =
+    new Map();
 
   /**
    * Initialize the instance with a stack.
@@ -49,13 +50,31 @@ export class StackMetadataBackendOutputStorageStrategy
     backendOutputEntry: BackendOutputEntry
   ): void => {
     const version = backendOutputEntry.version;
+    let listsMap = this.lazyListValueMap.get(keyName);
+
+    const existingMetadataEntry = this.stack.node.metadata.find(
+      (entry) => entry.type === keyName
+    );
+
+    if (existingMetadataEntry) {
+      if (existingMetadataEntry.data.version !== version) {
+        throw new Error(
+          `Metadata entry for ${keyName} at version ${existingMetadataEntry.data.version} already exists. Cannot add another entry for the same key at version ${version}.`
+        );
+      }
+    } else {
+      this.stack.addMetadata(keyName, {
+        version,
+        stackOutputs: Lazy.list({
+          produce: () => Array.from(listsMap ? listsMap.keys() : []),
+        }),
+      });
+    }
 
     Object.entries(backendOutputEntry.payload).forEach(([listName, value]) => {
-      let listsMap = this.lazyLists.get(keyName);
-
       if (!listsMap) {
         listsMap = new Map();
-        this.lazyLists.set(keyName, listsMap);
+        this.lazyListValueMap.set(keyName, listsMap);
       }
 
       let outputList = listsMap.get(listName);
@@ -69,25 +88,6 @@ export class StackMetadataBackendOutputStorageStrategy
         new CfnOutput(this.stack, listName, {
           value: Lazy.string({ produce: () => JSON.stringify(outputList) }),
         });
-
-        const existingMetadataEntry = this.stack.node.metadata.find(
-          (entry) => entry.type === keyName
-        );
-
-        if (existingMetadataEntry) {
-          if (existingMetadataEntry.data.version !== version) {
-            throw new Error(
-              `Metadata entry for ${keyName} at version ${existingMetadataEntry.data.version} already exists. Cannot add another entry for the same key at version ${version}.`
-            );
-          }
-        } else {
-          this.stack.addMetadata(keyName, {
-            version,
-            stackOutputs: Lazy.list({
-              produce: () => Array.from(listsMap ? listsMap.keys() : []),
-            }),
-          });
-        }
       }
     });
   };

@@ -15,7 +15,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { Duration, Stack } from 'aws-cdk-lib';
+import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
@@ -26,7 +26,6 @@ import {
   FunctionOutput,
   functionOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -327,9 +326,7 @@ class AmplifyFunction
    * Store storage outputs using provided strategy
    */
   private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput> = new StackMetadataBackendOutputStorageStrategy(
-      Stack.of(this)
-    )
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ): void => {
     outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
       version: '1',
