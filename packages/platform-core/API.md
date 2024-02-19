@@ -59,8 +59,8 @@ export class AmplifyUserError<T extends string = string> extends AmplifyError<T>
 
 // @public
 export class BackendIdentifierConversions {
-    static fromStackName(stackName?: string): BackendIdentifier | undefined;
-    static toStackName(backendId: BackendIdentifier): string;
+    fromStackName(stackName?: string): BackendIdentifier | undefined;
+    toStackName(backendId: BackendIdentifier): string;
 }
 
 // @public
@@ -154,9 +154,9 @@ export const packageJsonSchema: z.ZodObject<{
 
 // @public
 export class ParameterPathConversions {
-    static toParameterFullPath(backendId: BackendIdentifier | AppId, parameterName: string): string;
-    static toParameterPrefix(backendId: BackendIdentifier | AppId): string;
-    static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
+    toParameterFullPath(backendId: BackendIdentifier | AppId, parameterName: string): string;
+    toParameterPrefix(backendId: BackendIdentifier | AppId): string;
+    toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
 }
 
 // @public
