@@ -22,10 +22,9 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
    */
   getOrCreateMainStack = (): Stack => {
     if (this.mainStack === undefined) {
-      const backendIdentifierConversions = new BackendIdentifierConversions();
       this.mainStack = new AmplifyStack(
         this.scope,
-        backendIdentifierConversions.toStackName(this.backendId)
+        BackendIdentifierConversions.toStackName(this.backendId)
       );
     }
 

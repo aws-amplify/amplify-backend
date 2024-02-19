@@ -1,4 +1,4 @@
-import { Stack } from 'aws-cdk-lib';
+import { CfnElement, Stack } from 'aws-cdk-lib';
 
 /**
  * Amplify-specific Stack implementation to handle cross-cutting concerns for all Amplify stacks
@@ -7,7 +7,7 @@ export class AmplifyStack extends Stack {
   /**
    * Overrides Stack.allocateLogicalId to prevent redundant nested stack logical IDs
    */
-  allocateLogicalId = (element: CfnEleme_cnt): string => {
+  allocateLogicalId = (element: CfnElement): string => {
     // Nested stack logical IDs have a redundant structure of <name>NestedStack<name>NestedStackResource<hash>
     // This rewrites the nested stack logical ID to <name><hash>
     const defaultId = super.allocateLogicalId(element);
