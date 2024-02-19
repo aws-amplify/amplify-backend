@@ -63,9 +63,10 @@ void describe('getting started happy path', async () => {
   });
 
   afterEach(async () => {
+    const backendIdentifierConversions = new BackendIdentifierConversions();
     await cfnClient.send(
       new DeleteStackCommand({
-        StackName: BackendIdentifierConversions.toStackName(
+        StackName: backendIdentifierConversions.toStackName(
           branchBackendIdentifier
         ),
       })

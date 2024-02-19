@@ -15,7 +15,7 @@ export class BackendIdentifierConversions {
    *
    * If the stack name is ambiguous, undefined is returned
    */
-  static fromStackName(stackName?: string): BackendIdentifier | undefined {
+  fromStackName(stackName?: string): BackendIdentifier | undefined {
     if (!stackName) {
       return;
     }
@@ -47,7 +47,7 @@ export class BackendIdentifierConversions {
    *
    * Changing this method will change how stack names are generated which could be a massive breaking change for existing Amplify stacks.
    */
-  static toStackName(backendId: BackendIdentifier): string {
+  toStackName(backendId: BackendIdentifier): string {
     const hash = getHash(backendId);
 
     // only take the first 50 chars here to make sure there is room in the stack name for the namespace as well

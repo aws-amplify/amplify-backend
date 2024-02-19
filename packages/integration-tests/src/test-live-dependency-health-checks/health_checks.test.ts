@@ -60,7 +60,8 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
 
     afterEach(async () => {
       await fs.rm(tempDir, { recursive: true });
-      const stackName = BackendIdentifierConversions.toStackName({
+      const backendIdentifierConversions = new BackendIdentifierConversions();
+      const stackName = backendIdentifierConversions.toStackName({
         namespace: testBranch.appId,
         name: testBranch.branchName,
         type: 'branch',

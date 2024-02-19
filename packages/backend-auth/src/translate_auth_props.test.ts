@@ -46,12 +46,13 @@ class TestBackendSecret implements BackendSecret {
     return SecretValue.unsafePlainText(this.secretName);
   };
   resolvePath = (): ResolvePathResult => {
+    const parameterPathConversions = new ParameterPathConversions();
     return {
-      branchSecretPath: ParameterPathConversions.toParameterFullPath(
+      branchSecretPath: parameterPathConversions.toParameterFullPath(
         testBackendIdentifier,
         this.secretName
       ),
-      sharedSecretPath: ParameterPathConversions.toParameterFullPath(
+      sharedSecretPath: parameterPathConversions.toParameterFullPath(
         testBackendIdentifier.namespace,
         this.secretName
       ),

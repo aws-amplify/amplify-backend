@@ -26,7 +26,8 @@ export class SSMSecretClient implements SecretClient {
     secretIdentifier: SecretIdentifier
   ): Promise<Secret> => {
     let secret: Secret | undefined;
-    const name: string = ParameterPathConversions.toParameterFullPath(
+    const parameterPathConversions = new ParameterPathConversions();
+    const name: string = parameterPathConversions.toParameterFullPath(
       backendIdentifier,
       secretIdentifier.name
     );
@@ -64,7 +65,8 @@ export class SSMSecretClient implements SecretClient {
   public listSecrets = async (
     backendIdentifier: BackendIdentifier | AppId
   ): Promise<SecretListItem[]> => {
-    const path = ParameterPathConversions.toParameterPrefix(backendIdentifier);
+    const parameterPathConversions = new ParameterPathConversions();
+    const path = parameterPathConversions.toParameterPrefix(backendIdentifier);
     const result: SecretListItem[] = [];
 
     try {
@@ -100,7 +102,8 @@ export class SSMSecretClient implements SecretClient {
     secretName: string,
     secretValue: string
   ): Promise<SecretIdentifier> => {
-    const name = ParameterPathConversions.toParameterFullPath(
+    const parameterPathConversions = new ParameterPathConversions();
+    const name = parameterPathConversions.toParameterFullPath(
       backendIdentifier,
       secretName
     );
@@ -128,7 +131,8 @@ export class SSMSecretClient implements SecretClient {
     backendIdentifier: BackendIdentifier | AppId,
     secretName: string
   ) => {
-    const name = ParameterPathConversions.toParameterFullPath(
+    const parameterPathConversions = new ParameterPathConversions();
+    const name = parameterPathConversions.toParameterFullPath(
       backendIdentifier,
       secretName
     );

@@ -49,8 +49,9 @@ export class BackendIdScopedSsmEnvironmentEntriesGenerator
    */
   generateSsmEnvironmentEntries = (scopeContext: Record<string, string>) =>
     Object.entries(scopeContext).map(([contextKey, contextValue]) => {
+      const parameterPathConversions = new ParameterPathConversions();
       const parameterPath =
-        ParameterPathConversions.toResourceReferenceFullPath(
+        parameterPathConversions.toResourceReferenceFullPath(
           this.backendId,
           contextKey
         );

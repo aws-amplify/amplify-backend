@@ -54,7 +54,8 @@ export class AppNameAndBranchMainStackNameResolver
         `Could not determine appId from app name ${this.appNameAndBranch.appName}. Try using AppId instead.`
       );
     }
-    return BackendIdentifierConversions.toStackName({
+    const backendIdentifierConversions = new BackendIdentifierConversions();
+    return backendIdentifierConversions.toStackName({
       namespace: appId,
       name: this.appNameAndBranch.branchName,
       type: 'branch',
