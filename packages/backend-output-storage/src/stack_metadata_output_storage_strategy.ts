@@ -52,9 +52,7 @@ export class StackMetadataBackendOutputStorageStrategy
     const version = backendOutputEntry.version;
     let listsMap = this.lazyListValueMap.get(keyName);
 
-    const metadata = this.stack.templateOptions.metadata
-      ? this.stack.templateOptions.metadata
-      : {};
+    const metadata = this.stack.templateOptions.metadata || {};
     const existingMetadataEntry = metadata[keyName];
 
     if (existingMetadataEntry) {
@@ -77,7 +75,6 @@ export class StackMetadataBackendOutputStorageStrategy
         listsMap = new Map();
         this.lazyListValueMap.set(keyName, listsMap);
       }
-
       let outputList = listsMap.get(listName);
 
       if (outputList) {

@@ -315,11 +315,25 @@ void describe('AmplifyFunctionFactory', () => {
       functionFactory.getInstance(getInstanceProps);
       const template = Template.fromStack(rootStack);
       // Getting output value is messy due to usage of Lazy to defer output value
-      const definedFunctionsOutputValue =
-        template.findOutputs('definedFunctions').definedFunctions.Value[
-          'Fn::Join'
-        ][1][1]['Fn::GetAtt'][1];
-      assert.ok(definedFunctionsOutputValue.includes('testLambdaName'));
+      const outputValue =
+        template.findOutputs('definedFunctions').definedFunctions.Value;
+      assert.deepStrictEqual(outputValue, {
+        ['Fn::Join']: [
+          '',
+          [
+            '["',
+            {
+              ['Fn::GetAtt']: [
+                /* eslint-disable spellcheck/spell-checker */
+                'functionNestedStackfunctionNestedStackResource1351588B',
+                'Outputs.functiontestLambdaNamelambda36106226Ref',
+                /* eslint-enable spellcheck/spell-checker */
+              ],
+            },
+            '"]',
+          ],
+        ],
+      });
     });
   });
 });
