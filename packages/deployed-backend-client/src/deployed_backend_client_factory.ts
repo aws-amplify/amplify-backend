@@ -121,9 +121,7 @@ export class DeployedBackendClientFactory {
   /**
    * Returns a single instance of DeploymentClient
    */
-  // It's fine to ignore the rule here because it's there before the rule was added
-  // eslint-disable-next-line no-restricted-syntax
-  static getInstance(
+  getInstance(
     options: DeployedBackendClientFactoryOptions
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
