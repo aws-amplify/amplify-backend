@@ -20,6 +20,7 @@ import { AuthLoginWithFactoryProps, Expand } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName>;
@@ -124,10 +125,33 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   };
 }
 
+// disabled to satisfy generic requirement for Parameters & ReturnType.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const limitCalls = <T extends (...args: any[]) => any>(
+  func: T,
+  limit: number
+) => {
+  let count = 0;
+
+  return function (...args: Parameters<T>): ReturnType<T> {
+    if (++count > limit) {
+      throw new AmplifyUserError('DuplicateAuthDefinitionError', {
+        message: `You can only call ${func.name} once`,
+      });
+    }
+    return func(args);
+  };
+};
+
 /**
  * Provide the settings that will be used for authentication.
  */
-export const defineAuth = (
+const baseDefineAuth = (
   props: AmplifyAuthProps
 ): ConstructFactory<BackendAuth> =>
   new AmplifyAuthFactory(props, new Error().stack);
+
+// override function name for context.
+Object.defineProperty(baseDefineAuth, 'name', { value: 'defineAuth' });
+
+export const defineAuth = limitCalls(baseDefineAuth, 1);
