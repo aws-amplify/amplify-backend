@@ -5,11 +5,13 @@
 ```ts
 
 import { CfnElement } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 import { ConstructContainer } from '@aws-amplify/plugin-types';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ImportPathVerifier } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { SsmEnvironmentEntriesGenerator } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 // @public
@@ -29,6 +31,15 @@ export class ConstructContainerStub implements ConstructContainer {
 export class ImportPathVerifierStub implements ImportPathVerifier {
     // (undocumented)
     verify: () => void;
+}
+
+// @public
+export class SsmEnvironmentEntriesGeneratorStub implements SsmEnvironmentEntriesGenerator {
+    constructor(scope: Construct);
+    generateSsmEnvironmentEntries: (scopeContext: Record<string, string>) => {
+        name: string;
+        path: string;
+    }[];
 }
 
 // @public

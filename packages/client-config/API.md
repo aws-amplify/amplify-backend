@@ -7,6 +7,16 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
+// @public (undocumented)
+export type AnalyticsClientConfig = {
+    Analytics?: {
+        AWSPinpoint: {
+            appId: string;
+            region: string;
+        };
+    };
+};
+
 // @public
 export type AuthClientConfig = {
     aws_cognito_region: string;
@@ -36,7 +46,7 @@ export type AuthClientConfig = {
 };
 
 // @public
-export type ClientConfig = Partial<AuthClientConfig & GraphqlClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
+export type ClientConfig = Partial<AnalyticsClientConfig & AuthClientConfig & GeoClientConfig & GraphqlClientConfig & NotificationsClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
 
 // @public (undocumented)
 export enum ClientConfigFormat {
@@ -63,6 +73,29 @@ export const generateClientConfig: (credentialProvider: AwsCredentialIdentityPro
 // @public
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
 
+// @public (undocumented)
+export type GeoClientConfig = {
+    geo?: {
+        amazon_location_service: {
+            region: string;
+            maps?: {
+                items: Record<string, {
+                    style: string;
+                }>;
+                default: string;
+            };
+            search_indices?: {
+                items: Array<string>;
+                default: string;
+            };
+            geofenceCollections?: {
+                items: Array<string>;
+                default: string;
+            };
+        };
+    };
+};
+
 // @public
 export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;
 
@@ -75,6 +108,42 @@ export type GraphqlClientConfig = {
     aws_appsync_conflictResolutionMode?: string;
     aws_appsync_apiKey?: string;
     modelIntrospection?: unknown;
+};
+
+// @public (undocumented)
+export type NotificationsClientConfig = {
+    Notifications?: {
+        SMS?: {
+            AWSPinpoint: {
+                appId: string;
+                region: string;
+            };
+        };
+        EMAIL?: {
+            AWSPinpoint: {
+                appId: string;
+                region: string;
+            };
+        };
+        APNS?: {
+            AWSPinpoint: {
+                appId: string;
+                region: string;
+            };
+        };
+        FCM?: {
+            AWSPinpoint: {
+                appId: string;
+                region: string;
+            };
+        };
+        InAppMessaging?: {
+            AWSPinpoint: {
+                appId: string;
+                region: string;
+            };
+        };
+    };
 };
 
 // @public (undocumented)

@@ -1,16 +1,16 @@
-import { Construct } from 'constructs';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  GenerateContainerEntryProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
-import { DataProps } from './types.js';
+import { AmplifyDataError, DataProps } from './types.js';
 import { convertSchemaToCDK } from './convert_schema.js';
 import {
   FunctionInstanceProvider,
@@ -80,7 +80,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
-  generateContainerEntry = (scope: Construct) => {
+  generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
     let authorizationModes;
 
     try {
@@ -90,7 +90,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         this.props.authorizationModes
       );
     } catch (error) {
-      throw new AmplifyUserError(
+      throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaAuthError',
         {
           message:
@@ -108,7 +108,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         authorizationModes
       );
     } catch (error) {
-      throw new AmplifyUserError(
+      throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaAuthError',
         {
           message:
@@ -134,7 +134,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     try {
       amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
     } catch (error) {
-      throw new AmplifyUserError(
+      throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaError',
         {
           message:

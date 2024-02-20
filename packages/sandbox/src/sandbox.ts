@@ -1,3 +1,5 @@
+// EventEmitter is a class name and expected to have PascalCase
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import EventEmitter from 'events';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';

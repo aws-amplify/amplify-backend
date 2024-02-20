@@ -9,8 +9,8 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import z from 'zod';
 
 // @public
-export abstract class AmplifyError extends Error {
-    constructor(name: AmplifyErrorType, classification: AmplifyErrorClassification, options: AmplifyErrorOptions, cause?: Error | undefined);
+export abstract class AmplifyError<T extends string = string> extends Error {
+    constructor(name: T, classification: AmplifyErrorClassification, options: AmplifyErrorOptions, cause?: Error | undefined);
     // (undocumented)
     readonly cause?: Error | undefined;
     // (undocumented)
@@ -20,7 +20,7 @@ export abstract class AmplifyError extends Error {
     // (undocumented)
     readonly details?: string;
     // (undocumented)
-    static fromError: (error: unknown) => AmplifyError;
+    static fromError: (error: unknown) => AmplifyError<'UnknownFault'>;
     // (undocumented)
     static fromStderr: (_stderr: string) => AmplifyError | undefined;
     // (undocumented)
@@ -28,7 +28,7 @@ export abstract class AmplifyError extends Error {
     // (undocumented)
     readonly message: string;
     // (undocumented)
-    readonly name: AmplifyErrorType;
+    readonly name: T;
     // (undocumented)
     readonly resolution?: string;
     // (undocumented)
@@ -48,23 +48,14 @@ export type AmplifyErrorOptions = {
 };
 
 // @public
-export type AmplifyErrorType = AmplifyUserErrorType | AmplifyLibraryFaultType;
-
-// @public
-export class AmplifyFault extends AmplifyError {
-    constructor(name: AmplifyLibraryFaultType, options: AmplifyErrorOptions, cause?: Error);
+export class AmplifyFault<T extends string = string> extends AmplifyError<T> {
+    constructor(name: T, options: AmplifyErrorOptions, cause?: Error);
 }
 
 // @public
-export type AmplifyLibraryFaultType = 'UnknownFault';
-
-// @public
-export class AmplifyUserError extends AmplifyError {
-    constructor(name: AmplifyUserErrorType, options: AmplifyErrorOptions, cause?: Error);
+export class AmplifyUserError<T extends string = string> extends AmplifyError<T> {
+    constructor(name: T, options: AmplifyErrorOptions, cause?: Error);
 }
-
-// @public
-export type AmplifyUserErrorType = 'InvalidPackageJsonError' | 'InvalidSchemaAuthError' | 'InvalidSchemaError' | 'ExpiredTokenError' | 'CloudFormationDeploymentError' | 'CFNUpdateNotSupportedError' | 'SyntaxError' | 'BackendBuildError' | 'BootstrapNotDetectedError' | 'AccessDeniedError' | 'FileConventionError' | 'OutputEntryAlreadyExistsError' | 'InvalidResourceNameError';
 
 // @public
 export class BackendIdentifierConversions {
@@ -170,8 +161,9 @@ export const packageJsonSchema: z.ZodObject<{
 
 // @public
 export class ParameterPathConversions {
-    static toParameterFullPath(backendId: BackendIdentifier | AppId, secretName: string): string;
+    static toParameterFullPath(backendId: BackendIdentifier | AppId, parameterName: string): string;
     static toParameterPrefix(backendId: BackendIdentifier | AppId): string;
+    static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
 }
 
 // @public

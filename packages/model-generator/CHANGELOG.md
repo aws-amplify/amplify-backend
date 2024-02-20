@@ -1,5 +1,23 @@
 # @aws-amplify/model-generator
 
+## 0.4.1-beta.0
+
+### Patch Changes
+
+- @aws-amplify/deployed-backend-client@0.3.11-beta.0
+
+## 0.4.0
+
+### Minor Changes
+
+- 1814f1a69: Bumped graphql-generator to generate model introspection schema with custom queries/mutations/subscriptions
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/deployed-backend-client@0.3.10
+
 ## 0.3.0
 
 ### Minor Changes

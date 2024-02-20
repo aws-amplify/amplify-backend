@@ -1,5 +1,36 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.5.7-beta.1
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.3.1-beta.0
+
+## 0.5.7-beta.0
+
+### Patch Changes
+
+- 3cb2a527f: Fix a bug that would cause attribute mappings to be ignored.
+
+## 0.5.6
+
+### Patch Changes
+
+- 29fb32bcf: OIDC attributeRequestMethod no longer requires importing OidcAttributeRequestMethod.
+
+## 0.5.5
+
+### Patch Changes
+
+- 8c371b1ff: Allow users to customize the resource names for auth.
+- 85ced84f2: Add ability to add custom outputs
+- 348717b55: Fix bug in frontend config where oauth would not be output if domain prefix was not defined.
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/backend-output-storage@0.3.0
+  - @aws-amplify/plugin-types@0.8.0
+
 ## 0.5.4
 
 ### Patch Changes

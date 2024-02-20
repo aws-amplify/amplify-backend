@@ -1,5 +1,19 @@
 # @aws-amplify/platform-core
 
+## 0.5.0-beta.0
+
+### Minor Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+
+## 0.4.4
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/plugin-types@0.8.0
+
 ## 0.4.3
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.6.0
+
+### Minor Changes
+
+- 85ced84f2: Add ability to add custom outputs
+
 ## 0.5.2
 
 ### Patch Changes

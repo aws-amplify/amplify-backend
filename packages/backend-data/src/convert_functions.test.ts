@@ -33,6 +33,7 @@ void describe('buildConstructFactoryFunctionInstanceProvider', () => {
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
+
     functionInstanceProvider = buildConstructFactoryFunctionInstanceProvider({
       constructContainer,
       outputStorageStrategy,

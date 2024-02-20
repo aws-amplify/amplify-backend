@@ -8,6 +8,7 @@ import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { CfnUserPoolGroup } from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 import { ExecaChildProcess } from 'execa';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
@@ -15,6 +16,7 @@ import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Options } from 'execa';
+import { Policy } from 'aws-cdk-lib/aws-iam';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
@@ -39,7 +41,16 @@ export type AuthResources = {
     authenticatedUserIamRole: IRole;
     unauthenticatedUserIamRole: IRole;
     cfnResources: AuthCfnResources;
+    groups: {
+        [groupName: string]: {
+            cfnUserGroup: CfnUserPoolGroup;
+            role: IRole;
+        };
+    };
 };
+
+// @public (undocumented)
+export type AuthRoleName = keyof Pick<AuthResources, 'authenticatedUserIamRole' | 'unauthenticatedUserIamRole'>;
 
 // @public
 export type BackendIdentifier = {
@@ -98,7 +109,7 @@ export type ConstructContainer = {
 // @public
 export type ConstructContainerEntryGenerator<T extends object = object> = {
     resourceGroupName: string;
-    generateContainerEntry: (scope: Construct, backendSecretResolver: BackendSecretResolver) => ResourceProvider<T>;
+    generateContainerEntry: (props: GenerateContainerEntryProps) => ResourceProvider<T>;
 };
 
 // @public
@@ -120,6 +131,13 @@ export type DeploymentType = 'branch' | 'sandbox';
 // @public (undocumented)
 export type FunctionResources = {
     lambda: IFunction;
+};
+
+// @public (undocumented)
+export type GenerateContainerEntryProps = {
+    scope: Construct;
+    backendSecretResolver: BackendSecretResolver;
+    ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
 };
 
 // @public
@@ -156,6 +174,17 @@ export type ResolvePathResult = {
     sharedSecretPath: string;
 };
 
+// @public (undocumented)
+export type ResourceAccessAcceptor = {
+    identifier: string;
+    acceptResourceAccess: (policy: Policy, ssmEnvironmentEntries: SsmEnvironmentEntry[]) => void;
+};
+
+// @public (undocumented)
+export type ResourceAccessAcceptorFactory<RoleName extends string | undefined = undefined> = {
+    getResourceAccessAcceptor: (...roleName: RoleName extends string ? [RoleName] : []) => ResourceAccessAcceptor;
+};
+
 // @public
 export type ResourceProvider<T extends object = object> = {
     resources: T;
@@ -163,6 +192,17 @@ export type ResourceProvider<T extends object = object> = {
 
 // @public (undocumented)
 export type SandboxName = string;
+
+// @public (undocumented)
+export type SsmEnvironmentEntriesGenerator = {
+    generateSsmEnvironmentEntries: (scopeContext: Record<string, string>) => SsmEnvironmentEntry[];
+};
+
+// @public (undocumented)
+export type SsmEnvironmentEntry = {
+    name: string;
+    path: string;
+};
 
 // (No @packageDocumentation comment for this package)
 

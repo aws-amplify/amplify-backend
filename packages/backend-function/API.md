@@ -7,10 +7,11 @@
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
+export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;
 
 // @public (undocumented)
 export type FunctionProps = {

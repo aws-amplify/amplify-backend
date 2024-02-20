@@ -1,5 +1,26 @@
 # @aws-amplify/backend-storage
 
+## 0.5.1-beta.0
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.3.1-beta.0
+
+## 0.5.0
+
+### Minor Changes
+
+- 84818e3c1: Require name in defineStorage props
+
+### Patch Changes
+
+- 85ced84f2: Add ability to add custom outputs
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/backend-output-storage@0.3.0
+  - @aws-amplify/plugin-types@0.8.0
+
 ## 0.4.4
 
 ### Patch Changes

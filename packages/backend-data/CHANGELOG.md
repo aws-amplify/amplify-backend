@@ -1,5 +1,28 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.1
+
+### Patch Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+  - @aws-amplify/backend-output-storage@0.3.1-beta.0
+
+## 0.10.0-beta.0
+
+### Minor Changes
+
+- 8fd5c5c30: bump data-schema deps to latest
+
+## 0.9.6
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/backend-output-storage@0.3.0
+  - @aws-amplify/plugin-types@0.8.0
+
 ## 0.9.5
 
 ### Patch Changes

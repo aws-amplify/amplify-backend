@@ -1,3 +1,3 @@
 import { defineStorage } from '@aws-amplify/backend';
 
-export const storage = defineStorage({name: 'testName'});
+export const storage = defineStorage({ name: 'testName' });

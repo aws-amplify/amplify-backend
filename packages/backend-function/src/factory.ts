@@ -5,7 +5,10 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
+  GenerateContainerEntryProps,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
+  SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -15,6 +18,9 @@ import { Duration } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+import { readFileSync } from 'fs';
+import { EOL } from 'os';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 /**
@@ -22,8 +28,9 @@ import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.
  */
 export const defineFunction = (
   props: FunctionProps = {}
-): ConstructFactory<ResourceProvider<FunctionResources>> =>
-  new FunctionFactory(props, new Error().stack);
+): ConstructFactory<
+  ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
+> => new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {
   /**
@@ -202,10 +209,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(private readonly props: HydratedFunctionProps) {}
 
-  generateContainerEntry = (
-    scope: Construct,
-    backendSecretResolver: BackendSecretResolver
-  ) => {
+  generateContainerEntry = ({
+    scope,
+    backendSecretResolver,
+  }: GenerateContainerEntryProps) => {
     return new AmplifyFunction(
       scope,
       this.props.name,
@@ -217,9 +224,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
 class AmplifyFunction
   extends Construct
-  implements ResourceProvider<FunctionResources>
+  implements ResourceProvider<FunctionResources>, ResourceAccessAcceptorFactory
 {
   readonly resources: FunctionResources;
+  private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
     id: string,
@@ -234,12 +242,27 @@ class AmplifyFunction
 
     const shims =
       runtime === Runtime.NODEJS_16_X
-        ? // this shim includes the cjs shim because it's required for the v2 sdk to work
-          [require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2_shim')]
-        : [
-            require.resolve('./lambda-shims/cjs_shim'),
-            require.resolve('./lambda-shims/resolve_ssm_params_shim'),
-          ];
+        ? []
+        : [require.resolve('./lambda-shims/cjs_shim')];
+
+    const ssmResolverFile =
+      runtime === Runtime.NODEJS_16_X
+        ? require.resolve('./lambda-shims/resolve_ssm_params_sdk_v2') // use aws cdk v2 in node 16
+        : require.resolve('./lambda-shims/resolve_ssm_params');
+
+    const invokeSsmResolverFile = require.resolve(
+      './lambda-shims/invoke_ssm_shim'
+    );
+
+    /**
+     * This code concatenates the contents of the ssm resolver and invoker into a single line that can be used as the esbuild banner content
+     * This banner is responsible for resolving the customer's SSM parameters at runtime
+     */
+    const bannerCode = readFileSync(ssmResolverFile, 'utf-8')
+      .concat(readFileSync(invokeSsmResolverFile, 'utf-8'))
+      .split(new RegExp(`${EOL}|\n|\r`, 'g'))
+      .map((line) => line.replace(/\/\/.*$/, '')) // strip out inline comments because the banner is going to be flattened into a single line
+      .join('');
 
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
@@ -248,11 +271,12 @@ class AmplifyFunction
       runtime: nodeVersionMap[props.runtime],
       bundling: {
         format: OutputFormat.ESM,
+        banner: bannerCode,
         inject: shims,
       },
     });
 
-    new FunctionEnvironmentTranslator(
+    this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
       functionLambda,
       props['environment'],
       backendSecretResolver
@@ -273,6 +297,26 @@ class AmplifyFunction
       },
     });
   }
+
+  getResourceAccessAcceptor = () => ({
+    identifier: `${this.node.id}LambdaResourceAccessAcceptor`,
+    acceptResourceAccess: (
+      policy: Policy,
+      ssmEnvironmentEntries: SsmEnvironmentEntry[]
+    ) => {
+      const role = this.resources.lambda.role;
+      if (!role) {
+        // This should never happen since we are using the Function L2 construct
+        throw new Error(
+          'No execution role found to attach lambda permissions to'
+        );
+      }
+      policy.attachToRole(role);
+      ssmEnvironmentEntries.forEach(({ name, path }) => {
+        this.functionEnvironmentTranslator.addSsmEnvironmentEntry(name, path);
+      });
+    },
+  });
 }
 
 const isWholeNumberBetweenInclusive = (

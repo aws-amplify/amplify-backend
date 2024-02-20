@@ -1,5 +1,30 @@
 # @aws-amplify/backend-function
 
+## 0.7.2-beta.0
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.3.1-beta.0
+
+## 0.7.1
+
+### Patch Changes
+
+- adb50ecb6: Fix cjs/top-level-await/esbuild interoperability issue when bundling lambda functions
+
+## 0.7.0
+
+### Minor Changes
+
+- ccde77a01: Refactor secret fetcher and support node 16 ssm shim
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/backend-output-storage@0.3.0
+  - @aws-amplify/plugin-types@0.8.0
+
 ## 0.6.4
 
 ### Patch Changes
