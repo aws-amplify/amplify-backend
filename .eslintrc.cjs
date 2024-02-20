@@ -141,26 +141,10 @@ module.exports = {
       'MethodDefinition[kind!=/[constructor|get]/]',
       'FunctionDeclaration',
       'VariableDeclarator > FunctionExpression',
-{
-    selector: "MethodDefinition[static=true]",
-    message: "Static methods are not recommended. Please consider different solutions first. If you think you have a good case for static method make sure this is discussed in code review.",
-    filter: {
-      not: [
-        {
-          callee: {
-            type: "Identifier",
-            name: "BackendIdentifierFunctions" 
-          }
-        },
-        {
-          callee: {
-            type: "Identifier",
-            name: "ParameterPathConversions"
-          }
-        }
-      ]
-    }
-  }
+      {
+        "selector": "ClassDeclaration:not([id.name=/BackendIdentifierConversions|ParameterPathConversions/]) MethodDefinition[static=true]",
+        "message": "Static methods are not allowed in classes except BackendIdentifierConversions or ParameterPathConversions."
+      }
     ],
     'jsdoc/require-description': 'error',
     'jsdoc/require-jsdoc': [
