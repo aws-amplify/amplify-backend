@@ -1,5 +1,12 @@
 # @aws-amplify/cli-core
 
+## 0.4.1-beta.0
+
+### Patch Changes
+
+- a01f6b9: fix pnpm Command "tsc" not found
+- baeb68f: fix yarn classic error Command "tsc" not found.
+
 ## 0.4.0
 
 ### Minor Changes
