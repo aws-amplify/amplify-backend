@@ -311,10 +311,10 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         (resource) => resource.resourceType === 'AWS::Lambda::Function'
       );
       const functionConfigurations: FunctionConfiguration[] = [];
-      const customerFunctionsString =
-        backendOutput[functionOutputKey]?.payload.customerFunctions;
-      const customerFunctionNames = customerFunctionsString
-        ? (JSON.parse(customerFunctionsString) as string[])
+      const definedFunctionsString =
+        backendOutput[functionOutputKey]?.payload.definedFunctions;
+      const customerFunctionNames = definedFunctionsString
+        ? (JSON.parse(definedFunctionsString) as string[])
         : [];
 
       customerFunctionNames.forEach((functionName) => {

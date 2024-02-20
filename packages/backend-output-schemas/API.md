@@ -338,21 +338,21 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Function": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
         version: z.ZodLiteral<"1">;
         payload: z.ZodObject<{
-            customerFunctions: z.ZodString;
+            definedFunctions: z.ZodString;
         }, "strip", z.ZodTypeAny, {
-            customerFunctions: string;
+            definedFunctions: string;
         }, {
-            customerFunctions: string;
+            definedFunctions: string;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
         payload: {
-            customerFunctions: string;
+            definedFunctions: string;
         };
     }, {
         version: "1";
         payload: {
-            customerFunctions: string;
+            definedFunctions: string;
         };
     }>]>>;
 }, "strip", z.ZodTypeAny, {
@@ -420,7 +420,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Function"?: {
         version: "1";
         payload: {
-            customerFunctions: string;
+            definedFunctions: string;
         };
     } | undefined;
 }, {
@@ -488,7 +488,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
     "AWS::Amplify::Function"?: {
         version: "1";
         payload: {
-            customerFunctions: string;
+            definedFunctions: string;
         };
     } | undefined;
 }>;
@@ -651,21 +651,21 @@ export const versionedCustomOutputSchema: z.ZodDiscriminatedUnion<"version", [z.
 export const versionedFunctionOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
     version: z.ZodLiteral<"1">;
     payload: z.ZodObject<{
-        customerFunctions: z.ZodString;
+        definedFunctions: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        customerFunctions: string;
+        definedFunctions: string;
     }, {
-        customerFunctions: string;
+        definedFunctions: string;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
     payload: {
-        customerFunctions: string;
+        definedFunctions: string;
     };
 }, {
     version: "1";
     payload: {
-        customerFunctions: string;
+        definedFunctions: string;
     };
 }>]>;
 

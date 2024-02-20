@@ -124,7 +124,7 @@ const getOutputMockResponse = {
   },
   [functionOutputKey]: {
     payload: {
-      customerFunctions: JSON.stringify([
+      definedFunctions: JSON.stringify([
         function1PhysicalResourceId,
         function2PhysicalResourceId,
       ]),

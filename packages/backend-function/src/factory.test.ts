@@ -315,11 +315,11 @@ void describe('AmplifyFunctionFactory', () => {
       functionFactory.getInstance(getInstanceProps);
       const template = Template.fromStack(rootStack);
       // Getting output value is messy due to usage of Lazy to defer output value
-      const customerFunctionsOutputValue =
-        template.findOutputs('customerFunctions').customerFunctions.Value[
+      const definedFunctionsOutputValue =
+        template.findOutputs('definedFunctions').definedFunctions.Value[
           'Fn::Join'
         ][1][1]['Fn::GetAtt'][1];
-      assert.ok(customerFunctionsOutputValue.includes('testLambdaName'));
+      assert.ok(definedFunctionsOutputValue.includes('testLambdaName'));
     });
   });
 });
