@@ -197,9 +197,15 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
-      'AWS::S3::Bucket'
+      'AWS::S3::Bucket',
+      // eslint-disable-next-line spellcheck/spell-checker
+      (bucketName) => bucketName.includes('testnamebucket')
     );
-    assert.equal(bucketName.length, 1);
+    assert.equal(
+      bucketName.length,
+      1,
+      `Expected one test bucket but found ${JSON.stringify(bucketName)}`
+    );
     // store the bucket name in the class so we can assert that it is deleted properly when the stack is torn down
     this.testBucketName = bucketName[0];
   }
@@ -249,11 +255,17 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   };
 
   private assertExpectedCleanup = async () => {
-    assert.equal(await this.checkBucketExists(this.testBucketName), false);
+    assert.equal(
+      await this.checkBucketExists(this.testBucketName),
+      false,
+      `Expected bucket ${this.testBucketName} to be removed but it still exists`
+    );
   };
 
   private checkBucketExists = async (bucketName: string): Promise<boolean> => {
     try {
+      // there appears to be some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
+      await new Promise((resolve) => setTimeout(resolve, 10000)); // wait 10 seconds
       await this.s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
       // if HeadBucket returns without error, the bucket exists and is accessible
       return true;
