@@ -1,5 +1,9 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { BackendAuth, defineAuth } from './factory.js';
+import {
+  BackendAuth,
+  baseDefineAuth as defineAuth,
+  defineAuth as wrappedDefineAuth,
+} from './factory.js';
 import { App, Stack, aws_lambda } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { Match, Template } from 'aws-cdk-lib/assertions';
@@ -21,6 +25,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -78,6 +83,7 @@ void describe('AmplifyAuthFactory', () => {
 
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
   });
+
   void it('verifies constructor import path', () => {
     const importPathVerifier = {
       verify: mock.fn(),
@@ -89,6 +95,22 @@ void describe('AmplifyAuthFactory', () => {
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
         'defineAuth'
       )
+    );
+  });
+
+  void it('should throw DuplicateAuthDefinitionError when defineAuth is called multiple times', () => {
+    assert.throws(
+      () => {
+        wrappedDefineAuth({
+          loginWith: { email: true },
+        });
+        wrappedDefineAuth({
+          loginWith: { email: true },
+        });
+      },
+      new AmplifyUserError('DuplicateAuthDefinitionError', {
+        message: 'You can only call defineAuth once',
+      })
     );
   });
 

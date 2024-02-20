@@ -146,7 +146,7 @@ const limitCalls = <T extends (...args: any[]) => any>(
 /**
  * Provide the settings that will be used for authentication.
  */
-const baseDefineAuth = (
+export const baseDefineAuth = (
   props: AmplifyAuthProps
 ): ConstructFactory<BackendAuth> =>
   new AmplifyAuthFactory(props, new Error().stack);
