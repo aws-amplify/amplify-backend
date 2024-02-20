@@ -142,9 +142,11 @@ module.exports = {
       'FunctionDeclaration',
       'VariableDeclarator > FunctionExpression',
       {
-        "selector": "ClassDeclaration:not([id.name=/BackendIdentifierConversions|ParameterPathConversions/]) MethodDefinition[static=true]",
-        "message": "Static methods are not allowed in classes except BackendIdentifierConversions or ParameterPathConversions."
-      }
+        selector:
+          'ClassDeclaration:not([id.name=/BackendIdentifierConversions|ParameterPathConversions/]) MethodDefinition[static=true]',
+        message:
+          'Static methods are not allowed in classes except BackendIdentifierConversions or ParameterPathConversions.',
+      },
     ],
     'jsdoc/require-description': 'error',
     'jsdoc/require-jsdoc': [
