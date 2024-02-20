@@ -52,14 +52,15 @@ export class StackMetadataBackendOutputStorageStrategy
     const version = backendOutputEntry.version;
     let listsMap = this.lazyListValueMap.get(keyName);
 
-    const existingMetadataEntry = this.stack.node.metadata.find(
-      (entry) => entry.type === keyName
-    );
+    const metadata = this.stack.templateOptions.metadata
+      ? this.stack.templateOptions.metadata
+      : {};
+    const existingMetadataEntry = metadata[keyName];
 
     if (existingMetadataEntry) {
-      if (existingMetadataEntry.data.version !== version) {
+      if (existingMetadataEntry.version !== version) {
         throw new Error(
-          `Metadata entry for ${keyName} at version ${existingMetadataEntry.data.version} already exists. Cannot add another entry for the same key at version ${version}.`
+          `Metadata entry for ${keyName} at version ${existingMetadataEntry.version} already exists. Cannot add another entry for the same key at version ${version}.`
         );
       }
     } else {

@@ -24,17 +24,18 @@ const createStackAndSetContext = (): Stack => {
 };
 
 void describe('AmplifyFunctionFactory', () => {
+  let rootStack: Stack;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
-    const stack = createStackAndSetContext();
+    rootStack = createStackAndSetContext();
 
     const constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(rootStack)
     );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
+      rootStack
     );
 
     getInstanceProps = {
@@ -302,6 +303,23 @@ void describe('AmplifyFunctionFactory', () => {
         // eslint-disable-next-line spellcheck/spell-checker
         Roles: [{ Ref: 'myCoolLambdalambdaServiceRoleC9BABDE6' }],
       });
+    });
+  });
+
+  void describe('storeOutput', () => {
+    void it('stores output using the provided strategy', () => {
+      const functionFactory = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        name: 'testLambdaName',
+      });
+      functionFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(rootStack);
+      // Getting output value is messy due to usage of Lazy to defer output value
+      const customerFunctionsOutputValue =
+        template.findOutputs('customerFunctions').customerFunctions.Value[
+          'Fn::Join'
+        ][1][1]['Fn::GetAtt'][1];
+      assert.ok(customerFunctionsOutputValue.includes('testLambdaName'));
     });
   });
 });
