@@ -143,7 +143,7 @@ module.exports = {
       'VariableDeclarator > FunctionExpression',
 {
     selector: "MethodDefinition[static=true]",
-    message: "Static methods are not allowed.",
+    message: "Static methods are not recommended. Please consider different solutions first. If you think you have a good case for static method make sure this is discussed in code review.",
     filter: {
       not: [
         {
