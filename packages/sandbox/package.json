@@ -27,7 +27,7 @@
     "@aws-sdk/credential-providers": "^3.465.0",
     "@aws-sdk/types": "^3.465.0",
     "@aws-sdk/client-cloudformation": "^3.465.0",
-    "@parcel/watcher": "^2.3.0",
+    "@parcel/watcher": "2.1.0",
     "debounce-promise": "^3.1.2",
     "glob": "^10.2.7",
     "open": "^9.1.0",

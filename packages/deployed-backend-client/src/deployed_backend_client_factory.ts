@@ -72,6 +72,13 @@ export type BackendMetadata = {
     lastUpdated: Date | undefined;
     s3BucketName: string;
   };
+  functionConfigurations?: FunctionConfiguration[];
+};
+
+export type FunctionConfiguration = {
+  status: BackendDeploymentStatus;
+  lastUpdated: Date | undefined;
+  functionName: string;
 };
 
 export type ListSandboxesResponse = {
