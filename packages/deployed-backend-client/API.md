@@ -132,7 +132,7 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    static getInstance(options: DeployedBackendClientFactoryOptions): DeployedBackendClient;
+    getInstance(options: DeployedBackendClientFactoryOptions): DeployedBackendClient;
 }
 
 // @public (undocumented)
