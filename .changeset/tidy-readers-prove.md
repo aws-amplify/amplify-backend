@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/deployed-backend-client': patch
+'@aws-amplify/deployed-backend-client': minor
 ---
 
 remove static method
