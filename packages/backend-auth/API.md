@@ -15,9 +15,11 @@ import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct-alpha';
+import { MFA } from '@aws-amplify/auth-construct-alpha';
 import { OidcProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
 // @public
@@ -49,7 +51,18 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
 export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName>;
 
 // @public
-export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth>;
+export const baseDefineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth>;
+
+// @public (undocumented)
+export const defineAuth: (props: {
+    name?: string | undefined;
+    userAttributes?: StandardAttributes | undefined;
+    multifactor?: MFA | undefined;
+    accountRecovery?: "EMAIL_AND_PHONE_WITHOUT_MFA" | "PHONE_WITHOUT_MFA_AND_EMAIL" | "EMAIL_ONLY" | "PHONE_ONLY_WITHOUT_MFA" | "PHONE_AND_EMAIL" | "NONE" | undefined;
+    groups?: string[] | undefined;
+    loginWith: Expand<AuthLoginWithFactoryProps>;
+    triggers?: Partial<Record<"createAuthChallenge" | "customMessage" | "defineAuthChallenge" | "postAuthentication" | "postConfirmation" | "preAuthentication" | "preSignUp" | "preTokenGeneration" | "userMigration" | "verifyAuthChallengeResponse", ConstructFactory<ResourceProvider<FunctionResources>>>> | undefined;
+}) => ConstructFactory<BackendAuth>;
 
 // @public
 export type Expand<T> = T extends infer O ? {
