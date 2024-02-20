@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.4.4-beta.0
+
+### Patch Changes
+
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 7cbe58b: adding triggers to storage events
+
 ## 0.4.3
 
 ### Patch Changes

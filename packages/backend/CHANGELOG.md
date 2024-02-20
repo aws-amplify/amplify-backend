@@ -1,5 +1,34 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.2
+
+### Minor Changes
+
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- Updated dependencies [ab7533d]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [cfc3bc4]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4995bda]
+- Updated dependencies [85e953f]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.0
+  - @aws-amplify/backend-output-storage@0.4.0-beta.1
+  - @aws-amplify/backend-function@0.8.0-beta.1
+  - @aws-amplify/backend-storage@0.6.0-beta.1
+  - @aws-amplify/platform-core@0.5.0-beta.1
+  - @aws-amplify/plugin-types@0.9.0-beta.0
+  - @aws-amplify/backend-auth@0.5.0-beta.2
+  - @aws-amplify/backend-data@0.10.0-beta.2
+  - @aws-amplify/client-config@0.8.1-beta.1
+  - @aws-amplify/backend-secret@0.4.5-beta.1
+
 ## 0.13.0-beta.1
 
 ### Patch Changes
