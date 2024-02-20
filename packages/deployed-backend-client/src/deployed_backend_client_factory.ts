@@ -121,7 +121,7 @@ export class DeployedBackendClientFactory {
   /**
    * Returns a single instance of DeploymentClient
    */
-  static getInstance(
+  getInstance(
     options: DeployedBackendClientFactoryOptions
   ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
