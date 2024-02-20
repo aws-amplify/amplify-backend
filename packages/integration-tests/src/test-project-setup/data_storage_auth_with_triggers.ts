@@ -14,6 +14,7 @@ import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
+import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -30,6 +31,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
     private readonly cfnClient: CloudFormationClient,
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
+    private readonly s3Client: S3Client,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
@@ -44,6 +46,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.cfnClient,
       this.secretClient,
       this.lambdaClient,
+      this.s3Client,
       this.resourceFinder
     );
     await fs.cp(
@@ -91,6 +94,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   private amplifySharedSecret: string;
 
+  private testBucketName: string;
+
   /**
    * Create a test project instance.
    */
@@ -101,6 +106,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     cfnClient: CloudFormationClient,
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
+    private readonly s3Client: S3Client,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
@@ -130,6 +136,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   override async tearDown(backendIdentifier: BackendIdentifier) {
     await super.tearDown(backendIdentifier);
     await this.clearDeployEnvironment(backendIdentifier);
+    await this.assertExpectedCleanup();
   }
 
   /**
@@ -187,6 +194,14 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
+
+    const bucketName = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::S3::Bucket'
+    );
+    assert.equal(bucketName.length, 1);
+    // store the bucket name in the class so we can assert that it is deleted properly when the stack is torn down
+    this.testBucketName = bucketName[0];
   }
 
   private setUpDeployEnvironment = async (
@@ -231,5 +246,22 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     // check expected response
     assert.deepStrictEqual(responsePayload, expectedResponse);
+  };
+
+  private assertExpectedCleanup = async () => {
+    assert.equal(await this.checkBucketExists(this.testBucketName), false);
+  };
+
+  private checkBucketExists = async (bucketName: string): Promise<boolean> => {
+    try {
+      await this.s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
+      // if HeadBucket returns without error, the bucket exists and is accessible
+      return true;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'NotFound') {
+        return false;
+      }
+      throw err;
+    }
   };
 }
