@@ -46,7 +46,8 @@ export type AmplifyAuthProps = Expand<
 /**
  * Singleton factory for AmplifyAuth that can be used in Amplify project files
  */
-class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
+export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
+  static factoryCount = 0;
   readonly provides = 'AuthResources';
   private generator: ConstructContainerEntryGenerator;
 
@@ -56,7 +57,15 @@ class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
   constructor(
     private readonly props: AmplifyAuthProps,
     private readonly importStack = new Error().stack
-  ) {}
+  ) {
+    if (AmplifyAuthFactory.factoryCount > 0) {
+      throw new AmplifyUserError('TooManyAmplifyAuthFactoryError', {
+        message: 'You cannot instantiate multiple AmplifyAuthFactory',
+        resolution: 'You can only call defineAuth once',
+      });
+    }
+    AmplifyAuthFactory.factoryCount++;
+  }
 
   /**
    * Get a singleton instance of AmplifyAuth
@@ -125,33 +134,10 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   };
 }
 
-// disabled to satisfy generic requirement for Parameters & ReturnType.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const limitCalls = <T extends (...args: any[]) => any>(
-  func: T,
-  limit: number
-) => {
-  let count = 0;
-
-  return function (...args: Parameters<T>): ReturnType<T> {
-    if (++count > limit) {
-      throw new AmplifyUserError('DuplicateAuthDefinitionError', {
-        message: `You can only call ${func.name} once`,
-      });
-    }
-    return func(args);
-  };
-};
-
 /**
  * Provide the settings that will be used for authentication.
  */
-export const baseDefineAuth = (
+export const defineAuth = (
   props: AmplifyAuthProps
 ): ConstructFactory<BackendAuth> =>
   new AmplifyAuthFactory(props, new Error().stack);
-
-// override function name for context.
-Object.defineProperty(baseDefineAuth, 'name', { value: 'defineAuth' });
-
-export const defineAuth = limitCalls(baseDefineAuth, 1);
