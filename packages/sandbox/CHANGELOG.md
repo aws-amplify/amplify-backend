@@ -1,5 +1,21 @@
 # @aws-amplify/sandbox
 
+## 0.5.2-beta.1
+
+### Patch Changes
+
+- 88c1b28: temporarely downgrade @parcel/watcher to 2.1.0 for npm 10.4 issue
+- Updated dependencies [ab7533d]
+- Updated dependencies [a01f6b9]
+- Updated dependencies [baeb68f]
+- Updated dependencies [4995bda]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.1
+  - @aws-amplify/platform-core@0.5.0-beta.1
+  - @aws-amplify/cli-core@0.4.1-beta.0
+  - @aws-amplify/client-config@0.8.1-beta.1
+  - @aws-amplify/backend-deployer@0.5.1-beta.1
+  - @aws-amplify/backend-secret@0.4.5-beta.1
+
 ## 0.5.2-beta.0
 
 ### Patch Changes

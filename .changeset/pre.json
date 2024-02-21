@@ -27,12 +27,22 @@
     "@aws-amplify/sandbox": "0.5.1"
   },
   "changesets": [
+    "brave-carrots-glow",
+    "brave-pets-clean",
     "brown-otters-smoke",
     "eighty-rings-pull",
+    "five-fireants-shout",
+    "four-donuts-jump",
     "friendly-kids-lick",
+    "giant-feet-sing",
+    "khaki-panthers-grin",
     "lemon-peas-sin",
+    "loud-sheep-occur",
+    "mean-frogs-visit",
     "mighty-experts-compare",
     "smooth-penguins-joke",
+    "smooth-tigers-double",
+    "sour-rice-listen",
     "three-doors-act"
   ]
 }

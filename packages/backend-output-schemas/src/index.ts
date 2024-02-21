@@ -4,6 +4,7 @@ import { versionedGraphqlOutputSchema } from './graphql/index.js';
 import { versionedStorageOutputSchema } from './storage/index.js';
 import { versionedStackOutputSchema } from './stack/index.js';
 import { versionedCustomOutputSchema } from './custom';
+import { versionedFunctionOutputSchema } from './function/index.js';
 
 /**
  * The auth, graphql and storage exports here are duplicated from the submodule exports in the package.json file
@@ -70,6 +71,20 @@ export * from './storage/index.js';
 export const storageOutputKey = 'AWS::Amplify::Storage';
 
 /**
+ * ---------- Function exports ----------
+ */
+
+/**
+ * re-export the function output schema
+ */
+export * from './function/index.js';
+
+/**
+ * Expected key that function output is stored under
+ */
+export const functionOutputKey = 'AWS::Amplify::Function';
+
+/**
  * ---------- Unified exports ----------
  */
 
@@ -83,6 +98,7 @@ export const unifiedBackendOutputSchema = z.object({
   [graphqlOutputKey]: versionedGraphqlOutputSchema.optional(),
   [storageOutputKey]: versionedStorageOutputSchema.optional(),
   [customOutputKey]: versionedCustomOutputSchema.optional(),
+  [functionOutputKey]: versionedFunctionOutputSchema.optional(),
 });
 /**
  * This type is a subset of the BackendOutput type that is exposed by the platform.
