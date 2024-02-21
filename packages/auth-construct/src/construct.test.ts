@@ -635,35 +635,44 @@ void describe('Auth construct', () => {
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 2);
-
-      assert.deepStrictEqual(storeOutputArgs, [
-        authOutputKey,
-        {
-          version: '1',
-          payload: {
-            userPoolId: expectedUserPoolId,
-            webClientId: expectedWebClientId,
-            identityPoolId: expectedIdentityPoolId,
-            authRegion: expectedRegion,
-            passwordPolicyMinLength:
-              DEFAULTS.PASSWORD_POLICY.minLength.toString(),
-            passwordPolicyRequirements:
-              defaultPasswordPolicyCharacterRequirements,
-            signupAttributes: '["EMAIL"]',
-            verificationMechanisms: '["EMAIL"]',
-            usernameAttributes: '["EMAIL"]',
-            googleClientId: 'googleClientId',
-            oauthClientId: expectedWebClientId, // same thing
-            oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
-            oauthScope: '["email","profile"]',
-            oauthRedirectSignIn: 'http://callback.com',
-            oauthRedirectSignOut: 'http://logout.com',
-            oauthResponseType: 'code',
-            socialProviders: '["GOOGLE"]',
-            allowUnauthenticatedIdentities: 'true',
+      const oidcProviders = authConstruct['providerSetupResult']['oidc'];
+      if (oidcProviders) {
+        const provider1 = oidcProviders[0].providerName;
+        const provider2 = oidcProviders[1].providerName;
+        const unnamedProvider = oidcProviders[2].providerName;
+        assert.deepStrictEqual(storeOutputArgs, [
+          authOutputKey,
+          {
+            version: '1',
+            payload: {
+              userPoolId: expectedUserPoolId,
+              webClientId: expectedWebClientId,
+              identityPoolId: expectedIdentityPoolId,
+              authRegion: expectedRegion,
+              passwordPolicyMinLength:
+                DEFAULTS.PASSWORD_POLICY.minLength.toString(),
+              passwordPolicyRequirements:
+                defaultPasswordPolicyCharacterRequirements,
+              signupAttributes: '["EMAIL"]',
+              verificationMechanisms: '["EMAIL"]',
+              usernameAttributes: '["EMAIL"]',
+              googleClientId: 'googleClientId',
+              oauthClientId: expectedWebClientId, // same thing
+              oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
+              oauthScope: '["email","profile"]',
+              oauthRedirectSignIn: 'http://callback.com',
+              oauthRedirectSignOut: 'http://logout.com',
+              oauthResponseType: 'code',
+              socialProviders: `["GOOGLE","${provider1}","${provider2}","${unnamedProvider}"]`,
+              allowUnauthenticatedIdentities: 'true',
+            },
           },
-        },
-      ]);
+        ]);
+      } else {
+        assert.fail(
+          'Providers were not properly initialized by the construct and could not be tested for output.'
+        );
+      }
     });
 
     void it('multifactor prop updates mfaConfiguration & mfaTypes', () => {
