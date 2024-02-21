@@ -20,7 +20,7 @@ export class FunctionEnvironmentTypeGenerator {
   }
 
   /**
-   * Generate a type definition file as a sibling to the function's entry file
+   * Generate a type definition file
    */
   generateTypeDefFile() {
     const declarations = [];
