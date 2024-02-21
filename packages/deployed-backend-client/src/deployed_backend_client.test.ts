@@ -10,6 +10,7 @@ import {
 import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
 import {
   authOutputKey,
+  functionOutputKey,
   graphqlOutputKey,
   platformOutputKey,
   storageOutputKey,
@@ -23,8 +24,14 @@ import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
 
-// eslint-disable-next-line spellcheck/spell-checker
+/* eslint-disable spellcheck/spell-checker */
 const validTestBranchName = 'amplify-test-testBranch-branch-5c6fa1ef9a';
+const functionStackName = 'amplify-test-testBranch-function';
+const function1PhysicalResourceId =
+  'amplify-test-testBranch-function1lambda0D228327-dEw8Nyq8WDO5';
+const function2PhysicalResourceId =
+  'amplify-test-testBranch-function2lambdaB8666-7ea0koMMFzHL';
+/* eslint-enable spellcheck/spell-checker */
 
 const stackSummaries = [
   {
@@ -53,6 +60,13 @@ const stackSummaries = [
     CreationTime: new Date(0),
     LastUpdatedTime: new Date(1),
   },
+  {
+    StackName: functionStackName,
+    StackStatus: StackStatus.CREATE_COMPLETE,
+    ParentId: 'testStackId',
+    CreationTime: new Date(0),
+    LastUpdatedTime: new Date(2),
+  },
 ];
 
 const deleteStackMock = undefined;
@@ -72,6 +86,11 @@ const listStackResourcesMock = {
     {
       PhysicalResourceId:
         'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-auth/randomString',
+      ResourceType: 'AWS::CloudFormation::Stack',
+    },
+    {
+      PhysicalResourceId:
+        'arn:aws:cloudformation:us-east-1:123:stack/amplify-test-testBranch-function/randomString',
       ResourceType: 'AWS::CloudFormation::Stack',
     },
     {
@@ -103,7 +122,39 @@ const getOutputMockResponse = {
       awsAppsyncApiId: 'awsAppsyncApiId',
     },
   },
+  [functionOutputKey]: {
+    payload: {
+      definedFunctions: JSON.stringify([
+        function1PhysicalResourceId,
+        function2PhysicalResourceId,
+      ]),
+    },
+  },
 };
+
+const deployedResources = [
+  {
+    logicalResourceId: 'function1234',
+    lastUpdated: new Date(1),
+    resourceStatus: StackStatus.UPDATE_COMPLETE,
+    resourceType: 'AWS::CloudFormation::Stack',
+    physicalResourceId: functionStackName,
+  },
+  {
+    logicalResourceId: 'function1lambda1234',
+    lastUpdated: new Date(1),
+    resourceStatus: StackStatus.CREATE_COMPLETE,
+    resourceType: 'AWS::Lambda::Function',
+    physicalResourceId: function1PhysicalResourceId,
+  },
+  {
+    logicalResourceId: 'function2lambda1234',
+    lastUpdated: new Date(2),
+    resourceStatus: StackStatus.UPDATE_COMPLETE,
+    resourceType: 'AWS::Lambda::Function',
+    physicalResourceId: function2PhysicalResourceId,
+  },
+];
 
 void describe('Deployed Backend Client', () => {
   const mockCfnClient = new CloudFormation();
@@ -150,7 +201,12 @@ void describe('Deployed Backend Client', () => {
       new ArnGenerator(),
       new ArnParser()
     );
-    mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
+
+    mock.method(
+      deployedResourcesEnumerator,
+      'listDeployedResources',
+      () => deployedResources
+    );
 
     deployedBackendClient = new DefaultDeployedBackendClient(
       mockCfnClient,
@@ -183,7 +239,7 @@ void describe('Deployed Backend Client', () => {
       name: validTestBranchName,
       lastUpdated: new Date(0),
       status: BackendDeploymentStatus.DEPLOYED,
-      resources: [],
+      resources: deployedResources,
       authConfiguration: {
         userPoolId: 'testUserPoolId',
         lastUpdated: new Date(1),
@@ -203,6 +259,18 @@ void describe('Deployed Backend Client', () => {
         conflictResolutionMode: undefined,
         apiId: 'awsAppsyncApiId',
       },
+      functionConfigurations: [
+        {
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: new Date(1),
+          functionName: function1PhysicalResourceId,
+        },
+        {
+          status: BackendDeploymentStatus.DEPLOYED,
+          lastUpdated: new Date(2),
+          functionName: function2PhysicalResourceId,
+        },
+      ],
     });
   });
 });

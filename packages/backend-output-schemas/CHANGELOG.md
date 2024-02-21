@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.7.0-beta.0
+
+### Minor Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+
 ## 0.6.0
 
 ### Minor Changes
