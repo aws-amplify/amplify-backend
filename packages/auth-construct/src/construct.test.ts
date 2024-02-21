@@ -572,6 +572,8 @@ void describe('Auth construct', () => {
             userPoolId: expectedUserPoolId,
             webClientId: expectedWebClientId,
             identityPoolId: expectedIdentityPoolId,
+            mfaConfiguration: 'OFF',
+            mfaTypes: '[]',
             authRegion: expectedRegion,
             passwordPolicyMinLength:
               DEFAULTS.PASSWORD_POLICY.minLength.toString(),
@@ -626,6 +628,8 @@ void describe('Auth construct', () => {
             userPoolId: expectedUserPoolId,
             webClientId: expectedWebClientId,
             identityPoolId: expectedIdentityPoolId,
+            mfaConfiguration: 'OFF',
+            mfaTypes: '[]',
             authRegion: expectedRegion,
             passwordPolicyMinLength:
               DEFAULTS.PASSWORD_POLICY.minLength.toString(),
@@ -648,7 +652,7 @@ void describe('Auth construct', () => {
       ]);
     });
 
-    void it('multifactor prop updates mfaConfiguration & mfaTypes', () => {
+    void it('multifactor prop updates mfaConfiguration & mfaTypes when optional', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -659,7 +663,34 @@ void describe('Auth construct', () => {
       const { payload } = storeOutputMock.mock.calls[0].arguments[1];
 
       assert.equal(payload.mfaConfiguration, 'OPTIONAL');
-      assert.equal(payload.mfaTypes, '["TOTP","SMS"]');
+      assert.equal(payload.mfaTypes, '["SMS","TOTP"]');
+    });
+
+    void it('multifactor prop updates mfaConfiguration & mfaTypes when required', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        multifactor: { mode: 'REQUIRED', sms: true, totp: true },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
+
+      assert.equal(payload.mfaConfiguration, 'ON');
+      assert.equal(payload.mfaTypes, '["SMS","TOTP"]');
+    });
+
+    void it('multifactor prop updates mfaConfiguration & mfaTypes when off', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
+
+      assert.equal(payload.mfaConfiguration, 'OFF');
+      assert.equal(payload.mfaTypes, '[]');
     });
 
     void it('userAttributes prop should update signupAttributes', () => {
@@ -722,6 +753,8 @@ void describe('Auth construct', () => {
               'verificationMechanisms',
               'passwordPolicyMinLength',
               'passwordPolicyRequirements',
+              'mfaConfiguration',
+              'mfaTypes',
             ],
           },
         },
