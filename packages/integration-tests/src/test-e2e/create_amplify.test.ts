@@ -32,11 +32,19 @@ void describe(
       // Force 'create-amplify' installation in npx cache by executing help command
       // before tests run. Otherwise, installing 'create-amplify' concurrently
       // may lead to race conditions and corrupted npx cache.
-      await execa('npm', ['create', amplifyAtTag, '--yes', '--', '--help'], {
-        // Command must run outside of 'amplify-backend' workspace.
-        cwd: os.homedir(),
-        stdio: 'inherit',
-      });
+      const output = await execa(
+        'npm',
+        ['create', amplifyAtTag, '--yes', '--', '--help'],
+        {
+          // Command must run outside of 'amplify-backend' workspace.
+          cwd: os.homedir(),
+        }
+      );
+
+      assert.match(output.stdout, /--help/);
+      assert.match(output.stdout, /--version/);
+      assert.match(output.stdout, /Show version number/);
+      assert.match(output.stdout, /--yes/);
 
       // Prefixing with ~. Otherwise, npm is going to install desired version but
       // declare dependency with ^ in package json. So just in case removing that
