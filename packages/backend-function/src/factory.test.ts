@@ -24,17 +24,18 @@ const createStackAndSetContext = (): Stack => {
 };
 
 void describe('AmplifyFunctionFactory', () => {
+  let rootStack: Stack;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
-    const stack = createStackAndSetContext();
+    rootStack = createStackAndSetContext();
 
     const constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(rootStack)
     );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
+      rootStack
     );
 
     getInstanceProps = {
@@ -301,6 +302,37 @@ void describe('AmplifyFunctionFactory', () => {
       template.hasResourceProperties('AWS::IAM::Policy', {
         // eslint-disable-next-line spellcheck/spell-checker
         Roles: [{ Ref: 'myCoolLambdalambdaServiceRoleC9BABDE6' }],
+      });
+    });
+  });
+
+  void describe('storeOutput', () => {
+    void it('stores output using the provided strategy', () => {
+      const functionFactory = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        name: 'testLambdaName',
+      });
+      functionFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(rootStack);
+      // Getting output value is messy due to usage of Lazy to defer output value
+      const outputValue =
+        template.findOutputs('definedFunctions').definedFunctions.Value;
+      assert.deepStrictEqual(outputValue, {
+        ['Fn::Join']: [
+          '',
+          [
+            '["',
+            {
+              ['Fn::GetAtt']: [
+                /* eslint-disable spellcheck/spell-checker */
+                'functionNestedStackfunctionNestedStackResource1351588B',
+                'Outputs.functiontestLambdaNamelambda36106226Ref',
+                /* eslint-enable spellcheck/spell-checker */
+              ],
+            },
+            '"]',
+          ],
+        ],
       });
     });
   });

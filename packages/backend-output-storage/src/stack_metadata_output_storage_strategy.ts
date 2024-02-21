@@ -2,7 +2,11 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import { CfnOutput, Stack } from 'aws-cdk-lib';
+import { CfnOutput, Lazy, Stack } from 'aws-cdk-lib';
+
+// Aliased strings for readability
+type MetadataKey = string;
+type OutputKey = string;
 
 /**
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs
@@ -10,6 +14,9 @@ import { CfnOutput, Stack } from 'aws-cdk-lib';
 export class StackMetadataBackendOutputStorageStrategy
   implements BackendOutputStorageStrategy<BackendOutputEntry>
 {
+  private lazyListValueMap: Map<MetadataKey, Map<OutputKey, string[]>> =
+    new Map();
+
   /**
    * Initialize the instance with a stack.
    *
@@ -32,6 +39,54 @@ export class StackMetadataBackendOutputStorageStrategy
     this.stack.addMetadata(keyName, {
       version: backendOutputEntry.version,
       stackOutputs: Object.keys(backendOutputEntry.payload),
+    });
+  };
+
+  /**
+   * Lazily construct and append to output list as stack output and add metadata to the metadata object.
+   */
+  appendToBackendOutputList = (
+    keyName: string,
+    backendOutputEntry: BackendOutputEntry
+  ): void => {
+    const version = backendOutputEntry.version;
+    let listsMap = this.lazyListValueMap.get(keyName);
+
+    const metadata = this.stack.templateOptions.metadata || {};
+    const existingMetadataEntry = metadata[keyName];
+
+    if (existingMetadataEntry) {
+      if (existingMetadataEntry.version !== version) {
+        throw new Error(
+          `Metadata entry for ${keyName} at version ${existingMetadataEntry.version} already exists. Cannot add another entry for the same key at version ${version}.`
+        );
+      }
+    } else {
+      this.stack.addMetadata(keyName, {
+        version,
+        stackOutputs: Lazy.list({
+          produce: () => Array.from(listsMap ? listsMap.keys() : []),
+        }),
+      });
+    }
+
+    Object.entries(backendOutputEntry.payload).forEach(([listName, value]) => {
+      if (!listsMap) {
+        listsMap = new Map();
+        this.lazyListValueMap.set(keyName, listsMap);
+      }
+      let outputList = listsMap.get(listName);
+
+      if (outputList) {
+        outputList.push(value);
+      } else {
+        outputList = [value];
+        listsMap.set(listName, outputList);
+
+        new CfnOutput(this.stack, listName, {
+          value: Lazy.string({ produce: () => JSON.stringify(outputList) }),
+        });
+      }
     });
   };
 }
