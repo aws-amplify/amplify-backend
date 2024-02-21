@@ -305,10 +305,7 @@ class AmplifyFunction
     // This is a hack to generate a type definition file after synthesis
     this.node.addValidation({
       validate: (): string[] => {
-        new FunctionEnvironmentTypeGenerator(
-          id,
-          props.entry
-        ).generateTypeDefFile();
+        new FunctionEnvironmentTypeGenerator(id).generateTypeDefFile();
         return [];
       },
     });

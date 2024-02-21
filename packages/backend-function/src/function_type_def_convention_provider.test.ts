@@ -1,17 +1,14 @@
 import { describe, it } from 'node:test';
-import { FunctionTypeDefConventionProvider } from './function_type_def_convention_provider';
+import { FunctionTypeDefConventionProvider } from './function_type_def_convention_provider.js';
 import assert from 'node:assert';
 
 void describe('FunctionTypeDefConventionProvider', () => {
-  const functionEntryPath = '/test/file/path/entry.ts';
   const functionName = 'testFunction';
 
   void it('gets the path to the type definition file', () => {
-    const expectedTypeDefFilePath =
-      '/test/file/path/amplify/testFunction_env.ts';
+    const expectedTypeDefFilePath = `${process.cwd()}/.amplify/function-env/testFunction.ts`;
 
     const actualTypeDefFilePath = new FunctionTypeDefConventionProvider(
-      functionEntryPath,
       functionName
     ).getFunctionTypeDefFilePath();
 
@@ -19,11 +16,10 @@ void describe('FunctionTypeDefConventionProvider', () => {
   });
 
   void it('gets the ignore pattern for type definition files', () => {
-    const expectedIgnorePattern = '**/amplify/*_env.ts';
+    const expectedIgnorePattern = '../.amplify/function-env/*';
     const actualIgnorePattern = new FunctionTypeDefConventionProvider(
-      functionEntryPath,
       functionName
-    ).getFunctionTypeDefIgnorePattern();
+    ).getFunctionTypeDefPathPattern();
 
     assert.equal(actualIgnorePattern, expectedIgnorePattern);
   });

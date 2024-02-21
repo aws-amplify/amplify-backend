@@ -23,6 +23,13 @@ export type FunctionProps = {
     runtime?: NodeVersion;
 };
 
+// @public
+export class FunctionTypeDefConventionProvider {
+    constructor(functionName: string);
+    getFunctionTypeDefFilePath(): string;
+    getFunctionTypeDefPathPattern(): string;
+}
+
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20;
 

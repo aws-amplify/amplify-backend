@@ -294,7 +294,7 @@ void describe('Sandbox using local project name resolver', () => {
     // File watcher should be called with right arguments such as dir and excludes
     assert.strictEqual(subscribeMock.mock.calls[0].arguments[0], 'testDir');
     assert.deepStrictEqual(subscribeMock.mock.calls[0].arguments[2], {
-      ignore: ['.amplify', '**/amplify/*_env.ts', 'exclude1', 'exclude2'],
+      ignore: ['.amplify', 'exclude1', 'exclude2'],
     });
 
     // BackendDeployer should be called once
@@ -709,7 +709,6 @@ void describe('Sandbox using local project name resolver', () => {
         'someFile.js',
         'overlap/',
         'overlap/file',
-        '**/amplify/*_env.ts',
         'customer_exclude1',
         'customer_exclude2',
       ],
@@ -751,7 +750,6 @@ void describe('Sandbox using local project name resolver', () => {
         'someFile.js',
         'overlap/',
         'overlap/file',
-        '**/amplify/*_env.ts',
         'customer_exclude1',
         'customer_exclude2',
       ],

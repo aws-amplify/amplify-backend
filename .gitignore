@@ -21,5 +21,4 @@ e2e-tests
 concurrent_workspace_script_cache.json
 
 testDir
-**/test-assets/**/amplify
-**/test-projects/**/amplify
+.amplify

@@ -6,6 +6,7 @@ import { type PackageManagerController } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
+import { FunctionTypeDefConventionProvider } from '@aws-amplify/backend-function';
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -95,6 +96,14 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
    * initializeTsConfig - initializes a tsconfig.json file in the project root
    */
   async initializeTsConfig(targetDir: string) {
+    // We only need the path pattern so any strings in constructor won't affect result
+    const typeDefFilePathPattern = new FunctionTypeDefConventionProvider(
+      ''
+    ).getFunctionTypeDefPathPattern();
+    const pathsObj = JSON.stringify({
+      '@env/*': [typeDefFilePathPattern],
+    });
+
     const tscArgs = [
       'tsc',
       '--init',
@@ -106,6 +115,8 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       'bundler',
       '--target',
       'es2022',
+      '--paths',
+      pathsObj,
     ];
 
     await this.executeWithDebugLogger(

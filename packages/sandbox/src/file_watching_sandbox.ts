@@ -29,10 +29,7 @@ import {
   FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
-import {
-  AmplifyError,
-  FunctionTypeDefConventionProvider,
-} from '@aws-amplify/platform-core';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -105,17 +102,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     }
 
     const ignoredPaths = this.getGitIgnoredPaths();
-    const functionTypeDefIgnorePattern =
-      // We only need ignore pattern so any strings in constructor will not affect result
-      new FunctionTypeDefConventionProvider(
-        '',
-        ''
-      ).getFunctionTypeDefIgnorePattern();
     this.outputFilesExcludedFromWatch =
-      this.outputFilesExcludedFromWatch.concat(
-        ...ignoredPaths,
-        functionTypeDefIgnorePattern
-      );
+      this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
 
     this.printer.log(`[Sandbox] Initializing...`, LogLevel.DEBUG);
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
