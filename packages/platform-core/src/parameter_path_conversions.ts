@@ -11,6 +11,8 @@ export class ParameterPathConversions {
   /**
    * Convert a BackendIdentifier to a parameter prefix.
    */
+  // It's fine to ignore the rule here because the anti-static rule is to ban the static function which should use constructor
+  // eslint-disable-next-line no-restricted-syntax
   static toParameterPrefix(backendId: BackendIdentifier | AppId): string {
     if (typeof backendId === 'object') {
       return getBackendParameterPrefix(backendId);
@@ -21,6 +23,8 @@ export class ParameterPathConversions {
   /**
    * Convert a BackendIdentifier to a parameter full path.
    */
+  // It's fine to ignore the rule here because the anti-static rule is to ban the static function which should use constructor
+  // eslint-disable-next-line no-restricted-syntax
   static toParameterFullPath(
     backendId: BackendIdentifier | AppId,
     parameterName: string
@@ -34,6 +38,8 @@ export class ParameterPathConversions {
   /**
    * Generate an SSM path for references to other backend resources
    */
+  // It's fine to ignore the rule here because the anti-static rule is to ban the static function which should use constructor
+  // eslint-disable-next-line no-restricted-syntax
   static toResourceReferenceFullPath(
     backendId: BackendIdentifier,
     referenceName: string

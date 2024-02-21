@@ -1,5 +1,19 @@
 # create-amplify
 
+## 0.6.1-beta.2
+
+### Patch Changes
+
+- Updated dependencies [ab7533d]
+- Updated dependencies [a01f6b9]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [baeb68f]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4995bda]
+  - @aws-amplify/platform-core@0.5.0-beta.1
+  - @aws-amplify/plugin-types@0.9.0-beta.0
+  - @aws-amplify/cli-core@0.4.1-beta.0
+
 ## 0.6.1-beta.1
 
 ### Patch Changes
