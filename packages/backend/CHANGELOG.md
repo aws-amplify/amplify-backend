@@ -1,5 +1,11 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.3
+
+### Patch Changes
+
+- @aws-amplify/client-config@0.8.1-beta.2
+
 ## 0.13.0-beta.2
 
 ### Minor Changes
