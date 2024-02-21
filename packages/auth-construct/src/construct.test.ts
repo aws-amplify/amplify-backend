@@ -594,6 +594,25 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
+            oidc: [
+              {
+                name: 'provider1',
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+              },
+              {
+                name: 'provider2',
+                clientId: oidcClientId2,
+                clientSecret: oidcClientSecret2,
+                issuerUrl: oidcIssuerUrl2,
+              },
+              {
+                clientId: 'clientId3',
+                clientSecret: 'oidcClientSecret3',
+                issuerUrl: 'oidcIssuerUrl3',
+              },
+            ],
             scopes: ['EMAIL', 'PROFILE'],
             callbackUrls: ['http://callback.com'],
             logoutUrls: ['http://logout.com'],
