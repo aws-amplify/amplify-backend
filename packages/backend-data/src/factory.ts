@@ -29,7 +29,8 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
  */
-class DataFactory implements ConstructFactory<AmplifyData> {
+export class DataFactory implements ConstructFactory<AmplifyData> {
+  static factoryCount = 0;
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -38,7 +39,15 @@ class DataFactory implements ConstructFactory<AmplifyData> {
   constructor(
     private readonly props: DataProps,
     private readonly importStack = new Error().stack
-  ) {}
+  ) {
+    if (DataFactory.factoryCount > 0) {
+      throw new AmplifyUserError<AmplifyDataError>('TooManyDataFactoryError', {
+        message: 'You cannot instantiate multiple DataFactory',
+        resolution: 'You can only call defineData once',
+      });
+    }
+    DataFactory.factoryCount++;
+  }
 
   /**
    * Gets an instance of the Data construct
