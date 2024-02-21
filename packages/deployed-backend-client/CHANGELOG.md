@@ -1,5 +1,11 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.4.0-beta.2
+
+### Minor Changes
+
+- 415c4c1: remove static method
+
 ## 0.4.0-beta.1
 
 ### Minor Changes
