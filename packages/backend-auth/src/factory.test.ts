@@ -105,9 +105,10 @@ void describe('AmplifyAuthFactory', () => {
           loginWith: { email: true },
         });
       },
-      new AmplifyUserError('TooManyAmplifyAuthFactoryError', {
-        message: 'You cannot instantiate multiple AmplifyAuthFactory',
-        resolution: 'You can only call defineAuth once',
+      new AmplifyUserError('MultipleSingletonResourcesError', {
+        message:
+          'Multiple `defineAuth` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineAuth` call',
       })
     );
   });
