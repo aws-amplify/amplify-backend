@@ -265,7 +265,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private checkBucketExists = async (bucketName: string): Promise<boolean> => {
     try {
       // there appears to be some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
-      await new Promise((resolve) => setTimeout(resolve, 10000)); // wait 10 seconds
+      await new Promise((resolve) => setTimeout(resolve, 1000 * 30)); // wait 30 seconds
       await this.s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
       // if HeadBucket returns without error, the bucket exists and is accessible
       return true;
