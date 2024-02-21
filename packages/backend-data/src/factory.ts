@@ -27,10 +27,14 @@ import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
- * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
+ * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
+ *
+ * Exported for testing purpose only & should NOT be exported out of the package.
  */
 export class DataFactory implements ConstructFactory<AmplifyData> {
+  // publicly accessible for testing purpose only.
   static factoryCount = 0;
+
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -41,9 +45,10 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
     private readonly importStack = new Error().stack
   ) {
     if (DataFactory.factoryCount > 0) {
-      throw new AmplifyUserError<AmplifyDataError>('TooManyDataFactoryError', {
-        message: 'You cannot instantiate multiple DataFactory',
-        resolution: 'You can only call defineData once',
+      throw new AmplifyUserError('MultipleSingletonResourcesError', {
+        message:
+          'Multiple `defineData` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineData` call',
       });
     }
     DataFactory.factoryCount++;

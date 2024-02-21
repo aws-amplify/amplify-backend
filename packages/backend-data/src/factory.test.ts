@@ -251,9 +251,10 @@ void describe('DataFactory', () => {
         dataFactory = defineData({ schema: testSchema });
         dataFactory = defineData({ schema: testSchema });
       },
-      new AmplifyUserError('TooManyDataFactoryError', {
-        message: 'You cannot instantiate multiple DataFactory',
-        resolution: 'You can only call defineData once',
+      new AmplifyUserError('MultipleSingletonResourcesError', {
+        message:
+          'Multiple `defineData` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineData` call',
       })
     );
   });

@@ -137,4 +137,4 @@ export type DataProps = {
 export type AmplifyDataError =
   | 'InvalidSchemaAuthError'
   | 'InvalidSchemaError'
-  | 'TooManyDataFactoryError';
+  | 'MultipleSingletonResourcesError';
