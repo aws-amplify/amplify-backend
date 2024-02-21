@@ -18,7 +18,6 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/backend-function": "^0.8.0-beta.1",
     "@inquirer/prompts": "^3.0.0",
     "execa": "^8.0.1"
   }

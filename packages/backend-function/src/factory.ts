@@ -302,7 +302,7 @@ class AmplifyFunction
 
     this.storeOutput(outputStorageStrategy);
 
-    // This is a hack to generate a type definition file after synthesis
+    // Using CDK validation mechanism as a way to generate a type definition file at the end of synthesis
     this.node.addValidation({
       validate: (): string[] => {
         new FunctionEnvironmentTypeGenerator(id).generateTypeDefFile();

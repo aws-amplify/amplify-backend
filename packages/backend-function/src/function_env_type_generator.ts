@@ -2,7 +2,6 @@ import fs from 'fs';
 import { staticEnvironmentVariables } from './static_env_types.js';
 import path from 'path';
 import os from 'os';
-import { FunctionTypeDefConventionProvider } from './function_type_def_convention_provider.js';
 
 /**
  * Generates a type definition file for environment variables
@@ -14,9 +13,7 @@ export class FunctionEnvironmentTypeGenerator {
    * Initialize type definition file name and location
    */
   constructor(functionName: string) {
-    this.typeDefFilePath = new FunctionTypeDefConventionProvider(
-      functionName
-    ).getFunctionTypeDefFilePath();
+    this.typeDefFilePath = `${process.cwd()}/.amplify/function-env/${functionName}.ts`;
   }
 
   /**
