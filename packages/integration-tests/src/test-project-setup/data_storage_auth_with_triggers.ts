@@ -255,17 +255,31 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   };
 
   private assertExpectedCleanup = async () => {
-    assert.equal(
-      await this.checkBucketExists(this.testBucketName),
-      false,
-      `Expected bucket ${this.testBucketName} to be removed but it still exists`
-    );
+    await this.waitForBucketDeletion(this.testBucketName);
+  };
+
+  /**
+   * There is some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
+   * So we are polling HeadBucket until it returns NotFound or until we time out (after 30 seconds)
+   */
+  private waitForBucketDeletion = async (bucketName: string): Promise<void> => {
+    const TIMEOUT_MS = 1000 * 30; // 30 seconds
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < TIMEOUT_MS) {
+      const bucketExists = await this.checkBucketExists(bucketName);
+      if (!bucketExists) {
+        // bucket has been deleted
+        return;
+      }
+      // wait a second before polling again
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    assert.fail(`Timed out waiting for ${bucketName} to be deleted`);
   };
 
   private checkBucketExists = async (bucketName: string): Promise<boolean> => {
     try {
-      // there appears to be some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
-      await new Promise((resolve) => setTimeout(resolve, 1000 * 30)); // wait 30 seconds
       await this.s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
       // if HeadBucket returns without error, the bucket exists and is accessible
       return true;
