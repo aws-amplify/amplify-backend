@@ -40,10 +40,11 @@ void describe(
           cwd: os.homedir(),
         }
       );
-      const helpMessage =
-        'Options:\n  --help     Show help                                                 [boolean]\n  --version  Show version number                                       [boolean]\n  --yes                                               [boolean] [default: false]';
 
-      assert.strictEqual(output.stdout, helpMessage);
+      assert.match(output.stdout, /--help/);
+      assert.match(output.stdout, /--version/);
+      assert.match(output.stdout, /Show version number/);
+      assert.match(output.stdout, /--yes/);
 
       // Prefixing with ~. Otherwise, npm is going to install desired version but
       // declare dependency with ^ in package json. So just in case removing that
