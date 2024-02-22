@@ -7,7 +7,12 @@ import { YarnClassicPackageManagerController } from './yarn_classic_package_mana
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 void describe('YarnClassicPackageManagerController', () => {
-  const fspMock = mock.fn(() => Promise.resolve());
+  const fspMock = {
+    readFile: mock.fn(() =>
+      Promise.resolve(JSON.stringify({ compilerOptions: {} }))
+    ),
+    writeFile: mock.fn(() => Promise.resolve()),
+  };
   const pathMock = {
     resolve: mock.fn(),
   };
@@ -15,7 +20,8 @@ void describe('YarnClassicPackageManagerController', () => {
   const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
 
   beforeEach(() => {
-    fspMock.mock.resetCalls();
+    fspMock.readFile.mock.resetCalls();
+    fspMock.writeFile.mock.resetCalls();
     pathMock.resolve.mock.resetCalls();
     execaMock.mock.resetCalls();
     executeWithDebugLoggerMock.mock.resetCalls();
