@@ -2,9 +2,8 @@ import {
   ConstructFactoryGetInstanceProps,
   SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
-import { StoragePrefix } from './types.js';
+import { StorageAccessDefinition, StoragePrefix } from './types.js';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { StorageAccessDefinition } from './access_builder.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { AcceptorTokenAccessMap } from './action_to_resources_map.js';
 

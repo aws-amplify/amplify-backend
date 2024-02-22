@@ -1,9 +1,8 @@
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { StorageAction } from './access_builder.js';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
-import { StoragePrefix } from './types.js';
+import { StorageAction, StoragePrefix } from './types.js';
 
 export type Permission = {
   actions: StorageAction[];

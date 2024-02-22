@@ -5,8 +5,7 @@ import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import assert from 'node:assert';
 import { Template } from 'aws-cdk-lib/assertions';
 import { AccountPrincipal, Policy, Role } from 'aws-cdk-lib/aws-iam';
-import { StoragePrefix } from './types.js';
-import { StorageAction } from './index.js';
+import { StorageAction, StoragePrefix } from './types.js';
 
 void describe('StorageAccessPolicyFactory', () => {
   let bucket: Bucket;

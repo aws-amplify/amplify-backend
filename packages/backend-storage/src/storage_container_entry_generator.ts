@@ -8,11 +8,9 @@ import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbit
 import {
   AmplifyStorageFactoryProps,
   AmplifyStorageTriggerEvent,
-} from './types.js';
-import {
   RoleAccessBuilder,
-  roleAccessBuilder as _roleAccessBuilder,
-} from './access_builder.js';
+} from './types.js';
+import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
 
 /**

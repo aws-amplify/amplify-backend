@@ -1,6 +1,5 @@
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
-import { StorageAction } from './access_builder.js';
-import { StoragePrefix } from './types.js';
+import { StorageAction, StoragePrefix } from './types.js';
 
 /**
  * Internal collaborating class for maintaining the relationship between an acceptor token and the access map
