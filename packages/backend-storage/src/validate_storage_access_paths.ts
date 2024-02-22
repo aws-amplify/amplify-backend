@@ -113,6 +113,6 @@ const validateStoragePath = (
  * Equivalent paths are NOT considered prefixes of each other (mainly just for simplicity of the calling logic)
  */
 const getPrefixes = (path: string, paths: string[]): string[] =>
-  paths.filter((p) => path !== p && path.startsWith(p.replace('*', '')));
+  paths.filter((p) => path !== p && path.startsWith(p.replaceAll('*', '')));
 
 type StorageError = 'InvalidStorageAccessPathError';
