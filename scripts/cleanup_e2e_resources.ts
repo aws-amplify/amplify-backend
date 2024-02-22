@@ -65,7 +65,8 @@ const s3Client = new S3Client({
   maxAttempts: 5,
 });
 const now = new Date();
-const TEST_RESOURCE_PREFIX = 'amplify-';
+const TEST_AMPLIFY_RESOURCE_PREFIX = 'amplify-';
+const TEST_CDK_RESOURCE_PREFIX = 'test-cdk';
 
 /**
  * Stacks are considered stale after 2 hours.
@@ -113,7 +114,7 @@ const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
     nextToken = listStacksResponse.NextToken;
     listStacksResponse.StackSummaries?.filter(
       (stackSummary) =>
-        stackSummary.StackName?.startsWith(TEST_RESOURCE_PREFIX) &&
+        stackSummary.StackName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) &&
         isStackStale(stackSummary)
     ).forEach((item) => {
       stackSummaries.push(item);
@@ -145,7 +146,7 @@ const listStaleS3Buckets = async (): Promise<Array<Bucket>> => {
     listBucketsResponse.Buckets?.filter(
       (bucket) =>
         isStale(bucket.CreationDate) &&
-        bucket.Name?.startsWith(TEST_RESOURCE_PREFIX)
+        bucket.Name?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX)
     ) ?? []
   );
 };
@@ -279,7 +280,7 @@ const listAllTestAmplifyApps = async (): Promise<Array<App>> => {
       );
     nextToken = listAppsCommandOutput.nextToken;
     listAppsCommandOutput.apps
-      ?.filter((app: App) => app.name?.startsWith(TEST_RESOURCE_PREFIX))
+      ?.filter((app: App) => app.name?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX))
       .forEach((app: App) => {
         apps.push(app);
       });
@@ -373,7 +374,8 @@ const listAllStaleRoles = async (): Promise<Array<Role>> => {
     if (listRolesCommandOutput.Roles) {
       listRolesCommandOutput.Roles.filter(
         (role: Role) =>
-          role.RoleName?.startsWith(TEST_RESOURCE_PREFIX) &&
+          (role.RoleName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) ||
+            role.RoleName?.startsWith(TEST_CDK_RESOURCE_PREFIX)) &&
           isStale(role.CreateDate)
       ).forEach((role: Role) => {
         roles.push(role);
