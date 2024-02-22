@@ -46,24 +46,24 @@ export type RoleAccessBuilder = {
 
 // @public (undocumented)
 export type StorageAccessBuilder = {
-    to: (actions: StorageAction[]) => StorageAccessDefinition;
+    to: (actions: StorageAction[]) => StoragePathAccessDefinition;
 };
 
 // @public (undocumented)
-export type StorageAccessDefinition = {
-    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
-    actions: StorageAction[];
-    ownerPlaceholderSubstitution: string;
-};
-
-// @public (undocumented)
-export type StorageAccessRecord = Record<StoragePath, StorageAccessDefinition[]>;
+export type StorageAccessRecord = Record<StoragePath, StoragePathAccessDefinition[]>;
 
 // @public (undocumented)
 export type StorageAction = 'read' | 'write' | 'delete';
 
 // @public
 export type StoragePath = `/${string}/*`;
+
+// @public (undocumented)
+export type StoragePathAccessDefinition = {
+    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
+    actions: StorageAction[];
+    ownerPlaceholderSubstitution: string;
+};
 
 // @public (undocumented)
 export type StorageResources = {
