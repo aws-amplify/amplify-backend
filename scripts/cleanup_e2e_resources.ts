@@ -34,6 +34,19 @@ import {
   ListBranchesCommand,
   ListBranchesCommandOutput,
 } from '@aws-sdk/client-amplify';
+import {
+  DeleteRoleCommand,
+  DeleteRolePolicyCommand,
+  DetachRolePolicyCommand,
+  IAMClient,
+  ListAttachedRolePoliciesCommand,
+  ListAttachedRolePoliciesCommandOutput,
+  ListRolePoliciesCommand,
+  ListRolePoliciesCommandOutput,
+  ListRolesCommand,
+  ListRolesCommandOutput,
+  Role,
+} from '@aws-sdk/client-iam';
 
 const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
@@ -44,11 +57,15 @@ const cfnClient = new CloudFormationClient({
 const cognitoClient = new CognitoIdentityProviderClient({
   maxAttempts: 5,
 });
+const iamClient = new IAMClient({
+  maxAttempts: 5,
+});
 const s3Client = new S3Client({
   maxAttempts: 5,
 });
 const now = new Date();
-const TEST_RESOURCE_PREFIX = 'amplify-';
+const TEST_AMPLIFY_RESOURCE_PREFIX = 'amplify-';
+const TEST_CDK_RESOURCE_PREFIX = 'test-cdk';
 
 /**
  * Stacks are considered stale after 2 hours.
@@ -96,7 +113,7 @@ const listAllStaleTestStacks = async (): Promise<Array<StackSummary>> => {
     nextToken = listStacksResponse.NextToken;
     listStacksResponse.StackSummaries?.filter(
       (stackSummary) =>
-        stackSummary.StackName?.startsWith(TEST_RESOURCE_PREFIX) &&
+        stackSummary.StackName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) &&
         isStackStale(stackSummary)
     ).forEach((item) => {
       stackSummaries.push(item);
@@ -128,7 +145,7 @@ const listStaleS3Buckets = async (): Promise<Array<Bucket>> => {
     listBucketsResponse.Buckets?.filter(
       (bucket) =>
         isStale(bucket.CreationDate) &&
-        bucket.Name?.startsWith(TEST_RESOURCE_PREFIX)
+        bucket.Name?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX)
     ) ?? []
   );
 };
@@ -262,7 +279,7 @@ const listAllTestAmplifyApps = async (): Promise<Array<App>> => {
       );
     nextToken = listAppsCommandOutput.nextToken;
     listAppsCommandOutput.apps
-      ?.filter((app: App) => app.name?.startsWith(TEST_RESOURCE_PREFIX))
+      ?.filter((app: App) => app.name?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX))
       .forEach((app: App) => {
         apps.push(app);
       });
@@ -339,6 +356,71 @@ for (const staleBranch of allStaleBranches) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
       `Failed to delete ${staleBranch.branchName} branch of app ${staleBranch.appId}. ${errorMessage}`
+    );
+  }
+}
+
+const listAllStaleRoles = async (): Promise<Array<Role>> => {
+  let nextToken: string | undefined = undefined;
+  const roles: Array<Role> = [];
+  do {
+    const listRolesCommandOutput: ListRolesCommandOutput = await iamClient.send(
+      new ListRolesCommand({
+        Marker: nextToken,
+      })
+    );
+    nextToken = listRolesCommandOutput.Marker;
+    if (listRolesCommandOutput.Roles) {
+      listRolesCommandOutput.Roles.filter(
+        (role: Role) =>
+          (role.RoleName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) ||
+            role.RoleName?.startsWith(TEST_CDK_RESOURCE_PREFIX)) &&
+          isStale(role.CreateDate)
+      ).forEach((role: Role) => {
+        roles.push(role);
+      });
+    }
+  } while (nextToken);
+  return roles;
+};
+
+const allStaleRoles = await listAllStaleRoles();
+for (const staleRole of allStaleRoles) {
+  try {
+    // delete inline policies
+    const inlinePolicies: ListRolePoliciesCommandOutput = await iamClient.send(
+      new ListRolePoliciesCommand({ RoleName: staleRole.RoleName })
+    );
+    for (const policyName of inlinePolicies.PolicyNames || []) {
+      await iamClient.send(
+        new DeleteRolePolicyCommand({
+          RoleName: staleRole.RoleName,
+          PolicyName: policyName,
+        })
+      );
+    }
+    // detach policies
+    const attachedPolicies: ListAttachedRolePoliciesCommandOutput =
+      await iamClient.send(
+        new ListAttachedRolePoliciesCommand({ RoleName: staleRole.RoleName })
+      );
+    for (const policy of attachedPolicies.AttachedPolicies || []) {
+      await iamClient.send(
+        new DetachRolePolicyCommand({
+          RoleName: staleRole.RoleName,
+          PolicyArn: policy.PolicyArn,
+        })
+      );
+    }
+    // delete role
+    await iamClient.send(
+      new DeleteRoleCommand({ RoleName: staleRole.RoleName })
+    );
+    console.log(`Successfully deleted ${staleRole.RoleName} IAM Role`);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to delete ${staleRole.RoleName} IAM Role. ${errorMessage}`
     );
   }
 }
