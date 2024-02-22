@@ -1,5 +1,6 @@
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { ownerPathPartToken } from './constants.js';
+import { StorageError } from './private_types.js';
 
 /**
  * Validate that the storage path record keys match our conventions and restrictions.
@@ -49,13 +50,15 @@ const validateStoragePath = (
     });
   }
 
-  // if there's no owner token, we don't need to do any more checks
-  if (!path.includes(ownerPathPartToken)) {
-    return;
+  if (path.includes(ownerPathPartToken)) {
+    validatePathWithOwnerToken(path, allPaths);
   }
+};
 
-  // owner token checks
-
+/**
+ * Extra validations that are only necessary if the path includes an owner token
+ */
+const validatePathWithOwnerToken = (path: string, allPaths: string[]) => {
   const ownerSplit = path.split(ownerPathPartToken);
 
   if (ownerSplit.length > 2) {
@@ -65,23 +68,23 @@ const validateStoragePath = (
     });
   }
 
-  const [before, after] = ownerSplit;
+  const [substringBeforeOwnerToken, substringAfterOwnerToken] = ownerSplit;
 
-  if (after !== '/*') {
+  if (substringAfterOwnerToken !== '/*') {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `The ${ownerPathPartToken} token must be the path part right before the ending wildcard. Found [${path}].`,
       resolution: `Update the path such that the owner token is the last path part before the ending wildcard. For example: "/foo/bar/${ownerPathPartToken}/*.`,
     });
   }
 
-  if (before === '/') {
+  if (substringBeforeOwnerToken === '/') {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `The ${ownerPathPartToken} token must not be the first path part. Found [${path}].`,
       resolution: `Add an additional prefix to the path. For example: "/foo/${ownerPathPartToken}/*.`,
     });
   }
 
-  if (!before.endsWith('/')) {
+  if (!substringBeforeOwnerToken.endsWith('/')) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `A path part that includes the ${ownerPathPartToken} token cannot include any other characters. Found [${path}].`,
       resolution: `Remove all other characters from the path part with the ${ownerPathPartToken} token. For example: "/foo/${ownerPathPartToken}/*"`,
@@ -114,5 +117,3 @@ const validateStoragePath = (
  */
 const getPrefixes = (path: string, paths: string[]): string[] =>
   paths.filter((p) => path !== p && path.startsWith(p.replaceAll('*', '')));
-
-type StorageError = 'InvalidStorageAccessPathError';
