@@ -20,6 +20,7 @@ import { AuthLoginWithFactoryProps, Expand } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName>;
@@ -43,10 +44,16 @@ export type AmplifyAuthProps = Expand<
 >;
 
 /**
- * Singleton factory for AmplifyAuth that can be used in Amplify project files
+ * Singleton factory for AmplifyAuth that can be used in Amplify project files.
+ *
+ * Exported for testing purpose only & should NOT be exported out of the package.
  */
-class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
+export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
+  // publicly accessible for testing purpose only.
+  static factoryCount = 0;
+
   readonly provides = 'AuthResources';
+
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -55,7 +62,16 @@ class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
   constructor(
     private readonly props: AmplifyAuthProps,
     private readonly importStack = new Error().stack
-  ) {}
+  ) {
+    if (AmplifyAuthFactory.factoryCount > 0) {
+      throw new AmplifyUserError('MultipleSingletonResourcesError', {
+        message:
+          'Multiple `defineAuth` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineAuth` call',
+      });
+    }
+    AmplifyAuthFactory.factoryCount++;
+  }
 
   /**
    * Get a singleton instance of AmplifyAuth

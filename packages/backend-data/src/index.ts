@@ -1,4 +1,4 @@
-export * from './factory.js';
+export { defineData } from './factory.js';
 export {
   ApiKeyAuthorizationModeProps,
   LambdaAuthorizationModeProps,

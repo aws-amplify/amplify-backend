@@ -46,7 +46,7 @@ export type RoleAccessBuilder = {
 
 // @public (undocumented)
 export type StorageAccessBuilder = {
-    to: (...actions: StorageAction[]) => StorageAccessDefinition;
+    to: (actions: StorageAction[]) => StorageAccessDefinition;
 };
 
 // @public (undocumented)

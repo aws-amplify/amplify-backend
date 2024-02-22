@@ -121,30 +121,30 @@ void describe('StorageGenerator', () => {
 
       const stubRoleAccessBuilder: RoleAccessBuilder = {
         authenticated: {
-          to: (...actions) => ({
+          to: (actions) => ({
             getResourceAccessAcceptor: authenticatedAccessAcceptorMock,
-            actions: actions,
+            actions,
             ownerPlaceholderSubstitution: '*',
           }),
         },
         guest: {
-          to: (...actions) => ({
+          to: (actions) => ({
             getResourceAccessAcceptor: guestAccessAcceptorMock,
-            actions: actions,
+            actions,
             ownerPlaceholderSubstitution: '*',
           }),
         },
         owner: {
-          to: (...actions) => ({
+          to: (actions) => ({
             getResourceAccessAcceptor: ownerAccessAcceptorMock,
-            actions: actions,
+            actions,
             ownerPlaceholderSubstitution: 'testOwnerSubstitution',
           }),
         },
         resource: () => ({
-          to: (...actions) => ({
+          to: (actions) => ({
             getResourceAccessAcceptor: resourceAccessAcceptorMock,
-            actions: actions,
+            actions,
             ownerPlaceholderSubstitution: '*',
           }),
         }),
@@ -155,16 +155,16 @@ void describe('StorageGenerator', () => {
           name: 'testName',
           access: (allow) => ({
             '/test/*': [
-              allow.authenticated.to('read', 'write'),
-              allow.guest.to('read'),
-              allow.owner.to('read', 'write', 'delete'),
+              allow.authenticated.to(['read', 'write']),
+              allow.guest.to(['read']),
+              allow.owner.to(['read', 'write', 'delete']),
               allow
                 .resource(
                   {} as unknown as ConstructFactory<
                     ResourceProvider & ResourceAccessAcceptorFactory
                   >
                 )
-                .to('read'),
+                .to(['read']),
             ],
           }),
         },

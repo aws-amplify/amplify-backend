@@ -24,7 +24,7 @@ export type StoragePathAccessDefinition = {
 };
 
 export type StorageAccessBuilder = {
-  to: (...actions: StorageAction[]) => StoragePathAccessDefinition;
+  to: (actions: StorageAction[]) => StoragePathAccessDefinition;
 };
 
 /**
@@ -44,28 +44,28 @@ export type RoleAccessBuilder = {
 
 export const roleAccessBuilder: RoleAccessBuilder = {
   authenticated: {
-    to: (...actions) => ({
+    to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
       ownerPlaceholderSubstitution: '*',
     }),
   },
   guest: {
-    to: (...actions) => ({
+    to: (actions) => ({
       getResourceAccessAcceptor: getUnauthRoleResourceAccessAcceptor,
       actions,
       ownerPlaceholderSubstitution: '*',
     }),
   },
   owner: {
-    to: (...actions) => ({
+    to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
       ownerPlaceholderSubstitution: '${cognito-identity.amazon.com:sub}',
     }),
   },
   resource: (other) => ({
-    to: (...actions) => ({
+    to: (actions) => ({
       getResourceAccessAcceptor: (getInstanceProps) =>
         other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
       actions,

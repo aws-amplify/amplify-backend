@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { BackendAuth, defineAuth } from './factory.js';
+import { AmplifyAuthFactory, BackendAuth, defineAuth } from './factory.js';
 import { App, Stack, aws_lambda } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { Match, Template } from 'aws-cdk-lib/assertions';
@@ -21,6 +21,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -39,6 +40,7 @@ void describe('AmplifyAuthFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;
   let stack: Stack;
   beforeEach(() => {
+    resetFactoryCount();
     authFactory = defineAuth({
       loginWith: { email: true },
     });
@@ -78,6 +80,7 @@ void describe('AmplifyAuthFactory', () => {
 
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
   });
+
   void it('verifies constructor import path', () => {
     const importPathVerifier = {
       verify: mock.fn(),
@@ -89,6 +92,24 @@ void describe('AmplifyAuthFactory', () => {
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
         'defineAuth'
       )
+    );
+  });
+
+  void it('should throw TooManyAmplifyAuthFactoryError when defineAuth is called multiple times', () => {
+    assert.throws(
+      () => {
+        defineAuth({
+          loginWith: { email: true },
+        });
+        defineAuth({
+          loginWith: { email: true },
+        });
+      },
+      new AmplifyUserError('MultipleSingletonResourcesError', {
+        message:
+          'Multiple `defineAuth` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineAuth` call',
+      })
     );
   });
 
@@ -107,6 +128,9 @@ void describe('AmplifyAuthFactory', () => {
           };
         },
       };
+
+      resetFactoryCount();
+
       const authWithTriggerFactory = defineAuth({
         loginWith: { email: true },
         triggers: { [event]: funcStub },
@@ -227,4 +251,8 @@ void describe('AmplifyAuthFactory', () => {
 
 const upperCaseFirstChar = (str: string) => {
   return `${str.charAt(0).toUpperCase()}${str.slice(1)}`;
+};
+
+const resetFactoryCount = () => {
+  AmplifyAuthFactory.factoryCount = 0;
 };
