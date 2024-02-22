@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - poc-pnpm-win
   pull_request:
     branches:
       - main
@@ -173,9 +174,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, amplify-backend_windows-latest_8-core]
         pkg-manager: [npm, yarn-classic, yarn-modern, pnpm]
         node-version: [20]
-        exclude:
-          - os: amplify-backend_windows-latest_8-core
-            pkg-manager: pnpm
+        # exclude:
+        #   - os: amplify-backend_windows-latest_8-core
+        #     pkg-manager: pnpm
     env:
       PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
     runs-on: ${{ matrix.os }}
