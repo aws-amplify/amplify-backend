@@ -168,6 +168,10 @@ void describe(
             'bundler'
           );
           assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
+          assert.deepStrictEqual(tsConfigObject.compilerOptions.paths, {
+            // The path here is coupled with backend-function's generated typedef file path
+            '@env/*': ['../.amplify/function-env/*'],
+          });
 
           const pathPrefix = path.join(tempDir, 'amplify');
 

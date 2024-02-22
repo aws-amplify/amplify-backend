@@ -8,7 +8,12 @@ import { YarnModernPackageManagerController } from './yarn_modern_package_manage
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 void describe('YarnModernPackageManagerController', () => {
-  const fspMock = { writeFile: mock.fn(() => Promise.resolve()) };
+  const fspMock = {
+    readFile: mock.fn(() =>
+      Promise.resolve(JSON.stringify({ compilerOptions: {} }))
+    ),
+    writeFile: mock.fn(() => Promise.resolve()),
+  };
   const pathMock = {
     resolve: mock.fn(() => '/testProjectRoot'),
   };
@@ -17,6 +22,7 @@ void describe('YarnModernPackageManagerController', () => {
   const printerMock = { log: mock.fn() } as unknown as Printer;
 
   beforeEach(() => {
+    fspMock.readFile.mock.resetCalls();
     fspMock.writeFile.mock.resetCalls();
     pathMock.resolve.mock.resetCalls();
     execaMock.mock.resetCalls();
@@ -135,7 +141,7 @@ void describe('YarnModernPackageManagerController', () => {
 
       await yarnModernPackageManagerController.initializeTsConfig('./amplify');
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
-      assert.equal(fspMock.writeFile.mock.callCount(), 1);
+      assert.equal(fspMock.writeFile.mock.callCount(), 2);
     });
   });
 });
