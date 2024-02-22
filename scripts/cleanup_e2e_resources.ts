@@ -35,7 +35,6 @@ import {
   ListBranchesCommandOutput,
 } from '@aws-sdk/client-amplify';
 import {
-  DeletePolicyCommand,
   DeleteRoleCommand,
   DeleteRolePolicyCommand,
   DetachRolePolicyCommand,
@@ -412,15 +411,6 @@ for (const staleRole of allStaleRoles) {
           PolicyArn: policy.PolicyArn,
         })
       );
-      if (
-        policy.PolicyArn &&
-        !policy.PolicyArn.startsWith('arn:aws:iam::aws:policy')
-      ) {
-        // delete non AWS managed policies as well
-        await iamClient.send(
-          new DeletePolicyCommand({ PolicyArn: policy.PolicyArn })
-        );
-      }
     }
     // delete role
     await iamClient.send(
