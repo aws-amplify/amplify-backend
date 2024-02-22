@@ -34,7 +34,6 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@aws-sdk/types": "^3.465.0",
-    "json-schema-to-ts": "^3.0.0"
+    "@aws-sdk/types": "^3.465.0"
   }
 }

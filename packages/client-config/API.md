@@ -186,8 +186,7 @@ declare namespace clientConfigTypesV1 {
         Data,
         AuthorizationType,
         Storage,
-        Bucket,
-        Convert
+        Bucket
     }
 }
 export { clientConfigTypesV1 }
@@ -206,15 +205,14 @@ declare namespace clientConfigTypesV2 {
         Data_2 as Data,
         AuthorizationType_2 as AuthorizationType,
         Storage_2 as Storage,
-        Bucket_2 as Bucket,
-        Convert_2 as Convert
+        Bucket_2 as Bucket
     }
 }
 export { clientConfigTypesV2 }
 
 // @public
 type ConfigTypesV1 = {
-    _version: '1';
+    _version: "1";
     auth?: Auth;
     custom?: {
         [key: string]: any;
@@ -225,7 +223,7 @@ type ConfigTypesV1 = {
 
 // @public
 type ConfigTypesV2 = {
-    _version: '2';
+    _version: "2";
     auth?: Auth_2;
     custom?: {
         [key: string]: any;
@@ -233,22 +231,6 @@ type ConfigTypesV2 = {
     data?: Data_2;
     storage?: Storage_2;
 };
-
-// @public (undocumented)
-class Convert {
-    // (undocumented)
-    static configTypesV1ToJson(value: ConfigTypesV1): string;
-    // (undocumented)
-    static toConfigTypesV1(json: string): ConfigTypesV1;
-}
-
-// @public (undocumented)
-class Convert_2 {
-    // (undocumented)
-    static configTypesV0ToJson(value: ConfigTypesV2): string;
-    // (undocumented)
-    static toConfigTypesV0(json: string): ConfigTypesV2;
-}
 
 // @public (undocumented)
 export type CustomClientConfig = {
