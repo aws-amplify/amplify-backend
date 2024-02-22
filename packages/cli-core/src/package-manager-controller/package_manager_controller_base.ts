@@ -95,6 +95,11 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
    * initializeTsConfig - initializes a tsconfig.json file in the project root
    */
   async initializeTsConfig(targetDir: string) {
+    const pathsObj = JSON.stringify({
+      // The path here is coupled with backend-function's generated typedef file path
+      '@env/*': ['../.amplify/function-env/*'],
+    });
+
     const tscArgs = [
       'tsc',
       '--init',
@@ -106,6 +111,8 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       'bundler',
       '--target',
       'es2022',
+      '--paths',
+      pathsObj,
     ];
 
     await this.executeWithDebugLogger(
