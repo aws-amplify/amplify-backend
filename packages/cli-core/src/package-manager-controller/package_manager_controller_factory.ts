@@ -1,4 +1,5 @@
 import { type PackageManagerController } from '@aws-amplify/plugin-types';
+import { platform } from 'process';
 import { Printer } from '../printer/printer.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
@@ -27,6 +28,11 @@ export class PackageManagerControllerFactory {
       case 'npm':
         return new NpmPackageManagerController(this.cwd);
       case 'pnpm':
+        if (platform === 'win32') {
+          const errorMessage =
+            "PNPM can't create amplify on Windows. Please switch to NPM or Yarn. \nDetails: https://pnpm.io/faq#but-the-nested-node_modules-approach-is-incompatible-with-windows";
+          throw new Error(errorMessage);
+        }
         return new PnpmPackageManagerController(this.cwd);
       case 'yarn-classic':
         return new YarnClassicPackageManagerController(this.cwd);
