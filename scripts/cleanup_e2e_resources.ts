@@ -445,6 +445,7 @@ const listAllStaleSSMParameters = async (): Promise<
       await ssmClient.send(
         new DescribeParametersCommand({
           NextToken: nextToken,
+          MaxResults: 1000,
           ParameterFilters: [
             {
               Key: 'Name',
