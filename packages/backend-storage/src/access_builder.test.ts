@@ -40,11 +40,11 @@ void describe('storageAccessBuilder', () => {
   });
 
   void it('builds storage access definition for authenticated role', () => {
-    const accessDefinition = roleAccessBuilder.authenticated.to(
+    const accessDefinition = roleAccessBuilder.authenticated.to([
       'read',
       'write',
-      'delete'
-    );
+      'delete',
+    ]);
     assert.deepStrictEqual(accessDefinition.actions, [
       'read',
       'write',
@@ -65,11 +65,11 @@ void describe('storageAccessBuilder', () => {
     );
   });
   void it('builds storage access definition for guest role', () => {
-    const accessDefinition = roleAccessBuilder.guest.to(
+    const accessDefinition = roleAccessBuilder.guest.to([
       'read',
       'write',
-      'delete'
-    );
+      'delete',
+    ]);
     assert.deepStrictEqual(accessDefinition.actions, [
       'read',
       'write',
@@ -90,11 +90,11 @@ void describe('storageAccessBuilder', () => {
     );
   });
   void it('builds storage access definition for owner', () => {
-    const accessDefinition = roleAccessBuilder.owner.to(
+    const accessDefinition = roleAccessBuilder.owner.to([
       'read',
       'write',
-      'delete'
-    );
+      'delete',
+    ]);
     assert.deepStrictEqual(accessDefinition.actions, [
       'read',
       'write',
@@ -126,7 +126,7 @@ void describe('storageAccessBuilder', () => {
             getResourceAccessAcceptor: getResourceAccessAcceptorMock,
           } as unknown as ResourceProvider & ResourceAccessAcceptorFactory),
       })
-      .to('read', 'write', 'delete');
+      .to(['read', 'write', 'delete']);
 
     assert.deepStrictEqual(accessDefinition.actions, [
       'read',
