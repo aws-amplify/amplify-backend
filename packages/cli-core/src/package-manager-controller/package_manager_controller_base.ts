@@ -95,11 +95,6 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
    * initializeTsConfig - initializes a tsconfig.json file in the project root
    */
   async initializeTsConfig(targetDir: string) {
-    const pathsObj = JSON.stringify({
-      // The path here is coupled with backend-function's generated typedef file path
-      '@env/*': ['../.amplify/function-env/*'],
-    });
-
     const tscArgs = [
       'tsc',
       '--init',
@@ -111,8 +106,6 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       'bundler',
       '--target',
       'es2022',
-      '--paths',
-      pathsObj,
     ];
 
     await this.executeWithDebugLogger(
@@ -122,6 +115,21 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       this.execa,
       { preferLocal: true, localDir: targetDir }
     );
+
+    const pathsObj = {
+      // The path here is coupled with backend-function's generated typedef file path
+      '@env/*': ['../.amplify/function-env/*'],
+    };
+
+    const tsConfigPath = this.path.resolve(targetDir, 'tsconfig.json');
+    const tsConfigContent = (
+      await this.fsp.readFile(tsConfigPath, 'utf-8')
+    ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, ''); // Removes all comments
+    const tsConfigObject = JSON.parse(tsConfigContent);
+
+    // Add paths object and overwrite the tsconfig file
+    tsConfigObject.compilerOptions.paths = pathsObj;
+    await this.fsp.writeFile(tsConfigPath, tsConfigObject, 'utf-8');
   }
 
   /**
