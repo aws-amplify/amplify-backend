@@ -3,7 +3,7 @@ import { StorageAction } from './access_builder.js';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
-import { S3Prefix } from './action_to_resources_map.js';
+import { StoragePrefix } from './types.js';
 
 export type Permission = {
   actions: StorageAction[];
@@ -30,7 +30,7 @@ export class StorageAccessPolicyFactory {
   }
 
   createPolicy = (
-    permissions: Readonly<Map<StorageAction, Readonly<Set<S3Prefix>>>>
+    permissions: Readonly<Map<StorageAction, Readonly<Set<StoragePrefix>>>>
   ) => {
     if (permissions.size === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
@@ -49,7 +49,7 @@ export class StorageAccessPolicyFactory {
   };
 
   private getStatement = (
-    s3Prefixes: Readonly<Set<S3Prefix>>,
+    s3Prefixes: Readonly<Set<StoragePrefix>>,
     action: StorageAction
   ) =>
     new PolicyStatement({
