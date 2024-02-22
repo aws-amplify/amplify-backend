@@ -10,6 +10,7 @@ export const defaultNodeFunc = defineFunction({
       process.env[amplifySharedSecretNameKey] as string
     ),
   },
+  timeoutSeconds: 5,
 });
 
 export const node16Func = defineFunction({
@@ -21,6 +22,7 @@ export const node16Func = defineFunction({
       process.env[amplifySharedSecretNameKey] as string
     ),
   },
+  timeoutSeconds: 5,
   runtime: 16,
 });
 
