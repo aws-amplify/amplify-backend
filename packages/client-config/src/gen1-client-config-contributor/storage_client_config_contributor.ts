@@ -1,4 +1,4 @@
-import { ClientConfigContributor } from './client_config_contributor.js';
+import { ClientConfigContributor } from '../client-config-types/client_config_contributor.js';
 import {
   UnifiedBackendOutput,
   storageOutputKey,

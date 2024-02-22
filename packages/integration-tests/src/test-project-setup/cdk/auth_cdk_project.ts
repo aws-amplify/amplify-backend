@@ -8,7 +8,10 @@ import fs from 'fs/promises';
 import path from 'path';
 import { DeployedResourcesFinder } from '../../find_deployed_resource.js';
 import assert from 'node:assert';
-import { generateClientConfig } from '@aws-amplify/client-config';
+import {
+  Gen1ClientConfig,
+  generateClientConfig,
+} from '@aws-amplify/client-config';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 
 /**
@@ -63,9 +66,9 @@ class AuthTestCdkProject extends TestCdkProjectBase {
     assert.equal(userPools.length, 1);
 
     // assert that we can generate client config
-    const clientConfig = await generateClientConfig(fromNodeProviderChain(), {
+    const clientConfig = (await generateClientConfig(fromNodeProviderChain(), {
       stackName: this.stackName,
-    });
+    })) as Gen1ClientConfig;
 
     assert.ok(
       clientConfig.aws_user_pools_id,

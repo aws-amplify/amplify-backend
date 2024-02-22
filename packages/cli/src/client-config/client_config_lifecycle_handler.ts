@@ -16,7 +16,8 @@ export class ClientConfigLifecycleHandler {
   constructor(
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
     private readonly outDir?: string,
-    private readonly format?: ClientConfigFormat
+    private readonly format?: ClientConfigFormat,
+    private readonly version?: number
   ) {}
 
   generateClientConfigFile = async (
@@ -25,7 +26,8 @@ export class ClientConfigLifecycleHandler {
     await this.clientConfigGeneratorAdapter.generateClientConfigToFile(
       backendIdentifier,
       this.outDir,
-      this.format
+      this.format,
+      this.version
     );
   };
 

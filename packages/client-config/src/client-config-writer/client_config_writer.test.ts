@@ -8,12 +8,12 @@ import {
   ClientConfig,
   ClientConfigFormat,
 } from '../client-config-types/client_config.js';
-import { ClientConfigFormatter } from './client_config_formatter.js';
+import { Gen1ClientConfigFormatter } from './gen1_client_config_formatter.js';
 import { randomUUID } from 'crypto';
 
 void describe('client config writer', () => {
   const pathResolverMock = mock.fn<ClientConfigPathResolver>();
-  const clientFormatter = new ClientConfigFormatter(undefined as never);
+  const clientFormatter = new Gen1ClientConfigFormatter(undefined as never);
   const fspMock = {
     writeFile: mock.fn<(path: string, content: string) => Promise<void>>(() =>
       Promise.resolve()

@@ -13,6 +13,7 @@ type GenerateConfigCommandOptionsCamelCase = {
   branch: string | undefined;
   format: ClientConfigFormat | undefined;
   outDir: string | undefined;
+  version: number | undefined;
 };
 
 /**
@@ -57,7 +58,8 @@ export class GenerateConfigCommand
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
       args['out-dir'],
-      args.format
+      args.format,
+      args.version
     );
   };
 
@@ -98,6 +100,12 @@ export class GenerateConfigCommand
         describe:
           'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',
+        array: false,
+      })
+      .option('version', {
+        describe:
+          'Version of the client config. Version 0 represents classic amplify-cli client config (Default)',
+        type: 'number',
         array: false,
       });
   };

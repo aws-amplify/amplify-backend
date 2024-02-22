@@ -1,7 +1,7 @@
 import { BackendOutput } from '@aws-amplify/plugin-types';
 import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
-import { ClientConfigContributor } from './client-config-contributor/client_config_contributor.js';
+import { ClientConfigContributor } from './client-config-types/client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
 import {
   AmplifyUserError,
@@ -32,6 +32,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
     );
 
     const accumulator = new ObjectAccumulator<ClientConfig>({});
+
     for (const contributor of this.clientConfigContributors) {
       const clientConfigContribution = await contributor.contribute(
         backendOutput

@@ -4,10 +4,11 @@ import { ClientConfigWriter } from './client-config-writer/client_config_writer.
 import { ClientConfigFormat } from './client-config-types/client_config.js';
 import { getClientConfigPath } from './paths/index.js';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { ClientConfigFormatter } from './client-config-writer/client_config_formatter.js';
+import { Gen1ClientConfigFormatter } from './client-config-writer/gen1_client_config_formatter.js';
 import { ClientConfigConverter } from './client-config-writer/client_config_converter.js';
 import { fileURLToPath } from 'url';
 import * as fsp from 'fs/promises';
+import { Gen2ClientConfigFormatter } from './client-config-writer/gen2_client_config_formatter.js';
 
 /**
  * Main entry point for generating client config and writing to a file
@@ -18,20 +19,24 @@ export const generateClientConfigToFile = async (
   outDir?: string,
   format?: ClientConfigFormat,
   // TODO: update this type when Printer interface gets defined in platform-core.
-  log?: (message: string) => void
+  log?: (message: string) => void,
+  version?: number
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
   const clientConfigWriter = new ClientConfigWriter(
     getClientConfigPath,
-    new ClientConfigFormatter(
-      new ClientConfigConverter(packageJson.name, packageJson.version)
-    )
+    version && version >= 1
+      ? new Gen2ClientConfigFormatter()
+      : new Gen1ClientConfigFormatter(
+          new ClientConfigConverter(packageJson.name, packageJson.version)
+        )
   );
 
   const clientConfig = await generateClientConfig(
     credentialProvider,
-    backendIdentifier
+    backendIdentifier,
+    version
   );
   await clientConfigWriter.writeClientConfig(clientConfig, outDir, format, log);
 };

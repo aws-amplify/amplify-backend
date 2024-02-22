@@ -7,10 +7,14 @@ import { GeoClientConfig } from './geo_client_config.js';
 import { AnalyticsClientConfig } from './analytics_client_config.js';
 import { NotificationsClientConfig } from './notifications_client_config.js';
 
+// Major versions of config schemas
+import * as clientConfigTypesV1 from '../client-config-schema/config_types_v1.js';
+import * as clientConfigTypesV2 from '../client-config-schema/config_types_v2.js';
+
 /**
  * Merged type of all category client config types
  */
-export type ClientConfig = Partial<
+export type Gen1ClientConfig = Partial<
   AnalyticsClientConfig &
     AuthClientConfig &
     GeoClientConfig &
@@ -20,6 +24,15 @@ export type ClientConfig = Partial<
     PlatformClientConfig &
     CustomClientConfig
 >;
+
+// Versions of client config schema supported by "this" package version
+export type Gen2ClientConfig =
+  | clientConfigTypesV1.ConfigTypesV1
+  | clientConfigTypesV2.ConfigTypesV2;
+export { clientConfigTypesV1 };
+export { clientConfigTypesV2 };
+
+export type ClientConfig = Gen1ClientConfig | Gen2ClientConfig;
 
 export enum ClientConfigFormat {
   MJS = 'mjs',

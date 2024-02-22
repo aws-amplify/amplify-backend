@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
-import { ClientConfigFormatter } from './client_config_formatter.js';
+import { Gen1ClientConfigFormatter } from './gen1_client_config_formatter.js';
 import {
   ClientConfig,
   ClientConfigFormat,
@@ -31,8 +31,8 @@ void describe('client config formatter', () => {
     'convertToMobileConfig',
     () => clientConfigMobile
   );
-  const clientConfigFormatter: ClientConfigFormatter =
-    new ClientConfigFormatter(clientConfigConverter);
+  const clientConfigFormatter: Gen1ClientConfigFormatter =
+    new Gen1ClientConfigFormatter(clientConfigConverter);
 
   beforeEach(() => {
     clientConfigConverterMock.mock.resetCalls();

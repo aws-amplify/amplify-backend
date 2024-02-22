@@ -34,14 +34,16 @@ export class ClientConfigGeneratorAdapter {
   generateClientConfigToFile = async (
     backendIdentifier: DeployedBackendIdentifier,
     outDir?: string,
-    format?: ClientConfigFormat
+    format?: ClientConfigFormat,
+    version?: number
   ): Promise<void> => {
     await generateClientConfigToFile(
       this.awsCredentialProvider,
       backendIdentifier,
       outDir,
       format,
-      (message) => printer.log(message)
+      (message) => printer.log(message),
+      version
     );
   };
 }

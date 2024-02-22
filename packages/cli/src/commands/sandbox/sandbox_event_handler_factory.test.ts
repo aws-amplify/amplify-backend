@@ -73,6 +73,7 @@ void describe('sandbox_event_handler_factory', () => {
       },
       'test-out',
       'mjs',
+      undefined, //version
     ]);
 
     assert.strictEqual(emitSuccessMock.mock.callCount(), 1);
@@ -186,6 +187,7 @@ void describe('sandbox_event_handler_factory', () => {
       },
       'test-out',
       'mjs',
+      undefined, //version
     ]);
 
     // No metrics emitted

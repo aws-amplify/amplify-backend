@@ -6,7 +6,7 @@ import {
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapater.js';
+import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 
 void describe('GraphqlClientConfigContributor', () => {
   void it('returns an empty object if output has no graphql output', async () => {

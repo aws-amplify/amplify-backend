@@ -5,8 +5,8 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
-  ClientConfig,
   ClientConfigFormat,
+  Gen1ClientConfig,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import assert from 'node:assert';
@@ -77,7 +77,7 @@ class CustomOutputsTestProject extends TestProjectBase {
       this.projectDirPath,
       ClientConfigFormat.JSON
     );
-    const clientConfig: ClientConfig = JSON.parse(
+    const clientConfig: Gen1ClientConfig = JSON.parse(
       await fsp.readFile(clientConfigPath, 'utf-8')
     );
 
