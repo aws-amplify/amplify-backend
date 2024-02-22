@@ -129,7 +129,11 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
 
     // Add paths object and overwrite the tsconfig file
     tsConfigObject.compilerOptions.paths = pathsObj;
-    await this.fsp.writeFile(tsConfigPath, tsConfigObject, 'utf-8');
+    await this.fsp.writeFile(
+      tsConfigPath,
+      JSON.stringify(tsConfigObject),
+      'utf-8'
+    );
   }
 
   /**
