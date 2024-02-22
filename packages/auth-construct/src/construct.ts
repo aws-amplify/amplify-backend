@@ -698,45 +698,43 @@ export class AmplifyAuth
       result.providersList.push('APPLE');
     }
     if (external.oidc && external.oidc.length > 0) {
-      const oidcProviders: UserPoolIdentityProviderOidc[] = [];
+      result.oidc = [];
       external.oidc.forEach((provider, index) => {
         const requestMethod =
           provider.attributeRequestMethod === undefined
             ? 'GET' // default if not defined
             : provider.attributeRequestMethod;
-        oidcProviders.push(
-          new cognito.UserPoolIdentityProviderOidc(
-            this,
-            `${this.name}${provider.name ?? index}OidcIDP`,
-            {
-              userPool,
-              attributeRequestMethod:
-                requestMethod === 'GET'
-                  ? OidcAttributeRequestMethod.GET
-                  : OidcAttributeRequestMethod.POST,
-              clientId: provider.clientId,
-              clientSecret: provider.clientSecret,
-              endpoints: provider.endpoints,
-              identifiers: provider.identifiers,
-              issuerUrl: provider.issuerUrl,
-              name: provider.name,
-              scopes: provider.scopes,
-              attributeMapping: {
-                ...(shouldMapEmailAttributes
-                  ? {
-                      email: {
-                        attributeName: 'email',
-                      },
-                    }
-                  : undefined),
-                ...provider.attributeMapping,
-              },
-            }
-          )
+        const generatedProvider = new cognito.UserPoolIdentityProviderOidc(
+          this,
+          `${this.name}${provider.name ?? index}OidcIDP`,
+          {
+            userPool,
+            attributeRequestMethod:
+              requestMethod === 'GET'
+                ? OidcAttributeRequestMethod.GET
+                : OidcAttributeRequestMethod.POST,
+            clientId: provider.clientId,
+            clientSecret: provider.clientSecret,
+            endpoints: provider.endpoints,
+            identifiers: provider.identifiers,
+            issuerUrl: provider.issuerUrl,
+            name: provider.name,
+            scopes: provider.scopes,
+            attributeMapping: {
+              ...(shouldMapEmailAttributes
+                ? {
+                    email: {
+                      attributeName: 'email',
+                    },
+                  }
+                : undefined),
+              ...provider.attributeMapping,
+            },
+          }
         );
+        result.oidc?.push(generatedProvider);
+        result.providersList.push(generatedProvider.providerName);
       });
-      result.oidc = oidcProviders;
-      result.providersList.push('OIDC');
     }
     if (external.saml) {
       const saml = external.saml;

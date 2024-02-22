@@ -43,6 +43,13 @@ void describe('UnifiedClientConfigGenerator', () => {
             verificationMechanisms: '["EMAIL","PHONE"]',
             usernameAttributes: '["EMAIL"]',
             signupAttributes: '["EMAIL"]',
+            oauthClientId: 'oauthClientId',
+            oauthDomain: 'test-prefix.auth.us-east-1.amazoncognito.com',
+            oauthScope: '["email","profile","phone_number"]',
+            oauthRedirectSignIn: 'http://callback.com',
+            oauthRedirectSignOut: 'http://logout.com',
+            oauthResponseType: 'code',
+            socialProviders: `["GOOGLE","provider1","provider2"]`,
             allowUnauthenticatedIdentities: 'true',
           },
         },
@@ -107,6 +114,15 @@ void describe('UnifiedClientConfigGenerator', () => {
         aws_appsync_region: 'us-east-1',
         aws_appsync_additionalAuthenticationTypes: 'API_KEY',
         allowUnauthenticatedIdentities: 'true',
+        oauth: {
+          domain: 'test-prefix.auth.us-east-1.amazoncognito.com',
+          scope: ['email', 'profile', 'phone_number'],
+          redirectSignIn: 'http://callback.com',
+          redirectSignOut: 'http://logout.com',
+          clientId: 'oauthClientId',
+          responseType: 'code',
+        },
+        aws_cognito_social_providers: ['GOOGLE', 'provider1', 'provider2'],
       };
       assert.deepStrictEqual(result, expectedClientConfig);
     });
