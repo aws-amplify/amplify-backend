@@ -34,10 +34,10 @@ const validateStoragePath = (
    * For any path, at most one other path can be a prefix of that path
    *
    * For example, consider an access definition with the following paths defined:
-   * /foo - OK (0 other paths are a prefix of this one)
-   * /foo/bar - OK (1 other path is a prefix of this one)
-   * /foo/bar/baz - NOT OK (2 other paths are a prefix of this one (/foo and /foo/bar))
-   * /foo/baz - OK (1 other path is a prefix of this one)
+   * /foo/* - OK (0 other paths are a prefix of this one)
+   * /foo/bar/* - OK (1 other path is a prefix of this one)
+   * /foo/bar/baz/* - NOT OK (2 other paths are a prefix of this one (/foo and /foo/bar))
+   * /foo/baz/* - OK (1 other path is a prefix of this one)
    */
   const otherPrefixes = getPrefixes(path, allPaths);
   if (otherPrefixes.length > 1) {
