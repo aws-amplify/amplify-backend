@@ -47,6 +47,13 @@ import {
   ListRolesCommandOutput,
   Role,
 } from '@aws-sdk/client-iam';
+import {
+  DeleteParameterCommand,
+  DescribeParametersCommand,
+  DescribeParametersCommandOutput,
+  ParameterMetadata,
+  SSMClient,
+} from '@aws-sdk/client-ssm';
 
 const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
@@ -61,6 +68,9 @@ const iamClient = new IAMClient({
   maxAttempts: 5,
 });
 const s3Client = new S3Client({
+  maxAttempts: 5,
+});
+const ssmClient = new SSMClient({
   maxAttempts: 5,
 });
 const now = new Date();
@@ -421,6 +431,55 @@ for (const staleRole of allStaleRoles) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
       `Failed to delete ${staleRole.RoleName} IAM Role. ${errorMessage}`
+    );
+  }
+}
+
+const listAllStaleSSMParameters = async (): Promise<
+  Array<ParameterMetadata>
+> => {
+  let nextToken: string | undefined = undefined;
+  const parameters: Array<ParameterMetadata> = [];
+  do {
+    const describeParametersCommandOutput: DescribeParametersCommandOutput =
+      await ssmClient.send(
+        new DescribeParametersCommand({
+          NextToken: nextToken,
+          MaxResults: 50,
+          ParameterFilters: [
+            {
+              Key: 'Name',
+              Option: 'BeginsWith',
+              Values: ['/amplify/'],
+            },
+          ],
+        })
+      );
+    nextToken = describeParametersCommandOutput.NextToken;
+    if (describeParametersCommandOutput.Parameters) {
+      describeParametersCommandOutput.Parameters.filter(
+        (parameter: ParameterMetadata) => isStale(parameter.LastModifiedDate)
+      ).forEach((parameter: ParameterMetadata) => {
+        parameters.push(parameter);
+      });
+    }
+  } while (nextToken);
+  return parameters;
+};
+
+const allStaleSSMParameters = await listAllStaleSSMParameters();
+for (const staleSSMParameter of allStaleSSMParameters) {
+  try {
+    await ssmClient.send(
+      new DeleteParameterCommand({
+        Name: staleSSMParameter.Name,
+      })
+    );
+    console.log(`Successfully deleted ${staleSSMParameter.Name} SSM parameter`);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to delete ${staleSSMParameter.Name} SSM parameter. ${errorMessage}`
     );
   }
 }
