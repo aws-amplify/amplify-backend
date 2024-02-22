@@ -15,16 +15,13 @@ void describe('StorageAccessPolicyFactory', () => {
   });
   void it('throws if no permissions are specified', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
-    assert.throws(() => bucketPolicyFactory.createPolicy([]));
+    assert.throws(() => bucketPolicyFactory.createPolicy(new Map()));
   });
   void it('returns policy with read actions', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
-    const policy = bucketPolicyFactory.createPolicy([
-      {
-        actions: ['read'],
-        resources: ['/some/prefix/*'],
-      },
-    ]);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([['read', new Set(['/some/prefix/*'])]])
+    );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
@@ -57,12 +54,9 @@ void describe('StorageAccessPolicyFactory', () => {
   });
   void it('returns policy with write actions', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
-    const policy = bucketPolicyFactory.createPolicy([
-      {
-        actions: ['write'],
-        resources: ['/some/prefix/*'],
-      },
-    ]);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([['write', new Set(['/some/prefix/*'])]])
+    );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
@@ -96,12 +90,9 @@ void describe('StorageAccessPolicyFactory', () => {
 
   void it('returns policy with delete actions', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
-    const policy = bucketPolicyFactory.createPolicy([
-      {
-        actions: ['delete'],
-        resources: ['/some/prefix/*'],
-      },
-    ]);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([['delete', new Set(['/some/prefix/*'])]])
+    );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
@@ -135,12 +126,9 @@ void describe('StorageAccessPolicyFactory', () => {
 
   void it('handles multiple prefix paths on same action', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
-    const policy = bucketPolicyFactory.createPolicy([
-      {
-        actions: ['read'],
-        resources: ['/some/prefix/*', '/another/path/*'],
-      },
-    ]);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([['read', new Set(['/some/prefix/*', '/another/path/*'])]])
+    );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
@@ -187,16 +175,12 @@ void describe('StorageAccessPolicyFactory', () => {
 
   void it('handles different actions on different prefixes', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
-    const policy = bucketPolicyFactory.createPolicy([
-      {
-        actions: ['read'],
-        resources: ['/some/prefix/*'],
-      },
-      {
-        actions: ['write'],
-        resources: ['/another/path/*'],
-      },
-    ]);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([
+        ['read', new Set(['/some/prefix/*'])],
+        ['write', new Set(['/another/path/*'])],
+      ])
+    );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
@@ -244,12 +228,13 @@ void describe('StorageAccessPolicyFactory', () => {
 
   void it('handles multiple actions on the same prefix', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
-    const policy = bucketPolicyFactory.createPolicy([
-      {
-        actions: ['read', 'write', 'delete'],
-        resources: ['/some/prefix/*'],
-      },
-    ]);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([
+        ['read', new Set(['/some/prefix/*'])],
+        ['write', new Set(['/some/prefix/*'])],
+        ['delete', new Set(['/some/prefix/*'])],
+      ])
+    );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
     policy.attachToRole(
