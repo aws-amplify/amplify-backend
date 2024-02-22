@@ -34,6 +34,20 @@ import {
   ListBranchesCommand,
   ListBranchesCommandOutput,
 } from '@aws-sdk/client-amplify';
+import {
+  DeletePolicyCommand,
+  DeleteRoleCommand,
+  DeleteRolePolicyCommand,
+  DetachRolePolicyCommand,
+  IAMClient,
+  ListAttachedRolePoliciesCommand,
+  ListAttachedRolePoliciesCommandOutput,
+  ListRolePoliciesCommand,
+  ListRolePoliciesCommandOutput,
+  ListRolesCommand,
+  ListRolesCommandOutput,
+  Role,
+} from '@aws-sdk/client-iam';
 
 const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
@@ -42,6 +56,9 @@ const cfnClient = new CloudFormationClient({
   maxAttempts: 5,
 });
 const cognitoClient = new CognitoIdentityProviderClient({
+  maxAttempts: 5,
+});
+const iamClient = new IAMClient({
   maxAttempts: 5,
 });
 const s3Client = new S3Client({
@@ -339,6 +356,79 @@ for (const staleBranch of allStaleBranches) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
       `Failed to delete ${staleBranch.branchName} branch of app ${staleBranch.appId}. ${errorMessage}`
+    );
+  }
+}
+
+const listAllStaleRoles = async (): Promise<Array<Role>> => {
+  let nextToken: string | undefined = undefined;
+  const roles: Array<Role> = [];
+  do {
+    const listRolesCommandOutput: ListRolesCommandOutput = await iamClient.send(
+      new ListRolesCommand({
+        Marker: nextToken,
+      })
+    );
+    nextToken = listRolesCommandOutput.Marker;
+    if (listRolesCommandOutput.Roles) {
+      listRolesCommandOutput.Roles.filter(
+        (role: Role) =>
+          role.RoleName?.startsWith(TEST_RESOURCE_PREFIX) &&
+          isStale(role.CreateDate)
+      ).forEach((role: Role) => {
+        roles.push(role);
+      });
+    }
+  } while (nextToken);
+  return roles;
+};
+
+const allStaleRoles = await listAllStaleRoles();
+for (const staleRole of allStaleRoles) {
+  try {
+    // delete inline policies
+    const inlinePolicies: ListRolePoliciesCommandOutput = await iamClient.send(
+      new ListRolePoliciesCommand({ RoleName: staleRole.RoleName })
+    );
+    for (const policyName of inlinePolicies.PolicyNames || []) {
+      await iamClient.send(
+        new DeleteRolePolicyCommand({
+          RoleName: staleRole.RoleName,
+          PolicyName: policyName,
+        })
+      );
+    }
+    // detach policies
+    const attachedPolicies: ListAttachedRolePoliciesCommandOutput =
+      await iamClient.send(
+        new ListAttachedRolePoliciesCommand({ RoleName: staleRole.RoleName })
+      );
+    for (const policy of attachedPolicies.AttachedPolicies || []) {
+      await iamClient.send(
+        new DetachRolePolicyCommand({
+          RoleName: staleRole.RoleName,
+          PolicyArn: policy.PolicyArn,
+        })
+      );
+      if (
+        policy.PolicyArn &&
+        !policy.PolicyArn.startsWith('arn:aws:iam::aws:policy')
+      ) {
+        // delete non AWS managed policies as well
+        await iamClient.send(
+          new DeletePolicyCommand({ PolicyArn: policy.PolicyArn })
+        );
+      }
+    }
+    // delete role
+    await iamClient.send(
+      new DeleteRoleCommand({ RoleName: staleRole.RoleName })
+    );
+    console.log(`Successfully deleted ${staleRole.RoleName} IAM Role`);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to delete ${staleRole.RoleName} IAM Role. ${errorMessage}`
     );
   }
 }
