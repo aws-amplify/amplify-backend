@@ -72,6 +72,24 @@ void describe('StorageGenerator', () => {
       assert.ok(storageInstance instanceof AmplifyStorage);
     });
 
+    void it('throws if access prefixes are invalid', () => {
+      const storageGenerator = new StorageContainerEntryGenerator(
+        { name: 'testName', access: () => ({}) },
+        getInstanceProps,
+        new StorageAccessPolicyArbiterFactory(),
+        undefined,
+        () => {
+          throw new Error('test validation error');
+        }
+      );
+
+      assert.throws(
+        () =>
+          storageGenerator.generateContainerEntry(generateContainerEntryProps),
+        { message: 'test validation error' }
+      );
+    });
+
     void it('invokes the policy arbiter with correct accessDefinition if access is defined', () => {
       const arbitratePoliciesMock = mock.fn();
       const bucketPolicyArbiterFactory =

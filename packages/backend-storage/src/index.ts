@@ -2,7 +2,7 @@ export * from './factory.js';
 export { StorageResources, AmplifyStorageProps } from './construct.js';
 export {
   RoleAccessBuilder,
-  StorageAccessDefinition,
+  StoragePathAccessDefinition as StorageAccessDefinition,
   StorageAccessBuilder,
   StorageAction,
 } from './access_builder.js';

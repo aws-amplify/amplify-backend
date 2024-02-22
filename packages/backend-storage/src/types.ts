@@ -1,6 +1,6 @@
 import {
   RoleAccessBuilder,
-  StorageAccessDefinition,
+  StoragePathAccessDefinition,
 } from './access_builder.js';
 import { AmplifyStorageProps } from './construct.js';
 
@@ -9,7 +9,7 @@ export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 /**
  * Storage access keys must start with / and end with /*
  */
-export type StoragePrefix = `/${string}/*`;
+export type StoragePath = `/${string}/*`;
 
 export type AmplifyStorageFactoryProps = Omit<
   AmplifyStorageProps,
@@ -24,6 +24,9 @@ export type AmplifyStorageFactoryProps = Omit<
   access?: AccessGenerator;
 };
 
-export type AccessGenerator = (
-  allow: RoleAccessBuilder
-) => Record<StoragePrefix, StorageAccessDefinition[]>;
+export type StorageAccessRecord = Record<
+  StoragePath,
+  StoragePathAccessDefinition[]
+>;
+
+export type AccessGenerator = (allow: RoleAccessBuilder) => StorageAccessRecord;
