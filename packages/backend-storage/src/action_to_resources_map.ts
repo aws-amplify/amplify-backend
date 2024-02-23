@@ -2,7 +2,7 @@ import {
   ResourceAccessAcceptor,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
-import { StorageAction, StoragePrefix } from './types.js';
+import { StorageAction, StoragePath } from './types.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 
 /**
@@ -22,7 +22,7 @@ export class AccessDefinitionTranslator {
   addAccessDefinition = (
     resourceAccessAcceptor: ResourceAccessAcceptor,
     actions: StorageAction[],
-    s3Prefix: StoragePrefix
+    s3Prefix: StoragePath
   ) => {
     const acceptorToken = resourceAccessAcceptor.identifier;
 
@@ -55,16 +55,16 @@ export class AccessDefinitionTranslator {
 class PolicyBuilder {
   private storagePermissions = new Map<
     StorageAction,
-    { allow: Set<StoragePrefix>; deny: Set<StoragePrefix> }
+    { allow: Set<StoragePath>; deny: Set<StoragePath> }
   >();
-  private s3PrefixToActionMap = new Map<StoragePrefix, Set<StorageAction>>();
+  private s3PrefixToActionMap = new Map<StoragePath, Set<StorageAction>>();
 
   constructor(private readonly policyFactory: StorageAccessPolicyFactory) {}
 
   /**
    * Set an entry in the actionToResources Map that associates the resource with the action
    */
-  add = (action: StorageAction, s3Prefix: StoragePrefix) => {
+  add = (action: StorageAction, s3Prefix: StoragePath) => {
     if (!this.storagePermissions.has(action)) {
       this.storagePermissions.set(action, {
         allow: new Set(),
@@ -82,11 +82,11 @@ class PolicyBuilder {
   getPolicy = () => {
     const allPrefixes = Array.from(
       this.s3PrefixToActionMap.keys()
-    ) as StoragePrefix[];
+    ) as StoragePath[];
 
     // do a pass over all the prefixes to determine which parent paths need deny policies for subpaths
     this.s3PrefixToActionMap.forEach((actions, s3Prefix) => {
-      const parent = findParent(s3Prefix as StoragePrefix, allPrefixes);
+      const parent = findParent(s3Prefix as StoragePath, allPrefixes);
       if (!parent) {
         // if the current prefix does not have a parent prefix defined, then we don't need to add any deny policies
         // also note there cannot be multiple parent paths because of our path validation rules
@@ -106,7 +106,7 @@ class PolicyBuilder {
   };
 }
 
-const findParent = (prefix: StoragePrefix, allPrefixes: StoragePrefix[]) => {
+const findParent = (prefix: StoragePath, allPrefixes: StoragePath[]) => {
   return allPrefixes.find(
     (p) => prefix !== p && prefix.startsWith(p.replaceAll('*', ''))
   );

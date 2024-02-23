@@ -5,7 +5,7 @@ import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import assert from 'node:assert';
 import { Template } from 'aws-cdk-lib/assertions';
 import { AccountPrincipal, Policy, Role } from 'aws-cdk-lib/aws-iam';
-import { StorageAction, StoragePrefix } from './types.js';
+import { StorageAction, StoragePath } from './types.js';
 
 void describe('StorageAccessPolicyFactory', () => {
   let bucket: Bucket;
@@ -177,7 +177,7 @@ void describe('StorageAccessPolicyFactory', () => {
   void it('handles different actions on different prefixes', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
-      new Map<StorageAction, Set<StoragePrefix>>([
+      new Map<StorageAction, Set<StoragePath>>([
         ['read', new Set(['/some/prefix/*'])],
         ['write', new Set(['/another/path/*'])],
       ])

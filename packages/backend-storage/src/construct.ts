@@ -24,10 +24,11 @@ import {
 import { fileURLToPath } from 'url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
-import { AmplifyStorageTriggerEvent } from './types.js';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
+
+export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 export type AmplifyStorageProps = {
   name: string;

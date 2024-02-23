@@ -15,7 +15,7 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
-export type AccessGenerator = (allow: RoleAccessBuilder) => Record<StoragePrefix, StorageAccessDefinition[]>;
+export type AccessGenerator = (allow: RoleAccessBuilder) => StorageAccessRecord;
 
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
@@ -57,10 +57,13 @@ export type StorageAccessDefinition = {
 };
 
 // @public (undocumented)
+export type StorageAccessRecord = Record<StoragePath, StorageAccessDefinition[]>;
+
+// @public (undocumented)
 export type StorageAction = 'read' | 'write' | 'delete';
 
 // @public
-export type StoragePrefix = `/${string}/*`;
+export type StoragePath = `/${string}/*`;
 
 // @public (undocumented)
 export type StorageResources = {

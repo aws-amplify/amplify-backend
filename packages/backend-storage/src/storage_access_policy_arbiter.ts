@@ -2,8 +2,9 @@ import {
   ConstructFactoryGetInstanceProps,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
-import { StorageAccessDefinition, StoragePrefix } from './types.js';
+import { StorageAccessDefinition, StoragePath } from './types.js';
 import { AccessDefinitionTranslator } from './action_to_resources_map.js';
+import { ownerPathPartToken } from './constants.js';
 
 /**
  * Middleman between creating bucket policies and attaching those policies to corresponding roles
@@ -14,7 +15,7 @@ export class StorageAccessPolicyArbiter {
    */
   constructor(
     private readonly accessDefinition: Record<
-      StoragePrefix,
+      StoragePath,
       StorageAccessDefinition[]
     >,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
@@ -40,9 +41,9 @@ export class StorageAccessPolicyArbiter {
 
           // make the owner placeholder substitution in the s3 prefix
           const prefix = s3Prefix.replaceAll(
-            '{owner}',
+            ownerPathPartToken,
             permission.ownerPlaceholderSubstitution
-          ) as StoragePrefix;
+          ) as StoragePath;
 
           // set an entry that maps this permission to the resource acceptor
           this.accessDefinitionTranslator.addAccessDefinition(
@@ -64,7 +65,7 @@ export class StorageAccessPolicyArbiter {
  */
 export class StorageAccessPolicyArbiterFactory {
   getInstance = (
-    accessDefinition: Record<StoragePrefix, StorageAccessDefinition[]>,
+    accessDefinition: Record<StoragePath, StorageAccessDefinition[]>,
     getInstanceProps: ConstructFactoryGetInstanceProps,
     ssmEnvironmentEntries: SsmEnvironmentEntry[],
     accessDefinitionTranslator: AccessDefinitionTranslator

@@ -2,8 +2,7 @@ import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { Effect, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
-import { StorageAction, StoragePrefix } from './types.js';
-import { StoragePermissions } from './action_to_resources_map.js';
+import { StorageAction, StoragePath } from './types.js';
 
 export type Permission = {
   actions: StorageAction[];
@@ -29,7 +28,12 @@ export class StorageAccessPolicyFactory {
     this.stack = Stack.of(bucket);
   }
 
-  createPolicy = (permissions: StoragePermissions) => {
+  createPolicy = (
+    permissions: Map<
+      StorageAction,
+      { allow: Set<StoragePath>; deny: Set<StoragePath> }
+    >
+  ) => {
     if (permissions.size === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
         message: 'At least one permission must be specified',
@@ -50,7 +54,7 @@ export class StorageAccessPolicyFactory {
   };
 
   private getStatement = (
-    s3Prefixes: Readonly<Set<StoragePrefix>>,
+    s3Prefixes: Readonly<Set<StoragePath>>,
     action: StorageAction,
     effect: Effect
   ) =>
