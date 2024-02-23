@@ -54,6 +54,14 @@ export class StorageAccessPolicyFactory {
         }
       }
     );
+
+    if (statements.length === 0) {
+      // this could happen if the Map contained entries but all of the path sets were empty
+      throw new AmplifyFault('EmptyPolicyFault', {
+        message: 'At least one permission must be specified',
+      });
+    }
+
     return new Policy(this.stack, `${this.namePrefix}${this.policyCount++}`, {
       statements,
     });

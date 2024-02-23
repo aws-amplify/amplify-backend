@@ -307,6 +307,73 @@ void describe('StorageAccessPolicyArbiter', () => {
         [{ name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' }]
       );
     });
+
+    void it('denies parent actions on a subpath by default', () => {
+      const acceptResourceAccessMock1 = mock.fn();
+      const acceptResourceAccessMock2 = mock.fn();
+      const storageAccessPolicyArbiter = new StorageAccessPolicyArbiter(
+        {
+          '/foo/*': [
+            {
+              actions: ['read', 'write'],
+              getResourceAccessAcceptor: () => ({
+                identifier: 'resourceAccessAcceptor1',
+                acceptResourceAccess: acceptResourceAccessMock1,
+              }),
+              ownerPlaceholderSubstitution: '*',
+            },
+          ],
+          '/foo/bar/*': [
+            {
+              actions: ['read'],
+              getResourceAccessAcceptor: () => ({
+                identifier: 'resourceAccessAcceptor2',
+                acceptResourceAccess: acceptResourceAccessMock2,
+              }),
+              ownerPlaceholderSubstitution: '*',
+            },
+          ],
+        },
+        getInstanceProps,
+        ssmEnvironmentEntriesStub,
+        new AccessDefinitionTranslator(new StorageAccessPolicyFactory(bucket))
+      );
+
+      storageAccessPolicyArbiter.arbitratePolicies();
+      assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        acceptResourceAccessMock1.mock.calls[0].arguments[0].document.toJSON(),
+        {
+          Statement: [
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/foo/*`,
+            },
+            {
+              Action: 's3:GetObject',
+              Effect: 'Deny',
+              Resource: `${bucket.bucketArn}/foo/bar/*`,
+            },
+            {
+              Action: 's3:PutObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/foo/*`,
+            },
+            {
+              Action: 's3:PutObject',
+              Effect: 'Deny',
+              Resource: `${bucket.bucketArn}/foo/bar/*`,
+            },
+          ],
+          Version: '2012-10-17',
+        }
+      );
+      assert.deepStrictEqual(
+        acceptResourceAccessMock1.mock.calls[0].arguments[1],
+        [{ name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' }]
+      );
+    });
   });
 });
 

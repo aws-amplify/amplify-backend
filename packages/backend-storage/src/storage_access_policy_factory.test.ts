@@ -307,6 +307,265 @@ void describe('StorageAccessPolicyFactory', () => {
       },
     });
   });
+
+  void it('handles deny on single action', () => {
+    const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([
+        ['read', { allow: new Set(['/foo/*', '/foo/bar/*']), deny: new Set() }],
+        [
+          'write',
+          { allow: new Set(['/foo/*']), deny: new Set(['/foo/bar/*']) },
+        ],
+      ])
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(Stack.of(bucket));
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: 's3:GetObject',
+            Resource: [
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                    },
+                    '/foo/*',
+                  ],
+                ],
+              },
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                    },
+                    '/foo/bar/*',
+                  ],
+                ],
+              },
+            ],
+          },
+          {
+            Action: 's3:PutObject',
+            Resource: {
+              'Fn::Join': [
+                '',
+                [
+                  {
+                    'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                  },
+                  '/foo/*',
+                ],
+              ],
+            },
+          },
+          {
+            Effect: 'Deny',
+            Action: 's3:PutObject',
+            Resource: {
+              'Fn::Join': [
+                '',
+                [
+                  {
+                    'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                  },
+                  '/foo/bar/*',
+                ],
+              ],
+            },
+          },
+        ],
+      },
+    });
+  });
+
+  void it('handles deny on multiple actions for the same path', () => {
+    const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([
+        [
+          'read',
+          {
+            allow: new Set(['/foo/*']),
+            deny: new Set(['/foo/bar/*']),
+          },
+        ],
+        [
+          'write',
+          { allow: new Set(['/foo/*']), deny: new Set(['/foo/bar/*']) },
+        ],
+      ])
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(Stack.of(bucket));
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: 's3:GetObject',
+            Resource: {
+              'Fn::Join': [
+                '',
+                [
+                  {
+                    'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                  },
+                  '/foo/*',
+                ],
+              ],
+            },
+          },
+          {
+            Effect: 'Deny',
+            Action: 's3:GetObject',
+            Resource: {
+              'Fn::Join': [
+                '',
+                [
+                  {
+                    'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                  },
+                  '/foo/bar/*',
+                ],
+              ],
+            },
+          },
+          {
+            Action: 's3:PutObject',
+            Resource: {
+              'Fn::Join': [
+                '',
+                [
+                  {
+                    'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                  },
+                  '/foo/*',
+                ],
+              ],
+            },
+          },
+          {
+            Effect: 'Deny',
+            Action: 's3:PutObject',
+            Resource: {
+              'Fn::Join': [
+                '',
+                [
+                  {
+                    'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                  },
+                  '/foo/bar/*',
+                ],
+              ],
+            },
+          },
+        ],
+      },
+    });
+  });
+
+  void it('handles deny for same action on multiple paths', () => {
+    const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([
+        [
+          'read',
+          {
+            allow: new Set(['/foo/*']),
+            deny: new Set(['/foo/bar/*', '/other/path/*', '/something/else/*']),
+          },
+        ],
+      ])
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(Stack.of(bucket));
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: 's3:GetObject',
+            Resource: {
+              'Fn::Join': [
+                '',
+                [
+                  {
+                    'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                  },
+                  '/foo/*',
+                ],
+              ],
+            },
+          },
+          {
+            Effect: 'Deny',
+            Action: 's3:GetObject',
+            Resource: [
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                    },
+                    '/foo/bar/*',
+                  ],
+                ],
+              },
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                    },
+                    '/other/path/*',
+                  ],
+                ],
+              },
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+                    },
+                    '/something/else/*',
+                  ],
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+  });
 });
 
 const createStackAndBucket = (): { stack: Stack; bucket: Bucket } => {
