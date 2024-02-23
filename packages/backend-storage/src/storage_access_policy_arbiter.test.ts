@@ -81,7 +81,12 @@ void describe('StorageAccessPolicyArbiter', () => {
         {
           Statement: [
             {
-              Action: ['s3:GetObject', 's3:PutObject'],
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/test/prefix/*`,
+            },
+            {
+              Action: 's3:PutObject',
               Effect: 'Allow',
               Resource: `${bucket.bucketArn}/test/prefix/*`,
             },
@@ -132,14 +137,22 @@ void describe('StorageAccessPolicyArbiter', () => {
         {
           Statement: [
             {
-              Action: ['s3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: [
+                `${bucket.bucketArn}/test/prefix/*`,
+                `${bucket.bucketArn}/another/prefix/*`,
+              ],
+            },
+            {
+              Action: 's3:PutObject',
               Effect: 'Allow',
               Resource: `${bucket.bucketArn}/test/prefix/*`,
             },
             {
-              Action: 's3:GetObject',
+              Action: 's3:DeleteObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/another/prefix/*`,
+              Resource: `${bucket.bucketArn}/test/prefix/*`,
             },
           ],
           Version: '2012-10-17',
@@ -198,7 +211,17 @@ void describe('StorageAccessPolicyArbiter', () => {
         {
           Statement: [
             {
-              Action: ['s3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/test/prefix/*`,
+            },
+            {
+              Action: 's3:PutObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/test/prefix/*`,
+            },
+            {
+              Action: 's3:DeleteObject',
               Effect: 'Allow',
               Resource: `${bucket.bucketArn}/test/prefix/*`,
             },
@@ -214,10 +237,13 @@ void describe('StorageAccessPolicyArbiter', () => {
             {
               Action: 's3:GetObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/test/prefix/*`,
+              Resource: [
+                `${bucket.bucketArn}/test/prefix/*`,
+                `${bucket.bucketArn}/another/prefix/*`,
+              ],
             },
             {
-              Action: ['s3:GetObject', 's3:DeleteObject'],
+              Action: 's3:DeleteObject',
               Effect: 'Allow',
               Resource: `${bucket.bucketArn}/another/prefix/*`,
             },
@@ -264,7 +290,12 @@ void describe('StorageAccessPolicyArbiter', () => {
         {
           Statement: [
             {
-              Action: ['s3:GetObject', 's3:PutObject'],
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/test/{testOwnerSub}/*`,
+            },
+            {
+              Action: 's3:PutObject',
               Effect: 'Allow',
               Resource: `${bucket.bucketArn}/test/{testOwnerSub}/*`,
             },

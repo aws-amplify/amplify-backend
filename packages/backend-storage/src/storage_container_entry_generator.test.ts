@@ -20,9 +20,9 @@ import { App, Stack } from 'aws-cdk-lib';
 import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
 import { AmplifyStorage } from './construct.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { RoleAccessBuilder } from './access_builder.js';
 import { Function, InlineCode, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Template } from 'aws-cdk-lib/assertions';
+import { RoleAccessBuilder } from './types.js';
 
 void describe('StorageGenerator', () => {
   void describe('generateContainerEntry', () => {

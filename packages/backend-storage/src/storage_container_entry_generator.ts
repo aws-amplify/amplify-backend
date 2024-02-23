@@ -3,16 +3,10 @@ import {
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
 } from '@aws-amplify/plugin-types';
-import { AmplifyStorage } from './construct.js';
+import { AmplifyStorage, AmplifyStorageTriggerEvent } from './construct.js';
 import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
-import {
-  AmplifyStorageFactoryProps,
-  AmplifyStorageTriggerEvent,
-} from './types.js';
-import {
-  RoleAccessBuilder,
-  roleAccessBuilder as _roleAccessBuilder,
-} from './access_builder.js';
+import { AmplifyStorageFactoryProps, RoleAccessBuilder } from './types.js';
+import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
 import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 

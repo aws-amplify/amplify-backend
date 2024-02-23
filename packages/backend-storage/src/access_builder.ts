@@ -1,46 +1,10 @@
 import {
   AuthRoleName,
-  ConstructFactory,
   ConstructFactoryGetInstanceProps,
-  ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-
-export type StorageAction = 'read' | 'write' | 'delete';
-
-export type StoragePathAccessDefinition = {
-  getResourceAccessAcceptor: (
-    getInstanceProps: ConstructFactoryGetInstanceProps
-  ) => ResourceAccessAcceptor;
-  /**
-   * Actions to grant to this role on a specific prefix
-   */
-  actions: StorageAction[];
-  /**
-   * The value that will be substituted into the resource string in place of the {owner} token
-   */
-  ownerPlaceholderSubstitution: string;
-};
-
-export type StorageAccessBuilder = {
-  to: (actions: StorageAction[]) => StoragePathAccessDefinition;
-};
-
-/**
- * !EXPERIMENTAL!
- *
- * Resource access patterns are under active development and are subject to breaking changes.
- * Do not use in production.
- */
-export type RoleAccessBuilder = {
-  authenticated: StorageAccessBuilder;
-  guest: StorageAccessBuilder;
-  owner: StorageAccessBuilder;
-  resource: (
-    other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
-  ) => StorageAccessBuilder;
-};
+import { RoleAccessBuilder } from './types.js';
 
 export const roleAccessBuilder: RoleAccessBuilder = {
   authenticated: {
