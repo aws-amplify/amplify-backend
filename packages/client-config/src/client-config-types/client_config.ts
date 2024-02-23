@@ -14,7 +14,7 @@ import * as clientConfigTypesV2 from '../client-config-schema/config_types_v2.js
 /**
  * Merged type of all category client config types
  */
-export type Gen1ClientConfig = Partial<
+export type ClientConfigLegacy = Partial<
   AnalyticsClientConfig &
     AuthClientConfig &
     GeoClientConfig &
@@ -26,13 +26,13 @@ export type Gen1ClientConfig = Partial<
 >;
 
 // Versions of client config schema supported by "this" package version
-export type Gen2ClientConfig =
+export type ClientConfigGen2 =
   | clientConfigTypesV1.ConfigTypesV1
   | clientConfigTypesV2.ConfigTypesV2;
 export { clientConfigTypesV1 };
 export { clientConfigTypesV2 };
 
-export type ClientConfig = Gen1ClientConfig | Gen2ClientConfig;
+export type ClientConfig = ClientConfigLegacy | ClientConfigGen2;
 
 export enum ClientConfigFormat {
   MJS = 'mjs',

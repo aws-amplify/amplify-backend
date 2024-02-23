@@ -1,4 +1,4 @@
-import { Gen1ClientConfig } from '../client-config-types/client_config.js';
+import { ClientConfigLegacy } from '../client-config-types/client_config.js';
 import {
   ClientConfigMobile,
   ClientConfigMobileApi,
@@ -21,7 +21,7 @@ export class ClientConfigConverter {
    * Converts client config to a shape consumable by mobile libraries.
    */
   convertToMobileConfig = (
-    clientConfig: Gen1ClientConfig
+    clientConfig: ClientConfigLegacy
   ): ClientConfigMobile => {
     const userAgent = `${this.packageName}/${this.packageVersion}`;
 

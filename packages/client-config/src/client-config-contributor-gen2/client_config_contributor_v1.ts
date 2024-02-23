@@ -5,7 +5,7 @@ import {
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import {
-  Gen2ClientConfig,
+  ClientConfigGen2,
   clientConfigTypesV1,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
@@ -22,7 +22,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
    */
   contribute = ({
     [authOutputKey]: authOutput,
-  }: UnifiedBackendOutput): Gen2ClientConfig | Record<string, never> => {
+  }: UnifiedBackendOutput): ClientConfigGen2 | Record<string, never> => {
     if (authOutput === undefined) {
       return {};
     }
@@ -114,7 +114,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       authClientConfig.oauth_response_type = authOutput.payload
         .oauthResponseType as clientConfigTypesV1.OauthResponseType;
     }
-    return { auth: authClientConfig } as Gen2ClientConfig;
+    return { auth: authClientConfig } as ClientConfigGen2;
   };
 }
 
@@ -136,7 +136,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
   contribute = async ({
     [graphqlOutputKey]: graphqlOutput,
   }: UnifiedBackendOutput): Promise<
-    Gen2ClientConfig | Record<string, never>
+    ClientConfigGen2 | Record<string, never>
   > => {
     if (graphqlOutput === undefined) {
       return {};
@@ -164,6 +164,6 @@ export class DataClientConfigContributor implements ClientConfigContributor {
       config.model_introspection = modelIntrospection;
     }
 
-    return { data: config } as Gen2ClientConfig;
+    return { data: config } as ClientConfigGen2;
   };
 }

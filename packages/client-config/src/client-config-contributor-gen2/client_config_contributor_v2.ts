@@ -5,7 +5,7 @@ import {
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import {
-  Gen2ClientConfig,
+  ClientConfigGen2,
   clientConfigTypesV2,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
@@ -22,7 +22,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
    */
   contribute = ({
     [authOutputKey]: authOutput,
-  }: UnifiedBackendOutput): Gen2ClientConfig | Record<string, never> => {
+  }: UnifiedBackendOutput): ClientConfigGen2 | Record<string, never> => {
     if (authOutput === undefined) {
       return {};
     }
@@ -45,11 +45,6 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       user_pool_client_id: authOutput.payload.webClientId,
       identity_pool_id: authOutput.payload.identityPoolId,
     };
-    // TBD
-    // if (authOutput.payload.allowUnauthenticatedIdentities !== undefined) {
-    //   authClientConfig.allowUnauthenticatedIdentities =
-    //     authOutput.payload.allowUnauthenticatedIdentities;
-    // }
 
     parseAndAssignObject(
       authClientConfig,
@@ -58,12 +53,12 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
     );
     parseAndAssignObject(
       authClientConfig,
-      'user_sign_up_attributes',
+      'standard_attributes',
       authOutput.payload.signupAttributes
     );
     parseAndAssignObject(
       authClientConfig,
-      'user_username_attributes',
+      'username_attributes',
       authOutput.payload.usernameAttributes
     );
     parseAndAssignObject(
@@ -77,21 +72,44 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
         .mfaConfiguration as clientConfigTypesV2.MfaConfiguration;
     }
 
-    if (authOutput.payload.passwordPolicyMinLength) {
-      (authClientConfig.password_policy_min_length = Number.parseInt(
-        authOutput.payload.passwordPolicyMinLength
-      )),
-        parseAndAssignObject(
-          authClientConfig,
-          'password_policy_characters',
-          authOutput.payload.passwordPolicyRequirements
+    if (
+      authOutput.payload.passwordPolicyMinLength ||
+      authOutput.payload.passwordPolicyRequirements
+    ) {
+      const passwordPolicy: clientConfigTypesV2.PasswordPolicy = {};
+      if (authOutput.payload.passwordPolicyMinLength) {
+        passwordPolicy.min_length = Number.parseInt(
+          authOutput.payload.passwordPolicyMinLength
         );
+      }
+      if (authOutput.payload.passwordPolicyRequirements) {
+        const requirements = JSON.parse(
+          authOutput.payload.passwordPolicyRequirements
+        ) as string[];
+        for (const requirement of requirements) {
+          switch (requirement) {
+            case 'REQUIRES_NUMBERS':
+              passwordPolicy.require_numbers = true;
+              break;
+            case 'REQUIRES_LOWERCASE':
+              passwordPolicy.require_lowercase = true;
+              break;
+            case 'REQUIRES_UPPERCASE':
+              passwordPolicy.require_uppercase = true;
+              break;
+            case 'REQUIRES_SYMBOLS':
+              passwordPolicy.require_symbols = true;
+              break;
+          }
+        }
+      }
+      authClientConfig.password_policy = passwordPolicy;
     }
 
     if (authOutput.payload.socialProviders) {
       parseAndAssignObject(
         authClientConfig,
-        'social_providers',
+        'identity_providers',
         authOutput.payload.socialProviders
       );
     }
@@ -109,12 +127,10 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
         authOutput.payload.oauthRedirectSignIn;
       authClientConfig.oauth_redirect_sign_out =
         authOutput.payload.oauthRedirectSignOut;
-      // TBD
-      // authClientConfig.oauth.clientId = authOutput.payload.oauthClientId;
       authClientConfig.oauth_response_type = authOutput.payload
         .oauthResponseType as clientConfigTypesV2.OauthResponseType;
     }
-    return { auth: authClientConfig } as Gen2ClientConfig;
+    return { auth: authClientConfig } as ClientConfigGen2;
   };
 }
 
@@ -136,7 +152,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
   contribute = async ({
     [graphqlOutputKey]: graphqlOutput,
   }: UnifiedBackendOutput): Promise<
-    Gen2ClientConfig | Record<string, never>
+    ClientConfigGen2 | Record<string, never>
   > => {
     if (graphqlOutput === undefined) {
       return {};
@@ -164,6 +180,6 @@ export class DataClientConfigContributor implements ClientConfigContributor {
       config.model_introspection = modelIntrospection;
     }
 
-    return { data: config } as Gen2ClientConfig;
+    return { data: config } as ClientConfigGen2;
   };
 }

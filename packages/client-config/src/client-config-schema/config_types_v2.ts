@@ -5,22 +5,19 @@ export type ConfigTypesV2 = {
   /**
    * Version of this schema
    */
-  _version: '2';
+  _version?: '2';
   /**
    * Outputs generated from defineAuth
    */
   auth?: Auth;
   /**
-   * Outputs generated from defineAuth
+   * Outputs generated from backend.addOutput({custom: <config>})
    */
   custom?: { [key: string]: any };
   /**
    * Outputs generated from defineData
    */
   data?: Data;
-  /**
-   * Outputs generated from defineStorage
-   */
   storage?: Storage;
 };
 
@@ -33,6 +30,7 @@ export type Auth = {
    * Cognito Identity Pool ID
    */
   identity_pool_id?: string;
+  identity_providers?: string[];
   mfa_configuration?: MfaConfiguration;
   mfa_methods?: MfaMethod[];
   oauth_domain?: string;
@@ -40,9 +38,8 @@ export type Auth = {
   oauth_redirect_sign_out?: string;
   oauth_response_type?: OauthResponseType;
   oauth_scope?: string[];
-  password_policy_characters?: PasswordPolicyCharacter[];
-  password_policy_min_length?: number;
-  social_providers?: string[];
+  password_policy?: PasswordPolicy;
+  standard_attributes?: StandardAttributes;
   /**
    * Cognito User Pool Client ID
    */
@@ -51,9 +48,8 @@ export type Auth = {
    * Cognito User Pool ID
    */
   user_pool_id?: string;
-  user_sign_up_attributes?: string[];
-  user_username_attributes?: UserUsernameAttribute[];
-  user_verification_mechanisms?: UserVerificationMechanism[];
+  user_verification_mechanisms?: User[];
+  username_attributes?: User[];
 };
 
 export enum AwsRegion {
@@ -79,23 +75,43 @@ export enum OauthResponseType {
   Token = 'token',
 }
 
-export enum PasswordPolicyCharacter {
-  RequiresLowercase = 'REQUIRES_LOWERCASE',
-  RequiresNumbers = 'REQUIRES_NUMBERS',
-  RequiresSymbols = 'REQUIRES_SYMBOLS',
-  RequiresUppercase = 'REQUIRES_UPPERCASE',
-}
+export type PasswordPolicy = {
+  min_length?: number;
+  require_digits?: boolean;
+  require_lowercase?: boolean;
+  require_numbers?: boolean;
+  require_symbols?: boolean;
+  require_uppercase?: boolean;
+};
 
-export enum UserUsernameAttribute {
-  Email = 'email',
-  Phone = 'phone',
-  PreferredUsername = 'preferred_username',
-  Username = 'username',
-}
+export type StandardAttributes = {
+  address?: StandardAttribute;
+  birthdate?: StandardAttribute;
+  email?: StandardAttribute;
+  family_name?: StandardAttribute;
+  gender?: StandardAttribute;
+  given_name?: StandardAttribute;
+  locale?: StandardAttribute;
+  middle_name?: StandardAttribute;
+  name?: StandardAttribute;
+  nickname?: StandardAttribute;
+  phone_number?: StandardAttribute;
+  picture?: StandardAttribute;
+  preferred_username?: StandardAttribute;
+  profile?: StandardAttribute;
+  sub?: StandardAttribute;
+  updated_at?: StandardAttribute;
+  website?: StandardAttribute;
+  zoneinfo?: StandardAttribute;
+};
 
-export enum UserVerificationMechanism {
-  Email = 'email',
-  Phone = 'phone',
+export type StandardAttribute = {
+  required?: boolean;
+};
+
+export enum User {
+  Email = 'EMAIL',
+  Phone = 'PHONE',
 }
 
 /**
@@ -124,16 +140,7 @@ export enum AuthorizationType {
   OpenidConnect = 'OPENID_CONNECT',
 }
 
-/**
- * Outputs generated from defineStorage
- */
 export type Storage = {
-  buckets?: Bucket[];
-};
-
-export type Bucket = {
   aws_region?: AwsRegion;
   name?: string;
-  prefixes?: string[];
-  [property: string]: any;
 };

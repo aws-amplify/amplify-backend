@@ -35,7 +35,7 @@ export class ClientConfigGeneratorAdapter {
     backendIdentifier: DeployedBackendIdentifier,
     outDir?: string,
     format?: ClientConfigFormat,
-    version?: number
+    version?: string
   ): Promise<void> => {
     await generateClientConfigToFile(
       this.awsCredentialProvider,

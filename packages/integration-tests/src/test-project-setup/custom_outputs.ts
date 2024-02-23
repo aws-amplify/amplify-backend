@@ -6,7 +6,7 @@ import { TestProjectCreator } from './test_project_creator.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   ClientConfigFormat,
-  Gen1ClientConfig,
+  ClientConfigLegacy,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import assert from 'node:assert';
@@ -77,7 +77,7 @@ class CustomOutputsTestProject extends TestProjectBase {
       this.projectDirPath,
       ClientConfigFormat.JSON
     );
-    const clientConfig: Gen1ClientConfig = JSON.parse(
+    const clientConfig: ClientConfigLegacy = JSON.parse(
       await fsp.readFile(clientConfigPath, 'utf-8')
     );
 

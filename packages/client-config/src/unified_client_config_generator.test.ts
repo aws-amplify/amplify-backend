@@ -1,8 +1,8 @@
 import { describe, it, mock } from 'node:test';
 import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 import assert from 'node:assert';
-import { AuthClientConfigContributor } from './gen1-client-config-contributor/auth_client_config_contributor.js';
-import { GraphqlClientConfigContributor } from './gen1-client-config-contributor/graphql_client_config_contributor.js';
+import { AuthClientConfigContributor } from './client-config-contributor-legacy/auth_client_config_contributor.js';
+import { GraphqlClientConfigContributor } from './client-config-contributor-legacy/graphql_client_config_contributor.js';
 import {
   UnifiedBackendOutput,
   authOutputKey,
@@ -13,8 +13,8 @@ import {
 import { ClientConfig } from './client-config-types/client_config.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
-import { PlatformClientConfigContributor } from './gen1-client-config-contributor/platform_client_config_contributor.js';
-import { CustomClientConfigContributor } from './gen1-client-config-contributor/custom_client_config_contributor.js';
+import { PlatformClientConfigContributor } from './client-config-contributor-legacy/platform_client_config_contributor.js';
+import { CustomClientConfigContributor } from './client-config-contributor-legacy/custom_client_config_contributor.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 void describe('UnifiedClientConfigGenerator', () => {

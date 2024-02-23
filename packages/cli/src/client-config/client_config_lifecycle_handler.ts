@@ -17,7 +17,7 @@ export class ClientConfigLifecycleHandler {
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
     private readonly outDir?: string,
     private readonly format?: ClientConfigFormat,
-    private readonly version?: number
+    private readonly version?: string
   ) {}
 
   generateClientConfigFile = async (

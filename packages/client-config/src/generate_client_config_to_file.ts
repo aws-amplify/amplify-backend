@@ -20,13 +20,13 @@ export const generateClientConfigToFile = async (
   format?: ClientConfigFormat,
   // TODO: update this type when Printer interface gets defined in platform-core.
   log?: (message: string) => void,
-  version?: number
+  version?: string
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
   const clientConfigWriter = new ClientConfigWriter(
     getClientConfigPath,
-    version && version >= 1
+    version && version != '0'
       ? new Gen2ClientConfigFormatter()
       : new Gen1ClientConfigFormatter(
           new ClientConfigConverter(packageJson.name, packageJson.version)

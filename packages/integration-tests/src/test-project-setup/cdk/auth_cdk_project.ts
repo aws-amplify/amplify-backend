@@ -9,7 +9,7 @@ import path from 'path';
 import { DeployedResourcesFinder } from '../../find_deployed_resource.js';
 import assert from 'node:assert';
 import {
-  Gen1ClientConfig,
+  ClientConfigLegacy,
   generateClientConfig,
 } from '@aws-amplify/client-config';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
@@ -68,7 +68,7 @@ class AuthTestCdkProject extends TestCdkProjectBase {
     // assert that we can generate client config
     const clientConfig = (await generateClientConfig(fromNodeProviderChain(), {
       stackName: this.stackName,
-    })) as Gen1ClientConfig;
+    })) as ClientConfigLegacy;
 
     assert.ok(
       clientConfig.aws_user_pools_id,

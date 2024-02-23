@@ -1,7 +1,7 @@
 import {
   ClientConfig,
   ClientConfigFormat,
-  Gen1ClientConfig,
+  ClientConfigLegacy,
 } from '../client-config-types/client_config.js';
 import os from 'os';
 import { ClientConfigConverter } from './client_config_converter.js';
@@ -27,7 +27,7 @@ export class Gen1ClientConfigFormatter implements ClientConfigFormatter {
       case ClientConfigFormat.DART: {
         return `const amplifyConfig = '''${JSON.stringify(
           this.configConverter.convertToMobileConfig(
-            clientConfig as Gen1ClientConfig
+            clientConfig as ClientConfigLegacy
           ),
           null,
           2
@@ -36,7 +36,7 @@ export class Gen1ClientConfigFormatter implements ClientConfigFormatter {
       case ClientConfigFormat.JSON_MOBILE:
         return JSON.stringify(
           this.configConverter.convertToMobileConfig(
-            clientConfig as Gen1ClientConfig
+            clientConfig as ClientConfigLegacy
           ),
           null,
           2
