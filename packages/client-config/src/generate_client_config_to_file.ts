@@ -1,7 +1,10 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { generateClientConfig } from './generate_client_config.js';
 import { ClientConfigWriter } from './client-config-writer/client_config_writer.js';
-import { ClientConfigFormat } from './client-config-types/client_config.js';
+import {
+  ClientConfigFormat,
+  ClientConfigVersion,
+} from './client-config-types/client_config.js';
 import { getClientConfigPath } from './paths/index.js';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { Gen1ClientConfigFormatter } from './client-config-writer/gen1_client_config_formatter.js';
@@ -20,7 +23,7 @@ export const generateClientConfigToFile = async (
   format?: ClientConfigFormat,
   // TODO: update this type when Printer interface gets defined in platform-core.
   log?: (message: string) => void,
-  version?: string
+  version?: ClientConfigVersion
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 

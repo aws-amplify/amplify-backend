@@ -1,5 +1,6 @@
 import {
   ClientConfigFormat,
+  ClientConfigVersion,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
@@ -17,7 +18,7 @@ export class ClientConfigLifecycleHandler {
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
     private readonly outDir?: string,
     private readonly format?: ClientConfigFormat,
-    private readonly version?: string
+    private readonly version?: ClientConfigVersion
   ) {}
 
   generateClientConfigFile = async (

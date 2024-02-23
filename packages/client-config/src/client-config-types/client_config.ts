@@ -34,6 +34,8 @@ export { clientConfigTypesV2 };
 
 export type ClientConfig = ClientConfigLegacy | ClientConfigGen2;
 
+export type ClientConfigVersion = '0' | '1' | '2';
+
 export enum ClientConfigFormat {
   MJS = 'mjs',
   JSON = 'json',

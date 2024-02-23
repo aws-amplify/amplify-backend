@@ -10,13 +10,13 @@ import {
 
 import { ClientConfigContributor } from '../client-config-types/client_config_contributor.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-
+import { ClientConfigVersion } from '../client-config-types/client_config.js';
 /**
  * Factory to generate client config contributors for Gen2 client config schema given a version
  */
 export class ClientConfigContributorFactory {
   versionedGen2ClientConfigContributors: Record<
-    string,
+    ClientConfigVersion,
     ClientConfigContributor[]
   >;
 
@@ -29,13 +29,14 @@ export class ClientConfigContributorFactory {
     this.versionedGen2ClientConfigContributors = {
       ['1']: [new Auth1(), new Data1(this.modelIntrospectionSchemaAdapter)],
       ['2']: [new Auth2(), new Data2(this.modelIntrospectionSchemaAdapter)],
+      ['0']: [],
     };
   }
 
   /**
    * Return all the contributors for the given version
    */
-  getContributors(version: string) {
+  getContributors(version: ClientConfigVersion) {
     return this.versionedGen2ClientConfigContributors[version];
   }
 }

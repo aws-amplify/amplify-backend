@@ -1,5 +1,8 @@
 import { Argv, CommandModule } from 'yargs';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
+import {
+  ClientConfigFormat,
+  ClientConfigVersion,
+} from '@aws-amplify/client-config';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
@@ -59,7 +62,7 @@ export class GenerateConfigCommand
       backendIdentifier,
       args['out-dir'],
       args.format,
-      args['output-version']
+      args['output-version'] as ClientConfigVersion
     );
   };
 

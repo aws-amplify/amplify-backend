@@ -1,6 +1,7 @@
 import {
   ClientConfig,
   ClientConfigFormat,
+  ClientConfigVersion,
   generateClientConfig,
   generateClientConfigToFile,
 } from '@aws-amplify/client-config';
@@ -35,7 +36,7 @@ export class ClientConfigGeneratorAdapter {
     backendIdentifier: DeployedBackendIdentifier,
     outDir?: string,
     format?: ClientConfigFormat,
-    version?: string
+    version?: ClientConfigVersion
   ): Promise<void> => {
     await generateClientConfigToFile(
       this.awsCredentialProvider,

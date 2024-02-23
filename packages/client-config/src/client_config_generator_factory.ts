@@ -9,6 +9,7 @@ import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_ad
 import { PlatformClientConfigContributor } from './client-config-contributor-legacy/platform_client_config_contributor.js';
 import { CustomClientConfigContributor } from './client-config-contributor-legacy/custom_client_config_contributor.js';
 import { ClientConfigContributorFactory } from './client-config-contributor-gen2/client_config_contributor_factory.js';
+import { ClientConfigVersion } from './index.js';
 
 /**
  * Creates ClientConfigGenerators given different backend identifiers
@@ -24,7 +25,7 @@ export class ClientConfigGeneratorFactory {
    */
   getInstance = (
     credentialProvider: AwsCredentialIdentityProvider,
-    version?: string
+    version?: ClientConfigVersion
   ): ClientConfigGenerator => {
     const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
       credentialProvider
