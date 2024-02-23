@@ -2,7 +2,7 @@ import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
-import { StorageAction, StoragePrefix } from './types.js';
+import { StorageAction, StoragePath } from './types.js';
 
 export type Permission = {
   actions: StorageAction[];
@@ -29,7 +29,7 @@ export class StorageAccessPolicyFactory {
   }
 
   createPolicy = (
-    permissions: Readonly<Map<StorageAction, Readonly<Set<StoragePrefix>>>>
+    permissions: Readonly<Map<StorageAction, Readonly<Set<StoragePath>>>>
   ) => {
     if (permissions.size === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
@@ -48,7 +48,7 @@ export class StorageAccessPolicyFactory {
   };
 
   private getStatement = (
-    s3Prefixes: Readonly<Set<StoragePrefix>>,
+    s3Prefixes: Readonly<Set<StoragePath>>,
     action: StorageAction
   ) =>
     new PolicyStatement({

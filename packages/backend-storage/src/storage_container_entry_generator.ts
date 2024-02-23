@@ -3,15 +3,12 @@ import {
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
 } from '@aws-amplify/plugin-types';
-import { AmplifyStorage } from './construct.js';
+import { AmplifyStorage, AmplifyStorageTriggerEvent } from './construct.js';
 import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
-import {
-  AmplifyStorageFactoryProps,
-  AmplifyStorageTriggerEvent,
-  RoleAccessBuilder,
-} from './types.js';
+import { AmplifyStorageFactoryProps, RoleAccessBuilder } from './types.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
+import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 
 /**
  * Generates a single instance of storage resources
@@ -28,7 +25,8 @@ export class StorageContainerEntryGenerator
     private readonly props: AmplifyStorageFactoryProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly bucketPolicyArbiterFactory: StorageAccessPolicyArbiterFactory = new StorageAccessPolicyArbiterFactory(),
-    private readonly roleAccessBuilder: RoleAccessBuilder = _roleAccessBuilder
+    private readonly roleAccessBuilder: RoleAccessBuilder = _roleAccessBuilder,
+    private readonly validateStorageAccessPaths = _validateStorageAccessPaths
   ) {}
 
   generateContainerEntry = ({
@@ -66,6 +64,8 @@ export class StorageContainerEntryGenerator
     // here we inject the roleAccessBuilder into the callback and run it
     // this produces the access definition that will be used to create the storage policies
     const accessDefinition = this.props.access(this.roleAccessBuilder);
+
+    this.validateStorageAccessPaths(Object.keys(accessDefinition));
 
     // we pass the access definition along with other dependencies to the bucketPolicyArbiter
     const bucketPolicyArbiter = this.bucketPolicyArbiterFactory.getInstance(

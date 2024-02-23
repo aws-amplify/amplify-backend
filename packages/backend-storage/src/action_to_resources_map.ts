@@ -1,5 +1,5 @@
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
-import { StorageAction, StoragePrefix } from './types.js';
+import { StorageAction, StoragePath } from './types.js';
 
 /**
  * Internal collaborating class for maintaining the relationship between an acceptor token and the access map
@@ -56,7 +56,7 @@ class S3PrefixActionMap {
 
   getActionToResourcesMap = () => {
     return this.actionToResourcesMap as Readonly<
-      Map<StorageAction, Readonly<Set<StoragePrefix>>>
+      Map<StorageAction, Readonly<Set<StoragePath>>>
     >;
   };
 }

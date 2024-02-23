@@ -2,9 +2,10 @@ import {
   ConstructFactoryGetInstanceProps,
   SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
-import { StorageAccessDefinition, StoragePrefix } from './types.js';
+import { StorageAccessDefinition, StoragePath } from './types.js';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
+import { ownerPathPartToken } from './constants.js';
 import { AcceptorTokenAccessMap } from './action_to_resources_map.js';
 
 /**
@@ -17,7 +18,7 @@ export class StorageAccessPolicyArbiter {
   constructor(
     private readonly name: string,
     private readonly accessDefinition: Record<
-      StoragePrefix,
+      StoragePath,
       StorageAccessDefinition[]
     >,
     private readonly ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
@@ -48,7 +49,7 @@ export class StorageAccessPolicyArbiter {
 
           // make the owner placeholder substitution in the s3 prefix
           const prefix = s3Prefix.replaceAll(
-            '{owner}',
+            ownerPathPartToken,
             permission.ownerPlaceholderSubstitution
           );
 
@@ -87,7 +88,7 @@ export class StorageAccessPolicyArbiter {
 export class StorageAccessPolicyArbiterFactory {
   getInstance = (
     name: string,
-    accessDefinition: Record<StoragePrefix, StorageAccessDefinition[]>,
+    accessDefinition: Record<StoragePath, StorageAccessDefinition[]>,
     ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
     getInstanceProps: ConstructFactoryGetInstanceProps,
     bucket: IBucket,

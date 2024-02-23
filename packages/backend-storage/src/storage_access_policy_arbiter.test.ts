@@ -17,6 +17,7 @@ import {
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
+import { ownerPathPartToken } from './constants.js';
 
 void describe('StorageAccessPolicyArbiter', () => {
   void describe('arbitratePolicies', () => {
@@ -266,7 +267,7 @@ void describe('StorageAccessPolicyArbiter', () => {
       const storageAccessPolicyArbiter = new StorageAccessPolicyArbiter(
         'testName',
         {
-          '/test/{owner}/*': [
+          [`/test/${ownerPathPartToken}/*`]: [
             {
               actions: ['read', 'write'],
               getResourceAccessAcceptor: () => ({
