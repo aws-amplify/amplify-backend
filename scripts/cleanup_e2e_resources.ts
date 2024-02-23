@@ -54,6 +54,15 @@ import {
   ParameterMetadata,
   SSMClient,
 } from '@aws-sdk/client-ssm';
+import {
+  DeleteTableCommand,
+  DescribeTableCommand,
+  DescribeTableCommandOutput,
+  DynamoDBClient,
+  ListTablesCommand,
+  ListTablesCommandOutput,
+  TableDescription,
+} from '@aws-sdk/client-dynamodb';
 
 const amplifyClient = new AmplifyClient({
   maxAttempts: 5,
@@ -62,6 +71,9 @@ const cfnClient = new CloudFormationClient({
   maxAttempts: 5,
 });
 const cognitoClient = new CognitoIdentityProviderClient({
+  maxAttempts: 5,
+});
+const ddbClient = new DynamoDBClient({
   maxAttempts: 5,
 });
 const iamClient = new IAMClient({
@@ -480,6 +492,57 @@ for (const staleSSMParameter of allStaleSSMParameters) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
       `Failed to delete ${staleSSMParameter.Name} SSM parameter. ${errorMessage}`
+    );
+  }
+}
+
+const listAllStaleDynamoDBTables = async (): Promise<
+  Array<TableDescription>
+> => {
+  let nextToken: string | undefined = undefined;
+  const tableNames: Array<string> = [];
+  do {
+    const listTablesCommandOutput: ListTablesCommandOutput =
+      await ddbClient.send(
+        new ListTablesCommand({
+          ExclusiveStartTableName: nextToken,
+        })
+      );
+    nextToken = listTablesCommandOutput.LastEvaluatedTableName;
+    if (listTablesCommandOutput.TableNames) {
+      tableNames.push(...listTablesCommandOutput.TableNames);
+    }
+  } while (nextToken);
+  const tables: Array<TableDescription> = [];
+  for (const tableName of tableNames) {
+    const describeTableCommandOutput: DescribeTableCommandOutput =
+      await ddbClient.send(
+        new DescribeTableCommand({
+          TableName: tableName,
+        })
+      );
+    if (describeTableCommandOutput.Table) {
+      tables.push(describeTableCommandOutput.Table);
+    }
+  }
+  return tables.filter((table) => isStale(table.CreationDateTime));
+};
+
+const allStaleDynamoDBTables = await listAllStaleDynamoDBTables();
+for (const staleDynamoDBTable of allStaleDynamoDBTables) {
+  try {
+    await ddbClient.send(
+      new DeleteTableCommand({
+        TableName: staleDynamoDBTable.TableName,
+      })
+    );
+    console.log(
+      `Successfully deleted ${staleDynamoDBTable.TableName} DDB table`
+    );
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to delete ${staleDynamoDBTable.TableName} DDB table. ${errorMessage}`
     );
   }
 }
