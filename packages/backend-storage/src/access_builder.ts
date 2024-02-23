@@ -9,7 +9,7 @@ import {
 
 export type StorageAction = 'read' | 'write' | 'delete';
 
-export type StorageAccessDefinition = {
+export type StoragePathAccessDefinition = {
   getResourceAccessAcceptor: (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ) => ResourceAccessAcceptor;
@@ -24,7 +24,7 @@ export type StorageAccessDefinition = {
 };
 
 export type StorageAccessBuilder = {
-  to: (actions: StorageAction[]) => StorageAccessDefinition;
+  to: (actions: StorageAction[]) => StoragePathAccessDefinition;
 };
 
 /**

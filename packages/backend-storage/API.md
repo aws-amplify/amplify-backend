@@ -15,7 +15,7 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
-export type AccessGenerator = (allow: RoleAccessBuilder) => Record<StoragePrefix, StorageAccessDefinition[]>;
+export type AccessGenerator = (allow: RoleAccessBuilder) => StorageAccessRecord;
 
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
@@ -46,21 +46,24 @@ export type RoleAccessBuilder = {
 
 // @public (undocumented)
 export type StorageAccessBuilder = {
-    to: (actions: StorageAction[]) => StorageAccessDefinition;
+    to: (actions: StorageAction[]) => StoragePathAccessDefinition;
 };
 
 // @public (undocumented)
-export type StorageAccessDefinition = {
-    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
-    actions: StorageAction[];
-    ownerPlaceholderSubstitution: string;
-};
+export type StorageAccessRecord = Record<StoragePath, StoragePathAccessDefinition[]>;
 
 // @public (undocumented)
 export type StorageAction = 'read' | 'write' | 'delete';
 
 // @public
-export type StoragePrefix = `/${string}/*`;
+export type StoragePath = `/${string}/*`;
+
+// @public (undocumented)
+export type StoragePathAccessDefinition = {
+    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
+    actions: StorageAction[];
+    ownerPlaceholderSubstitution: string;
+};
 
 // @public (undocumented)
 export type StorageResources = {

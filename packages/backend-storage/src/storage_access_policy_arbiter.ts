@@ -3,13 +3,14 @@ import {
   ResourceAccessAcceptor,
   SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
-import { StoragePrefix } from './types.js';
+import { StoragePath } from './types.js';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { StorageAccessDefinition } from './access_builder.js';
+import { StoragePathAccessDefinition } from './access_builder.js';
 import {
   Permission,
   StorageAccessPolicyFactory,
 } from './storage_access_policy_factory.js';
+import { ownerPathPartToken } from './constants.js';
 
 /**
  * Middleman between creating bucket policies and attaching those policies to corresponding roles
@@ -21,8 +22,8 @@ export class StorageAccessPolicyArbiter {
   constructor(
     private readonly name: string,
     private readonly accessDefinition: Record<
-      StoragePrefix,
-      StorageAccessDefinition[]
+      StoragePath,
+      StoragePathAccessDefinition[]
     >,
     private readonly ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
@@ -65,7 +66,7 @@ export class StorageAccessPolicyArbiter {
 
           // make the owner placeholder substitution in the s3 prefix
           const prefix = s3Prefix.replaceAll(
-            '{owner}',
+            ownerPathPartToken,
             permission.ownerPlaceholderSubstitution
           );
 
@@ -101,7 +102,7 @@ export class StorageAccessPolicyArbiter {
 export class StorageAccessPolicyArbiterFactory {
   getInstance = (
     name: string,
-    accessDefinition: Record<StoragePrefix, StorageAccessDefinition[]>,
+    accessDefinition: Record<StoragePath, StoragePathAccessDefinition[]>,
     ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
     getInstanceProps: ConstructFactoryGetInstanceProps,
     bucket: IBucket,
