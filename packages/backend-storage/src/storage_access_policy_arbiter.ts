@@ -50,7 +50,7 @@ export class StorageAccessPolicyArbiter {
           const prefix = s3Prefix.replaceAll(
             '{owner}',
             permission.ownerPlaceholderSubstitution
-          );
+          ) as StoragePrefix;
 
           acceptorTokenAccessMap.set(
             resourceAccessAcceptor,
@@ -73,7 +73,7 @@ export class StorageAccessPolicyArbiter {
       .forEach(({ actionMap, acceptor }) => {
         acceptor.acceptResourceAccess(
           this.storageAccessPolicyFactory.createPolicy(
-            actionMap.getActionToResourcesMap()
+            actionMap.getActionToS3PrefixMap()
           ),
           ssmEnvironmentEntries
         );

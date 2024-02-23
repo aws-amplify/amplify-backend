@@ -1,8 +1,9 @@
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Effect, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 import { StorageAction, StoragePrefix } from './types.js';
+import { StoragePermissions } from './action_to_resources_map.js';
 
 export type Permission = {
   actions: StorageAction[];
@@ -28,9 +29,7 @@ export class StorageAccessPolicyFactory {
     this.stack = Stack.of(bucket);
   }
 
-  createPolicy = (
-    permissions: Readonly<Map<StorageAction, Readonly<Set<StoragePrefix>>>>
-  ) => {
+  createPolicy = (permissions: StoragePermissions) => {
     if (permissions.size === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
         message: 'At least one permission must be specified',
@@ -39,19 +38,24 @@ export class StorageAccessPolicyFactory {
 
     const statements: PolicyStatement[] = [];
 
-    permissions.forEach((s3Prefixes, action) => {
-      statements.push(this.getStatement(s3Prefixes, action));
-    });
+    permissions.forEach(
+      ({ allow: allowPrefixes, deny: denyPrefixes }, action) => {
+        statements.push(this.getStatement(allowPrefixes, action, Effect.ALLOW));
+        statements.push(this.getStatement(denyPrefixes, action, Effect.DENY));
+      }
+    );
     return new Policy(this.stack, `${this.namePrefix}${this.policyCount++}`, {
-      statements: statements,
+      statements,
     });
   };
 
   private getStatement = (
     s3Prefixes: Readonly<Set<StoragePrefix>>,
-    action: StorageAction
+    action: StorageAction,
+    effect: Effect
   ) =>
     new PolicyStatement({
+      effect,
       actions: actionMap[action],
       resources: Array.from(s3Prefixes).map(
         (s3Prefix) => `${this.bucket.bucketArn}${s3Prefix}`
