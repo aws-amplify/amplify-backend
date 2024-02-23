@@ -12,6 +12,8 @@ import {
 } from './types.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
+import { AccessDefinitionTranslator } from './action_to_resources_map.js';
+import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 
 /**
  * Generates a single instance of storage resources
@@ -67,13 +69,21 @@ export class StorageContainerEntryGenerator
     // this produces the access definition that will be used to create the storage policies
     const accessDefinition = this.props.access(this.roleAccessBuilder);
 
+    // generate the ssm environment context necessary to access the s3 bucket (in this case, just the bucket name)
+    const ssmEnvironmentEntries =
+      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
+        [`${this.props.name}_BUCKET_NAME`]:
+          amplifyStorage.resources.bucket.bucketName,
+      });
+
     // we pass the access definition along with other dependencies to the bucketPolicyArbiter
     const bucketPolicyArbiter = this.bucketPolicyArbiterFactory.getInstance(
-      this.props.name,
       accessDefinition,
-      ssmEnvironmentEntriesGenerator,
       this.getInstanceProps,
-      amplifyStorage.resources.bucket
+      ssmEnvironmentEntries,
+      new AccessDefinitionTranslator(
+        new StorageAccessPolicyFactory(amplifyStorage.resources.bucket)
+      )
     );
 
     // the arbiter generates policies according to the accessDefinition and attaches the policies to appropriate roles

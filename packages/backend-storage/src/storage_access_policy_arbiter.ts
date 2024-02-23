@@ -1,11 +1,9 @@
 import {
   ConstructFactoryGetInstanceProps,
-  SsmEnvironmentEntriesGenerator,
+  SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
 import { StorageAccessDefinition, StoragePrefix } from './types.js';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
-import { AcceptorTokenAccessMap } from './action_to_resources_map.js';
+import { AccessDefinitionTranslator } from './action_to_resources_map.js';
 
 /**
  * Middleman between creating bucket policies and attaching those policies to corresponding roles
@@ -15,17 +13,13 @@ export class StorageAccessPolicyArbiter {
    * Instantiate with context from the storage factory
    */
   constructor(
-    private readonly name: string,
     private readonly accessDefinition: Record<
       StoragePrefix,
       StorageAccessDefinition[]
     >,
-    private readonly ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly bucket: IBucket,
-    private readonly storageAccessPolicyFactory = new StorageAccessPolicyFactory(
-      bucket
-    )
+    private readonly ssmEnvironmentEntries: SsmEnvironmentEntry[],
+    private readonly accessDefinitionTranslator: AccessDefinitionTranslator
   ) {}
 
   /**
@@ -33,8 +27,6 @@ export class StorageAccessPolicyArbiter {
    * then invoking the corresponding ResourceAccessAcceptor to accept the policies
    */
   arbitratePolicies = () => {
-    const acceptorTokenAccessMap = new AcceptorTokenAccessMap();
-
     // iterate over the access definition and group permissions by ResourceAccessAcceptor
     Object.entries(this.accessDefinition).forEach(
       // in the access definition, permissions are grouped by storage prefix
@@ -52,7 +44,8 @@ export class StorageAccessPolicyArbiter {
             permission.ownerPlaceholderSubstitution
           ) as StoragePrefix;
 
-          acceptorTokenAccessMap.set(
+          // set an entry that maps this permission to the resource acceptor
+          this.accessDefinitionTranslator.addAccessDefinition(
             resourceAccessAcceptor,
             permission.actions,
             prefix
@@ -61,23 +54,8 @@ export class StorageAccessPolicyArbiter {
       }
     );
 
-    // generate the ssm environment context necessary to access the s3 bucket (in this case, just the bucket name)
-    const ssmEnvironmentEntries =
-      this.ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${this.name}_BUCKET_NAME`]: this.bucket.bucketName,
-      });
-
     // iterate over the access map entries and invoke each ResourceAccessAcceptor to accept the permissions
-    acceptorTokenAccessMap
-      .getAccessList()
-      .forEach(({ actionMap, acceptor }) => {
-        acceptor.acceptResourceAccess(
-          this.storageAccessPolicyFactory.createPolicy(
-            actionMap.getActionToS3PrefixMap()
-          ),
-          ssmEnvironmentEntries
-        );
-      });
+    this.accessDefinitionTranslator.attachPolicies(this.ssmEnvironmentEntries);
   };
 }
 
@@ -86,19 +64,15 @@ export class StorageAccessPolicyArbiter {
  */
 export class StorageAccessPolicyArbiterFactory {
   getInstance = (
-    name: string,
     accessDefinition: Record<StoragePrefix, StorageAccessDefinition[]>,
-    ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
     getInstanceProps: ConstructFactoryGetInstanceProps,
-    bucket: IBucket,
-    bucketPolicyFactory = new StorageAccessPolicyFactory(bucket)
+    ssmEnvironmentEntries: SsmEnvironmentEntry[],
+    accessDefinitionTranslator: AccessDefinitionTranslator
   ) =>
     new StorageAccessPolicyArbiter(
-      name,
       accessDefinition,
-      ssmEnvironmentEntriesGenerator,
       getInstanceProps,
-      bucket,
-      bucketPolicyFactory
+      ssmEnvironmentEntries,
+      accessDefinitionTranslator
     );
 }

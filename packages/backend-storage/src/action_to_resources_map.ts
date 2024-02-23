@@ -1,61 +1,77 @@
-import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
+import {
+  ResourceAccessAcceptor,
+  SsmEnvironmentEntry,
+} from '@aws-amplify/plugin-types';
 import { StorageAction, StoragePrefix } from './types.js';
+import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 
 /**
  * Internal collaborating class for maintaining the relationship between an acceptor token and the access map
  */
-export class AcceptorTokenAccessMap {
+export class AccessDefinitionTranslator {
   /**
    * Maintains a mapping of actions for each token
    */
-  private acceptorTokenAccessMap = new Map<AcceptorToken, AccessEntry>();
+  private acceptorAccessMap = new Map<AcceptorToken, AccessEntry>();
 
-  set = (
+  /**
+   * Initialize with a policyFactory
+   */
+  constructor(private readonly policyFactory: StorageAccessPolicyFactory) {}
+
+  addAccessDefinition = (
     resourceAccessAcceptor: ResourceAccessAcceptor,
     actions: StorageAction[],
     s3Prefix: StoragePrefix
   ) => {
     const acceptorToken = resourceAccessAcceptor.identifier;
 
-    if (!this.acceptorTokenAccessMap.has(acceptorToken)) {
-      this.acceptorTokenAccessMap.set(acceptorToken, {
-        actionMap: new S3PrefixActionBiDiMap(),
+    if (!this.acceptorAccessMap.has(acceptorToken)) {
+      this.acceptorAccessMap.set(acceptorToken, {
+        policyBuilder: new PolicyBuilder(this.policyFactory),
         acceptor: resourceAccessAcceptor,
       });
     }
-    const actionMap = this.acceptorTokenAccessMap.get(acceptorToken)!.actionMap;
+    const policyBuilder =
+      this.acceptorAccessMap.get(acceptorToken)!.policyBuilder;
     actions.forEach((action) => {
-      actionMap.set(action, s3Prefix);
+      policyBuilder.add(action, s3Prefix);
     });
   };
 
-  getAccessList = () => {
-    const result: AccessEntry[] = [];
-    this.acceptorTokenAccessMap.forEach((value) => {
-      result.push(value);
+  attachPolicies = (ssmEnvironmentEntries: SsmEnvironmentEntry[]) => {
+    this.acceptorAccessMap.forEach(({ policyBuilder, acceptor }) => {
+      acceptor.acceptResourceAccess(
+        policyBuilder.getPolicy(),
+        ssmEnvironmentEntries
+      );
     });
-    return result as Readonly<Readonly<AccessEntry>[]>;
   };
 }
 
 /**
  * Internal collaborating class for maintaining the relationship between actions and resources
  */
-class S3PrefixActionBiDiMap {
-  private actionToS3PrefixMap: StoragePermissions = new Map();
+class PolicyBuilder {
+  private storagePermissions = new Map<
+    StorageAction,
+    { allow: Set<StoragePrefix>; deny: Set<StoragePrefix> }
+  >();
   private s3PrefixToActionMap = new Map<StoragePrefix, Set<StorageAction>>();
+
+  constructor(private readonly policyFactory: StorageAccessPolicyFactory) {}
 
   /**
    * Set an entry in the actionToResources Map that associates the resource with the action
    */
-  set = (action: StorageAction, s3Prefix: StoragePrefix) => {
-    if (!this.actionToS3PrefixMap.has(action)) {
-      this.actionToS3PrefixMap.set(action, {
+  add = (action: StorageAction, s3Prefix: StoragePrefix) => {
+    if (!this.storagePermissions.has(action)) {
+      this.storagePermissions.set(action, {
         allow: new Set(),
         deny: new Set(),
       });
     }
-    this.actionToS3PrefixMap.get(action)?.allow.add(s3Prefix);
+    this.storagePermissions.get(action)?.allow.add(s3Prefix);
 
     if (!this.s3PrefixToActionMap.has(s3Prefix)) {
       this.s3PrefixToActionMap.set(s3Prefix, new Set());
@@ -63,13 +79,14 @@ class S3PrefixActionBiDiMap {
     this.s3PrefixToActionMap.get(s3Prefix)?.add(action);
   };
 
-  getActionToS3PrefixMap = () => {
-    // do a pass over all the prefixes to determine which parent paths need deny policies for subpaths
+  getPolicy = () => {
     const allPrefixes = Array.from(
       this.s3PrefixToActionMap.keys()
     ) as StoragePrefix[];
+
+    // do a pass over all the prefixes to determine which parent paths need deny policies for subpaths
     this.s3PrefixToActionMap.forEach((actions, s3Prefix) => {
-      const parent = this.findParent(s3Prefix as StoragePrefix, allPrefixes);
+      const parent = findParent(s3Prefix as StoragePrefix, allPrefixes);
       if (!parent) {
         // if the current prefix does not have a parent prefix defined, then we don't need to add any deny policies
         // also note there cannot be multiple parent paths because of our path validation rules
@@ -82,32 +99,24 @@ class S3PrefixActionBiDiMap {
         (parentAction) => !actions.has(parentAction)
       );
       denyActions.forEach((denyAction) => {
-        this.actionToS3PrefixMap.get(denyAction)?.deny.add(s3Prefix);
+        this.storagePermissions.get(denyAction)?.deny.add(s3Prefix);
       });
     });
-    return this.actionToS3PrefixMap;
-  };
-
-  private findParent = (
-    prefix: StoragePrefix,
-    allPrefixes: StoragePrefix[]
-  ) => {
-    return allPrefixes.find(
-      (p) => prefix !== p && prefix.startsWith(p.replaceAll('*', ''))
-    );
+    return this.policyFactory.createPolicy(this.storagePermissions);
   };
 }
+
+const findParent = (prefix: StoragePrefix, allPrefixes: StoragePrefix[]) => {
+  return allPrefixes.find(
+    (p) => prefix !== p && prefix.startsWith(p.replaceAll('*', ''))
+  );
+};
 
 // some types internal to this file to improve readability
 
 type AcceptorToken = string;
 
 type AccessEntry = {
-  actionMap: S3PrefixActionBiDiMap;
+  policyBuilder: PolicyBuilder;
   acceptor: ResourceAccessAcceptor;
 };
-
-export type StoragePermissions = Map<
-  StorageAction,
-  { allow: Set<StoragePrefix>; deny: Set<StoragePrefix> }
->;
