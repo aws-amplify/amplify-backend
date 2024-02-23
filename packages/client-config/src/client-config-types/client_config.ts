@@ -8,8 +8,8 @@ import { AnalyticsClientConfig } from './analytics_client_config.js';
 import { NotificationsClientConfig } from './notifications_client_config.js';
 
 // Major versions of config schemas
-import * as clientConfigTypesV1 from '../client-config-schema/config_types_v1.js';
-import * as clientConfigTypesV2 from '../client-config-schema/config_types_v2.js';
+import * as clientConfigTypesV1 from '../client-config-schema/client_config_v1.js';
+import * as clientConfigTypesV2 from '../client-config-schema/client_config_v2.js';
 
 /**
  * Merged type of all category client config types
@@ -27,8 +27,8 @@ export type ClientConfigLegacy = Partial<
 
 // Versions of client config schema supported by "this" package version
 export type ClientConfigGen2 =
-  | clientConfigTypesV1.ConfigTypesV1
-  | clientConfigTypesV2.ConfigTypesV2;
+  | clientConfigTypesV1.ClientConfigV1
+  | clientConfigTypesV2.ClientConfigV2;
 export { clientConfigTypesV1 };
 export { clientConfigTypesV2 };
 

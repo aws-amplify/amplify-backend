@@ -164,14 +164,14 @@ export enum ClientConfigFormat {
 }
 
 // @public (undocumented)
-export type ClientConfigGen2 = clientConfigTypesV1.ConfigTypesV1 | clientConfigTypesV2.ConfigTypesV2;
+export type ClientConfigGen2 = clientConfigTypesV1.ClientConfigV1 | clientConfigTypesV2.ClientConfigV2;
 
 // @public
 export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfig & GeoClientConfig & GraphqlClientConfig & NotificationsClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
 
 declare namespace clientConfigTypesV1 {
     export {
-        ConfigTypesV1,
+        ClientConfigV1,
         Auth,
         AwsRegion,
         MfaConfiguration,
@@ -190,7 +190,7 @@ export { clientConfigTypesV1 }
 
 declare namespace clientConfigTypesV2 {
     export {
-        ConfigTypesV2,
+        ClientConfigV2,
         Auth_2 as Auth,
         AwsRegion_2 as AwsRegion,
         MfaConfiguration_2 as MfaConfiguration,
@@ -208,7 +208,7 @@ declare namespace clientConfigTypesV2 {
 export { clientConfigTypesV2 }
 
 // @public
-type ConfigTypesV1 = {
+type ClientConfigV1 = {
     _version: '1';
     auth?: Auth;
     custom?: {
@@ -219,7 +219,7 @@ type ConfigTypesV1 = {
 };
 
 // @public
-type ConfigTypesV2 = {
+type ClientConfigV2 = {
     _version?: '2';
     auth?: Auth_2;
     custom?: {
