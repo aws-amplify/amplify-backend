@@ -230,6 +230,9 @@ type ClientConfigV2 = {
 };
 
 // @public (undocumented)
+export type ClientConfigVersion = '0' | '1' | '2';
+
+// @public (undocumented)
 export type CustomClientConfig = {
     custom: Record<string, string>;
 };
@@ -259,10 +262,10 @@ type Data_2 = {
 };
 
 // @public
-export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version?: string) => Promise<ClientConfig>;
+export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version?: ClientConfigVersion) => Promise<ClientConfig>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined, version?: string) => Promise<void>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined, version?: ClientConfigVersion) => Promise<void>;
 
 // @public (undocumented)
 export type GeoClientConfig = {
