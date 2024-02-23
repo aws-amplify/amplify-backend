@@ -44,8 +44,14 @@ export class StorageAccessPolicyFactory {
 
     permissions.forEach(
       ({ allow: allowPrefixes, deny: denyPrefixes }, action) => {
-        statements.push(this.getStatement(allowPrefixes, action, Effect.ALLOW));
-        statements.push(this.getStatement(denyPrefixes, action, Effect.DENY));
+        if (allowPrefixes.size > 0) {
+          statements.push(
+            this.getStatement(allowPrefixes, action, Effect.ALLOW)
+          );
+        }
+        if (denyPrefixes.size > 0) {
+          statements.push(this.getStatement(denyPrefixes, action, Effect.DENY));
+        }
       }
     );
     return new Policy(this.stack, `${this.namePrefix}${this.policyCount++}`, {

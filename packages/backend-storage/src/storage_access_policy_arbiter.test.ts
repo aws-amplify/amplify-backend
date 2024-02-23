@@ -12,12 +12,13 @@ import {
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
-  SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
 import { ownerPathPartToken } from './constants.js';
+import { AccessDefinitionTranslator } from './action_to_resources_map.js';
+import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 
 void describe('StorageAccessPolicyArbiter', () => {
   void describe('arbitratePolicies', () => {
@@ -26,12 +27,12 @@ void describe('StorageAccessPolicyArbiter', () => {
     let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     let importPathVerifier: ImportPathVerifier;
     let getInstanceProps: ConstructFactoryGetInstanceProps;
+    let bucket: Bucket;
+    let accessDefinitionTranslator: AccessDefinitionTranslator;
 
-    const ssmEnvironmentEntriesGeneratorStub: SsmEnvironmentEntriesGenerator = {
-      generateSsmEnvironmentEntries: mock.fn(() => [
-        { name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' },
-      ]),
-    };
+    const ssmEnvironmentEntriesStub = [
+      { name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' },
+    ];
 
     beforeEach(() => {
       stack = createStackAndSetContext();
@@ -51,12 +52,16 @@ void describe('StorageAccessPolicyArbiter', () => {
         outputStorageStrategy,
         importPathVerifier,
       };
+
+      bucket = new Bucket(stack, 'testBucket');
+
+      accessDefinitionTranslator = new AccessDefinitionTranslator(
+        new StorageAccessPolicyFactory(bucket)
+      );
     });
     void it('passes expected policy and ssm context to resource access acceptor', () => {
-      const bucket = new Bucket(stack, 'testBucket');
       const acceptResourceAccessMock = mock.fn();
       const storageAccessPolicyArbiter = new StorageAccessPolicyArbiter(
-        'testName',
         {
           '/test/prefix/*': [
             {
@@ -69,9 +74,9 @@ void describe('StorageAccessPolicyArbiter', () => {
             },
           ],
         },
-        ssmEnvironmentEntriesGeneratorStub,
         getInstanceProps,
-        bucket
+        ssmEnvironmentEntriesStub,
+        accessDefinitionTranslator
       );
 
       storageAccessPolicyArbiter.arbitratePolicies();
@@ -101,14 +106,12 @@ void describe('StorageAccessPolicyArbiter', () => {
     });
 
     void it('handles multiple permissions for the same resource access acceptor', () => {
-      const bucket = new Bucket(stack, 'testBucket');
       const acceptResourceAccessMock = mock.fn();
       const getResourceAccessAcceptorStub = () => ({
         identifier: 'testResourceAccessAcceptor',
         acceptResourceAccess: acceptResourceAccessMock,
       });
       const storageAccessPolicyArbiter = new StorageAccessPolicyArbiter(
-        'testName',
         {
           '/test/prefix/*': [
             {
@@ -125,9 +128,9 @@ void describe('StorageAccessPolicyArbiter', () => {
             },
           ],
         },
-        ssmEnvironmentEntriesGeneratorStub,
         getInstanceProps,
-        bucket
+        ssmEnvironmentEntriesStub,
+        accessDefinitionTranslator
       );
 
       storageAccessPolicyArbiter.arbitratePolicies();
@@ -165,7 +168,6 @@ void describe('StorageAccessPolicyArbiter', () => {
     });
 
     void it('handles multiple resource access acceptors', () => {
-      const bucket = new Bucket(stack, 'testBucket');
       const acceptResourceAccessMock1 = mock.fn();
       const getResourceAccessAcceptorStub1 = () => ({
         identifier: 'testResourceAccessAcceptor1',
@@ -177,7 +179,6 @@ void describe('StorageAccessPolicyArbiter', () => {
         acceptResourceAccess: acceptResourceAccessMock2,
       });
       const storageAccessPolicyArbiter = new StorageAccessPolicyArbiter(
-        'testName',
         {
           '/test/prefix/*': [
             {
@@ -199,9 +200,9 @@ void describe('StorageAccessPolicyArbiter', () => {
             },
           ],
         },
-        ssmEnvironmentEntriesGeneratorStub,
         getInstanceProps,
-        bucket
+        ssmEnvironmentEntriesStub,
+        accessDefinitionTranslator
       );
 
       storageAccessPolicyArbiter.arbitratePolicies();
@@ -262,10 +263,8 @@ void describe('StorageAccessPolicyArbiter', () => {
     });
 
     void it('replaces owner placeholder in s3 prefix', () => {
-      const bucket = new Bucket(stack, 'testBucket');
       const acceptResourceAccessMock = mock.fn();
       const storageAccessPolicyArbiter = new StorageAccessPolicyArbiter(
-        'testName',
         {
           [`/test/${ownerPathPartToken}/*`]: [
             {
@@ -278,9 +277,9 @@ void describe('StorageAccessPolicyArbiter', () => {
             },
           ],
         },
-        ssmEnvironmentEntriesGeneratorStub,
         getInstanceProps,
-        bucket
+        ssmEnvironmentEntriesStub,
+        new AccessDefinitionTranslator(new StorageAccessPolicyFactory(bucket))
       );
 
       storageAccessPolicyArbiter.arbitratePolicies();

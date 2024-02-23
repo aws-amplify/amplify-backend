@@ -176,7 +176,7 @@ void describe('StorageGenerator', () => {
       storageGenerator.generateContainerEntry(generateContainerEntryProps);
 
       assert.equal(arbitratePoliciesMock.mock.callCount(), 1);
-      assert.deepStrictEqual(getInstanceMock.mock.calls[0].arguments[1], {
+      assert.deepStrictEqual(getInstanceMock.mock.calls[0].arguments[0], {
         '/test/*': [
           {
             getResourceAccessAcceptor: authenticatedAccessAcceptorMock,

@@ -26,7 +26,7 @@ export class StorageContainerEntryGenerator
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly bucketPolicyArbiterFactory: StorageAccessPolicyArbiterFactory = new StorageAccessPolicyArbiterFactory(),
+    private readonly storageAccessPolicyArbiterFactory: StorageAccessPolicyArbiterFactory = new StorageAccessPolicyArbiterFactory(),
     private readonly roleAccessBuilder: RoleAccessBuilder = _roleAccessBuilder,
     private readonly validateStorageAccessPaths = _validateStorageAccessPaths
   ) {}
@@ -77,14 +77,15 @@ export class StorageContainerEntryGenerator
       });
 
     // we pass the access definition along with other dependencies to the bucketPolicyArbiter
-    const bucketPolicyArbiter = this.bucketPolicyArbiterFactory.getInstance(
-      accessDefinition,
-      this.getInstanceProps,
-      ssmEnvironmentEntries,
-      new AccessDefinitionTranslator(
-        new StorageAccessPolicyFactory(amplifyStorage.resources.bucket)
-      )
-    );
+    const bucketPolicyArbiter =
+      this.storageAccessPolicyArbiterFactory.getInstance(
+        accessDefinition,
+        this.getInstanceProps,
+        ssmEnvironmentEntries,
+        new AccessDefinitionTranslator(
+          new StorageAccessPolicyFactory(amplifyStorage.resources.bucket)
+        )
+      );
 
     // the arbiter generates policies according to the accessDefinition and attaches the policies to appropriate roles
     bucketPolicyArbiter.arbitratePolicies();

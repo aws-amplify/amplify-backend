@@ -5,7 +5,6 @@ import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import assert from 'node:assert';
 import { Template } from 'aws-cdk-lib/assertions';
 import { AccountPrincipal, Policy, Role } from 'aws-cdk-lib/aws-iam';
-import { StorageAction, StoragePath } from './types.js';
 
 void describe('StorageAccessPolicyFactory', () => {
   let bucket: Bucket;
@@ -21,7 +20,9 @@ void describe('StorageAccessPolicyFactory', () => {
   void it('returns policy with read actions', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
-      new Map([['read', new Set(['/some/prefix/*'])]])
+      new Map([
+        ['read', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
+      ])
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
@@ -56,7 +57,9 @@ void describe('StorageAccessPolicyFactory', () => {
   void it('returns policy with write actions', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
-      new Map([['write', new Set(['/some/prefix/*'])]])
+      new Map([
+        ['write', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
+      ])
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
@@ -92,7 +95,9 @@ void describe('StorageAccessPolicyFactory', () => {
   void it('returns policy with delete actions', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
-      new Map([['delete', new Set(['/some/prefix/*'])]])
+      new Map([
+        ['delete', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
+      ])
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
@@ -128,7 +133,15 @@ void describe('StorageAccessPolicyFactory', () => {
   void it('handles multiple prefix paths on same action', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
-      new Map([['read', new Set(['/some/prefix/*', '/another/path/*'])]])
+      new Map([
+        [
+          'read',
+          {
+            allow: new Set(['/some/prefix/*', '/another/path/*']),
+            deny: new Set(),
+          },
+        ],
+      ])
     );
 
     // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
@@ -177,9 +190,9 @@ void describe('StorageAccessPolicyFactory', () => {
   void it('handles different actions on different prefixes', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
-      new Map<StorageAction, Set<StoragePath>>([
-        ['read', new Set(['/some/prefix/*'])],
-        ['write', new Set(['/another/path/*'])],
+      new Map([
+        ['read', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
+        ['write', { allow: new Set(['/another/path/*']), deny: new Set() }],
       ])
     );
 
@@ -231,9 +244,9 @@ void describe('StorageAccessPolicyFactory', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
-        ['read', new Set(['/some/prefix/*'])],
-        ['write', new Set(['/some/prefix/*'])],
-        ['delete', new Set(['/some/prefix/*'])],
+        ['read', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
+        ['write', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
+        ['delete', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
       ])
     );
 
