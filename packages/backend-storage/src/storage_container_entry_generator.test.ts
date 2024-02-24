@@ -17,7 +17,7 @@ import {
   SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
-import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
+import { StorageAccessOrchestratorFactory } from './storage_access_orchestrator.js';
 import { AmplifyStorage } from './construct.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { Function, InlineCode, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -62,7 +62,7 @@ void describe('StorageGenerator', () => {
       const storageGenerator = new StorageContainerEntryGenerator(
         { name: 'testName' },
         getInstanceProps,
-        new StorageAccessPolicyArbiterFactory()
+        new StorageAccessOrchestratorFactory()
       );
 
       const storageInstance = storageGenerator.generateContainerEntry(
@@ -76,7 +76,7 @@ void describe('StorageGenerator', () => {
       const storageGenerator = new StorageContainerEntryGenerator(
         { name: 'testName', access: () => ({}) },
         getInstanceProps,
-        new StorageAccessPolicyArbiterFactory(),
+        new StorageAccessOrchestratorFactory(),
         undefined,
         () => {
           throw new Error('test validation error');
@@ -91,14 +91,14 @@ void describe('StorageGenerator', () => {
     });
 
     void it('invokes the policy arbiter with correct accessDefinition if access is defined', () => {
-      const arbitratePoliciesMock = mock.fn();
-      const bucketPolicyArbiterFactory =
-        new StorageAccessPolicyArbiterFactory();
+      const orchestrateStorageAccessMock = mock.fn();
+      const storageAccessOrchestratorFactoryStub =
+        new StorageAccessOrchestratorFactory();
       const getInstanceMock = mock.method(
-        bucketPolicyArbiterFactory,
+        storageAccessOrchestratorFactoryStub,
         'getInstance',
         () => ({
-          arbitratePolicies: arbitratePoliciesMock,
+          orchestrateStorageAccess: orchestrateStorageAccessMock,
         })
       );
 
@@ -169,13 +169,13 @@ void describe('StorageGenerator', () => {
           }),
         },
         getInstanceProps,
-        bucketPolicyArbiterFactory,
+        storageAccessOrchestratorFactoryStub,
         stubRoleAccessBuilder
       );
 
       storageGenerator.generateContainerEntry(generateContainerEntryProps);
 
-      assert.equal(arbitratePoliciesMock.mock.callCount(), 1);
+      assert.equal(orchestrateStorageAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(getInstanceMock.mock.calls[0].arguments[0], {
         '/test/*': [
           {
@@ -227,7 +227,7 @@ void describe('StorageGenerator', () => {
           },
         },
         getInstanceProps,
-        new StorageAccessPolicyArbiterFactory()
+        new StorageAccessOrchestratorFactory()
       );
 
       storageGenerator.generateContainerEntry(generateContainerEntryProps);

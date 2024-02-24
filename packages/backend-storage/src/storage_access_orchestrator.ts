@@ -3,13 +3,13 @@ import {
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
 import { StorageAccessDefinition, StoragePath } from './types.js';
-import { AccessDefinitionTranslator } from './action_to_resources_map.js';
+import { StorageAccessArbiter } from './storage_access_arbiter.js';
 import { ownerPathPartToken } from './constants.js';
 
 /**
  * Middleman between creating bucket policies and attaching those policies to corresponding roles
  */
-export class StorageAccessPolicyArbiter {
+export class StorageAccessOrchestrator {
   /**
    * Instantiate with context from the storage factory
    */
@@ -20,14 +20,15 @@ export class StorageAccessPolicyArbiter {
     >,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly ssmEnvironmentEntries: SsmEnvironmentEntry[],
-    private readonly accessDefinitionTranslator: AccessDefinitionTranslator
+    private readonly accessDefinitionTranslator: StorageAccessArbiter
   ) {}
 
   /**
+   * Translates the accessDefinition into the AccessDefinitionTranslator and invokes the translator to generate policies and attach them to the corresponding ResourceAccessAcceptor
    * Responsible for creating bucket policies corresponding to the definition,
    * then invoking the corresponding ResourceAccessAcceptor to accept the policies
    */
-  arbitratePolicies = () => {
+  orchestrateStorageAccess = () => {
     // iterate over the access definition and group permissions by ResourceAccessAcceptor
     Object.entries(this.accessDefinition).forEach(
       // in the access definition, permissions are grouped by storage prefix
@@ -63,14 +64,14 @@ export class StorageAccessPolicyArbiter {
 /**
  * This factory is really only necessary for allowing us to mock the BucketPolicyArbiter in tests
  */
-export class StorageAccessPolicyArbiterFactory {
+export class StorageAccessOrchestratorFactory {
   getInstance = (
     accessDefinition: Record<StoragePath, StorageAccessDefinition[]>,
     getInstanceProps: ConstructFactoryGetInstanceProps,
     ssmEnvironmentEntries: SsmEnvironmentEntry[],
-    accessDefinitionTranslator: AccessDefinitionTranslator
+    accessDefinitionTranslator: StorageAccessArbiter
   ) =>
-    new StorageAccessPolicyArbiter(
+    new StorageAccessOrchestrator(
       accessDefinition,
       getInstanceProps,
       ssmEnvironmentEntries,

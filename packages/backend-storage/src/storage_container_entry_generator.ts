@@ -4,11 +4,11 @@ import {
   GenerateContainerEntryProps,
 } from '@aws-amplify/plugin-types';
 import { AmplifyStorage, AmplifyStorageTriggerEvent } from './construct.js';
-import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
+import { StorageAccessOrchestratorFactory } from './storage_access_orchestrator.js';
 import { AmplifyStorageFactoryProps, RoleAccessBuilder } from './types.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
-import { AccessDefinitionTranslator } from './action_to_resources_map.js';
+import { StorageAccessArbiter } from './storage_access_arbiter.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 
@@ -26,7 +26,7 @@ export class StorageContainerEntryGenerator
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly storageAccessPolicyArbiterFactory: StorageAccessPolicyArbiterFactory = new StorageAccessPolicyArbiterFactory(),
+    private readonly storageAccessOrchestratorFactory: StorageAccessOrchestratorFactory = new StorageAccessOrchestratorFactory(),
     private readonly roleAccessBuilder: RoleAccessBuilder = _roleAccessBuilder,
     private readonly validateStorageAccessPaths = _validateStorageAccessPaths
   ) {}
@@ -77,18 +77,18 @@ export class StorageContainerEntryGenerator
       });
 
     // we pass the access definition along with other dependencies to the bucketPolicyArbiter
-    const bucketPolicyArbiter =
-      this.storageAccessPolicyArbiterFactory.getInstance(
+    const storageAccessOrchestrator =
+      this.storageAccessOrchestratorFactory.getInstance(
         accessDefinition,
         this.getInstanceProps,
         ssmEnvironmentEntries,
-        new AccessDefinitionTranslator(
+        new StorageAccessArbiter(
           new StorageAccessPolicyFactory(amplifyStorage.resources.bucket)
         )
       );
 
     // the arbiter generates policies according to the accessDefinition and attaches the policies to appropriate roles
-    bucketPolicyArbiter.arbitratePolicies();
+    storageAccessOrchestrator.orchestrateStorageAccess();
 
     return amplifyStorage;
   };
