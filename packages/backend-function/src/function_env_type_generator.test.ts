@@ -16,7 +16,8 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
       };
     });
     const functionEnvironmentTypeGenerator =
-      new FunctionEnvironmentTypeGenerator('testFunction');
+      // passing {} for env vars because that is the default value for defineFunction environment prop
+      new FunctionEnvironmentTypeGenerator('testFunction', {});
     const sampleStaticEnv = '_HANDLER: string;';
 
     functionEnvironmentTypeGenerator.generateTypeDefFile();
@@ -26,6 +27,39 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
       fsWriteFileSyncMock.mock.calls[0].arguments[0],
       `${process.cwd()}/.amplify/function-env/testFunction.ts`
     );
+    // assert content
+    assert.ok(
+      fsWriteFileSyncMock.mock.calls[0].arguments[1]
+        ?.toString()
+        .includes(sampleStaticEnv)
+    );
+
+    mock.restoreAll();
+  });
+
+  void it('generates a type definition file with dynamic environment variables', () => {
+    const fdCloseMock = mock.fn();
+    const fsOpenSyncMock = mock.method(fs, 'openSync');
+    const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);
+    fsOpenSyncMock.mock.mockImplementation(() => {
+      return {
+        close: fdCloseMock,
+      };
+    });
+    const functionEnvironmentTypeGenerator =
+      new FunctionEnvironmentTypeGenerator('testFunction', {
+        TEST_ENV: 'testEnvValue',
+      });
+    const sampleStaticEnv = 'TEST_ENV: string;';
+
+    functionEnvironmentTypeGenerator.generateTypeDefFile();
+
+    // assert type definition file path
+    assert.equal(
+      fsWriteFileSyncMock.mock.calls[0].arguments[0],
+      `${process.cwd()}/.amplify/function-env/testFunction.ts`
+    );
+    // assert content
     assert.ok(
       fsWriteFileSyncMock.mock.calls[0].arguments[1]
         ?.toString()
@@ -38,7 +72,9 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
   void it('generated type definition file has valid syntax', async () => {
     const targetDirectory = await fsp.mkdtemp('func_env_type_gen_test');
     const functionEnvironmentTypeGenerator =
-      new FunctionEnvironmentTypeGenerator('testFunction');
+      new FunctionEnvironmentTypeGenerator('testFunction', {
+        TEST_ENV: 'testEnvValue',
+      });
     const filePath = `${process.cwd()}/.amplify/function-env/testFunction.ts`;
 
     functionEnvironmentTypeGenerator.generateTypeDefFile();

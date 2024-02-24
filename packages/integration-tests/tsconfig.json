@@ -1,6 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib", "allowJs": true },
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib",
+    "allowJs": true,
+    "paths": {
+      "@env/*": [
+        "./src/test-projects/data-storage-auth-with-triggers-ts/.amplify/function-env/*"
+      ]
+    }
+  },
   "references": [
     { "path": "../auth-construct" },
     { "path": "../backend" },
@@ -8,5 +17,6 @@
     { "path": "../client-config" },
     { "path": "../platform-core" }
   ],
+  "include": ["src/**/*", "src/**/.amplify/**/*"],
   "exclude": ["**/node_modules", "**/lib", "src/e2e-tests"]
 }
