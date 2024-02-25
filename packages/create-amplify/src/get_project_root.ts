@@ -37,7 +37,17 @@ export const getProjectRoot = async () => {
       LogLevel.DEBUG
     );
     printer.log(`Creating directory ${projectRoot}`, LogLevel.DEBUG);
-    await fsp.mkdir(projectRoot, { recursive: true });
+    try {
+      await fsp.mkdir(projectRoot, { recursive: true });
+    } catch (err) {
+      if (path.isAbsolute(projectRoot)) {
+        printer.log(
+          `Failed to create directory at ${projectRoot}. Ensure this is the correct path and you have write permissions to this location.`,
+          LogLevel.ERROR
+        );
+      }
+      throw err;
+    }
   }
   return projectRoot;
 };
