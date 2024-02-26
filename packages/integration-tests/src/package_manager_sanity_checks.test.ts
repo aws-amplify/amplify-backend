@@ -142,10 +142,7 @@ void describe('getting started happy path', async () => {
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : '';
-        assert.match(
-          errorMessage,
-          /PNPM can't create amplify on Windows. Please switch to NPM or Yarn./
-        );
+        assert.match(errorMessage, /Amplify does not support PNPM on Windows./);
       }
     }
   });
