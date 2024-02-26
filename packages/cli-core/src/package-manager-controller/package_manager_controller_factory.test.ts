@@ -63,9 +63,23 @@ void describe('packageManagerControllerFactory', () => {
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),
         {
-          message: `Package Manager unsupported is not supported.`,
+          message: 'Package Manager unsupported is not supported.',
         }
       );
     });
+
+    void it('should throw an error for pnpm on Windows', () => {
+      const userAgent = 'pnpm/1.0.0 node/v15.0.0 darwin x64';
+      process.env.npm_config_user_agent = userAgent;
+      const packageManagerControllerFactory =
+        new PackageManagerControllerFactory(packageRoot, printer, 'win32');
+
+      assert.throws(
+        () => packageManagerControllerFactory.getPackageManagerController(),
+        {
+          message: "PNPM can't create amplify on Windows. Please switch to NPM or Yarn. \nDetails: https://pnpm.io/faq#but-the-nested-node_modules-approach-is-incompatible-with-windows",
+        }
+      );
+    })
   });
 });
