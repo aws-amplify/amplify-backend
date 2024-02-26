@@ -62,8 +62,9 @@ void describe('packageManagerControllerFactory', () => {
 
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),
-        Error,
-        'Package Manager unsupported is not supported.'
+        {
+          message: `Package Manager unsupported is not supported.`,
+        }
       );
     });
   });
