@@ -1,5 +1,9 @@
 import { Amplify } from 'aws-amplify';
 import { downloadData, uploadData } from 'aws-amplify/storage';
+/**
+ * This import is for tests to use the generated type generation file.
+ * Currently we only use defaultNodeFunction because node16Function has the same environment variables at runtime.
+ */
 import { env } from '@env/defaultNodeFunction.js';
 
 // Configure the Amplify client with the storage and auth loaded from the lambda execution role

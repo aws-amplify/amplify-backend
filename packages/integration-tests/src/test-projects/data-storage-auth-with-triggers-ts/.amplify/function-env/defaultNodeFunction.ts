@@ -1,3 +1,6 @@
+/**
+ * This file is here to make Typescript happy for initial type checking and will be overwritten when tests run
+ */
 /** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */
 export const env = process.env as {
   /** The handler location configured on the function. */
