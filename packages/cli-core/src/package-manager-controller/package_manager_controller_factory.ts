@@ -1,4 +1,5 @@
 import { type PackageManagerController } from '@aws-amplify/plugin-types';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { Printer } from '../printer/printer.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
@@ -31,7 +32,9 @@ export class PackageManagerControllerFactory {
         if (this.platform === 'win32') {
           const errorMessage =
             'Amplify does not support PNPM on Windows. \nDetails: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md';
-          throw new Error(errorMessage);
+          throw new AmplifyUserError('PNPMonWindowsError', {
+            message: errorMessage,
+          });
         }
         return new PnpmPackageManagerController(this.cwd);
       case 'yarn-classic':
