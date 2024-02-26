@@ -129,6 +129,7 @@ void describe('deploy command', () => {
         namespace: 'abc',
         type: 'branch',
       },
+      '0',
       'src',
     ]);
   });

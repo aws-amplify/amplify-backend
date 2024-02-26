@@ -9,7 +9,7 @@ import {
 /**
  * Converts client config to a different shapes needed by mobile libraries for Gen1 format.
  */
-export class ClientConfigConverter {
+export class ClientConfigMobileConverter {
   /**
    * Creates client config converter
    */

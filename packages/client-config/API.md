@@ -147,7 +147,7 @@ type Bucket = {
 };
 
 // @public (undocumented)
-export type ClientConfig = ClientConfigLegacy | ClientConfigGen2;
+export type ClientConfig = clientConfigTypesV1.ClientConfigV1 | clientConfigTypesV2.ClientConfigV2;
 
 // @public (undocumented)
 export enum ClientConfigFormat {
@@ -162,9 +162,6 @@ export enum ClientConfigFormat {
     // (undocumented)
     TS = "ts"
 }
-
-// @public (undocumented)
-export type ClientConfigGen2 = clientConfigTypesV1.ClientConfigV1 | clientConfigTypesV2.ClientConfigV2;
 
 // @public
 export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfig & GeoClientConfig & GraphqlClientConfig & NotificationsClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
@@ -200,6 +197,9 @@ declare namespace clientConfigTypesV2 {
         StandardAttributes,
         StandardAttribute,
         User,
+        Custom,
+        Geo,
+        Map_2 as Map,
         Data_2 as Data,
         AuthorizationType_2 as AuthorizationType,
         Storage_2 as Storage
@@ -222,15 +222,19 @@ type ClientConfigV1 = {
 type ClientConfigV2 = {
     _version?: '2';
     auth?: Auth_2;
-    custom?: {
-        [key: string]: any;
-    };
+    custom?: Custom;
     data?: Data_2;
     storage?: Storage_2;
 };
 
 // @public (undocumented)
 export type ClientConfigVersion = '0' | '1' | '2';
+
+// @public
+type Custom = {
+    Geo?: Geo;
+    [property: string]: any;
+};
 
 // @public (undocumented)
 export type CustomClientConfig = {
@@ -262,10 +266,16 @@ type Data_2 = {
 };
 
 // @public
-export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version?: ClientConfigVersion) => Promise<ClientConfig>;
+export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion) => Promise<ClientConfig>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined, version?: ClientConfigVersion) => Promise<void>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
+
+// @public (undocumented)
+type Geo = {
+    aws_region?: AwsRegion_2;
+    maps?: Map_2[];
+};
 
 // @public (undocumented)
 export type GeoClientConfig = {
@@ -303,6 +313,14 @@ export type GraphqlClientConfig = {
     aws_appsync_apiKey?: string;
     modelIntrospection?: unknown;
 };
+
+// @public (undocumented)
+enum Map_2 {
+    // (undocumented)
+    VectorEsriStreets = "VectorEsriStreets",
+    // (undocumented)
+    VectorEsriTopographic = "VectorEsriTopographic"
+}
 
 // @public (undocumented)
 enum MfaConfiguration {
@@ -422,6 +440,7 @@ export type PlatformClientConfig = {
 // @public (undocumented)
 type StandardAttribute = {
     required?: boolean;
+    [property: string]: any;
 };
 
 // @public (undocumented)

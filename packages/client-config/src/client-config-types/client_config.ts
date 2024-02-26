@@ -26,13 +26,11 @@ export type ClientConfigLegacy = Partial<
 >;
 
 // Versions of client config schema supported by "this" package version
-export type ClientConfigGen2 =
+export type ClientConfig =
   | clientConfigTypesV1.ClientConfigV1
   | clientConfigTypesV2.ClientConfigV2;
 export { clientConfigTypesV1 };
 export { clientConfigTypesV2 };
-
-export type ClientConfig = ClientConfigLegacy | ClientConfigGen2;
 
 export type ClientConfigVersion = '0' | '1' | '2';
 

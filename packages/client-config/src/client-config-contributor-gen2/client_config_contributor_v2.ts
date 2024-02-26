@@ -5,13 +5,25 @@ import {
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import {
-  ClientConfigGen2,
+  ClientConfig,
   clientConfigTypesV2,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
+
+/**
+ * Translator for the version number of ClientConfig
+ */
+export class VersionContributor implements ClientConfigContributor {
+  /**
+   * Return the version of the schema types that this contributor uses
+   */
+  contribute = (): ClientConfig => {
+    return { _version: '2' };
+  };
+}
 
 /**
  * Translator for the Auth portion of ClientConfig
@@ -22,7 +34,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
    */
   contribute = ({
     [authOutputKey]: authOutput,
-  }: UnifiedBackendOutput): ClientConfigGen2 | Record<string, never> => {
+  }: UnifiedBackendOutput): ClientConfig | Record<string, never> => {
     if (authOutput === undefined) {
       return {};
     }
@@ -130,7 +142,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       authClientConfig.oauth_response_type = authOutput.payload
         .oauthResponseType as clientConfigTypesV2.OauthResponseType;
     }
-    return { auth: authClientConfig } as ClientConfigGen2;
+    return { auth: authClientConfig } as ClientConfig;
   };
 }
 
@@ -151,9 +163,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
    */
   contribute = async ({
     [graphqlOutputKey]: graphqlOutput,
-  }: UnifiedBackendOutput): Promise<
-    ClientConfigGen2 | Record<string, never>
-  > => {
+  }: UnifiedBackendOutput): Promise<ClientConfig | Record<string, never>> => {
     if (graphqlOutput === undefined) {
       return {};
     }
@@ -180,6 +190,6 @@ export class DataClientConfigContributor implements ClientConfigContributor {
       config.model_introspection = modelIntrospection;
     }
 
-    return { data: config } as ClientConfigGen2;
+    return { data: config } as ClientConfig;
   };
 }

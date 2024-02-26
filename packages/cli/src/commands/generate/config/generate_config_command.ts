@@ -16,7 +16,7 @@ type GenerateConfigCommandOptionsCamelCase = {
   branch: string | undefined;
   format: ClientConfigFormat | undefined;
   outDir: string | undefined;
-  outputVersion: string | undefined;
+  configVersion: string;
 };
 
 /**
@@ -60,9 +60,9 @@ export class GenerateConfigCommand
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
+      args['config-version'] as ClientConfigVersion,
       args['out-dir'],
-      args.format,
-      args['output-version'] as ClientConfigVersion
+      args.format
     );
   };
 
@@ -105,12 +105,13 @@ export class GenerateConfigCommand
         type: 'string',
         array: false,
       })
-      .option('output-version', {
+      .option('config-version', {
         describe:
           'Version of the client config. Version 0 represents classic amplify-cli client config (Default)',
         type: 'string',
         array: false,
         choices: ['0', '1', '2'],
+        default: '0',
       });
   };
 }

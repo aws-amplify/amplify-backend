@@ -32,5 +32,7 @@ backend.addOutput({
 const fakeCognitoUserPoolId = 'fakeCognitoUserPoolId';
 backend.addOutput({
   // test reserved key
-  aws_user_pools_id: fakeCognitoUserPoolId,
+  auth: {
+    user_pool_id: fakeCognitoUserPoolId,
+  },
 });

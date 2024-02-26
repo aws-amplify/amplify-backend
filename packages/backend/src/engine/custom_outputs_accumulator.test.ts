@@ -104,7 +104,9 @@ void describe('Custom outputs accumulator', () => {
     );
 
     accumulator.addOutput({
-      aws_user_pools_id: 'some_user_pool_id',
+      auth: {
+        user_pool_id: 'some_user_pool_id',
+      },
       custom: {
         output1: 'value1',
       },
@@ -116,7 +118,9 @@ void describe('Custom outputs accumulator', () => {
     });
 
     const expectedAccumulatedOutput: Partial<ClientConfig> = {
-      aws_user_pools_id: 'some_user_pool_id',
+      auth: {
+        user_pool_id: 'some_user_pool_id',
+      },
       custom: {
         output1: 'value1',
         output2: 'value2',

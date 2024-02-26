@@ -1,20 +1,27 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
-import { Gen1ClientConfigFormatter } from './gen1_client_config_formatter.js';
+import { ClientConfigFormatterLegacy } from './client_config_formatter_legacy.js';
 import {
   ClientConfig,
   ClientConfigFormat,
+  ClientConfigLegacy,
 } from '../client-config-types/client_config.js';
 import assert from 'node:assert';
 import fsp from 'fs/promises';
 import path from 'path';
 import { pathToFileURL } from 'url';
 import { randomUUID } from 'crypto';
-import { ClientConfigConverter } from './client_config_converter.js';
+import { ClientConfigMobileConverter } from './client_config_to_mobile_legacy_converter.js';
 import { ClientConfigMobile } from '../client-config-types/mobile/client_config_mobile_types.js';
 
 void describe('client config formatter', () => {
   const sampleUserPoolId = randomUUID();
   const clientConfig: ClientConfig = {
+    _version: '1',
+    auth: {
+      user_pool_id: sampleUserPoolId,
+    },
+  };
+  const expectedLegacyConfig: ClientConfigLegacy = {
     aws_user_pools_id: sampleUserPoolId,
   };
   const clientConfigMobile: ClientConfigMobile = {
@@ -22,7 +29,7 @@ void describe('client config formatter', () => {
     UserAgent: 'aws-amplify-cli/2.0',
   };
 
-  const clientConfigConverter = new ClientConfigConverter(
+  const clientConfigConverter = new ClientConfigMobileConverter(
     undefined as never,
     undefined as never
   );
@@ -31,8 +38,8 @@ void describe('client config formatter', () => {
     'convertToMobileConfig',
     () => clientConfigMobile
   );
-  const clientConfigFormatter: Gen1ClientConfigFormatter =
-    new Gen1ClientConfigFormatter(clientConfigConverter);
+  const clientConfigFormatter: ClientConfigFormatterLegacy =
+    new ClientConfigFormatterLegacy(clientConfigConverter);
 
   beforeEach(() => {
     clientConfigConverterMock.mock.resetCalls();
@@ -44,7 +51,7 @@ void describe('client config formatter', () => {
       ClientConfigFormat.JSON
     );
 
-    assert.deepEqual(JSON.parse(formattedConfig), clientConfig);
+    assert.deepEqual(JSON.parse(formattedConfig), expectedLegacyConfig);
   });
 
   void describe('for js/ts', () => {
@@ -73,7 +80,7 @@ void describe('client config formatter', () => {
           const { default: actualConfig } = await import(
             pathToFileURL(filePath).toString()
           );
-          assert.deepEqual(actualConfig, clientConfig);
+          assert.deepEqual(actualConfig, expectedLegacyConfig);
         });
       }
     );
@@ -86,9 +93,9 @@ void describe('client config formatter', () => {
     );
 
     assert.strictEqual(clientConfigConverterMock.mock.callCount(), 1);
-    assert.strictEqual(
-      clientConfigConverterMock.mock.calls[0].arguments[0],
-      clientConfig
+    assert.deepStrictEqual(
+      clientConfigConverterMock.mock.calls[0].arguments[0]?.aws_user_pools_id,
+      expectedLegacyConfig.aws_user_pools_id
     );
 
     assert.ok(formattedConfig.startsWith("const amplifyConfig = '''"));
@@ -105,8 +112,8 @@ void describe('client config formatter', () => {
 
     assert.strictEqual(clientConfigConverterMock.mock.callCount(), 1);
     assert.strictEqual(
-      clientConfigConverterMock.mock.calls[0].arguments[0],
-      clientConfig
+      clientConfigConverterMock.mock.calls[0].arguments[0]?.aws_user_pools_id,
+      expectedLegacyConfig.aws_user_pools_id
     );
 
     assert.deepEqual(JSON.parse(formattedConfig), clientConfigMobile);

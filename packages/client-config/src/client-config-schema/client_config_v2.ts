@@ -13,7 +13,7 @@ export type ClientConfigV2 = {
   /**
    * Outputs generated from backend.addOutput({custom: <config>})
    */
-  custom?: { [key: string]: any };
+  custom?: Custom;
   /**
    * Outputs generated from defineData
    */
@@ -107,11 +107,30 @@ export type StandardAttributes = {
 
 export type StandardAttribute = {
   required?: boolean;
+  [property: string]: any;
 };
 
 export enum User {
   Email = 'EMAIL',
   Phone = 'PHONE',
+}
+
+/**
+ * Outputs generated from backend.addOutput({custom: <config>})
+ */
+export type Custom = {
+  Geo?: Geo;
+  [property: string]: any;
+};
+
+export type Geo = {
+  aws_region?: AwsRegion;
+  maps?: Map[];
+};
+
+export enum Map {
+  VectorEsriStreets = 'VectorEsriStreets',
+  VectorEsriTopographic = 'VectorEsriTopographic',
 }
 
 /**

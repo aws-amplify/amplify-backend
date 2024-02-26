@@ -4,6 +4,7 @@ import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { ClientConfigVersion } from '@aws-amplify/client-config';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
@@ -11,6 +12,7 @@ export type PipelineDeployCommandOptions =
 type PipelineDeployCommandOptionsCamelCase = {
   branch: string;
   appId: string;
+  configVersion: string;
   configOutDir?: string;
 };
 
@@ -63,6 +65,7 @@ export class PipelineDeployCommand
     });
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendId,
+      args['config-version'] as ClientConfigVersion,
       args['config-out-dir']
     );
   };
@@ -87,6 +90,14 @@ export class PipelineDeployCommand
           'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',
         array: false,
+      })
+      .option('config-version', {
+        describe:
+          'Version of the client config. Version 0 represents classic amplify-cli client config (Default)',
+        type: 'string',
+        array: false,
+        choices: ['0', '1', '2'],
+        default: '0',
       });
   };
 }

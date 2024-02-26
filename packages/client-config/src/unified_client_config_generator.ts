@@ -55,6 +55,6 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
         throw error;
       }
     }
-    return accumulator.getAccumulatedObject();
+    return <ClientConfig>accumulator.getAccumulatedObject();
   };
 }

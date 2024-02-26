@@ -23,6 +23,7 @@ void describe('sandbox_event_handler_factory', () => {
   } as unknown as ClientConfigGeneratorAdapter;
   const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
     clientConfigGeneratorAdapterMock,
+    '0',
     'test-out',
     ClientConfigFormat.MJS
   );
@@ -71,9 +72,9 @@ void describe('sandbox_event_handler_factory', () => {
         namespace: 'test',
         name: 'name',
       },
+      '0',
       'test-out',
       'mjs',
-      undefined, //version
     ]);
 
     assert.strictEqual(emitSuccessMock.mock.callCount(), 1);
@@ -185,9 +186,9 @@ void describe('sandbox_event_handler_factory', () => {
         namespace: 'test',
         name: 'name',
       },
+      '0',
       'test-out',
       'mjs',
-      undefined, //version
     ]);
 
     // No metrics emitted

@@ -7,11 +7,11 @@ import {
 } from './client-config-types/client_config.js';
 import { getClientConfigPath } from './paths/index.js';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { Gen1ClientConfigFormatter } from './client-config-writer/gen1_client_config_formatter.js';
-import { ClientConfigConverter } from './client-config-writer/client_config_converter.js';
+import { ClientConfigMobileConverter } from './client-config-writer/client_config_to_mobile_legacy_converter.js';
 import { fileURLToPath } from 'url';
 import * as fsp from 'fs/promises';
-import { Gen2ClientConfigFormatter } from './client-config-writer/gen2_client_config_formatter.js';
+import { ClientConfigFormatterLegacy } from './client-config-writer/client_config_formatter_legacy.js';
+import { ClientConfigFormatterGen2 } from './client-config-writer/client_config_formatter_gen2.js';
 
 /**
  * Main entry point for generating client config and writing to a file
@@ -19,20 +19,20 @@ import { Gen2ClientConfigFormatter } from './client-config-writer/gen2_client_co
 export const generateClientConfigToFile = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: DeployedBackendIdentifier,
+  version: ClientConfigVersion,
   outDir?: string,
   format?: ClientConfigFormat,
   // TODO: update this type when Printer interface gets defined in platform-core.
-  log?: (message: string) => void,
-  version?: ClientConfigVersion
+  log?: (message: string) => void
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
   const clientConfigWriter = new ClientConfigWriter(
     getClientConfigPath,
-    version && version != '0'
-      ? new Gen2ClientConfigFormatter()
-      : new Gen1ClientConfigFormatter(
-          new ClientConfigConverter(packageJson.name, packageJson.version)
+    version && version !== '0'
+      ? new ClientConfigFormatterGen2()
+      : new ClientConfigFormatterLegacy(
+          new ClientConfigMobileConverter(packageJson.name, packageJson.version)
         )
   );
 
@@ -41,6 +41,7 @@ export const generateClientConfigToFile = async (
     backendIdentifier,
     version
   );
+
   await clientConfigWriter.writeClientConfig(clientConfig, outDir, format, log);
 };
 

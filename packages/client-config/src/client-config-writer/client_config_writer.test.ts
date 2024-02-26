@@ -5,15 +5,15 @@ import {
   ClientConfigWriter,
 } from './client_config_writer.js';
 import {
-  ClientConfig,
   ClientConfigFormat,
+  ClientConfigLegacy,
 } from '../client-config-types/client_config.js';
-import { Gen1ClientConfigFormatter } from './gen1_client_config_formatter.js';
+import { ClientConfigFormatterLegacy } from './client_config_formatter_legacy.js';
 import { randomUUID } from 'crypto';
 
 void describe('client config writer', () => {
   const pathResolverMock = mock.fn<ClientConfigPathResolver>();
-  const clientFormatter = new Gen1ClientConfigFormatter(undefined as never);
+  const clientFormatter = new ClientConfigFormatterLegacy(undefined as never);
   const fspMock = {
     writeFile: mock.fn<(path: string, content: string) => Promise<void>>(() =>
       Promise.resolve()
@@ -30,7 +30,7 @@ void describe('client config writer', () => {
     pathResolverMock.mock.resetCalls();
   });
 
-  const clientConfig: ClientConfig = {
+  const clientConfig: ClientConfigLegacy = {
     aws_user_pools_id: 'something',
   };
 

@@ -4,6 +4,7 @@ import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import {
   ClientConfigFormat,
+  ClientConfigVersion,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
@@ -20,6 +21,7 @@ type SandboxCommandOptionsCamelCase = {
   name: string | undefined;
   configFormat: ClientConfigFormat | undefined;
   configOutDir: string | undefined;
+  configVersion: string;
   profile: string | undefined;
 };
 
@@ -82,6 +84,7 @@ export class SandboxCommand
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
       this.clientConfigGeneratorAdapter,
+      args['config-version'] as ClientConfigVersion,
       args['config-out-dir'],
       args['config-format']
     );
@@ -145,6 +148,14 @@ export class SandboxCommand
           array: false,
           choices: Object.values(ClientConfigFormat),
           global: false,
+        })
+        .option('config-version', {
+          describe: 'Client config format version',
+          type: 'string',
+          array: false,
+          choices: ['0', '1', '2'],
+          global: false,
+          default: '0',
         })
         .option('config-out-dir', {
           describe:

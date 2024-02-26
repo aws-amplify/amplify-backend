@@ -221,7 +221,25 @@
     },
     "custom": {
       "description": "Outputs generated from backend.addOutput({custom: <config>})",
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "Geo": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "aws_region": {
+              "$ref": "#/$defs/aws_region"
+            },
+            "maps": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["VectorEsriStreets", "VectorEsriTopographic"]
+              }
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {
