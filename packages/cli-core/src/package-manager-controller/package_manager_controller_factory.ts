@@ -30,10 +30,12 @@ export class PackageManagerControllerFactory {
         return new NpmPackageManagerController(this.cwd);
       case 'pnpm':
         if (this.platform === 'win32') {
-          const errorMessage =
-            'Amplify does not support PNPM on Windows. \nDetails: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md';
+          const message = 'Amplify does not support PNPM on Windows.';
+          const details =
+            'Details: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md';
           throw new AmplifyUserError('UnsupportedPackageManagerError', {
-            message: errorMessage,
+            message,
+            details,
           });
         }
         return new PnpmPackageManagerController(this.cwd);
