@@ -136,14 +136,14 @@ void describe('getting started happy path', async () => {
 
   void it('creates new project and deploy them without an error', async () => {
     if (packageManager === 'pnpm' && process.platform === 'win32') {
-      try {
-        await execa('pnpm', ['create', 'amplify@beta', '--yes'], {
+      await assert.rejects(
+        execa('pnpm', ['create', 'amplify@beta', '--yes'], { // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
           cwd: tempDir,
-        });
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '';
-        assert.match(errorMessage, /Amplify does not support PNPM on Windows./);
-      }
+        }), error => {
+            const errorMessage = error instanceof Error ? error.message : '';
+            assert.match(errorMessage, /Amplify does not support PNPM on Windows./);
+          return true;
+        })
     }
   });
 });
