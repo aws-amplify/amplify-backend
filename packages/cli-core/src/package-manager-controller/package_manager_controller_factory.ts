@@ -30,7 +30,7 @@ export class PackageManagerControllerFactory {
       case 'pnpm':
         if (this.platform === 'win32') {
           const errorMessage =
-            "PNPM can't create amplify on Windows. Please switch to NPM or Yarn. \nDetails: https://pnpm.io/faq#but-the-nested-node_modules-approach-is-incompatible-with-windows";
+            'Amplify does not support PNPM on Windows. \nDetails: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md';
           throw new Error(errorMessage);
         }
         return new PnpmPackageManagerController(this.cwd);
