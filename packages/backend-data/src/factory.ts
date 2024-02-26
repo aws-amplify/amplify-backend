@@ -11,7 +11,7 @@ import { AmplifyData } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
-import { convertSchemaToCDK } from './convert_schema.js';
+import { convertSchemaToCDK, isModelSchema } from './convert_schema.js';
 import {
   FunctionInstanceProvider,
   buildConstructFactoryFunctionInstanceProvider,
@@ -25,6 +25,10 @@ import {
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  JsResolver,
+  convertJsResolverDefinition,
+} from './convert_js_resolvers.js';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -145,7 +149,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     );
 
     let amplifyGraphqlDefinition;
+    let jsFunctions;
     try {
+      if (isModelSchema(this.props.schema)) {
+        ({ jsFunctions } = this.props.schema.transform());
+      }
       amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
@@ -160,7 +168,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       );
     }
 
-    return new AmplifyData(scope, this.defaultName, {
+    const amplifyApi = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
       definition: amplifyGraphqlDefinition,
       authorizationModes,
@@ -168,6 +176,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       functionNameMap,
       translationBehavior: { sandboxModeEnabled },
     });
+
+    convertJsResolverDefinition(scope, amplifyApi, jsFunctions as JsResolver[]); // draft-only assertion; won't be needed after data-schema-types is updated
+
+    return amplifyApi;
   };
 }
 
