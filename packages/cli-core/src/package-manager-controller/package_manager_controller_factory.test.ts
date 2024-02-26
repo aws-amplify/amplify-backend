@@ -77,9 +77,10 @@ void describe('packageManagerControllerFactory', () => {
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),
         {
-          message: "PNPM can't create amplify on Windows. Please switch to NPM or Yarn. \nDetails: https://pnpm.io/faq#but-the-nested-node_modules-approach-is-incompatible-with-windows",
+          message:
+            "PNPM can't create amplify on Windows. Please switch to NPM or Yarn. \nDetails: https://pnpm.io/faq#but-the-nested-node_modules-approach-is-incompatible-with-windows",
         }
       );
-    })
+    });
   });
 });
