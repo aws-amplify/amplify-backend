@@ -138,7 +138,7 @@ void describe('getting started happy path', async () => {
     if (packageManager === 'pnpm' && process.platform === 'win32') {
       await assert.rejects(
         execa('pnpm', ['create', 'amplify@beta', '--yes'], {
-          // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
+          // TODO: remove the @beta tag once GA https://github.com/aws-amplify/amplify-backend/issues/1013
           cwd: tempDir,
         }),
         (error) => {
