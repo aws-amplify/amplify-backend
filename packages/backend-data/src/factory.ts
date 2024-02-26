@@ -25,10 +25,7 @@ import {
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import {
-  JsResolver,
-  convertJsResolverDefinition,
-} from './convert_js_resolvers.js';
+import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -177,7 +174,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       translationBehavior: { sandboxModeEnabled },
     });
 
-    convertJsResolverDefinition(scope, amplifyApi, jsFunctions as JsResolver[]); // draft-only assertion; won't be needed after data-schema-types is updated
+    convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
 
     return amplifyApi;
   };
