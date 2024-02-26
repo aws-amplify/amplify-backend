@@ -10,7 +10,9 @@ import { DataSchema } from './types.js';
  * @param schema the schema that might be a derived model schema
  * @returns a boolean indicating whether the schema is a derived model schema, with type narrowing
  */
-const isModelSchema = (schema: DataSchema): schema is DerivedModelSchema => {
+export const isModelSchema = (
+  schema: DataSchema
+): schema is DerivedModelSchema => {
   return (
     schema !== null &&
     typeof schema === 'object' &&
@@ -38,15 +40,18 @@ export const convertSchemaToCDK = (
      * to generate that argument for us (so it's consistent with a customer using normal Graphql strings), then
      * apply that value back into the final IAmplifyDataDefinition output for data-schema users.
      */
+    const { schema: transformedSchema, functionSlots } = schema.transform();
+
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
-      schema.transform().schema,
+      transformedSchema,
       {
         dbType,
         provisionStrategy,
       }
     ).dataSourceStrategies;
     return {
-      ...schema.transform(),
+      schema: transformedSchema,
+      functionSlots,
       dataSourceStrategies: generatedModelDataSourceStrategies,
     };
   }
