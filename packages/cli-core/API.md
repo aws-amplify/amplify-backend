@@ -53,7 +53,7 @@ export enum LogLevel {
 
 // @public
 export class PackageManagerControllerFactory {
-    constructor(cwd: string, printer: Printer);
+    constructor(cwd: string, printer: Printer, platform?: NodeJS.Platform);
     getPackageManagerController(): PackageManagerController;
 }
 
