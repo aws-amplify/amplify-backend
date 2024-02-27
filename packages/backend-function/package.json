@@ -27,6 +27,8 @@
     "@aws-amplify/backend-platform-test-stubs": "^0.3.3-beta.0",
     "@aws-amplify/platform-core": "^0.5.0-beta.1",
     "@aws-sdk/client-ssm": "^3.465.0",
+    "@types/aws-lambda": "^8.10.134",
+    "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1550.0",
     "uuid": "^9.0.1"
   },
