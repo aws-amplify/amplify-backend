@@ -1,8 +1,8 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
 import {
-  ClientConfig,
   ClientConfigVersion,
+  ClientConfigVersionType,
 } from './client-config-types/client_config.js';
 import {
   BackendOutputClientFactory,
@@ -19,11 +19,11 @@ import {
 /**
  * Main entry point for generating client config
  */
-export const generateClientConfig = async (
+export const generateClientConfig = async <T extends ClientConfigVersion>(
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: DeployedBackendIdentifier,
-  version: ClientConfigVersion
-): Promise<ClientConfig> => {
+  version: T
+): Promise<ClientConfigVersionType<T>> => {
   const backendOutputClient = BackendOutputClientFactory.getInstance({
     credentials: credentialProvider,
   });
@@ -31,5 +31,5 @@ export const generateClientConfig = async (
     backendOutputClient.getOutput(backendIdentifier)
   )
     .getInstance(credentialProvider, version)
-    .generateClientConfig();
+    .generateClientConfig() as Promise<ClientConfigVersionType<T>>;
 };

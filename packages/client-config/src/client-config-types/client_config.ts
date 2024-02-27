@@ -29,10 +29,17 @@ export type ClientConfigLegacy = Partial<
 export type ClientConfig =
   | clientConfigTypesV1.ClientConfigV1
   | clientConfigTypesV2.ClientConfigV2;
+
 export { clientConfigTypesV1 };
 export { clientConfigTypesV2 };
 
 export type ClientConfigVersion = '0' | '1' | '2';
+
+export type ClientConfigVersionType<T> = T extends '1'
+  ? clientConfigTypesV1.ClientConfigV1
+  : T extends '2'
+  ? clientConfigTypesV2.ClientConfigV2
+  : never;
 
 export enum ClientConfigFormat {
   MJS = 'mjs',
