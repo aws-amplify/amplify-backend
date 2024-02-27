@@ -6,21 +6,64 @@
 
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { FunctionResources } from '@aws-amplify/plugin-types';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
+import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
-export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'>;
+export type AccessGenerator = (allow: RoleAccessBuilder) => StorageAccessRecord;
+
+// @public (undocumented)
+export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
+    access?: AccessGenerator;
+};
 
 // @public (undocumented)
 export type AmplifyStorageProps = {
+    name: string;
     versioned?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+    triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
 
+// @public (undocumented)
+export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
+
 // @public
-export const defineStorage: (props: AmplifyStorageProps) => ConstructFactory<ResourceProvider<StorageResources>>;
+export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources>>;
+
+// @public
+export type RoleAccessBuilder = {
+    authenticated: StorageAccessBuilder;
+    guest: StorageAccessBuilder;
+    owner: StorageAccessBuilder;
+    resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => StorageAccessBuilder;
+};
+
+// @public (undocumented)
+export type StorageAccessBuilder = {
+    to: (actions: StorageAction[]) => StorageAccessDefinition;
+};
+
+// @public (undocumented)
+export type StorageAccessDefinition = {
+    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
+    actions: StorageAction[];
+    ownerPlaceholderSubstitution: string;
+};
+
+// @public (undocumented)
+export type StorageAccessRecord = Record<StoragePath, StorageAccessDefinition[]>;
+
+// @public (undocumented)
+export type StorageAction = 'read' | 'write' | 'delete';
+
+// @public
+export type StoragePath = `/${string}/*`;
 
 // @public (undocumented)
 export type StorageResources = {

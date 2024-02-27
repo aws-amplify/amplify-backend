@@ -1,5 +1,46 @@
 # create-amplify
 
+## 0.6.1-beta.2
+
+### Patch Changes
+
+- Updated dependencies [ab7533d]
+- Updated dependencies [a01f6b9]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [baeb68f]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4995bda]
+  - @aws-amplify/platform-core@0.5.0-beta.1
+  - @aws-amplify/plugin-types@0.9.0-beta.0
+  - @aws-amplify/cli-core@0.4.1-beta.0
+
+## 0.6.1-beta.1
+
+### Patch Changes
+
+- Updated dependencies [74cbda0]
+  - @aws-amplify/platform-core@0.5.0-beta.0
+
+## 0.6.1-beta.0
+
+### Patch Changes
+
+- 21f6292a1: Force release to beta tag
+
+## 0.6.0
+
+### Minor Changes
+
+- b73d76a78: Support yarn 1, yarn 2+ and pnpm package managers
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/plugin-types@0.8.0
+  - @aws-amplify/cli-core@0.4.0
+  - @aws-amplify/platform-core@0.4.4
+
 ## 0.5.0
 
 ### Minor Changes

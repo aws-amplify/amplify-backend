@@ -3,6 +3,8 @@ import { versionedAuthOutputSchema } from './auth/index.js';
 import { versionedGraphqlOutputSchema } from './graphql/index.js';
 import { versionedStorageOutputSchema } from './storage/index.js';
 import { versionedStackOutputSchema } from './stack/index.js';
+import { versionedCustomOutputSchema } from './custom';
+import { versionedFunctionOutputSchema } from './function/index.js';
 
 /**
  * The auth, graphql and storage exports here are duplicated from the submodule exports in the package.json file
@@ -11,10 +13,24 @@ import { versionedStackOutputSchema } from './stack/index.js';
  */
 
 /**
- * ---------- Auth exports ----------
+ * ---------- Platform exports ----------
  */
 
 export const platformOutputKey = 'AWS::Amplify::Platform';
+
+export * from './platform/index.js';
+
+/**
+ * ---------- Custom exports ----------
+ */
+
+export const customOutputKey = 'AWS::Amplify::Custom';
+
+export * from './custom/index.js';
+
+/**
+ * ---------- Auth exports ----------
+ */
 
 /**
  * re-export the auth output schema
@@ -55,6 +71,20 @@ export * from './storage/index.js';
 export const storageOutputKey = 'AWS::Amplify::Storage';
 
 /**
+ * ---------- Function exports ----------
+ */
+
+/**
+ * re-export the function output schema
+ */
+export * from './function/index.js';
+
+/**
+ * Expected key that function output is stored under
+ */
+export const functionOutputKey = 'AWS::Amplify::Function';
+
+/**
  * ---------- Unified exports ----------
  */
 
@@ -67,15 +97,11 @@ export const unifiedBackendOutputSchema = z.object({
   [authOutputKey]: versionedAuthOutputSchema.optional(),
   [graphqlOutputKey]: versionedGraphqlOutputSchema.optional(),
   [storageOutputKey]: versionedStorageOutputSchema.optional(),
+  [customOutputKey]: versionedCustomOutputSchema.optional(),
+  [functionOutputKey]: versionedFunctionOutputSchema.optional(),
 });
 /**
  * This type is a subset of the BackendOutput type that is exposed by the platform.
  * It represents BackendOutput that has been validated against the schema of known output values
  */
 export type UnifiedBackendOutput = z.infer<typeof unifiedBackendOutputSchema>;
-
-/**
- * ---------- Platform exports ----------
- */
-
-export * from './platform/index.js';

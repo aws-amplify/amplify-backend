@@ -139,8 +139,19 @@ export type FacebookProviderProps = Omit<
  */
 export type OidcProviderProps = Omit<
   cognito.UserPoolIdentityProviderOidcProps,
-  'userPool'
->;
+  'userPool' | 'attributeRequestMethod'
+> & {
+  /**
+   * The method to use to request attributes
+   * @default 'GET'
+   *
+   * For details about each option, see below.
+   *
+   * 'GET' - use GET
+   * 'POST' - use POST
+   */
+  readonly attributeRequestMethod?: 'GET' | 'POST';
+};
 
 /**
  * SAML provider.
@@ -189,7 +200,7 @@ export type ExternalProviderOptions = {
   /**
    * OIDC Settings
    */
-  oidc?: OidcProviderProps;
+  oidc?: OidcProviderProps[];
   /**
    * SAML Settings
    */
@@ -302,6 +313,18 @@ export type AuthProps = {
    * 'NONE' - None – users will have to contact an administrator to reset their passwords
    */
   accountRecovery?: keyof typeof cognito.AccountRecovery;
+  /**
+   * Provide a list of user group names to create UserPoolGroups.
+   *
+   * Group precedence is determined by the ordering of the groups in the list.
+   * @example
+   * ['admins']
+   *
+   * Group roles will be generated without any permissions, but you can configure permissions by accessing the generated roles and attaching policies to them.
+   *
+   * auth.resources.groups['admins'].role.addToPrincipalPolicy(new PolicyStatement({...}))
+   */
+  groups?: string[];
 
   /**
    * @internal

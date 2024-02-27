@@ -2,6 +2,7 @@ import { Construct } from 'constructs';
 import { ConstructFactory } from './construct_factory.js';
 import { BackendSecretResolver } from './backend_secret_resolver.js';
 import { ResourceProvider } from './resource_provider.js';
+import { SsmEnvironmentEntriesGenerator } from './ssm_environment_entries_generator.js';
 
 /**
  * Initializes a CDK Construct in a given scope
@@ -17,9 +18,14 @@ export type ConstructContainerEntryGenerator<T extends object = object> = {
    * Create a new instance of a CDK construct in the provided scope.
    */
   generateContainerEntry: (
-    scope: Construct,
-    backendSecretResolver: BackendSecretResolver
+    props: GenerateContainerEntryProps
   ) => ResourceProvider<T>;
+};
+
+export type GenerateContainerEntryProps = {
+  scope: Construct;
+  backendSecretResolver: BackendSecretResolver;
+  ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
 };
 
 /**

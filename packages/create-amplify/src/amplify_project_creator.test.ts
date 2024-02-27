@@ -1,3 +1,4 @@
+import { blue, bold, cyan, green, grey, underline } from 'kleur/colors';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
@@ -34,6 +35,7 @@ void describe('AmplifyProjectCreator', () => {
       gitIgnoreInitializerMock as never,
       initialProjectFileGeneratorMock as never
     );
+
     await amplifyProjectCreator.create();
     assert.equal(
       packageManagerControllerMock.installDependencies.mock.callCount(),
@@ -45,12 +47,36 @@ void describe('AmplifyProjectCreator', () => {
       1
     );
     assert.equal(
-      logSpy.mock.calls[4].arguments[0],
-      "Welcome to AWS Amplify! \nNavigate to your project directory using\n'cd .testProjectRoot'.\nThen get started with the following commands:\n\n"
+      logSpy.mock.calls[1].arguments[0],
+      bold(blue(`Installing devDependencies:`))
+    );
+
+    assert.equal(logSpy.mock.calls[6].arguments[0], `Installing dependencies`);
+    assert.equal(
+      logSpy.mock.calls[8].arguments[0],
+      green('Successfully created a new project!')
     );
     assert.equal(
-      logSpy.mock.calls[5].arguments[0],
-      `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.\n\nParticipation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.\n\nTo learn more about telemetry, visit https://docs.amplify.aws/gen2/reference/telemetry`
+      logSpy.mock.calls[9].arguments[0],
+      bold(blue('Welcome to AWS Amplify!'))
+    );
+
+    assert.equal(
+      logSpy.mock.calls[10].arguments[0],
+      `Navigate to your project directory using ${cyan(
+        'cd .testProjectRoot'
+      )} and then:`
+    );
+
+    assert.equal(
+      logSpy.mock.calls[11].arguments[0],
+      grey(
+        `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
+          'npx amplify configure telemetry disable'
+        )}. To learn more about telemetry, visit ${underline(
+          blue('https://docs.amplify.aws/gen2/reference/telemetry')
+        )}`
+      )
     );
   });
 
@@ -78,12 +104,21 @@ void describe('AmplifyProjectCreator', () => {
     await amplifyProjectCreator.create();
 
     assert.equal(
-      logSpy.mock.calls[4].arguments[0],
-      "Welcome to AWS Amplify! \nNavigate to your project directory using\n'cd .testProjectRoot'.\nThen get started with the following commands:\n\n"
+      logSpy.mock.calls[10].arguments[0],
+      `Navigate to your project directory using ${cyan(
+        'cd .testProjectRoot'
+      )} and then:`
     );
+
     assert.equal(
-      logSpy.mock.calls[5].arguments[0],
-      `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.\n\nParticipation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.\n\nTo learn more about telemetry, visit https://docs.amplify.aws/gen2/reference/telemetry`
+      logSpy.mock.calls[11].arguments[0],
+      grey(
+        `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
+          'npx amplify configure telemetry disable'
+        )}. To learn more about telemetry, visit ${underline(
+          blue('https://docs.amplify.aws/gen2/reference/telemetry')
+        )}`
+      )
     );
   });
 });

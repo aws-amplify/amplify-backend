@@ -1,5 +1,37 @@
 # @aws-amplify/backend-deployer
 
+## 0.5.1-beta.1
+
+### Patch Changes
+
+- Updated dependencies [ab7533d]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4995bda]
+  - @aws-amplify/platform-core@0.5.0-beta.1
+  - @aws-amplify/plugin-types@0.9.0-beta.0
+
+## 0.5.1-beta.0
+
+### Patch Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+- Updated dependencies [74cbda0]
+  - @aws-amplify/platform-core@0.5.0-beta.0
+
+## 0.5.0
+
+### Minor Changes
+
+- b73d76a78: Support yarn 1, yarn 2+ and pnpm package managers
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/plugin-types@0.8.0
+  - @aws-amplify/platform-core@0.4.4
+
 ## 0.4.7
 
 ### Patch Changes

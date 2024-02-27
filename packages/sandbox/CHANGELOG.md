@@ -1,5 +1,66 @@
 # @aws-amplify/sandbox
 
+## 0.5.2-beta.2
+
+### Patch Changes
+
+- Updated dependencies [415c4c1]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.2
+  - @aws-amplify/client-config@0.8.1-beta.2
+
+## 0.5.2-beta.1
+
+### Patch Changes
+
+- 88c1b28: temporarely downgrade @parcel/watcher to 2.1.0 for npm 10.4 issue
+- Updated dependencies [ab7533d]
+- Updated dependencies [a01f6b9]
+- Updated dependencies [baeb68f]
+- Updated dependencies [4995bda]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.1
+  - @aws-amplify/platform-core@0.5.0-beta.1
+  - @aws-amplify/cli-core@0.4.1-beta.0
+  - @aws-amplify/client-config@0.8.1-beta.1
+  - @aws-amplify/backend-deployer@0.5.1-beta.1
+  - @aws-amplify/backend-secret@0.4.5-beta.1
+
+## 0.5.2-beta.0
+
+### Patch Changes
+
+- Updated dependencies [74cbda0]
+  - @aws-amplify/backend-deployer@0.5.1-beta.0
+  - @aws-amplify/platform-core@0.5.0-beta.0
+  - @aws-amplify/backend-secret@0.4.5-beta.0
+  - @aws-amplify/client-config@0.8.1-beta.0
+  - @aws-amplify/deployed-backend-client@0.3.11-beta.0
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [b1c3e0d49]
+- Updated dependencies [6daae6be5]
+  - @aws-amplify/client-config@0.8.0
+
+## 0.5.0
+
+### Minor Changes
+
+- b73d76a78: Support yarn 1, yarn 2+ and pnpm package managers
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [348717b55]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/client-config@0.7.0
+  - @aws-amplify/backend-deployer@0.5.0
+  - @aws-amplify/cli-core@0.4.0
+  - @aws-amplify/deployed-backend-client@0.3.10
+  - @aws-amplify/backend-secret@0.4.4
+  - @aws-amplify/platform-core@0.4.4
+
 ## 0.4.0
 
 ### Minor Changes

@@ -8,6 +8,7 @@ import {
   BackendMetadata,
   ConflictResolutionMode,
   DeployedBackendClient,
+  FunctionConfiguration,
   ListSandboxesRequest,
   ListSandboxesResponse,
   SandboxMetadata,
@@ -34,6 +35,7 @@ import {
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import {
   authOutputKey,
+  functionOutputKey,
   graphqlOutputKey,
   platformOutputKey,
   storageOutputKey,
@@ -233,23 +235,30 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     const apiStack = childStacks.find((nestedStack: StackSummary | undefined) =>
       nestedStack?.StackName?.includes('data')
     );
+    const functionStack = childStacks.find(
+      (nestedStack: StackSummary | undefined) =>
+        nestedStack?.StackName?.includes('function')
+    );
 
     // stack?.StackId is the ARN of the stack
     const { accountId, region } = this.arnParser.tryParseArn(
       stack?.StackId as string
     );
+    const resources =
+      await this.deployedResourcesEnumerator.listDeployedResources(
+        this.cfnClient,
+        stackName,
+        accountId,
+        region
+      );
+
     const backendMetadataObject: BackendMetadata = {
       deploymentType: backendOutput[platformOutputKey].payload
         .deploymentType as DeploymentType,
       lastUpdated,
       status,
       name: stackName,
-      resources: await this.deployedResourcesEnumerator.listDeployedResources(
-        this.cfnClient,
-        stackName,
-        accountId,
-        region
-      ),
+      resources,
     };
 
     if (authStack) {
@@ -295,6 +304,39 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         apiId: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncApiId as string,
       };
+    }
+
+    if (functionStack) {
+      const functionResources = resources.filter(
+        (resource) => resource.resourceType === 'AWS::Lambda::Function'
+      );
+      const functionConfigurations: FunctionConfiguration[] = [];
+      const definedFunctionsString =
+        backendOutput[functionOutputKey]?.payload.definedFunctions;
+      const customerFunctionNames = definedFunctionsString
+        ? (JSON.parse(definedFunctionsString) as string[])
+        : [];
+
+      customerFunctionNames.forEach((functionName) => {
+        const resource = functionResources.find(
+          (func) => func.physicalResourceId === functionName
+        );
+
+        if (resource) {
+          functionConfigurations.push({
+            status: this.stackStatusMapper.translateStackStatus(
+              resource.resourceStatus
+            ),
+            lastUpdated:
+              resource.lastUpdated ??
+              functionStack.LastUpdatedTime ??
+              functionStack.CreationTime,
+            functionName,
+          });
+        }
+      });
+
+      backendMetadataObject.functionConfigurations = functionConfigurations;
     }
 
     return backendMetadataObject;

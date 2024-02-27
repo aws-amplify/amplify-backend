@@ -37,7 +37,7 @@ void describe('AmplifyStorageFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
-    storageFactory = defineStorage({});
+    storageFactory = defineStorage({ name: 'testName' });
     const stack = createStackAndSetContext();
 
     constructContainer = new ConstructContainerStub(
@@ -79,14 +79,12 @@ void describe('AmplifyStorageFactory', () => {
     const outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
       {
         addBackendOutputEntry: storeOutputMock,
+        appendToBackendOutputList: storeOutputMock,
       };
 
-    const importPathVerifier = new ImportPathVerifierStub();
-
     storageFactory.getInstance({
+      ...getInstanceProps,
       outputStorageStrategy,
-      constructContainer,
-      importPathVerifier,
     });
 
     assert.strictEqual(storeOutputMock.mock.callCount(), 1);
@@ -109,5 +107,13 @@ void describe('AmplifyStorageFactory', () => {
         'defineStorage'
       )
     );
+  });
+
+  void it('throws on invalid name', () => {
+    const storageFactory = defineStorage({ name: '!$87++|' });
+    assert.throws(() => storageFactory.getInstance(getInstanceProps), {
+      message:
+        'defineStorage name can only contain alphanumeric characters, found !$87++|',
+    });
   });
 });

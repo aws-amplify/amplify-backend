@@ -1,5 +1,47 @@
 # @aws-amplify/backend-storage
 
+## 0.6.0-beta.1
+
+### Minor Changes
+
+- 7cbe58b: adding triggers to storage events
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- cfc3bc4: Enable CORS on the S3 Bucket
+- Updated dependencies [ab7533d]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4995bda]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.0
+  - @aws-amplify/backend-output-storage@0.4.0-beta.1
+  - @aws-amplify/plugin-types@0.9.0-beta.0
+
+## 0.5.1-beta.0
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.3.1-beta.0
+
+## 0.5.0
+
+### Minor Changes
+
+- 84818e3c1: Require name in defineStorage props
+
+### Patch Changes
+
+- 85ced84f2: Add ability to add custom outputs
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/backend-output-storage@0.3.0
+  - @aws-amplify/plugin-types@0.8.0
+
 ## 0.4.4
 
 ### Patch Changes

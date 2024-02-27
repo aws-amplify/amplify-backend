@@ -10,6 +10,10 @@ export class Printer {
   // Properties for ellipsis animation
   private timer: ReturnType<typeof setTimeout>;
   private timerSet: boolean;
+  /**
+   * Spinner frames
+   */
+  private spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
   /**
    * Sets default configs
@@ -42,18 +46,6 @@ export class Printer {
       this.stdout.write(message);
     }
   };
-
-  /**
-   * Logs a message with animated ellipsis
-   */
-  async indicateProgress(message: string, callback: () => Promise<void>) {
-    try {
-      this.startAnimatingEllipsis(message);
-      await callback();
-    } finally {
-      this.stopAnimatingEllipsis(message);
-    }
-  }
 
   /**
    * Prints a new line to output stream
@@ -89,6 +81,19 @@ export class Printer {
   }
 
   /**
+   * Logs a message with animated spinner
+   * If stdout is not a TTY, the message is logged at the info level without a spinner
+   */
+  async indicateProgress(message: string, callback: () => Promise<void>) {
+    try {
+      this.startAnimatingSpinner(message);
+      await callback();
+    } finally {
+      this.stopAnimatingSpinner();
+    }
+  }
+
+  /**
    * Print an object/record to output stream.
    */
   private printRecord = <T extends Record<string | number, RecordValue>>(
@@ -101,49 +106,6 @@ export class Printer {
     });
     this.stdout.write(message);
   };
-
-  /**
-   * Start animating ellipsis at the end of a log message.
-   */
-  private startAnimatingEllipsis(message: string) {
-    if (!this.isTTY()) {
-      this.log(message, LogLevel.INFO);
-      return;
-    }
-
-    if (this.timerSet) {
-      throw new Error(
-        'Timer is already set to animate ellipsis, stop the current running timer before starting a new one.'
-      );
-    }
-
-    const frameLength = 4; // number of desired dots - 1
-    let frameCount = 0;
-    this.timerSet = true;
-    this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
-    this.stdout.write(message);
-    this.timer = setInterval(() => {
-      this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
-      this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-      this.stdout.write(message + '.'.repeat(++frameCount % frameLength));
-    }, this.refreshRate);
-  }
-
-  /**
-   * Stops animating ellipsis and replace with a log message.
-   */
-  private stopAnimatingEllipsis(message: string) {
-    if (!this.isTTY()) {
-      return;
-    }
-
-    clearInterval(this.timer);
-    this.timerSet = false;
-    this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
-    this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-    this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
-    this.stdout.write(`${message}...${EOL}`);
-  }
 
   /**
    * Writes escape sequence to stdout
@@ -161,6 +123,48 @@ export class Printer {
    */
   private isTTY() {
     return this.stdout.isTTY;
+  }
+
+  /**
+   * Starts animating spinner with a message.
+   */
+  private startAnimatingSpinner(message: string) {
+    if (this.timerSet) {
+      throw new Error(
+        'Timer is already set to animate spinner, stop the current running timer before starting a new one.'
+      );
+    }
+
+    if (!this.isTTY()) {
+      this.log(message, LogLevel.INFO);
+      return;
+    }
+
+    let frameIndex = 0;
+    this.timerSet = true;
+    this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
+    this.timer = setInterval(() => {
+      this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
+      this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
+      const frame = this.spinnerFrames[frameIndex];
+      this.stdout.write(`${frame} ${message}`);
+      frameIndex = (frameIndex + 1) % this.spinnerFrames.length;
+    }, this.refreshRate);
+  }
+
+  /**
+   * Stops animating spinner.
+   */
+  private stopAnimatingSpinner() {
+    if (!this.isTTY()) {
+      return;
+    }
+
+    clearInterval(this.timer);
+    this.timerSet = false;
+    this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
+    this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
+    this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
   }
 }
 

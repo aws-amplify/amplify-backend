@@ -1,6 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { defineData } from './factory.js';
+import { DataFactory, defineData } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import {
@@ -31,6 +31,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { AmplifyDataResources } from '@aws-amplify/data-construct';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const testSchema = /* GraphQL */ `
   type Todo @model {
@@ -58,6 +59,7 @@ void describe('DataFactory', () => {
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
+    resetFactoryCount();
     dataFactory = defineData({ schema: testSchema });
     stack = createStackAndSetContext();
 
@@ -97,6 +99,7 @@ void describe('DataFactory', () => {
               { identityPoolId: 'identityPool' }
             ),
           },
+          groups: {},
         },
       }),
     });
@@ -163,6 +166,7 @@ void describe('DataFactory', () => {
   });
 
   void it('sets the api name if a name property is specified', () => {
+    resetFactoryCount();
     dataFactory = defineData({
       schema: testSchema,
       name: 'MyTestApiName',
@@ -178,6 +182,7 @@ void describe('DataFactory', () => {
   });
 
   void it('does not throw if no auth resources are registered', () => {
+    resetFactoryCount();
     dataFactory = defineData({
       schema: testSchema,
       authorizationModes: {
@@ -199,6 +204,7 @@ void describe('DataFactory', () => {
   });
 
   void it('accepts functions as inputs to the defineData call', () => {
+    resetFactoryCount();
     const echo: ConstructFactory<AmplifyFunction> = {
       getInstance: () => ({
         resources: {
@@ -238,4 +244,22 @@ void describe('DataFactory', () => {
       }
     );
   });
+
+  void it('should throw TooManyDataFactoryError when defineData is called multiple times', () => {
+    assert.throws(
+      () => {
+        dataFactory = defineData({ schema: testSchema });
+        dataFactory = defineData({ schema: testSchema });
+      },
+      new AmplifyUserError('MultipleSingletonResourcesError', {
+        message:
+          'Multiple `defineData` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineData` call',
+      })
+    );
+  });
 });
+
+const resetFactoryCount = () => {
+  DataFactory.factoryCount = 0;
+};

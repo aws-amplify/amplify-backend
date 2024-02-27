@@ -271,10 +271,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
   };
 
   private createUtilFile = (utils: UtilTemplateType[]) => {
-    const renderer = new ReactUtilsStudioTemplateRenderer(
-      utils,
-      LocalGraphqlFormGenerator.defaultConfig
-    );
+    const renderer = new ReactUtilsStudioTemplateRenderer(utils, this.config);
     const { componentText } = renderer.renderComponentInternal();
     return {
       componentText,

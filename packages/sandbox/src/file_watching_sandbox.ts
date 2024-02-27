@@ -12,6 +12,8 @@ import parseGitIgnore from 'parse-gitignore';
 import path from 'path';
 import fs from 'fs';
 import _open from 'open';
+// EventEmitter is a class name and expected to have PascalCase
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import EventEmitter from 'events';
 import {
   CloudFormationClient,
@@ -33,7 +35,6 @@ export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
 export const CDK_MIN_BOOTSTRAP_VERSION = 6;
 
-// TODO: finalize bootstrap url: https://github.com/aws-amplify/amplify-backend/issues/338
 /**
  * Constructs Amplify Console bootstrap URL for a given region
  * @param region AWS region

@@ -6,6 +6,8 @@ import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typ
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { CustomOutputsTestProjectCreator } from './custom_outputs.js';
+import { S3Client } from '@aws-sdk/client-s3';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -20,6 +22,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
 
   const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
   const lambdaClient = new LambdaClient(e2eToolingClientConfig);
+  const s3Client = new S3Client(e2eToolingClientConfig);
   const resourceFinder = new DeployedResourcesFinder(cfnClient);
   const secretClient = getSecretClient(e2eToolingClientConfig);
   testProjectCreators.push(
@@ -27,9 +30,11 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
       cfnClient,
       secretClient,
       lambdaClient,
+      s3Client,
       resourceFinder
     ),
-    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient)
+    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient),
+    new CustomOutputsTestProjectCreator(cfnClient)
   );
   return testProjectCreators;
 };

@@ -7,6 +7,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
+import { BackendIdScopedSsmEnvironmentEntriesGenerator } from './backend_id_scoped_ssm_environment_entries_generator.js';
 
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs
@@ -36,13 +37,19 @@ export class SingletonConstructContainer implements ConstructContainer {
     if (!this.providerCache.has(generator)) {
       const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
       const backendId = getBackendIdentifier(scope);
+      const ssmEnvironmentEntriesGenerator =
+        new BackendIdScopedSsmEnvironmentEntriesGenerator(scope, backendId);
       const backendSecretResolver = new DefaultBackendSecretResolver(
         scope,
         backendId
       );
       this.providerCache.set(
         generator,
-        generator.generateContainerEntry(scope, backendSecretResolver)
+        generator.generateContainerEntry({
+          scope,
+          backendSecretResolver,
+          ssmEnvironmentEntriesGenerator,
+        })
       );
     }
     // safe because we set if it doesn't exist above

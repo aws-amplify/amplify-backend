@@ -4,18 +4,17 @@ import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
-  AmplifyFunction,
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 import {
   CfnIdentityPool,
   CfnUserPoolClient,
+  ProviderAttribute,
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { DEFAULTS } from './defaults.js';
 
 const googleClientId = 'googleClientId';
@@ -31,7 +30,11 @@ const facebookClientSecret = 'facebookClientSecret';
 const oidcClientId = 'oidcClientId';
 const oidcClientSecret = 'oidcClientSecret';
 const oidcIssuerUrl = 'https://mysampleoidcissuer.com';
-const oidcProviderName = 'myOidcProvider';
+const oidcProviderName = 'MyOidcProvider';
+const oidcClientId2 = 'oidcClientId2';
+const oidcClientSecret2 = 'oidcClientSecret2';
+const oidcIssuerUrl2 = 'https://mysampleoidcissuer2.com';
+const oidcProviderName2 = 'MyOidcProvider2';
 const ExpectedGoogleIDPProperties = {
   ProviderDetails: {
     authorize_scopes: 'profile',
@@ -81,6 +84,17 @@ const ExpectedOidcIDPProperties = {
   ProviderName: oidcProviderName,
   ProviderType: 'OIDC',
 };
+const ExpectedOidcIDPProperties2 = {
+  ProviderDetails: {
+    attributes_request_method: 'GET',
+    authorize_scopes: 'openid',
+    client_id: oidcClientId2,
+    client_secret: oidcClientSecret2,
+    oidc_issuer: oidcIssuerUrl2,
+  },
+  ProviderName: oidcProviderName2,
+  ProviderType: 'OIDC',
+};
 const samlProviderName = 'samlProviderName';
 const samlMetadataContent = '<?xml version=".10"?>';
 const ExpectedSAMLIDPProperties = {
@@ -124,6 +138,70 @@ void describe('Auth construct', () => {
       UsernameAttributes: ['email'],
       AutoVerifiedAttributes: ['email'],
     });
+  });
+
+  void it('creates user groups and group roles', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const auth = new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      groups: ['admins', 'managers'],
+    });
+    // validate the generated resources
+    assert.equal(Object.keys(auth.resources.groups).length, 2);
+    assert.equal(
+      auth.resources.groups['admins'].cfnUserGroup.groupName,
+      'admins'
+    );
+    assert.equal(
+      auth.resources.groups['managers'].cfnUserGroup.groupName,
+      'managers'
+    );
+    // validate generated template
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UsernameAttributes: ['email'],
+      AutoVerifiedAttributes: ['email'],
+    });
+    template.hasResourceProperties('AWS::Cognito::UserPoolGroup', {
+      GroupName: 'admins',
+      Precedence: 0,
+    });
+    template.hasResourceProperties('AWS::Cognito::UserPoolGroup', {
+      GroupName: 'managers',
+      Precedence: 1,
+    });
+    // validate the generated policies
+    const idpRef = template['template']['Outputs']['identityPoolId']['Value'];
+    // There should be 3 matching roles, one for the auth role,
+    // and one for each of the 'admins' and 'managers' roles
+    const matchingRoleCount = 3;
+    template.resourcePropertiesCountIs(
+      'AWS::IAM::Role',
+      {
+        AssumeRolePolicyDocument: {
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Action: 'sts:AssumeRoleWithWebIdentity',
+              Effect: 'Allow',
+              Principal: {
+                Federated: 'cognito-identity.amazonaws.com',
+              },
+              Condition: {
+                'ForAnyValue:StringLike': {
+                  'cognito-identity.amazonaws.com:amr': 'authenticated',
+                },
+                StringEquals: {
+                  'cognito-identity.amazonaws.com:aud': idpRef,
+                },
+              },
+            },
+          ],
+        },
+      },
+      matchingRoleCount
+    );
   });
 
   void it('creates email login mechanism if settings is empty object', () => {
@@ -455,6 +533,7 @@ void describe('Auth construct', () => {
     const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
       {
         addBackendOutputEntry: storeOutputMock,
+        appendToBackendOutputList: storeOutputMock,
       };
 
     void beforeEach(() => {
@@ -516,6 +595,25 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
+            oidc: [
+              {
+                name: 'provider1',
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+              },
+              {
+                name: 'provider2',
+                clientId: oidcClientId2,
+                clientSecret: oidcClientSecret2,
+                issuerUrl: oidcIssuerUrl2,
+              },
+              {
+                clientId: 'clientId3',
+                clientSecret: 'oidcClientSecret3',
+                issuerUrl: 'oidcIssuerUrl3',
+              },
+            ],
             scopes: ['EMAIL', 'PROFILE'],
             callbackUrls: ['http://callback.com'],
             logoutUrls: ['http://logout.com'],
@@ -538,35 +636,44 @@ void describe('Auth construct', () => {
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 2);
-
-      assert.deepStrictEqual(storeOutputArgs, [
-        authOutputKey,
-        {
-          version: '1',
-          payload: {
-            userPoolId: expectedUserPoolId,
-            webClientId: expectedWebClientId,
-            identityPoolId: expectedIdentityPoolId,
-            authRegion: expectedRegion,
-            passwordPolicyMinLength:
-              DEFAULTS.PASSWORD_POLICY.minLength.toString(),
-            passwordPolicyRequirements:
-              defaultPasswordPolicyCharacterRequirements,
-            signupAttributes: '["EMAIL"]',
-            verificationMechanisms: '["EMAIL"]',
-            usernameAttributes: '["EMAIL"]',
-            googleClientId: 'googleClientId',
-            oauthClientId: expectedWebClientId, // same thing
-            oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
-            oauthScope: '["email","profile"]',
-            oauthRedirectSignIn: 'http://callback.com',
-            oauthRedirectSignOut: 'http://logout.com',
-            oauthResponseType: 'code',
-            socialProviders: '["GOOGLE"]',
-            allowUnauthenticatedIdentities: 'true',
+      const oidcProviders = authConstruct['providerSetupResult']['oidc'];
+      if (oidcProviders) {
+        const provider1 = oidcProviders[0].providerName;
+        const provider2 = oidcProviders[1].providerName;
+        const unnamedProvider = oidcProviders[2].providerName;
+        assert.deepStrictEqual(storeOutputArgs, [
+          authOutputKey,
+          {
+            version: '1',
+            payload: {
+              userPoolId: expectedUserPoolId,
+              webClientId: expectedWebClientId,
+              identityPoolId: expectedIdentityPoolId,
+              authRegion: expectedRegion,
+              passwordPolicyMinLength:
+                DEFAULTS.PASSWORD_POLICY.minLength.toString(),
+              passwordPolicyRequirements:
+                defaultPasswordPolicyCharacterRequirements,
+              signupAttributes: '["EMAIL"]',
+              verificationMechanisms: '["EMAIL"]',
+              usernameAttributes: '["EMAIL"]',
+              googleClientId: 'googleClientId',
+              oauthClientId: expectedWebClientId, // same thing
+              oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
+              oauthScope: '["email","profile"]',
+              oauthRedirectSignIn: 'http://callback.com',
+              oauthRedirectSignOut: 'http://logout.com',
+              oauthResponseType: 'code',
+              socialProviders: `["GOOGLE","${provider1}","${provider2}","${unnamedProvider}"]`,
+              allowUnauthenticatedIdentities: 'true',
+            },
           },
-        },
-      ]);
+        ]);
+      } else {
+        assert.fail(
+          'Providers were not properly initialized by the construct and could not be tested for output.'
+        );
+      }
     });
 
     void it('multifactor prop updates mfaConfiguration & mfaTypes', () => {
@@ -1230,16 +1337,39 @@ void describe('Auth construct', () => {
     void it('supports oidc and email', () => {
       const app = new App();
       const stack = new Stack(app);
+      const authorizationURL = 'http://localhost:3000/authorization';
+      const jwksURI = 'https://localhost:3000/jwksuri';
+      const tokensURL = 'http://localhost:3000/token';
+      const userInfoURL = 'http://localhost:3000/userinfo';
+      const mockIdentifiers = ['one', 'two'];
+      const mockScopes = ['scope1', 'scope2'];
+      const attributeRequestMethod = 'POST';
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
           externalProviders: {
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  email: {
+                    attributeName: 'email',
+                  },
+                },
+                attributeRequestMethod: attributeRequestMethod,
+                endpoints: {
+                  authorization: authorizationURL,
+                  jwksUri: jwksURI,
+                  token: tokensURL,
+                  userInfo: userInfoURL,
+                },
+                identifiers: mockIdentifiers,
+                scopes: mockScopes,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1250,10 +1380,25 @@ void describe('Auth construct', () => {
         UsernameAttributes: ['email'],
         AutoVerifiedAttributes: ['email'],
       });
-      template.hasResourceProperties(
-        'AWS::Cognito::UserPoolIdentityProvider',
-        ExpectedOidcIDPProperties
-      );
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        AttributeMapping: {
+          email: 'email',
+        },
+        IdpIdentifiers: mockIdentifiers,
+        ProviderDetails: {
+          attributes_request_method: attributeRequestMethod,
+          attributes_url: userInfoURL,
+          authorize_scopes: mockScopes.join(' '),
+          authorize_url: authorizationURL,
+          client_id: oidcClientId,
+          client_secret: oidcClientSecret,
+          jwks_uri: jwksURI,
+          oidc_issuer: oidcIssuerUrl,
+          token_url: tokensURL,
+        },
+        ProviderName: oidcProviderName,
+        ProviderType: 'OIDC',
+      });
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         OpenIdConnectProviderARNs: [
           Match.objectEquals({
@@ -1267,7 +1412,90 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testOidcIDP12B3582F' },
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
+              ],
+            ],
+          }),
+        ],
+      });
+    });
+    void it('oidc defaults to GET for oidc method', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const authorizationURL = 'http://localhost:3000/authorization';
+      const jwksURI = 'https://localhost:3000/jwksuri';
+      const tokensURL = 'http://localhost:3000/token';
+      const userInfoURL = 'http://localhost:3000/userinfo';
+      const mockIdentifiers = ['one', 'two'];
+      const mockScopes = ['scope1', 'scope2'];
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  email: {
+                    attributeName: 'email',
+                  },
+                },
+                endpoints: {
+                  authorization: authorizationURL,
+                  jwksUri: jwksURI,
+                  token: tokensURL,
+                  userInfo: userInfoURL,
+                },
+                identifiers: mockIdentifiers,
+                scopes: mockScopes,
+              },
+            ],
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        AttributeMapping: {
+          email: 'email',
+        },
+        IdpIdentifiers: mockIdentifiers,
+        ProviderDetails: {
+          attributes_request_method: 'GET',
+          attributes_url: userInfoURL,
+          authorize_scopes: mockScopes.join(' '),
+          authorize_url: authorizationURL,
+          client_id: oidcClientId,
+          client_secret: oidcClientSecret,
+          jwks_uri: jwksURI,
+          oidc_issuer: oidcIssuerUrl,
+          token_url: tokensURL,
+        },
+        ProviderName: oidcProviderName,
+        ProviderType: 'OIDC',
+      });
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        OpenIdConnectProviderARNs: [
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':oidc-provider/cognito-idp.',
+                { Ref: 'AWS::Region' },
+                '.amazonaws.com/',
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
               ],
             ],
           }),
@@ -1281,12 +1509,14 @@ void describe('Auth construct', () => {
         loginWith: {
           phone: true,
           externalProviders: {
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1314,7 +1544,81 @@ void describe('Auth construct', () => {
                 ':oidc-provider/cognito-idp.',
                 { Ref: 'AWS::Region' },
                 '.amazonaws.com/',
-                { Ref: 'testOidcIDP12B3582F' },
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
+              ],
+            ],
+          }),
+        ],
+      });
+    });
+    void it('supports multiple oidc providers', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+              {
+                clientId: oidcClientId2,
+                clientSecret: oidcClientSecret2,
+                issuerUrl: oidcIssuerUrl2,
+                name: oidcProviderName2,
+              },
+            ],
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedOidcIDPProperties
+      );
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedOidcIDPProperties2
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        OpenIdConnectProviderARNs: [
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':oidc-provider/cognito-idp.',
+                { Ref: 'AWS::Region' },
+                '.amazonaws.com/',
+                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
+              ],
+            ],
+          }),
+          Match.objectEquals({
+            'Fn::Join': [
+              '',
+              [
+                'arn:aws:iam:',
+                { Ref: 'AWS::Region' },
+                ':',
+                { Ref: 'AWS::AccountId' },
+                ':oidc-provider/cognito-idp.',
+                { Ref: 'AWS::Region' },
+                '.amazonaws.com/',
+                { Ref: 'testMyOidcProvider2OidcIDP43D7B07B' },
               ],
             ],
           }),
@@ -1561,7 +1865,7 @@ void describe('Auth construct', () => {
               email: true,
               externalProviders: {
                 scopes: ['EMAIL', 'PROFILE'],
-                callbackUrls: [],
+                callbackUrls: ['http://localhost'],
                 logoutUrls: ['http://localhost'],
                 domainPrefix: 'https://localhost',
               },
@@ -1600,12 +1904,14 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             saml: {
               name: samlProviderName,
               metadata: {
@@ -1682,12 +1988,14 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1761,12 +2069,14 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
-            oidc: {
-              clientId: oidcClientId,
-              clientSecret: oidcClientSecret,
-              issuerUrl: oidcIssuerUrl,
-              name: oidcProviderName,
-            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+              },
+            ],
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1828,6 +2138,260 @@ void describe('Auth construct', () => {
         );
       });
     });
+
+    void it('automatically maps email attributes for external providers and keeps existing configuration', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+              attributeMapping: {
+                fullname: ProviderAttribute.GOOGLE_NAME,
+              },
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+              attributeMapping: {
+                fullname: ProviderAttribute.FACEBOOK_NAME,
+              },
+            },
+            signInWithApple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+              attributeMapping: {
+                fullname: ProviderAttribute.APPLE_NAME,
+              },
+            },
+            loginWithAmazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+              attributeMapping: {
+                fullname: ProviderAttribute.AMAZON_NAME,
+              },
+            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  fullname: {
+                    attributeName: 'name',
+                  },
+                },
+              },
+            ],
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      const expectedAutoMappedAttributes = {
+        AttributeMapping: {
+          // 'email' is a standardized claim for oauth and oidc IDPS
+          // so we can map it to cognito's 'email' claim
+          email: 'email',
+        },
+      };
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAmazonIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.AMAZON_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAppleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.APPLE_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedFacebookIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.FACEBOOK_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedGoogleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.GOOGLE_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedOidcIDPProperties,
+        AttributeMapping: {
+          ...expectedAutoMappedAttributes.AttributeMapping,
+          name: 'name',
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+          'accounts.google.com': googleClientId,
+          'appleid.apple.com': appleClientId,
+          'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
+
+    void it('should not override email attribute mapping if customer providers their own mapping', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const customEmailMapping = 'customMapping';
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+              attributeMapping: {
+                email: {
+                  attributeName: customEmailMapping,
+                },
+                fullname: ProviderAttribute.GOOGLE_NAME,
+              },
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+              attributeMapping: {
+                email: {
+                  attributeName: customEmailMapping,
+                },
+                fullname: ProviderAttribute.FACEBOOK_NAME,
+              },
+            },
+            signInWithApple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+              attributeMapping: {
+                email: {
+                  attributeName: customEmailMapping,
+                },
+                fullname: ProviderAttribute.APPLE_NAME,
+              },
+            },
+            loginWithAmazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
+              attributeMapping: {
+                email: {
+                  attributeName: customEmailMapping,
+                },
+                fullname: ProviderAttribute.AMAZON_NAME,
+              },
+            },
+            oidc: [
+              {
+                clientId: oidcClientId,
+                clientSecret: oidcClientSecret,
+                issuerUrl: oidcIssuerUrl,
+                name: oidcProviderName,
+                attributeMapping: {
+                  email: {
+                    attributeName: customEmailMapping,
+                  },
+                  fullname: {
+                    attributeName: 'name',
+                  },
+                },
+              },
+            ],
+            callbackUrls: ['https://redirect.com'],
+            logoutUrls: ['https://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        UsernameAttributes: ['email'],
+        AutoVerifiedAttributes: ['email'],
+      });
+      const expectedAutoMappedAttributes = {
+        AttributeMapping: {
+          email: customEmailMapping,
+        },
+      };
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAmazonIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.AMAZON_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedAppleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.APPLE_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedFacebookIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.FACEBOOK_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedGoogleIDPProperties,
+        ...{
+          AttributeMapping: {
+            ...expectedAutoMappedAttributes.AttributeMapping,
+            name: ProviderAttribute.GOOGLE_NAME.attributeName,
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::UserPoolIdentityProvider', {
+        ...ExpectedOidcIDPProperties,
+        AttributeMapping: {
+          ...expectedAutoMappedAttributes.AttributeMapping,
+          name: 'name',
+        },
+      });
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'www.amazon.com': amazonClientId,
+          'accounts.google.com': googleClientId,
+          'appleid.apple.com': appleClientId,
+          'graph.facebook.com': facebookClientId,
+        },
+      });
+    });
   });
 
   void it('sets resource names based on id and name property', () => {
@@ -1860,12 +2424,14 @@ void describe('Auth construct', () => {
             clientId: amazonClientId,
             clientSecret: amazonClientSecret,
           },
-          oidc: {
-            clientId: oidcClientId,
-            clientSecret: oidcClientSecret,
-            issuerUrl: oidcIssuerUrl,
-            name: oidcProviderName,
-          },
+          oidc: [
+            {
+              clientId: oidcClientId,
+              clientSecret: oidcClientSecret,
+              issuerUrl: oidcIssuerUrl,
+              name: oidcProviderName,
+            },
+          ],
           saml: {
             name: samlProviderName,
             metadata: {
@@ -1882,85 +2448,6 @@ void describe('Auth construct', () => {
     const resourceNames = Object.keys(template['template']['Resources']);
     resourceNames.map((name) => {
       assert.equal(name.startsWith(expectedPrefix), true);
-    });
-  });
-
-  void describe('addTrigger', () => {
-    void it('attaches lambda function to UserPool Lambda config', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      const testFunc = new Function(stack, 'testFunc', {
-        code: Code.fromInline('test code'),
-        handler: 'index.handler',
-        runtime: Runtime.NODEJS_18_X,
-      });
-      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
-        loginWith: { email: true },
-      });
-      authConstruct.addTrigger('createAuthChallenge', testFunc);
-      const template = Template.fromStack(stack);
-      const lambdas = template.findResources('AWS::Lambda::Function');
-      if (Object.keys(lambdas).length !== 1) {
-        assert.fail(
-          'Expected one and only one lambda function in the template'
-        );
-      }
-      const handlerLogicalId = Object.keys(lambdas)[0];
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        LambdaConfig: {
-          CreateAuthChallenge: {
-            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
-          },
-        },
-      });
-    });
-
-    void it('attaches AmplifyFunction to UserPool Lambda config', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      const testFunc = new Function(stack, 'testFunc', {
-        code: Code.fromInline('test code'),
-        handler: 'index.handler',
-        runtime: Runtime.NODEJS_18_X,
-      });
-      const amplifyFuncStub: AmplifyFunction = {
-        resources: {
-          lambda: testFunc,
-        },
-      };
-      const authConstruct = new AmplifyAuth(stack, 'testAuth', {
-        loginWith: { email: true },
-      });
-      authConstruct.addTrigger('createAuthChallenge', amplifyFuncStub);
-      const template = Template.fromStack(stack);
-      const lambdas = template.findResources('AWS::Lambda::Function');
-      if (Object.keys(lambdas).length !== 1) {
-        assert.fail(
-          'Expected one and only one lambda function in the template'
-        );
-      }
-      const handlerLogicalId = Object.keys(lambdas)[0];
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        LambdaConfig: {
-          CreateAuthChallenge: {
-            ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
-          },
-        },
-      });
-    });
-
-    void it('stores attribution data in stack', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      new AmplifyAuth(stack, 'testAuth', {
-        loginWith: { email: true },
-      });
-
-      const template = Template.fromStack(stack);
-      assert.equal(
-        JSON.parse(template.toJSON().Description).stackType,
-        'auth-Cognito'
-      );
     });
   });
 });

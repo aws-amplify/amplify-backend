@@ -1,5 +1,47 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.2
+
+### Minor Changes
+
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 109cd1b: Add support for generating user pool groups.
+- Updated dependencies [ab7533d]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4995bda]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.0
+  - @aws-amplify/backend-output-storage@0.4.0-beta.1
+  - @aws-amplify/plugin-types@0.9.0-beta.0
+
+## 0.10.0-beta.1
+
+### Patch Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+  - @aws-amplify/backend-output-storage@0.3.1-beta.0
+
+## 0.10.0-beta.0
+
+### Minor Changes
+
+- 8fd5c5c30: bump data-schema deps to latest
+
+## 0.9.6
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/backend-output-schemas@0.6.0
+  - @aws-amplify/backend-output-storage@0.3.0
+  - @aws-amplify/plugin-types@0.8.0
+
 ## 0.9.5
 
 ### Patch Changes

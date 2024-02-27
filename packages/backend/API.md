@@ -12,6 +12,7 @@ import { PreAuthenticationTriggerHandler as AuthPreAuthenticationHandler } from 
 import { PreSignUpTriggerHandler as AuthPreSignUpHandler } from 'aws-lambda';
 import { UserMigrationTriggerHandler as AuthUserMigrationHandler } from 'aws-lambda';
 import { BackendSecret } from '@aws-amplify/plugin-types';
+import { ClientConfig } from '@aws-amplify/client-config';
 import { ClientSchema } from '@aws-amplify/data-schema';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { AppSyncResolverHandler as DataResolverHandler } from 'aws-lambda';
@@ -45,6 +46,7 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
 // @public (undocumented)
 export type BackendBase = {
     createStack: (name: string) => Stack;
+    addOutput: (clientConfigPart: Partial<ClientConfig>) => void;
 };
 
 export { ClientSchema }

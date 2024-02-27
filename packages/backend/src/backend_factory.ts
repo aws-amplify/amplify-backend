@@ -16,6 +16,9 @@ import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
+import { ClientConfig } from '@aws-amplify/client-config';
+import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
+import { ObjectAccumulator } from '@aws-amplify/platform-core';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -35,6 +38,7 @@ export class BackendFactory<
   };
 
   private readonly stackResolver: StackResolver;
+  private readonly customOutputsAccumulator: CustomOutputsAccumulator;
   /**
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
    * If no CDK App is specified a new one is created
@@ -56,6 +60,11 @@ export class BackendFactory<
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
+    );
+
+    this.customOutputsAccumulator = new CustomOutputsAccumulator(
+      outputStorageStrategy,
+      new ObjectAccumulator<ClientConfig>({})
     );
 
     const backendId = getBackendIdentifier(stack);
@@ -108,6 +117,9 @@ export class BackendFactory<
   createStack = (name: string): Stack => {
     return this.stackResolver.createCustomStack(name);
   };
+
+  addOutput = (clientConfigPart: Partial<ClientConfig>) =>
+    this.customOutputsAccumulator.addOutput(clientConfigPart);
 }
 
 /**
@@ -121,5 +133,6 @@ export const defineBackend = <T extends DefineBackendProps>(
   return {
     ...backend.resources,
     createStack: backend.createStack,
+    addOutput: backend.addOutput,
   };
 };

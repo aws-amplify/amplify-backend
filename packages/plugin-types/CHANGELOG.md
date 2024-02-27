@@ -1,5 +1,25 @@
 # @aws-amplify/plugin-types
 
+## 0.9.0-beta.0
+
+### Minor Changes
+
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 109cd1b: Add support for generating user pool groups.
+
+## 0.8.0
+
+### Minor Changes
+
+- 85ced84f2: Add ability to add custom outputs
+- b73d76a78: Support yarn 1, yarn 2+ and pnpm package managers
+
 ## 0.7.1
 
 ### Patch Changes

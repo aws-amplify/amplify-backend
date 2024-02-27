@@ -5,7 +5,6 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { Construct } from 'constructs';
 import { BackendFactory } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
@@ -41,7 +40,7 @@ void describe('Backend', () => {
       getInstance: ({ constructContainer }) => {
         return constructContainer.getOrCompute({
           resourceGroupName: 'test',
-          generateContainerEntry: (scope) => {
+          generateContainerEntry: ({ scope }) => {
             return {
               resources: {
                 bucket: new Bucket(scope, 'test-bucket'),
@@ -73,7 +72,7 @@ void describe('Backend', () => {
       getInstance: ({ constructContainer, outputStorageStrategy }) => {
         return constructContainer.getOrCompute({
           resourceGroupName: 'test',
-          generateContainerEntry: (scope: Construct) => {
+          generateContainerEntry: ({ scope }) => {
             const bucket = new Bucket(scope, 'test-bucket');
             outputStorageStrategy.addBackendOutputEntry('TestStorageOutput', {
               version: '1',
@@ -115,7 +114,7 @@ void describe('Backend', () => {
       getInstance: ({ constructContainer, outputStorageStrategy }) => {
         return constructContainer.getOrCompute({
           resourceGroupName: 'test',
-          generateContainerEntry: (scope: Construct) => {
+          generateContainerEntry: ({ scope }) => {
             const bucket = new Bucket(scope, 'test-bucket', {
               bucketName: 'test-bucket-name',
             });
@@ -182,6 +181,21 @@ void describe('Backend', () => {
       assert.throws(() => backend.createStack('testStack'), {
         message: 'Custom stack named testStack has already been created',
       });
+    });
+  });
+
+  void it('can add custom output', () => {
+    const rootStack = createStackAndSetContext('sandbox');
+    const backend = new BackendFactory({}, rootStack);
+    const clientConfigPartial = {
+      custom: {
+        someCustomOutput: 'someCustomOutputValue',
+      },
+    };
+    backend.addOutput(clientConfigPartial);
+    const rootStackTemplate = Template.fromStack(rootStack);
+    rootStackTemplate.hasOutput('customOutputs', {
+      Value: JSON.stringify(clientConfigPartial),
     });
   });
 });

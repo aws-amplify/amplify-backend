@@ -14,6 +14,7 @@ import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
+import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -30,6 +31,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
     private readonly cfnClient: CloudFormationClient,
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
+    private readonly s3Client: S3Client,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
@@ -44,6 +46,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.cfnClient,
       this.secretClient,
       this.lambdaClient,
+      this.s3Client,
       this.resourceFinder
     );
     await fs.cp(
@@ -91,6 +94,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   private amplifySharedSecret: string;
 
+  private testBucketName: string;
+
   /**
    * Create a test project instance.
    */
@@ -101,6 +106,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     cfnClient: CloudFormationClient,
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
+    private readonly s3Client: S3Client,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
@@ -130,6 +136,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   override async tearDown(backendIdentifier: BackendIdentifier) {
     await super.tearDown(backendIdentifier);
     await this.clearDeployEnvironment(backendIdentifier);
+    await this.assertExpectedCleanup();
   }
 
   /**
@@ -180,12 +187,27 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(node16Lambda.length, 1);
 
     const expectedResponse = {
+      s3TestContent: 'this is some test content',
       testSecret: 'amazonSecret-e2eTestValue',
       testSharedSecret: `${this.amplifySharedSecret}-e2eTestSharedValue`,
     };
 
     await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
+
+    const bucketName = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::S3::Bucket',
+      // eslint-disable-next-line spellcheck/spell-checker
+      (bucketName) => bucketName.includes('testnamebucket')
+    );
+    assert.equal(
+      bucketName.length,
+      1,
+      `Expected one test bucket but found ${JSON.stringify(bucketName)}`
+    );
+    // store the bucket name in the class so we can assert that it is deleted properly when the stack is torn down
+    this.testBucketName = bucketName[0];
   }
 
   private setUpDeployEnvironment = async (
@@ -230,5 +252,42 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     // check expected response
     assert.deepStrictEqual(responsePayload, expectedResponse);
+  };
+
+  private assertExpectedCleanup = async () => {
+    await this.waitForBucketDeletion(this.testBucketName);
+  };
+
+  /**
+   * There is some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
+   * So we are polling HeadBucket until it returns NotFound or until we time out (after 30 seconds)
+   */
+  private waitForBucketDeletion = async (bucketName: string): Promise<void> => {
+    const TIMEOUT_MS = 1000 * 30; // 30 seconds
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < TIMEOUT_MS) {
+      const bucketExists = await this.checkBucketExists(bucketName);
+      if (!bucketExists) {
+        // bucket has been deleted
+        return;
+      }
+      // wait a second before polling again
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    assert.fail(`Timed out waiting for ${bucketName} to be deleted`);
+  };
+
+  private checkBucketExists = async (bucketName: string): Promise<boolean> => {
+    try {
+      await this.s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
+      // if HeadBucket returns without error, the bucket exists and is accessible
+      return true;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'NotFound') {
+        return false;
+      }
+      throw err;
+    }
   };
 }
