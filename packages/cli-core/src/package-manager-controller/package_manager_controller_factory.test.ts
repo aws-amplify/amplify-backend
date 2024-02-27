@@ -77,8 +77,9 @@ void describe('packageManagerControllerFactory', () => {
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),
         {
-          message:
-            'Amplify does not support PNPM on Windows. \nDetails: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md',
+          message: 'Amplify does not support PNPM on Windows.',
+          details:
+            'Details: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md',
         }
       );
     });
