@@ -4,7 +4,9 @@ import { ClientConfig } from '@aws-amplify/client-config';
 
 export type BackendBase = {
   createStack: (name: string) => Stack;
-  addOutput: (clientConfigPart: Partial<ClientConfig>) => void;
+  addOutput: (
+    clientConfigPart: Partial<ClientConfig> & Pick<ClientConfig, '_version'>
+  ) => void;
 };
 
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers

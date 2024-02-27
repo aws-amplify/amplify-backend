@@ -109,7 +109,7 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 // @public
 export class ObjectAccumulator<T> {
-    constructor(accumulator: Partial<T>);
+    constructor(accumulator: Partial<T>, versionKey?: string);
     // (undocumented)
     accumulate: (part: Partial<T>) => ObjectAccumulator<T>;
     // (undocumented)
@@ -125,6 +125,15 @@ export class ObjectAccumulatorPropertyAlreadyExistsError extends Error {
     readonly incomingValue: unknown;
     // (undocumented)
     readonly key: string;
+}
+
+// @public
+export class ObjectAccumulatorVersionMismatchError extends Error {
+    constructor(existingVersion: string, newVersion: string);
+    // (undocumented)
+    readonly existingVersion: string;
+    // (undocumented)
+    readonly newVersion: string;
 }
 
 // @public (undocumented)

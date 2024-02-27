@@ -1,11 +1,13 @@
 // Versions of config schemas supported by this package version
 import {
   AuthClientConfigContributor as Auth1,
+  CustomClientConfigContributor as Custom1,
   DataClientConfigContributor as Data1,
   VersionContributor as VersionContributor1,
 } from './client_config_contributor_v1.js';
 import {
   AuthClientConfigContributor as Auth2,
+  CustomClientConfigContributor as Custom2,
   DataClientConfigContributor as Data2,
   VersionContributor as VersionContributor2,
 } from './client_config_contributor_v2.js';
@@ -33,11 +35,13 @@ export class ClientConfigContributorFactory {
         new Auth1(),
         new Data1(this.modelIntrospectionSchemaAdapter),
         new VersionContributor1(),
+        new Custom1(),
       ],
       ['2']: [
         new Auth2(),
         new Data2(this.modelIntrospectionSchemaAdapter),
         new VersionContributor2(),
+        new Custom2(),
       ],
 
       // Legacy config is derived from V1 of Gen2config
@@ -45,6 +49,7 @@ export class ClientConfigContributorFactory {
         new Auth1(),
         new Data1(this.modelIntrospectionSchemaAdapter),
         new VersionContributor1(),
+        new Custom1(),
       ],
     };
   }

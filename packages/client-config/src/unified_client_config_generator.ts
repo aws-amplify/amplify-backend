@@ -7,6 +7,7 @@ import {
   AmplifyUserError,
   ObjectAccumulator,
   ObjectAccumulatorPropertyAlreadyExistsError,
+  ObjectAccumulatorVersionMismatchError,
 } from '@aws-amplify/platform-core';
 
 /**
@@ -48,6 +49,18 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
               resolution:
                 "Check if 'backend.addOutput' is called multiple times with overlapping inputs or" +
                 " if 'backend.addOutput' is called with values overlapping Amplify managed keys",
+            },
+            error
+          );
+        }
+        if (error instanceof ObjectAccumulatorVersionMismatchError) {
+          throw new AmplifyUserError(
+            'VersionMismatchError',
+            {
+              message: `Conflicting versions of client configuration found. `,
+              resolution:
+                "Ensure that the version specified in 'backend.addOutput' is consistent" +
+                ' and is same as the one used for generating the client config',
             },
             error
           );

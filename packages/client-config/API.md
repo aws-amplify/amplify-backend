@@ -199,7 +199,7 @@ declare namespace clientConfigTypesV2 {
         User,
         Custom,
         Geo,
-        Map_2 as Map,
+        MapStyle,
         Data_2 as Data,
         AuthorizationType_2 as AuthorizationType,
         Storage_2 as Storage
@@ -220,7 +220,7 @@ type ClientConfigV1 = {
 
 // @public
 type ClientConfigV2 = {
-    _version?: '2';
+    _version: '2';
     auth?: Auth_2;
     custom?: Custom;
     data?: Data_2;
@@ -274,7 +274,7 @@ export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdent
 // @public (undocumented)
 type Geo = {
     aws_region?: AwsRegion_2;
-    maps?: Map_2[];
+    mapStyles?: MapStyle[];
 };
 
 // @public (undocumented)
@@ -315,7 +315,7 @@ export type GraphqlClientConfig = {
 };
 
 // @public (undocumented)
-enum Map_2 {
+enum MapStyle {
     // (undocumented)
     VectorEsriStreets = "VectorEsriStreets",
     // (undocumented)

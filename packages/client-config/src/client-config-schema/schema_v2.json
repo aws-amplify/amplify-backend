@@ -8,7 +8,7 @@
   "properties": {
     "_version": {
       "description": "Version of this schema",
-      "const": "1"
+      "const": "2"
     },
     "auth": {
       "description": "Outputs generated from defineAuth",
@@ -230,10 +230,11 @@
             "aws_region": {
               "$ref": "#/$defs/aws_region"
             },
-            "maps": {
+            "mapStyles": {
               "type": "array",
               "items": {
                 "type": "string",
+
                 "enum": ["VectorEsriStreets", "VectorEsriTopographic"]
               }
             }
@@ -242,6 +243,7 @@
       }
     }
   },
+  "required": ["_version"],
   "$defs": {
     "aws_region": {
       "type": "string",

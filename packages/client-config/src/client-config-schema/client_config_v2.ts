@@ -5,7 +5,7 @@ export type ClientConfigV2 = {
   /**
    * Version of this schema
    */
-  _version?: '2';
+  _version: '2';
   /**
    * Outputs generated from defineAuth
    */
@@ -125,10 +125,10 @@ export type Custom = {
 
 export type Geo = {
   aws_region?: AwsRegion;
-  maps?: Map[];
+  mapStyles?: MapStyle[];
 };
 
-export enum Map {
+export enum MapStyle {
   VectorEsriStreets = 'VectorEsriStreets',
   VectorEsriTopographic = 'VectorEsriTopographic',
 }

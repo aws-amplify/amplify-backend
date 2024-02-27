@@ -5,8 +5,8 @@ import {
   ClientConfigWriter,
 } from './client_config_writer.js';
 import {
+  ClientConfig,
   ClientConfigFormat,
-  ClientConfigLegacy,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatterLegacy } from './client_config_formatter_legacy.js';
 import { randomUUID } from 'crypto';
@@ -30,8 +30,11 @@ void describe('client config writer', () => {
     pathResolverMock.mock.resetCalls();
   });
 
-  const clientConfig: ClientConfigLegacy = {
-    aws_user_pools_id: 'something',
+  const clientConfig: ClientConfig = {
+    _version: '1',
+    auth: {
+      user_pool_id: 'something',
+    },
   };
 
   void it('formats and writes config', async () => {

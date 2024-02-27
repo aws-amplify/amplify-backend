@@ -124,7 +124,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       assert.deepStrictEqual(result, expectedClientConfig);
     });
 
-    void it.skip('throws user error if there are overlapping values', async () => {
+    void it('throws user error if there are overlapping values', async () => {
       const customOutputs: Partial<ClientConfig> = {
         auth: { user_pool_id: 'overrideUserPoolId' },
       };
@@ -168,7 +168,7 @@ void describe('UnifiedClientConfigGenerator', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Duplicated entry with key aws_user_pools_id detected in deployment outputs'
+            'Duplicated entry with key user_pool_id detected in deployment outputs'
           );
           assert.ok(error.resolution);
           return true;

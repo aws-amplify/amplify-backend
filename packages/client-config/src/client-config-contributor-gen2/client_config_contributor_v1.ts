@@ -2,6 +2,7 @@ import { ClientConfigContributor } from '../client-config-types/client_config_co
 import {
   UnifiedBackendOutput,
   authOutputKey,
+  customOutputKey,
   graphqlOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import {
@@ -180,5 +181,23 @@ export class DataClientConfigContributor implements ClientConfigContributor {
     }
 
     return { data: config } as ClientConfig;
+  };
+}
+
+/**
+ * Translator for the Custom portion of ClientConfig
+ */
+export class CustomClientConfigContributor implements ClientConfigContributor {
+  /**
+   * Given some BackendOutput, contribute the Custom portion of the ClientConfig
+   */
+  contribute = ({
+    [customOutputKey]: customOutput,
+  }: UnifiedBackendOutput): Partial<ClientConfig> => {
+    if (customOutput === undefined) {
+      return {};
+    }
+
+    return JSON.parse(customOutput.payload.customOutputs);
   };
 }
