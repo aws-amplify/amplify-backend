@@ -3,6 +3,7 @@ import { Arn, Lazy, Stack } from 'aws-cdk-lib';
 import { FunctionProps } from './factory.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 /**
  * Translates function environment props into appropriate environment records and builds a policy statement
@@ -74,6 +75,17 @@ export class FunctionEnvironmentTranslator {
           });
           this.lambda.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
         }
+        return [];
+      },
+    });
+
+    // Using CDK validation mechanism as a way to generate a typed process.env shim file at the end of synthesis
+    this.lambda.node.addValidation({
+      validate: (): string[] => {
+        new FunctionEnvironmentTypeGenerator(
+          this.lambda.node.id,
+          Object.values(this.ssmEnvVars).map((ssmEnvVar) => ssmEnvVar.name)
+        ).generateTypedProcessEnvShim();
         return [];
       },
     });

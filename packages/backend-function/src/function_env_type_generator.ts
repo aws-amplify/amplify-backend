@@ -2,33 +2,27 @@ import fs from 'fs';
 import { staticEnvironmentVariables } from './static_env_types.js';
 import path from 'path';
 import os from 'os';
-import { FunctionProps } from './factory.js';
 
 /**
- * Generates a type definition file for environment variables
+ * Generates a typed process.env shim for environment variables
  */
 export class FunctionEnvironmentTypeGenerator {
   private typeDefFilePath: string;
-  private dynamicEnvironmentVariables: string[] = [];
 
   /**
-   * Initialize type definition file name and location
+   * Initialize typed process.env shim file name and location
    */
   constructor(
     functionName: string,
-    functionEnvironmentVariables: FunctionProps['environment']
+    private functionEnvironmentVariables: string[]
   ) {
     this.typeDefFilePath = `${process.cwd()}/.amplify/function-env/${functionName}.ts`;
-
-    for (const envName in functionEnvironmentVariables) {
-      this.dynamicEnvironmentVariables.push(envName);
-    }
   }
 
   /**
-   * Generate a type definition file
+   * Generate a typed process.env shim
    */
-  generateTypeDefFile() {
+  generateTypedProcessEnvShim() {
     const declarations = [];
     const typeDefFileDirname = path.dirname(this.typeDefFilePath);
 
@@ -43,7 +37,7 @@ export class FunctionEnvironmentTypeGenerator {
       declarations.push(comment + os.EOL + declaration);
     }
 
-    this.dynamicEnvironmentVariables.forEach((envName) => {
+    this.functionEnvironmentVariables.forEach((envName) => {
       const declaration = `${envName}: string;`;
 
       declarations.push(declaration);
