@@ -1,4 +1,5 @@
 import {
+  BackendOutputStorageStrategy,
   BackendSecret,
   BackendSecretResolver,
   ConstructContainerEntryGenerator,
@@ -21,6 +22,11 @@ import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { readFileSync } from 'fs';
 import { EOL } from 'os';
+import {
+  FunctionOutput,
+  functionOutputKey,
+} from '@aws-amplify/backend-output-schemas';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -95,9 +101,13 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
    */
   getInstance = ({
     constructContainer,
+    outputStorageStrategy,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
-      this.generator = new FunctionGenerator(this.hydrateDefaults());
+      this.generator = new FunctionGenerator(
+        this.hydrateDefaults(),
+        outputStorageStrategy
+      );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
   };
@@ -206,7 +216,10 @@ type HydratedFunctionProps = Required<FunctionProps>;
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
 
-  constructor(private readonly props: HydratedFunctionProps) {}
+  constructor(
+    private readonly props: HydratedFunctionProps,
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+  ) {}
 
   generateContainerEntry = ({
     scope,
@@ -216,7 +229,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
       scope,
       this.props.name,
       this.props,
-      backendSecretResolver
+      backendSecretResolver,
+      this.outputStorageStrategy
     );
   };
 }
@@ -231,7 +245,8 @@ class AmplifyFunction
     scope: Construct,
     id: string,
     props: HydratedFunctionProps,
-    backendSecretResolver: BackendSecretResolver
+    backendSecretResolver: BackendSecretResolver,
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
     super(scope, id);
 
@@ -284,6 +299,16 @@ class AmplifyFunction
     this.resources = {
       lambda: functionLambda,
     };
+
+    this.storeOutput(outputStorageStrategy);
+
+    // Using CDK validation mechanism as a way to generate a type definition file at the end of synthesis
+    this.node.addValidation({
+      validate: (): string[] => {
+        new FunctionEnvironmentTypeGenerator(id).generateTypeDefFile();
+        return [];
+      },
+    });
   }
 
   getResourceAccessAcceptor = () => ({
@@ -305,6 +330,20 @@ class AmplifyFunction
       });
     },
   });
+
+  /**
+   * Store storage outputs using provided strategy
+   */
+  private storeOutput = (
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+  ): void => {
+    outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
+      version: '1',
+      payload: {
+        definedFunctions: this.resources.lambda.functionName,
+      },
+    });
+  };
 }
 
 const isWholeNumberBetweenInclusive = (

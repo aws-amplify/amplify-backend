@@ -1,5 +1,24 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.4.0-beta.2
+
+### Minor Changes
+
+- 415c4c1: remove static method
+
+## 0.4.0-beta.1
+
+### Minor Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+
+### Patch Changes
+
+- Updated dependencies [ab7533d]
+- Updated dependencies [4995bda]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.0
+  - @aws-amplify/platform-core@0.5.0-beta.1
+
 ## 0.3.11-beta.0
 
 ### Patch Changes

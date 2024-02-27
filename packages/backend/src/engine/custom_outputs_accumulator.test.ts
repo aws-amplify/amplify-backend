@@ -20,6 +20,7 @@ void describe('Custom outputs accumulator', () => {
   const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
     {
       addBackendOutputEntry: storeOutputMock,
+      appendToBackendOutputList: storeOutputMock,
     };
   const objectAccumulator = new ObjectAccumulator<ClientConfig>({});
   const accumulateMock = mock.method(objectAccumulator, 'accumulate', () => {

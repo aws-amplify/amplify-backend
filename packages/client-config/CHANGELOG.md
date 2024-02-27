@@ -1,5 +1,24 @@
 # @aws-amplify/client-config
 
+## 0.8.1-beta.2
+
+### Patch Changes
+
+- Updated dependencies [415c4c1]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.2
+  - @aws-amplify/model-generator@0.4.1-beta.2
+
+## 0.8.1-beta.1
+
+### Patch Changes
+
+- Updated dependencies [ab7533d]
+- Updated dependencies [4995bda]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.1
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.0
+  - @aws-amplify/platform-core@0.5.0-beta.1
+  - @aws-amplify/model-generator@0.4.1-beta.1
+
 ## 0.8.1-beta.0
 
 ### Patch Changes

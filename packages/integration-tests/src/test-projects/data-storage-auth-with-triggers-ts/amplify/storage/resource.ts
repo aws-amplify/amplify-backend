@@ -14,8 +14,8 @@ export const storage = defineStorage({
   },
   access: (allow) => ({
     '/public/*': [
-      allow.resource(defaultNodeFunc).to('read', 'write'),
-      allow.resource(node16Func).to('read', 'write'),
+      allow.resource(defaultNodeFunc).to(['read', 'write']),
+      allow.resource(node16Func).to(['read', 'write']),
     ],
   }),
 });

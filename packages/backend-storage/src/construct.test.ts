@@ -68,6 +68,26 @@ void describe('AmplifyStorage', () => {
     });
   });
 
+  void it('sets destroy retain policy and auto-delete objects true', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', { name: 'testName' });
+
+    const template = Template.fromStack(stack);
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+
+    template.hasResourceProperties('Custom::S3AutoDeleteObjects', {
+      BucketName: {
+        Ref: 'testBucketIdBucket3B30067A',
+      },
+    });
+  });
+
   void describe('storeOutput', () => {
     void it('stores output using the provided strategy', () => {
       const app = new App();
@@ -77,6 +97,7 @@ void describe('AmplifyStorage', () => {
       const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
         {
           addBackendOutputEntry: storeOutputMock,
+          appendToBackendOutputList: storeOutputMock,
         };
 
       const storageConstruct = new AmplifyStorage(stack, 'test', {

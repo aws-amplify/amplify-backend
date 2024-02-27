@@ -1,5 +1,39 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.3
+
+### Patch Changes
+
+- Updated dependencies [415c4c1]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.2
+  - @aws-amplify/client-config@0.8.1-beta.2
+  - @aws-amplify/model-generator@0.4.1-beta.2
+  - @aws-amplify/sandbox@0.5.2-beta.2
+
+## 0.12.0-beta.2
+
+### Minor Changes
+
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- Updated dependencies [ab7533d]
+- Updated dependencies [a01f6b9]
+- Updated dependencies [88c1b28]
+- Updated dependencies [baeb68f]
+- Updated dependencies [4995bda]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.1
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.0
+  - @aws-amplify/platform-core@0.5.0-beta.1
+  - @aws-amplify/cli-core@0.4.1-beta.0
+  - @aws-amplify/sandbox@0.5.2-beta.1
+  - @aws-amplify/client-config@0.8.1-beta.1
+  - @aws-amplify/model-generator@0.4.1-beta.1
+  - @aws-amplify/backend-deployer@0.5.1-beta.1
+  - @aws-amplify/backend-secret@0.4.5-beta.1
+
 ## 0.11.2-beta.1
 
 ### Patch Changes
