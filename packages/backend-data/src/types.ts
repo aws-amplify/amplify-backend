@@ -1,5 +1,6 @@
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
+import { DataStoreConfiguration } from '@aws-amplify/data-construct';
 
 /**
  * Authorization modes used in by client side Amplify represented in camelCase.
@@ -132,6 +133,11 @@ export type DataProps = {
    * Functions invokable by the API. The specific input type of the function is subject to change or removal.
    */
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+
+  /**
+   * DataStore Conflict Resolution Strategy to apply to the project or a particular model.
+   */
+  dataStoreConfiguration?: DataStoreConfiguration;
 };
 
 export type AmplifyDataError =

@@ -167,6 +167,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       outputStorageStrategy: this.outputStorageStrategy,
       functionNameMap,
       translationBehavior: { sandboxModeEnabled },
+      dataStoreConfiguration: this.props.dataStoreConfiguration,
     });
   };
 }
