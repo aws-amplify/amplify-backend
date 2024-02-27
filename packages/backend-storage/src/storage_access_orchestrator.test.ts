@@ -17,7 +17,6 @@ import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
 import { ownerPathPartToken } from './constants.js';
-import { StorageAccessArbiter } from './storage_access_arbiter.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 
 void describe('StorageAccessOrchestrator', () => {
@@ -28,7 +27,7 @@ void describe('StorageAccessOrchestrator', () => {
     let importPathVerifier: ImportPathVerifier;
     let getInstanceProps: ConstructFactoryGetInstanceProps;
     let bucket: Bucket;
-    let accessDefinitionTranslator: StorageAccessArbiter;
+    let storageAccessPolicyFactory: StorageAccessPolicyFactory;
 
     const ssmEnvironmentEntriesStub = [
       { name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' },
@@ -55,14 +54,12 @@ void describe('StorageAccessOrchestrator', () => {
 
       bucket = new Bucket(stack, 'testBucket');
 
-      accessDefinitionTranslator = new StorageAccessArbiter(
-        new StorageAccessPolicyFactory(bucket)
-      );
+      storageAccessPolicyFactory = new StorageAccessPolicyFactory(bucket);
     });
-    void it('passes expected policy and ssm context to resource access acceptor', () => {
+    void it('throws if access prefixes are invalid', () => {
       const acceptResourceAccessMock = mock.fn();
       const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
-        {
+        () => ({
           '/test/prefix/*': [
             {
               actions: ['read', 'write'],
@@ -73,10 +70,39 @@ void describe('StorageAccessOrchestrator', () => {
               ownerPlaceholderSubstitution: '*',
             },
           ],
-        },
+        }),
         getInstanceProps,
         ssmEnvironmentEntriesStub,
-        accessDefinitionTranslator
+        storageAccessPolicyFactory,
+        () => {
+          throw new Error('test validation error');
+        }
+      );
+
+      assert.throws(
+        () => storageAccessPolicyArbiter.orchestrateStorageAccess(),
+        { message: 'test validation error' }
+      );
+    });
+
+    void it('passes expected policy and ssm context to resource access acceptor', () => {
+      const acceptResourceAccessMock = mock.fn();
+      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+        () => ({
+          '/test/prefix/*': [
+            {
+              actions: ['read', 'write'],
+              getResourceAccessAcceptor: () => ({
+                identifier: 'testResourceAccessAcceptor',
+                acceptResourceAccess: acceptResourceAccessMock,
+              }),
+              ownerPlaceholderSubstitution: '*',
+            },
+          ],
+        }),
+        getInstanceProps,
+        ssmEnvironmentEntriesStub,
+        storageAccessPolicyFactory
       );
 
       storageAccessPolicyArbiter.orchestrateStorageAccess();
@@ -112,7 +138,7 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccess: acceptResourceAccessMock,
       });
       const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
-        {
+        () => ({
           '/test/prefix/*': [
             {
               actions: ['read', 'write', 'delete'],
@@ -127,10 +153,10 @@ void describe('StorageAccessOrchestrator', () => {
               ownerPlaceholderSubstitution: '*',
             },
           ],
-        },
+        }),
         getInstanceProps,
         ssmEnvironmentEntriesStub,
-        accessDefinitionTranslator
+        storageAccessPolicyFactory
       );
 
       storageAccessPolicyArbiter.orchestrateStorageAccess();
@@ -179,7 +205,7 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccess: acceptResourceAccessMock2,
       });
       const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
-        {
+        () => ({
           '/test/prefix/*': [
             {
               actions: ['read', 'write', 'delete'],
@@ -199,10 +225,10 @@ void describe('StorageAccessOrchestrator', () => {
               ownerPlaceholderSubstitution: '*',
             },
           ],
-        },
+        }),
         getInstanceProps,
         ssmEnvironmentEntriesStub,
-        accessDefinitionTranslator
+        storageAccessPolicyFactory
       );
 
       storageAccessPolicyArbiter.orchestrateStorageAccess();
@@ -265,7 +291,7 @@ void describe('StorageAccessOrchestrator', () => {
     void it('replaces owner placeholder in s3 prefix', () => {
       const acceptResourceAccessMock = mock.fn();
       const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
-        {
+        () => ({
           [`/test/${ownerPathPartToken}/*`]: [
             {
               actions: ['read', 'write'],
@@ -276,10 +302,10 @@ void describe('StorageAccessOrchestrator', () => {
               ownerPlaceholderSubstitution: '{testOwnerSub}',
             },
           ],
-        },
+        }),
         getInstanceProps,
         ssmEnvironmentEntriesStub,
-        new StorageAccessArbiter(new StorageAccessPolicyFactory(bucket))
+        storageAccessPolicyFactory
       );
 
       storageAccessPolicyArbiter.orchestrateStorageAccess();
@@ -312,7 +338,7 @@ void describe('StorageAccessOrchestrator', () => {
       const acceptResourceAccessMock1 = mock.fn();
       const acceptResourceAccessMock2 = mock.fn();
       const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
-        {
+        () => ({
           '/foo/*': [
             {
               actions: ['read', 'write'],
@@ -333,10 +359,10 @@ void describe('StorageAccessOrchestrator', () => {
               ownerPlaceholderSubstitution: '*',
             },
           ],
-        },
+        }),
         getInstanceProps,
         ssmEnvironmentEntriesStub,
-        new StorageAccessArbiter(new StorageAccessPolicyFactory(bucket))
+        storageAccessPolicyFactory
       );
 
       storageAccessPolicyArbiter.orchestrateStorageAccess();

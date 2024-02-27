@@ -5,12 +5,9 @@ import {
 } from '@aws-amplify/plugin-types';
 import { AmplifyStorage, AmplifyStorageTriggerEvent } from './construct.js';
 import { StorageAccessOrchestratorFactory } from './storage_access_orchestrator.js';
-import { AmplifyStorageFactoryProps, RoleAccessBuilder } from './types.js';
-import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
+import { AmplifyStorageFactoryProps } from './types.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
-import { StorageAccessArbiter } from './storage_access_arbiter.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
-import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 
 /**
  * Generates a single instance of storage resources
@@ -26,9 +23,7 @@ export class StorageContainerEntryGenerator
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly storageAccessOrchestratorFactory: StorageAccessOrchestratorFactory = new StorageAccessOrchestratorFactory(),
-    private readonly roleAccessBuilder: RoleAccessBuilder = _roleAccessBuilder,
-    private readonly validateStorageAccessPaths = _validateStorageAccessPaths
+    private readonly storageAccessOrchestratorFactory: StorageAccessOrchestratorFactory = new StorageAccessOrchestratorFactory()
   ) {}
 
   generateContainerEntry = ({
@@ -62,13 +57,6 @@ export class StorageContainerEntryGenerator
       return amplifyStorage;
     }
 
-    // props.access is the access callback defined by the customer
-    // here we inject the roleAccessBuilder into the callback and run it
-    // this produces the access definition that will be used to create the storage policies
-    const accessDefinition = this.props.access(this.roleAccessBuilder);
-
-    this.validateStorageAccessPaths(Object.keys(accessDefinition));
-
     // generate the ssm environment context necessary to access the s3 bucket (in this case, just the bucket name)
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
@@ -79,12 +67,10 @@ export class StorageContainerEntryGenerator
     // we pass the access definition along with other dependencies to the bucketPolicyArbiter
     const storageAccessOrchestrator =
       this.storageAccessOrchestratorFactory.getInstance(
-        accessDefinition,
+        this.props.access,
         this.getInstanceProps,
         ssmEnvironmentEntries,
-        new StorageAccessArbiter(
-          new StorageAccessPolicyFactory(amplifyStorage.resources.bucket)
-        )
+        new StorageAccessPolicyFactory(amplifyStorage.resources.bucket)
       );
 
     // the arbiter generates policies according to the accessDefinition and attaches the policies to appropriate roles

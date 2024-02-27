@@ -12,7 +12,6 @@ import {
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   GenerateContainerEntryProps,
-  ResourceAccessAcceptorFactory,
   ResourceProvider,
   SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
@@ -22,7 +21,7 @@ import { AmplifyStorage } from './construct.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { Function, InlineCode, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Template } from 'aws-cdk-lib/assertions';
-import { RoleAccessBuilder } from './types.js';
+import { StorageAccessGenerator } from './types.js';
 
 void describe('StorageGenerator', () => {
   void describe('generateContainerEntry', () => {
@@ -72,25 +71,7 @@ void describe('StorageGenerator', () => {
       assert.ok(storageInstance instanceof AmplifyStorage);
     });
 
-    void it('throws if access prefixes are invalid', () => {
-      const storageGenerator = new StorageContainerEntryGenerator(
-        { name: 'testName', access: () => ({}) },
-        getInstanceProps,
-        new StorageAccessOrchestratorFactory(),
-        undefined,
-        () => {
-          throw new Error('test validation error');
-        }
-      );
-
-      assert.throws(
-        () =>
-          storageGenerator.generateContainerEntry(generateContainerEntryProps),
-        { message: 'test validation error' }
-      );
-    });
-
-    void it('invokes the policy arbiter with correct accessDefinition if access is defined', () => {
+    void it('invokes the policy orchestrator when access rules are defined', () => {
       const orchestrateStorageAccessMock = mock.fn();
       const storageAccessOrchestratorFactoryStub =
         new StorageAccessOrchestratorFactory();
@@ -102,104 +83,24 @@ void describe('StorageGenerator', () => {
         })
       );
 
-      const authenticatedAccessAcceptorMock = mock.fn(() => ({
-        identifier: 'testAuthenticatedAccessAcceptor',
-        acceptResourceAccess: mock.fn(),
-      }));
-      const guestAccessAcceptorMock = mock.fn(() => ({
-        identifier: 'testGuestAccessAcceptor',
-        acceptResourceAccess: mock.fn(),
-      }));
-      const ownerAccessAcceptorMock = mock.fn(() => ({
-        identifier: 'testOwnerAccessAcceptor',
-        acceptResourceAccess: mock.fn(),
-      }));
-      const resourceAccessAcceptorMock = mock.fn(() => ({
-        identifier: 'testResourceAccessAcceptor',
-        acceptResourceAccess: mock.fn(),
-      }));
-
-      const stubRoleAccessBuilder: RoleAccessBuilder = {
-        authenticated: {
-          to: (actions) => ({
-            getResourceAccessAcceptor: authenticatedAccessAcceptorMock,
-            actions,
-            ownerPlaceholderSubstitution: '*',
-          }),
-        },
-        guest: {
-          to: (actions) => ({
-            getResourceAccessAcceptor: guestAccessAcceptorMock,
-            actions,
-            ownerPlaceholderSubstitution: '*',
-          }),
-        },
-        owner: {
-          to: (actions) => ({
-            getResourceAccessAcceptor: ownerAccessAcceptorMock,
-            actions,
-            ownerPlaceholderSubstitution: 'testOwnerSubstitution',
-          }),
-        },
-        resource: () => ({
-          to: (actions) => ({
-            getResourceAccessAcceptor: resourceAccessAcceptorMock,
-            actions,
-            ownerPlaceholderSubstitution: '*',
-          }),
-        }),
-      };
+      const accessRulesCallback: StorageAccessGenerator = () => ({});
 
       const storageGenerator = new StorageContainerEntryGenerator(
         {
           name: 'testName',
-          access: (allow) => ({
-            '/test/*': [
-              allow.authenticated.to(['read', 'write']),
-              allow.guest.to(['read']),
-              allow.owner.to(['read', 'write', 'delete']),
-              allow
-                .resource(
-                  {} as unknown as ConstructFactory<
-                    ResourceProvider & ResourceAccessAcceptorFactory
-                  >
-                )
-                .to(['read']),
-            ],
-          }),
+          access: accessRulesCallback,
         },
         getInstanceProps,
-        storageAccessOrchestratorFactoryStub,
-        stubRoleAccessBuilder
+        storageAccessOrchestratorFactoryStub
       );
 
       storageGenerator.generateContainerEntry(generateContainerEntryProps);
 
       assert.equal(orchestrateStorageAccessMock.mock.callCount(), 1);
-      assert.deepStrictEqual(getInstanceMock.mock.calls[0].arguments[0], {
-        '/test/*': [
-          {
-            getResourceAccessAcceptor: authenticatedAccessAcceptorMock,
-            actions: ['read', 'write'],
-            ownerPlaceholderSubstitution: '*',
-          },
-          {
-            getResourceAccessAcceptor: guestAccessAcceptorMock,
-            actions: ['read'],
-            ownerPlaceholderSubstitution: '*',
-          },
-          {
-            getResourceAccessAcceptor: ownerAccessAcceptorMock,
-            actions: ['read', 'write', 'delete'],
-            ownerPlaceholderSubstitution: 'testOwnerSubstitution',
-          },
-          {
-            getResourceAccessAcceptor: resourceAccessAcceptorMock,
-            actions: ['read'],
-            ownerPlaceholderSubstitution: '*',
-          },
-        ],
-      });
+      assert.equal(
+        getInstanceMock.mock.calls[0].arguments[0],
+        accessRulesCallback
+      );
     });
 
     void it('configures S3 triggers if defined', () => {

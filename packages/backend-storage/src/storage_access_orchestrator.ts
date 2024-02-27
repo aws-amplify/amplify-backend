@@ -1,36 +1,83 @@
 import {
   ConstructFactoryGetInstanceProps,
+  ResourceAccessAcceptor,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
-import { StorageAccessDefinition, StoragePath } from './types.js';
-import { StorageAccessArbiter } from './storage_access_arbiter.js';
+import {
+  StorageAccessBuilder,
+  StorageAccessGenerator,
+  StorageAction,
+  StoragePath,
+} from './types.js';
 import { ownerPathPartToken } from './constants.js';
+import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
+import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
+import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
+
+// some types internal to this file to improve readability
+type AcceptorToken = string;
+type SetDenyByDefault = (storagePath: StoragePath) => void;
 
 /**
  * Middleman between creating bucket policies and attaching those policies to corresponding roles
  */
 export class StorageAccessOrchestrator {
   /**
+   * Maintains a mapping from a resource access acceptor to all of the access grants it has been configured with
+   * Each entry of this map is fed into the policy generator to create a single policy for each acceptor
+   */
+  private acceptorAccessMap = new Map<
+    AcceptorToken,
+    {
+      acceptor: ResourceAccessAcceptor;
+      accessMap: Map<
+        StorageAction,
+        { allow: Set<StoragePath>; deny: Set<StoragePath> }
+      >;
+    }
+  >();
+
+  /**
+   * Maintains pointers to the "deny" StoragePath Set for each access entry in the map above
+   * This map is used during a final pass over all the StoragePaths to deny access on any paths where explicit allow rules were not specified
+   */
+  private prefixDenyMap = new Map<StoragePath, SetDenyByDefault[]>();
+
+  /**
    * Instantiate with context from the storage factory
    */
   constructor(
-    private readonly accessDefinition: Record<
-      StoragePath,
-      StorageAccessDefinition[]
-    >,
+    private readonly storageAccessGenerator: StorageAccessGenerator,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly ssmEnvironmentEntries: SsmEnvironmentEntry[],
-    private readonly accessDefinitionTranslator: StorageAccessArbiter
+    private readonly policyFactory: StorageAccessPolicyFactory,
+    private readonly validateStorageAccessPaths = _validateStorageAccessPaths,
+    private readonly roleAccessBuilder: StorageAccessBuilder = _roleAccessBuilder
   ) {}
 
   /**
-   * Translates the accessDefinition into the AccessDefinitionTranslator and invokes the translator to generate policies and attach them to the corresponding ResourceAccessAcceptor
-   * Responsible for creating bucket policies corresponding to the definition,
-   * then invoking the corresponding ResourceAccessAcceptor to accept the policies
+   * Orchestrates the process of translating the customer-provided storage access rules into IAM policies and attaching those policies to the appropriate roles.
+   *
+   * The high level steps are:
+   * 1. Invokes the storageAccessGenerator to produce a storageAccessDefinition
+   * 2. Validates the paths in the storageAccessDefinition
+   * 3. Organizes the storageAccessDefinition into internally managed maps to facilitate translation into allow / deny rules on IAM policies
+   * 4. Invokes the policy generator to produce a policy with appropriate allow / deny rules
+   * 5. Invokes the resourceAccessAcceptors for each entry in the storageAccessDefinition to accept the corresponding IAM policy
    */
   orchestrateStorageAccess = () => {
+    // storageAccessGenerator is the access callback defined by the customer
+    // here we inject the roleAccessBuilder into the callback and run it
+    // this produces the access definition that will be used to create the storage policies
+    const storageAccessDefinition = this.storageAccessGenerator(
+      this.roleAccessBuilder
+    );
+
+    // verify that the paths in the access definition are valid
+    this.validateStorageAccessPaths(Object.keys(storageAccessDefinition));
+
     // iterate over the access definition and group permissions by ResourceAccessAcceptor
-    Object.entries(this.accessDefinition).forEach(
+    Object.entries(storageAccessDefinition).forEach(
       // in the access definition, permissions are grouped by storage prefix
       ([s3Prefix, accessPermissions]) => {
         // iterate over all of the access definitions for a given prefix
@@ -47,7 +94,7 @@ export class StorageAccessOrchestrator {
           ) as StoragePath;
 
           // set an entry that maps this permission to the resource acceptor
-          this.accessDefinitionTranslator.addAccessDefinition(
+          this.addAccessDefinition(
             resourceAccessAcceptor,
             permission.actions,
             prefix
@@ -57,7 +104,96 @@ export class StorageAccessOrchestrator {
     );
 
     // iterate over the access map entries and invoke each ResourceAccessAcceptor to accept the permissions
-    this.accessDefinitionTranslator.attachPolicies(this.ssmEnvironmentEntries);
+    this.attachPolicies(this.ssmEnvironmentEntries);
+  };
+
+  /**
+   * Update the translator with an access definition.
+   * This definition defines a set of actions on a single s3 prefix that should be attached to a given ResourceAccessAcceptor
+   */
+  private addAccessDefinition = (
+    resourceAccessAcceptor: ResourceAccessAcceptor,
+    actions: StorageAction[],
+    s3Prefix: StoragePath
+  ) => {
+    const acceptorToken = resourceAccessAcceptor.identifier;
+
+    // if we haven't seen this token before, add it to the map
+    if (!this.acceptorAccessMap.has(acceptorToken)) {
+      this.acceptorAccessMap.set(acceptorToken, {
+        accessMap: new Map(),
+        acceptor: resourceAccessAcceptor,
+      });
+    }
+    const accessMap = this.acceptorAccessMap.get(acceptorToken)!.accessMap;
+    // add each action to the accessMap for this acceptorToken
+    actions.forEach((action) => {
+      if (!accessMap.has(action)) {
+        // if we haven't seen this action for this acceptorToken before, add it to the map
+        const allowSet = new Set<StoragePath>([s3Prefix]);
+        const denySet = new Set<StoragePath>();
+        accessMap.set(action, { allow: allowSet, deny: denySet });
+
+        // this is where we create the reverse mapping that allows us to add entries to the denySet later by looking up the prefix
+        this.setPrefixDenyMapEntry(s3Prefix, allowSet, denySet);
+      } else {
+        // otherwise add the prefix to the existing allow set
+        accessMap.get(action)?.allow.add(s3Prefix);
+      }
+    });
+  };
+
+  /**
+   * Iterates over all of the access definitions that have been added to the translator,
+   * generates a policy for each accessMap,
+   * and attaches the policy to the corresponding ResourceAccessAcceptor
+   *
+   * After this method is called, the existing access definition state is cleared.
+   * This prevents multiple calls to this method from producing duplicate policies.
+   * The class can continue to be used to build up state for a new set of policies if desired.
+   * @param ssmEnvironmentEntries Additional SSM context that is passed to each ResourceAccessAcceptor
+   */
+  private attachPolicies = (ssmEnvironmentEntries: SsmEnvironmentEntry[]) => {
+    const allPaths = Array.from(this.prefixDenyMap.keys());
+    allPaths.forEach((storagePath) => {
+      const parent = findParent(storagePath, allPaths);
+      if (!parent) {
+        return;
+      }
+      // if a parent path is defined, invoke the denyByDefault callback on this subpath for all policies that exist on the parent path
+      this.prefixDenyMap
+        .get(parent)
+        ?.forEach((denyByDefaultCallback) =>
+          denyByDefaultCallback(storagePath)
+        );
+    });
+
+    this.acceptorAccessMap.forEach(({ acceptor, accessMap }) => {
+      acceptor.acceptResourceAccess(
+        this.policyFactory.createPolicy(accessMap),
+        ssmEnvironmentEntries
+      );
+    });
+    this.acceptorAccessMap.clear();
+    this.prefixDenyMap.clear();
+  };
+
+  private setPrefixDenyMapEntry = (
+    storagePath: StoragePath,
+    allowPathSet: Set<StoragePath>,
+    denyPathSet: Set<StoragePath>
+  ) => {
+    // function that will add the denyPath to the denyPathSet unless the allowPathSet explicitly allows the path
+    const setDenyByDefault = (denyPath: StoragePath) => {
+      if (!allowPathSet.has(denyPath)) {
+        denyPathSet.add(denyPath);
+      }
+    };
+    if (!this.prefixDenyMap.has(storagePath)) {
+      this.prefixDenyMap.set(storagePath, [setDenyByDefault]);
+    } else {
+      this.prefixDenyMap.get(storagePath)?.push(setDenyByDefault);
+    }
   };
 }
 
@@ -66,15 +202,24 @@ export class StorageAccessOrchestrator {
  */
 export class StorageAccessOrchestratorFactory {
   getInstance = (
-    accessDefinition: Record<StoragePath, StorageAccessDefinition[]>,
+    storageAccessGenerator: StorageAccessGenerator,
     getInstanceProps: ConstructFactoryGetInstanceProps,
     ssmEnvironmentEntries: SsmEnvironmentEntry[],
-    accessDefinitionTranslator: StorageAccessArbiter
+    policyFactory: StorageAccessPolicyFactory
   ) =>
     new StorageAccessOrchestrator(
-      accessDefinition,
+      storageAccessGenerator,
       getInstanceProps,
       ssmEnvironmentEntries,
-      accessDefinitionTranslator
+      policyFactory
     );
 }
+
+/**
+ * Returns the element in paths that is a prefix of path, if any
+ * Note that there can only be one at this point because of upstream validation
+ */
+const findParent = (path: string, paths: string[]) =>
+  paths.find((p) => path !== p && path.startsWith(p.replaceAll('*', ''))) as
+    | StoragePath
+    | undefined;
