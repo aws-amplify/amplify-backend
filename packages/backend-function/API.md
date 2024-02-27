@@ -4,11 +4,33 @@
 
 ```ts
 
+import { CustomMessageTriggerHandler as AuthCustomMessageHandler } from 'aws-lambda';
+import { PostAuthenticationTriggerHandler as AuthPostAuthenticationHandler } from 'aws-lambda';
+import { PostConfirmationTriggerHandler as AuthPostConfirmationHandler } from 'aws-lambda';
+import { PreAuthenticationTriggerHandler as AuthPreAuthenticationHandler } from 'aws-lambda';
+import { PreSignUpTriggerHandler as AuthPreSignUpHandler } from 'aws-lambda';
+import { UserMigrationTriggerHandler as AuthUserMigrationHandler } from 'aws-lambda';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { AppSyncResolverHandler as DataResolverHandler } from 'aws-lambda';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { S3Handler as StorageHandler } from 'aws-lambda';
+
+export { AuthCustomMessageHandler }
+
+export { AuthPostAuthenticationHandler }
+
+export { AuthPostConfirmationHandler }
+
+export { AuthPreAuthenticationHandler }
+
+export { AuthPreSignUpHandler }
+
+export { AuthUserMigrationHandler }
+
+export { DataResolverHandler }
 
 // @public
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;
@@ -25,6 +47,8 @@ export type FunctionProps = {
 
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20;
+
+export { StorageHandler }
 
 // (No @packageDocumentation comment for this package)
 

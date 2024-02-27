@@ -5,38 +5,18 @@
 ```ts
 
 import { a } from '@aws-amplify/data-schema';
-import { CustomMessageTriggerHandler as AuthCustomMessageHandler } from 'aws-lambda';
-import { PostAuthenticationTriggerHandler as AuthPostAuthenticationHandler } from 'aws-lambda';
-import { PostConfirmationTriggerHandler as AuthPostConfirmationHandler } from 'aws-lambda';
-import { PreAuthenticationTriggerHandler as AuthPreAuthenticationHandler } from 'aws-lambda';
-import { PreSignUpTriggerHandler as AuthPreSignUpHandler } from 'aws-lambda';
-import { UserMigrationTriggerHandler as AuthUserMigrationHandler } from 'aws-lambda';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ClientConfig } from '@aws-amplify/client-config';
 import { ClientSchema } from '@aws-amplify/data-schema';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { AppSyncResolverHandler as DataResolverHandler } from 'aws-lambda';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
 import { defineFunction } from '@aws-amplify/backend-function';
 import { defineStorage } from '@aws-amplify/backend-storage';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
-import { S3Handler as StorageHandler } from 'aws-lambda';
 
 export { a }
-
-export { AuthCustomMessageHandler }
-
-export { AuthPostAuthenticationHandler }
-
-export { AuthPostConfirmationHandler }
-
-export { AuthPreAuthenticationHandler }
-
-export { AuthPreSignUpHandler }
-
-export { AuthUserMigrationHandler }
 
 // @public
 export type Backend<T extends DefineBackendProps> = BackendBase & {
@@ -50,8 +30,6 @@ export type BackendBase = {
 };
 
 export { ClientSchema }
-
-export { DataResolverHandler }
 
 export { defineAuth }
 
@@ -71,8 +49,6 @@ export { defineStorage }
 
 // @public
 export const secret: (name: string) => BackendSecret;
-
-export { StorageHandler }
 
 // (No @packageDocumentation comment for this package)
 
