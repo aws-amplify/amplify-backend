@@ -26,7 +26,7 @@ void describe('StorageAccessOrchestrator', () => {
     });
     void it('throws if access prefixes are invalid', () => {
       const acceptResourceAccessMock = mock.fn();
-      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
           '/test/prefix/*': [
             {
@@ -48,14 +48,14 @@ void describe('StorageAccessOrchestrator', () => {
       );
 
       assert.throws(
-        () => storageAccessPolicyArbiter.orchestrateStorageAccess(),
+        () => storageAccessOrchestrator.orchestrateStorageAccess(),
         { message: 'test validation error' }
       );
     });
 
     void it('passes expected policy and ssm context to resource access acceptor', () => {
       const acceptResourceAccessMock = mock.fn();
-      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
           '/test/prefix/*': [
             {
@@ -73,7 +73,7 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -105,7 +105,7 @@ void describe('StorageAccessOrchestrator', () => {
         identifier: 'testResourceAccessAcceptor',
         acceptResourceAccess: acceptResourceAccessMock,
       });
-      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
           '/test/prefix/*': [
             {
@@ -127,7 +127,7 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -172,7 +172,7 @@ void describe('StorageAccessOrchestrator', () => {
         identifier: 'testResourceAccessAcceptor2',
         acceptResourceAccess: acceptResourceAccessMock2,
       });
-      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
           '/test/prefix/*': [
             {
@@ -199,7 +199,7 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[0].document.toJSON(),
@@ -258,7 +258,7 @@ void describe('StorageAccessOrchestrator', () => {
 
     void it('replaces owner placeholder in s3 prefix', () => {
       const acceptResourceAccessMock = mock.fn();
-      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
           [`/test/${ownerPathPartToken}/*`]: [
             {
@@ -276,7 +276,7 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -305,7 +305,7 @@ void describe('StorageAccessOrchestrator', () => {
     void it('denies parent actions on a subpath by default', () => {
       const acceptResourceAccessMock1 = mock.fn();
       const acceptResourceAccessMock2 = mock.fn();
-      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
           '/foo/*': [
             {
@@ -333,7 +333,7 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[0].document.toJSON(),
@@ -391,7 +391,7 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccess: acceptResourceAccessMock,
       });
 
-      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
           '/foo/{owner}/*': [
             {
@@ -411,7 +411,7 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -454,7 +454,7 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccess: acceptResourceAccessMock2,
       });
 
-      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
           // acceptor1 should have read write on this path
           // acceptor2 should not have any rules for this path
@@ -503,7 +503,7 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[0].document.toJSON(),
@@ -580,7 +580,7 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccess: acceptResourceAccessMock,
       });
 
-      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
           '/foo/*': [
             {
@@ -605,7 +605,7 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),

@@ -64,7 +64,7 @@ export class StorageContainerEntryGenerator
           amplifyStorage.resources.bucket.bucketName,
       });
 
-    // we pass the access definition along with other dependencies to the bucketPolicyArbiter
+    // we pass the access definition along with other dependencies to the storageAccessOrchestrator
     const storageAccessOrchestrator =
       this.storageAccessOrchestratorFactory.getInstance(
         this.props.access,
@@ -73,7 +73,7 @@ export class StorageContainerEntryGenerator
         new StorageAccessPolicyFactory(amplifyStorage.resources.bucket)
       );
 
-    // the arbiter generates policies according to the accessDefinition and attaches the policies to appropriate roles
+    // the orchestrator generates policies according to the accessDefinition and attaches the policies to appropriate roles
     storageAccessOrchestrator.orchestrateStorageAccess();
 
     return amplifyStorage;
