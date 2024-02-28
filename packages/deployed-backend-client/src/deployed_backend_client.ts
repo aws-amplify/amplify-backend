@@ -303,6 +303,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           .awsAppsyncConflictResolutionMode as ConflictResolutionMode,
         apiId: backendOutput[graphqlOutputKey]?.payload
           .awsAppsyncApiId as string,
+        modelSchemaS3Uri: backendOutput[graphqlOutputKey]?.payload
+          .amplifyApiModelSchemaS3Uri as string,
       };
     }
 
