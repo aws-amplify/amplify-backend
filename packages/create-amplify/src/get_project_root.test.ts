@@ -78,13 +78,10 @@ void describe('getProjectRoot', () => {
     process.env.npm_config_yes = 'false';
     const userInput = 'some/absolute/path';
     mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
-    const expectedError = new AmplifyUserError(
-      'MultipleSingletonResourcesError',
-      {
-        message: `Failed to create project directory`,
-        resolution: `Ensure that ${userInput} is the correct path and you have write permissions to this location.`,
-      }
-    );
+    const expectedError = new AmplifyUserError('ProjectDirectoryCreateError', {
+      message: `Failed to create project directory`,
+      resolution: `Ensure that ${userInput} is the correct path and you have write permissions to this location.`,
+    });
     fsMkDirSyncMock.mock.mockImplementationOnce(() =>
       Promise.reject(expectedError)
     );

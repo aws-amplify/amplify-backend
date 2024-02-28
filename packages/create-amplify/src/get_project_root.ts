@@ -41,7 +41,7 @@ export const getProjectRoot = async () => {
     try {
       await fsp.mkdir(projectRoot, { recursive: true });
     } catch (err) {
-      throw new AmplifyUserError('MultipleSingletonResourcesError', {
+      throw new AmplifyUserError('ProjectDirectoryCreateError', {
         message: `Failed to create project directory`,
         resolution: `Ensure that ${projectRoot} is the correct path and you have write permissions to this location.`,
       });
