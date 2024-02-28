@@ -17,6 +17,9 @@ export class FunctionEnvironmentTranslator {
   private readonly ssmValuePlaceholderText =
     '<value will be resolved during runtime>';
 
+  // Lists of environment variable names for typed shim generation
+  private readonly definedEnvVarNames: string[] = [];
+
   /**
    * Initialize translated environment variable records
    */
@@ -43,6 +46,7 @@ export class FunctionEnvironmentTranslator {
       } else {
         this.lambda.addEnvironment(key, value);
       }
+      this.definedEnvVarNames.push(key);
     }
 
     // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
@@ -84,7 +88,7 @@ export class FunctionEnvironmentTranslator {
       validate: (): string[] => {
         new FunctionEnvironmentTypeGenerator(
           this.lambda.node.id,
-          Object.values(this.ssmEnvVars).map((ssmEnvVar) => ssmEnvVar.name)
+          this.definedEnvVarNames
         ).generateTypedProcessEnvShim();
         return [];
       },

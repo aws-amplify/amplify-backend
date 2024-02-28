@@ -14,7 +14,7 @@ export class FunctionEnvironmentTypeGenerator {
    */
   constructor(
     functionName: string,
-    private readonly functionEnvironmentVariables: string[]
+    private readonly definedEnvVars: string[] = []
   ) {
     this.typeDefFilePath = `${process.cwd()}/.amplify/function-env/${functionName}.ts`;
   }
@@ -44,7 +44,7 @@ export class FunctionEnvironmentTypeGenerator {
 
     // Add defined environment variables
     declarations.push(`type ${definedEnvVarTypeName} = {`);
-    this.functionEnvironmentVariables.forEach((envName) => {
+    this.definedEnvVars.forEach((envName) => {
       const declaration = `${envName}: string;`;
 
       declarations.push(declaration);
