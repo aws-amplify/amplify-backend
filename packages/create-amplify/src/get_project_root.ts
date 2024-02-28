@@ -40,12 +40,10 @@ export const getProjectRoot = async () => {
     try {
       await fsp.mkdir(projectRoot, { recursive: true });
     } catch (err) {
-      if (path.isAbsolute(projectRoot)) {
-        printer.log(
-          `Failed to create directory at ${projectRoot}. Ensure this is the correct path and you have write permissions to this location.`,
-          LogLevel.ERROR
-        );
-      }
+      printer.log(
+        `Failed to create directory at ${projectRoot}. Ensure this is the correct path and you have write permissions to this location.`,
+        LogLevel.ERROR
+      );
       throw err;
     }
   }
