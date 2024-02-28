@@ -49,9 +49,9 @@ export class StorageAccessOrchestrator {
   private prefixDenyMap = new Map<StoragePath, SetDenyByDefault[]>();
 
   /**
-   * Instantiate with the acces generator and other dependencies necessary for evaluating and constructing access policies
+   * Instantiate with the access generator and other dependencies necessary for evaluating and constructing access policies
    * @param storageAccessGenerator The access callback defined by the customer
-   * @param getInstanceProps props for fetching construct instances from the construct contianer
+   * @param getInstanceProps props for fetching construct instances from the construct container
    * @param ssmEnvironmentEntries SSM context that should be passed to the ResourceAccessAcceptors when configuring access
    * @param policyFactory factory that generates IAM policies for various access control definitions
    * @param validateStorageAccessPaths validator function for checking access definition paths
@@ -187,7 +187,7 @@ export class StorageAccessOrchestrator {
       // removing subpaths from the allow set prevents unnecessary paths from being added to the policy
       // for example, if there are allow read rules for /foo/* and /foo/bar/* we only need to add /foo/* to the policy because that includes /foo/bar/*
       accessMap.forEach(({ allow }) => {
-        removeSubpathsFromSet(allow);
+        removeSubPathsFromSet(allow);
       });
       acceptor.acceptResourceAccess(
         this.policyFactory.createPolicy(accessMap),
@@ -244,7 +244,7 @@ const findParent = (path: string, paths: string[]) =>
     | StoragePath
     | undefined;
 
-const removeSubpathsFromSet = (paths: Set<StoragePath>) => {
+const removeSubPathsFromSet = (paths: Set<StoragePath>) => {
   paths.forEach((path) => {
     if (findParent(path, Array.from(paths))) {
       paths.delete(path);
