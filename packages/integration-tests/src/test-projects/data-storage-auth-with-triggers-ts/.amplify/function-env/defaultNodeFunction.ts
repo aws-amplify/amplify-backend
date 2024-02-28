@@ -2,7 +2,9 @@
  * This file is here to make Typescript happy for initial type checking and will be overwritten when tests run
  */
 /** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */
-export const env = process.env as {
+export const env = process.env as LambdaProvidedEnvVars & DefinedEnvVars;
+
+type LambdaProvidedEnvVars = {
   /** The handler location configured on the function. */
   _HANDLER: string;
 
@@ -77,8 +79,9 @@ export const env = process.env as {
 
   /** The environment's time zone. */
   TZ: string;
+};
 
+type DefinedEnvVars = {
   TEST_SECRET: string;
-
   TEST_SHARED_SECRET: string;
 };

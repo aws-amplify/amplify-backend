@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { staticEnvironmentVariables } from './static_env_types.js';
 import path from 'path';
-import os from 'os';
+import { EOL } from 'os';
 
 /**
  * Generates a typed process.env shim for environment variables
@@ -14,7 +14,7 @@ export class FunctionEnvironmentTypeGenerator {
    */
   constructor(
     functionName: string,
-    private functionEnvironmentVariables: string[]
+    private readonly functionEnvironmentVariables: string[]
   ) {
     this.typeDefFilePath = `${process.cwd()}/.amplify/function-env/${functionName}.ts`;
   }
@@ -33,30 +33,29 @@ export class FunctionEnvironmentTypeGenerator {
     }
 
     // Add Lambda runtime environment variables
-    declarations.push(`type ${lambdaEnvVarTypeName} = {${os.EOL}`);
+    declarations.push(`type ${lambdaEnvVarTypeName} = {`);
     for (const key in staticEnvironmentVariables) {
       const comment = `/** ${staticEnvironmentVariables[key]} */`;
       const declaration = `${key}: string;`;
 
-      declarations.push(comment + os.EOL + declaration + os.EOL + os.EOL);
+      declarations.push(comment + EOL + declaration + EOL);
     }
-    declarations.push(`};${os.EOL + os.EOL}`);
+    declarations.push(`};${EOL}`);
 
     // Add defined environment variables
-    declarations.push(`type ${definedEnvVarTypeName} = {${os.EOL}`);
+    declarations.push(`type ${definedEnvVarTypeName} = {`);
     this.functionEnvironmentVariables.forEach((envName) => {
       const declaration = `${envName}: string;`;
 
-      declarations.push(declaration + os.EOL);
+      declarations.push(declaration);
     });
-    declarations.push(`};${os.EOL + os.EOL}`);
+    declarations.push(`};${EOL}`);
 
     const content =
-      `/** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */${os.EOL}` +
-      `export const env = process.env as ${
-        lambdaEnvVarTypeName + ' & ' + definedEnvVarTypeName
-      };${os.EOL + os.EOL}` +
-      declarations.join('');
+      `/** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */${EOL}` +
+      `export const env = process.env as ${lambdaEnvVarTypeName} & ${definedEnvVarTypeName};${EOL}${EOL}${declarations.join(
+        EOL
+      )}`;
 
     fs.writeFileSync(this.typeDefFilePath, content);
   }
