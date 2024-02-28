@@ -258,6 +258,25 @@ void describe('DataFactory', () => {
       })
     );
   });
+
+  void it('sets dataStoreConfiguration', () => {
+    resetFactoryCount();
+    dataFactory = defineData({
+      schema: testSchema,
+      dataStoreConfiguration: {
+        project: {
+          detectionType: 'VERSION',
+          handlerType: 'AUTOMERGE',
+        },
+      },
+    });
+
+    dataFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(stack);
+    template.hasOutput('awsAppsyncConflictResolutionMode', {
+      Value: 'AUTOMERGE',
+    });
+  });
 });
 
 const resetFactoryCount = () => {
