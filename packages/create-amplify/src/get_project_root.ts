@@ -3,6 +3,7 @@ import path from 'path';
 import yargs from 'yargs';
 import { AmplifyPrompter, LogLevel } from '@aws-amplify/cli-core';
 import { printer } from './printer.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Returns the project root directory.
@@ -40,11 +41,10 @@ export const getProjectRoot = async () => {
     try {
       await fsp.mkdir(projectRoot, { recursive: true });
     } catch (err) {
-      printer.log(
-        `Failed to create directory at ${projectRoot}. Ensure this is the correct path and you have write permissions to this location.`,
-        LogLevel.ERROR
-      );
-      throw err;
+      throw new AmplifyUserError('MultipleSingletonResourcesError', {
+        message: `Failed to create project directory`,
+        resolution: `Ensure that ${projectRoot} is the correct path and you have write permissions to this location.`,
+      });
     }
   }
   return projectRoot;
