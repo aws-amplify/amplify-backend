@@ -10,6 +10,15 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./types/auth/triggers": {
+      "types": "./packages/backend/types/auth/triggers/index.ts"
+    },
+    "./types/data/resolver": {
+      "types": "./packages/backend/types/data/resolver/index.ts"
+    },
+    "./types/storage/triggers": {
+      "types": "./packages/backend/types/storage/triggers/index.ts"
     }
   },
   "imports": {
