@@ -9,5 +9,4 @@ export type {
   PostConfirmationTriggerHandler as AuthPostConfirmationHandler,
   UserMigrationTriggerHandler as AuthUserMigrationHandler,
   S3Handler as StorageHandler,
-  AppSyncResolverHandler as DataResolverHandler,
 } from 'aws-lambda';

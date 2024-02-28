@@ -12,7 +12,6 @@ import { PreSignUpTriggerHandler as AuthPreSignUpHandler } from 'aws-lambda';
 import { UserMigrationTriggerHandler as AuthUserMigrationHandler } from 'aws-lambda';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { AppSyncResolverHandler as DataResolverHandler } from 'aws-lambda';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -29,8 +28,6 @@ export { AuthPreAuthenticationHandler }
 export { AuthPreSignUpHandler }
 
 export { AuthUserMigrationHandler }
-
-export { DataResolverHandler }
 
 // @public
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;

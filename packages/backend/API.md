@@ -15,7 +15,6 @@ import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ClientConfig } from '@aws-amplify/client-config';
 import { ClientSchema } from '@aws-amplify/data-schema';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { DataResolverHandler } from '@aws-amplify/backend-function';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
 import { defineFunction } from '@aws-amplify/backend-function';
@@ -50,8 +49,6 @@ export type BackendBase = {
 };
 
 export { ClientSchema }
-
-export { DataResolverHandler }
 
 export { defineAuth }
 
