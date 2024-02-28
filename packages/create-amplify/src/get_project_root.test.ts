@@ -82,9 +82,7 @@ void describe('getProjectRoot', () => {
       'MultipleSingletonResourcesError',
       {
         message: `Failed to create project directory`,
-        resolution: `Ensure that ${path.resolve(
-          userInput
-        )} is the correct path and you have write permissions to this location.`,
+        resolution: `Ensure that ${userInput} is the correct path and you have write permissions to this location.`,
       }
     );
     fsMkDirSyncMock.mock.mockImplementationOnce(() =>
