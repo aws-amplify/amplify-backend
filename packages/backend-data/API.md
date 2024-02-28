@@ -6,6 +6,7 @@
 
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
+import { DataStoreConfiguration } from '@aws-amplify/data-construct';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 
@@ -30,6 +31,7 @@ export type DataProps = {
     name?: string;
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+    dataStoreConfiguration?: DataStoreConfiguration;
 };
 
 // @public
