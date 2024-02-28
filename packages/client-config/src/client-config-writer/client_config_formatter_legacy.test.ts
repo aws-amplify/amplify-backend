@@ -16,7 +16,7 @@ import { ClientConfigMobile } from '../client-config-types/mobile/client_config_
 void describe('client config formatter', () => {
   const sampleUserPoolId = randomUUID();
   const clientConfig: ClientConfig = {
-    _version: '1',
+    version: '1',
     auth: {
       user_pool_id: sampleUserPoolId,
     },

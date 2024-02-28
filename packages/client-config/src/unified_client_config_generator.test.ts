@@ -116,7 +116,7 @@ void describe('UnifiedClientConfigGenerator', () => {
           default_authorization_type: 'API_KEY',
           authorization_types: [AuthorizationType.APIKey],
         },
-        _version: '1',
+        version: '1',
       };
 
       // aws_appsync_conflictResolutionMode: undefined,

@@ -102,6 +102,6 @@ export class ClientConfigLegacyConverter {
   isClientConfigV1 = (
     clientConfig: ClientConfig
   ): clientConfig is clientConfigTypesV1.ClientConfigV1 => {
-    return clientConfig._version === '1';
+    return clientConfig.version === '1';
   };
 }

@@ -118,8 +118,9 @@ export class BackendFactory<
     return this.stackResolver.createCustomStack(name);
   };
 
-  addOutput = (clientConfigPart: Partial<ClientConfig>) =>
-    this.customOutputsAccumulator.addOutput(clientConfigPart);
+  addOutput = (
+    clientConfigPart: Partial<ClientConfig> & Pick<ClientConfig, 'version'>
+  ) => this.customOutputsAccumulator.addOutput(clientConfigPart);
 }
 
 /**

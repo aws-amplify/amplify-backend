@@ -209,7 +209,7 @@ export { clientConfigTypesV2 }
 
 // @public
 type ClientConfigV1 = {
-    _version: '1';
+    version: '1';
     auth?: Auth;
     custom?: {
         [key: string]: any;
@@ -220,7 +220,7 @@ type ClientConfigV1 = {
 
 // @public
 type ClientConfigV2 = {
-    _version: '2';
+    version: '2';
     auth?: Auth_2;
     custom?: Custom;
     data?: Data_2;

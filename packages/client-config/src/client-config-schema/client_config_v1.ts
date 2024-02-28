@@ -5,7 +5,7 @@ export type ClientConfigV1 = {
   /**
    * Version of this schema
    */
-  _version: '1';
+  version: '1';
   /**
    * Outputs generated from defineAuth
    */

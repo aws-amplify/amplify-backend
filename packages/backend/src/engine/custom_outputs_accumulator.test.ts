@@ -9,8 +9,9 @@ import {
   AmplifyUserError,
   ObjectAccumulator,
   ObjectAccumulatorPropertyAlreadyExistsError,
+  ObjectAccumulatorVersionMismatchError,
 } from '@aws-amplify/platform-core';
-import { ClientConfig } from '@aws-amplify/client-config';
+import { ClientConfig, clientConfigTypesV1 } from '@aws-amplify/client-config';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
@@ -50,6 +51,30 @@ void describe('Custom outputs accumulator', () => {
     assert.strictEqual(storeOutputMock.mock.calls.length, 1);
   });
 
+  void it('accumulates client config entries for same version and creates single merged output', () => {
+    const accumulator = new CustomOutputsAccumulator(
+      stubBackendOutputStorageStrategy,
+      objectAccumulator
+    );
+
+    const configPart1: clientConfigTypesV1.ClientConfigV1 = {
+      version: '1',
+      custom: { output1: 'val1' },
+    };
+    const configPart2: clientConfigTypesV1.ClientConfigV1 = {
+      version: '1',
+      custom: { output2: 'val2' },
+    };
+    accumulator.addOutput(configPart1);
+    accumulator.addOutput(configPart2);
+
+    assert.strictEqual(accumulateMock.mock.calls.length, 2);
+    assert.strictEqual(accumulateMock.mock.calls[0].arguments[0], configPart1);
+    assert.strictEqual(accumulateMock.mock.calls[1].arguments[0], configPart2);
+
+    assert.strictEqual(storeOutputMock.mock.calls.length, 1);
+  });
+
   void it('wraps property already exist error', () => {
     const accumulator = new CustomOutputsAccumulator(
       stubBackendOutputStorageStrategy,
@@ -70,6 +95,30 @@ void describe('Custom outputs accumulator', () => {
         assert.strictEqual(
           error.message,
           'Output entry with key output1 already exists'
+        );
+        assert.ok(error.resolution);
+        return true;
+      }
+    );
+  });
+
+  void it('wraps version mismatch error', () => {
+    const accumulator = new CustomOutputsAccumulator(
+      stubBackendOutputStorageStrategy,
+      objectAccumulator
+    );
+
+    accumulateMock.mock.mockImplementationOnce(() => {
+      throw new ObjectAccumulatorVersionMismatchError('val0', 'val1');
+    });
+
+    assert.throws(
+      () =>
+        accumulator.addOutput({ version: '1', custom: { output1: 'val1' } }),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(
+          error.message,
+          'Conflicting versions of client configuration found.'
         );
         assert.ok(error.resolution);
         return true;

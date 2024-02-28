@@ -26,7 +26,7 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
 // @public (undocumented)
 export type BackendBase = {
     createStack: (name: string) => Stack;
-    addOutput: (clientConfigPart: Partial<ClientConfig> & Pick<ClientConfig, '_version'>) => void;
+    addOutput: (clientConfigPart: Partial<ClientConfig> & Pick<ClientConfig, 'version'>) => void;
 };
 
 export { ClientSchema }

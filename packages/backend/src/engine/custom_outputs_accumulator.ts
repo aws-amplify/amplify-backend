@@ -45,7 +45,7 @@ export class CustomOutputsAccumulator {
         throw new AmplifyUserError(
           'VersionMismatchError',
           {
-            message: `Conflicting versions of client configuration found. `,
+            message: `Conflicting versions of client configuration found.`,
             resolution:
               "Ensure that the version specified in 'backend.addOutput' is consistent" +
               ' and is same as the one used for generating the client config',

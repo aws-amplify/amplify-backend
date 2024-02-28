@@ -23,7 +23,7 @@ export class VersionContributor implements ClientConfigContributor {
    * Return the version of the schema types that this contributor uses
    */
   contribute = (): ClientConfig => {
-    return { _version: '1' };
+    return { version: '1' };
   };
 }
 

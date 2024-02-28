@@ -5,7 +5,7 @@ import { ClientConfig } from '@aws-amplify/client-config';
 export type BackendBase = {
   createStack: (name: string) => Stack;
   addOutput: (
-    clientConfigPart: Partial<ClientConfig> & Pick<ClientConfig, '_version'>
+    clientConfigPart: Partial<ClientConfig> & Pick<ClientConfig, 'version'>
   ) => void;
 };
 

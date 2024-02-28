@@ -39,7 +39,7 @@ export class ObjectAccumulator<T> {
    */
   constructor(
     private readonly accumulator: Partial<T>,
-    private readonly versionKey = '_version'
+    private readonly versionKey = 'version'
   ) {}
 
   accumulate = (part: Partial<T>): ObjectAccumulator<T> => {

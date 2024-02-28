@@ -31,7 +31,7 @@ void describe('client config writer', () => {
   });
 
   const clientConfig: ClientConfig = {
-    _version: '1',
+    version: '1',
     auth: {
       user_pool_id: 'something',
     },

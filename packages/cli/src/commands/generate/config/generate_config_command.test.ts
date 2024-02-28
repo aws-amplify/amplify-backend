@@ -70,6 +70,10 @@ void describe('generate config command', () => {
     });
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      '0' // default version
+    );
+    assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[2],
       '/foo/bar'
     );
@@ -92,6 +96,10 @@ void describe('generate config command', () => {
     // but for some reason the mock call count does not update without this 0ms wait
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepEqual(
+      generateClientConfigMock.mock.calls[0].arguments[1],
+      '0' // default version
+    );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[2],
       '/foo/bar'
@@ -188,6 +196,24 @@ void describe('generate config command', () => {
           stackName: 'stack_name',
         },
         '0',
+        'foo/bar',
+        ClientConfigFormat.JSON_MOBILE,
+      ]
+    );
+  });
+
+  void it('can generate config in with a different version', async () => {
+    await commandRunner.runCommand(
+      'config --stack stack_name --config-version 1 --out-dir foo/bar --format json-mobile'
+    );
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        '1',
         'foo/bar',
         ClientConfigFormat.JSON_MOBILE,
       ]

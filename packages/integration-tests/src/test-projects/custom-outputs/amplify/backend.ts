@@ -13,7 +13,7 @@ const someConstant1 = 'someHardCodedValue1';
 const someConstant2 = 'someHardCodedValue2';
 
 backend.addOutput({
-  _version: '1',
+  version: '1',
   custom: {
     // test deploy time values
     restApiUrl: restApi.url,
@@ -23,7 +23,7 @@ backend.addOutput({
 });
 
 backend.addOutput({
-  _version: '1',
+  version: '1',
   custom: {
     // test synth time values
     // and composition of config
@@ -33,7 +33,7 @@ backend.addOutput({
 
 const fakeCognitoUserPoolId = 'fakeCognitoUserPoolId';
 backend.addOutput({
-  _version: '1',
+  version: '1',
   // test reserved key
   auth: {
     user_pool_id: fakeCognitoUserPoolId,
