@@ -1,5 +1,5 @@
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Effect, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 import { StorageAction, StoragePath } from './types.js';
@@ -29,7 +29,10 @@ export class StorageAccessPolicyFactory {
   }
 
   createPolicy = (
-    permissions: Readonly<Map<StorageAction, Readonly<Set<StoragePath>>>>
+    permissions: Map<
+      StorageAction,
+      { allow: Set<StoragePath>; deny: Set<StoragePath> }
+    >
   ) => {
     if (permissions.size === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
@@ -39,19 +42,38 @@ export class StorageAccessPolicyFactory {
 
     const statements: PolicyStatement[] = [];
 
-    permissions.forEach((s3Prefixes, action) => {
-      statements.push(this.getStatement(s3Prefixes, action));
-    });
+    permissions.forEach(
+      ({ allow: allowPrefixes, deny: denyPrefixes }, action) => {
+        if (allowPrefixes.size > 0) {
+          statements.push(
+            this.getStatement(allowPrefixes, action, Effect.ALLOW)
+          );
+        }
+        if (denyPrefixes.size > 0) {
+          statements.push(this.getStatement(denyPrefixes, action, Effect.DENY));
+        }
+      }
+    );
+
+    if (statements.length === 0) {
+      // this could happen if the Map contained entries but all of the path sets were empty
+      throw new AmplifyFault('EmptyPolicyFault', {
+        message: 'At least one permission must be specified',
+      });
+    }
+
     return new Policy(this.stack, `${this.namePrefix}${this.policyCount++}`, {
-      statements: statements,
+      statements,
     });
   };
 
   private getStatement = (
     s3Prefixes: Readonly<Set<StoragePath>>,
-    action: StorageAction
+    action: StorageAction,
+    effect: Effect
   ) =>
     new PolicyStatement({
+      effect,
       actions: actionMap[action],
       resources: Array.from(s3Prefixes).map(
         (s3Prefix) => `${this.bucket.bucketArn}${s3Prefix}`
