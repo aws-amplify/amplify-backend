@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 const APPSYNC_PIPELINE_RESOLVER = 'PIPELINE';
 const APPSYNC_JS_RUNTIME_NAME = 'APPSYNC_JS';
 const APPSYNC_JS_RUNTIME_VERSION = '1.0.0';
-const JS_RESOLVER_TEMPLATE_PATH = './js_resolver_template.js';
+const JS_PIPELINE_RESOLVER_HANDLER = './js_resolver_handler.js';
 
 /**
  * Resolve JS resolver function entry relative path to absolute
@@ -58,7 +58,7 @@ const normalizedDefaultJsResolver = (): string => {
   const resolvedTemplatePath = resolve(
     fileURLToPath(import.meta.url),
     '..',
-    JS_RESOLVER_TEMPLATE_PATH
+    JS_PIPELINE_RESOLVER_HANDLER
   );
   const fileContents: string = readFileSync(resolvedTemplatePath, 'utf-8');
   const fileLines = fileContents.split('\n');
