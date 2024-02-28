@@ -1,18 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { StorageAccessOrchestrator } from './storage_access_orchestrator.js';
-import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import {
-  ConstructContainerStub,
-  ImportPathVerifierStub,
-  StackResolverStub,
-} from '@aws-amplify/backend-platform-test-stubs';
-import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
-  ConstructContainer,
-  ConstructFactoryGetInstanceProps,
-  ImportPathVerifier,
-} from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
@@ -22,10 +10,6 @@ import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 void describe('StorageAccessOrchestrator', () => {
   void describe('orchestrateStorageAccess', () => {
     let stack: Stack;
-    let constructContainer: ConstructContainer;
-    let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
-    let importPathVerifier: ImportPathVerifier;
-    let getInstanceProps: ConstructFactoryGetInstanceProps;
     let bucket: Bucket;
     let storageAccessPolicyFactory: StorageAccessPolicyFactory;
 
@@ -35,22 +19,6 @@ void describe('StorageAccessOrchestrator', () => {
 
     beforeEach(() => {
       stack = createStackAndSetContext();
-
-      constructContainer = new ConstructContainerStub(
-        new StackResolverStub(stack)
-      );
-
-      outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-        stack
-      );
-
-      importPathVerifier = new ImportPathVerifierStub();
-
-      getInstanceProps = {
-        constructContainer,
-        outputStorageStrategy,
-        importPathVerifier,
-      };
 
       bucket = new Bucket(stack, 'testBucket');
 
@@ -71,7 +39,7 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
         }),
-        getInstanceProps,
+        {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
         storageAccessPolicyFactory,
         () => {
@@ -100,7 +68,7 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
         }),
-        getInstanceProps,
+        {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
         storageAccessPolicyFactory
       );
@@ -127,7 +95,7 @@ void describe('StorageAccessOrchestrator', () => {
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[1],
-        [{ name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' }]
+        ssmEnvironmentEntriesStub
       );
     });
 
@@ -154,7 +122,7 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
         }),
-        getInstanceProps,
+        {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
         storageAccessPolicyFactory
       );
@@ -189,7 +157,7 @@ void describe('StorageAccessOrchestrator', () => {
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[1],
-        [{ name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' }]
+        ssmEnvironmentEntriesStub
       );
     });
 
@@ -226,7 +194,7 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
         }),
-        getInstanceProps,
+        {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
         storageAccessPolicyFactory
       );
@@ -280,11 +248,11 @@ void describe('StorageAccessOrchestrator', () => {
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[1],
-        [{ name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' }]
+        ssmEnvironmentEntriesStub
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock2.mock.calls[0].arguments[1],
-        [{ name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' }]
+        ssmEnvironmentEntriesStub
       );
     });
 
@@ -303,7 +271,7 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
         }),
-        getInstanceProps,
+        {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
         storageAccessPolicyFactory
       );
@@ -330,7 +298,7 @@ void describe('StorageAccessOrchestrator', () => {
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[1],
-        [{ name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' }]
+        ssmEnvironmentEntriesStub
       );
     });
 
@@ -360,7 +328,7 @@ void describe('StorageAccessOrchestrator', () => {
             },
           ],
         }),
-        getInstanceProps,
+        {} as unknown as ConstructFactoryGetInstanceProps,
         ssmEnvironmentEntriesStub,
         storageAccessPolicyFactory
       );
@@ -397,7 +365,7 @@ void describe('StorageAccessOrchestrator', () => {
       );
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[1],
-        [{ name: 'TEST_BUCKET_NAME', path: 'test/ssm/path/to/bucket/name' }]
+        ssmEnvironmentEntriesStub
       );
 
       assert.equal(acceptResourceAccessMock2.mock.callCount(), 1);
@@ -413,6 +381,258 @@ void describe('StorageAccessOrchestrator', () => {
           ],
           Version: '2012-10-17',
         }
+      );
+    });
+
+    void it('combines owner rules for same resource access acceptor', () => {
+      const acceptResourceAccessMock = mock.fn();
+      const authenticatedResourceAccessAcceptor = () => ({
+        identifier: 'authenticatedResourceAccessAcceptor',
+        acceptResourceAccess: acceptResourceAccessMock,
+      });
+
+      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+        () => ({
+          '/foo/{owner}/*': [
+            {
+              actions: ['write', 'delete'],
+              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              ownerPlaceholderSubstitution: '{ownerSub}',
+            },
+            {
+              actions: ['read'],
+              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              ownerPlaceholderSubstitution: '*',
+            },
+          ],
+        }),
+        {} as unknown as ConstructFactoryGetInstanceProps,
+        ssmEnvironmentEntriesStub,
+        storageAccessPolicyFactory
+      );
+
+      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
+        {
+          Statement: [
+            {
+              Action: 's3:PutObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/foo/{ownerSub}/*`,
+            },
+            {
+              Action: 's3:DeleteObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/foo/{ownerSub}/*`,
+            },
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/foo/*/*`,
+            },
+          ],
+          Version: '2012-10-17',
+        }
+      );
+      assert.deepStrictEqual(
+        acceptResourceAccessMock.mock.calls[0].arguments[1],
+        ssmEnvironmentEntriesStub
+      );
+    });
+
+    void it('handles multiple resource access acceptors on multiple prefixes', () => {
+      const acceptResourceAccessMock1 = mock.fn();
+      const acceptResourceAccessMock2 = mock.fn();
+      const getResourceAccessAcceptorStub1 = () => ({
+        identifier: 'resourceAccessAcceptor1',
+        acceptResourceAccess: acceptResourceAccessMock1,
+      });
+      const getResourceAccessAcceptorStub2 = () => ({
+        identifier: 'resourceAccessAcceptor2',
+        acceptResourceAccess: acceptResourceAccessMock2,
+      });
+
+      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+        () => ({
+          // acceptor1 should have read write on this path
+          // acceptor2 should not have any rules for this path
+          '/foo/*': [
+            {
+              actions: ['read', 'write'],
+              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
+              ownerPlaceholderSubstitution: '*',
+            },
+          ],
+          // acceptor1 should be denied read and write on this path
+          // acceptor2 should have only read on this path
+          '/foo/bar/*': [
+            {
+              actions: ['read'],
+              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
+              ownerPlaceholderSubstitution: '{ownerSub}',
+            },
+          ],
+          // acceptor1 should be denied write on this path (read from parent path covers read on this path)
+          // acceptor2 should not have any rules for this path
+          '/foo/baz/*': [
+            {
+              actions: ['read'],
+              ownerPlaceholderSubstitution: '*',
+              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
+            },
+          ],
+          // acceptor 1 is denied write on this path (read still allowed)
+          // acceptor 2 has read/write/delete on path with ownerSub
+          '/other/{owner}/*': [
+            {
+              actions: ['read', 'write', 'delete'],
+              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
+              ownerPlaceholderSubstitution: '{ownerSub}',
+            },
+            {
+              actions: ['read'],
+              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
+              ownerPlaceholderSubstitution: '*',
+            },
+          ],
+        }),
+        {} as unknown as ConstructFactoryGetInstanceProps,
+        ssmEnvironmentEntriesStub,
+        storageAccessPolicyFactory
+      );
+
+      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        acceptResourceAccessMock1.mock.calls[0].arguments[0].document.toJSON(),
+        {
+          Statement: [
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: [
+                `${bucket.bucketArn}/foo/*`,
+                `${bucket.bucketArn}/other/*/*`,
+              ],
+            },
+            {
+              Action: 's3:GetObject',
+              Effect: 'Deny',
+              Resource: `${bucket.bucketArn}/foo/bar/*`,
+            },
+            {
+              Action: 's3:PutObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/foo/*`,
+            },
+            {
+              Action: 's3:PutObject',
+              Effect: 'Deny',
+              Resource: [
+                `${bucket.bucketArn}/foo/bar/*`,
+                `${bucket.bucketArn}/foo/baz/*`,
+              ],
+            },
+          ],
+          Version: '2012-10-17',
+        }
+      );
+      assert.deepStrictEqual(
+        acceptResourceAccessMock1.mock.calls[0].arguments[1],
+        ssmEnvironmentEntriesStub
+      );
+
+      assert.equal(acceptResourceAccessMock2.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        acceptResourceAccessMock2.mock.calls[0].arguments[0].document.toJSON(),
+        {
+          Statement: [
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: [
+                `${bucket.bucketArn}/foo/bar/*`,
+                `${bucket.bucketArn}/other/{ownerSub}/*`,
+              ],
+            },
+            {
+              Action: 's3:PutObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/other/{ownerSub}/*`,
+            },
+            {
+              Action: 's3:DeleteObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/other/{ownerSub}/*`,
+            },
+          ],
+          Version: '2012-10-17',
+        }
+      );
+    });
+
+    void it('combines actions from multiple rules on the same resource access acceptor', () => {
+      const acceptResourceAccessMock = mock.fn();
+      const authenticatedResourceAccessAcceptor = () => ({
+        identifier: 'authenticatedResourceAccessAcceptor',
+        acceptResourceAccess: acceptResourceAccessMock,
+      });
+
+      const storageAccessPolicyArbiter = new StorageAccessOrchestrator(
+        () => ({
+          '/foo/*': [
+            {
+              actions: ['read'],
+              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              ownerPlaceholderSubstitution: '*',
+            },
+            {
+              actions: ['write'],
+              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              ownerPlaceholderSubstitution: '{ownerSub}',
+            },
+            {
+              actions: ['delete'],
+              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              ownerPlaceholderSubstitution: '*',
+            },
+          ],
+        }),
+        {} as unknown as ConstructFactoryGetInstanceProps,
+        ssmEnvironmentEntriesStub,
+        storageAccessPolicyFactory
+      );
+
+      storageAccessPolicyArbiter.orchestrateStorageAccess();
+      assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
+        {
+          Statement: [
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/foo/*`,
+            },
+            {
+              Action: 's3:PutObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/foo/*`,
+            },
+            {
+              Action: 's3:DeleteObject',
+              Effect: 'Allow',
+              Resource: `${bucket.bucketArn}/foo/*`,
+            },
+          ],
+          Version: '2012-10-17',
+        }
+      );
+      assert.deepStrictEqual(
+        acceptResourceAccessMock.mock.calls[0].arguments[1],
+        ssmEnvironmentEntriesStub
       );
     });
   });

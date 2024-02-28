@@ -30,6 +30,12 @@ void describe('validateStorageAccessPaths', () => {
     });
   });
 
+  void it('throws on path that has "//" in it', () => {
+    assert.throws(() => validateStorageAccessPaths(['/foo//bar/*']), {
+      message: 'Path cannot contain "//". Found [/foo//bar/*].',
+    });
+  });
+
   void it('throws on path that has wildcards in the middle', () => {
     assert.throws(() => validateStorageAccessPaths(['/foo/*/bar/*']), {
       message: `Wildcards are only allowed as the final part of a path. Found [/foo/*/bar/*].`,
@@ -74,11 +80,17 @@ void describe('validateStorageAccessPaths', () => {
     });
   });
 
-  void it('throws on path where owner token conflicts with wildcard in another path', () => {
+  void it('throws on path that is a prefix of a path with an owner token', () => {
     assert.throws(
       () => validateStorageAccessPaths(['/foo/{owner}/*', '/foo/*']),
       {
-        message: `Wildcard conflict detected with an ${ownerPathPartToken} token.`,
+        message: `A path cannot be a prefix of another path that contains the ${ownerPathPartToken} token.`,
+      }
+    );
+    assert.throws(
+      () => validateStorageAccessPaths(['/foo/bar/{owner}/*', '/foo/*']),
+      {
+        message: `A path cannot be a prefix of another path that contains the ${ownerPathPartToken} token.`,
       }
     );
   });

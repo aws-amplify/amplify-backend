@@ -14,12 +14,17 @@ import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
 
-// some types internal to this file to improve readability
+/* some types internal to this file to improve readability */
+
+// Alias type for a string that is a ResourceAccessAcceptor token
 type AcceptorToken = string;
+
+// Callback function that places storagePath in the deny list for an action if it is not explicitly allowed by another rule
 type SetDenyByDefault = (storagePath: StoragePath) => void;
 
 /**
- * Middleman between creating bucket policies and attaching those policies to corresponding roles
+ * Orchestrates the process of converting customer-defined storage access rules into corresponding IAM policies
+ * and attaching those policies to the corresponding IAM roles
  */
 export class StorageAccessOrchestrator {
   /**
@@ -44,7 +49,13 @@ export class StorageAccessOrchestrator {
   private prefixDenyMap = new Map<StoragePath, SetDenyByDefault[]>();
 
   /**
-   * Instantiate with context from the storage factory
+   * Instantiate with the acces generator and other dependencies necessary for evaluating and constructing access policies
+   * @param storageAccessGenerator The access callback defined by the customer
+   * @param getInstanceProps props for fetching construct instances from the construct contianer
+   * @param ssmEnvironmentEntries SSM context that should be passed to the ResourceAccessAcceptors when configuring access
+   * @param policyFactory factory that generates IAM policies for various access control definitions
+   * @param validateStorageAccessPaths validator function for checking access definition paths
+   * @param roleAccessBuilder builder instance that is injected into the storageAccessGenerator to evaluate the rules
    */
   constructor(
     private readonly storageAccessGenerator: StorageAccessGenerator,
@@ -108,8 +119,8 @@ export class StorageAccessOrchestrator {
   };
 
   /**
-   * Update the translator with an access definition.
-   * This definition defines a set of actions on a single s3 prefix that should be attached to a given ResourceAccessAcceptor
+   * Add an entry to the internal acceptorAccessMap and prefixDenyMap.
+   * This entry defines a set of actions on a single s3 prefix that should be attached to a given ResourceAccessAcceptor
    */
   private addAccessDefinition = (
     resourceAccessAcceptor: ResourceAccessAcceptor,
@@ -138,13 +149,17 @@ export class StorageAccessOrchestrator {
         this.setPrefixDenyMapEntry(s3Prefix, allowSet, denySet);
       } else {
         // otherwise add the prefix to the existing allow set
-        accessMap.get(action)?.allow.add(s3Prefix);
+        const { allow: allowSet, deny: denySet } = accessMap.get(action)!;
+        allowSet.add(s3Prefix);
+
+        // add an entry in the prefixDenyMap for the existing allow and deny set
+        this.setPrefixDenyMapEntry(s3Prefix, allowSet, denySet);
       }
     });
   };
 
   /**
-   * Iterates over all of the access definitions that have been added to the translator,
+   * Iterates over all of the access definitions that have been added to the orchestrator,
    * generates a policy for each accessMap,
    * and attaches the policy to the corresponding ResourceAccessAcceptor
    *
@@ -169,6 +184,11 @@ export class StorageAccessOrchestrator {
     });
 
     this.acceptorAccessMap.forEach(({ acceptor, accessMap }) => {
+      // removing subpaths from the allow set prevents unnecessary paths from being added to the policy
+      // for example, if there are allow read rules for /foo/* and /foo/bar/* we only need to add /foo/* to the policy because that includes /foo/bar/*
+      accessMap.forEach(({ allow }) => {
+        removeSubpathsFromSet(allow);
+      });
       acceptor.acceptResourceAccess(
         this.policyFactory.createPolicy(accessMap),
         ssmEnvironmentEntries
@@ -198,7 +218,7 @@ export class StorageAccessOrchestrator {
 }
 
 /**
- * This factory is really only necessary for allowing us to mock the BucketPolicyArbiter in tests
+ * This factory is really only necessary for allowing us to mock the StorageAccessOrchestrator in tests
  */
 export class StorageAccessOrchestratorFactory {
   getInstance = (
@@ -223,3 +243,11 @@ const findParent = (path: string, paths: string[]) =>
   paths.find((p) => path !== p && path.startsWith(p.replaceAll('*', ''))) as
     | StoragePath
     | undefined;
+
+const removeSubpathsFromSet = (paths: Set<StoragePath>) => {
+  paths.forEach((path) => {
+    if (findParent(path, Array.from(paths))) {
+      paths.delete(path);
+    }
+  });
+};
