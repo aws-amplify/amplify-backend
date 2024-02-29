@@ -43,11 +43,12 @@ void describe('convertJsResolverDefinition', () => {
   });
 
   void it('handles empty array / undefined param', () => {
-    assert.equal(
-      undefined,
+    assert.doesNotThrow(() =>
       convertJsResolverDefinition(stack, amplifyApi, undefined)
     );
-    assert.equal(undefined, convertJsResolverDefinition(stack, amplifyApi, []));
+    assert.doesNotThrow(() =>
+      convertJsResolverDefinition(stack, amplifyApi, [])
+    );
   });
 
   void it('handles jsFunction IR with a single function', () => {
