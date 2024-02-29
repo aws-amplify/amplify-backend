@@ -23,6 +23,13 @@ const validateStoragePath = (
     });
   }
 
+  if (path.includes('//')) {
+    throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
+      message: `Path cannot contain "//". Found [${path}].`,
+      resolution: 'Update all paths to match the format requirements.',
+    });
+  }
+
   if (path.indexOf('*') < path.length - 1) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `Wildcards are only allowed as the final part of a path. Found [${path}].`,
@@ -50,15 +57,28 @@ const validateStoragePath = (
     });
   }
 
-  if (path.includes(ownerPathPartToken)) {
-    validatePathWithOwnerToken(path, allPaths);
-  }
+  validateOwnerTokenRules(path, otherPrefixes);
 };
 
 /**
  * Extra validations that are only necessary if the path includes an owner token
  */
-const validatePathWithOwnerToken = (path: string, allPaths: string[]) => {
+const validateOwnerTokenRules = (path: string, otherPrefixes: string[]) => {
+  // if there's no owner token in the path, this validation is a noop
+  if (!path.includes(ownerPathPartToken)) {
+    return;
+  }
+
+  if (otherPrefixes.length > 0) {
+    throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
+      message: `A path cannot be a prefix of another path that contains the ${ownerPathPartToken} token.`,
+      details: `Found [${path}] which has prefixes [${otherPrefixes.join(
+        ', '
+      )}].`,
+      resolution: `Update the storage access paths such that any given path has at most one other path that is a prefix.`,
+    });
+  }
+
   const ownerSplit = path.split(ownerPathPartToken);
 
   if (ownerSplit.length > 2) {
@@ -90,30 +110,19 @@ const validatePathWithOwnerToken = (path: string, allPaths: string[]) => {
       resolution: `Remove all other characters from the path part with the ${ownerPathPartToken} token. For example: "/foo/${ownerPathPartToken}/*"`,
     });
   }
-
-  /**
-   * If the path includes the owner token, we need to do one more pass through the prefixes where we substitute the owner toke with a * and check for prefixes again
-   * This is because the owner token becomes a * for all access except owner rules so we need to make sure there are no other prefix conflicts
-   */
-
-  const substitutionPrefixes = getPrefixes(
-    path.replace(ownerPathPartToken, '*'),
-    allPaths
-  );
-  if (substitutionPrefixes.length > 0) {
-    throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `Wildcard conflict detected with an ${ownerPathPartToken} token.`,
-      details: `Paths [${substitutionPrefixes.join(
-        ', '
-      )}] conflicts with ${ownerPathPartToken} token in path [${path}].`,
-      resolution: `Update the storage access paths such that no path has a wildcard that conflicts with an ${ownerPathPartToken} token.`,
-    });
-  }
 };
 
 /**
  * Returns a subset of paths where each element is a prefix of path
  * Equivalent paths are NOT considered prefixes of each other (mainly just for simplicity of the calling logic)
  */
-const getPrefixes = (path: string, paths: string[]): string[] =>
-  paths.filter((p) => path !== p && path.startsWith(p.replaceAll('*', '')));
+const getPrefixes = (
+  path: string,
+  paths: string[],
+  treatWildcardAsLiteral = false
+): string[] =>
+  paths.filter(
+    (p) =>
+      path !== p &&
+      path.startsWith(treatWildcardAsLiteral ? p : p.replaceAll('*', ''))
+  );

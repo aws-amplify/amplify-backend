@@ -17,7 +17,7 @@ export type AmplifyStorageFactoryProps = Omit<
    * Access control is under active development and is subject to change without notice.
    * Use at your own risk and do not use in production
    */
-  access?: AccessGenerator;
+  access?: StorageAccessGenerator;
 };
 
 /**
@@ -26,20 +26,22 @@ export type AmplifyStorageFactoryProps = Omit<
  * Resource access patterns are under active development and are subject to breaking changes.
  * Do not use in production.
  */
-export type RoleAccessBuilder = {
-  authenticated: StorageAccessBuilder;
-  guest: StorageAccessBuilder;
-  owner: StorageAccessBuilder;
+export type StorageAccessBuilder = {
+  authenticated: StorageActionBuilder;
+  guest: StorageActionBuilder;
+  owner: StorageActionBuilder;
   resource: (
     other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
-  ) => StorageAccessBuilder;
+  ) => StorageActionBuilder;
 };
 
-export type StorageAccessBuilder = {
+export type StorageActionBuilder = {
   to: (actions: StorageAction[]) => StorageAccessDefinition;
 };
 
-export type AccessGenerator = (allow: RoleAccessBuilder) => StorageAccessRecord;
+export type StorageAccessGenerator = (
+  allow: StorageAccessBuilder
+) => StorageAccessRecord;
 
 export type StorageAccessRecord = Record<
   StoragePath,

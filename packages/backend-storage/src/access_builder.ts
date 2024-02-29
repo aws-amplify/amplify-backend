@@ -4,9 +4,9 @@ import {
   ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { RoleAccessBuilder } from './types.js';
+import { StorageAccessBuilder } from './types.js';
 
-export const roleAccessBuilder: RoleAccessBuilder = {
+export const roleAccessBuilder: StorageAccessBuilder = {
   authenticated: {
     to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
