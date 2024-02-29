@@ -102,7 +102,7 @@ void describe('storageAccessBuilder', () => {
     ]);
     assert.equal(
       accessDefinition.ownerPlaceholderSubstitution,
-      '${cognito-identity.amazon.com:sub}'
+      '${cognito-identity.amazonaws.com:sub}'
     );
     assert.equal(
       accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
