@@ -1,9 +1,9 @@
 /**
  * This file is here to make Typescript happy for initial type checking and will be overwritten when tests run
  */
-/** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */
-export const env = process.env as LambdaProvidedEnvVars & DefinedEnvVars;
+export const env = process.env as LambdaProvidedEnvVars & AmplifyBackendEnvVars;
 
+/** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */
 type LambdaProvidedEnvVars = {
   /** The handler location configured on the function. */
   _HANDLER: string;
@@ -81,7 +81,9 @@ type LambdaProvidedEnvVars = {
   TZ: string;
 };
 
-type DefinedEnvVars = {
+/** Amplify backend environment variables available at runtime, this includes environment variables defined in `defineFunction` and by cross resource mechanisms */
+type AmplifyBackendEnvVars = {
   TEST_SECRET: string;
   TEST_SHARED_SECRET: string;
+  testName_BUCKET_NAME: string;
 };
