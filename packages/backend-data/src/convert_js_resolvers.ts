@@ -7,6 +7,7 @@ import { readFileSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { EOL } from 'os';
+import { Asset } from 'aws-cdk-lib/aws-s3-assets';
 
 const APPSYNC_PIPELINE_RESOLVER = 'PIPELINE';
 const APPSYNC_JS_RUNTIME_NAME = 'APPSYNC_JS';
@@ -73,12 +74,17 @@ export const convertJsResolverDefinition = (
   for (const resolver of jsResolvers) {
     const functions: string[] = resolver.handlers.map((handler, idx) => {
       const fnName = `Fn_${resolver.typeName}_${resolver.fieldName}_${idx + 1}`;
+      const s3AssetName = `${fnName}_asset`;
+
+      const asset = new Asset(scope, s3AssetName, {
+        path: resolveEntryPath(handler.entry),
+      });
 
       const fn = new CfnFunctionConfiguration(scope, fnName, {
         apiId: amplifyApi.apiId,
         dataSourceName: handler.dataSource,
         name: fnName,
-        code: readFileSync(resolveEntryPath(handler.entry), 'utf-8'),
+        codeS3Location: asset.s3ObjectUrl,
         runtime: {
           name: APPSYNC_JS_RUNTIME_NAME,
           runtimeVersion: APPSYNC_JS_RUNTIME_VERSION,
