@@ -1,7 +1,12 @@
-/* eslint-disable */
-export const request = (ctx: any) => {
+/**
+ * Pipeline resolver request handler
+ */
+export const request = (): unknown => {
   return {};
 };
-export const response = (ctx: any) => {
+/**
+ * Pipeline resolver response handler
+ */
+export const response = (ctx: Record<string, Record<string, string>>) => {
   return ctx.prev.result;
 };
