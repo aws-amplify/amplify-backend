@@ -325,9 +325,11 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       await assert.rejects(
         () => this.iamClient.send(new GetRoleCommand({ RoleName: roleName })),
         {
-          name: 'NoSuchEntity',
+          name: 'NoSuchEntityException',
         }
       );
+      // wait a bit between each call to avoid throttling
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
   };
 }
