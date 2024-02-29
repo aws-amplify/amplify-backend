@@ -16,7 +16,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
       };
     });
     const functionEnvironmentTypeGenerator =
-      new FunctionEnvironmentTypeGenerator('testFunction', []);
+      new FunctionEnvironmentTypeGenerator('testFunction');
     const sampleStaticEnv = '_HANDLER: string;';
 
     functionEnvironmentTypeGenerator.generateTypedProcessEnvShim();
