@@ -47,7 +47,7 @@ const normalizedDefaultJsResolver = (): string => {
     JS_PIPELINE_RESOLVER_HANDLER
   );
   const fileContents: string = readFileSync(resolvedTemplatePath, 'utf-8');
-  const fileLines = fileContents.split('\n');
+  const fileLines = fileContents.split(os.EOL);
 
   if (fileLines[0]?.includes('eslint-disable')) {
     fileLines.shift();
@@ -57,7 +57,7 @@ const normalizedDefaultJsResolver = (): string => {
     fileLines.pop();
   }
 
-  return fileLines.join('\n');
+  return fileLines.join(os.EOL);
 };
 
 /**
