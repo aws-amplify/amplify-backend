@@ -6,6 +6,7 @@ import { JsResolver, JsResolverEntry } from '@aws-amplify/data-schema-types';
 import { readFileSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { EOL } from 'os';
 
 const APPSYNC_PIPELINE_RESOLVER = 'PIPELINE';
 const APPSYNC_JS_RUNTIME_NAME = 'APPSYNC_JS';
@@ -47,7 +48,7 @@ const normalizedDefaultJsResolver = (): string => {
     JS_PIPELINE_RESOLVER_HANDLER
   );
   const fileContents: string = readFileSync(resolvedTemplatePath, 'utf-8');
-  const fileLines = fileContents.split(os.EOL);
+  const fileLines = fileContents.split(EOL);
 
   if (fileLines[0]?.includes('eslint-disable')) {
     fileLines.shift();
@@ -57,7 +58,7 @@ const normalizedDefaultJsResolver = (): string => {
     fileLines.pop();
   }
 
-  return fileLines.join(os.EOL);
+  return fileLines.join(EOL);
 };
 
 /**
