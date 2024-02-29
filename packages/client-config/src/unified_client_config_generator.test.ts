@@ -13,15 +13,6 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { ClientConfigContributorFactory } from './client-config-contributor-gen2/client_config_contributor_factory.js';
-import { AwsRegion } from './client-config-schema/client_config_v2.js';
-import {
-  AuthorizationType,
-  MfaConfiguration,
-  MfaMethod,
-  PasswordPolicyCharacter,
-  UserUsernameAttribute,
-  UserVerificationMechanism,
-} from './client-config-schema/client_config_v1.js';
 
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
@@ -87,40 +78,35 @@ void describe('UnifiedClientConfigGenerator', () => {
       const expectedClientConfig: ClientConfig = {
         auth: {
           user_pool_id: 'testUserPoolId',
-          aws_region: AwsRegion.UsEast1,
+          aws_region: 'us-east-1',
           user_pool_client_id: 'testWebClientId',
           identity_pool_id: 'testIdentityPoolId',
-          mfa_methods: [MfaMethod.SMS, MfaMethod.Totp],
-          user_sign_up_attributes: [
-            UserUsernameAttribute.Email.toUpperCase() as UserUsernameAttribute,
-          ],
-          user_username_attributes: [
-            UserUsernameAttribute.Email.toUpperCase() as UserUsernameAttribute,
-          ],
-          user_verification_mechanisms: [
-            UserVerificationMechanism.Email.toUpperCase() as UserVerificationMechanism,
-            UserVerificationMechanism.Phone.toUpperCase() as UserVerificationMechanism,
-          ],
-          mfa_configuration: MfaConfiguration.Optional,
-          password_policy_min_length: 8,
-          password_policy_characters: [
-            PasswordPolicyCharacter.RequiresNumbers,
-            PasswordPolicyCharacter.RequiresLowercase,
-            PasswordPolicyCharacter.RequiresUppercase,
-          ],
+          mfa_methods: ['SMS', 'TOTP'],
+          standard_attributes: { EMAIL: { required: true } },
+          username_attributes: ['EMAIL'],
+          user_verification_mechanisms: ['EMAIL', 'PHONE'],
+          mfa_configuration: 'OPTIONAL',
+
+          password_policy: {
+            min_length: 8,
+            require_lowercase: true,
+            require_numbers: true,
+            require_uppercase: true,
+          },
+
+          unauthenticated_identities_enabled: true,
         },
         data: {
           url: 'testApiEndpoint',
-          aws_region: AwsRegion.UsEast1,
+          aws_region: 'us-east-1',
           api_key: 'testApiKey',
           default_authorization_type: 'API_KEY',
-          authorization_types: [AuthorizationType.APIKey],
+          authorization_types: ['API_KEY'],
         },
         version: '1',
       };
 
       // aws_appsync_conflictResolutionMode: undefined,
-      // allowUnauthenticatedIdentities: 'true',
       assert.deepStrictEqual(result, expectedClientConfig);
     });
 

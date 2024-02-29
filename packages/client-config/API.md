@@ -7,6 +7,12 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
+// @public
+type Analytics = {
+    aws_region?: string;
+    pinpoint_app_id?: string;
+};
+
 // @public (undocumented)
 export type AnalyticsClientConfig = {
     Analytics?: {
@@ -19,28 +25,30 @@ export type AnalyticsClientConfig = {
 
 // @public
 type Auth = {
-    aws_region?: AwsRegion;
+    aws_region?: string;
     identity_pool_id?: string;
+    identity_providers?: string[];
     mfa_configuration?: MfaConfiguration;
     mfa_methods?: MfaMethod[];
     oauth_domain?: string;
-    oauth_redirect_sign_in?: string;
-    oauth_redirect_sign_out?: string;
+    oauth_redirect_sign_in?: string[];
+    oauth_redirect_sign_out?: string[];
     oauth_response_type?: OauthResponseType;
     oauth_scope?: string[];
-    password_policy_characters?: PasswordPolicyCharacter[];
-    password_policy_min_length?: number;
-    social_providers?: string[];
+    password_policy?: PasswordPolicy;
+    standard_attributes?: {
+        [key: string]: StandardAttributeValue;
+    };
+    unauthenticated_identities_enabled?: boolean;
     user_pool_client_id?: string;
     user_pool_id?: string;
-    user_sign_up_attributes?: string[];
-    user_username_attributes?: UserUsernameAttribute[];
-    user_verification_mechanisms?: UserVerificationMechanism[];
+    user_verification_mechanisms?: User[];
+    username_attributes?: User[];
 };
 
 // @public
 type Auth_2 = {
-    aws_region?: AwsRegion_2;
+    aws_region?: AwsRegion;
     identity_pool_id?: string;
     identity_providers?: string[];
     mfa_configuration?: MfaConfiguration_2;
@@ -50,12 +58,12 @@ type Auth_2 = {
     oauth_redirect_sign_out?: string;
     oauth_response_type?: OauthResponseType_2;
     oauth_scope?: string[];
-    password_policy?: PasswordPolicy;
+    password_policy?: PasswordPolicy_2;
     standard_attributes?: StandardAttributes;
     user_pool_client_id?: string;
     user_pool_id?: string;
-    user_verification_mechanisms?: User[];
-    username_attributes?: User[];
+    user_verification_mechanisms?: User_2[];
+    username_attributes?: User_2[];
 };
 
 // @public
@@ -101,20 +109,6 @@ enum AuthorizationType {
 }
 
 // @public (undocumented)
-enum AuthorizationType_2 {
-    // (undocumented)
-    AmazonCognitoUserPools = "AMAZON_COGNITO_USER_POOLS",
-    // (undocumented)
-    APIKey = "API_KEY",
-    // (undocumented)
-    AwsIam = "AWS_IAM",
-    // (undocumented)
-    AwsLambda = "AWS_LAMBDA",
-    // (undocumented)
-    OpenidConnect = "OPENID_CONNECT"
-}
-
-// @public (undocumented)
 enum AwsRegion {
     // (undocumented)
     UsEast1 = "us-east-1",
@@ -125,26 +119,6 @@ enum AwsRegion {
     // (undocumented)
     UsWest2 = "us-west-2"
 }
-
-// @public (undocumented)
-enum AwsRegion_2 {
-    // (undocumented)
-    UsEast1 = "us-east-1",
-    // (undocumented)
-    UsEast2 = "us-east-2",
-    // (undocumented)
-    UsWest1 = "us-west-1",
-    // (undocumented)
-    UsWest2 = "us-west-2"
-}
-
-// @public (undocumented)
-type Bucket = {
-    aws_region?: AwsRegion;
-    name?: string;
-    prefixes?: string[];
-    [property: string]: any;
-};
 
 // @public (undocumented)
 export type ClientConfig = clientConfigTypesV1.ClientConfigV1 | clientConfigTypesV2.ClientConfigV2;
@@ -169,18 +143,18 @@ export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfi
 declare namespace clientConfigTypesV1 {
     export {
         ClientConfigV1,
+        Analytics,
         Auth,
-        AwsRegion,
         MfaConfiguration,
         MfaMethod,
         OauthResponseType,
-        PasswordPolicyCharacter,
-        UserUsernameAttribute,
-        UserVerificationMechanism,
+        PasswordPolicy,
+        StandardAttributeValue,
+        User,
         Data,
-        AuthorizationType,
-        Storage,
-        Bucket
+        DefaultAuthorizationTypeElement,
+        Geo,
+        Storage
     }
 }
 export { clientConfigTypesV1 }
@@ -189,19 +163,19 @@ declare namespace clientConfigTypesV2 {
     export {
         ClientConfigV2,
         Auth_2 as Auth,
-        AwsRegion_2 as AwsRegion,
+        AwsRegion,
         MfaConfiguration_2 as MfaConfiguration,
         MfaMethod_2 as MfaMethod,
         OauthResponseType_2 as OauthResponseType,
-        PasswordPolicy,
+        PasswordPolicy_2 as PasswordPolicy,
         StandardAttributes,
         StandardAttribute,
-        User,
+        User_2 as User,
         Custom,
-        Geo,
+        Geo_2 as Geo,
         MapStyle,
         Data_2 as Data,
-        AuthorizationType_2 as AuthorizationType,
+        AuthorizationType,
         Storage_2 as Storage
     }
 }
@@ -209,13 +183,16 @@ export { clientConfigTypesV2 }
 
 // @public
 type ClientConfigV1 = {
-    version: '1';
+    $schema?: string;
+    analytics?: Analytics;
     auth?: Auth;
     custom?: {
         [key: string]: any;
     };
     data?: Data;
+    geo?: Geo;
     storage?: Storage;
+    version: "1";
 };
 
 // @public
@@ -235,7 +212,7 @@ export type ClientConfigVersionType<T> = T extends '1' ? clientConfigTypesV1.Cli
 
 // @public
 type Custom = {
-    Geo?: Geo;
+    Geo?: Geo_2;
     [property: string]: any;
 };
 
@@ -247,9 +224,9 @@ export type CustomClientConfig = {
 // @public
 type Data = {
     api_key?: string;
-    authorization_types?: AuthorizationType[];
-    aws_region?: AwsRegion;
-    default_authorization_type?: string;
+    authorization_types?: DefaultAuthorizationTypeElement[];
+    aws_region?: string;
+    default_authorization_type?: DefaultAuthorizationTypeElement;
     model_introspection?: {
         [key: string]: any;
     };
@@ -259,8 +236,8 @@ type Data = {
 // @public
 type Data_2 = {
     api_key?: string;
-    authorization_types?: AuthorizationType_2[];
-    aws_region?: AwsRegion_2;
+    authorization_types?: AuthorizationType[];
+    aws_region?: AwsRegion;
     default_authorization_type?: string;
     model_introspection?: {
         [key: string]: any;
@@ -268,15 +245,26 @@ type Data_2 = {
     url?: string;
 };
 
+// @public (undocumented)
+type DefaultAuthorizationTypeElement = "AMAZON_COGNITO_USER_POOLS" | "API_KEY" | "AWS_IAM" | "AWS_LAMBDA" | "OPENID_CONNECT";
+
 // @public
 export const generateClientConfig: <T extends ClientConfigVersion>(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
 
 // @public
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
 
-// @public (undocumented)
+// @public
 type Geo = {
-    aws_region?: AwsRegion_2;
+    aws_region?: string;
+    maps?: {
+        [key: string]: any;
+    };
+};
+
+// @public (undocumented)
+type Geo_2 = {
+    aws_region?: AwsRegion;
     mapStyles?: MapStyle[];
 };
 
@@ -326,14 +314,7 @@ enum MapStyle {
 }
 
 // @public (undocumented)
-enum MfaConfiguration {
-    // (undocumented)
-    None = "NONE",
-    // (undocumented)
-    Optional = "OPTIONAL",
-    // (undocumented)
-    Required = "REQUIRED"
-}
+type MfaConfiguration = "NONE" | "OPTIONAL" | "REQUIRED";
 
 // @public (undocumented)
 enum MfaConfiguration_2 {
@@ -346,12 +327,7 @@ enum MfaConfiguration_2 {
 }
 
 // @public (undocumented)
-enum MfaMethod {
-    // (undocumented)
-    SMS = "SMS",
-    // (undocumented)
-    Totp = "TOTP"
-}
+type MfaMethod = "SMS" | "TOTP";
 
 // @public (undocumented)
 enum MfaMethod_2 {
@@ -398,12 +374,7 @@ export type NotificationsClientConfig = {
 };
 
 // @public (undocumented)
-enum OauthResponseType {
-    // (undocumented)
-    Code = "code",
-    // (undocumented)
-    Token = "token"
-}
+type OauthResponseType = "code" | "token";
 
 // @public (undocumented)
 enum OauthResponseType_2 {
@@ -413,10 +384,9 @@ enum OauthResponseType_2 {
     Token = "token"
 }
 
-// @public (undocumented)
+// @public
 type PasswordPolicy = {
     min_length?: number;
-    require_digits?: boolean;
     require_lowercase?: boolean;
     require_numbers?: boolean;
     require_symbols?: boolean;
@@ -424,16 +394,14 @@ type PasswordPolicy = {
 };
 
 // @public (undocumented)
-enum PasswordPolicyCharacter {
-    // (undocumented)
-    RequiresLowercase = "REQUIRES_LOWERCASE",
-    // (undocumented)
-    RequiresNumbers = "REQUIRES_NUMBERS",
-    // (undocumented)
-    RequiresSymbols = "REQUIRES_SYMBOLS",
-    // (undocumented)
-    RequiresUppercase = "REQUIRES_UPPERCASE"
-}
+type PasswordPolicy_2 = {
+    min_length?: number;
+    require_digits?: boolean;
+    require_lowercase?: boolean;
+    require_numbers?: boolean;
+    require_symbols?: boolean;
+    require_uppercase?: boolean;
+};
 
 // @public (undocumented)
 export type PlatformClientConfig = {
@@ -468,14 +436,20 @@ type StandardAttributes = {
     zoneinfo?: StandardAttribute;
 };
 
+// @public (undocumented)
+type StandardAttributeValue = {
+    required?: boolean;
+};
+
 // @public
 type Storage = {
-    buckets?: Bucket[];
+    aws_region?: string;
+    name?: string;
 };
 
 // @public (undocumented)
 type Storage_2 = {
-    aws_region?: AwsRegion_2;
+    aws_region?: AwsRegion;
     name?: string;
 };
 
@@ -486,31 +460,14 @@ export type StorageClientConfig = {
 };
 
 // @public (undocumented)
-enum User {
+type User = "EMAIL" | "PHONE";
+
+// @public (undocumented)
+enum User_2 {
     // (undocumented)
     Email = "EMAIL",
     // (undocumented)
     Phone = "PHONE"
-}
-
-// @public (undocumented)
-enum UserUsernameAttribute {
-    // (undocumented)
-    Email = "email",
-    // (undocumented)
-    Phone = "phone",
-    // (undocumented)
-    PreferredUsername = "preferred_username",
-    // (undocumented)
-    Username = "username"
-}
-
-// @public (undocumented)
-enum UserVerificationMechanism {
-    // (undocumented)
-    Email = "email",
-    // (undocumented)
-    Phone = "phone"
 }
 
 // (No @packageDocumentation comment for this package)

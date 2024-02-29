@@ -23,22 +23,28 @@ export class ClientConfigLegacyConverter {
     if (clientConfig.auth) {
       const authClientConfig: AuthClientConfig = {
         aws_user_pools_id: clientConfig.auth.user_pool_id,
-        aws_cognito_region: clientConfig.auth
-          .aws_region as clientConfigTypesV1.AwsRegion,
+        aws_cognito_region: clientConfig.auth.aws_region!, //TBD, this should be mandatory in the schema
         aws_user_pools_web_client_id: clientConfig.auth.user_pool_client_id,
         aws_cognito_identity_pool_id: clientConfig.auth.identity_pool_id,
       };
-      // if (clientConfig.auth.allowUnauthenticatedIdentities !== undefined) {
-      //   authClientConfig.allowUnauthenticatedIdentities =
-      //     clientConfig.auth.allowUnauthenticatedIdentities;
-      // }
+
+      if (clientConfig.auth.unauthenticated_identities_enabled) {
+        authClientConfig.allowUnauthenticatedIdentities = clientConfig.auth
+          .unauthenticated_identities_enabled
+          ? 'true'
+          : 'false';
+      }
 
       authClientConfig.aws_cognito_mfa_types = clientConfig.auth.mfa_methods;
-      authClientConfig.aws_cognito_signup_attributes =
-        clientConfig.auth.user_sign_up_attributes;
+
+      if (clientConfig.auth.standard_attributes) {
+        authClientConfig.aws_cognito_signup_attributes = Object.keys(
+          clientConfig.auth.standard_attributes
+        );
+      }
 
       authClientConfig.aws_cognito_username_attributes =
-        clientConfig.auth.user_username_attributes;
+        clientConfig.auth.username_attributes;
       authClientConfig.aws_cognito_verification_mechanisms =
         clientConfig.auth.user_verification_mechanisms;
 
@@ -47,26 +53,34 @@ export class ClientConfigLegacyConverter {
           clientConfig.auth.mfa_configuration;
       }
 
-      if (
-        clientConfig.auth.password_policy_min_length ||
-        clientConfig.auth.password_policy_characters
-      ) {
+      if (clientConfig.auth.password_policy) {
         authClientConfig.aws_cognito_password_protection_settings = {};
-        if (clientConfig.auth.password_policy_min_length) {
+        if (clientConfig.auth.password_policy.min_length) {
           authClientConfig.aws_cognito_password_protection_settings = {
             passwordPolicyMinLength:
-              clientConfig.auth.password_policy_min_length,
+              clientConfig.auth.password_policy.min_length,
           };
         }
-        if (clientConfig.auth.password_policy_characters) {
-          authClientConfig.aws_cognito_password_protection_settings.passwordPolicyCharacters =
-            clientConfig.auth.password_policy_characters;
+        const requirements = [];
+        if (clientConfig.auth.password_policy.require_numbers) {
+          requirements.push('REQUIRES_NUMBERS');
         }
+        if (clientConfig.auth.password_policy.require_lowercase) {
+          requirements.push('REQUIRES_LOWERCASE');
+        }
+        if (clientConfig.auth.password_policy.require_uppercase) {
+          requirements.push('REQUIRES_UPPERCASE');
+        }
+        if (clientConfig.auth.password_policy.require_symbols) {
+          requirements.push('REQUIRES_SYMBOLS');
+        }
+        authClientConfig.aws_cognito_password_protection_settings.passwordPolicyCharacters =
+          requirements;
       }
 
-      if (clientConfig.auth.social_providers) {
+      if (clientConfig.auth.identity_providers) {
         authClientConfig.aws_cognito_social_providers =
-          clientConfig.auth.social_providers;
+          clientConfig.auth.identity_providers;
       }
 
       // TBD OAuthClientId aka authClientConfig.oauth?.clientId
@@ -80,11 +94,11 @@ export class ClientConfigLegacyConverter {
 
       if (clientConfig.auth.oauth_redirect_sign_in) {
         authClientConfig.oauth.redirectSignIn =
-          clientConfig.auth.oauth_redirect_sign_in;
+          clientConfig.auth.oauth_redirect_sign_in.join(',');
       }
       if (clientConfig.auth.oauth_redirect_sign_out) {
         authClientConfig.oauth.redirectSignOut =
-          clientConfig.auth.oauth_redirect_sign_out;
+          clientConfig.auth.oauth_redirect_sign_out.join(',');
       }
       if (clientConfig.auth.oauth_response_type) {
         authClientConfig.oauth.responseType =
@@ -95,6 +109,8 @@ export class ClientConfigLegacyConverter {
       }
       legacyConfig = { ...legacyConfig, ...authClientConfig };
     }
+
+    //TBD other categories
 
     return legacyConfig;
   };

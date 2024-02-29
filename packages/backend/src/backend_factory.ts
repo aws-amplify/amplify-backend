@@ -23,6 +23,9 @@ import { ObjectAccumulator } from '@aws-amplify/platform-core';
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
 
+// Default config version used in `backend.addOutput`
+const defaultClientConfigVersion = '1';
+
 /**
  * Factory that collects and instantiates all the Amplify backend constructs
  */
@@ -118,9 +121,13 @@ export class BackendFactory<
     return this.stackResolver.createCustomStack(name);
   };
 
-  addOutput = (
-    clientConfigPart: Partial<ClientConfig> & Pick<ClientConfig, 'version'>
-  ) => this.customOutputsAccumulator.addOutput(clientConfigPart);
+  addOutput = (clientConfigPart: Partial<ClientConfig>) => {
+    const { version } = clientConfigPart;
+    if (!version) {
+      clientConfigPart.version = defaultClientConfigVersion;
+    }
+    this.customOutputsAccumulator.addOutput(clientConfigPart);
+  };
 }
 
 /**

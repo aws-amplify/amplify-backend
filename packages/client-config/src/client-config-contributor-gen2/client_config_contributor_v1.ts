@@ -10,7 +10,7 @@ import {
   clientConfigTypesV1,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-import { AuthorizationType } from '../client-config-schema/client_config_v1.js';
+import { DefaultAuthorizationTypeElement } from '../client-config-schema/client_config_v1.js';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
@@ -54,30 +54,30 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
 
     const authClientConfig: clientConfigTypesV1.Auth = {
       user_pool_id: authOutput.payload.userPoolId,
-      aws_region: authOutput.payload
-        .authRegion as clientConfigTypesV1.AwsRegion,
+      aws_region: authOutput.payload.authRegion,
       user_pool_client_id: authOutput.payload.webClientId,
       identity_pool_id: authOutput.payload.identityPoolId,
     };
-    // TBD
-    // if (authOutput.payload.allowUnauthenticatedIdentities !== undefined) {
-    //   authClientConfig.allowUnauthenticatedIdentities =
-    //     authOutput.payload.allowUnauthenticatedIdentities;
-    // }
 
     parseAndAssignObject(
       authClientConfig,
       'mfa_methods',
       authOutput.payload.mfaTypes
     );
+
+    if (authOutput.payload.signupAttributes) {
+      authClientConfig.standard_attributes = {};
+      const attributes = JSON.parse(
+        authOutput.payload.signupAttributes
+      ) as string[];
+      for (const attribute of attributes) {
+        authClientConfig.standard_attributes[attribute] = { required: true };
+      }
+    }
+
     parseAndAssignObject(
       authClientConfig,
-      'user_sign_up_attributes',
-      authOutput.payload.signupAttributes
-    );
-    parseAndAssignObject(
-      authClientConfig,
-      'user_username_attributes',
+      'username_attributes',
       authOutput.payload.usernameAttributes
     );
     parseAndAssignObject(
@@ -91,21 +91,44 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
         .mfaConfiguration as clientConfigTypesV1.MfaConfiguration;
     }
 
-    if (authOutput.payload.passwordPolicyMinLength) {
-      (authClientConfig.password_policy_min_length = Number.parseInt(
-        authOutput.payload.passwordPolicyMinLength
-      )),
-        parseAndAssignObject(
-          authClientConfig,
-          'password_policy_characters',
-          authOutput.payload.passwordPolicyRequirements
+    if (
+      authOutput.payload.passwordPolicyMinLength ||
+      authOutput.payload.passwordPolicyRequirements
+    ) {
+      const passwordPolicy: clientConfigTypesV1.PasswordPolicy = {};
+      if (authOutput.payload.passwordPolicyMinLength) {
+        passwordPolicy.min_length = Number.parseInt(
+          authOutput.payload.passwordPolicyMinLength
         );
+      }
+      if (authOutput.payload.passwordPolicyRequirements) {
+        const requirements = JSON.parse(
+          authOutput.payload.passwordPolicyRequirements
+        ) as string[];
+        for (const requirement of requirements) {
+          switch (requirement) {
+            case 'REQUIRES_NUMBERS':
+              passwordPolicy.require_numbers = true;
+              break;
+            case 'REQUIRES_LOWERCASE':
+              passwordPolicy.require_lowercase = true;
+              break;
+            case 'REQUIRES_UPPERCASE':
+              passwordPolicy.require_uppercase = true;
+              break;
+            case 'REQUIRES_SYMBOLS':
+              passwordPolicy.require_symbols = true;
+              break;
+          }
+        }
+      }
+      authClientConfig.password_policy = passwordPolicy;
     }
 
     if (authOutput.payload.socialProviders) {
       parseAndAssignObject(
         authClientConfig,
-        'social_providers',
+        'identity_providers',
         authOutput.payload.socialProviders
       );
     }
@@ -120,14 +143,18 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
         authOutput.payload.oauthScope
       );
       authClientConfig.oauth_redirect_sign_in =
-        authOutput.payload.oauthRedirectSignIn;
+        authOutput.payload.oauthRedirectSignIn?.split(',');
       authClientConfig.oauth_redirect_sign_out =
-        authOutput.payload.oauthRedirectSignOut;
-      // TBD
-      // authClientConfig.oauth.clientId = authOutput.payload.oauthClientId;
+        authOutput.payload.oauthRedirectSignOut?.split(',');
       authClientConfig.oauth_response_type = authOutput.payload
         .oauthResponseType as clientConfigTypesV1.OauthResponseType;
     }
+
+    if (authOutput.payload.allowUnauthenticatedIdentities) {
+      authClientConfig.unauthenticated_identities_enabled =
+        authOutput.payload.allowUnauthenticatedIdentities === 'true';
+    }
+
     return { auth: authClientConfig } as ClientConfig;
   };
 }
@@ -155,17 +182,14 @@ export class DataClientConfigContributor implements ClientConfigContributor {
     }
     const config: clientConfigTypesV1.Data = {
       url: graphqlOutput.payload.awsAppsyncApiEndpoint,
-      aws_region: graphqlOutput.payload
-        .awsAppsyncRegion as clientConfigTypesV1.AwsRegion,
+      aws_region: graphqlOutput.payload.awsAppsyncRegion,
       api_key: graphqlOutput.payload.awsAppsyncApiKey,
       default_authorization_type:
         graphqlOutput.payload.awsAppsyncAuthenticationType,
-      authorization_types: graphqlOutput.payload
-        .awsAppsyncAdditionalAuthenticationTypes
-        ? (graphqlOutput.payload.awsAppsyncAdditionalAuthenticationTypes.split(
-            ','
-          ) as AuthorizationType[])
-        : [],
+      authorization_types:
+        graphqlOutput.payload.awsAppsyncAdditionalAuthenticationTypes?.split(
+          ','
+        ) as DefaultAuthorizationTypeElement[],
       // TBD
       // aws_appsync_conflictResolutionMode:
       //   graphqlOutput.payload.awsAppsyncConflictResolutionMode,

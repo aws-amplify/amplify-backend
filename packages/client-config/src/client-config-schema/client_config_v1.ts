@@ -3,15 +3,19 @@
  */
 export type ClientConfigV1 = {
   /**
-   * Version of this schema
+   * JSON schema
    */
-  version: '1';
+  $schema?: string;
+  /**
+   * Outputs manually specified by developers for use with frontend library
+   */
+  analytics?: Analytics;
   /**
    * Outputs generated from defineAuth
    */
   auth?: Auth;
   /**
-   * Outputs generated from defineAuth
+   * Outputs generated from backend.addOutput({ custom: <config> })
    */
   custom?: { [key: string]: any };
   /**
@@ -19,30 +23,74 @@ export type ClientConfigV1 = {
    */
   data?: Data;
   /**
+   * Outputs manually specified by developers for use with frontend library
+   */
+  geo?: Geo;
+  /**
    * Outputs generated from defineStorage
    */
   storage?: Storage;
+  /**
+   * Version of this schema
+   */
+  version: '1';
+};
+
+/**
+ * Outputs manually specified by developers for use with frontend library
+ */
+export type Analytics = {
+  /**
+   * AWS Region of Amazon Pinpoint resources
+   */
+  aws_region?: string;
+  /**
+   * Amazon Pinpoint App ID
+   */
+  pinpoint_app_id?: string;
 };
 
 /**
  * Outputs generated from defineAuth
  */
 export type Auth = {
-  aws_region?: AwsRegion;
+  /**
+   * AWS Region of Amazon Cognito resources
+   */
+  aws_region?: string;
   /**
    * Cognito Identity Pool ID
    */
   identity_pool_id?: string;
+  /**
+   * Identity providers set on Cognito User Pool
+   */
+  identity_providers?: string[];
   mfa_configuration?: MfaConfiguration;
   mfa_methods?: MfaMethod[];
+  /**
+   * Cognito Domain used for identity providers
+   */
   oauth_domain?: string;
-  oauth_redirect_sign_in?: string;
-  oauth_redirect_sign_out?: string;
+  /**
+   * URIs used to redirect after signing in using an identity provider
+   */
+  oauth_redirect_sign_in?: string[];
+  /**
+   * URIs used to redirect after signing out
+   */
+  oauth_redirect_sign_out?: string[];
   oauth_response_type?: OauthResponseType;
   oauth_scope?: string[];
-  password_policy_characters?: PasswordPolicyCharacter[];
-  password_policy_min_length?: number;
-  social_providers?: string[];
+  /**
+   * Cognito User Pool password policy
+   */
+  password_policy?: PasswordPolicy;
+  /**
+   * Cognito User Pool standard attributes
+   */
+  standard_attributes?: { [key: string]: StandardAttributeValue };
+  unauthenticated_identities_enabled?: boolean;
   /**
    * Cognito User Pool Client ID
    */
@@ -51,61 +99,44 @@ export type Auth = {
    * Cognito User Pool ID
    */
   user_pool_id?: string;
-  user_sign_up_attributes?: string[];
-  user_username_attributes?: UserUsernameAttribute[];
-  user_verification_mechanisms?: UserVerificationMechanism[];
+  user_verification_mechanisms?: User[];
+  /**
+   * Cognito User Pool username attributes
+   */
+  username_attributes?: User[];
 };
 
-export enum AwsRegion {
-  UsEast1 = 'us-east-1',
-  UsEast2 = 'us-east-2',
-  UsWest1 = 'us-west-1',
-  UsWest2 = 'us-west-2',
-}
+export type MfaConfiguration = 'NONE' | 'OPTIONAL' | 'REQUIRED';
 
-export enum MfaConfiguration {
-  None = 'NONE',
-  Optional = 'OPTIONAL',
-  Required = 'REQUIRED',
-}
+export type MfaMethod = 'SMS' | 'TOTP';
 
-export enum MfaMethod {
-  SMS = 'SMS',
-  Totp = 'TOTP',
-}
+export type OauthResponseType = 'code' | 'token';
 
-export enum OauthResponseType {
-  Code = 'code',
-  Token = 'token',
-}
+/**
+ * Cognito User Pool password policy
+ */
+export type PasswordPolicy = {
+  min_length?: number;
+  require_lowercase?: boolean;
+  require_numbers?: boolean;
+  require_symbols?: boolean;
+  require_uppercase?: boolean;
+};
 
-export enum PasswordPolicyCharacter {
-  RequiresLowercase = 'REQUIRES_LOWERCASE',
-  RequiresNumbers = 'REQUIRES_NUMBERS',
-  RequiresSymbols = 'REQUIRES_SYMBOLS',
-  RequiresUppercase = 'REQUIRES_UPPERCASE',
-}
+export type StandardAttributeValue = {
+  required?: boolean;
+};
 
-export enum UserUsernameAttribute {
-  Email = 'email',
-  Phone = 'phone',
-  PreferredUsername = 'preferred_username',
-  Username = 'username',
-}
-
-export enum UserVerificationMechanism {
-  Email = 'email',
-  Phone = 'phone',
-}
+export type User = 'EMAIL' | 'PHONE';
 
 /**
  * Outputs generated from defineData
  */
 export type Data = {
   api_key?: string;
-  authorization_types?: AuthorizationType[];
-  aws_region?: AwsRegion;
-  default_authorization_type?: string;
+  authorization_types?: DefaultAuthorizationTypeElement[];
+  aws_region?: string;
+  default_authorization_type?: DefaultAuthorizationTypeElement;
   /**
    * generated model introspection schema for use with generateClient
    */
@@ -116,24 +147,31 @@ export type Data = {
   url?: string;
 };
 
-export enum AuthorizationType {
-  APIKey = 'API_KEY',
-  AmazonCognitoUserPools = 'AMAZON_COGNITO_USER_POOLS',
-  AwsIam = 'AWS_IAM',
-  AwsLambda = 'AWS_LAMBDA',
-  OpenidConnect = 'OPENID_CONNECT',
-}
+export type DefaultAuthorizationTypeElement =
+  | 'AMAZON_COGNITO_USER_POOLS'
+  | 'API_KEY'
+  | 'AWS_IAM'
+  | 'AWS_LAMBDA'
+  | 'OPENID_CONNECT';
+
+/**
+ * Outputs manually specified by developers for use with frontend library
+ */
+export type Geo = {
+  /**
+   * AWS Region of Amazon Location Service resources
+   */
+  aws_region?: string;
+  /**
+   * Record of maps from Amazon Location Service
+   */
+  maps?: { [key: string]: any };
+};
 
 /**
  * Outputs generated from defineStorage
  */
 export type Storage = {
-  buckets?: Bucket[];
-};
-
-export type Bucket = {
-  aws_region?: AwsRegion;
+  aws_region?: string;
   name?: string;
-  prefixes?: string[];
-  [property: string]: any;
 };
