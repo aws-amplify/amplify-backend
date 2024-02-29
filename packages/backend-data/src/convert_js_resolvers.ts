@@ -3,7 +3,7 @@ import { AmplifyData } from '@aws-amplify/data-construct';
 import { CfnFunctionConfiguration, CfnResolver } from 'aws-cdk-lib/aws-appsync';
 import { FilePathExtractor } from '@aws-amplify/platform-core';
 import { JsResolver, JsResolverEntry } from '@aws-amplify/data-schema-types';
-import { readFileSync, statSync } from 'fs';
+import { readFileSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -13,7 +13,7 @@ const APPSYNC_JS_RUNTIME_VERSION = '1.0.0';
 const JS_PIPELINE_RESOLVER_HANDLER = './js_resolver_handler.js';
 
 /**
- * Resolve JS resolver function entry relative path to absolute
+ * Resolve JS resolver function entry to absolute path
  */
 const resolveEntryPath = (entry: JsResolverEntry): string => {
   const unresolvedImportLocationError = new Error(
@@ -33,31 +33,17 @@ const resolveEntryPath = (entry: JsResolverEntry): string => {
 };
 
 /**
- * Convert JS resolver entry to a fully resolved and validated file path
- * @param entry - string file path OR object containing relative path and import line
- * @returns - resolved and validated file path or throws error
- */
-const validatedFilePath = (entry: JsResolverEntry): string => {
-  const path = resolveEntryPath(entry);
-
-  const stat = statSync(path);
-  if (stat.isFile()) {
-    return path;
-  }
-
-  throw new Error(
-    `JS Resolver entry file not found at path: ${path}\nConsider using an absolute path instead.`
-  );
-};
-
-/**
- * Reads default js resolver template file and returns string contents
- * sans inline sourcemap and eslint-disable
+ * Reads default JS resolver template file and returns string contents sans inline sourcemap and eslint-disable comment
+ *
+ * This returns the top-level passthrough resolver request/response handler (see: https://docs.aws.amazon.com/appsync/latest/devguide/resolver-reference-overview-js.html#anatomy-of-a-pipeline-resolver-js)
+ * It's required for defining a pipeline resolver. The only purpose it serves is returning the output of the last function in the pipeline back to the client.
+ *
+ * Customer-provided handlers are added as a Functions list in `pipelineConfig.functions`
  */
 const normalizedDefaultJsResolver = (): string => {
   const resolvedTemplatePath = resolve(
     fileURLToPath(import.meta.url),
-    '..',
+    '../../lib',
     JS_PIPELINE_RESOLVER_HANDLER
   );
   const fileContents: string = readFileSync(resolvedTemplatePath, 'utf-8');
@@ -95,7 +81,7 @@ export const convertJsResolverDefinition = (
         apiId: amplifyApi.apiId,
         dataSourceName: handler.dataSource,
         name: fnName,
-        code: readFileSync(validatedFilePath(handler.entry), 'utf-8'),
+        code: readFileSync(resolveEntryPath(handler.entry), 'utf-8'),
         runtime: {
           name: APPSYNC_JS_RUNTIME_NAME,
           runtimeVersion: APPSYNC_JS_RUNTIME_VERSION,
