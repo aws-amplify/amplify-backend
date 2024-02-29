@@ -26,7 +26,6 @@ import {
   FunctionOutput,
   functionOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -292,7 +291,7 @@ class AmplifyFunction
 
     this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
       functionLambda,
-      props['environment'],
+      props.environment,
       backendSecretResolver
     );
 
@@ -301,14 +300,6 @@ class AmplifyFunction
     };
 
     this.storeOutput(outputStorageStrategy);
-
-    // Using CDK validation mechanism as a way to generate a type definition file at the end of synthesis
-    this.node.addValidation({
-      validate: (): string[] => {
-        new FunctionEnvironmentTypeGenerator(id).generateTypeDefFile();
-        return [];
-      },
-    });
   }
 
   getResourceAccessAcceptor = () => ({
