@@ -1,10 +1,25 @@
 import { describe, it } from 'node:test';
 import { ClientConfigLegacyConverter } from './client_config_to_legacy_converter.js';
 import assert from 'node:assert';
-import { AuthClientConfig } from '../index.js';
+import { ClientConfigLegacy } from '../index.js';
+import { AmplifyFault } from '@aws-amplify/platform-core';
 
 void describe('ClientConfigLegacyConverter', () => {
-  void it('returns translated legacy config', () => {
+  void it('throw if unsupported version of client config is passed', () => {
+    const converter = new ClientConfigLegacyConverter();
+    assert.throws(
+      () =>
+        converter.convertToLegacyConfig({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          version: '3' as any, // Force feed version 3 as versions are strongly typed and 3 may not even exist
+        }),
+      new AmplifyFault('UnsupportedClientConfigVersion', {
+        message: 'Only version 1 of ClientConfig is supported.',
+      })
+    );
+  });
+
+  void it('returns translated legacy config for auth', () => {
     const converter = new ClientConfigLegacyConverter();
     assert.deepStrictEqual(
       converter.convertToLegacyConfig({
@@ -64,7 +79,9 @@ void describe('ClientConfigLegacyConverter', () => {
           responseType: 'code',
         },
         aws_cognito_social_providers: ['provider1', 'provider2'],
-      } as AuthClientConfig
+      } as ClientConfigLegacy
     );
   });
+
+  //TBD for custom and other categories
 });

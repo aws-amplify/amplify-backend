@@ -192,7 +192,7 @@ type ClientConfigV1 = {
     data?: Data;
     geo?: Geo;
     storage?: Storage;
-    version: "1";
+    version: '1';
 };
 
 // @public
@@ -246,7 +246,7 @@ type Data_2 = {
 };
 
 // @public (undocumented)
-type DefaultAuthorizationTypeElement = "AMAZON_COGNITO_USER_POOLS" | "API_KEY" | "AWS_IAM" | "AWS_LAMBDA" | "OPENID_CONNECT";
+type DefaultAuthorizationTypeElement = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
 // @public
 export const generateClientConfig: <T extends ClientConfigVersion>(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
@@ -314,7 +314,7 @@ enum MapStyle {
 }
 
 // @public (undocumented)
-type MfaConfiguration = "NONE" | "OPTIONAL" | "REQUIRED";
+type MfaConfiguration = 'NONE' | 'OPTIONAL' | 'REQUIRED';
 
 // @public (undocumented)
 enum MfaConfiguration_2 {
@@ -327,7 +327,7 @@ enum MfaConfiguration_2 {
 }
 
 // @public (undocumented)
-type MfaMethod = "SMS" | "TOTP";
+type MfaMethod = 'SMS' | 'TOTP';
 
 // @public (undocumented)
 enum MfaMethod_2 {
@@ -374,7 +374,7 @@ export type NotificationsClientConfig = {
 };
 
 // @public (undocumented)
-type OauthResponseType = "code" | "token";
+type OauthResponseType = 'code' | 'token';
 
 // @public (undocumented)
 enum OauthResponseType_2 {
@@ -460,7 +460,7 @@ export type StorageClientConfig = {
 };
 
 // @public (undocumented)
-type User = "EMAIL" | "PHONE";
+type User = 'EMAIL' | 'PHONE';
 
 // @public (undocumented)
 enum User_2 {

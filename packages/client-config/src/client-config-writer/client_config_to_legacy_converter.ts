@@ -1,3 +1,4 @@
+import { AmplifyFault } from '@aws-amplify/platform-core';
 import {
   ClientConfig,
   ClientConfigLegacy,
@@ -16,10 +17,14 @@ export class ClientConfigLegacyConverter {
   convertToLegacyConfig = (clientConfig: ClientConfig): ClientConfigLegacy => {
     // We can only convert from V1 of ClientConfig. For everything else, throw
     if (!this.isClientConfigV1(clientConfig)) {
-      throw new Error('Only version 1 of ClientConfig is supported.');
+      throw new AmplifyFault('UnsupportedClientConfigVersion', {
+        message: 'Only version 1 of ClientConfig is supported.',
+      });
     }
 
     let legacyConfig: ClientConfigLegacy = {};
+
+    // Auth
     if (clientConfig.auth) {
       const authClientConfig: AuthClientConfig = {
         aws_user_pools_id: clientConfig.auth.user_pool_id,
@@ -108,6 +113,11 @@ export class ClientConfigLegacyConverter {
         delete authClientConfig.oauth;
       }
       legacyConfig = { ...legacyConfig, ...authClientConfig };
+    }
+
+    // Custom
+    if (clientConfig.custom) {
+      legacyConfig = { ...legacyConfig, custom: { ...clientConfig.custom } };
     }
 
     //TBD other categories
