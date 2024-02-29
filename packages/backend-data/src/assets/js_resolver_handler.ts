@@ -1,7 +1,7 @@
 /**
  * Pipeline resolver request handler
  */
-export const request = (): unknown => {
+export const request = () => {
   return {};
 };
 /**

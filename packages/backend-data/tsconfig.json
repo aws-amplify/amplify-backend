@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "exclude": ["src/assets"],
   "references": [
     { "path": "../backend-output-storage" },
     { "path": "../backend-output-schemas" },
