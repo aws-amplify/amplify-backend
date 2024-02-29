@@ -12,7 +12,7 @@ export class AmplifyStack extends Stack {
    */
   constructor(scope: Construct, id: string) {
     super(scope, id);
-    Aspects.of(this).add(cognitoRoleTrustPolicyValidator);
+    Aspects.of(this).add(new CognitoRoleTrustPolicyValidator());
   }
   /**
    * Overrides Stack.allocateLogicalId to prevent redundant nested stack logical IDs
@@ -31,8 +31,8 @@ export class AmplifyStack extends Stack {
   };
 }
 
-const cognitoRoleTrustPolicyValidator: IAspect = {
-  visit: (node: IConstruct) => {
+class CognitoRoleTrustPolicyValidator implements IAspect {
+  visit = (node: IConstruct) => {
     if (!(node instanceof Role)) {
       return;
     }
@@ -42,54 +42,54 @@ const cognitoRoleTrustPolicyValidator: IAspect = {
     }
 
     assumeRolePolicyDocument.Statement.forEach(
-      cognitoTrustPolicyStatementValidator
+      this.cognitoTrustPolicyStatementValidator
     );
-  },
-};
+  };
 
-const cognitoTrustPolicyStatementValidator = ({
-  Action: action,
-  Condition: condition,
-  Effect: effect,
-  Principal: principal,
-}: {
-  // These property names come from the IAM policy document which we do not control
-  /* eslint-disable @typescript-eslint/naming-convention */
-  Action: string;
-  Condition?: Record<string, Record<string, string>>;
-  Effect: 'Allow' | 'Deny';
-  Principal?: { Federated?: string };
-  /* eslint-enable @typescript-eslint/naming-convention */
-}) => {
-  if (action !== 'sts:AssumeRoleWithWebIdentity') {
-    return;
-  }
-  if (principal?.Federated !== 'cognito-identity.amazonaws.com') {
-    return;
-  }
-  if (effect === 'Deny') {
-    return;
-  }
-  // if we got here, we have a policy that allows AssumeRoleWithWebIdentity with Cognito
-  // need to validate that the policy has an appropriate condition
+  private cognitoTrustPolicyStatementValidator = ({
+    Action: action,
+    Condition: condition,
+    Effect: effect,
+    Principal: principal,
+  }: {
+    // These property names come from the IAM policy document which we do not control
+    /* eslint-disable @typescript-eslint/naming-convention */
+    Action: string;
+    Condition?: Record<string, Record<string, string>>;
+    Effect: 'Allow' | 'Deny';
+    Principal?: { Federated?: string };
+    /* eslint-enable @typescript-eslint/naming-convention */
+  }) => {
+    if (action !== 'sts:AssumeRoleWithWebIdentity') {
+      return;
+    }
+    if (principal?.Federated !== 'cognito-identity.amazonaws.com') {
+      return;
+    }
+    if (effect === 'Deny') {
+      return;
+    }
+    // if we got here, we have a policy that allows AssumeRoleWithWebIdentity with Cognito
+    // need to validate that the policy has an appropriate condition
 
-  const audCondition =
-    condition?.StringEquals?.['cognito-identity.amazonaws.com:aud'];
-  if (typeof audCondition !== 'string' || audCondition.length === 0) {
-    throw new AmplifyFault('InvalidTrustPolicyFault', {
-      message:
-        'Cannot create a Role trust policy with Cognito that does not have a StringEquals condition for cognito-identity.amazonaws.com:aud',
-    });
-  }
+    const audCondition =
+      condition?.StringEquals?.['cognito-identity.amazonaws.com:aud'];
+    if (typeof audCondition !== 'string' || audCondition.length === 0) {
+      throw new AmplifyFault('InvalidTrustPolicyFault', {
+        message:
+          'Cannot create a Role trust policy with Cognito that does not have a StringEquals condition for cognito-identity.amazonaws.com:aud',
+      });
+    }
 
-  const amrCondition =
-    condition?.['ForAnyValue:StringLike']?.[
-      'cognito-identity.amazonaws.com:amr'
-    ];
-  if (typeof amrCondition !== 'string' || amrCondition.length === 0) {
-    throw new AmplifyFault('InvalidTrustPolicyFault', {
-      message:
-        'Cannot create a Role trust policy with Cognito that does not have a StringLike condition for cognito-identity.amazonaws.com:amr',
-    });
-  }
-};
+    const amrCondition =
+      condition?.['ForAnyValue:StringLike']?.[
+        'cognito-identity.amazonaws.com:amr'
+      ];
+    if (typeof amrCondition !== 'string' || amrCondition.length === 0) {
+      throw new AmplifyFault('InvalidTrustPolicyFault', {
+        message:
+          'Cannot create a Role trust policy with Cognito that does not have a StringLike condition for cognito-identity.amazonaws.com:amr',
+      });
+    }
+  };
+}
