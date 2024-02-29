@@ -34,7 +34,7 @@ const resolveEntryPath = (entry: JsResolverEntry): string => {
 };
 
 /**
- * Reads default JS resolver template file and returns string contents sans inline sourcemap and eslint-disable comment
+ * Reads default JS resolver template file and returns string contents sans inline sourcemap
  *
  * This returns the top-level passthrough resolver request/response handler (see: https://docs.aws.amazon.com/appsync/latest/devguide/resolver-reference-overview-js.html#anatomy-of-a-pipeline-resolver-js)
  * It's required for defining a pipeline resolver. The only purpose it serves is returning the output of the last function in the pipeline back to the client.
@@ -50,15 +50,11 @@ const normalizedDefaultJsResolver = (): string => {
   const fileContents: string = readFileSync(resolvedTemplatePath, 'utf-8');
   const fileLines = fileContents.split(EOL);
 
-  if (fileLines[0]?.includes('eslint-disable')) {
-    fileLines.shift();
+  if (fileLines.pop()?.includes('sourceMappingURL')) {
+    return fileLines.join(EOL);
   }
 
-  if (fileLines.slice(-1)?.includes('sourceMappingURL')) {
-    fileLines.pop();
-  }
-
-  return fileLines.join(EOL);
+  return fileContents;
 };
 
 /**
