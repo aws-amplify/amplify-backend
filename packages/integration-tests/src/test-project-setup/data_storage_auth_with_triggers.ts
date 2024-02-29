@@ -15,6 +15,7 @@ import {
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -32,6 +33,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
     private readonly s3Client: S3Client,
+    private readonly iamClient: IAMClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
@@ -51,6 +53,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.secretClient,
       this.lambdaClient,
       this.s3Client,
+      this.iamClient,
       this.resourceFinder
     );
     await fs.cp(
@@ -112,6 +115,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private amplifySharedSecret: string;
 
   private testBucketName: string;
+  private testRoleNames: string[];
 
   /**
    * Create a test project instance.
@@ -124,6 +128,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
     private readonly s3Client: S3Client,
+    private readonly iamClient: IAMClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
@@ -225,6 +230,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
     // store the bucket name in the class so we can assert that it is deleted properly when the stack is torn down
     this.testBucketName = bucketName[0];
+
+    // store the roles associated with this deployment so we can assert that they are deleted when the stack is torn down
+    this.testRoleNames = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::IAM::Role'
+    );
   }
 
   private setUpDeployEnvironment = async (
@@ -273,6 +284,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   private assertExpectedCleanup = async () => {
     await this.waitForBucketDeletion(this.testBucketName);
+    await this.assertRolesDoNotExist(this.testRoleNames);
   };
 
   /**
@@ -305,6 +317,17 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         return false;
       }
       throw err;
+    }
+  };
+
+  private assertRolesDoNotExist = async (roleNames: string[]) => {
+    for (const roleName of roleNames) {
+      await assert.rejects(
+        () => this.iamClient.send(new GetRoleCommand({ RoleName: roleName })),
+        {
+          name: 'NoSuchEntity',
+        }
+      );
     }
   };
 }
