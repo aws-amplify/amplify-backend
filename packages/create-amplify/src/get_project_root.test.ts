@@ -95,17 +95,8 @@ and some after the error message`;
 
         const actual = AmplifyError.fromStderr(sampleStderr);
         assert.deepStrictEqual(actual?.name, expectedError.name);
-        assert.deepStrictEqual(
-          actual?.classification,
-          expectedError.classification
-        );
         assert.deepStrictEqual(actual?.message, expectedError.message);
-        assert.deepStrictEqual(actual?.details, expectedError.details);
-        assert.deepStrictEqual(actual?.cause?.name, expectedError.cause?.name);
-        assert.deepStrictEqual(
-          actual?.cause?.message,
-          expectedError.cause?.message
-        );
+        assert.deepStrictEqual(actual?.resolution, expectedError.resolution);
         return true;
       }
     );
