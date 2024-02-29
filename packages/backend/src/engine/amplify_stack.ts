@@ -12,7 +12,7 @@ export class AmplifyStack extends Stack {
    */
   constructor(scope: Construct, id: string) {
     super(scope, id);
-    Aspects.of(this).add(roleTrustPolicyValidator);
+    Aspects.of(this).add(cognitoRoleTrustPolicyValidator);
   }
   /**
    * Overrides Stack.allocateLogicalId to prevent redundant nested stack logical IDs
@@ -31,7 +31,7 @@ export class AmplifyStack extends Stack {
   };
 }
 
-const roleTrustPolicyValidator: IAspect = {
+const cognitoRoleTrustPolicyValidator: IAspect = {
   visit: (node: IConstruct) => {
     if (!(node instanceof Role)) {
       return;
@@ -41,11 +41,13 @@ const roleTrustPolicyValidator: IAspect = {
       return;
     }
 
-    assumeRolePolicyDocument.Statement.forEach(statementValidator);
+    assumeRolePolicyDocument.Statement.forEach(
+      cognitoTrustPolicyStatementValidator
+    );
   },
 };
 
-const statementValidator = ({
+const cognitoTrustPolicyStatementValidator = ({
   Action: action,
   Condition: condition,
   Effect: effect,
