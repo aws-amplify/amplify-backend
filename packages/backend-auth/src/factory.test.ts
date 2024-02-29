@@ -11,6 +11,7 @@ import {
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   ImportPathVerifier,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
@@ -110,6 +111,37 @@ void describe('AmplifyAuthFactory', () => {
           'Multiple `defineAuth` calls are not allowed within an Amplify backend',
         resolution: 'Remove all but one `defineAuth` call',
       })
+    );
+  });
+
+  void it('if access is defined, it should attach correct policy to the resource', () => {
+    const mockAcceptResourceAccess = mock.fn();
+    const lambdaResourceStub = {
+      getInstance: () => ({
+        getResourceAccessAcceptor: () => ({
+          acceptResourceAccess: mockAcceptResourceAccess,
+        }),
+      }),
+    } as unknown as ConstructFactory<
+      ResourceProvider & ResourceAccessAcceptorFactory
+    >;
+
+    resetFactoryCount();
+
+    authFactory = defineAuth({
+      loginWith: { email: true },
+      access: (allow) => ({
+        users: allow
+          .resource(lambdaResourceStub)
+          .to(['read', 'update', 'create']),
+      }),
+    });
+
+    authFactory.getInstance(getInstanceProps);
+
+    assert.equal(mockAcceptResourceAccess.mock.callCount(), 1);
+    assert.ok(
+      mockAcceptResourceAccess.mock.calls[0].arguments[0] instanceof Policy
     );
   });
 

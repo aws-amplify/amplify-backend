@@ -7,7 +7,14 @@ import {
   GoogleProviderProps,
   OidcProviderProps,
 } from '@aws-amplify/auth-construct-alpha';
-import { BackendSecret } from '@aws-amplify/plugin-types';
+import {
+  BackendSecret,
+  ConstructFactory,
+  ConstructFactoryGetInstanceProps,
+  ResourceAccessAcceptor,
+  ResourceAccessAcceptorFactory,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 
 /**
  * This utility allows us to expand nested types in auto complete prompts.
@@ -174,4 +181,32 @@ export type AuthLoginWithFactoryProps = Omit<
    * Configure OAuth, OIDC, and SAML login providers
    */
   externalProviders?: ExternalProviderSpecificFactoryProps;
+};
+
+export type Role = 'users' | 'groups';
+
+export type AllowAccessBuilder = {
+  resource: (
+    other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
+  ) => ResourceAccessBuilder;
+};
+
+export type ResourceAccessBuilder = {
+  to: (actions: UserpoolAction[]) => AccessDefinition;
+};
+
+export type AccessGenerator = (
+  allow: AllowAccessBuilder
+) => Partial<Record<Role, AccessDefinition>>;
+
+export type UserpoolAction = 'create' | 'read' | 'update' | 'delete' | 'list';
+
+export type AccessDefinition = {
+  getResourceAccessAcceptor: (
+    getInstanceProps: ConstructFactoryGetInstanceProps
+  ) => ResourceAccessAcceptor;
+  /**
+   * Actions to grant to this role on a specific prefix
+   */
+  actions: UserpoolAction[];
 };

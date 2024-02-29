@@ -11,14 +11,30 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { AuthRoleName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { OidcProviderProps } from '@aws-amplify/auth-construct-alpha';
+import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
+
+// @public (undocumented)
+export type AccessDefinition = {
+    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
+    actions: UserpoolAction[];
+};
+
+// @public (undocumented)
+export type AccessGenerator = (allow: AllowAccessBuilder) => Partial<Record<Role, AccessDefinition>>;
+
+// @public (undocumented)
+export type AllowAccessBuilder = {
+    resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => ResourceAccessBuilder;
+};
 
 // @public
 export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 'clientSecret'> & {
@@ -30,6 +46,7 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+    access?: AccessGenerator;
 }>;
 
 // @public
@@ -85,6 +102,17 @@ export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientId' | 'cli
     clientId: BackendSecret;
     clientSecret: BackendSecret;
 };
+
+// @public (undocumented)
+export type ResourceAccessBuilder = {
+    to: (actions: UserpoolAction[]) => AccessDefinition;
+};
+
+// @public (undocumented)
+export type Role = 'users' | 'groups';
+
+// @public (undocumented)
+export type UserpoolAction = 'create' | 'read' | 'update' | 'delete' | 'list';
 
 // (No @packageDocumentation comment for this package)
 

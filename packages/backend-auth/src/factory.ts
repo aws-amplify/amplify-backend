@@ -1,3 +1,7 @@
+import * as path from 'path';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import {
   AmplifyAuth,
   AuthProps,
@@ -15,12 +19,10 @@ import {
   ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import * as path from 'path';
-import { AuthLoginWithFactoryProps, Expand } from './types.js';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
-import { Policy } from 'aws-cdk-lib/aws-iam';
-import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { allowAccessBuilder as _allowAccessBuilder } from './access_builder.js';
+import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js';
+import { AccessGenerator, AuthLoginWithFactoryProps, Expand } from './types.js';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName>;
@@ -40,6 +42,13 @@ export type AmplifyAuthProps = Expand<
         ConstructFactory<ResourceProvider<FunctionResources>>
       >
     >;
+    /**
+     * !EXPERIMENTAL!
+     *
+     * Access control is under active development and is subject to change without notice.
+     * Use at your own risk and do not use in production
+     */
+    access?: AccessGenerator;
   }
 >;
 
@@ -98,12 +107,15 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: AmplifyAuthProps,
-    private readonly getInstanceProps: ConstructFactoryGetInstanceProps
+    private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
+    private readonly allowAccessBuilder = _allowAccessBuilder,
+    private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
   ) {}
 
   generateContainerEntry = ({
     scope,
     backendSecretResolver,
+    ssmEnvironmentEntriesGenerator,
   }: GenerateContainerEntryProps) => {
     const authProps: AuthProps = {
       ...this.props,
@@ -136,6 +148,24 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
         },
       }),
     };
+    if (!this.props.access) {
+      return authConstructMixin;
+    }
+    // props.access is the access callback defined by the customer
+    // here we inject the roleAccessBuilder into the callback and run it
+    // this produces the access definition that will be used to create the storage policies
+    const accessDefinition = this.props.access(this.allowAccessBuilder);
+
+    const authPolicyArbiter = this.authAccessPolicyArbiterFactory.getInstance(
+      this.defaultName,
+      accessDefinition,
+      ssmEnvironmentEntriesGenerator,
+      this.getInstanceProps,
+      authConstructMixin.resources.userPool
+    );
+
+    authPolicyArbiter.arbitratePolicies();
+
     return authConstructMixin;
   };
 }
