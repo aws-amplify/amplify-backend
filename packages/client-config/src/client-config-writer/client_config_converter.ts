@@ -150,11 +150,11 @@ export class ClientConfigConverter {
         plugins: {
           awsPinpointAnalyticsPlugin: {
             pinpointAnalytics: {
-              region: clientConfig.Analytics.AWSPinpoint.region,
-              appId: clientConfig.Analytics.AWSPinpoint.appId,
+              region: clientConfig.Analytics.Pinpoint.region,
+              appId: clientConfig.Analytics.Pinpoint.appId,
             },
             pinpointTargeting: {
-              region: clientConfig.Analytics.AWSPinpoint.region,
+              region: clientConfig.Analytics.Pinpoint.region,
             },
           },
         },

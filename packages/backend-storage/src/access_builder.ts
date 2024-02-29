@@ -25,7 +25,7 @@ export const roleAccessBuilder: StorageAccessBuilder = {
     to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
-      ownerPlaceholderSubstitution: '${cognito-identity.amazon.com:sub}',
+      ownerPlaceholderSubstitution: '${cognito-identity.amazonaws.com:sub}',
     }),
   },
   resource: (other) => ({
