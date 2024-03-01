@@ -53,7 +53,7 @@ const defaultJsResolverAsset = (scope: Construct): Asset => {
 
 /**
  * Converts JS Resolver definition emitted by data-schema into AppSync pipeline
- * resolvers via L1 construct.
+ * resolvers via L1 construct
  */
 export const convertJsResolverDefinition = (
   scope: Construct,
