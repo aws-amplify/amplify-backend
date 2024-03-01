@@ -125,10 +125,18 @@ export enum ConflictResolutionMode {
 }
 
 // @public (undocumented)
+export type DeleteFailedStacksMetadata = {
+    name: string;
+    lastUpdated: Date | undefined;
+    backendId: BackendIdentifier | undefined;
+};
+
+// @public (undocumented)
 export type DeployedBackendClient = {
     listSandboxes: (listSandboxesRequest?: ListSandboxesRequest) => Promise<ListSandboxesResponse>;
     deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>) => Promise<void>;
     getBackendMetadata: (backendId: BackendIdentifier) => Promise<BackendMetadata>;
+    listDeleteFailedStacks: () => Promise<ListDeleteFailedStacksResponse>;
 };
 
 // @public
@@ -170,6 +178,11 @@ export type FunctionConfiguration = {
     status: BackendDeploymentStatus;
     lastUpdated: Date | undefined;
     functionName: string;
+};
+
+// @public (undocumented)
+export type ListDeleteFailedStacksResponse = {
+    failedStacks: DeleteFailedStacksMetadata[];
 };
 
 // @public (undocumented)
