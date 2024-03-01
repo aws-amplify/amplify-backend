@@ -321,16 +321,39 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   };
 
   private assertRolesDoNotExist = async (roleNames: string[]) => {
-    for (const roleName of roleNames) {
-      await assert.rejects(
-        () => this.iamClient.send(new GetRoleCommand({ RoleName: roleName })),
-        {
-          name: 'NoSuchEntityException',
-        },
-        `Expected role ${roleName} to be deleted`
-      );
-      // wait a bit between each call to avoid throttling
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    const TIMEOUT_MS = 1000 * 30; // 30 seconds
+    const startTime = Date.now();
+
+    const remainingRoles = new Set(roleNames);
+
+    while (Date.now() - startTime < TIMEOUT_MS && remainingRoles.size > 0) {
+      // iterate over a copy of the roles set to avoid confusing concurrent modification behavior
+      for (const roleName of Array.from(remainingRoles)) {
+        const roleExists = await this.checkRoleExists(roleName);
+        if (!roleExists) {
+          remainingRoles.delete(roleName);
+        }
+        // wait a bit between each call to avoid throttling
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+    assert.fail(
+      `Timed out waiting for role deletion. Remaining roles were [${Array.from(
+        remainingRoles
+      ).join(', ')}]`
+    );
+  };
+
+  private checkRoleExists = async (roleName: string): Promise<boolean> => {
+    try {
+      await this.iamClient.send(new GetRoleCommand({ RoleName: roleName }));
+      // if GetRole returns without error, the role exits
+      return true;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'NoSuchEntityException') {
+        return false;
+      }
+      throw err;
     }
   };
 }
