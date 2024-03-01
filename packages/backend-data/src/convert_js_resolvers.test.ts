@@ -54,7 +54,7 @@ void describe('convertJsResolverDefinition', () => {
   void it('handles jsFunction IR with a single function', () => {
     const absolutePath = resolve(
       fileURLToPath(import.meta.url),
-      '../../lib',
+      '../../lib/assets',
       'js_resolver_handler.js'
     );
 
@@ -105,7 +105,7 @@ void describe('convertJsResolverDefinition', () => {
   void it('handles jsFunction IR with multiple functions', () => {
     const absolutePath = resolve(
       fileURLToPath(import.meta.url),
-      '../../lib',
+      '../../lib/assets',
       'js_resolver_handler.js'
     );
 

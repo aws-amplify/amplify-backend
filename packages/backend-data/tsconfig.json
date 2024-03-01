@@ -1,12 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
-  "exclude": ["src/assets"],
+  "exclude": ["src/assets", "lib"],
   "references": [
     { "path": "../backend-output-storage" },
     { "path": "../backend-output-schemas" },
     { "path": "../plugin-types" },
     { "path": "../backend-platform-test-stubs" },
-    { "path": "../platform-core" }
+    { "path": "../platform-core" },
+    { "path": "./src/assets" }
   ]
 }
