@@ -181,7 +181,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         sandboxModeEnabled,
         /**
          * The destructive updates should be always allowed in backend definition and not to be controlled on the IaC
-         * The CI/CD check should take the responsibility to validate if any stateful resources are not deleted and execute the changeset
+         * The CI/CD check should take the responsibility to validate if any tables are being replaced and determine whether to execute the changeset
          */
         allowDestructiveGraphqlSchemaUpdates: true,
       },
