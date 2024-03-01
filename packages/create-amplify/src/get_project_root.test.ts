@@ -87,7 +87,7 @@ void describe('getProjectRoot', () => {
       Promise.reject(expectedError)
     );
 
-    await assert.rejects(() => getProjectRoot(), expectedError);
+    await assert.rejects(getProjectRoot, expectedError);
     assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
     assert.equal(
       fsMkDirSyncMock.mock.calls[0].arguments[0],
