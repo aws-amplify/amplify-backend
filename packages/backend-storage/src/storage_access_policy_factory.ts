@@ -3,6 +3,7 @@ import { Effect, Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 import { StorageAction, StoragePath } from './types.js';
+import { InternalStorageAction } from './private_types.js';
 
 export type Permission = {
   actions: StorageAction[];
@@ -30,7 +31,7 @@ export class StorageAccessPolicyFactory {
 
   createPolicy = (
     permissions: Map<
-      StorageAction,
+      InternalStorageAction,
       { allow: Set<StoragePath>; deny: Set<StoragePath> }
     >
   ) => {
@@ -69,20 +70,48 @@ export class StorageAccessPolicyFactory {
 
   private getStatement = (
     s3Prefixes: Readonly<Set<StoragePath>>,
-    action: StorageAction,
+    action: InternalStorageAction,
     effect: Effect
-  ) =>
-    new PolicyStatement({
-      effect,
-      actions: actionMap[action],
-      resources: Array.from(s3Prefixes).map(
-        (s3Prefix) => `${this.bucket.bucketArn}${s3Prefix}`
-      ),
-    });
+  ) => {
+    switch (action) {
+      case 'delete':
+      case 'get':
+      case 'write':
+        return new PolicyStatement({
+          effect,
+          actions: actionMap[action],
+          resources: Array.from(s3Prefixes).map(
+            (s3Prefix) => `${this.bucket.bucketArn}${s3Prefix}`
+          ),
+        });
+      case 'list':
+        return new PolicyStatement({
+          effect,
+          actions: actionMap[action],
+          resources: [this.bucket.bucketArn],
+          conditions: {
+            StringEquals: {
+              's3:prefix': Array.from(s3Prefixes).flatMap(toConditionPrefix),
+            },
+          },
+        });
+    }
+  };
 }
 
-const actionMap: Record<StorageAction, string[]> = {
-  read: ['s3:GetObject'],
+const actionMap: Record<InternalStorageAction, string[]> = {
+  get: ['s3:GetObject'],
+  list: ['s3:ListBucket'],
   write: ['s3:PutObject'],
   delete: ['s3:DeleteObject'],
+};
+
+/**
+ * Converts a prefix like /foo/bar/* into [foo/bar/, foo/bar/*]
+ * This is necessary to grant the ability to list all objects directly in "foo/bar" and all objects under "foo/bar"
+ */
+const toConditionPrefix = (prefix: StoragePath) => {
+  const noLeadingSlash = prefix.slice(1);
+  const noTrailingWildcard = noLeadingSlash.slice(0, -1);
+  return [noLeadingSlash, noTrailingWildcard];
 };
