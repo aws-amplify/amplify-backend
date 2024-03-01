@@ -326,7 +326,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         () => this.iamClient.send(new GetRoleCommand({ RoleName: roleName })),
         {
           name: 'NoSuchEntityException',
-        }
+        },
+        `Expected role ${roleName} to be deleted`
       );
       // wait a bit between each call to avoid throttling
       await new Promise((resolve) => setTimeout(resolve, 100));
