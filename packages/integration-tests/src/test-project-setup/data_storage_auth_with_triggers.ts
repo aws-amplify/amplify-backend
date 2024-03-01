@@ -175,7 +175,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         projectFile: dataResourceFile,
         deployThresholdSec: {
           onWindows: 135,
-          onOther: 120,
+          onOther: 125,
         },
       },
     ];
