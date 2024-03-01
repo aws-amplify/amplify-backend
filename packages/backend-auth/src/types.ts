@@ -156,7 +156,7 @@ export type ExternalProviderSpecificFactoryProps =
     /**
      * OIDC Settings
      */
-    oidc?: OidcProviderFactoryProps;
+    oidc?: OidcProviderFactoryProps[];
     /**
      * Google OAuth Settings
      */

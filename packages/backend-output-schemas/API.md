@@ -49,6 +49,18 @@ export const backendOutputStackMetadataSchema: z.ZodRecord<z.ZodString, z.ZodObj
 }>>;
 
 // @public (undocumented)
+export type CustomOutput = z.infer<typeof versionedCustomOutputSchema>;
+
+// @public
+export const customOutputKey = "AWS::Amplify::Custom";
+
+// @public (undocumented)
+export type FunctionOutput = z.infer<typeof versionedFunctionOutputSchema>;
+
+// @public
+export const functionOutputKey = "AWS::Amplify::Function";
+
+// @public (undocumented)
 export type GraphqlOutput = z.infer<typeof versionedGraphqlOutputSchema>;
 
 // @public
@@ -114,9 +126,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             verificationMechanisms: z.ZodOptional<z.ZodString>;
             socialProviders: z.ZodOptional<z.ZodString>;
             oauthDomain: z.ZodOptional<z.ZodString>;
-            oauthScope: z.ZodOptional<z.ZodString>; /**
-            * re-export the storage output schema
-            */
+            oauthScope: z.ZodOptional<z.ZodString>;
             oauthRedirectSignIn: z.ZodOptional<z.ZodString>;
             oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
             oauthClientId: z.ZodOptional<z.ZodString>;
@@ -305,6 +315,46 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             storageRegion: string;
         };
     }>]>>;
+    "AWS::Amplify::Custom": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            customOutputs: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            customOutputs: string;
+        }, {
+            customOutputs: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    }>]>>;
+    "AWS::Amplify::Function": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            definedFunctions: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            definedFunctions: string;
+        }, {
+            definedFunctions: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            definedFunctions: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            definedFunctions: string;
+        };
+    }>]>>;
 }, "strip", z.ZodTypeAny, {
     "AWS::Amplify::Platform"?: {
         version: "1";
@@ -361,6 +411,18 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             storageRegion: string;
         };
     } | undefined;
+    "AWS::Amplify::Custom"?: {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    } | undefined;
+    "AWS::Amplify::Function"?: {
+        version: "1";
+        payload: {
+            definedFunctions: string;
+        };
+    } | undefined;
 }, {
     "AWS::Amplify::Platform"?: {
         version: "1";
@@ -415,6 +477,18 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         payload: {
             bucketName: string;
             storageRegion: string;
+        };
+    } | undefined;
+    "AWS::Amplify::Custom"?: {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    } | undefined;
+    "AWS::Amplify::Function"?: {
+        version: "1";
+        payload: {
+            definedFunctions: string;
         };
     } | undefined;
 }>;
@@ -548,6 +622,50 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut?: string | undefined;
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
+    };
+}>]>;
+
+// @public (undocumented)
+export const versionedCustomOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        customOutputs: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        customOutputs: string;
+    }, {
+        customOutputs: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        customOutputs: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        customOutputs: string;
+    };
+}>]>;
+
+// @public (undocumented)
+export const versionedFunctionOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        definedFunctions: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        definedFunctions: string;
+    }, {
+        definedFunctions: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        definedFunctions: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        definedFunctions: string;
     };
 }>]>;
 

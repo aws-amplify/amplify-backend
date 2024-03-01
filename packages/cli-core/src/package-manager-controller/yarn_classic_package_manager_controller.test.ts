@@ -1,13 +1,20 @@
+import os from 'node:os';
 import fsp from 'fs/promises';
 import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
+import { cyan } from 'kleur/colors';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 void describe('YarnClassicPackageManagerController', () => {
-  const fspMock = mock.fn(() => Promise.resolve());
+  const fspMock = {
+    readFile: mock.fn(() =>
+      Promise.resolve(JSON.stringify({ compilerOptions: {} }))
+    ),
+    writeFile: mock.fn(() => Promise.resolve()),
+  };
   const pathMock = {
     resolve: mock.fn(),
   };
@@ -15,7 +22,8 @@ void describe('YarnClassicPackageManagerController', () => {
   const executeWithDebugLoggerMock = mock.fn(() => Promise.resolve());
 
   beforeEach(() => {
-    fspMock.mock.resetCalls();
+    fspMock.readFile.mock.resetCalls();
+    fspMock.writeFile.mock.resetCalls();
     pathMock.resolve.mock.resetCalls();
     execaMock.mock.resetCalls();
     executeWithDebugLoggerMock.mock.resetCalls();
@@ -76,7 +84,9 @@ void describe('YarnClassicPackageManagerController', () => {
 
       assert.equal(
         yarnClassicPackageManagerController.getWelcomeMessage(),
-        'Run `yarn amplify help` for a list of available commands. \nGet started by running `yarn amplify sandbox`.'
+        ` - Get started by running ${cyan('yarn amplify sandbox')}.${
+          os.EOL
+        } - Run ${cyan('yarn amplify help')} for a list of available commands. `
       );
     });
   });

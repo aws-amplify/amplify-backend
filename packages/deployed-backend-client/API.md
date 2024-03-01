@@ -74,6 +74,7 @@ export type BackendMetadata = {
         lastUpdated: Date | undefined;
         s3BucketName: string;
     };
+    functionConfigurations?: FunctionConfiguration[];
 };
 
 // @public
@@ -132,7 +133,7 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    static getInstance(options: DeployedBackendClientFactoryOptions): DeployedBackendClient;
+    getInstance(options: DeployedBackendClientFactoryOptions): DeployedBackendClient;
 }
 
 // @public (undocumented)
@@ -162,6 +163,13 @@ export type DeployedBackendResource = {
     resourceType?: string;
     physicalResourceId?: string;
     arn?: string;
+};
+
+// @public (undocumented)
+export type FunctionConfiguration = {
+    status: BackendDeploymentStatus;
+    lastUpdated: Date | undefined;
+    functionName: string;
 };
 
 // @public (undocumented)

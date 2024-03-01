@@ -29,6 +29,14 @@ export enum COLOR {
 
 // @public
 export const format: {
+    runner: (binaryRunner: string) => {
+        amplifyCommand: (command: string) => string;
+    };
+    note: (message: string) => string;
+    command: (command: string) => string;
+    success: (message: string) => string;
+    sectionHeader: (header: string) => string;
+    link: (link: string) => string;
     list: (lines: string[]) => string;
     indent: (message: string) => string;
 };
@@ -45,7 +53,7 @@ export enum LogLevel {
 
 // @public
 export class PackageManagerControllerFactory {
-    constructor(cwd: string, printer: Printer);
+    constructor(cwd: string, printer: Printer, platform?: NodeJS.Platform);
     getPackageManagerController(): PackageManagerController;
 }
 

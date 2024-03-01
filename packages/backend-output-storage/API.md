@@ -37,6 +37,7 @@ export type Platform = 'Mac' | 'Windows' | 'Linux' | 'Other';
 export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy<BackendOutputEntry> {
     constructor(stack: Stack);
     addBackendOutputEntry: (keyName: string, backendOutputEntry: BackendOutputEntry) => void;
+    appendToBackendOutputList: (keyName: string, backendOutputEntry: BackendOutputEntry) => void;
 }
 
 // (No @packageDocumentation comment for this package)

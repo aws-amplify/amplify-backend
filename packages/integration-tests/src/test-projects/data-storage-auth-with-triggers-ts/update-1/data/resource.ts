@@ -1,4 +1,4 @@
-import { myFunc } from '../function.js';
+import { defaultNodeFunc } from '../function.js';
 import {
   type ClientSchema,
   a,
@@ -40,9 +40,8 @@ export const data = defineData({
     },
   },
   functions: {
-    reverse: myFunc,
-    // Leaving explicit Func invocation here,
-    // ensuring we can use functions not added to `defineBackend`.
+    reverse: defaultNodeFunc,
+    // Leaving explicit defineFunction invocation here to ensure we can use functions not added to `defineBackend`.
     echo: defineFunction({
       name: 'echoFunc',
       entry: './echo/handler.ts',

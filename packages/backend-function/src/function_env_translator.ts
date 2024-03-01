@@ -3,6 +3,7 @@ import { Arn, Lazy, Stack } from 'aws-cdk-lib';
 import { FunctionProps } from './factory.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 /**
  * Translates function environment props into appropriate environment records and builds a policy statement
@@ -15,6 +16,9 @@ export class FunctionEnvironmentTranslator {
   private readonly amplifySsmEnvConfigKey = 'AMPLIFY_SSM_ENV_CONFIG';
   private readonly ssmValuePlaceholderText =
     '<value will be resolved during runtime>';
+
+  // List of environment variable names for typed shim generation
+  private readonly amplifyBackendEnvVarNames: string[] = [];
 
   /**
    * Initialize translated environment variable records
@@ -42,6 +46,7 @@ export class FunctionEnvironmentTranslator {
       } else {
         this.lambda.addEnvironment(key, value);
       }
+      this.amplifyBackendEnvVarNames.push(key);
     }
 
     // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
@@ -77,6 +82,17 @@ export class FunctionEnvironmentTranslator {
         return [];
       },
     });
+
+    // Using CDK validation mechanism as a way to generate a typed process.env shim file at the end of synthesis
+    this.lambda.node.addValidation({
+      validate: (): string[] => {
+        new FunctionEnvironmentTypeGenerator(
+          this.lambda.node.id,
+          this.amplifyBackendEnvVarNames
+        ).generateTypedProcessEnvShim();
+        return [];
+      },
+    });
   }
 
   /**
@@ -88,6 +104,7 @@ export class FunctionEnvironmentTranslator {
     this.lambda.addEnvironment(name, this.ssmValuePlaceholderText);
     this.ssmPaths.push(ssmPath);
     this.ssmEnvVars[ssmPath] = { name };
+    this.amplifyBackendEnvVarNames.push(name);
   };
 }
 

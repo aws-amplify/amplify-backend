@@ -1,5 +1,49 @@
 # @aws-amplify/backend-function
 
+## 0.8.0-beta.1
+
+### Minor Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- Updated dependencies [ab7533d]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4995bda]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.0
+  - @aws-amplify/backend-output-storage@0.4.0-beta.1
+  - @aws-amplify/plugin-types@0.9.0-beta.0
+
+## 0.7.2-beta.0
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.3.1-beta.0
+
+## 0.7.1
+
+### Patch Changes
+
+- adb50ecb6: Fix cjs/top-level-await/esbuild interoperability issue when bundling lambda functions
+
+## 0.7.0
+
+### Minor Changes
+
+- ccde77a01: Refactor secret fetcher and support node 16 ssm shim
+
+### Patch Changes
+
+- Updated dependencies [85ced84f2]
+- Updated dependencies [b73d76a78]
+  - @aws-amplify/backend-output-storage@0.3.0
+  - @aws-amplify/plugin-types@0.8.0
+
 ## 0.6.4
 
 ### Patch Changes

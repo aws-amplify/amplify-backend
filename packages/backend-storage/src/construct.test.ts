@@ -14,7 +14,7 @@ void describe('AmplifyStorage', () => {
   void it('creates a bucket', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyStorage(stack, 'test', {});
+    new AmplifyStorage(stack, 'test', { name: 'testName' });
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::S3::Bucket', 1);
   });
@@ -22,7 +22,7 @@ void describe('AmplifyStorage', () => {
   void it('turns versioning on if specified', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyStorage(stack, 'test', { versioned: true });
+    new AmplifyStorage(stack, 'test', { versioned: true, name: 'testName' });
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::S3::Bucket', 1);
     template.hasResourceProperties('AWS::S3::Bucket', {
@@ -33,13 +33,59 @@ void describe('AmplifyStorage', () => {
   void it('stores attribution data in stack', () => {
     const app = new App();
     const stack = new Stack(app);
-    new AmplifyStorage(stack, 'testAuth', {});
+    new AmplifyStorage(stack, 'testAuth', { name: 'testName' });
 
     const template = Template.fromStack(stack);
     assert.equal(
       JSON.parse(template.toJSON().Description).stackType,
       'storage-S3'
     );
+  });
+
+  void it('enables cors on the bucket', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testAuth', { name: 'testName' });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::S3::Bucket', {
+      CorsConfiguration: {
+        CorsRules: [
+          {
+            AllowedHeaders: ['*'],
+            AllowedMethods: ['GET', 'HEAD', 'PUT', 'POST', 'DELETE'],
+            AllowedOrigins: ['*'],
+            ExposedHeaders: [
+              'x-amz-server-side-encryption',
+              'x-amz-request-id',
+              'x-amz-id-2',
+              'ETag',
+            ],
+            MaxAge: 3000,
+          },
+        ],
+      },
+    });
+  });
+
+  void it('sets destroy retain policy and auto-delete objects true', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', { name: 'testName' });
+
+    const template = Template.fromStack(stack);
+    const buckets = template.findResources('AWS::S3::Bucket');
+    const bucketLogicalIds = Object.keys(buckets);
+    assert.equal(bucketLogicalIds.length, 1);
+    const bucket = buckets[bucketLogicalIds[0]];
+    assert.equal(bucket.DeletionPolicy, 'Delete');
+    assert.equal(bucket.UpdateReplacePolicy, 'Delete');
+
+    template.hasResourceProperties('Custom::S3AutoDeleteObjects', {
+      BucketName: {
+        Ref: 'testBucketIdBucket3B30067A',
+      },
+    });
   });
 
   void describe('storeOutput', () => {
@@ -51,14 +97,16 @@ void describe('AmplifyStorage', () => {
       const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
         {
           addBackendOutputEntry: storeOutputMock,
+          appendToBackendOutputList: storeOutputMock,
         };
 
       const storageConstruct = new AmplifyStorage(stack, 'test', {
+        name: 'testName',
         outputStorageStrategy: storageStrategy,
       });
 
       const expectedBucketName = (
-        storageConstruct.node.findChild('testBucket') as Bucket
+        storageConstruct.node.findChild('Bucket') as Bucket
       ).bucketName;
       const expectedRegion = Stack.of(storageConstruct).region;
 
@@ -80,7 +128,7 @@ void describe('AmplifyStorage', () => {
       const app = new App();
       const stack = new Stack(app);
 
-      new AmplifyStorage(stack, 'test', {});
+      new AmplifyStorage(stack, 'test', { name: 'testName' });
       const template = Template.fromStack(stack);
       template.templateMatches({
         Metadata: {

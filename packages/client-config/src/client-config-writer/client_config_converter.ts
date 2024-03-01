@@ -3,6 +3,7 @@ import {
   ClientConfigMobile,
   ClientConfigMobileApi,
   ClientConfigMobileAuth,
+  ClientConfigMobileGeo,
 } from '../client-config-types/mobile/client_config_mobile_types.js';
 
 /**
@@ -121,6 +122,87 @@ export class ClientConfigConverter {
         }
       }
     }
+
+    if (clientConfig.geo) {
+      const geoConfig: ClientConfigMobileGeo = {
+        plugins: {
+          awsLocationGeoPlugin: {
+            region: clientConfig.geo.amazon_location_service.region,
+          },
+        },
+      };
+
+      const maps = clientConfig.geo.amazon_location_service.maps;
+      if (maps) {
+        geoConfig.plugins.awsLocationGeoPlugin.maps = maps;
+      }
+      const searchIndices =
+        clientConfig.geo.amazon_location_service.search_indices;
+      if (searchIndices) {
+        geoConfig.plugins.awsLocationGeoPlugin.searchIndices = searchIndices;
+      }
+
+      mobileConfig.geo = geoConfig;
+    }
+
+    if (clientConfig.Analytics) {
+      mobileConfig.analytics = {
+        plugins: {
+          awsPinpointAnalyticsPlugin: {
+            pinpointAnalytics: {
+              region: clientConfig.Analytics.Pinpoint.region,
+              appId: clientConfig.Analytics.Pinpoint.appId,
+            },
+            pinpointTargeting: {
+              region: clientConfig.Analytics.Pinpoint.region,
+            },
+          },
+        },
+      };
+    }
+
+    if (clientConfig.Notifications) {
+      // APNS and FCM are mapped to the same awsPinpointPushNotificationsPlugin
+      // Throw if they're both present but defined differently
+      // as this is ambiguous situation
+      const fcm = clientConfig.Notifications.FCM;
+      const apns = clientConfig.Notifications.APNS;
+      if (
+        fcm &&
+        apns &&
+        (fcm.AWSPinpoint.appId !== apns.AWSPinpoint.appId ||
+          fcm.AWSPinpoint.region !== apns.AWSPinpoint.region)
+      ) {
+        throw new Error(
+          'Cannot convert client config to mobile config if both FCM and APNS are defined with different AWS Pinpoint instance'
+        );
+      }
+      mobileConfig.notifications = {
+        plugins: {},
+      };
+      if (clientConfig.Notifications.SMS) {
+        mobileConfig.notifications.plugins.awsPinpointSmsNotificationsPlugin =
+          clientConfig.Notifications.SMS.AWSPinpoint;
+      }
+      if (clientConfig.Notifications.EMAIL) {
+        mobileConfig.notifications.plugins.awsPinpointEmailNotificationsPlugin =
+          clientConfig.Notifications.EMAIL.AWSPinpoint;
+      }
+      if (clientConfig.Notifications.InAppMessaging) {
+        mobileConfig.notifications.plugins.awsPinpointInAppMessagingNotificationsPlugin =
+          clientConfig.Notifications.InAppMessaging.AWSPinpoint;
+      }
+      // It's fine to overwrite FCM and APNS given validation above.
+      if (clientConfig.Notifications.FCM) {
+        mobileConfig.notifications.plugins.awsPinpointPushNotificationsPlugin =
+          clientConfig.Notifications.FCM.AWSPinpoint;
+      }
+      if (clientConfig.Notifications.APNS) {
+        mobileConfig.notifications.plugins.awsPinpointPushNotificationsPlugin =
+          clientConfig.Notifications.APNS.AWSPinpoint;
+      }
+    }
+
     return mobileConfig;
   };
 }

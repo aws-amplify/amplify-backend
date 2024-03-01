@@ -11,5 +11,5 @@ expected-cdk-out
 .changeset/pre.json
 concurrent_workspace_script_cache.json
 scripts/components/api-changes-validator/test-resources/working-directory
-test-projects
+/test-projects
 testDir

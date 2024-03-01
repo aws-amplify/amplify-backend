@@ -15,6 +15,8 @@ export class BackendIdentifierConversions {
    *
    * If the stack name is ambiguous, undefined is returned
    */
+  // It's fine to ignore the rule here because the anti-static rule is to ban the static function which should use constructor
+  // eslint-disable-next-line no-restricted-syntax
   static fromStackName(stackName?: string): BackendIdentifier | undefined {
     if (!stackName) {
       return;
@@ -47,6 +49,8 @@ export class BackendIdentifierConversions {
    *
    * Changing this method will change how stack names are generated which could be a massive breaking change for existing Amplify stacks.
    */
+  // It's fine to ignore the rule here because the anti-static rule is to ban the static function which should use constructor
+  // eslint-disable-next-line no-restricted-syntax
   static toStackName(backendId: BackendIdentifier): string {
     const hash = getHash(backendId);
 

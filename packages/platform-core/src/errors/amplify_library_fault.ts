@@ -1,13 +1,9 @@
-import {
-  AmplifyError,
-  AmplifyErrorOptions,
-  AmplifyLibraryFaultType,
-} from './amplify_error';
+import { AmplifyError, AmplifyErrorOptions } from './amplify_error';
 
 /**
  * Base class for all Amplify library faults
  */
-export class AmplifyFault extends AmplifyError {
+export class AmplifyFault<T extends string = string> extends AmplifyError<T> {
   /**
    * Create a new Amplify Library Fault
    * @param name - a user friendly name for the exception
@@ -21,11 +17,7 @@ export class AmplifyFault extends AmplifyError {
    *    throw new AmplifyLibraryFault(error,...,...);
    * }
    */
-  constructor(
-    name: AmplifyLibraryFaultType,
-    options: AmplifyErrorOptions,
-    cause?: Error
-  ) {
+  constructor(name: T, options: AmplifyErrorOptions, cause?: Error) {
     super(name, 'FAULT', options, cause);
   }
 }

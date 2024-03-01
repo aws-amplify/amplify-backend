@@ -8,6 +8,7 @@ import assert from 'assert';
 import { glob } from 'glob';
 import { testConcurrencyLevel } from './test_concurrency.js';
 import { findBaselineCdkVersion } from '../cdk_version_finder.js';
+import { amplifyAtTag } from '../constants.js';
 
 void describe(
   'create-amplify script',
@@ -31,11 +32,19 @@ void describe(
       // Force 'create-amplify' installation in npx cache by executing help command
       // before tests run. Otherwise, installing 'create-amplify' concurrently
       // may lead to race conditions and corrupted npx cache.
-      await execa('npm', ['create', 'amplify', '--yes', '--', '--help'], {
-        // Command must run outside of 'amplify-backend' workspace.
-        cwd: os.homedir(),
-        stdio: 'inherit',
-      });
+      const output = await execa(
+        'npm',
+        ['create', amplifyAtTag, '--yes', '--', '--help'],
+        {
+          // Command must run outside of 'amplify-backend' workspace.
+          cwd: os.homedir(),
+        }
+      );
+
+      assert.match(output.stdout, /--help/);
+      assert.match(output.stdout, /--version/);
+      assert.match(output.stdout, /Show version number/);
+      assert.match(output.stdout, /--yes/);
 
       // Prefixing with ~. Otherwise, npm is going to install desired version but
       // declare dependency with ^ in package json. So just in case removing that
@@ -80,7 +89,7 @@ void describe(
             );
           }
 
-          await execa('npm', ['create', 'amplify', '--yes'], {
+          await execa('npm', ['create', amplifyAtTag, '--yes'], {
             cwd: tempDir,
             stdio: 'inherit',
           });
@@ -113,6 +122,8 @@ void describe(
               'aws-cdk',
               'aws-cdk-lib',
               'constructs',
+              'esbuild',
+              'tsx',
               'typescript',
             ]
           );
@@ -157,6 +168,10 @@ void describe(
             'bundler'
           );
           assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
+          assert.deepStrictEqual(tsConfigObject.compilerOptions.paths, {
+            // The path here is coupled with backend-function's generated typedef file path
+            '@env/*': ['../.amplify/function-env/*'],
+          });
 
           const pathPrefix = path.join(tempDir, 'amplify');
 
@@ -236,7 +251,7 @@ void describe(
         const amplifyDirPath = path.join(tempDir, 'amplify');
         await fs.mkdir(amplifyDirPath, { recursive: true });
 
-        const result = await execa('npm', ['create', 'amplify', '--yes'], {
+        const result = await execa('npm', ['create', amplifyAtTag, '--yes'], {
           cwd: tempDir,
           stdio: 'pipe',
           reject: false,

@@ -3,7 +3,7 @@ import { CDKDeployer } from './cdk_deployer.js';
 import assert from 'node:assert';
 import { AmplifyError, BackendLocator } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
-import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
 import {
   BackendIdentifier,
   PackageManagerController,
@@ -284,7 +284,7 @@ void describe('invokeCDKCommand', () => {
 
     await assert.rejects(
       () => invoker.deploy(branchBackendId, sandboxDeployProps),
-      (err: AmplifyError) => {
+      (err: AmplifyError<CDKDeploymentError>) => {
         assert.equal(
           err.message,
           'The deployment role does not have sufficient permissions to perform this deployment.'

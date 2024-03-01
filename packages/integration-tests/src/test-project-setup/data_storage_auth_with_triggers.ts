@@ -14,6 +14,8 @@ import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
+import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -30,12 +32,18 @@ export class DataStorageAuthWithTriggerTestProjectCreator
     private readonly cfnClient: CloudFormationClient,
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
+    private readonly s3Client: S3Client,
+    private readonly iamClient: IAMClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
-    const { projectName, projectRoot, projectAmplifyDir } =
-      await createEmptyAmplifyProject(this.name, e2eProjectDir);
+    const {
+      projectName,
+      projectRoot,
+      projectAmplifyDir,
+      projectDotAmplifyDir,
+    } = await createEmptyAmplifyProject(this.name, e2eProjectDir);
 
     const project = new DataStorageAuthWithTriggerTestProject(
       projectName,
@@ -44,6 +52,8 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.cfnClient,
       this.secretClient,
       this.lambdaClient,
+      this.s3Client,
+      this.iamClient,
       this.resourceFinder
     );
     await fs.cp(
@@ -53,6 +63,12 @@ export class DataStorageAuthWithTriggerTestProjectCreator
         recursive: true,
       }
     );
+
+    // copy .amplify folder with typedef file from source project
+    await fs.cp(project.sourceProjectDotAmplifyDirPath, projectDotAmplifyDir, {
+      recursive: true,
+    });
+
     return project;
   };
 }
@@ -70,6 +86,13 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirPath: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
+    import.meta.url
+  );
+
+  readonly sourceProjectDotAmplifyDirSuffix = `${this.sourceProjectDirPath}/.amplify`;
+
+  readonly sourceProjectDotAmplifyDirPath: URL = new URL(
+    this.sourceProjectDotAmplifyDirSuffix,
     import.meta.url
   );
 
@@ -91,6 +114,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   private amplifySharedSecret: string;
 
+  private testBucketName: string;
+  private testRoleNames: string[];
+
   /**
    * Create a test project instance.
    */
@@ -101,6 +127,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     cfnClient: CloudFormationClient,
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
+    private readonly s3Client: S3Client,
+    private readonly iamClient: IAMClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
@@ -130,6 +158,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   override async tearDown(backendIdentifier: BackendIdentifier) {
     await super.tearDown(backendIdentifier);
     await this.clearDeployEnvironment(backendIdentifier);
+    await this.assertExpectedCleanup();
   }
 
   /**
@@ -180,12 +209,33 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(node16Lambda.length, 1);
 
     const expectedResponse = {
+      s3TestContent: 'this is some test content',
       testSecret: 'amazonSecret-e2eTestValue',
       testSharedSecret: `${this.amplifySharedSecret}-e2eTestSharedValue`,
     };
 
     await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
+
+    const bucketName = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::S3::Bucket',
+      // eslint-disable-next-line spellcheck/spell-checker
+      (bucketName) => bucketName.includes('testnamebucket')
+    );
+    assert.equal(
+      bucketName.length,
+      1,
+      `Expected one test bucket but found ${JSON.stringify(bucketName)}`
+    );
+    // store the bucket name in the class so we can assert that it is deleted properly when the stack is torn down
+    this.testBucketName = bucketName[0];
+
+    // store the roles associated with this deployment so we can assert that they are deleted when the stack is torn down
+    this.testRoleNames = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::IAM::Role'
+    );
   }
 
   private setUpDeployEnvironment = async (
@@ -230,5 +280,93 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     // check expected response
     assert.deepStrictEqual(responsePayload, expectedResponse);
+  };
+
+  private assertExpectedCleanup = async () => {
+    await this.waitForBucketDeletion(this.testBucketName);
+    await this.assertRolesDoNotExist(this.testRoleNames);
+  };
+
+  /**
+   * There is some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
+   * So we are polling HeadBucket until it returns NotFound or until we time out (after 30 seconds)
+   */
+  private waitForBucketDeletion = async (bucketName: string): Promise<void> => {
+    const TIMEOUT_MS = 1000 * 30; // 30 seconds
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < TIMEOUT_MS) {
+      const bucketExists = await this.checkBucketExists(bucketName);
+      if (!bucketExists) {
+        // bucket has been deleted
+        return;
+      }
+      // wait a second before polling again
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    assert.fail(`Timed out waiting for ${bucketName} to be deleted`);
+  };
+
+  private checkBucketExists = async (bucketName: string): Promise<boolean> => {
+    try {
+      await this.s3Client.send(new HeadBucketCommand({ Bucket: bucketName }));
+      // if HeadBucket returns without error, the bucket exists and is accessible
+      return true;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'NotFound') {
+        return false;
+      }
+      throw err;
+    }
+  };
+
+  private assertRolesDoNotExist = async (roleNames: string[]) => {
+    const TIMEOUT_MS = 1000 * 60 * 5; // IAM Role stabilization can take up to 2 minutes and we are waiting in between each GetRole call to avoid throttling
+    const startTime = Date.now();
+
+    const remainingRoles = new Set(roleNames);
+
+    while (Date.now() - startTime < TIMEOUT_MS && remainingRoles.size > 0) {
+      // iterate over a copy of the roles set to avoid confusing concurrent modification behavior
+      for (const roleName of Array.from(remainingRoles)) {
+        try {
+          const roleExists = await this.checkRoleExists(roleName);
+          if (!roleExists) {
+            remainingRoles.delete(roleName);
+          }
+        } catch (err) {
+          if (err instanceof Error) {
+            console.log(
+              `Got error [${err.name}] while polling for deletion of [${roleName}].`
+            );
+          }
+          // continue polling
+        }
+
+        // wait a bit between each call to help avoid throttling
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    }
+    if (remainingRoles.size > 0) {
+      assert.fail(
+        `Timed out waiting for role deletion. Remaining roles were [${Array.from(
+          remainingRoles
+        ).join(', ')}]`
+      );
+    }
+    // if we got here all the roles were cleaned up within the timeout
+  };
+
+  private checkRoleExists = async (roleName: string): Promise<boolean> => {
+    try {
+      await this.iamClient.send(new GetRoleCommand({ RoleName: roleName }));
+      // if GetRole returns without error, the role exits
+      return true;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'NoSuchEntityException') {
+        return false;
+      }
+      throw err;
+    }
   };
 }

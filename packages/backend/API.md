@@ -6,6 +6,7 @@
 
 import { a } from '@aws-amplify/data-schema';
 import { BackendSecret } from '@aws-amplify/plugin-types';
+import { ClientConfig } from '@aws-amplify/client-config';
 import { ClientSchema } from '@aws-amplify/data-schema';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
@@ -25,6 +26,7 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
 // @public (undocumented)
 export type BackendBase = {
     createStack: (name: string) => Stack;
+    addOutput: (clientConfigPart: Partial<ClientConfig>) => void;
 };
 
 export { ClientSchema }

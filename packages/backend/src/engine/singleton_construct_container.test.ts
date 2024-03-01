@@ -34,7 +34,7 @@ void describe('SingletonConstructContainer', () => {
       );
       const instance = container.getOrCompute({
         resourceGroupName: 'testGroup',
-        generateContainerEntry: (scope) => ({
+        generateContainerEntry: ({ scope }) => ({
           resources: {
             bucket: new Bucket(scope, 'testBucket'),
           },
@@ -49,7 +49,7 @@ void describe('SingletonConstructContainer', () => {
       );
       const initializer: ConstructContainerEntryGenerator = {
         resourceGroupName: 'testGroup',
-        generateContainerEntry: (scope) => ({
+        generateContainerEntry: ({ scope }) => ({
           resources: {
             bucket: new Bucket(scope, 'testBucket'),
           },
@@ -69,7 +69,7 @@ void describe('SingletonConstructContainer', () => {
         bucket: IBucket;
       }> = {
         resourceGroupName: 'testGroup',
-        generateContainerEntry: (scope) => ({
+        generateContainerEntry: ({ scope }) => ({
           resources: {
             bucket: new Bucket(scope, 'testBucket'),
           },
@@ -79,7 +79,7 @@ void describe('SingletonConstructContainer', () => {
         queue: IQueue;
       }> = {
         resourceGroupName: 'testGroup',
-        generateContainerEntry: (scope) => ({
+        generateContainerEntry: ({ scope }) => ({
           resources: {
             queue: new Queue(scope, 'testQueue'),
           },

@@ -6,6 +6,7 @@ import { GraphqlClientConfigContributor } from './client-config-contributor/grap
 import {
   UnifiedBackendOutput,
   authOutputKey,
+  customOutputKey,
   graphqlOutputKey,
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
@@ -13,6 +14,8 @@ import { ClientConfig } from './client-config-types/client_config.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
 import { PlatformClientConfigContributor } from './client-config-contributor/platform_client_config_contributor.js';
+import { CustomClientConfigContributor } from './client-config-contributor/custom_client_config_contributor.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
@@ -40,6 +43,13 @@ void describe('UnifiedClientConfigGenerator', () => {
             verificationMechanisms: '["EMAIL","PHONE"]',
             usernameAttributes: '["EMAIL"]',
             signupAttributes: '["EMAIL"]',
+            oauthClientId: 'oauthClientId',
+            oauthDomain: 'test-prefix.auth.us-east-1.amazoncognito.com',
+            oauthScope: '["email","profile","phone_number"]',
+            oauthRedirectSignIn: 'http://callback.com',
+            oauthRedirectSignOut: 'http://logout.com',
+            oauthResponseType: 'code',
+            socialProviders: `["GOOGLE","provider1","provider2"]`,
             allowUnauthenticatedIdentities: 'true',
           },
         },
@@ -104,8 +114,61 @@ void describe('UnifiedClientConfigGenerator', () => {
         aws_appsync_region: 'us-east-1',
         aws_appsync_additionalAuthenticationTypes: 'API_KEY',
         allowUnauthenticatedIdentities: 'true',
+        oauth: {
+          domain: 'test-prefix.auth.us-east-1.amazoncognito.com',
+          scope: ['email', 'profile', 'phone_number'],
+          redirectSignIn: 'http://callback.com',
+          redirectSignOut: 'http://logout.com',
+          clientId: 'oauthClientId',
+          responseType: 'code',
+        },
+        aws_cognito_social_providers: ['GOOGLE', 'provider1', 'provider2'],
       };
       assert.deepStrictEqual(result, expectedClientConfig);
+    });
+
+    void it('throws user error if there are overlapping values', async () => {
+      const customOutputs: Partial<ClientConfig> = {
+        aws_user_pools_id: 'overrideUserPoolId',
+      };
+      const stubOutput: UnifiedBackendOutput = {
+        [authOutputKey]: {
+          version: '1',
+          payload: {
+            identityPoolId: 'testIdentityPoolId',
+            userPoolId: 'testUserPoolId',
+            webClientId: 'testWebClientId',
+            authRegion: 'testRegion',
+          },
+        },
+        [customOutputKey]: {
+          version: '1',
+          payload: {
+            customOutputs: JSON.stringify(customOutputs),
+          },
+        },
+      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
+      const configContributors = [
+        new AuthClientConfigContributor(),
+        new CustomClientConfigContributor(),
+      ];
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Duplicated entry with key aws_user_pools_id detected in deployment outputs'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
     });
   });
 });

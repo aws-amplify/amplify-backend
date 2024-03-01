@@ -1,10 +1,11 @@
-import { Construct, IConstruct } from 'constructs';
+import { IConstruct } from 'constructs';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  GenerateContainerEntryProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
@@ -14,7 +15,7 @@ import {
 } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
-import { DataProps } from './types.js';
+import { AmplifyDataError, DataProps } from './types.js';
 import { convertSchemaToCDK } from './convert_schema.js';
 import {
   FunctionInstanceProvider,
@@ -32,9 +33,14 @@ import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
 import { Aspects, IAspect } from 'aws-cdk-lib';
 
 /**
- * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files
+ * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
+ *
+ * Exported for testing purpose only & should NOT be exported out of the package.
  */
-class DataFactory implements ConstructFactory<AmplifyData> {
+export class DataFactory implements ConstructFactory<AmplifyData> {
+  // publicly accessible for testing purpose only.
+  static factoryCount = 0;
+
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -43,7 +49,16 @@ class DataFactory implements ConstructFactory<AmplifyData> {
   constructor(
     private readonly props: DataProps,
     private readonly importStack = new Error().stack
-  ) {}
+  ) {
+    if (DataFactory.factoryCount > 0) {
+      throw new AmplifyUserError('MultipleSingletonResourcesError', {
+        message:
+          'Multiple `defineData` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineData` call',
+      });
+    }
+    DataFactory.factoryCount++;
+  }
 
   /**
    * Gets an instance of the Data construct
@@ -85,7 +100,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
-  generateContainerEntry = (scope: Construct) => {
+  generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
     let authorizationModes;
 
     try {
@@ -95,7 +110,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         this.props.authorizationModes
       );
     } catch (error) {
-      throw new AmplifyUserError(
+      throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaAuthError',
         {
           message:
@@ -113,7 +128,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         authorizationModes
       );
     } catch (error) {
-      throw new AmplifyUserError(
+      throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaAuthError',
         {
           message:
@@ -139,7 +154,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     try {
       amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
     } catch (error) {
-      throw new AmplifyUserError(
+      throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaError',
         {
           message:

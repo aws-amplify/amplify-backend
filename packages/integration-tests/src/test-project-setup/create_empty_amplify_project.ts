@@ -16,6 +16,7 @@ export const createEmptyAmplifyProject = async (
   projectName: string;
   projectRoot: string;
   projectAmplifyDir: string;
+  projectDotAmplifyDir: string;
 }> => {
   const projectRoot = await fs.mkdtemp(path.join(parentDir, projectDirName));
   const projectName = `${TEST_PROJECT_PREFIX}-${projectDirName}-${shortUuid()}`;
@@ -27,7 +28,10 @@ export const createEmptyAmplifyProject = async (
   const projectAmplifyDir = path.join(projectRoot, 'amplify');
   await fs.mkdir(projectAmplifyDir);
 
+  const projectDotAmplifyDir = path.join(projectRoot, '.amplify');
+  await fs.mkdir(projectDotAmplifyDir);
+
   await setupDirAsEsmModule(projectAmplifyDir);
 
-  return { projectName, projectRoot, projectAmplifyDir };
+  return { projectName, projectRoot, projectAmplifyDir, projectDotAmplifyDir };
 };
