@@ -659,7 +659,7 @@ void describe('StorageAccessOrchestrator', () => {
           ],
           '/other/baz/*': [
             {
-              actions: ['read', 'list', 'get'],
+              actions: ['read'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
               ownerPlaceholderSubstitution: '*',
             },
