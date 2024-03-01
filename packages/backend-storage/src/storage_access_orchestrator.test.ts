@@ -689,7 +689,7 @@ void describe('StorageAccessOrchestrator', () => {
               Effect: 'Allow',
               Resource: bucket.bucketArn,
               Condition: {
-                StringEquals: {
+                StringLike: {
                   's3:prefix': [
                     'foo/bar/*',
                     'foo/bar/',

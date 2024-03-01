@@ -598,7 +598,7 @@ void describe('StorageAccessPolicyFactory', () => {
               'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
             },
             Condition: {
-              StringEquals: {
+              StringLike: {
                 's3:prefix': ['some/prefix/*', 'some/prefix/'],
               },
             },
@@ -610,7 +610,7 @@ void describe('StorageAccessPolicyFactory', () => {
               'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
             },
             Condition: {
-              StringEquals: {
+              StringLike: {
                 's3:prefix': ['some/prefix/subpath/*', 'some/prefix/subpath/'],
               },
             },

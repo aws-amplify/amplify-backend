@@ -90,7 +90,7 @@ export class StorageAccessPolicyFactory {
           actions: actionMap[action],
           resources: [this.bucket.bucketArn],
           conditions: {
-            StringEquals: {
+            StringLike: {
               's3:prefix': Array.from(s3Prefixes).flatMap(toConditionPrefix),
             },
           },
