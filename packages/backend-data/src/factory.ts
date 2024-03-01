@@ -171,34 +171,48 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
       functionNameMap,
-      translationBehavior: { sandboxModeEnabled },
+      translationBehavior: {
+        sandboxModeEnabled,
+        /**
+         * The destructive updates should be always allowed in backend definition and not to be controlled on the IaC
+         * The CI/CD check should take the responsibility to validate if any stateful resources are not deleted and execute the changeset
+         */
+        allowDestructiveGraphqlSchemaUpdates: true,
+      },
     });
-    Aspects.of(amplifyData).add(new AllowDestructiveUpdatesChecker());
+    Aspects.of(amplifyData).add(new ReplaceTableUponGsiUpdateChecker());
     return amplifyData;
   };
 }
 
-const DESTRUCTIVE_SCHEMA_UPDATES_ATTRIBUTE_NAME: keyof TranslationBehavior =
-  'allowDestructiveGraphqlSchemaUpdates';
 const REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME: keyof TranslationBehavior =
   'replaceTableUponGsiUpdate';
+
+enum BackendDataEnvironmentVariables {
+  // Environment variables allowed in sandbox mode only
+  REPLACE_TABLE_UPON_GSI_UPDATE = 'REPLACE_TABLE_UPON_GSI_UPDATE',
+}
 /**
  * Aspect class to modify the amplify managed DynamoDB table
- * to allow destructive updates when sandbox deployment is detected
+ * to allow table replacement upon GSI update when the environment variable is set to true
+ * This is only allowed to be modified in sandbox mode
  */
-class AllowDestructiveUpdatesChecker implements IAspect {
+class ReplaceTableUponGsiUpdateChecker implements IAspect {
   public visit(scope: IConstruct): void {
-    if (scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox') {
+    const replaceTableUponGsiUpdate: boolean =
+      process.env[
+        BackendDataEnvironmentVariables.REPLACE_TABLE_UPON_GSI_UPDATE
+      ] === 'true';
+    if (
+      replaceTableUponGsiUpdate &&
+      scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox'
+    ) {
       if (AmplifyDynamoDbTableWrapper.isAmplifyDynamoDbTableResource(scope)) {
         // These value setters are not exposed in the wrapper
         // Need to use the property override to escape the hatch
         scope.addPropertyOverride(
-          DESTRUCTIVE_SCHEMA_UPDATES_ATTRIBUTE_NAME,
-          true
-        );
-        scope.addPropertyOverride(
           REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME,
-          true
+          replaceTableUponGsiUpdate
         );
       }
     }
