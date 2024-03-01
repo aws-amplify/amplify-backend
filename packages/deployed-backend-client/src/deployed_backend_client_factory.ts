@@ -33,6 +33,12 @@ export type SandboxMetadata = {
   backendId: BackendIdentifier | undefined;
 };
 
+export type DeleteFailedStacksMetadata = {
+  name: string;
+  lastUpdated: Date | undefined;
+  backendId: BackendIdentifier | undefined;
+};
+
 export type ListSandboxesRequest = {
   nextToken?: string;
 };
@@ -86,6 +92,10 @@ export type ListSandboxesResponse = {
   nextToken: string | undefined;
 };
 
+export type ListDeleteFailedStacksResponse = {
+  failedStacks: DeleteFailedStacksMetadata[];
+};
+
 export enum BackendDeploymentStatus {
   DEPLOYED = 'DEPLOYED',
   FAILED = 'FAILED',
@@ -105,6 +115,7 @@ export type DeployedBackendClient = {
   getBackendMetadata: (
     backendId: BackendIdentifier
   ) => Promise<BackendMetadata>;
+  listDeleteFailedStacks: () => Promise<ListDeleteFailedStacksResponse>;
 };
 
 export type DeployedBackendClientOptions = {

@@ -7,8 +7,10 @@ import {
   ApiAuthType,
   BackendMetadata,
   ConflictResolutionMode,
+  DeleteFailedStacksMetadata,
   DeployedBackendClient,
   FunctionConfiguration,
+  ListDeleteFailedStacksResponse,
   ListSandboxesRequest,
   ListSandboxesResponse,
   SandboxMetadata,
@@ -134,10 +136,65 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
   };
 
+  /**
+   * Returns Amplify stacks which failed to delete for the account and region
+   */
+  listDeleteFailedStacks =
+    async (): Promise<ListDeleteFailedStacksResponse> => {
+      const stackMetadata: DeleteFailedStacksMetadata[] = [];
+      let nextToken;
+
+      do {
+        const listStacksResponse = await this.listStacksWithStatus(nextToken, [
+          'DELETE_FAILED',
+        ]);
+        // eslint-disable-next-line
+        const stackMetadataPromises = listStacksResponse.stackSummaries
+          .filter((stackSummary: StackSummary) => {
+            return this.isBranchStack(stackSummary.StackName);
+          })
+          .map(async (stackSummary: StackSummary) => {
+            const deploymentType = await this.tryGetDeploymentType(
+              stackSummary
+            );
+
+            return {
+              name: stackSummary.StackName as string,
+              backendId: BackendIdentifierConversions.fromStackName(
+                stackSummary.StackName
+              ),
+              lastUpdated:
+                stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
+              deploymentType,
+            };
+          });
+
+        const stackMetadataResolvedPromises = await Promise.all(
+          stackMetadataPromises
+        );
+        const filteredMetadata = stackMetadataResolvedPromises.filter(
+          (stackMetadata) => stackMetadata.deploymentType === 'branch'
+        );
+
+        stackMetadata.push(...filteredMetadata);
+        nextToken = listStacksResponse.nextToken;
+      } while (nextToken);
+
+      return {
+        failedStacks: stackMetadata,
+      };
+    };
+
   private isSandboxStack = (stackName: string | undefined): boolean => {
     const backendIdentifier =
       BackendIdentifierConversions.fromStackName(stackName);
     return backendIdentifier?.type === 'sandbox';
+  };
+
+  private isBranchStack = (stackName: string | undefined): boolean => {
+    const backendIdentifier =
+      BackendIdentifierConversions.fromStackName(stackName);
+    return backendIdentifier?.type === 'branch';
   };
 
   private tryGetDeploymentType = async (
@@ -173,6 +230,23 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   }> => {
     const stacks: ListStacksCommandOutput = await this.cfnClient.send(
       new ListStacksCommand({ NextToken: nextToken })
+    );
+    nextToken = stacks.NextToken;
+    return { stackSummaries: stacks.StackSummaries ?? [], nextToken };
+  };
+
+  private listStacksWithStatus = async (
+    nextToken: string | undefined,
+    stackStatusFilter: StackStatus[]
+  ): Promise<{
+    stackSummaries: StackSummary[];
+    nextToken: string | undefined;
+  }> => {
+    const stacks: ListStacksCommandOutput = await this.cfnClient.send(
+      new ListStacksCommand({
+        NextToken: nextToken,
+        StackStatusFilter: stackStatusFilter,
+      })
     );
     nextToken = stacks.NextToken;
     return { stackSummaries: stacks.StackSummaries ?? [], nextToken };
