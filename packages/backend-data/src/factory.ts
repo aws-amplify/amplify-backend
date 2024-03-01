@@ -16,7 +16,7 @@ import {
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
-import { convertSchemaToCDK } from './convert_schema.js';
+import { convertSchemaToCDK, isModelSchema } from './convert_schema.js';
 import {
   FunctionInstanceProvider,
   buildConstructFactoryFunctionInstanceProvider,
@@ -31,6 +31,7 @@ import {
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
 import { Aspects, IAspect } from 'aws-cdk-lib';
+import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -151,7 +152,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     );
 
     let amplifyGraphqlDefinition;
+    let jsFunctions;
     try {
+      if (isModelSchema(this.props.schema)) {
+        ({ jsFunctions } = this.props.schema.transform());
+      }
       amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
@@ -165,7 +170,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         error instanceof Error ? error : undefined
       );
     }
-    const amplifyData = new AmplifyData(scope, this.defaultName, {
+
+    const amplifyApi = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
       definition: amplifyGraphqlDefinition,
       authorizationModes,
@@ -180,8 +186,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         allowDestructiveGraphqlSchemaUpdates: true,
       },
     });
-    Aspects.of(amplifyData).add(new ReplaceTableUponGsiUpdateChecker());
-    return amplifyData;
+    Aspects.of(amplifyApi).add(new ReplaceTableUponGsiUpdateChecker());
+
+    convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
+
+    return amplifyApi;
   };
 }
 

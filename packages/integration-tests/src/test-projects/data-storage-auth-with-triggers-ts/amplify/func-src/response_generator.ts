@@ -11,7 +11,7 @@ Amplify.configure(
   {
     Storage: {
       S3: {
-        bucket: process.env.testName_BUCKET_NAME,
+        bucket: env.testName_BUCKET_NAME,
         region: env.AWS_REGION,
       },
     },
