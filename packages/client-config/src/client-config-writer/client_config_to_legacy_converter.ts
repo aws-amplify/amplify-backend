@@ -117,7 +117,10 @@ export class ClientConfigLegacyConverter {
 
     // Custom
     if (clientConfig.custom) {
-      legacyConfig = { ...legacyConfig, custom: { ...clientConfig.custom } };
+      legacyConfig = {
+        ...legacyConfig,
+        custom: { ...clientConfig.custom } as Record<string, string>,
+      };
     }
 
     //TBD other categories
@@ -127,7 +130,7 @@ export class ClientConfigLegacyConverter {
 
   isClientConfigV1 = (
     clientConfig: ClientConfig
-  ): clientConfig is clientConfigTypesV1.ClientConfigV1 => {
+  ): clientConfig is clientConfigTypesV1.AWSAmplifyGen2BackendOutputs => {
     return clientConfig.version === '1';
   };
 }

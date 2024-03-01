@@ -188,12 +188,13 @@ void describe('Backend', () => {
   void it('can add custom output', () => {
     const rootStack = createStackAndSetContext('sandbox');
     const backend = new BackendFactory({}, rootStack);
-    const clientConfigPartial: clientConfigTypesV1.ClientConfigV1 = {
-      version: '1',
-      custom: {
-        someCustomOutput: 'someCustomOutputValue',
-      },
-    };
+    const clientConfigPartial: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs =
+      {
+        version: '1',
+        custom: {
+          someCustomOutput: 'someCustomOutputValue',
+        },
+      };
     backend.addOutput(clientConfigPartial);
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.hasOutput('customOutputs', {

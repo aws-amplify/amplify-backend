@@ -57,6 +57,7 @@ void describe('auth client config contributor v1', () => {
         },
       }),
       {
+        version: '1',
         auth: {
           user_pool_id: 'testUserPoolId',
           user_pool_client_id: 'testWebClientId',
@@ -64,7 +65,7 @@ void describe('auth client config contributor v1', () => {
           identity_pool_id: 'testIdentityPoolId',
           unauthenticated_identities_enabled: true,
         },
-      } as Partial<clientConfigTypesV1.ClientConfigV1>
+      } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
     );
   });
 
@@ -83,13 +84,14 @@ void describe('auth client config contributor v1', () => {
         },
       }),
       {
+        version: '1',
         auth: {
           user_pool_id: 'testUserPoolId',
           user_pool_client_id: 'testWebClientId',
           aws_region: 'testRegion',
           identity_pool_id: 'testIdentityPoolId',
         },
-      } as Partial<clientConfigTypesV1.ClientConfigV1>
+      } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
     );
   });
 
@@ -124,6 +126,7 @@ void describe('auth client config contributor v1', () => {
         },
       }),
       {
+        version: '1',
         auth: {
           user_pool_id: 'testUserPoolId',
           user_pool_client_id: 'testWebClientId',
@@ -151,7 +154,7 @@ void describe('auth client config contributor v1', () => {
           oauth_response_type: 'code',
           identity_providers: ['provider1', 'provider2'],
         },
-      } as Partial<clientConfigTypesV1.ClientConfigV1>
+      } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
     );
   });
 });
@@ -210,6 +213,7 @@ void describe('data client config contributor v1', () => {
       },
     });
     assert.deepStrictEqual(contribution, {
+      version: '1',
       data: {
         api_key: 'testApiKey',
         default_authorization_type: 'API_KEY',
@@ -217,8 +221,8 @@ void describe('data client config contributor v1', () => {
         //aws_appsync_conflictResolutionMode: undefined,
         url: 'testApiEndpoint',
         aws_region: 'us-east-1',
-      } as clientConfigTypesV1.Data,
-    });
+      },
+    } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs);
   });
 
   void it('returns translated config with model introspection when resolvable', async () => {
@@ -253,6 +257,7 @@ void describe('data client config contributor v1', () => {
       },
     });
     assert.deepStrictEqual(contribution, {
+      version: '1',
       data: {
         api_key: 'testApiKey',
         default_authorization_type: 'API_KEY',
@@ -266,8 +271,8 @@ void describe('data client config contributor v1', () => {
           nonModels: {},
           enums: {},
         },
-      } as clientConfigTypesV1.Data,
-    });
+      },
+    } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs);
   });
 });
 
@@ -275,7 +280,8 @@ void describe('Custom client config contributor v1', () => {
   const customClientConfigContributor = new CustomClientConfigContributor();
 
   void it('contributes custom output when present', () => {
-    const customOutputs: Partial<ClientConfig> = {
+    const customOutputs: ClientConfig = {
+      version: '1',
       auth: {
         user_pool_id: 'userPoolId',
       },

@@ -10,7 +10,7 @@ import {
   clientConfigTypesV1,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-import { DefaultAuthorizationTypeElement } from '../client-config-schema/client_config_v1.js';
+import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.js';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
@@ -52,52 +52,67 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       obj[key] = JSON.parse(value);
     };
 
-    const authClientConfig: clientConfigTypesV1.Auth = {
-      user_pool_id: authOutput.payload.userPoolId,
-      aws_region: authOutput.payload.authRegion,
-      user_pool_client_id: authOutput.payload.webClientId,
-      identity_pool_id: authOutput.payload.identityPoolId,
+    const authClientConfig: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
+      version: '1',
+      auth: {
+        user_pool_id: authOutput.payload.userPoolId,
+        aws_region: authOutput.payload.authRegion,
+        user_pool_client_id: authOutput.payload.webClientId,
+        identity_pool_id: authOutput.payload.identityPoolId,
+      },
     };
 
+    if (authOutput.payload.mfaTypes) {
+      authClientConfig.auth!.mfa_methods = JSON.parse(
+        authOutput.payload.mfaTypes
+      );
+      parseAndAssignObject(
+        authClientConfig.auth!,
+        'mfa_methods',
+        authOutput.payload.mfaTypes
+      );
+    }
     parseAndAssignObject(
-      authClientConfig,
+      authClientConfig.auth!,
       'mfa_methods',
       authOutput.payload.mfaTypes
     );
 
     if (authOutput.payload.signupAttributes) {
-      authClientConfig.standard_attributes = {};
+      authClientConfig.auth!.standard_attributes = {};
       const attributes = JSON.parse(
         authOutput.payload.signupAttributes
       ) as string[];
       for (const attribute of attributes) {
-        authClientConfig.standard_attributes[attribute] = { required: true };
+        authClientConfig.auth!.standard_attributes[attribute] = {
+          required: true,
+        };
       }
     }
 
     parseAndAssignObject(
-      authClientConfig,
+      authClientConfig.auth!,
       'username_attributes',
       authOutput.payload.usernameAttributes
     );
     parseAndAssignObject(
-      authClientConfig,
+      authClientConfig.auth!,
       'user_verification_mechanisms',
       authOutput.payload.verificationMechanisms
     );
 
     if (authOutput.payload.mfaConfiguration) {
-      authClientConfig.mfa_configuration = authOutput.payload
-        .mfaConfiguration as clientConfigTypesV1.MfaConfiguration;
+      authClientConfig.auth!.mfa_configuration = authOutput.payload
+        .mfaConfiguration as 'NONE' | 'OPTIONAL' | 'REQUIRED';
     }
 
     if (
       authOutput.payload.passwordPolicyMinLength ||
       authOutput.payload.passwordPolicyRequirements
     ) {
-      const passwordPolicy: clientConfigTypesV1.PasswordPolicy = {};
+      authClientConfig.auth!.password_policy = {};
       if (authOutput.payload.passwordPolicyMinLength) {
-        passwordPolicy.min_length = Number.parseInt(
+        authClientConfig.auth!.password_policy.min_length = Number.parseInt(
           authOutput.payload.passwordPolicyMinLength
         );
       }
@@ -108,26 +123,25 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
         for (const requirement of requirements) {
           switch (requirement) {
             case 'REQUIRES_NUMBERS':
-              passwordPolicy.require_numbers = true;
+              authClientConfig.auth!.password_policy.require_numbers = true;
               break;
             case 'REQUIRES_LOWERCASE':
-              passwordPolicy.require_lowercase = true;
+              authClientConfig.auth!.password_policy.require_lowercase = true;
               break;
             case 'REQUIRES_UPPERCASE':
-              passwordPolicy.require_uppercase = true;
+              authClientConfig.auth!.password_policy.require_uppercase = true;
               break;
             case 'REQUIRES_SYMBOLS':
-              passwordPolicy.require_symbols = true;
+              authClientConfig.auth!.password_policy.require_symbols = true;
               break;
           }
         }
       }
-      authClientConfig.password_policy = passwordPolicy;
     }
 
     if (authOutput.payload.socialProviders) {
       parseAndAssignObject(
-        authClientConfig,
+        authClientConfig.auth!,
         'identity_providers',
         authOutput.payload.socialProviders
       );
@@ -135,27 +149,27 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
 
     if (authOutput.payload.oauthClientId) {
       if (authOutput.payload.oauthDomain) {
-        authClientConfig.oauth_domain = authOutput.payload.oauthDomain;
+        authClientConfig.auth!.oauth_domain = authOutput.payload.oauthDomain;
       }
       parseAndAssignObject(
-        authClientConfig,
+        authClientConfig.auth!,
         'oauth_scope',
         authOutput.payload.oauthScope
       );
-      authClientConfig.oauth_redirect_sign_in =
+      authClientConfig.auth!.oauth_redirect_sign_in =
         authOutput.payload.oauthRedirectSignIn?.split(',');
-      authClientConfig.oauth_redirect_sign_out =
+      authClientConfig.auth!.oauth_redirect_sign_out =
         authOutput.payload.oauthRedirectSignOut?.split(',');
-      authClientConfig.oauth_response_type = authOutput.payload
-        .oauthResponseType as clientConfigTypesV1.OauthResponseType;
+      authClientConfig.auth!.oauth_response_type = authOutput.payload
+        .oauthResponseType as 'code' | 'token';
     }
 
     if (authOutput.payload.allowUnauthenticatedIdentities) {
-      authClientConfig.unauthenticated_identities_enabled =
+      authClientConfig.auth!.unauthenticated_identities_enabled =
         authOutput.payload.allowUnauthenticatedIdentities === 'true';
     }
 
-    return { auth: authClientConfig } as ClientConfig;
+    return authClientConfig;
   };
 }
 
@@ -180,19 +194,22 @@ export class DataClientConfigContributor implements ClientConfigContributor {
     if (graphqlOutput === undefined) {
       return {};
     }
-    const config: clientConfigTypesV1.Data = {
-      url: graphqlOutput.payload.awsAppsyncApiEndpoint,
-      aws_region: graphqlOutput.payload.awsAppsyncRegion,
-      api_key: graphqlOutput.payload.awsAppsyncApiKey,
-      default_authorization_type:
-        graphqlOutput.payload.awsAppsyncAuthenticationType,
-      authorization_types:
-        graphqlOutput.payload.awsAppsyncAdditionalAuthenticationTypes?.split(
-          ','
-        ) as DefaultAuthorizationTypeElement[],
-      // TBD
-      // aws_appsync_conflictResolutionMode:
-      //   graphqlOutput.payload.awsAppsyncConflictResolutionMode,
+    const config: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
+      version: '1',
+      data: {
+        url: graphqlOutput.payload.awsAppsyncApiEndpoint,
+        aws_region: graphqlOutput.payload.awsAppsyncRegion,
+        api_key: graphqlOutput.payload.awsAppsyncApiKey,
+        default_authorization_type:
+          graphqlOutput.payload.awsAppsyncAuthenticationType,
+        authorization_types:
+          graphqlOutput.payload.awsAppsyncAdditionalAuthenticationTypes?.split(
+            ','
+          ) as AwsAppsyncAuthorizationType[],
+        // TBD
+        // aws_appsync_conflictResolutionMode:
+        //   graphqlOutput.payload.awsAppsyncConflictResolutionMode,
+      },
     };
 
     const modelIntrospection =
@@ -201,10 +218,12 @@ export class DataClientConfigContributor implements ClientConfigContributor {
       );
 
     if (modelIntrospection) {
-      config.model_introspection = modelIntrospection;
+      config.data!.model_introspection = modelIntrospection as {
+        [k: string]: unknown;
+      };
     }
 
-    return { data: config } as ClientConfig;
+    return config;
   };
 }
 

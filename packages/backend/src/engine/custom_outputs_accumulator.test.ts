@@ -57,11 +57,11 @@ void describe('Custom outputs accumulator', () => {
       objectAccumulator
     );
 
-    const configPart1: clientConfigTypesV1.ClientConfigV1 = {
+    const configPart1: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
       version: '1',
       custom: { output1: 'val1' },
     };
-    const configPart2: clientConfigTypesV1.ClientConfigV1 = {
+    const configPart2: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
       version: '1',
       custom: { output2: 'val2' },
     };

@@ -27,7 +27,7 @@ export type ClientConfigLegacy = Partial<
 
 // Versions of client config schema supported by "this" package version
 export type ClientConfig =
-  | clientConfigTypesV1.ClientConfigV1
+  | clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
   | clientConfigTypesV2.ClientConfigV2;
 
 export { clientConfigTypesV1 };
@@ -36,7 +36,7 @@ export { clientConfigTypesV2 };
 export type ClientConfigVersion = '0' | '1' | '2';
 
 export type ClientConfigVersionType<T> = T extends '1'
-  ? clientConfigTypesV1.ClientConfigV1
+  ? clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
   : T extends '2'
   ? clientConfigTypesV2.ClientConfigV2
   : never;
