@@ -19,6 +19,9 @@ export class CdkInfoProvider {
 
     const output = await this.execa('npx', cdkDoctorArgs, {
       all: true,
+      env: {
+        JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION: 'true',
+      },
     });
 
     return this.formatCdkInfo(output.all ?? output.stderr);
