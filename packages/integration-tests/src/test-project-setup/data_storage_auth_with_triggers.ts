@@ -321,7 +321,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   };
 
   private assertRolesDoNotExist = async (roleNames: string[]) => {
-    const TIMEOUT_MS = 1000 * 60 * 2; // IAM Role stabilization period is 2 minutes
+    const TIMEOUT_MS = 1000 * 60 * 5; // IAM Role stabilization can take up to 2 minutes and we are waiting in between each GetRole call to avoid throttling
     const startTime = Date.now();
 
     const remainingRoles = new Set(roleNames);
@@ -329,12 +329,22 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     while (Date.now() - startTime < TIMEOUT_MS && remainingRoles.size > 0) {
       // iterate over a copy of the roles set to avoid confusing concurrent modification behavior
       for (const roleName of Array.from(remainingRoles)) {
-        const roleExists = await this.checkRoleExists(roleName);
-        if (!roleExists) {
-          remainingRoles.delete(roleName);
+        try {
+          const roleExists = await this.checkRoleExists(roleName);
+          if (!roleExists) {
+            remainingRoles.delete(roleName);
+          }
+        } catch (err) {
+          if (err instanceof Error) {
+            console.log(
+              `Got error [${err.name}] while polling for deletion of [${roleName}].`
+            );
+          }
+          // continue polling
         }
-        // wait a bit between each call to avoid throttling
-        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // wait a bit between each call to help avoid throttling
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
     if (remainingRoles.size > 0) {
