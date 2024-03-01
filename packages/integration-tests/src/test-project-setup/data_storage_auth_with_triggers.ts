@@ -321,7 +321,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   };
 
   private assertRolesDoNotExist = async (roleNames: string[]) => {
-    const TIMEOUT_MS = 1000 * 30; // 30 seconds
+    const TIMEOUT_MS = 1000 * 60 * 2; // IAM Role stabilization period is 2 minutes
     const startTime = Date.now();
 
     const remainingRoles = new Set(roleNames);
@@ -337,11 +337,14 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
-    assert.fail(
-      `Timed out waiting for role deletion. Remaining roles were [${Array.from(
-        remainingRoles
-      ).join(', ')}]`
-    );
+    if (remainingRoles.size > 0) {
+      assert.fail(
+        `Timed out waiting for role deletion. Remaining roles were [${Array.from(
+          remainingRoles
+        ).join(', ')}]`
+      );
+    }
+    // if we got here all the roles were cleaned up within the timeout
   };
 
   private checkRoleExists = async (roleName: string): Promise<boolean> => {
