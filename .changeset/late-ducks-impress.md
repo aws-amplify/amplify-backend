@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/backend-cli': minor
+'@aws-amplify/backend-cli': patch
 ---
 
 fix info command warning
