@@ -1,5 +1,16 @@
 # @aws-amplify/backend-function
 
+## 0.8.0-beta.2
+
+### Minor Changes
+
+- cec91d5: Add dynamic environment variables to function type definition files
+- b0ba24d: Generate type definition file for static environment variables for functions
+
+### Patch Changes
+
+- 318335d: Ensure resource access env vars are added to function typed shim files
+
 ## 0.8.0-beta.1
 
 ### Minor Changes

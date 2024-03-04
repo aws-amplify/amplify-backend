@@ -1,5 +1,17 @@
 # @aws-amplify/sandbox
 
+## 0.5.2-beta.3
+
+### Patch Changes
+
+- Updated dependencies [3998cd3]
+- Updated dependencies [79cff6d]
+- Updated dependencies [8d9a7a4]
+- Updated dependencies [b0ba24d]
+- Updated dependencies [8d9a7a4]
+  - @aws-amplify/cli-core@0.5.0-beta.1
+  - @aws-amplify/client-config@0.9.0-beta.3
+
 ## 0.5.2-beta.2
 
 ### Patch Changes

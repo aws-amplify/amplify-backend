@@ -1,5 +1,20 @@
 # @aws-amplify/backend-storage
 
+## 0.6.0-beta.2
+
+### Minor Changes
+
+- 5969a32: Implement deny-by-default behavior on access rules
+- 215d65d: Group storage access policies by action rather than prefix
+- 82006e5: Add "list" to available storage resource actions
+
+### Patch Changes
+
+- 64e425c: fix cogntio identity placeholder value in IAM policy
+- c760df4: Use array input instead of var args for defining resource access actions
+- 916d3f0: clean up s3 buckets when `defineStorage` is removed from the backend definition
+- 3adf7df: Add validation for allowed path patterns in storage access definition
+
 ## 0.6.0-beta.1
 
 ### Minor Changes

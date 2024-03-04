@@ -1,5 +1,19 @@
 # create-amplify
 
+## 0.7.0-beta.3
+
+### Minor Changes
+
+- eec100e: Updates the create flow with colors, verbosity and better structure
+
+### Patch Changes
+
+- Updated dependencies [3998cd3]
+- Updated dependencies [8d9a7a4]
+- Updated dependencies [b0ba24d]
+- Updated dependencies [8d9a7a4]
+  - @aws-amplify/cli-core@0.5.0-beta.1
+
 ## 0.6.1-beta.2
 
 ### Patch Changes
