@@ -1,5 +1,17 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.1
+
+### Minor Changes
+
+- b0ba24d: Generate type definition file for static environment variables for functions
+
+### Patch Changes
+
+- 3998cd3: Fix how paths is added to tsconfig
+- 8d9a7a4: add error message for PNPM on windows
+- 8d9a7a4: update PackageManagerControllerFactory to take Operation System platform information optionally
+
 ## 0.4.1-beta.0
 
 ### Patch Changes

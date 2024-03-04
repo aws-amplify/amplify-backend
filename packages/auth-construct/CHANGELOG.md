@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.6.0-beta.3
+
+### Patch Changes
+
+- c54625f: Update frontend config to output OIDC provider names instead of just 'OIDC'.
+
 ## 0.6.0-beta.2
 
 ### Minor Changes

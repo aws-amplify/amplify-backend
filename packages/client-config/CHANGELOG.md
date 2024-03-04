@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.9.0-beta.3
+
+### Minor Changes
+
+- 79cff6d: fix(client-config): add legacy analytics configuration key
+
 ## 0.8.1-beta.2
 
 ### Patch Changes
