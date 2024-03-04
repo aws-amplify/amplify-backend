@@ -14,12 +14,16 @@ import { SandboxBackendIdResolver } from '../sandbox/sandbox_id_resolver.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { BackendIdentifierResolverWithFallback } from '../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { AppBackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
+import { GenerateSchemaCommand } from './schema-from-database/generate_schema_command.js';
+import { getSecretClient } from '@aws-amplify/backend-secret';
 
 /**
  * Creates wired generate command.
  */
 export const createGenerateCommand = (): CommandModule => {
   const credentialProvider = fromNodeProviderChain();
+  const secretClient = getSecretClient();
+
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
     credentialProvider
   );
@@ -52,12 +56,18 @@ export const createGenerateCommand = (): CommandModule => {
     backendIdentifierResolver
   );
 
+  const generateSchemaCommand = new GenerateSchemaCommand(
+    backendIdentifierResolver,
+    secretClient
+  );
+
   const commandMiddleware = new CommandMiddleware();
 
   return new GenerateCommand(
     generateConfigCommand,
     generateFormsCommand,
     generateGraphqlClientCodeCommand,
+    generateSchemaCommand,
     commandMiddleware
   );
 };

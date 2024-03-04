@@ -1,0 +1,24 @@
+{
+  "name": "@aws-amplify/schema-generator",
+  "version": "0.0.1-beta.1",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "dependencies": {
+    "@aws-amplify/graphql-schema-generator": "^0.7.1",
+    "@aws-amplify/platform-core": "^0.5.0-beta.1"
+  },
+  "license": "Apache-2.0"
+}
