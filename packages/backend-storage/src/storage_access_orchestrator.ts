@@ -6,13 +6,13 @@ import {
 import {
   StorageAccessBuilder,
   StorageAccessGenerator,
-  StorageAction,
   StoragePath,
 } from './types.js';
 import { ownerPathPartToken } from './constants.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
+import { InternalStorageAction } from './private_types.js';
 
 /* some types internal to this file to improve readability */
 
@@ -36,7 +36,7 @@ export class StorageAccessOrchestrator {
     {
       acceptor: ResourceAccessAcceptor;
       accessMap: Map<
-        StorageAction,
+        InternalStorageAction,
         { allow: Set<StoragePath>; deny: Set<StoragePath> }
       >;
     }
@@ -104,10 +104,20 @@ export class StorageAccessOrchestrator {
             permission.ownerPlaceholderSubstitution
           ) as StoragePath;
 
+          // replace "read" with "get" and "list" in actions
+          const replaceReadWithGetAndList = permission.actions.flatMap(
+            (action) => (action === 'read' ? ['get', 'list'] : [action])
+          ) as InternalStorageAction[];
+
+          // ensure the actions list has no duplicates
+          const noDuplicateActions = Array.from(
+            new Set(replaceReadWithGetAndList)
+          );
+
           // set an entry that maps this permission to the resource acceptor
           this.addAccessDefinition(
             resourceAccessAcceptor,
-            permission.actions,
+            noDuplicateActions,
             prefix
           );
         });
@@ -124,7 +134,7 @@ export class StorageAccessOrchestrator {
    */
   private addAccessDefinition = (
     resourceAccessAcceptor: ResourceAccessAcceptor,
-    actions: StorageAction[],
+    actions: InternalStorageAction[],
     s3Prefix: StoragePath
   ) => {
     const acceptorToken = resourceAccessAcceptor.identifier;
