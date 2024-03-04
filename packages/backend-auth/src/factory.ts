@@ -23,7 +23,7 @@ import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
-  ResourceAccessAcceptorFactory<AuthRoleName>;
+  ResourceAccessAcceptorFactory<AuthRoleName | string>;
 
 export type AmplifyAuthProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
@@ -126,12 +126,24 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
     const authConstructMixin: BackendAuth = {
       ...authConstruct,
+      /**
+       * Returns a resourceAccessAcceptor for the given role
+       * @param roleName Either the auth or unauth role name or the name of a UserPool group
+       */
       getResourceAccessAcceptor: (
-        roleName: AuthRoleName
+        roleName: AuthRoleName | string
       ): ResourceAccessAcceptor => ({
         identifier: `${roleName}ResourceAccessAcceptor`,
         acceptResourceAccess: (policy: Policy) => {
-          const role = authConstruct.resources[roleName];
+          const role = roleNameIsAuthRoleName(roleName)
+            ? authConstruct.resources[roleName]
+            : authConstruct.resources.groups?.[roleName]?.role;
+          if (!role) {
+            throw new AmplifyUserError('InvalidResourceAccessConfig', {
+              message: `No auth IAM role found for ${roleName}.`,
+              resolution: `If you are trying to configure UserPool group access, ensure that the group name is specified correctly.`,
+            });
+          }
           policy.attachToRole(role);
         },
       }),
@@ -139,6 +151,13 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     return authConstructMixin;
   };
 }
+
+const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
+  return (
+    roleName === 'authenticatedUserIamRole' ||
+    roleName === 'unauthenticatedUserIamRole'
+  );
+};
 
 /**
  * Provide the settings that will be used for authentication.

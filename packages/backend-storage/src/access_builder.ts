@@ -21,6 +21,14 @@ export const roleAccessBuilder: StorageAccessBuilder = {
       ownerPlaceholderSubstitution: '*',
     }),
   },
+  group: (groupName) => ({
+    to: (actions) => ({
+      getResourceAccessAcceptor: (getInstanceProps) =>
+        getUserRoleResourceAccessAcceptor(getInstanceProps, groupName),
+      actions,
+      ownerPlaceholderSubstitution: '*',
+    }),
+  }),
   owner: {
     to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
@@ -56,11 +64,11 @@ const getUnauthRoleResourceAccessAcceptor = (
 
 const getUserRoleResourceAccessAcceptor = (
   getInstanceProps: ConstructFactoryGetInstanceProps,
-  roleName: AuthRoleName
+  roleName: AuthRoleName | string
 ) => {
   const resourceAccessAcceptor = getInstanceProps.constructContainer
     .getConstructFactory<
-      ResourceProvider & ResourceAccessAcceptorFactory<AuthRoleName>
+      ResourceProvider & ResourceAccessAcceptorFactory<AuthRoleName | string>
     >('AuthResources')
     ?.getInstance(getInstanceProps)
     .getResourceAccessAcceptor(roleName);

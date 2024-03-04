@@ -29,6 +29,7 @@ export type AmplifyStorageFactoryProps = Omit<
 export type StorageAccessBuilder = {
   authenticated: StorageActionBuilder;
   guest: StorageActionBuilder;
+  group: (groupName: string) => StorageActionBuilder;
   owner: StorageActionBuilder;
   resource: (
     other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
