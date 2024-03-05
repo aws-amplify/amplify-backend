@@ -33,6 +33,8 @@ import {
 import { AmplifyDataResources } from '@aws-amplify/data-construct';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
+const CUSTOM_DDB_CFN_TYPE = 'Custom::AmplifyDynamoDBTable';
+
 const testSchema = /* GraphQL */ `
   type Todo @model {
     id: ID!
@@ -302,32 +304,26 @@ void describe('Destructive Schema Updates & Replace tables upon GSI updates', ()
       isSandboxMode: false,
     });
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
-    const amplifyTableStackTempate = Template.fromStack(
+    const amplifyTableStackTemplate = Template.fromStack(
       Stack.of(dataConstruct.resources.nestedStacks['Todo'])
     );
-    amplifyTableStackTempate.hasResourceProperties(
-      'Custom::AmplifyDynamoDBTable',
-      {
-        allowDestructiveGraphqlSchemaUpdates: true,
-        replaceTableUponGsiUpdate: false,
-      }
-    );
+    amplifyTableStackTemplate.hasResourceProperties(CUSTOM_DDB_CFN_TYPE, {
+      allowDestructiveGraphqlSchemaUpdates: true,
+      replaceTableUponGsiUpdate: false,
+    });
   });
   void it('should allow destructive updates and enable GSI update replacing tables in sandbox mode', () => {
     getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: true,
     });
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
-    const amplifyTableStackTempate = Template.fromStack(
+    const amplifyTableStackTemplate = Template.fromStack(
       Stack.of(dataConstruct.resources.nestedStacks['Todo'])
     );
-    amplifyTableStackTempate.hasResourceProperties(
-      'Custom::AmplifyDynamoDBTable',
-      {
-        allowDestructiveGraphqlSchemaUpdates: true,
-        replaceTableUponGsiUpdate: true,
-      }
-    );
+    amplifyTableStackTemplate.hasResourceProperties(CUSTOM_DDB_CFN_TYPE, {
+      allowDestructiveGraphqlSchemaUpdates: true,
+      replaceTableUponGsiUpdate: true,
+    });
   });
 });
 
