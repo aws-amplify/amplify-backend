@@ -176,7 +176,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private resolveMemory = () => {
     const memoryMin = 128;
     const memoryMax = 10240;
-    const memoryDefault = memoryMin;
+    const memoryDefault = 512;
     if (this.props.memoryMB === undefined) {
       return memoryDefault;
     }
