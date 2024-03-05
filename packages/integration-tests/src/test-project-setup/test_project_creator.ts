@@ -36,11 +36,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
       // iamClient,
       resourceFinder
     ),
-    new DataComplexSchemaTestProjectCreator(
-      cfnClient,
-      secretClient
-      // iamClient,
-    ),
+    new DataComplexSchemaTestProjectCreator(cfnClient),
     new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient),
     new CustomOutputsTestProjectCreator(cfnClient)
   );

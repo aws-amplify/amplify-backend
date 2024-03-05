@@ -1,5 +1,4 @@
 import fs from 'fs/promises';
-import { SecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -21,10 +20,7 @@ export class DataComplexSchemaTestProjectCreator implements TestProjectCreator {
   /**
    * Creates project creator.
    */
-  constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly secretClient: SecretClient
-  ) {}
+  constructor(private readonly cfnClient: CloudFormationClient) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
     const {
@@ -38,8 +34,7 @@ export class DataComplexSchemaTestProjectCreator implements TestProjectCreator {
       projectName,
       projectRoot,
       projectAmplifyDir,
-      this.cfnClient,
-      this.secretClient
+      this.cfnClient
     );
     await fs.cp(
       project.sourceProjectAmplifyDirPath,
@@ -88,15 +83,6 @@ class DataComplexSchemaTestProject extends TestProjectBase {
 
   private readonly dataResourceFileSuffix = 'data/resource.ts';
 
-  private readonly testSecretNames = [
-    'googleId',
-    'googleSecret',
-    'facebookId',
-    'facebookSecret',
-    'amazonId',
-    'amazonSecret',
-  ];
-
   private amplifySharedSecret: string;
 
   private testBucketName: string;
@@ -108,8 +94,7 @@ class DataComplexSchemaTestProject extends TestProjectBase {
     name: string,
     projectDirPath: string,
     projectAmplifyDirPath: string,
-    cfnClient: CloudFormationClient,
-    private readonly secretClient: SecretClient
+    cfnClient: CloudFormationClient
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
   }
@@ -136,7 +121,6 @@ class DataComplexSchemaTestProject extends TestProjectBase {
    */
   override async tearDown(backendIdentifier: BackendIdentifier) {
     await super.tearDown(backendIdentifier);
-    await this.clearDeployEnvironment(backendIdentifier);
   }
 
   /**
@@ -169,17 +153,4 @@ class DataComplexSchemaTestProject extends TestProjectBase {
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
   }
-
-  private clearDeployEnvironment = async (
-    backendId: BackendIdentifier
-  ): Promise<void> => {
-    // clear secrets
-    for (const secretName of this.testSecretNames) {
-      await this.secretClient.removeSecret(backendId, secretName);
-    }
-    await this.secretClient.removeSecret(
-      backendId.namespace,
-      this.amplifySharedSecret
-    );
-  };
 }
