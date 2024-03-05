@@ -186,7 +186,16 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         allowDestructiveGraphqlSchemaUpdates: true,
       },
     });
-    Aspects.of(amplifyApi).add(new ReplaceTableUponGsiUpdateChecker());
+
+    /**
+     * Enable the table replacement upon GSI update
+     * This is allowed in sandbox mode ONLY
+     */
+    const isSandboxDeployment =
+      scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
+    if (isSandboxDeployment) {
+      Aspects.of(amplifyApi).add(new ReplaceTableUponGsiUpdateOverrideAspect());
+    }
 
     convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
 
@@ -197,33 +206,19 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 const REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME: keyof TranslationBehavior =
   'replaceTableUponGsiUpdate';
 
-enum BackendDataEnvironmentVariables {
-  // Environment variables allowed in sandbox mode only
-  REPLACE_TABLE_UPON_GSI_UPDATE = 'REPLACE_TABLE_UPON_GSI_UPDATE',
-}
 /**
  * Aspect class to modify the amplify managed DynamoDB table
- * to allow table replacement upon GSI update when the environment variable is set to true
- * This is only allowed to be modified in sandbox mode
+ * to allow table replacement upon GSI update
  */
-class ReplaceTableUponGsiUpdateChecker implements IAspect {
+class ReplaceTableUponGsiUpdateOverrideAspect implements IAspect {
   public visit(scope: IConstruct): void {
-    const replaceTableUponGsiUpdate: boolean =
-      process.env[
-        BackendDataEnvironmentVariables.REPLACE_TABLE_UPON_GSI_UPDATE
-      ] === 'true';
-    if (
-      replaceTableUponGsiUpdate &&
-      scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox'
-    ) {
-      if (AmplifyDynamoDbTableWrapper.isAmplifyDynamoDbTableResource(scope)) {
-        // These value setters are not exposed in the wrapper
-        // Need to use the property override to escape the hatch
-        scope.addPropertyOverride(
-          REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME,
-          replaceTableUponGsiUpdate
-        );
-      }
+    if (AmplifyDynamoDbTableWrapper.isAmplifyDynamoDbTableResource(scope)) {
+      // These value setters are not exposed in the wrapper
+      // Need to use the property override to escape the hatch
+      scope.addPropertyOverride(
+        REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME,
+        true
+      );
     }
   }
 }

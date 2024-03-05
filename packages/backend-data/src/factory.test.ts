@@ -41,13 +41,79 @@ const testSchema = /* GraphQL */ `
   }
 `;
 
-const createStackAndSetContext = (): Stack => {
+const createStackAndSetContext = (settings: {
+  isSandboxMode: boolean;
+}): Stack => {
   const app = new App();
   app.node.setContext('amplify-backend-name', 'testEnvName');
   app.node.setContext('amplify-backend-namespace', 'testBackendId');
-  app.node.setContext('amplify-backend-type', 'branch');
+  app.node.setContext(
+    'amplify-backend-type',
+    settings.isSandboxMode ? 'sandbox' : 'branch'
+  );
   const stack = new Stack(app);
   return stack;
+};
+
+const createConstructContainerWithUserPoolAuthRegistered = (
+  stack: Stack
+): ConstructContainer => {
+  const constructContainer = new ConstructContainerStub(
+    new StackResolverStub(stack)
+  );
+  const sampleUserPool = new UserPool(stack, 'UserPool');
+  constructContainer.registerConstructFactory('AuthResources', {
+    provides: 'AuthResources',
+    getInstance: (): ResourceProvider<AuthResources> => ({
+      resources: {
+        userPool: sampleUserPool,
+        userPoolClient: new UserPoolClient(stack, 'UserPoolClient', {
+          userPool: sampleUserPool,
+        }),
+        unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
+          assumedBy: new ServicePrincipal('test.amazon.com'),
+        }),
+        authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
+          assumedBy: new ServicePrincipal('test.amazon.com'),
+        }),
+        cfnResources: {
+          cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
+          cfnUserPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
+            userPoolId: 'userPool',
+          }),
+          cfnIdentityPool: new CfnIdentityPool(stack, 'identityPool', {
+            allowUnauthenticatedIdentities: true,
+          }),
+          cfnIdentityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
+            stack,
+            'identityPoolRoleAttachment',
+            { identityPoolId: 'identityPool' }
+          ),
+        },
+        groups: {},
+      },
+    }),
+  });
+  return constructContainer;
+};
+
+const createInstancePropsBySetupCDKApp = (settings: {
+  isSandboxMode: boolean;
+}): ConstructFactoryGetInstanceProps => {
+  const stack: Stack = createStackAndSetContext({
+    isSandboxMode: settings.isSandboxMode,
+  });
+  const constructContainer: ConstructContainer =
+    createConstructContainerWithUserPoolAuthRegistered(stack);
+  const outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+    new StackMetadataBackendOutputStorageStrategy(stack);
+  const importPathVerifier: ImportPathVerifier = new ImportPathVerifierStub();
+
+  return {
+    constructContainer,
+    outputStorageStrategy,
+    importPathVerifier,
+  };
 };
 
 void describe('DataFactory', () => {
@@ -61,48 +127,10 @@ void describe('DataFactory', () => {
   beforeEach(() => {
     resetFactoryCount();
     dataFactory = defineData({ schema: testSchema });
-    stack = createStackAndSetContext();
+    stack = createStackAndSetContext({ isSandboxMode: false });
 
-    constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
-    );
-    const sampleUserPool = new UserPool(stack, 'UserPool');
-    constructContainer.registerConstructFactory('AuthResources', {
-      provides: 'AuthResources',
-      getInstance: (): ResourceProvider<AuthResources> => ({
-        resources: {
-          userPool: sampleUserPool,
-          userPoolClient: new UserPoolClient(stack, 'UserPoolClient', {
-            userPool: sampleUserPool,
-          }),
-          unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
-            assumedBy: new ServicePrincipal('test.amazon.com'),
-          }),
-          authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
-            assumedBy: new ServicePrincipal('test.amazon.com'),
-          }),
-          cfnResources: {
-            cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
-            cfnUserPoolClient: new CfnUserPoolClient(
-              stack,
-              'CfnUserPoolClient',
-              {
-                userPoolId: 'userPool',
-              }
-            ),
-            cfnIdentityPool: new CfnIdentityPool(stack, 'identityPool', {
-              allowUnauthenticatedIdentities: true,
-            }),
-            cfnIdentityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
-              stack,
-              'identityPoolRoleAttachment',
-              { identityPoolId: 'identityPool' }
-            ),
-          },
-          groups: {},
-        },
-      }),
-    });
+    constructContainer =
+      createConstructContainerWithUserPoolAuthRegistered(stack);
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
@@ -256,6 +284,49 @@ void describe('DataFactory', () => {
           'Multiple `defineData` calls are not allowed within an Amplify backend',
         resolution: 'Remove all but one `defineData` call',
       })
+    );
+  });
+});
+
+void describe('Destructive Schema Updates & Replace tables upon GSI updates', () => {
+  let dataFactory: ConstructFactory<ResourceProvider<AmplifyDataResources>>;
+  let getInstanceProps: ConstructFactoryGetInstanceProps;
+
+  beforeEach(() => {
+    resetFactoryCount();
+    dataFactory = defineData({ schema: testSchema });
+  });
+
+  void it('should allow destructive updates and disable GSI update replacing tables in non-sandbox mode', () => {
+    getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+    const amplifyTableStackTempate = Template.fromStack(
+      Stack.of(dataConstruct.resources.nestedStacks['Todo'])
+    );
+    amplifyTableStackTempate.hasResourceProperties(
+      'Custom::AmplifyDynamoDBTable',
+      {
+        allowDestructiveGraphqlSchemaUpdates: true,
+        replaceTableUponGsiUpdate: false,
+      }
+    );
+  });
+  void it('should allow destructive updates and enable GSI update replacing tables in sandbox mode', () => {
+    getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: true,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+    const amplifyTableStackTempate = Template.fromStack(
+      Stack.of(dataConstruct.resources.nestedStacks['Todo'])
+    );
+    amplifyTableStackTempate.hasResourceProperties(
+      'Custom::AmplifyDynamoDBTable',
+      {
+        allowDestructiveGraphqlSchemaUpdates: true,
+        replaceTableUponGsiUpdate: true,
+      }
     );
   });
 });
