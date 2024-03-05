@@ -2,13 +2,14 @@ import { TestProjectBase } from './test_project_base.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_auth_with_triggers.js';
+import { DataComplexSchemaTestProjectCreator } from './data_complex_schema.js';
 import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { CustomOutputsTestProjectCreator } from './custom_outputs.js';
 import { S3Client } from '@aws-sdk/client-s3';
-import { IAMClient } from '@aws-sdk/client-iam';
+// import { IAMClient } from '@aws-sdk/client-iam';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -24,7 +25,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
   const lambdaClient = new LambdaClient(e2eToolingClientConfig);
   const s3Client = new S3Client(e2eToolingClientConfig);
-  const iamClient = new IAMClient(e2eToolingClientConfig);
+  // const iamClient = new IAMClient(e2eToolingClientConfig);
   const resourceFinder = new DeployedResourcesFinder(cfnClient);
   const secretClient = getSecretClient(e2eToolingClientConfig);
   testProjectCreators.push(
@@ -33,8 +34,13 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
       secretClient,
       lambdaClient,
       s3Client,
-      iamClient,
+      // iamClient,
       resourceFinder
+    ),
+    new DataComplexSchemaTestProjectCreator(
+      cfnClient,
+      secretClient
+      // iamClient,
     ),
     new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient),
     new CustomOutputsTestProjectCreator(cfnClient)

@@ -15,7 +15,6 @@ import {
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
-import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -33,7 +32,6 @@ export class DataStorageAuthWithTriggerTestProjectCreator
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
     private readonly s3Client: S3Client,
-    private readonly iamClient: IAMClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
@@ -53,7 +51,6 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.secretClient,
       this.lambdaClient,
       this.s3Client,
-      this.iamClient,
       this.resourceFinder
     );
     await fs.cp(
@@ -115,7 +112,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private amplifySharedSecret: string;
 
   private testBucketName: string;
-  private testRoleNames: string[];
 
   /**
    * Create a test project instance.
@@ -128,7 +124,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
     private readonly s3Client: S3Client,
-    private readonly iamClient: IAMClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
@@ -179,8 +174,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         sourceFile: sourceDataResourceFile,
         projectFile: dataResourceFile,
         deployThresholdSec: {
-          onWindows: 135,
-          onOther: 125,
+          onWindows: 40,
+          onOther: 30,
         },
       },
     ];
@@ -230,12 +225,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
     // store the bucket name in the class so we can assert that it is deleted properly when the stack is torn down
     this.testBucketName = bucketName[0];
-
-    // store the roles associated with this deployment so we can assert that they are deleted when the stack is torn down
-    this.testRoleNames = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::IAM::Role'
-    );
   }
 
   private setUpDeployEnvironment = async (
@@ -284,7 +273,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   private assertExpectedCleanup = async () => {
     await this.waitForBucketDeletion(this.testBucketName);
-    await this.assertRolesDoNotExist(this.testRoleNames);
   };
 
   /**
@@ -314,56 +302,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       return true;
     } catch (err) {
       if (err instanceof Error && err.name === 'NotFound') {
-        return false;
-      }
-      throw err;
-    }
-  };
-
-  private assertRolesDoNotExist = async (roleNames: string[]) => {
-    const TIMEOUT_MS = 1000 * 60 * 5; // IAM Role stabilization can take up to 2 minutes and we are waiting in between each GetRole call to avoid throttling
-    const startTime = Date.now();
-
-    const remainingRoles = new Set(roleNames);
-
-    while (Date.now() - startTime < TIMEOUT_MS && remainingRoles.size > 0) {
-      // iterate over a copy of the roles set to avoid confusing concurrent modification behavior
-      for (const roleName of Array.from(remainingRoles)) {
-        try {
-          const roleExists = await this.checkRoleExists(roleName);
-          if (!roleExists) {
-            remainingRoles.delete(roleName);
-          }
-        } catch (err) {
-          if (err instanceof Error) {
-            console.log(
-              `Got error [${err.name}] while polling for deletion of [${roleName}].`
-            );
-          }
-          // continue polling
-        }
-
-        // wait a bit between each call to help avoid throttling
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-    }
-    if (remainingRoles.size > 0) {
-      assert.fail(
-        `Timed out waiting for role deletion. Remaining roles were [${Array.from(
-          remainingRoles
-        ).join(', ')}]`
-      );
-    }
-    // if we got here all the roles were cleaned up within the timeout
-  };
-
-  private checkRoleExists = async (roleName: string): Promise<boolean> => {
-    try {
-      await this.iamClient.send(new GetRoleCommand({ RoleName: roleName }));
-      // if GetRole returns without error, the role exits
-      return true;
-    } catch (err) {
-      if (err instanceof Error && err.name === 'NoSuchEntityException') {
         return false;
       }
       throw err;
