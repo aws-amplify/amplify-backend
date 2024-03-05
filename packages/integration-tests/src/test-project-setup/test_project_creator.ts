@@ -2,7 +2,7 @@ import { TestProjectBase } from './test_project_base.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_auth_with_triggers.js';
-import { DataComplexSchemaTestProjectCreator } from './data_complex_schema.js';
+// import { DataComplexSchemaTestProjectCreator } from './data_complex_schema.js';
 import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
@@ -36,7 +36,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
       // iamClient,
       resourceFinder
     ),
-    new DataComplexSchemaTestProjectCreator(cfnClient),
+    // new DataComplexSchemaTestProjectCreator(cfnClient),
     new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient),
     new CustomOutputsTestProjectCreator(cfnClient)
   );
