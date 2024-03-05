@@ -140,7 +140,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
             : authConstruct.resources.groups?.[roleName]?.role;
           if (!role) {
             throw new AmplifyUserError('InvalidResourceAccessConfig', {
-              message: `No auth IAM role found for ${roleName}.`,
+              message: `No auth IAM role found for "${roleName}".`,
               resolution: `If you are trying to configure UserPool group access, ensure that the group name is specified correctly.`,
             });
           }

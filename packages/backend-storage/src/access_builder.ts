@@ -11,14 +11,14 @@ export const roleAccessBuilder: StorageAccessBuilder = {
     to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
-      ownerPlaceholderSubstitution: '*',
+      idSubstitution: '*',
     }),
   },
   guest: {
     to: (actions) => ({
       getResourceAccessAcceptor: getUnauthRoleResourceAccessAcceptor,
       actions,
-      ownerPlaceholderSubstitution: '*',
+      idSubstitution: '*',
     }),
   },
   group: (groupName) => ({
@@ -26,22 +26,22 @@ export const roleAccessBuilder: StorageAccessBuilder = {
       getResourceAccessAcceptor: (getInstanceProps) =>
         getUserRoleResourceAccessAcceptor(getInstanceProps, groupName),
       actions,
-      ownerPlaceholderSubstitution: '*',
+      idSubstitution: '*',
     }),
   }),
-  owner: {
+  id: () => ({
     to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
-      ownerPlaceholderSubstitution: '${cognito-identity.amazonaws.com:sub}',
+      idSubstitution: '${cognito-identity.amazonaws.com:sub}',
     }),
-  },
+  }),
   resource: (other) => ({
     to: (actions) => ({
       getResourceAccessAcceptor: (getInstanceProps) =>
         other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
       actions,
-      ownerPlaceholderSubstitution: '*',
+      idSubstitution: '*',
     }),
   }),
 };
@@ -74,9 +74,9 @@ const getUserRoleResourceAccessAcceptor = (
     .getResourceAccessAcceptor(roleName);
   if (!resourceAccessAcceptor) {
     throw new Error(
-      `Cannot specify ${
+      `Cannot specify auth access for ${
         roleName as string
-      } user policies without defining auth. See <defineAuth docs link> for more information.`
+      } users without defining auth. See <defineAuth docs link> for more information.`
     );
   }
   return resourceAccessAcceptor;

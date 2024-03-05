@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { validateStorageAccessPaths } from './validate_storage_access_paths.js';
 import assert from 'node:assert';
-import { ownerPathPartToken } from './constants.js';
+import { idPathToken } from './constants.js';
 
 void describe('validateStorageAccessPaths', () => {
   void it('is a noop on valid paths', () => {
@@ -10,8 +10,8 @@ void describe('validateStorageAccessPaths', () => {
       '/foo/bar/*',
       '/foo/baz/*',
       '/other/*',
-      '/something/{owner}/*',
-      '/another/{owner}/*',
+      '/something/{id}/*',
+      '/another/{id}/*',
     ]);
     // completing successfully indicates success
   });
@@ -54,43 +54,37 @@ void describe('validateStorageAccessPaths', () => {
   });
 
   void it('throws on path that has multiple owner tokens', () => {
-    assert.throws(
-      () => validateStorageAccessPaths(['/foo/{owner}/{owner}/*']),
-      {
-        message: `The ${ownerPathPartToken} token can only appear once in a path. Found [/foo/{owner}/{owner}/*]`,
-      }
-    );
+    assert.throws(() => validateStorageAccessPaths(['/foo/{id}/{id}/*']), {
+      message: `The ${idPathToken} token can only appear once in a path. Found [/foo/{id}/{id}/*]`,
+    });
   });
 
   void it('throws on path where owner token is not at the end', () => {
-    assert.throws(() => validateStorageAccessPaths(['/foo/{owner}/bar/*']), {
-      message: `The ${ownerPathPartToken} token must be the path part right before the ending wildcard. Found [/foo/{owner}/bar/*].`,
+    assert.throws(() => validateStorageAccessPaths(['/foo/{id}/bar/*']), {
+      message: `The ${idPathToken} token must be the path part right before the ending wildcard. Found [/foo/{id}/bar/*].`,
     });
   });
 
   void it('throws on path that starts with owner token', () => {
-    assert.throws(() => validateStorageAccessPaths(['/{owner}/*']), {
-      message: `The ${ownerPathPartToken} token must not be the first path part. Found [/{owner}/*].`,
+    assert.throws(() => validateStorageAccessPaths(['/{id}/*']), {
+      message: `The ${idPathToken} token must not be the first path part. Found [/{id}/*].`,
     });
   });
 
   void it('throws on path that has owner token and other characters in single path part', () => {
-    assert.throws(() => validateStorageAccessPaths(['/abc{owner}/*']), {
-      message: `A path part that includes the ${ownerPathPartToken} token cannot include any other characters. Found [/abc{owner}/*].`,
+    assert.throws(() => validateStorageAccessPaths(['/abc{id}/*']), {
+      message: `A path part that includes the ${idPathToken} token cannot include any other characters. Found [/abc{id}/*].`,
     });
   });
 
   void it('throws on path that is a prefix of a path with an owner token', () => {
+    assert.throws(() => validateStorageAccessPaths(['/foo/{id}/*', '/foo/*']), {
+      message: `A path cannot be a prefix of another path that contains the ${idPathToken} token.`,
+    });
     assert.throws(
-      () => validateStorageAccessPaths(['/foo/{owner}/*', '/foo/*']),
+      () => validateStorageAccessPaths(['/foo/bar/{id}/*', '/foo/*']),
       {
-        message: `A path cannot be a prefix of another path that contains the ${ownerPathPartToken} token.`,
-      }
-    );
-    assert.throws(
-      () => validateStorageAccessPaths(['/foo/bar/{owner}/*', '/foo/*']),
-      {
-        message: `A path cannot be a prefix of another path that contains the ${ownerPathPartToken} token.`,
+        message: `A path cannot be a prefix of another path that contains the ${idPathToken} token.`,
       }
     );
   });
