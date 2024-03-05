@@ -24,6 +24,8 @@ export type AmplifyStorageFactoryProps = Omit<
  * Types of IDs that can be substituted in access policies
  *
  * 'identity' corresponds to the Cognito Identity Pool IdentityID
+ *
+ * Currently this is the only type of identity supported.
  */
 export type AccessId = 'identity';
 
