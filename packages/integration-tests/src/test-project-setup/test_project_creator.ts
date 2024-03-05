@@ -9,7 +9,6 @@ import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { CustomOutputsTestProjectCreator } from './custom_outputs.js';
 import { S3Client } from '@aws-sdk/client-s3';
-// import { IAMClient } from '@aws-sdk/client-iam';
 
 export type TestProjectCreator = {
   readonly name: string;
