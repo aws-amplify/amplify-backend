@@ -22,7 +22,7 @@ import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
-// @public (undocumented)
+// @public
 export type ActionIam = 'addUserToGroup' | 'confirmSignUp' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'listUserAuthEvents' | 'removeUserFromGroup' | 'resetUserPassword' | 'respondToAuthChallenge' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes' | 'userGlobalSignOut';
 
 // @public (undocumented)

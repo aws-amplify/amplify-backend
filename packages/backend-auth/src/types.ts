@@ -212,6 +212,11 @@ export type ActionMeta =
   /* This meta action contains IAM permissions to interact with users in specified userpool. */
   'manageUser';
 
+/**
+ * This maps to Cognito IAM actions.
+ * @todo https://github.com/aws-amplify/amplify-backend/issues/1111
+ * @see https://aws.permissions.cloud/iam/cognito-idp
+ */
 export type ActionIam =
   | 'addUserToGroup'
   | 'confirmSignUp'
