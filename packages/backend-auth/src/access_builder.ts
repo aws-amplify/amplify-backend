@@ -4,7 +4,7 @@ export const allowAccessBuilder: AuthAccessBuilder = {
   resource: (grantee) => ({
     to: (actions) => ({
       getResourceAccessAcceptor: (getInstanceProps) =>
-        other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
+        grantee.getInstance(getInstanceProps).getResourceAccessAcceptor(),
       actions,
     }),
   }),
