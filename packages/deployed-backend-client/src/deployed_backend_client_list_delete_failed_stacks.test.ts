@@ -4,6 +4,7 @@ import {
   CloudFormation,
   DescribeStacksCommand,
   ListStacksCommand,
+  ListStacksCommandInput,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
@@ -63,6 +64,7 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       },
       name: 'amplify-123-name-branch-testHash',
       lastUpdated: new Date(1),
+      status: 'FAILED',
     },
   ];
 
@@ -122,7 +124,19 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     );
   });
 
-  void it('paginates listDeleteFailedStacks when first page contains no failed stacks', async () => {
+  void it('does not paginate listBackends when one page contains delete failed stacks', async () => {
+    const failedStacks = await deployedBackendClient.listBackends({
+      deploymentType: 'branch',
+    });
+    assert.deepEqual(failedStacks, {
+      nextToken: undefined,
+      backends: returnedDeleteFailedStacks,
+    });
+
+    assert.equal(listStacksMockFn.mock.callCount(), 1);
+  });
+
+  void it('paginates listBackends when first page contains no failed stacks', async () => {
     listStacksMockFn.mock.mockImplementationOnce(() => {
       return {
         StackSummaries: [],
@@ -133,13 +147,14 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
     });
     assert.deepEqual(failedStacks, {
-      failedStacks: returnedDeleteFailedStacks,
+      nextToken: undefined,
+      backends: returnedDeleteFailedStacks,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
 
-  void it('paginates listDeleteFailedStacks when one page contains stacks, but it gets filtered due to not deleted failed status', async () => {
+  void it('paginates listBackends when one page contains stacks, but it gets filtered due to not deleted failed status', async () => {
     listStacksMockFn.mock.mockImplementationOnce(() => {
       return {
         StackSummaries: [
@@ -154,13 +169,14 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
     });
     assert.deepEqual(failedStacks, {
-      failedStacks: returnedDeleteFailedStacks,
+      nextToken: undefined,
+      backends: returnedDeleteFailedStacks,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
 
-  void it('paginates listDeleteFailedStacks when one page contains stacks, but it gets filtered due to sandbox deploymentType', async () => {
+  void it('paginates listBackends when one page contains stacks, but it gets filtered due to sandbox deploymentType', async () => {
     listStacksMockFn.mock.mockImplementationOnce(() => {
       return {
         StackSummaries: [
@@ -175,13 +191,14 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
     });
     assert.deepEqual(failedStacks, {
-      failedStacks: returnedDeleteFailedStacks,
+      nextToken: undefined,
+      backends: returnedDeleteFailedStacks,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
 
-  void it('paginates listDeleteFailedStacks when one page contains a stack, but it gets filtered due to not having gen2 outputs', async () => {
+  void it('paginates listBackends when one page contains a stack, but it gets filtered due to not having gen2 outputs', async () => {
     getOutputMock.mock.mockImplementationOnce(() => {
       throw new BackendOutputClientError(
         BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
@@ -202,13 +219,14 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
     });
     assert.deepEqual(failedStacks, {
-      failedStacks: returnedDeleteFailedStacks,
+      nextToken: undefined,
+      backends: returnedDeleteFailedStacks,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
 
-  void it('does not paginate listDeleteFailedStacks when one page throws an unexpected error fetching gen2 outputs', async () => {
+  void it('does not paginate listBackends when one page throws an unexpected error fetching gen2 outputs', async () => {
     getOutputMock.mock.mockImplementationOnce(() => {
       throw new Error('Unexpected Error!');
     });
@@ -222,9 +240,51 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const listDeleteFailedStacksPromise = deployedBackendClient.listBackends({
+    const listBackendsPromise = deployedBackendClient.listBackends({
       deploymentType: 'branch',
     });
-    await assert.rejects(listDeleteFailedStacksPromise);
+    await assert.rejects(listBackendsPromise);
+  });
+
+  void it('includes a nextToken when there are more pages', async () => {
+    listStacksMockFn.mock.mockImplementation(() => {
+      return {
+        StackSummaries: listStacksMock.StackSummaries,
+        NextToken: 'abc',
+      };
+    });
+    const failedStacks = await deployedBackendClient.listBackends({
+      deploymentType: 'branch',
+    });
+    assert.deepEqual(failedStacks, {
+      nextToken: 'abc',
+      backends: returnedDeleteFailedStacks,
+    });
+
+    assert.equal(listStacksMockFn.mock.callCount(), 1);
+  });
+
+  void it('accepts a nextToken to get the next page', async () => {
+    listStacksMockFn.mock.mockImplementation(
+      (input: ListStacksCommandInput) => {
+        if (!input.NextToken) {
+          return {
+            StackSummaries: listStacksMock.StackSummaries,
+            NextToken: 'abc',
+          };
+        }
+        return listStacksMock;
+      }
+    );
+    const failedStacks = await deployedBackendClient.listBackends({
+      nextToken: 'abc',
+      deploymentType: 'branch',
+    });
+    assert.deepEqual(failedStacks, {
+      nextToken: undefined,
+      backends: returnedDeleteFailedStacks,
+    });
+
+    assert.equal(listStacksMockFn.mock.callCount(), 1);
   });
 });

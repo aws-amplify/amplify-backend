@@ -125,19 +125,19 @@ void describe('Deployed Backend Client list sandboxes', () => {
     );
   });
 
-  void it('does not paginate listSandboxes when one page contains sandboxes', async () => {
+  void it('does not paginate listBackends when one page contains sandboxes', async () => {
     const sandboxes = await deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
-      sandboxes: returnedSandboxes,
+      backends: returnedSandboxes,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 1);
   });
 
-  void it('paginates listSandboxes when first page contains no sandboxes', async () => {
+  void it('paginates listBackends when first page contains no sandboxes', async () => {
     listStacksMockFn.mock.mockImplementationOnce(() => {
       return {
         StackSummaries: [],
@@ -149,13 +149,13 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
-      sandboxes: returnedSandboxes,
+      backends: returnedSandboxes,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
 
-  void it('paginates listSandboxes when one page contains sandboxes, but it gets filtered due to deleted status', async () => {
+  void it('paginates listBackends when one page contains sandboxes, but it gets filtered due to deleted status', async () => {
     listStacksMockFn.mock.mockImplementationOnce(() => {
       return {
         StackSummaries: [
@@ -171,13 +171,13 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
-      sandboxes: returnedSandboxes,
+      backends: returnedSandboxes,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
 
-  void it('paginates listSandboxes when one page contains sandboxes, but it gets filtered due to branch deploymentType', async () => {
+  void it('paginates listBackends when one page contains sandboxes, but it gets filtered due to branch deploymentType', async () => {
     listStacksMockFn.mock.mockImplementationOnce(() => {
       return {
         StackSummaries: [
@@ -193,13 +193,13 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
-      sandboxes: returnedSandboxes,
+      backends: returnedSandboxes,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
 
-  void it('paginates listSandboxes when one page contains a stack, but it gets filtered due to not having gen2 outputs', async () => {
+  void it('paginates listBackends when one page contains a stack, but it gets filtered due to not having gen2 outputs', async () => {
     getOutputMock.mock.mockImplementationOnce(() => {
       throw new BackendOutputClientError(
         BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
@@ -221,13 +221,13 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
-      sandboxes: returnedSandboxes,
+      backends: returnedSandboxes,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
 
-  void it('does not paginate listSandboxes when one page throws an unexpected error fetching gen2 outputs', async () => {
+  void it('does not paginate listBackends when one page throws an unexpected error fetching gen2 outputs', async () => {
     getOutputMock.mock.mockImplementationOnce(() => {
       throw new Error('Unexpected Error!');
     });
@@ -241,10 +241,10 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const listSandboxesPromise = deployedBackendClient.listBackends({
+    const listBackendsPromise = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    await assert.rejects(listSandboxesPromise);
+    await assert.rejects(listBackendsPromise);
   });
 
   void it('includes a nextToken when there are more pages', async () => {
@@ -259,7 +259,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(sandboxes, {
       nextToken: 'abc',
-      sandboxes: returnedSandboxes,
+      backends: returnedSandboxes,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 1);
@@ -283,7 +283,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
-      sandboxes: returnedSandboxes,
+      backends: returnedSandboxes,
     });
 
     assert.equal(listStacksMockFn.mock.callCount(), 1);

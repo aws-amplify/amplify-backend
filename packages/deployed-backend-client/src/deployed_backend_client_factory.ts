@@ -97,7 +97,7 @@ export enum BackendDeploymentStatus {
 }
 
 export type DeployedBackendClient = {
-  listBackens: (
+  listBackends: (
     listBackendsRequest?: ListBackendsRequest
   ) => Promise<ListBackendsResponse>;
   deleteSandbox: (
