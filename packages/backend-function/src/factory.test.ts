@@ -182,6 +182,17 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
+    void it('sets default memory', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        MemorySize: 512,
+      });
+    });
+
     void it('throws on memory below 128 MB', () => {
       assert.throws(
         () =>
