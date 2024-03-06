@@ -172,7 +172,7 @@ void describe('AmplifyAuthFactory', () => {
               'cognito-idp:AdminUserGlobalSignOut',
             ],
             Effect: 'Allow',
-            Resource: `${backendAuth.resources.userPool.userPoolArn}`,
+            Resource: backendAuth.resources.userPool.userPoolArn,
           },
         ],
         Version: '2012-10-17',

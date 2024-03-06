@@ -1,7 +1,7 @@
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
-import { AmplifyFault } from '@aws-amplify/platform-core';
+import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
 import { ActionIam, ActionMeta, AuthActions } from './types.js';
 
 /**
@@ -23,6 +23,12 @@ export class UserPoolAccessPolicyFactory {
   createPolicy = (actions: AuthActions) => {
     const policyActions: Set<string> = new Set();
 
+    if (actions.length === 0) {
+      throw new AmplifyUserError('EmptyPolicyError', {
+        message: 'At least one action must be specified',
+      });
+    }
+
     actions.forEach((authAction) => {
       const mappedAction = iamActionMap[authAction];
 
@@ -35,7 +41,7 @@ export class UserPoolAccessPolicyFactory {
 
     if (policyActions.size === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
-        message: 'At least one action must be specified',
+        message: 'Failed to construct valid policy to access UserPool',
       });
     }
 

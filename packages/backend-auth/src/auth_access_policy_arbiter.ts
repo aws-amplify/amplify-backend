@@ -16,7 +16,7 @@ export class AuthAccessPolicyArbiter {
     private readonly accessDefinition: AuthAccessDefinition[],
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly ssmEnvironmentEntries: SsmEnvironmentEntry[],
-    private readonly userpoolAccessPolicyFactory: UserPoolAccessPolicyFactory
+    private readonly userPoolAccessPolicyFactory: UserPoolAccessPolicyFactory
   ) {}
 
   /**
@@ -31,7 +31,7 @@ export class AuthAccessPolicyArbiter {
     const accessAcceptor = accessDefinition.getResourceAccessAcceptor(
       this.getInstanceProps
     );
-    const policy = this.userpoolAccessPolicyFactory.createPolicy(
+    const policy = this.userPoolAccessPolicyFactory.createPolicy(
       accessDefinition.actions
     );
 

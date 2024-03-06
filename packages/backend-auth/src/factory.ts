@@ -163,11 +163,10 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${this.defaultName}_USERPOOL_ARN`]:
-          authConstructMixin.resources.userPool.userPoolArn,
+        [`${this.defaultName}_USERPOOL_ID`]:
+          authConstructMixin.resources.userPool.userPoolId,
       });
 
-    authConstruct.resources.cfnResources;
     const authPolicyArbiter = this.authAccessPolicyArbiterFactory.getInstance(
       accessDefinition,
       this.getInstanceProps,
