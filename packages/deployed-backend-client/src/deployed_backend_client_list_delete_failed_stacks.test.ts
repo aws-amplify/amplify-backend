@@ -129,7 +129,9 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const failedStacks = await deployedBackendClient.listDeleteFailedStacks();
+    const failedStacks = await deployedBackendClient.listBackends({
+      deploymentType: 'branch',
+    });
     assert.deepEqual(failedStacks, {
       failedStacks: returnedDeleteFailedStacks,
     });
@@ -148,7 +150,9 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const failedStacks = await deployedBackendClient.listDeleteFailedStacks();
+    const failedStacks = await deployedBackendClient.listBackends({
+      deploymentType: 'branch',
+    });
     assert.deepEqual(failedStacks, {
       failedStacks: returnedDeleteFailedStacks,
     });
@@ -167,7 +171,9 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const failedStacks = await deployedBackendClient.listDeleteFailedStacks();
+    const failedStacks = await deployedBackendClient.listBackends({
+      deploymentType: 'branch',
+    });
     assert.deepEqual(failedStacks, {
       failedStacks: returnedDeleteFailedStacks,
     });
@@ -192,7 +198,9 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const failedStacks = await deployedBackendClient.listDeleteFailedStacks();
+    const failedStacks = await deployedBackendClient.listBackends({
+      deploymentType: 'branch',
+    });
     assert.deepEqual(failedStacks, {
       failedStacks: returnedDeleteFailedStacks,
     });
@@ -214,8 +222,9 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const listDeleteFailedStacksPromise =
-      deployedBackendClient.listDeleteFailedStacks();
+    const listDeleteFailedStacksPromise = deployedBackendClient.listBackends({
+      deploymentType: 'branch',
+    });
     await assert.rejects(listDeleteFailedStacksPromise);
   });
 });

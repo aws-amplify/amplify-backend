@@ -126,7 +126,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
   });
 
   void it('does not paginate listSandboxes when one page contains sandboxes', async () => {
-    const sandboxes = await deployedBackendClient.listSandboxes();
+    const sandboxes = await deployedBackendClient.listBackends({
+      deploymentType: 'sandbox',
+    });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
@@ -142,7 +144,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const sandboxes = await deployedBackendClient.listSandboxes();
+    const sandboxes = await deployedBackendClient.listBackends({
+      deploymentType: 'sandbox',
+    });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
@@ -162,7 +166,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const sandboxes = await deployedBackendClient.listSandboxes();
+    const sandboxes = await deployedBackendClient.listBackends({
+      deploymentType: 'sandbox',
+    });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
@@ -182,7 +188,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const sandboxes = await deployedBackendClient.listSandboxes();
+    const sandboxes = await deployedBackendClient.listBackends({
+      deploymentType: 'sandbox',
+    });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
@@ -208,7 +216,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const sandboxes = await deployedBackendClient.listSandboxes();
+    const sandboxes = await deployedBackendClient.listBackends({
+      deploymentType: 'sandbox',
+    });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,
       sandboxes: returnedSandboxes,
@@ -231,7 +241,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const listSandboxesPromise = deployedBackendClient.listSandboxes();
+    const listSandboxesPromise = deployedBackendClient.listBackends({
+      deploymentType: 'sandbox',
+    });
     await assert.rejects(listSandboxesPromise);
   });
 
@@ -242,7 +254,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const sandboxes = await deployedBackendClient.listSandboxes();
+    const sandboxes = await deployedBackendClient.listBackends({
+      deploymentType: 'sandbox',
+    });
     assert.deepEqual(sandboxes, {
       nextToken: 'abc',
       sandboxes: returnedSandboxes,
@@ -263,8 +277,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         return listStacksMock;
       }
     );
-    const sandboxes = await deployedBackendClient.listSandboxes({
+    const sandboxes = await deployedBackendClient.listBackends({
       nextToken: 'abc',
+      deploymentType: 'sandbox',
     });
     assert.deepEqual(sandboxes, {
       nextToken: undefined,

@@ -7,13 +7,11 @@ import {
   ApiAuthType,
   BackendMetadata,
   ConflictResolutionMode,
-  DeleteFailedStacksMetadata,
   DeployedBackendClient,
   FunctionConfiguration,
-  ListDeleteFailedStacksResponse,
-  ListSandboxesRequest,
-  ListSandboxesResponse,
-  SandboxMetadata,
+  ListBackendsMetadata,
+  ListBackendsRequest,
+  ListBackendsResponse,
 } from './deployed_backend_client_factory.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import {
@@ -84,23 +82,38 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     return this.buildBackendMetadata(stackName);
   };
 
-  /**
-   * Returns Amplify Sandboxes for the account and region. The number of sandboxes returned can vary
-   */
-  listSandboxes = async (
-    listSandboxesRequest?: ListSandboxesRequest
-  ): Promise<ListSandboxesResponse> => {
-    const stackMetadata: SandboxMetadata[] = [];
-    let nextToken = listSandboxesRequest?.nextToken;
+  listBackends = async (
+    listBackendsRequest?: ListBackendsRequest
+  ): Promise<ListBackendsResponse> => {
+    const stackMetadata: ListBackendsMetadata[] = [];
 
+    let nextToken = listBackendsRequest?.nextToken;
+    const deploymentType = listBackendsRequest?.deploymentType;
+    let stackStatusFilter: StackStatus[] = [];
+    if (deploymentType == 'branch') {
+      stackStatusFilter = ['DELETE_FAILED'];
+    }
     do {
-      const listStacksResponse = await this.listStacks(nextToken);
-      const stackMetadataPromises = listStacksResponse.stackSummaries
+      const listStacksResponse = await this.listStacks(
+        nextToken,
+        stackStatusFilter
+      );
+
+      const listStacksSummaries =
+        deploymentType === 'sandbox'
+          ? listStacksResponse.stackSummaries.filter(
+              (stackSummary: StackSummary) => {
+                return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
+              }
+            )
+          : listStacksResponse.stackSummaries;
+
+      const stackMetadataPromises = listStacksSummaries
         .filter((stackSummary: StackSummary) => {
-          return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
-        })
-        .filter((stackSummary: StackSummary) => {
-          return this.isSandboxStack(stackSummary.StackName);
+          return (
+            this.isSandboxOrBranchStack(stackSummary.StackName) ===
+            deploymentType
+          );
         })
         .map(async (stackSummary: StackSummary) => {
           const deploymentType = await this.tryGetDeploymentType(stackSummary);
@@ -123,7 +136,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         stackMetadataPromises
       );
       const filteredMetadata = stackMetadataResolvedPromises.filter(
-        (stackMetadata) => stackMetadata.deploymentType === 'sandbox'
+        (stackMetadata) => stackMetadata.deploymentType === deploymentType
       );
 
       stackMetadata.push(...filteredMetadata);
@@ -131,70 +144,17 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     } while (stackMetadata.length === 0 && nextToken);
 
     return {
-      sandboxes: stackMetadata,
+      backends: stackMetadata,
       nextToken,
     };
   };
 
-  /**
-   * Returns Amplify stacks which failed to delete for the account and region
-   */
-  listDeleteFailedStacks =
-    async (): Promise<ListDeleteFailedStacksResponse> => {
-      const stackMetadata: DeleteFailedStacksMetadata[] = [];
-      let nextToken;
-
-      do {
-        const listStacksResponse = await this.listStacksWithStatus(nextToken, [
-          'DELETE_FAILED',
-        ]);
-        // eslint-disable-next-line
-        const stackMetadataPromises = listStacksResponse.stackSummaries
-          .filter((stackSummary: StackSummary) => {
-            return this.isBranchStack(stackSummary.StackName);
-          })
-          .map(async (stackSummary: StackSummary) => {
-            const deploymentType = await this.tryGetDeploymentType(
-              stackSummary
-            );
-
-            return {
-              name: stackSummary.StackName as string,
-              backendId: BackendIdentifierConversions.fromStackName(
-                stackSummary.StackName
-              ),
-              lastUpdated:
-                stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
-              deploymentType,
-            };
-          });
-
-        const stackMetadataResolvedPromises = await Promise.all(
-          stackMetadataPromises
-        );
-        const filteredMetadata = stackMetadataResolvedPromises.filter(
-          (stackMetadata) => stackMetadata.deploymentType === 'branch'
-        );
-
-        stackMetadata.push(...filteredMetadata);
-        nextToken = listStacksResponse.nextToken;
-      } while (nextToken);
-
-      return {
-        failedStacks: stackMetadata,
-      };
-    };
-
-  private isSandboxStack = (stackName: string | undefined): boolean => {
+  private isSandboxOrBranchStack = (
+    stackName: string | undefined
+  ): string | undefined => {
     const backendIdentifier =
       BackendIdentifierConversions.fromStackName(stackName);
-    return backendIdentifier?.type === 'sandbox';
-  };
-
-  private isBranchStack = (stackName: string | undefined): boolean => {
-    const backendIdentifier =
-      BackendIdentifierConversions.fromStackName(stackName);
-    return backendIdentifier?.type === 'branch';
+    return backendIdentifier?.type;
   };
 
   private tryGetDeploymentType = async (
@@ -223,19 +183,6 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   };
 
   private listStacks = async (
-    nextToken: string | undefined
-  ): Promise<{
-    stackSummaries: StackSummary[];
-    nextToken: string | undefined;
-  }> => {
-    const stacks: ListStacksCommandOutput = await this.cfnClient.send(
-      new ListStacksCommand({ NextToken: nextToken })
-    );
-    nextToken = stacks.NextToken;
-    return { stackSummaries: stacks.StackSummaries ?? [], nextToken };
-  };
-
-  private listStacksWithStatus = async (
     nextToken: string | undefined,
     stackStatusFilter: StackStatus[]
   ): Promise<{
