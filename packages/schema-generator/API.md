@@ -34,15 +34,6 @@ export type SchemaGeneratorConfig = {
     out: string;
 };
 
-// @public
-export class SchemaOutputFileError extends Error {
-    constructor(code: string, errorno: string);
-    // (undocumented)
-    readonly code: string;
-    // (undocumented)
-    readonly errorno: string;
-}
-
 // @public (undocumented)
 export type SQLDataSourceConfig = {
     engine: SQLEngine;
