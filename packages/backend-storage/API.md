@@ -14,9 +14,6 @@ import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
-// @public
-export type AccessId = 'identity';
-
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
     access?: StorageAccessGenerator;
@@ -37,11 +34,14 @@ export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources>>;
 
 // @public
+export type EntityId = 'identity';
+
+// @public
 export type StorageAccessBuilder = {
     authenticated: StorageActionBuilder;
     guest: StorageActionBuilder;
     group: (groupName: string) => StorageActionBuilder;
-    id: (accessId: AccessId) => StorageActionBuilder;
+    entity: (entityId: EntityId) => StorageActionBuilder;
     resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => StorageActionBuilder;
 };
 
