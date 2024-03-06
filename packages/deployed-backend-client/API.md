@@ -133,8 +133,6 @@ export type DeleteFailedStacksMetadata = {
 
 // @public (undocumented)
 export type DeployedBackendClient = {
-    listSandboxes: (listSandboxesRequest?: ListSandboxesRequest) => Promise<ListSandboxesResponse>;
-    deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>) => Promise<void>;
     getBackendMetadata: (backendId: BackendIdentifier) => Promise<BackendMetadata>;
     listDeleteFailedStacks: () => Promise<ListDeleteFailedStacksResponse>;
 };
@@ -178,30 +176,6 @@ export type FunctionConfiguration = {
     status: BackendDeploymentStatus;
     lastUpdated: Date | undefined;
     functionName: string;
-};
-
-// @public (undocumented)
-export type ListDeleteFailedStacksResponse = {
-    failedStacks: DeleteFailedStacksMetadata[];
-};
-
-// @public (undocumented)
-export type ListSandboxesRequest = {
-    nextToken?: string;
-};
-
-// @public (undocumented)
-export type ListSandboxesResponse = {
-    sandboxes: SandboxMetadata[];
-    nextToken: string | undefined;
-};
-
-// @public (undocumented)
-export type SandboxMetadata = {
-    name: string;
-    lastUpdated: Date | undefined;
-    status: BackendDeploymentStatus;
-    backendId: BackendIdentifier | undefined;
 };
 
 // @public (undocumented)
