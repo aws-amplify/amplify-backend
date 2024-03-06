@@ -54,8 +54,8 @@ export type StorageAccessGenerator = (allow: StorageAccessBuilder) => StorageAcc
 // @public (undocumented)
 export type StorageAccessRecord = Record<StoragePath, StorageAccessDefinition[]>;
 
-// @public (undocumented)
-export type StorageAction = 'read' | 'write' | 'delete';
+// @public
+export type StorageAction = 'read' | 'get' | 'list' | 'write' | 'delete';
 
 // @public (undocumented)
 export type StorageActionBuilder = {

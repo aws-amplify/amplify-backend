@@ -11,7 +11,7 @@ Amplify.configure(
   {
     Storage: {
       S3: {
-        bucket: process.env.testName_BUCKET_NAME,
+        bucket: env.testName_BUCKET_NAME,
         region: env.AWS_REGION,
       },
     },
@@ -53,17 +53,35 @@ export const getResponse = async () => {
  */
 const s3RoundTrip = async (): Promise<string> => {
   const filename = 'test.txt';
-  await uploadData({
-    key: filename,
-    data: 'this is some test content',
-    options: {
-      accessLevel: 'guest',
-    },
-  }).result;
+  await retry(
+    () =>
+      uploadData({
+        key: filename,
+        data: 'this is some test content',
+        options: {
+          accessLevel: 'guest',
+        },
+      }).result
+  );
 
-  const downloadResult = await downloadData({
-    key: filename,
-    options: { accessLevel: 'guest' },
-  }).result;
+  const downloadResult = await retry(
+    () =>
+      downloadData({
+        key: filename,
+        options: { accessLevel: 'guest' },
+      }).result
+  );
   return downloadResult.body.text() as Promise<string>;
+};
+
+// executes action and if it throws, executes the action again after a second
+// if the action fails a second time, the error is re-thrown
+const retry = async <T>(action: () => Promise<T>) => {
+  try {
+    return action();
+  } catch (err) {
+    console.log(err);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return action();
+  }
 };

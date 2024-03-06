@@ -36,6 +36,9 @@ export class FunctionEnvironmentTypeGenerator {
     }
 
     // Add Lambda runtime environment variables to the typed shim
+    declarations.push(
+      `/** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */`
+    );
     declarations.push(`type ${lambdaEnvVarTypeName} = {`);
     for (const key in staticEnvironmentVariables) {
       const comment = `/** ${staticEnvironmentVariables[key]} */`;
@@ -50,6 +53,9 @@ export class FunctionEnvironmentTypeGenerator {
      * 1. Defined by the customer passing env vars to the environment parameter for defineFunction
      * 2. Defined by resource access mechanisms
      */
+    declarations.push(
+      `/** Amplify backend environment variables available at runtime, this includes environment variables defined in \`defineFunction\` and by cross resource mechanisms */`
+    );
     declarations.push(`type ${amplifyBackendEnvVarTypeName} = {`);
     this.amplifyBackendEnvVars.forEach((envName) => {
       const declaration = `${envName}: string;`;
@@ -58,11 +64,9 @@ export class FunctionEnvironmentTypeGenerator {
     });
     declarations.push(`};${EOL}`);
 
-    const content =
-      `/** Lambda runtime environment variables, see https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime */${EOL}` +
-      `export const env = process.env as ${lambdaEnvVarTypeName} & ${amplifyBackendEnvVarTypeName};${EOL}${EOL}${declarations.join(
-        EOL
-      )}`;
+    const content = `export const env = process.env as ${lambdaEnvVarTypeName} & ${amplifyBackendEnvVarTypeName};${EOL}${EOL}${declarations.join(
+      EOL
+    )}`;
 
     fs.writeFileSync(this.typeDefFilePath, content);
   }

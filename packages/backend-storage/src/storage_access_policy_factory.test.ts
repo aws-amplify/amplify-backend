@@ -21,7 +21,7 @@ void describe('StorageAccessPolicyFactory', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
-        ['read', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
+        ['get', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
       ])
     );
 
@@ -135,7 +135,7 @@ void describe('StorageAccessPolicyFactory', () => {
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
         [
-          'read',
+          'get',
           {
             allow: new Set(['/some/prefix/*', '/another/path/*']),
             deny: new Set(),
@@ -191,7 +191,7 @@ void describe('StorageAccessPolicyFactory', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
-        ['read', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
+        ['get', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
         ['write', { allow: new Set(['/another/path/*']), deny: new Set() }],
       ])
     );
@@ -244,7 +244,7 @@ void describe('StorageAccessPolicyFactory', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
-        ['read', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
+        ['get', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
         ['write', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
         ['delete', { allow: new Set(['/some/prefix/*']), deny: new Set() }],
       ])
@@ -312,7 +312,7 @@ void describe('StorageAccessPolicyFactory', () => {
     const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
-        ['read', { allow: new Set(['/foo/*', '/foo/bar/*']), deny: new Set() }],
+        ['get', { allow: new Set(['/foo/*', '/foo/bar/*']), deny: new Set() }],
         [
           'write',
           { allow: new Set(['/foo/*']), deny: new Set(['/foo/bar/*']) },
@@ -397,7 +397,7 @@ void describe('StorageAccessPolicyFactory', () => {
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
         [
-          'read',
+          'get',
           {
             allow: new Set(['/foo/*']),
             deny: new Set(['/foo/bar/*']),
@@ -489,7 +489,7 @@ void describe('StorageAccessPolicyFactory', () => {
     const policy = bucketPolicyFactory.createPolicy(
       new Map([
         [
-          'read',
+          'get',
           {
             allow: new Set(['/foo/*']),
             deny: new Set(['/foo/bar/*', '/other/path/*', '/something/else/*']),
@@ -561,6 +561,59 @@ void describe('StorageAccessPolicyFactory', () => {
                 ],
               },
             ],
+          },
+        ],
+      },
+    });
+  });
+
+  void it('handles allow and deny on "list" action', () => {
+    const bucketPolicyFactory = new StorageAccessPolicyFactory(bucket);
+    const policy = bucketPolicyFactory.createPolicy(
+      new Map([
+        [
+          'list',
+          {
+            allow: new Set(['/some/prefix/*']),
+            deny: new Set(['/some/prefix/subpath/*']),
+          },
+        ],
+      ])
+    );
+
+    // we have to attach the policy to a role, otherwise CDK erases the policy from the stack
+    policy.attachToRole(
+      new Role(stack, 'testRole', { assumedBy: new AccountPrincipal('1234') })
+    );
+
+    assert.ok(policy instanceof Policy);
+
+    const template = Template.fromStack(Stack.of(bucket));
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: 's3:ListBucket',
+            Resource: {
+              'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+            },
+            Condition: {
+              StringLike: {
+                's3:prefix': ['some/prefix/*', 'some/prefix/'],
+              },
+            },
+          },
+          {
+            Action: 's3:ListBucket',
+            Effect: 'Deny',
+            Resource: {
+              'Fn::GetAtt': ['testBucketDF4D7D1A', 'Arn'],
+            },
+            Condition: {
+              StringLike: {
+                's3:prefix': ['some/prefix/subpath/*', 'some/prefix/subpath/'],
+              },
+            },
           },
         ],
       },

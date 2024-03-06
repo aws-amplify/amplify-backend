@@ -1,5 +1,12 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.3
+
+### Patch Changes
+
+- 912034e: limit defineData call to one
+- 7857f0a: backend-data: add js resolver support
+
 ## 0.10.0-beta.2
 
 ### Minor Changes

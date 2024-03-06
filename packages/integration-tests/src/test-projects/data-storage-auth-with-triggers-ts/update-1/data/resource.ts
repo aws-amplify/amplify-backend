@@ -20,6 +20,19 @@ const schema = a.schema({
     executionDuration: a.float(),
   }),
 
+  customQuery: a
+    .query()
+    .arguments({ id: a.string() })
+    .returns(a.ref('Todo'))
+    .authorization([a.allow.private()])
+    .handler(
+      // provisions JS resolver
+      a.handler.custom({
+        dataSource: a.ref('Todo'),
+        entry: './js_custom_fn.js',
+      })
+    ),
+
   echo: a
     .query()
     .arguments({ content: a.string() })
