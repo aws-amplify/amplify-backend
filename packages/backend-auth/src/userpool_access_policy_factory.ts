@@ -5,7 +5,7 @@ import { AmplifyFault } from '@aws-amplify/platform-core';
 import { ActionIam, ActionMeta, AuthActions } from './types.js';
 
 /**
- * Generates IAM policies scoped to a single bucket
+ * Generates IAM policies scoped to a single userpool.
  */
 export class UserPoolAccessPolicyFactory {
   private readonly namePrefix = 'userpoolAccess';

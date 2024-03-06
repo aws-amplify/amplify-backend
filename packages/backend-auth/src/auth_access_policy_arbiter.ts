@@ -10,7 +10,7 @@ import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js
  */
 export class AuthAccessPolicyArbiter {
   /**
-   * Instantiate with context from the storage factory
+   * Instantiate with context from the auth factory
    */
   constructor(
     private readonly accessDefinition: AuthAccessDefinition[],
