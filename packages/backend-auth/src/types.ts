@@ -183,8 +183,6 @@ export type AuthLoginWithFactoryProps = Omit<
   externalProviders?: ExternalProviderSpecificFactoryProps;
 };
 
-export type Role = 'users' | 'groups';
-
 export type AllowAccessBuilder = {
   resource: (
     other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
@@ -192,21 +190,46 @@ export type AllowAccessBuilder = {
 };
 
 export type ResourceAccessBuilder = {
-  to: (actions: UserpoolAction[]) => AccessDefinition;
+  to: (actions: AmplifyAuthActions) => AccessDefinition;
 };
 
-export type AccessGenerator = (
-  allow: AllowAccessBuilder
-) => Partial<Record<Role, AccessDefinition>>;
-
-export type UserpoolAction = 'create' | 'read' | 'update' | 'delete' | 'list';
+export type AccessGenerator = (allow: AllowAccessBuilder) => AccessDefinition[];
 
 export type AccessDefinition = {
   getResourceAccessAcceptor: (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ) => ResourceAccessAcceptor;
-  /**
-   * Actions to grant to this role on a specific prefix
-   */
-  actions: UserpoolAction[];
+
+  // list of auth actions you can perform on the resource
+  actions: AmplifyAuthActions;
 };
+
+export type AmplifyAuthActions = ActionIam[] | ActionMeta[];
+
+export type ActionMeta =
+  /* This meta action contains IAM permissions to interact with users in specified userpool. */
+  'manageUser';
+
+export type ActionIam =
+  | 'addUserToGroup'
+  | 'confirmSignUp'
+  | 'createUser'
+  | 'deleteUser'
+  | 'deleteUserAttributes'
+  | 'disableUser'
+  | 'enableUser'
+  | 'forgetDevice'
+  | 'getDevice'
+  | 'getUser'
+  | 'listDevices'
+  | 'listGroupsForUser'
+  | 'listUserAuthEvents'
+  | 'removeUserFromGroup'
+  | 'resetUserPassword'
+  | 'respondToAuthChallenge'
+  | 'setUserMfaPreference'
+  | 'setUserPassword'
+  | 'setUserSettings'
+  | 'updateDeviceStatus'
+  | 'updateUserAttributes'
+  | 'userGlobalSignOut';

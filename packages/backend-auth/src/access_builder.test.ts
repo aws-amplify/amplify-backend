@@ -42,12 +42,12 @@ void describe('allowAccessBuilder', () => {
             getResourceAccessAcceptor: getResourceAccessAcceptorMock,
           } as unknown as ResourceProvider & ResourceAccessAcceptorFactory),
       })
-      .to(['read', 'list', 'delete']);
+      .to(['createUser', 'deleteUser', 'setUserPassword']);
 
     assert.deepStrictEqual(accessDefinition.actions, [
-      'read',
-      'list',
-      'delete',
+      'createUser',
+      'deleteUser',
+      'setUserPassword',
     ]);
     assert.equal(
       accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),

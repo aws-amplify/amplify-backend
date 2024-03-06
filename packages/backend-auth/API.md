@@ -25,11 +25,17 @@ import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 // @public (undocumented)
 export type AccessDefinition = {
     getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
-    actions: UserpoolAction[];
+    actions: AmplifyAuthActions;
 };
 
 // @public (undocumented)
-export type AccessGenerator = (allow: AllowAccessBuilder) => Partial<Record<Role, AccessDefinition>>;
+export type AccessGenerator = (allow: AllowAccessBuilder) => AccessDefinition[];
+
+// @public (undocumented)
+export type ActionIam = 'addUserToGroup' | 'confirmSignUp' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'listUserAuthEvents' | 'removeUserFromGroup' | 'resetUserPassword' | 'respondToAuthChallenge' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes' | 'userGlobalSignOut';
+
+// @public (undocumented)
+export type ActionMeta = 'manageUser';
 
 // @public (undocumented)
 export type AllowAccessBuilder = {
@@ -41,6 +47,9 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
     clientId: BackendSecret;
     clientSecret: BackendSecret;
 };
+
+// @public (undocumented)
+export type AmplifyAuthActions = ActionIam[] | ActionMeta[];
 
 // @public (undocumented)
 export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
@@ -105,14 +114,8 @@ export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientId' | 'cli
 
 // @public (undocumented)
 export type ResourceAccessBuilder = {
-    to: (actions: UserpoolAction[]) => AccessDefinition;
+    to: (actions: AmplifyAuthActions) => AccessDefinition;
 };
-
-// @public (undocumented)
-export type Role = 'users' | 'groups';
-
-// @public (undocumented)
-export type UserpoolAction = 'create' | 'read' | 'update' | 'delete' | 'list';
 
 // (No @packageDocumentation comment for this package)
 

@@ -23,6 +23,7 @@ import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { allowAccessBuilder as _allowAccessBuilder } from './access_builder.js';
 import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js';
 import { AccessGenerator, AuthLoginWithFactoryProps, Expand } from './types.js';
+import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName>;
@@ -156,12 +157,18 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     // this produces the access definition that will be used to create the storage policies
     const accessDefinition = this.props.access(this.allowAccessBuilder);
 
+    const ssmEnvironmentEntries =
+      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
+        [`${this.defaultName}_USERPOOL_ARN`]:
+          authConstructMixin.resources.userPool.userPoolArn,
+      });
+
+    authConstruct.resources.cfnResources;
     const authPolicyArbiter = this.authAccessPolicyArbiterFactory.getInstance(
-      this.defaultName,
       accessDefinition,
-      ssmEnvironmentEntriesGenerator,
       this.getInstanceProps,
-      authConstructMixin.resources.userPool
+      ssmEnvironmentEntries,
+      new UserPoolAccessPolicyFactory(authConstruct.resources.userPool)
     );
 
     authPolicyArbiter.arbitratePolicies();

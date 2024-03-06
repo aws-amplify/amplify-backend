@@ -114,7 +114,7 @@ void describe('AmplifyAuthFactory', () => {
     );
   });
 
-  void it('if access is defined, it should attach correct policy to the resource', () => {
+  void it('if access is defined, it should attach valid policy to the resource', () => {
     const mockAcceptResourceAccess = mock.fn();
     const lambdaResourceStub = {
       getInstance: () => ({
@@ -130,18 +130,56 @@ void describe('AmplifyAuthFactory', () => {
 
     authFactory = defineAuth({
       loginWith: { email: true },
-      access: (allow) => ({
-        users: allow
-          .resource(lambdaResourceStub)
-          .to(['read', 'update', 'create']),
-      }),
+      access: (allow) => [
+        allow.resource(lambdaResourceStub).to(['manageUser']),
+        allow.resource(lambdaResourceStub).to(['createUser']),
+      ],
     });
 
-    authFactory.getInstance(getInstanceProps);
+    const backendAuth = authFactory.getInstance(getInstanceProps);
 
-    assert.equal(mockAcceptResourceAccess.mock.callCount(), 1);
+    assert.equal(mockAcceptResourceAccess.mock.callCount(), 2);
     assert.ok(
       mockAcceptResourceAccess.mock.calls[0].arguments[0] instanceof Policy
+    );
+    assert.deepStrictEqual(
+      mockAcceptResourceAccess.mock.calls[0].arguments[0].document.toJSON(),
+      {
+        Statement: [
+          {
+            Action: [
+              'cognito-idp:AdminAddUserToGroup',
+              'cognito-idp:AdminConfirmSignUp',
+              'cognito-idp:AdminCreateUser',
+              'cognito-idp:AdminDeleteUser',
+              'cognito-idp:AdminDeleteUserAttributes',
+              'cognito-idp:AdminDisableUser',
+              'cognito-idp:AdminEnableUser',
+              'cognito-idp:AdminForgetDevice',
+              'cognito-idp:AdminGetDevice',
+              'cognito-idp:AdminGetUser',
+              'cognito-idp:AdminListDevices',
+              'cognito-idp:AdminListGroupsForUser',
+              'cognito-idp:AdminListUserAuthEvents',
+              'cognito-idp:AdminRemoveUserFromGroup',
+              'cognito-idp:AdminResetUserPassword',
+              'cognito-idp:AdminRespondToAuthChallenge',
+              'cognito-idp:AdminSetUserMFAPreference',
+              'cognito-idp:AdminSetUserPassword',
+              'cognito-idp:AdminSetUserSettings',
+              'cognito-idp:AdminUpdateDeviceStatus',
+              'cognito-idp:AdminUpdateUserAttributes',
+              'cognito-idp:AdminUserGlobalSignOut',
+            ],
+            Effect: 'Allow',
+            Resource: `${backendAuth.resources.userPool.userPoolArn}`,
+          },
+        ],
+        Version: '2012-10-17',
+      }
+    );
+    assert.ok(
+      mockAcceptResourceAccess.mock.calls[1].arguments[0] instanceof Policy
     );
   });
 

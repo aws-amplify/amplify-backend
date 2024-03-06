@@ -1,10 +1,8 @@
-import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import {
   ConstructFactoryGetInstanceProps,
-  SsmEnvironmentEntriesGenerator,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
-import { AccessDefinition, Role } from './types.js';
+import { AccessDefinition } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
 
 /**
@@ -15,14 +13,10 @@ export class AuthAccessPolicyArbiter {
    * Instantiate with context from the storage factory
    */
   constructor(
-    private readonly name: string,
-    private readonly accessDefinition: Partial<Record<Role, AccessDefinition>>,
-    private readonly ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
+    private readonly accessDefinition: AccessDefinition[],
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly userpool: IUserPool,
-    private readonly userpoolAccessPolicyFactory = new UserPoolAccessPolicyFactory(
-      userpool
-    )
+    private readonly ssmEnvironmentEntries: SsmEnvironmentEntry[],
+    private readonly userpoolAccessPolicyFactory: UserPoolAccessPolicyFactory
   ) {}
 
   /**
@@ -30,36 +24,18 @@ export class AuthAccessPolicyArbiter {
    * then invoking the corresponding ResourceAccessAcceptor to accept the policies
    */
   arbitratePolicies = () => {
-    const ssmEnvironmentEntries =
-      this.ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${this.name}_USERPOOL_ARN`]: this.userpool.userPoolArn,
-      });
-
-    this.acceptResourceAccess('users', ssmEnvironmentEntries);
-    this.acceptResourceAccess('groups', ssmEnvironmentEntries);
+    this.accessDefinition.forEach(this.acceptResourceAccess);
   };
 
-  acceptResourceAccess = (
-    role: Role,
-    ssmEnvironmentEntries: SsmEnvironmentEntry[]
-  ) => {
-    const accessDefinition = this.accessDefinition[role];
-
-    // no-op if access definition is not found for role.
-    if (!accessDefinition) {
-      return;
-    }
-
+  acceptResourceAccess = (accessDefinition: AccessDefinition) => {
     const accessAcceptor = accessDefinition.getResourceAccessAcceptor(
       this.getInstanceProps
     );
-    if (!accessAcceptor) {
-      return;
-    }
     const policy = this.userpoolAccessPolicyFactory.createPolicy(
-      new Set(accessDefinition.actions)
+      accessDefinition.actions
     );
-    accessAcceptor.acceptResourceAccess(policy, ssmEnvironmentEntries);
+
+    accessAcceptor.acceptResourceAccess(policy, this.ssmEnvironmentEntries);
   };
 }
 
@@ -68,19 +44,15 @@ export class AuthAccessPolicyArbiter {
  */
 export class AuthAccessPolicyArbiterFactory {
   getInstance = (
-    name: string,
-    accessDefinition: Partial<Record<Role, AccessDefinition>>,
-    ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator,
+    accessDefinition: AccessDefinition[],
     getInstanceProps: ConstructFactoryGetInstanceProps,
-    userpool: IUserPool,
-    userpoolAccessPolicyFactory = new UserPoolAccessPolicyFactory(userpool)
+    ssmEnvironmentEntries: SsmEnvironmentEntry[],
+    userpoolAccessPolicyFactory: UserPoolAccessPolicyFactory
   ) =>
     new AuthAccessPolicyArbiter(
-      name,
       accessDefinition,
-      ssmEnvironmentEntriesGenerator,
       getInstanceProps,
-      userpool,
+      ssmEnvironmentEntries,
       userpoolAccessPolicyFactory
     );
 }

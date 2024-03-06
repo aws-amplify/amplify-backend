@@ -6,7 +6,6 @@ import {
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
-  SsmEnvironmentEntriesGenerator,
 } from '@aws-amplify/plugin-types';
 import {
   ConstructContainerStub,
@@ -17,6 +16,7 @@ import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { AuthAccessPolicyArbiter } from './auth_access_policy_arbiter.js';
 import assert from 'node:assert';
+import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
 
 void describe('AuthAccessPolicyArbiter', () => {
   void describe('arbitratePolicies', () => {
@@ -25,12 +25,6 @@ void describe('AuthAccessPolicyArbiter', () => {
     let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     let importPathVerifier: ImportPathVerifier;
     let getInstanceProps: ConstructFactoryGetInstanceProps;
-
-    const ssmEnvironmentEntriesGeneratorStub: SsmEnvironmentEntriesGenerator = {
-      generateSsmEnvironmentEntries: mock.fn(() => [
-        { name: 'TEST_USERPOOL_ID', path: 'test/ssm/path/to/userpool/id' },
-      ]),
-    };
 
     beforeEach(() => {
       stack = createStackAndSetContext();
@@ -55,30 +49,29 @@ void describe('AuthAccessPolicyArbiter', () => {
     void it('passes expected policy and ssm context to resource access acceptor', () => {
       const userpool = new UserPool(stack, 'testUserPool');
       const acceptResourceAccessMock = mock.fn();
-      const storageAccessPolicyArbiter = new AuthAccessPolicyArbiter(
-        'testName',
-        {
-          users: {
-            actions: ['read', 'update'],
+      const authAccessPolicyArbiter = new AuthAccessPolicyArbiter(
+        [
+          {
+            actions: ['manageUser'],
             getResourceAccessAcceptor: () => ({
               identifier: 'testResourceAccessAcceptor',
               acceptResourceAccess: acceptResourceAccessMock,
             }),
           },
-          groups: {
-            actions: ['read', 'list'],
+          {
+            actions: ['deleteUser', 'disableUser', 'deleteUserAttributes'],
             getResourceAccessAcceptor: () => ({
               identifier: 'testResourceAccessAcceptor',
               acceptResourceAccess: acceptResourceAccessMock,
             }),
           },
-        },
-        ssmEnvironmentEntriesGeneratorStub,
+        ],
         getInstanceProps,
-        userpool
+        [{ name: 'TEST_USERPOOL_ID', path: 'test/ssm/path/to/userpool/id' }],
+        new UserPoolAccessPolicyFactory(userpool)
       );
 
-      storageAccessPolicyArbiter.arbitratePolicies();
+      authAccessPolicyArbiter.arbitratePolicies();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 2);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -86,31 +79,28 @@ void describe('AuthAccessPolicyArbiter', () => {
           Statement: [
             {
               Action: [
-                'cognito-identity:Describe*',
-                'cognito-identity:Get*',
-                'cognito-idp:Describe*',
+                'cognito-idp:AdminAddUserToGroup',
+                'cognito-idp:AdminConfirmSignUp',
+                'cognito-idp:AdminCreateUser',
+                'cognito-idp:AdminDeleteUser',
+                'cognito-idp:AdminDeleteUserAttributes',
+                'cognito-idp:AdminDisableUser',
+                'cognito-idp:AdminEnableUser',
+                'cognito-idp:AdminForgetDevice',
                 'cognito-idp:AdminGetDevice',
                 'cognito-idp:AdminGetUser',
-                'cognito-sync:Describe*',
-                'cognito-sync:Get*',
-              ],
-              Effect: 'Allow',
-              Resource: `${userpool.userPoolArn}`,
-            },
-            {
-              Action: [
-                'cognito-idp:ForgotPassword',
-                'cognito-idp:UpdateAuthEventFeedback',
-                'cognito-idp:UpdateResourceServer',
-                'cognito-idp:UpdateUserPoolClient',
+                'cognito-idp:AdminListDevices',
+                'cognito-idp:AdminListGroupsForUser',
+                'cognito-idp:AdminListUserAuthEvents',
+                'cognito-idp:AdminRemoveUserFromGroup',
+                'cognito-idp:AdminResetUserPassword',
+                'cognito-idp:AdminRespondToAuthChallenge',
+                'cognito-idp:AdminSetUserMFAPreference',
+                'cognito-idp:AdminSetUserPassword',
+                'cognito-idp:AdminSetUserSettings',
+                'cognito-idp:AdminUpdateDeviceStatus',
                 'cognito-idp:AdminUpdateUserAttributes',
-                'cognito-idp:UpdateUserAttributes',
-                'cognito-idp:UpdateUserPoolDomain',
-                'cognito-idp:UpdateIdentityProvider',
-                'cognito-idp:UpdateGroup',
-                'cognito-idp:AdminUpdateAuthEventFeedback',
-                'cognito-idp:UpdateDeviceStatus',
-                'cognito-idp:UpdateUserPool',
+                'cognito-idp:AdminUserGlobalSignOut',
               ],
               Effect: 'Allow',
               Resource: `${userpool.userPoolArn}`,
@@ -125,26 +115,9 @@ void describe('AuthAccessPolicyArbiter', () => {
           Statement: [
             {
               Action: [
-                'cognito-identity:Describe*',
-                'cognito-identity:Get*',
-                'cognito-idp:Describe*',
-                'cognito-idp:AdminGetDevice',
-                'cognito-idp:AdminGetUser',
-                'cognito-sync:Describe*',
-                'cognito-sync:Get*',
-              ],
-              Effect: 'Allow',
-              Resource: `${userpool.userPoolArn}`,
-            },
-            {
-              Action: [
-                'cognito-identity:List*',
-                'cognito-idp:AdminList*',
-                'cognito-idp:List*',
-                'cognito-sync:List*',
-                'iam:ListOpenIdConnectProviders',
-                'iam:ListRoles',
-                'sns:ListPlatformApplications',
+                'cognito-idp:AdminDeleteUser',
+                'cognito-idp:AdminDisableUser',
+                'cognito-idp:AdminDeleteUserAttributes',
               ],
               Effect: 'Allow',
               Resource: `${userpool.userPoolArn}`,

@@ -2,15 +2,7 @@ import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
-import { UserpoolAction } from './types.js';
-
-export type Permission = {
-  actions: UserpoolAction[];
-  /**
-   * An s3 prefix that defines the scope of the actions
-   */
-  resources: string[];
-};
+import { ActionIam, ActionMeta, AmplifyAuthActions } from './types.js';
 
 /**
  * Generates IAM policies scoped to a single bucket
@@ -22,127 +14,99 @@ export class UserPoolAccessPolicyFactory {
   private policyCount = 1;
 
   /**
-   * Instantiate with the bucket to generate policies for
+   * Instantiate with the userpool to generate policies for
    */
   constructor(private readonly userpool: IUserPool) {
     this.stack = Stack.of(userpool);
   }
 
-  createPolicy = (actions: Readonly<Set<UserpoolAction>>) => {
-    if (actions.size === 0) {
+  createPolicy = (actions: AmplifyAuthActions) => {
+    const policyActions: Set<string> = new Set();
+
+    actions.forEach((authAction) => {
+      const mappedAction = iamActionMap[authAction];
+
+      if (typeof mappedAction === 'string') {
+        policyActions.add(mappedAction);
+      } else {
+        mappedAction.forEach((action) => policyActions.add(action));
+      }
+    });
+
+    if (policyActions.size === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
         message: 'At least one action must be specified',
       });
     }
 
-    const statements: PolicyStatement[] = [];
+    const policy = new Policy(
+      this.stack,
+      `${this.namePrefix}${this.policyCount++}`,
+      {
+        statements: [
+          new PolicyStatement({
+            actions: [...policyActions],
+            resources: [this.userpool.userPoolArn],
+          }),
+        ],
+      }
+    );
 
-    actions.forEach((action) => {
-      statements.push(this.getStatement(action));
-    });
-
-    return new Policy(this.stack, `${this.namePrefix}${this.policyCount++}`, {
-      statements,
-    });
+    return policy;
   };
-
-  private getStatement = (action: UserpoolAction) =>
-    new PolicyStatement({
-      actions: actionPolicyMap[action],
-      resources: [this.userpool.userPoolArn],
-    });
 }
 
-const actionPolicyMap: Record<UserpoolAction, string[]> = {
-  create: [
-    'cognito-idp:ConfirmSignUp',
-    'cognito-idp:AdminCreateUser',
-    'cognito-idp:CreateUserImportJob',
-    'cognito-idp:AdminSetUserSettings',
-    'cognito-idp:AdminLinkProviderForUser',
-    'cognito-idp:CreateIdentityProvider',
-    'cognito-idp:AdminConfirmSignUp',
-    'cognito-idp:AdminDisableUser',
-    'cognito-idp:AdminRemoveUserFromGroup',
-    'cognito-idp:SetUserMFAPreference',
-    'cognito-idp:SetUICustomization',
-    'cognito-idp:SignUp',
-    'cognito-idp:VerifyUserAttribute',
-    'cognito-idp:SetRiskConfiguration',
-    'cognito-idp:StartUserImportJob',
-    'cognito-idp:AdminSetUserPassword',
-    'cognito-idp:AssociateSoftwareToken',
-    'cognito-idp:CreateResourceServer',
-    'cognito-idp:RespondToAuthChallenge',
-    'cognito-idp:CreateUserPoolClient',
-    'cognito-idp:AdminUserGlobalSignOut',
-    'cognito-idp:GlobalSignOut',
-    'cognito-idp:AddCustomAttributes',
-    'cognito-idp:CreateGroup',
-    'cognito-idp:CreateUserPool',
-    'cognito-idp:AdminForgetDevice',
+type IamActionMap = {
+  [action in ActionIam]: string;
+} & {
+  [amplifyActionSet in ActionMeta]: string[];
+};
+
+const iamActionMap: IamActionMap = {
+  manageUser: [
     'cognito-idp:AdminAddUserToGroup',
-    'cognito-idp:AdminRespondToAuthChallenge',
-    'cognito-idp:ForgetDevice',
-    'cognito-idp:CreateUserPoolDomain',
+    'cognito-idp:AdminConfirmSignUp',
+    'cognito-idp:AdminCreateUser',
+    'cognito-idp:AdminDeleteUser',
+    'cognito-idp:AdminDeleteUserAttributes',
+    'cognito-idp:AdminDisableUser',
     'cognito-idp:AdminEnableUser',
-    'cognito-idp:AdminUpdateDeviceStatus',
-    'cognito-idp:StopUserImportJob',
-    'cognito-idp:InitiateAuth',
-    'cognito-idp:AdminInitiateAuth',
-    'cognito-idp:AdminSetUserMFAPreference',
-    'cognito-idp:ConfirmForgotPassword',
-    'cognito-idp:SetUserSettings',
-    'cognito-idp:VerifySoftwareToken',
-    'cognito-idp:AdminDisableProviderForUser',
-    'cognito-idp:SetUserPoolMfaConfig',
-    'cognito-idp:ChangePassword',
-    'cognito-idp:ConfirmDevice',
-    'cognito-idp:AdminResetUserPassword',
-    'cognito-idp:ResendConfirmationCode',
-  ],
-  update: [
-    'cognito-idp:ForgotPassword',
-    'cognito-idp:UpdateAuthEventFeedback',
-    'cognito-idp:UpdateResourceServer',
-    'cognito-idp:UpdateUserPoolClient',
-    'cognito-idp:AdminUpdateUserAttributes',
-    'cognito-idp:UpdateUserAttributes',
-    'cognito-idp:UpdateUserPoolDomain',
-    'cognito-idp:UpdateIdentityProvider',
-    'cognito-idp:UpdateGroup',
-    'cognito-idp:AdminUpdateAuthEventFeedback',
-    'cognito-idp:UpdateDeviceStatus',
-    'cognito-idp:UpdateUserPool',
-  ],
-  read: [
-    'cognito-identity:Describe*',
-    'cognito-identity:Get*',
-    'cognito-idp:Describe*',
+    'cognito-idp:AdminForgetDevice',
     'cognito-idp:AdminGetDevice',
     'cognito-idp:AdminGetUser',
-    'cognito-sync:Describe*',
-    'cognito-sync:Get*',
+    'cognito-idp:AdminListDevices',
+    'cognito-idp:AdminListGroupsForUser',
+    'cognito-idp:AdminListUserAuthEvents',
+    'cognito-idp:AdminRemoveUserFromGroup',
+    'cognito-idp:AdminResetUserPassword',
+    'cognito-idp:AdminRespondToAuthChallenge',
+    'cognito-idp:AdminSetUserMFAPreference',
+    'cognito-idp:AdminSetUserPassword',
+    'cognito-idp:AdminSetUserSettings',
+    'cognito-idp:AdminUpdateDeviceStatus',
+    'cognito-idp:AdminUpdateUserAttributes',
+    'cognito-idp:AdminUserGlobalSignOut',
   ],
-  delete: [
-    'cognito-idp:DeleteUserPoolDomain',
-    'cognito-idp:DeleteResourceServer',
-    'cognito-idp:DeleteGroup',
-    'cognito-idp:AdminDeleteUserAttributes',
-    'cognito-idp:DeleteUserPoolClient',
-    'cognito-idp:DeleteUserAttributes',
-    'cognito-idp:DeleteUserPool',
-    'cognito-idp:AdminDeleteUser',
-    'cognito-idp:DeleteIdentityProvider',
-    'cognito-idp:DeleteUser',
-  ],
-  list: [
-    'cognito-identity:List*',
-    'cognito-idp:AdminList*',
-    'cognito-idp:List*',
-    'cognito-sync:List*',
-    'iam:ListOpenIdConnectProviders',
-    'iam:ListRoles',
-    'sns:ListPlatformApplications',
-  ],
+  addUserToGroup: 'cognito-idp:AdminAddUserToGroup',
+  confirmSignUp: 'cognito-idp:AdminConfirmSignUp',
+  createUser: 'cognito-idp:AdminCreateUser',
+  deleteUser: 'cognito-idp:AdminDeleteUser',
+  deleteUserAttributes: 'cognito-idp:AdminDeleteUserAttributes',
+  disableUser: 'cognito-idp:AdminDisableUser',
+  enableUser: 'cognito-idp:AdminEnableUser',
+  forgetDevice: 'cognito-idp:AdminForgetDevice',
+  getDevice: 'cognito-idp:AdminGetDevice',
+  getUser: 'cognito-idp:AdminGetUser',
+  listDevices: 'cognito-idp:AdminListDevices',
+  listGroupsForUser: 'cognito-idp:AdminListGroupsForUser',
+  listUserAuthEvents: 'cognito-idp:AdminListUserAuthEvents',
+  removeUserFromGroup: 'cognito-idp:AdminRemoveUserFromGroup',
+  resetUserPassword: 'cognito-idp:AdminResetUserPassword',
+  respondToAuthChallenge: 'cognito-idp:AdminRespondToAuthChallenge',
+  setUserMfaPreference: 'cognito-idp:AdminSetUserMFAPreference',
+  setUserPassword: 'cognito-idp:AdminSetUserPassword',
+  setUserSettings: 'cognito-idp:AdminSetUserSettings',
+  updateDeviceStatus: 'cognito-idp:AdminUpdateDeviceStatus',
+  updateUserAttributes: 'cognito-idp:AdminUpdateUserAttributes',
+  userGlobalSignOut: 'cognito-idp:AdminUserGlobalSignOut',
 };
