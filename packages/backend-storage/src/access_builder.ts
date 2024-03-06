@@ -76,7 +76,7 @@ const getUserRoleResourceAccessAcceptor = (
     throw new Error(
       `Cannot specify auth access for ${
         roleName as string
-      } users without defining auth. See <defineAuth docs link> for more information.`
+      } users without defining auth. See https://docs.amplify.aws/gen2/build-a-backend/auth/set-up-auth/ for more information.`
     );
   }
   return resourceAccessAcceptor;
