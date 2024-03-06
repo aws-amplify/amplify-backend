@@ -128,19 +128,19 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ...authConstruct,
       /**
        * Returns a resourceAccessAcceptor for the given role
-       * @param roleName Either the auth or unauth role name or the name of a UserPool group
+       * @param roleIdentifier Either the auth or unauth role name or the name of a UserPool group
        */
       getResourceAccessAcceptor: (
-        roleName: AuthRoleName | string
+        roleIdentifier: AuthRoleName | string
       ): ResourceAccessAcceptor => ({
-        identifier: `${roleName}ResourceAccessAcceptor`,
+        identifier: `${roleIdentifier}ResourceAccessAcceptor`,
         acceptResourceAccess: (policy: Policy) => {
-          const role = roleNameIsAuthRoleName(roleName)
-            ? authConstruct.resources[roleName]
-            : authConstruct.resources.groups?.[roleName]?.role;
+          const role = roleNameIsAuthRoleName(roleIdentifier)
+            ? authConstruct.resources[roleIdentifier]
+            : authConstruct.resources.groups?.[roleIdentifier]?.role;
           if (!role) {
             throw new AmplifyUserError('InvalidResourceAccessConfig', {
-              message: `No auth IAM role found for "${roleName}".`,
+              message: `No auth IAM role found for "${roleIdentifier}".`,
               resolution: `If you are trying to configure UserPool group access, ensure that the group name is specified correctly.`,
             });
           }

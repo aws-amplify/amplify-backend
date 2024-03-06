@@ -23,14 +23,14 @@ export type ResourceAccessAcceptor = {
 };
 
 export type ResourceAccessAcceptorFactory<
-  RoleName extends string | undefined = undefined
+  RoleIdentifier extends string | undefined = undefined
 > = {
   /**
-   * This type is a little wonky but basically it's saying that if RoleName is undefined, then this is a function with no props
-   * And if RoleName is a string then this is a function with a single roleName prop
+   * This type is a little wonky but basically it's saying that if RoleIdentifier is undefined, then this is a function with no props
+   * And if RoleIdentifier is a string then this is a function with a single roleIdentifier prop
    * See https://github.com/Microsoft/TypeScript/pull/24897
    */
   getResourceAccessAcceptor: (
-    ...roleName: RoleName extends string ? [RoleName] : []
+    ...roleIdentifier: RoleIdentifier extends string ? [RoleIdentifier] : []
   ) => ResourceAccessAcceptor;
 };
