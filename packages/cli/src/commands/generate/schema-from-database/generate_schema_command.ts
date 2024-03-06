@@ -19,7 +19,7 @@ type GenerateSchemaCommandOptionsCamelCase = {
 };
 
 /**
- * Command that generates client config.
+ * Command that generates typescript data schema from sql schema.
  */
 export class GenerateSchemaCommand
   implements CommandModule<object, GenerateSchemaCommandOptions>
@@ -35,11 +35,12 @@ export class GenerateSchemaCommand
   readonly describe: string;
 
   /**
-   * Creates client config generation command.
+   * Creates typescript data schema generation command.
    */
   constructor(
     private readonly backendIdentifierResolver: BackendIdentifierResolver,
-    private readonly secretClient: SecretClient
+    private readonly secretClient: SecretClient,
+    private readonly schemaGenerator: SchemaGenerator
   ) {
     this.command = 'schema-from-database';
     this.describe = 'Generates typescript data schema from database';
@@ -71,34 +72,10 @@ export class GenerateSchemaCommand
       }
     );
 
-    const schemaGenerator = new SchemaGenerator();
-    await schemaGenerator.generate({
+    await this.schemaGenerator.generate({
       connectionString: connectionString.value,
       out: outputFile,
     });
-    // const backendOutputClient = this.backendOutputClientBuilder();
-
-    // const output = await backendOutputClient.getOutput(backendIdentifier);
-
-    // if (!(graphqlOutputKey in output) || !output[graphqlOutputKey]) {
-    //   throw new Error('No GraphQL API configured for this backend.');
-    // }
-
-    // const apiUrl = output[graphqlOutputKey].payload.amplifyApiModelSchemaS3Uri;
-
-    // if (!args['out-dir']) {
-    //   throw new Error('out-dir must be defined');
-    // }
-
-    // const outDir = args['out-dir'];
-
-    // await this.formGenerationHandler.generate({
-    //   modelsOutDir: path.join(outDir, 'graphql'),
-    //   backendIdentifier,
-    //   uiOutDir: outDir,
-    //   apiUrl,
-    //   modelsFilter: args.models,
-    // });
   };
 
   /**
@@ -141,6 +118,7 @@ export class GenerateSchemaCommand
         type: 'string',
         array: false,
         group: 'Schema Generation',
+        demandOption: true,
       });
   };
 }

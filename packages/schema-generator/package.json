@@ -14,7 +14,8 @@
   },
   "types": "lib/index.d.ts",
   "scripts": {
-    "update:api": "api-extractor run --local"
+    "update:api": "api-extractor run --local",
+    "test": "tsx --test --test-reporter spec"
   },
   "dependencies": {
     "@aws-amplify/graphql-schema-generator": "^0.7.1",

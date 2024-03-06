@@ -16,6 +16,7 @@ import { BackendIdentifierResolverWithFallback } from '../../backend-identifier/
 import { AppBackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
 import { GenerateSchemaCommand } from './schema-from-database/generate_schema_command.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
+import { SchemaGenerator } from '@aws-amplify/schema-generator';
 
 /**
  * Creates wired generate command.
@@ -58,7 +59,8 @@ export const createGenerateCommand = (): CommandModule => {
 
   const generateSchemaCommand = new GenerateSchemaCommand(
     backendIdentifierResolver,
-    secretClient
+    secretClient,
+    new SchemaGenerator()
   );
 
   const commandMiddleware = new CommandMiddleware();

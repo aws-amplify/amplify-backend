@@ -1,3 +1,3 @@
 # Description
 
-Replace with a description of this package
+Generates Typescript data schema from SQL schema.
