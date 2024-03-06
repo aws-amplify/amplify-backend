@@ -87,7 +87,7 @@ export class FunctionEnvironmentTranslator {
     this.lambda.node.addValidation({
       validate: (): string[] => {
         new FunctionEnvironmentTypeGenerator(
-          this.lambda.node.id,
+          this.lambda.node.id.replace(/-lambda$/, ''), // Remove -lambda suffix from node id and keep the lambda name
           this.amplifyBackendEnvVarNames
         ).generateTypedProcessEnvShim();
         return [];
