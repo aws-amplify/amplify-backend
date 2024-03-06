@@ -210,7 +210,7 @@ export type AuthActions = ActionIam[] | ActionMeta[];
 
 export type ActionMeta =
   /* This meta action contains IAM permissions to interact with users in specified userpool. */
-  'manageUser';
+  'manageUsers';
 
 /**
  * This maps to Cognito IAM actions.

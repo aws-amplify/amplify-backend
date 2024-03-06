@@ -131,7 +131,7 @@ void describe('AmplifyAuthFactory', () => {
     authFactory = defineAuth({
       loginWith: { email: true },
       access: (allow) => [
-        allow.resource(lambdaResourceStub).to(['manageUser']),
+        allow.resource(lambdaResourceStub).to(['manageUsers']),
         allow.resource(lambdaResourceStub).to(['createUser']),
       ],
     });

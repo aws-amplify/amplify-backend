@@ -63,7 +63,7 @@ type IamActionMap = {
 };
 
 const iamActionMap: IamActionMap = {
-  manageUser: [
+  manageUsers: [
     'cognito-idp:AdminAddUserToGroup',
     'cognito-idp:AdminConfirmSignUp',
     'cognito-idp:AdminCreateUser',

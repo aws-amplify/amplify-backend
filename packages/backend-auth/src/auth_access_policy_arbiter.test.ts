@@ -52,7 +52,7 @@ void describe('AuthAccessPolicyArbiter', () => {
       const authAccessPolicyArbiter = new AuthAccessPolicyArbiter(
         [
           {
-            actions: ['manageUser'],
+            actions: ['manageUsers'],
             getResourceAccessAcceptor: () => ({
               identifier: 'testResourceAccessAcceptor',
               acceptResourceAccess: acceptResourceAccessMock,
