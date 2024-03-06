@@ -1,7 +1,7 @@
 import { AuthAccessBuilder } from './types.js';
 
 export const allowAccessBuilder: AuthAccessBuilder = {
-  resource: (other) => ({
+  resource: (grantee) => ({
     to: (actions) => ({
       getResourceAccessAcceptor: (getInstanceProps) =>
         other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
