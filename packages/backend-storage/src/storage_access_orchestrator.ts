@@ -8,7 +8,7 @@ import {
   StorageAccessGenerator,
   StoragePath,
 } from './types.js';
-import { idPathToken } from './constants.js';
+import { entityIdPathToken } from './constants.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
@@ -100,7 +100,7 @@ export class StorageAccessOrchestrator {
 
           // make the owner placeholder substitution in the s3 prefix
           const prefix = s3Prefix.replaceAll(
-            idPathToken,
+            entityIdPathToken,
             permission.idSubstitution
           ) as StoragePath;
 

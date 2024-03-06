@@ -1,1 +1,1 @@
-export const idPathToken = '{id}';
+export const entityIdPathToken = '{entity_id}';

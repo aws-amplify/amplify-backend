@@ -1,5 +1,5 @@
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { idPathToken } from './constants.js';
+import { entityIdPathToken } from './constants.js';
 import { StorageError } from './private_types.js';
 
 /**
@@ -65,13 +65,13 @@ const validateStoragePath = (
  */
 const validateOwnerTokenRules = (path: string, otherPrefixes: string[]) => {
   // if there's no owner token in the path, this validation is a noop
-  if (!path.includes(idPathToken)) {
+  if (!path.includes(entityIdPathToken)) {
     return;
   }
 
   if (otherPrefixes.length > 0) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `A path cannot be a prefix of another path that contains the ${idPathToken} token.`,
+      message: `A path cannot be a prefix of another path that contains the ${entityIdPathToken} token.`,
       details: `Found [${path}] which has prefixes [${otherPrefixes.join(
         ', '
       )}].`,
@@ -79,12 +79,12 @@ const validateOwnerTokenRules = (path: string, otherPrefixes: string[]) => {
     });
   }
 
-  const ownerSplit = path.split(idPathToken);
+  const ownerSplit = path.split(entityIdPathToken);
 
   if (ownerSplit.length > 2) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `The ${idPathToken} token can only appear once in a path. Found [${path}]`,
-      resolution: `Remove all but one occurrence of the ${idPathToken} token`,
+      message: `The ${entityIdPathToken} token can only appear once in a path. Found [${path}]`,
+      resolution: `Remove all but one occurrence of the ${entityIdPathToken} token`,
     });
   }
 
@@ -92,22 +92,22 @@ const validateOwnerTokenRules = (path: string, otherPrefixes: string[]) => {
 
   if (substringAfterOwnerToken !== '/*') {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `The ${idPathToken} token must be the path part right before the ending wildcard. Found [${path}].`,
-      resolution: `Update the path such that the owner token is the last path part before the ending wildcard. For example: "/foo/bar/${idPathToken}/*.`,
+      message: `The ${entityIdPathToken} token must be the path part right before the ending wildcard. Found [${path}].`,
+      resolution: `Update the path such that the owner token is the last path part before the ending wildcard. For example: "/foo/bar/${entityIdPathToken}/*.`,
     });
   }
 
   if (substringBeforeOwnerToken === '/') {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `The ${idPathToken} token must not be the first path part. Found [${path}].`,
-      resolution: `Add an additional prefix to the path. For example: "/foo/${idPathToken}/*.`,
+      message: `The ${entityIdPathToken} token must not be the first path part. Found [${path}].`,
+      resolution: `Add an additional prefix to the path. For example: "/foo/${entityIdPathToken}/*.`,
     });
   }
 
   if (!substringBeforeOwnerToken.endsWith('/')) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `A path part that includes the ${idPathToken} token cannot include any other characters. Found [${path}].`,
-      resolution: `Remove all other characters from the path part with the ${idPathToken} token. For example: "/foo/${idPathToken}/*"`,
+      message: `A path part that includes the ${entityIdPathToken} token cannot include any other characters. Found [${path}].`,
+      resolution: `Remove all other characters from the path part with the ${entityIdPathToken} token. For example: "/foo/${entityIdPathToken}/*"`,
     });
   }
 };

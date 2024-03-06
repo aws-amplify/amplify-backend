@@ -4,7 +4,7 @@ import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
-import { idPathToken } from './constants.js';
+import { entityIdPathToken } from './constants.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 
 void describe('StorageAccessOrchestrator', () => {
@@ -260,7 +260,7 @@ void describe('StorageAccessOrchestrator', () => {
       const acceptResourceAccessMock = mock.fn();
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          [`/test/${idPathToken}/*`]: [
+          [`/test/${entityIdPathToken}/*`]: [
             {
               actions: ['get', 'write'],
               getResourceAccessAcceptor: () => ({
@@ -393,7 +393,7 @@ void describe('StorageAccessOrchestrator', () => {
 
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/foo/{id}/*': [
+          '/foo/{entity_id}/*': [
             {
               actions: ['write', 'delete'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
@@ -485,7 +485,7 @@ void describe('StorageAccessOrchestrator', () => {
           ],
           // acceptor 1 is denied write on this path (read still allowed)
           // acceptor 2 has read/write/delete on path with ownerSub
-          '/other/{id}/*': [
+          '/other/{entity_id}/*': [
             {
               actions: ['get', 'write', 'delete'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
