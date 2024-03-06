@@ -23,24 +23,10 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
 // @public (undocumented)
-export type AccessDefinition = {
-    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
-    actions: AmplifyAuthActions;
-};
-
-// @public (undocumented)
-export type AccessGenerator = (allow: AllowAccessBuilder) => AccessDefinition[];
-
-// @public (undocumented)
 export type ActionIam = 'addUserToGroup' | 'confirmSignUp' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'listUserAuthEvents' | 'removeUserFromGroup' | 'resetUserPassword' | 'respondToAuthChallenge' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes' | 'userGlobalSignOut';
 
 // @public (undocumented)
 export type ActionMeta = 'manageUser';
-
-// @public (undocumented)
-export type AllowAccessBuilder = {
-    resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => ResourceAccessBuilder;
-};
 
 // @public
 export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 'clientSecret'> & {
@@ -49,13 +35,10 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 };
 
 // @public (undocumented)
-export type AmplifyAuthActions = ActionIam[] | ActionMeta[];
-
-// @public (undocumented)
 export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
-    access?: AccessGenerator;
+    access?: AuthAccessGenerator;
 }>;
 
 // @public
@@ -65,6 +48,28 @@ export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'clientId' | 't
     keyId: BackendSecret;
     privateKey: BackendSecret;
 };
+
+// @public (undocumented)
+export type AuthAccessBuilder = {
+    resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => AuthActionBuilder;
+};
+
+// @public (undocumented)
+export type AuthAccessDefinition = {
+    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
+    actions: AuthActions;
+};
+
+// @public (undocumented)
+export type AuthAccessGenerator = (allow: AuthAccessBuilder) => AuthAccessDefinition[];
+
+// @public (undocumented)
+export type AuthActionBuilder = {
+    to: (actions: AuthActions) => AuthAccessDefinition;
+};
+
+// @public (undocumented)
+export type AuthActions = ActionIam[] | ActionMeta[];
 
 // @public
 export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalProviders'> & {
@@ -110,11 +115,6 @@ export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientId' | 
 export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientId' | 'clientSecret'> & {
     clientId: BackendSecret;
     clientSecret: BackendSecret;
-};
-
-// @public (undocumented)
-export type ResourceAccessBuilder = {
-    to: (actions: AmplifyAuthActions) => AccessDefinition;
 };
 
 // (No @packageDocumentation comment for this package)

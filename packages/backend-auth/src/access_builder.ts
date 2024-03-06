@@ -1,6 +1,6 @@
-import { AllowAccessBuilder } from './types.js';
+import { AuthAccessBuilder } from './types.js';
 
-export const allowAccessBuilder: AllowAccessBuilder = {
+export const allowAccessBuilder: AuthAccessBuilder = {
   resource: (other) => ({
     to: (actions) => ({
       getResourceAccessAcceptor: (getInstanceProps) =>

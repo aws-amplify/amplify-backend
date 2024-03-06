@@ -2,7 +2,7 @@ import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
-import { ActionIam, ActionMeta, AmplifyAuthActions } from './types.js';
+import { ActionIam, ActionMeta, AuthActions } from './types.js';
 
 /**
  * Generates IAM policies scoped to a single bucket
@@ -20,7 +20,7 @@ export class UserPoolAccessPolicyFactory {
     this.stack = Stack.of(userpool);
   }
 
-  createPolicy = (actions: AmplifyAuthActions) => {
+  createPolicy = (actions: AuthActions) => {
     const policyActions: Set<string> = new Set();
 
     actions.forEach((authAction) => {

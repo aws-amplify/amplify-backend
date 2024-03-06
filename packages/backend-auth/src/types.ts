@@ -183,28 +183,30 @@ export type AuthLoginWithFactoryProps = Omit<
   externalProviders?: ExternalProviderSpecificFactoryProps;
 };
 
-export type AllowAccessBuilder = {
+export type AuthAccessBuilder = {
   resource: (
     other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
-  ) => ResourceAccessBuilder;
+  ) => AuthActionBuilder;
 };
 
-export type ResourceAccessBuilder = {
-  to: (actions: AmplifyAuthActions) => AccessDefinition;
+export type AuthActionBuilder = {
+  to: (actions: AuthActions) => AuthAccessDefinition;
 };
 
-export type AccessGenerator = (allow: AllowAccessBuilder) => AccessDefinition[];
+export type AuthAccessGenerator = (
+  allow: AuthAccessBuilder
+) => AuthAccessDefinition[];
 
-export type AccessDefinition = {
+export type AuthAccessDefinition = {
   getResourceAccessAcceptor: (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ) => ResourceAccessAcceptor;
 
   // list of auth actions you can perform on the resource
-  actions: AmplifyAuthActions;
+  actions: AuthActions;
 };
 
-export type AmplifyAuthActions = ActionIam[] | ActionMeta[];
+export type AuthActions = ActionIam[] | ActionMeta[];
 
 export type ActionMeta =
   /* This meta action contains IAM permissions to interact with users in specified userpool. */

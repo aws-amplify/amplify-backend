@@ -22,7 +22,11 @@ import {
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { allowAccessBuilder as _allowAccessBuilder } from './access_builder.js';
 import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js';
-import { AccessGenerator, AuthLoginWithFactoryProps, Expand } from './types.js';
+import {
+  AuthAccessGenerator,
+  AuthLoginWithFactoryProps,
+  Expand,
+} from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
@@ -49,7 +53,7 @@ export type AmplifyAuthProps = Expand<
      * Access control is under active development and is subject to change without notice.
      * Use at your own risk and do not use in production
      */
-    access?: AccessGenerator;
+    access?: AuthAccessGenerator;
   }
 >;
 

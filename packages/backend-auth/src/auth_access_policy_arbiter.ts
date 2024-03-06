@@ -2,7 +2,7 @@ import {
   ConstructFactoryGetInstanceProps,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
-import { AccessDefinition } from './types.js';
+import { AuthAccessDefinition } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
 
 /**
@@ -13,7 +13,7 @@ export class AuthAccessPolicyArbiter {
    * Instantiate with context from the storage factory
    */
   constructor(
-    private readonly accessDefinition: AccessDefinition[],
+    private readonly accessDefinition: AuthAccessDefinition[],
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly ssmEnvironmentEntries: SsmEnvironmentEntry[],
     private readonly userpoolAccessPolicyFactory: UserPoolAccessPolicyFactory
@@ -27,7 +27,7 @@ export class AuthAccessPolicyArbiter {
     this.accessDefinition.forEach(this.acceptResourceAccess);
   };
 
-  acceptResourceAccess = (accessDefinition: AccessDefinition) => {
+  acceptResourceAccess = (accessDefinition: AuthAccessDefinition) => {
     const accessAcceptor = accessDefinition.getResourceAccessAcceptor(
       this.getInstanceProps
     );
@@ -44,7 +44,7 @@ export class AuthAccessPolicyArbiter {
  */
 export class AuthAccessPolicyArbiterFactory {
   getInstance = (
-    accessDefinition: AccessDefinition[],
+    accessDefinition: AuthAccessDefinition[],
     getInstanceProps: ConstructFactoryGetInstanceProps,
     ssmEnvironmentEntries: SsmEnvironmentEntry[],
     userpoolAccessPolicyFactory: UserPoolAccessPolicyFactory
