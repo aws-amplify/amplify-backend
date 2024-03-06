@@ -21,13 +21,13 @@ export type AmplifyStorageFactoryProps = Omit<
 };
 
 /**
- * Types of IDs that can be substituted in access policies
+ * Types of entity IDs that can be substituted in access policies
  *
  * 'identity' corresponds to the Cognito Identity Pool IdentityID
  *
- * Currently this is the only type of identity supported.
+ * Currently this is the only supported entity type.
  */
-export type AccessId = 'identity';
+export type EntityId = 'identity';
 
 /**
  * !EXPERIMENTAL!
@@ -39,7 +39,7 @@ export type StorageAccessBuilder = {
   authenticated: StorageActionBuilder;
   guest: StorageActionBuilder;
   group: (groupName: string) => StorageActionBuilder;
-  id: (accessId: AccessId) => StorageActionBuilder;
+  entity: (entityId: EntityId) => StorageActionBuilder;
   resource: (
     other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
   ) => StorageActionBuilder;

@@ -95,7 +95,7 @@ void describe('storageAccessBuilder', () => {
   });
   void it('builds storage access definition for IdP identity', () => {
     const accessDefinition = roleAccessBuilder
-      .id('identity')
+      .entity('identity')
       .to(['read', 'write', 'delete']);
     assert.deepStrictEqual(accessDefinition.actions, [
       'read',

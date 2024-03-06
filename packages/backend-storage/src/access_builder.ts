@@ -29,7 +29,7 @@ export const roleAccessBuilder: StorageAccessBuilder = {
       idSubstitution: '*',
     }),
   }),
-  id: () => ({
+  entity: () => ({
     to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
