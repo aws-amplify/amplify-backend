@@ -140,7 +140,9 @@ export enum ConflictResolutionMode {
 
 // @public (undocumented)
 export type DeployedBackendClient = {
-    listBackends: (listBackendsRequest?: ListBackendsRequest) => AsyncGenerator<any, any, unknown>;
+    listBackends: (listBackendsRequest?: ListBackendsRequest) => AsyncGenerator<{
+        backends: BackendSummariesMetadata[];
+    }, void, unknown>;
     deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>) => Promise<void>;
     getBackendMetadata: (backendId: BackendIdentifier) => Promise<BackendMetadata>;
 };
@@ -189,7 +191,7 @@ export type FunctionConfiguration = {
 // @public (undocumented)
 export type ListBackendsRequest = {
     deploymentType: DeploymentType;
-    backendStatusFilter?: BackendStatusFilter[];
+    backendStatusFilters?: BackendStatusFilter[];
 };
 
 // @public (undocumented)
