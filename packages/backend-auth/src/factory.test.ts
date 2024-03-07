@@ -161,6 +161,19 @@ void describe('AmplifyAuthFactory', () => {
     assert.ok(
       mockAcceptResourceAccess.mock.calls[1].arguments[0] instanceof Policy
     );
+    assert.deepStrictEqual(
+      mockAcceptResourceAccess.mock.calls[1].arguments[0].document.toJSON(),
+      {
+        Statement: [
+          {
+            Action: 'cognito-idp:AdminCreateUser',
+            Effect: 'Allow',
+            Resource: backendAuth.resources.userPool.userPoolArn,
+          },
+        ],
+        Version: '2012-10-17',
+      }
+    );
   });
 
   triggerEvents.forEach((event) => {

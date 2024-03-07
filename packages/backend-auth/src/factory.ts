@@ -20,7 +20,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
-import { allowAccessBuilder as _allowAccessBuilder } from './access_builder.js';
+import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
 import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js';
 import {
   AuthAccessGenerator,
@@ -113,7 +113,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: AmplifyAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly allowAccessBuilder = _allowAccessBuilder,
+    private readonly authAccessBuilder = _authAccessBuilder,
     private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
   ) {}
 
@@ -169,9 +169,9 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       return authConstructMixin;
     }
     // props.access is the access callback defined by the customer
-    // here we inject the roleAccessBuilder into the callback and run it
-    // this produces the access definition that will be used to create the storage policies
-    const accessDefinition = this.props.access(this.allowAccessBuilder);
+    // here we inject the authAccessBuilder into the callback and run it
+    // this produces the access definition that will be used to create the auth access policies
+    const accessDefinition = this.props.access(this.authAccessBuilder);
 
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({

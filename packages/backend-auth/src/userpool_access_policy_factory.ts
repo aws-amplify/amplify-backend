@@ -2,7 +2,7 @@ import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
-import { ActionIam, ActionMeta, AuthActions } from './types.js';
+import { AuthAction } from './types.js';
 
 /**
  * Generates IAM policies scoped to a single userpool.
@@ -20,7 +20,7 @@ export class UserPoolAccessPolicyFactory {
     this.stack = Stack.of(userpool);
   }
 
-  createPolicy = (actions: AuthActions) => {
+  createPolicy = (actions: AuthAction[]) => {
     const policyActions: Set<string> = new Set();
 
     if (actions.length === 0) {
@@ -63,9 +63,7 @@ export class UserPoolAccessPolicyFactory {
 }
 
 type IamActionMap = {
-  [action in ActionIam]: string;
-} & {
-  [amplifyActionSet in ActionMeta]: string[];
+  [action in AuthAction]: string[];
 };
 
 const iamActionMap: IamActionMap = {
@@ -98,25 +96,22 @@ const iamActionMap: IamActionMap = {
     'cognito-idp:AdminResetUserPassword',
     'cognito-idp:AdminSetUserPassword',
   ],
-  addUserToGroup: 'cognito-idp:AdminAddUserToGroup',
-  confirmSignUp: 'cognito-idp:AdminConfirmSignUp',
-  createUser: 'cognito-idp:AdminCreateUser',
-  deleteUser: 'cognito-idp:AdminDeleteUser',
-  deleteUserAttributes: 'cognito-idp:AdminDeleteUserAttributes',
-  disableUser: 'cognito-idp:AdminDisableUser',
-  enableUser: 'cognito-idp:AdminEnableUser',
-  forgetDevice: 'cognito-idp:AdminForgetDevice',
-  getDevice: 'cognito-idp:AdminGetDevice',
-  getUser: 'cognito-idp:AdminGetUser',
-  listDevices: 'cognito-idp:AdminListDevices',
-  listGroupsForUser: 'cognito-idp:AdminListGroupsForUser',
-  removeUserFromGroup: 'cognito-idp:AdminRemoveUserFromGroup',
-  resetUserPassword: 'cognito-idp:AdminResetUserPassword',
-  respondToAuthChallenge: 'cognito-idp:AdminRespondToAuthChallenge',
-  setUserMfaPreference: 'cognito-idp:AdminSetUserMFAPreference',
-  setUserPassword: 'cognito-idp:AdminSetUserPassword',
-  setUserSettings: 'cognito-idp:AdminSetUserSettings',
-  updateDeviceStatus: 'cognito-idp:AdminUpdateDeviceStatus',
-  updateUserAttributes: 'cognito-idp:AdminUpdateUserAttributes',
-  userGlobalSignOut: 'cognito-idp:AdminUserGlobalSignOut',
+  addUserToGroup: ['cognito-idp:AdminAddUserToGroup'],
+  createUser: ['cognito-idp:AdminCreateUser'],
+  deleteUser: ['cognito-idp:AdminDeleteUser'],
+  deleteUserAttributes: ['cognito-idp:AdminDeleteUserAttributes'],
+  disableUser: ['cognito-idp:AdminDisableUser'],
+  enableUser: ['cognito-idp:AdminEnableUser'],
+  forgetDevice: ['cognito-idp:AdminForgetDevice'],
+  getDevice: ['cognito-idp:AdminGetDevice'],
+  getUser: ['cognito-idp:AdminGetUser'],
+  listDevices: ['cognito-idp:AdminListDevices'],
+  listGroupsForUser: ['cognito-idp:AdminListGroupsForUser'],
+  removeUserFromGroup: ['cognito-idp:AdminRemoveUserFromGroup'],
+  resetUserPassword: ['cognito-idp:AdminResetUserPassword'],
+  setUserMfaPreference: ['cognito-idp:AdminSetUserMFAPreference'],
+  setUserPassword: ['cognito-idp:AdminSetUserPassword'],
+  setUserSettings: ['cognito-idp:AdminSetUserSettings'],
+  updateDeviceStatus: ['cognito-idp:AdminUpdateDeviceStatus'],
+  updateUserAttributes: ['cognito-idp:AdminUpdateUserAttributes'],
 };

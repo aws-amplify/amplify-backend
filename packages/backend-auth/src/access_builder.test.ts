@@ -1,5 +1,5 @@
 import { describe, it, mock } from 'node:test';
-import { allowAccessBuilder } from './access_builder.js';
+import { authAccessBuilder } from './access_builder.js';
 import {
   ConstructContainer,
   ConstructFactoryGetInstanceProps,
@@ -35,7 +35,7 @@ void describe('allowAccessBuilder', () => {
   } as unknown as ConstructFactoryGetInstanceProps;
 
   void it('builds access definition for resource', () => {
-    const accessDefinition = allowAccessBuilder
+    const accessDefinition = authAccessBuilder
       .resource({
         getInstance: () =>
           ({

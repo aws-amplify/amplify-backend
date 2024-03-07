@@ -23,7 +23,7 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
 // @public
-export type ActionIam = 'addUserToGroup' | 'confirmSignUp' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'respondToAuthChallenge' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes' | 'userGlobalSignOut';
+export type ActionIam = 'addUserToGroup' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes';
 
 // @public
 export type ActionMeta = 'manageUsers' | 'manageGroupMembership' | 'manageUserDevices' | 'managePasswordRecovery';
@@ -57,19 +57,19 @@ export type AuthAccessBuilder = {
 // @public (undocumented)
 export type AuthAccessDefinition = {
     getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
-    actions: AuthActions;
+    actions: AuthAction[];
 };
 
 // @public (undocumented)
 export type AuthAccessGenerator = (allow: AuthAccessBuilder) => AuthAccessDefinition[];
 
 // @public (undocumented)
-export type AuthActionBuilder = {
-    to: (actions: AuthActions) => AuthAccessDefinition;
-};
+export type AuthAction = ActionIam | ActionMeta;
 
 // @public (undocumented)
-export type AuthActions = ActionIam[] | ActionMeta[];
+export type AuthActionBuilder = {
+    to: (actions: AuthAction[]) => AuthAccessDefinition;
+};
 
 // @public
 export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalProviders'> & {

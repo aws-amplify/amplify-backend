@@ -190,7 +190,7 @@ export type AuthAccessBuilder = {
 };
 
 export type AuthActionBuilder = {
-  to: (actions: AuthActions) => AuthAccessDefinition;
+  to: (actions: AuthAction[]) => AuthAccessDefinition;
 };
 
 export type AuthAccessGenerator = (
@@ -203,10 +203,10 @@ export type AuthAccessDefinition = {
   ) => ResourceAccessAcceptor;
 
   // list of auth actions you can perform on the resource
-  actions: AuthActions;
+  actions: AuthAction[];
 };
 
-export type AuthActions = ActionIam[] | ActionMeta[];
+export type AuthAction = ActionIam | ActionMeta;
 
 /** @todo https://github.com/aws-amplify/amplify-backend/issues/1111 */
 export type ActionMeta =
@@ -222,7 +222,6 @@ export type ActionMeta =
  */
 export type ActionIam =
   | 'addUserToGroup'
-  | 'confirmSignUp'
   | 'createUser'
   | 'deleteUser'
   | 'deleteUserAttributes'
@@ -235,10 +234,8 @@ export type ActionIam =
   | 'listGroupsForUser'
   | 'removeUserFromGroup'
   | 'resetUserPassword'
-  | 'respondToAuthChallenge'
   | 'setUserMfaPreference'
   | 'setUserPassword'
   | 'setUserSettings'
   | 'updateDeviceStatus'
-  | 'updateUserAttributes'
-  | 'userGlobalSignOut';
+  | 'updateUserAttributes';
