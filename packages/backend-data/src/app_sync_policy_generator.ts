@@ -24,7 +24,6 @@ export class AppSyncPolicyGenerator {
    * The input "action" maps to the "type" in the resource name part of the ARN which is "Query", "Mutation" or "Subscription"
    */
   generateGraphqlAccessPolicy(actions: AppSyncApiAction[]) {
-    this.graphqlApi.arn;
     const resources = actions
       // convert from actions to GraphQL Type
       .map((action) => actionToTypeMap[action])
