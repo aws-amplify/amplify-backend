@@ -121,14 +121,19 @@ const computeUserPoolAuthFromResource = (
  */
 const computeIAMAuthFromResource = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined
+  authModes: AuthorizationModes | undefined,
+  additionalRoles: IRole[] = []
 ): CDKIAMAuthorizationConfig | undefined => {
   if (providedAuthConfig) {
+    const allowListedRoles = [
+      ...(authModes?.allowListedRoleNames || []),
+      ...additionalRoles,
+    ];
     return {
       authenticatedUserRole: providedAuthConfig.authenticatedUserRole,
       unauthenticatedUserRole: providedAuthConfig.unauthenticatedUserRole,
       identityPoolId: providedAuthConfig.identityPoolId,
-      allowListedRoles: authModes?.allowListedRoleNames ?? [],
+      allowListedRoles,
     };
   }
   return;
@@ -170,7 +175,8 @@ const convertAuthorizationModeToCDK = (mode?: DefaultAuthorizationMode) => {
 export const convertAuthorizationModesToCDK = (
   functionInstanceProvider: FunctionInstanceProvider,
   authResources: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined
+  authModes: AuthorizationModes | undefined,
+  additionalRoles: IRole[] = []
 ): CDKAuthorizationModes => {
   const defaultAuthorizationMode =
     authModes?.defaultAuthorizationMode ??
@@ -182,7 +188,11 @@ export const convertAuthorizationModesToCDK = (
     ? convertApiKeyAuthConfigToCDK(authModes.apiKeyAuthorizationMode)
     : computeApiKeyAuthFromResource(authResources, authModes);
   const userPoolConfig = computeUserPoolAuthFromResource(authResources);
-  const iamConfig = computeIAMAuthFromResource(authResources, authModes);
+  const iamConfig = computeIAMAuthFromResource(
+    authResources,
+    authModes,
+    additionalRoles
+  );
   const lambdaConfig = authModes?.lambdaAuthorizationMode
     ? convertLambdaAuthorizationConfigToCDK(
         functionInstanceProvider,

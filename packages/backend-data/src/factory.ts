@@ -106,6 +106,26 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     scope,
     ssmEnvironmentEntriesGenerator,
   }: GenerateContainerEntryProps) => {
+    let amplifyGraphqlDefinition;
+    let jsFunctions;
+    try {
+      if (isModelSchema(this.props.schema)) {
+        ({ jsFunctions } = this.props.schema.transform());
+      }
+      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
+    } catch (error) {
+      throw new AmplifyUserError<AmplifyDataError>(
+        'InvalidSchemaError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Cannot covert user schema',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
+
     let authorizationModes;
 
     try {
@@ -113,6 +133,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         this.functionInstanceProvider,
         this.providedAuthConfig,
         this.props.authorizationModes
+        // TODO pass in lambda roles here
       );
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
@@ -155,25 +176,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       this.props.functions ?? {}
     );
 
-    let amplifyGraphqlDefinition;
-    let jsFunctions;
-    try {
-      if (isModelSchema(this.props.schema)) {
-        ({ jsFunctions } = this.props.schema.transform());
-      }
-      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
-    } catch (error) {
-      throw new AmplifyUserError<AmplifyDataError>(
-        'InvalidSchemaError',
-        {
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Cannot covert user schema',
-        },
-        error instanceof Error ? error : undefined
-      );
-    }
+    // TODO pass the function execution roles into the authorizationModes object
 
     const amplifyApi = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
