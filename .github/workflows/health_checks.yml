@@ -15,7 +15,7 @@ jobs:
       matrix:
         # Windows install must happen on the same worker size as subsequent jobs.
         # Larger workers use different drive (C: instead of D:) to check out project and NPM installation
-        # creates file system links that include drive letter. 
+        # creates file system links that include drive letter.
         # Changing between standard and custom workers requires full install cache invalidation
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
