@@ -11,14 +11,22 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { AuthRoleName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct-alpha';
 import { OidcProviderProps } from '@aws-amplify/auth-construct-alpha';
+import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
+
+// @public
+export type ActionIam = 'addUserToGroup' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes';
+
+// @public
+export type ActionMeta = 'manageUsers' | 'manageGroupMembership' | 'manageUserDevices' | 'managePasswordRecovery';
 
 // @public
 export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 'clientSecret'> & {
@@ -30,6 +38,7 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+    access?: AuthAccessGenerator;
 }>;
 
 // @public
@@ -38,6 +47,28 @@ export type AppleProviderFactoryProps = Omit<AppleProviderProps, 'clientId' | 't
     teamId: BackendSecret;
     keyId: BackendSecret;
     privateKey: BackendSecret;
+};
+
+// @public (undocumented)
+export type AuthAccessBuilder = {
+    resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => AuthActionBuilder;
+};
+
+// @public (undocumented)
+export type AuthAccessDefinition = {
+    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
+    actions: AuthAction[];
+};
+
+// @public (undocumented)
+export type AuthAccessGenerator = (allow: AuthAccessBuilder) => AuthAccessDefinition[];
+
+// @public (undocumented)
+export type AuthAction = ActionIam | ActionMeta;
+
+// @public (undocumented)
+export type AuthActionBuilder = {
+    to: (actions: AuthAction[]) => AuthAccessDefinition;
 };
 
 // @public
