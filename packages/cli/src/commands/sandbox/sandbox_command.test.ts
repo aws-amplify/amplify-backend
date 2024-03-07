@@ -270,33 +270,21 @@ void describe('sandbox command', () => {
     );
   });
 
-  void it('fails if invalid config-out-dir is provided', async () => {
-    const configOutDirError = new Error(
-      '--config-out-dir nonExistentDir does not exist'
+  void it('starts sandbox if a value containing "." is provided for config-out-dir', async () => {
+    // this is a valid case to maintain consistency with behaviors of amplify generate graphql-client-code/forms
+    await commandRunner.runCommand(
+      'sandbox --config-out-dir existentFile.json'
     );
-    mock.method(fsp, 'stat', () => Promise.reject(configOutDirError));
-    await assert.rejects(
-      () => commandRunner.runCommand('sandbox --config-out-dir nonExistentDir'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.message, configOutDirError.message);
-        return true;
-      }
-    );
-  });
-
-  void it('fails if a file is provided for config-out-dir', async (contextual) => {
-    const configOutDirError = new Error(
-      '--config-out-dir existentFile is not a valid directory'
-    );
-    contextual.mock.method(fsp, 'stat', () => ({
-      isDirectory: () => false,
-    }));
-    await assert.rejects(
-      () => commandRunner.runCommand('sandbox --config-out-dir existentFile'),
-      (err: TestCommandError) => {
-        assert.equal(err.error.message, configOutDirError.message);
-        return true;
-      }
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].exclude,
+      [
+        path.join(
+          process.cwd(),
+          'existentFile.json',
+          'amplifyconfiguration.json'
+        ),
+      ]
     );
   });
 

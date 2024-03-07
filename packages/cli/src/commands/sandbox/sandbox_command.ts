@@ -162,12 +162,6 @@ export class SandboxCommand
           if (argv['dir-to-watch']) {
             await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
           }
-          if (argv['config-out-dir']) {
-            await this.validateDirectory(
-              'config-out-dir',
-              argv['config-out-dir']
-            );
-          }
           if (argv.name) {
             const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
             if (!argv.name.match(projectNameRegex)) {

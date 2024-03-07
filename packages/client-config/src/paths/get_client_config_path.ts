@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 import { ClientConfigFormat } from '../index.js';
 
@@ -23,12 +23,10 @@ export const getClientConfigPath = async (
   let targetPath = defaultArgs.out;
 
   if (outDir) {
-    const outDirIsFile = fs.lstatSync(outDir).isFile();
-    if (!outDirIsFile) {
-      targetPath = path.isAbsolute(outDir)
-        ? outDir
-        : path.resolve(process.cwd(), outDir);
-    }
+    await fsp.mkdir(outDir, { recursive: true });
+    targetPath = path.isAbsolute(outDir)
+      ? outDir
+      : path.resolve(process.cwd(), outDir);
   }
 
   let extension: string;

@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fsp from 'fs/promises';
 import { describe, it, mock } from 'node:test';
 import * as path from 'path';
 import assert from 'node:assert';
@@ -8,17 +8,7 @@ import { ClientConfigFormat } from '../index.js';
 const configFileName = 'amplifyconfiguration';
 const testPath = 'some/path';
 
-mock.method(fs, 'lstatSync', (path: string) => {
-  if (path === testPath || path === `${process.cwd()}/${testPath}`) {
-    return { isFile: () => false, isDir: () => true };
-  }
-  return {
-    isFile: () => {
-      throw new Error(`ENOENT: no such file or directory, lstat '${path}'`);
-    },
-    isDir: () => false,
-  };
-});
+mock.method(fsp, 'mkdir', () => undefined);
 
 void describe('getClientConfigPath', () => {
   void it('returns path to config file', async () => {
@@ -67,20 +57,31 @@ void describe('getClientConfigPath', () => {
     );
   });
 
-  void it('throw error if it is provided a file path', async () => {
-    await assert.rejects(
-      async () => await getClientConfigPath(`${testPath}/testConfig.json`),
-      new Error(
-        "ENOENT: no such file or directory, lstat 'some/path/testConfig.json'"
+  void it('create directory if path contains a "."', async () => {
+    // this is a valid case to maintain consistency with behaviors of amplify generate graphql-client-code/forms
+    const pathContainingDot = `${testPath}/testConfig.json`;
+    const configPath = await getClientConfigPath(pathContainingDot);
+
+    assert.equal(
+      configPath,
+      path.join(
+        process.cwd(),
+        pathContainingDot,
+        `${configFileName}.${ClientConfigFormat.JSON}`
       )
     );
   });
 
-  void it('throw error if it is provided invalid path', async () => {
-    await assert.rejects(
-      async () => await getClientConfigPath('some/not/existing/path'),
-      new Error(
-        "ENOENT: no such file or directory, lstat 'some/not/existing/path'"
+  void it('create directory if path does not exist', async () => {
+    const nonExistingPath = 'some/not/existing/path';
+    const configPath = await getClientConfigPath(nonExistingPath);
+
+    assert.equal(
+      configPath,
+      path.join(
+        process.cwd(),
+        nonExistingPath,
+        `${configFileName}.${ClientConfigFormat.JSON}`
       )
     );
   });
