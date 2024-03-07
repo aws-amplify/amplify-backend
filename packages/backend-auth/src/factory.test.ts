@@ -131,7 +131,7 @@ void describe('AmplifyAuthFactory', () => {
     authFactory = defineAuth({
       loginWith: { email: true },
       access: (allow) => [
-        allow.resource(lambdaResourceStub).to(['manageUsers']),
+        allow.resource(lambdaResourceStub).to(['managePasswordRecovery']),
         allow.resource(lambdaResourceStub).to(['createUser']),
       ],
     });
@@ -148,28 +148,8 @@ void describe('AmplifyAuthFactory', () => {
         Statement: [
           {
             Action: [
-              'cognito-idp:AdminAddUserToGroup',
-              'cognito-idp:AdminConfirmSignUp',
-              'cognito-idp:AdminCreateUser',
-              'cognito-idp:AdminDeleteUser',
-              'cognito-idp:AdminDeleteUserAttributes',
-              'cognito-idp:AdminDisableUser',
-              'cognito-idp:AdminEnableUser',
-              'cognito-idp:AdminForgetDevice',
-              'cognito-idp:AdminGetDevice',
-              'cognito-idp:AdminGetUser',
-              'cognito-idp:AdminListDevices',
-              'cognito-idp:AdminListGroupsForUser',
-              'cognito-idp:AdminListUserAuthEvents',
-              'cognito-idp:AdminRemoveUserFromGroup',
               'cognito-idp:AdminResetUserPassword',
-              'cognito-idp:AdminRespondToAuthChallenge',
-              'cognito-idp:AdminSetUserMFAPreference',
               'cognito-idp:AdminSetUserPassword',
-              'cognito-idp:AdminSetUserSettings',
-              'cognito-idp:AdminUpdateDeviceStatus',
-              'cognito-idp:AdminUpdateUserAttributes',
-              'cognito-idp:AdminUserGlobalSignOut',
             ],
             Effect: 'Allow',
             Resource: backendAuth.resources.userPool.userPoolArn,

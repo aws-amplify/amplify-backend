@@ -208,9 +208,12 @@ export type AuthAccessDefinition = {
 
 export type AuthActions = ActionIam[] | ActionMeta[];
 
+/** @todo https://github.com/aws-amplify/amplify-backend/issues/1111 */
 export type ActionMeta =
-  /* This meta action contains IAM permissions to interact with users in specified userpool. */
-  'manageUsers';
+  | 'manageUsers'
+  | 'manageGroupMembership'
+  | 'manageUserDevices'
+  | 'managePasswordRecovery';
 
 /**
  * This maps to Cognito IAM actions.
@@ -230,7 +233,6 @@ export type ActionIam =
   | 'getUser'
   | 'listDevices'
   | 'listGroupsForUser'
-  | 'listUserAuthEvents'
   | 'removeUserFromGroup'
   | 'resetUserPassword'
   | 'respondToAuthChallenge'

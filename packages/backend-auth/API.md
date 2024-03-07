@@ -23,10 +23,10 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 
 // @public
-export type ActionIam = 'addUserToGroup' | 'confirmSignUp' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'listUserAuthEvents' | 'removeUserFromGroup' | 'resetUserPassword' | 'respondToAuthChallenge' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes' | 'userGlobalSignOut';
+export type ActionIam = 'addUserToGroup' | 'confirmSignUp' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'respondToAuthChallenge' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes' | 'userGlobalSignOut';
 
 // @public (undocumented)
-export type ActionMeta = 'manageUsers';
+export type ActionMeta = 'manageUsers' | 'manageGroupMembership' | 'manageUserDevices' | 'managePasswordRecovery';
 
 // @public
 export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 'clientSecret'> & {
