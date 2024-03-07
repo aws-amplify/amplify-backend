@@ -32,6 +32,7 @@ import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
 import { Aspects, IAspect } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
+import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -101,7 +102,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
-  generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
+  generateContainerEntry = ({
+    scope,
+    ssmEnvironmentEntriesGenerator,
+  }: GenerateContainerEntryProps) => {
     let authorizationModes;
 
     try {
@@ -198,6 +202,20 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     }
 
     convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const ssmEnvironmentEntries =
+      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
+        [`${this.props.name}_GRAPHQL_API_ID`]:
+          amplifyApi.resources.graphqlApi.apiId,
+      });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const policyFactory = new AppSyncPolicyGenerator(
+      amplifyApi.resources.graphqlApi
+    );
+
+    // TODO iterate over access list from schema transform, pass policy and ssm context into each resource access acceptor
 
     return amplifyApi;
   };
