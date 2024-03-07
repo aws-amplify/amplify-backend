@@ -4,7 +4,7 @@ import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
-import { ownerPathPartToken } from './constants.js';
+import { entityIdPathToken } from './constants.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 
 void describe('StorageAccessOrchestrator', () => {
@@ -30,12 +30,12 @@ void describe('StorageAccessOrchestrator', () => {
         () => ({
           '/test/prefix/*': [
             {
-              actions: ['read', 'write'],
+              actions: ['get', 'write'],
               getResourceAccessAcceptor: () => ({
                 identifier: 'testResourceAccessAcceptor',
                 acceptResourceAccess: acceptResourceAccessMock,
               }),
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
         }),
@@ -59,12 +59,12 @@ void describe('StorageAccessOrchestrator', () => {
         () => ({
           '/test/prefix/*': [
             {
-              actions: ['read', 'write'],
+              actions: ['get', 'write'],
               getResourceAccessAcceptor: () => ({
                 identifier: 'testResourceAccessAcceptor',
                 acceptResourceAccess: acceptResourceAccessMock,
               }),
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
         }),
@@ -109,16 +109,16 @@ void describe('StorageAccessOrchestrator', () => {
         () => ({
           '/test/prefix/*': [
             {
-              actions: ['read', 'write', 'delete'],
+              actions: ['get', 'write', 'delete'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
           '/another/prefix/*': [
             {
-              actions: ['read'],
+              actions: ['get'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
         }),
@@ -176,21 +176,21 @@ void describe('StorageAccessOrchestrator', () => {
         () => ({
           '/test/prefix/*': [
             {
-              actions: ['read', 'write', 'delete'],
+              actions: ['get', 'write', 'delete'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
             {
-              actions: ['read'],
+              actions: ['get'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
           '/another/prefix/*': [
             {
-              actions: ['read', 'delete'],
+              actions: ['get', 'delete'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
         }),
@@ -260,14 +260,14 @@ void describe('StorageAccessOrchestrator', () => {
       const acceptResourceAccessMock = mock.fn();
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          [`/test/${ownerPathPartToken}/*`]: [
+          [`/test/${entityIdPathToken}/*`]: [
             {
-              actions: ['read', 'write'],
+              actions: ['get', 'write'],
               getResourceAccessAcceptor: () => ({
                 identifier: 'testResourceAccessAcceptor',
                 acceptResourceAccess: acceptResourceAccessMock,
               }),
-              ownerPlaceholderSubstitution: '{testOwnerSub}',
+              idSubstitution: '{testOwnerSub}',
             },
           ],
         }),
@@ -309,22 +309,22 @@ void describe('StorageAccessOrchestrator', () => {
         () => ({
           '/foo/*': [
             {
-              actions: ['read', 'write'],
+              actions: ['get', 'write'],
               getResourceAccessAcceptor: () => ({
                 identifier: 'resourceAccessAcceptor1',
                 acceptResourceAccess: acceptResourceAccessMock1,
               }),
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
           '/foo/bar/*': [
             {
-              actions: ['read'],
+              actions: ['get'],
               getResourceAccessAcceptor: () => ({
                 identifier: 'resourceAccessAcceptor2',
                 acceptResourceAccess: acceptResourceAccessMock2,
               }),
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
         }),
@@ -393,16 +393,16 @@ void describe('StorageAccessOrchestrator', () => {
 
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/foo/{owner}/*': [
+          '/foo/{entity_id}/*': [
             {
               actions: ['write', 'delete'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              ownerPlaceholderSubstitution: '{ownerSub}',
+              idSubstitution: '{idSub}',
             },
             {
-              actions: ['read'],
+              actions: ['get'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
         }),
@@ -420,12 +420,12 @@ void describe('StorageAccessOrchestrator', () => {
             {
               Action: 's3:PutObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/foo/{ownerSub}/*`,
+              Resource: `${bucket.bucketArn}/foo/{idSub}/*`,
             },
             {
               Action: 's3:DeleteObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/foo/{ownerSub}/*`,
+              Resource: `${bucket.bucketArn}/foo/{idSub}/*`,
             },
             {
               Action: 's3:GetObject',
@@ -460,41 +460,41 @@ void describe('StorageAccessOrchestrator', () => {
           // acceptor2 should not have any rules for this path
           '/foo/*': [
             {
-              actions: ['read', 'write'],
+              actions: ['get', 'write'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
           // acceptor1 should be denied read and write on this path
           // acceptor2 should have only read on this path
           '/foo/bar/*': [
             {
-              actions: ['read'],
+              actions: ['get'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
-              ownerPlaceholderSubstitution: '{ownerSub}',
+              idSubstitution: '{idSub}',
             },
           ],
           // acceptor1 should be denied write on this path (read from parent path covers read on this path)
           // acceptor2 should not have any rules for this path
           '/foo/baz/*': [
             {
-              actions: ['read'],
-              ownerPlaceholderSubstitution: '*',
+              actions: ['get'],
+              idSubstitution: '*',
               getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
             },
           ],
           // acceptor 1 is denied write on this path (read still allowed)
           // acceptor 2 has read/write/delete on path with ownerSub
-          '/other/{owner}/*': [
+          '/other/{entity_id}/*': [
             {
-              actions: ['read', 'write', 'delete'],
+              actions: ['get', 'write', 'delete'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
-              ownerPlaceholderSubstitution: '{ownerSub}',
+              idSubstitution: '{idSub}',
             },
             {
-              actions: ['read'],
+              actions: ['get'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
         }),
@@ -554,18 +554,18 @@ void describe('StorageAccessOrchestrator', () => {
               Effect: 'Allow',
               Resource: [
                 `${bucket.bucketArn}/foo/bar/*`,
-                `${bucket.bucketArn}/other/{ownerSub}/*`,
+                `${bucket.bucketArn}/other/{idSub}/*`,
               ],
             },
             {
               Action: 's3:PutObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/other/{ownerSub}/*`,
+              Resource: `${bucket.bucketArn}/other/{idSub}/*`,
             },
             {
               Action: 's3:DeleteObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/other/{ownerSub}/*`,
+              Resource: `${bucket.bucketArn}/other/{idSub}/*`,
             },
           ],
           Version: '2012-10-17',
@@ -584,19 +584,19 @@ void describe('StorageAccessOrchestrator', () => {
         () => ({
           '/foo/*': [
             {
-              actions: ['read'],
+              actions: ['get'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
             {
               actions: ['write'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              ownerPlaceholderSubstitution: '{ownerSub}',
+              idSubstitution: '{idSub}',
             },
             {
               actions: ['delete'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              ownerPlaceholderSubstitution: '*',
+              idSubstitution: '*',
             },
           ],
         }),
@@ -625,6 +625,79 @@ void describe('StorageAccessOrchestrator', () => {
               Action: 's3:DeleteObject',
               Effect: 'Allow',
               Resource: `${bucket.bucketArn}/foo/*`,
+            },
+          ],
+          Version: '2012-10-17',
+        }
+      );
+      assert.deepStrictEqual(
+        acceptResourceAccessMock.mock.calls[0].arguments[1],
+        ssmEnvironmentEntriesStub
+      );
+    });
+
+    void it('replaces "read" access with "get" and "list" and merges duplicate actions', () => {
+      const acceptResourceAccessMock = mock.fn();
+      const authenticatedResourceAccessAcceptor = () => ({
+        identifier: 'authenticatedResourceAccessAcceptor',
+        acceptResourceAccess: acceptResourceAccessMock,
+      });
+
+      const storageAccessOrchestrator = new StorageAccessOrchestrator(
+        () => ({
+          '/foo/bar/*': [
+            {
+              actions: ['read', 'get', 'list'],
+              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              idSubstitution: '*',
+            },
+            {
+              actions: ['list'],
+              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              idSubstitution: '*',
+            },
+          ],
+          '/other/baz/*': [
+            {
+              actions: ['read'],
+              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              idSubstitution: '*',
+            },
+          ],
+        }),
+        {} as unknown as ConstructFactoryGetInstanceProps,
+        ssmEnvironmentEntriesStub,
+        storageAccessPolicyFactory
+      );
+
+      storageAccessOrchestrator.orchestrateStorageAccess();
+      assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
+      assert.deepStrictEqual(
+        acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
+        {
+          Statement: [
+            {
+              Action: 's3:GetObject',
+              Effect: 'Allow',
+              Resource: [
+                `${bucket.bucketArn}/foo/bar/*`,
+                `${bucket.bucketArn}/other/baz/*`,
+              ],
+            },
+            {
+              Action: 's3:ListBucket',
+              Effect: 'Allow',
+              Resource: bucket.bucketArn,
+              Condition: {
+                StringLike: {
+                  's3:prefix': [
+                    'foo/bar/*',
+                    'foo/bar/',
+                    'other/baz/*',
+                    'other/baz/',
+                  ],
+                },
+              },
             },
           ],
           Version: '2012-10-17',

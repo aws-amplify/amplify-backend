@@ -34,6 +34,10 @@ const additionalRefs: Record<string, TsconfigReference[]> = {
     // Added to allow tsc to work with nested tsconfig
     { path: './src/test-projects/data-storage-auth-with-triggers-ts' },
   ],
+  '@aws-amplify/backend-data': [
+    // Added to allow tsc to work with nested tsconfig - prevents generating inline sourcemaps in an asset we deploy for customers
+    { path: './src/assets' },
+  ],
 };
 
 // First collect information about all the packages in the repo

@@ -11,29 +11,37 @@ export const roleAccessBuilder: StorageAccessBuilder = {
     to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
-      ownerPlaceholderSubstitution: '*',
+      idSubstitution: '*',
     }),
   },
   guest: {
     to: (actions) => ({
       getResourceAccessAcceptor: getUnauthRoleResourceAccessAcceptor,
       actions,
-      ownerPlaceholderSubstitution: '*',
+      idSubstitution: '*',
     }),
   },
-  owner: {
+  group: (groupName) => ({
+    to: (actions) => ({
+      getResourceAccessAcceptor: (getInstanceProps) =>
+        getUserRoleResourceAccessAcceptor(getInstanceProps, groupName),
+      actions,
+      idSubstitution: '*',
+    }),
+  }),
+  entity: () => ({
     to: (actions) => ({
       getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
       actions,
-      ownerPlaceholderSubstitution: '${cognito-identity.amazon.com:sub}',
+      idSubstitution: '${cognito-identity.amazonaws.com:sub}',
     }),
-  },
+  }),
   resource: (other) => ({
     to: (actions) => ({
       getResourceAccessAcceptor: (getInstanceProps) =>
         other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
       actions,
-      ownerPlaceholderSubstitution: '*',
+      idSubstitution: '*',
     }),
   }),
 };
@@ -56,19 +64,19 @@ const getUnauthRoleResourceAccessAcceptor = (
 
 const getUserRoleResourceAccessAcceptor = (
   getInstanceProps: ConstructFactoryGetInstanceProps,
-  roleName: AuthRoleName
+  roleName: AuthRoleName | string
 ) => {
   const resourceAccessAcceptor = getInstanceProps.constructContainer
     .getConstructFactory<
-      ResourceProvider & ResourceAccessAcceptorFactory<AuthRoleName>
+      ResourceProvider & ResourceAccessAcceptorFactory<AuthRoleName | string>
     >('AuthResources')
     ?.getInstance(getInstanceProps)
     .getResourceAccessAcceptor(roleName);
   if (!resourceAccessAcceptor) {
     throw new Error(
-      `Cannot specify ${
+      `Cannot specify auth access for ${
         roleName as string
-      } user policies without defining auth. See <defineAuth docs link> for more information.`
+      } users without defining auth. See https://docs.amplify.aws/gen2/build-a-backend/auth/set-up-auth/ for more information.`
     );
   }
   return resourceAccessAcceptor;

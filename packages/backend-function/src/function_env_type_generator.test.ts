@@ -36,7 +36,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     mock.restoreAll();
   });
 
-  void it('generates a type definition file with dynamic environment variables', () => {
+  void it('generates a type definition file with Amplify backend environment variables', () => {
     const fdCloseMock = mock.fn();
     const fsOpenSyncMock = mock.method(fs, 'openSync');
     const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);

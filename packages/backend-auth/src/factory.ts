@@ -30,7 +30,7 @@ import {
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
-  ResourceAccessAcceptorFactory<AuthRoleName>;
+  ResourceAccessAcceptorFactory<AuthRoleName | string>;
 
 export type AmplifyAuthProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
@@ -143,12 +143,24 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
     const authConstructMixin: BackendAuth = {
       ...authConstruct,
+      /**
+       * Returns a resourceAccessAcceptor for the given role
+       * @param roleIdentifier Either the auth or unauth role name or the name of a UserPool group
+       */
       getResourceAccessAcceptor: (
-        roleName: AuthRoleName
+        roleIdentifier: AuthRoleName | string
       ): ResourceAccessAcceptor => ({
-        identifier: `${roleName}ResourceAccessAcceptor`,
+        identifier: `${roleIdentifier}ResourceAccessAcceptor`,
         acceptResourceAccess: (policy: Policy) => {
-          const role = authConstruct.resources[roleName];
+          const role = roleNameIsAuthRoleName(roleIdentifier)
+            ? authConstruct.resources[roleIdentifier]
+            : authConstruct.resources.groups?.[roleIdentifier]?.role;
+          if (!role) {
+            throw new AmplifyUserError('InvalidResourceAccessConfig', {
+              message: `No auth IAM role found for "${roleIdentifier}".`,
+              resolution: `If you are trying to configure UserPool group access, ensure that the group name is specified correctly.`,
+            });
+          }
           policy.attachToRole(role);
         },
       }),
@@ -179,6 +191,13 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     return authConstructMixin;
   };
 }
+
+const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
+  return (
+    roleName === 'authenticatedUserIamRole' ||
+    roleName === 'unauthenticatedUserIamRole'
+  );
+};
 
 /**
  * Provide the settings that will be used for authentication.

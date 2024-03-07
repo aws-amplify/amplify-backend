@@ -1,3 +1,4 @@
+import { IConstruct } from 'constructs';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -7,11 +8,15 @@ import {
   GenerateContainerEntryProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { AmplifyData } from '@aws-amplify/data-construct';
+import {
+  AmplifyData,
+  AmplifyDynamoDbTableWrapper,
+  TranslationBehavior,
+} from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
-import { convertSchemaToCDK } from './convert_schema.js';
+import { convertSchemaToCDK, isModelSchema } from './convert_schema.js';
 import {
   FunctionInstanceProvider,
   buildConstructFactoryFunctionInstanceProvider,
@@ -24,7 +29,9 @@ import {
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
+import { Aspects, IAspect } from 'aws-cdk-lib';
+import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -145,7 +152,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     );
 
     let amplifyGraphqlDefinition;
+    let jsFunctions;
     try {
+      if (isModelSchema(this.props.schema)) {
+        ({ jsFunctions } = this.props.schema.transform());
+      }
       amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
@@ -160,15 +171,56 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       );
     }
 
-    return new AmplifyData(scope, this.defaultName, {
+    const amplifyApi = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
       definition: amplifyGraphqlDefinition,
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
       functionNameMap,
-      translationBehavior: { sandboxModeEnabled },
+      translationBehavior: {
+        sandboxModeEnabled,
+        /**
+         * The destructive updates should be always allowed in backend definition and not to be controlled on the IaC
+         * The CI/CD check should take the responsibility to validate if any tables are being replaced and determine whether to execute the changeset
+         */
+        allowDestructiveGraphqlSchemaUpdates: true,
+      },
     });
+
+    /**
+     * Enable the table replacement upon GSI update
+     * This is allowed in sandbox mode ONLY
+     */
+    const isSandboxDeployment =
+      scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
+    if (isSandboxDeployment) {
+      Aspects.of(amplifyApi).add(new ReplaceTableUponGsiUpdateOverrideAspect());
+    }
+
+    convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
+
+    return amplifyApi;
   };
+}
+
+const REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME: keyof TranslationBehavior =
+  'replaceTableUponGsiUpdate';
+
+/**
+ * Aspect class to modify the amplify managed DynamoDB table
+ * to allow table replacement upon GSI update
+ */
+class ReplaceTableUponGsiUpdateOverrideAspect implements IAspect {
+  public visit(scope: IConstruct): void {
+    if (AmplifyDynamoDbTableWrapper.isAmplifyDynamoDbTableResource(scope)) {
+      // These value setters are not exposed in the wrapper
+      // Need to use the property override to escape the hatch
+      scope.addPropertyOverride(
+        REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME,
+        true
+      );
+    }
+  }
 }
 
 /**

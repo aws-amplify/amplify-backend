@@ -1,5 +1,13 @@
 # @aws-amplify/backend-auth
 
+## 0.5.0-beta.3
+
+### Patch Changes
+
+- aee7501: limit defineAuth call to one
+- Updated dependencies [c54625f]
+  - @aws-amplify/auth-construct-alpha@0.6.0-beta.3
+
 ## 0.5.0-beta.2
 
 ### Minor Changes
