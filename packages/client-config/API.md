@@ -6,6 +6,7 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { LogLevel } from '@aws-amplify/cli-core';
 
 // @public (undocumented)
 export type AnalyticsClientConfig = {
@@ -73,7 +74,7 @@ export type CustomClientConfig = {
 export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier) => Promise<ClientConfig>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat, log?: ((message: string, logLevel: LogLevel) => void) | undefined) => Promise<void>;
 
 // @public (undocumented)
 export type GeoClientConfig = {
@@ -99,7 +100,7 @@ export type GeoClientConfig = {
 };
 
 // @public
-export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;
+export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat, log?: ((message: string, logLevel: LogLevel) => void) | undefined) => Promise<string>;
 
 // @public
 export type GraphqlClientConfig = {

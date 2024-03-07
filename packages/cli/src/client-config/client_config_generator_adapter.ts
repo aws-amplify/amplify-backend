@@ -41,7 +41,7 @@ export class ClientConfigGeneratorAdapter {
       backendIdentifier,
       outDir,
       format,
-      (message) => printer.log(message)
+      (message, logLevel) => printer.log(message, logLevel)
     );
   };
 }

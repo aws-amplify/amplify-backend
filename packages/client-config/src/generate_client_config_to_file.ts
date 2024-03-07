@@ -8,6 +8,7 @@ import { ClientConfigFormatter } from './client-config-writer/client_config_form
 import { ClientConfigConverter } from './client-config-writer/client_config_converter.js';
 import { fileURLToPath } from 'url';
 import * as fsp from 'fs/promises';
+import { LogLevel } from '@aws-amplify/cli-core';
 
 /**
  * Main entry point for generating client config and writing to a file
@@ -18,7 +19,7 @@ export const generateClientConfigToFile = async (
   outDir?: string,
   format?: ClientConfigFormat,
   // TODO: update this type when Printer interface gets defined in platform-core.
-  log?: (message: string) => void
+  log?: (message: string, logLevel: LogLevel) => void
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
