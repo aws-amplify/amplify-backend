@@ -115,6 +115,20 @@ export type BackendOutputCredentialsOptions = {
 };
 
 // @public (undocumented)
+export enum BackendStatusFilter {
+    // (undocumented)
+    DELETE_FAILED = "DELETE_FAILED"
+}
+
+// @public (undocumented)
+export type BackendSummariesMetadata = {
+    name: string;
+    lastUpdated: Date | undefined;
+    status: BackendDeploymentStatus;
+    backendId: BackendIdentifier | undefined;
+};
+
+// @public (undocumented)
 export enum ConflictResolutionMode {
     // (undocumented)
     AUTOMERGE = "AUTOMERGE",
@@ -126,7 +140,7 @@ export enum ConflictResolutionMode {
 
 // @public (undocumented)
 export type DeployedBackendClient = {
-    listBackends: (listBackendsRequest?: ListBackendsRequest) => Promise<ListBackendsResponse>;
+    listBackends: (listBackendsRequest?: ListBackendsRequest) => AsyncGenerator<any, any, unknown>;
     deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>) => Promise<void>;
     getBackendMetadata: (backendId: BackendIdentifier) => Promise<BackendMetadata>;
 };
@@ -173,23 +187,14 @@ export type FunctionConfiguration = {
 };
 
 // @public (undocumented)
-export type ListBackendsMetadata = {
-    name: string;
-    lastUpdated: Date | undefined;
-    status: BackendDeploymentStatus;
-    backendId: BackendIdentifier | undefined;
-};
-
-// @public (undocumented)
 export type ListBackendsRequest = {
-    deploymentType: string;
-    nextToken?: string;
+    deploymentType: DeploymentType;
+    backendStatusFilter?: BackendStatusFilter[];
 };
 
 // @public (undocumented)
 export type ListBackendsResponse = {
-    backends: ListBackendsMetadata[];
-    nextToken: string | undefined;
+    backends: BackendSummariesMetadata[];
 };
 
 // @public (undocumented)

@@ -1,10 +1,10 @@
+/* eslint-disable spellcheck/spell-checker */
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
   CloudFormation,
   DescribeStacksCommand,
   ListStacksCommand,
-  ListStacksCommandInput,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
 import { BackendDeploymentStatus } from './deployed_backend_client_factory.js';
@@ -126,11 +126,10 @@ void describe('Deployed Backend Client list sandboxes', () => {
   });
 
   void it('does not paginate listBackends when one page contains sandboxes', async () => {
-    const sandboxes = await deployedBackendClient.listBackends({
+    const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual(sandboxes, {
-      nextToken: undefined,
+    assert.deepEqual((await sandboxes.next()).value, {
       backends: returnedSandboxes,
     });
 
@@ -144,11 +143,10 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const sandboxes = await deployedBackendClient.listBackends({
+    const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual(sandboxes, {
-      nextToken: undefined,
+    assert.deepEqual((await sandboxes.next()).value, {
       backends: returnedSandboxes,
     });
 
@@ -166,11 +164,10 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const sandboxes = await deployedBackendClient.listBackends({
+    const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual(sandboxes, {
-      nextToken: undefined,
+    assert.deepEqual((await sandboxes.next()).value, {
       backends: returnedSandboxes,
     });
 
@@ -188,11 +185,10 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const sandboxes = await deployedBackendClient.listBackends({
+    const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual(sandboxes, {
-      nextToken: undefined,
+    assert.deepEqual((await sandboxes.next()).value, {
       backends: returnedSandboxes,
     });
 
@@ -216,11 +212,10 @@ void describe('Deployed Backend Client list sandboxes', () => {
         NextToken: 'abc',
       };
     });
-    const sandboxes = await deployedBackendClient.listBackends({
+    const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual(sandboxes, {
-      nextToken: undefined,
+    assert.deepEqual((await sandboxes.next()).value, {
       backends: returnedSandboxes,
     });
 
@@ -244,48 +239,6 @@ void describe('Deployed Backend Client list sandboxes', () => {
     const listBackendsPromise = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    await assert.rejects(listBackendsPromise);
-  });
-
-  void it('includes a nextToken when there are more pages', async () => {
-    listStacksMockFn.mock.mockImplementation(() => {
-      return {
-        StackSummaries: listStacksMock.StackSummaries,
-        NextToken: 'abc',
-      };
-    });
-    const sandboxes = await deployedBackendClient.listBackends({
-      deploymentType: 'sandbox',
-    });
-    assert.deepEqual(sandboxes, {
-      nextToken: 'abc',
-      backends: returnedSandboxes,
-    });
-
-    assert.equal(listStacksMockFn.mock.callCount(), 1);
-  });
-
-  void it('accepts a nextToken to get the next page', async () => {
-    listStacksMockFn.mock.mockImplementation(
-      (input: ListStacksCommandInput) => {
-        if (!input.NextToken) {
-          return {
-            StackSummaries: listStacksMock.StackSummaries,
-            NextToken: 'abc',
-          };
-        }
-        return listStacksMock;
-      }
-    );
-    const sandboxes = await deployedBackendClient.listBackends({
-      nextToken: 'abc',
-      deploymentType: 'sandbox',
-    });
-    assert.deepEqual(sandboxes, {
-      nextToken: undefined,
-      backends: returnedSandboxes,
-    });
-
-    assert.equal(listStacksMockFn.mock.callCount(), 1);
+    await assert.rejects(listBackendsPromise.next());
   });
 });

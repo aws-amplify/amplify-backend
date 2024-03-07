@@ -1,3 +1,4 @@
+/* eslint-disable spellcheck/spell-checker */
 import {
   BackendIdentifier,
   BackendOutput,
@@ -6,12 +7,12 @@ import {
 import {
   ApiAuthType,
   BackendMetadata,
+  BackendStatusFilter,
+  BackendSummariesMetadata,
   ConflictResolutionMode,
   DeployedBackendClient,
   FunctionConfiguration,
-  ListBackendsMetadata,
   ListBackendsRequest,
-  ListBackendsResponse,
 } from './deployed_backend_client_factory.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import {
@@ -82,22 +83,20 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     return this.buildBackendMetadata(stackName);
   };
 
-  listBackends = async (
-    listBackendsRequest?: ListBackendsRequest
-  ): Promise<ListBackendsResponse> => {
-    const stackMetadata: ListBackendsMetadata[] = [];
+  /**
+   * Returns a list of stacks for specific deployment type and status
+   * @yields
+   */
+  async *listBackends(listBackendsRequest?: ListBackendsRequest) {
+    const stackMetadata: BackendSummariesMetadata[] = [];
 
-    let nextToken = listBackendsRequest?.nextToken;
+    let nextToken;
     const deploymentType = listBackendsRequest?.deploymentType;
-    let stackStatusFilter: StackStatus[] = [];
-    if (deploymentType == 'branch') {
-      stackStatusFilter = ['DELETE_FAILED'];
-    }
+    const statusFilter = listBackendsRequest?.backendStatusFilters
+      ? listBackendsRequest?.backendStatusFilters
+      : [];
     do {
-      const listStacksResponse = await this.listStacks(
-        nextToken,
-        stackStatusFilter
-      );
+      const listStacksResponse = await this.listStacks(nextToken, statusFilter);
 
       const listStacksSummaries =
         deploymentType === 'sandbox'
@@ -111,8 +110,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       const stackMetadataPromises = listStacksSummaries
         .filter((stackSummary: StackSummary) => {
           return (
-            this.isSandboxOrBranchStack(stackSummary.StackName) ===
-            deploymentType
+            this.getBackendStackType(stackSummary.StackName) === deploymentType
           );
         })
         .map(async (stackSummary: StackSummary) => {
@@ -141,15 +139,16 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
       stackMetadata.push(...filteredMetadata);
       nextToken = listStacksResponse.nextToken;
+
+      if (stackMetadata.length !== 0) {
+        yield {
+          backends: stackMetadata,
+        };
+      }
     } while (stackMetadata.length === 0 && nextToken);
+  }
 
-    return {
-      backends: stackMetadata,
-      nextToken,
-    };
-  };
-
-  private isSandboxOrBranchStack = (
+  private getBackendStackType = (
     stackName: string | undefined
   ): string | undefined => {
     const backendIdentifier =
@@ -184,7 +183,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
   private listStacks = async (
     nextToken: string | undefined,
-    stackStatusFilter: StackStatus[]
+    stackStatusFilter: BackendStatusFilter[]
   ): Promise<{
     stackSummaries: StackSummary[];
     nextToken: string | undefined;

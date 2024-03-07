@@ -1,3 +1,4 @@
+/* eslint-disable spellcheck/spell-checker */
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
@@ -26,7 +27,7 @@ export enum ApiAuthType {
   AMAZON_COGNITO_USER_POOLS = 'AMAZON_COGNITO_USER_POOLS',
 }
 
-export type ListBackendsMetadata = {
+export type BackendSummariesMetadata = {
   name: string;
   lastUpdated: Date | undefined;
   status: BackendDeploymentStatus;
@@ -34,8 +35,8 @@ export type ListBackendsMetadata = {
 };
 
 export type ListBackendsRequest = {
-  deploymentType: string;
-  nextToken?: string;
+  deploymentType: DeploymentType;
+  backendStatusFilters?: BackendStatusFilter[];
 };
 
 export type DeployedBackendResource = {
@@ -83,8 +84,7 @@ export type FunctionConfiguration = {
 };
 
 export type ListBackendsResponse = {
-  backends: ListBackendsMetadata[];
-  nextToken: string | undefined;
+  backends: BackendSummariesMetadata[];
 };
 
 export enum BackendDeploymentStatus {
@@ -96,10 +96,14 @@ export enum BackendDeploymentStatus {
   UNKNOWN = 'UNKNOWN',
 }
 
+export enum BackendStatusFilter {
+  DELETE_FAILED = 'DELETE_FAILED',
+}
+
 export type DeployedBackendClient = {
   listBackends: (
     listBackendsRequest?: ListBackendsRequest
-  ) => Promise<ListBackendsResponse>;
+  ) => AsyncGenerator<{ backends: BackendSummariesMetadata[] }, void, unknown>;
   deleteSandbox: (
     sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ) => Promise<void>;

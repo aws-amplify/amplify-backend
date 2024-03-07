@@ -1,15 +1,16 @@
+/* eslint-disable spellcheck/spell-checker */
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
   CloudFormation,
   DescribeStacksCommand,
   ListStacksCommand,
-  ListStacksCommandInput,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
+import { BackendStatusFilter } from './deployed_backend_client_factory.js';
 import {
   BackendOutputClientError,
   BackendOutputClientErrorType,
@@ -125,11 +126,11 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
   });
 
   void it('does not paginate listBackends when one page contains delete failed stacks', async () => {
-    const failedStacks = await deployedBackendClient.listBackends({
+    const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
+      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual(failedStacks, {
-      nextToken: undefined,
+    assert.deepEqual((await failedStacks.next()).value, {
       backends: returnedDeleteFailedStacks,
     });
 
@@ -143,13 +144,15 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const failedStacks = await deployedBackendClient.listBackends({
+    const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
+      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual(failedStacks, {
-      nextToken: undefined,
+    assert.deepEqual((await failedStacks.next()).value, {
       backends: returnedDeleteFailedStacks,
     });
+
+    assert.deepEqual((await failedStacks.next()).done, true);
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
@@ -165,11 +168,11 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const failedStacks = await deployedBackendClient.listBackends({
+    const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
+      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual(failedStacks, {
-      nextToken: undefined,
+    assert.deepEqual((await failedStacks.next()).value, {
       backends: returnedDeleteFailedStacks,
     });
 
@@ -187,11 +190,11 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const failedStacks = await deployedBackendClient.listBackends({
+    const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
+      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual(failedStacks, {
-      nextToken: undefined,
+    assert.deepEqual((await failedStacks.next()).value, {
       backends: returnedDeleteFailedStacks,
     });
 
@@ -215,11 +218,11 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         NextToken: 'abc',
       };
     });
-    const failedStacks = await deployedBackendClient.listBackends({
+    const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
+      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual(failedStacks, {
-      nextToken: undefined,
+    assert.deepEqual((await failedStacks.next()).value, {
       backends: returnedDeleteFailedStacks,
     });
 
@@ -242,49 +245,8 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     });
     const listBackendsPromise = deployedBackendClient.listBackends({
       deploymentType: 'branch',
+      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    await assert.rejects(listBackendsPromise);
-  });
-
-  void it('includes a nextToken when there are more pages', async () => {
-    listStacksMockFn.mock.mockImplementation(() => {
-      return {
-        StackSummaries: listStacksMock.StackSummaries,
-        NextToken: 'abc',
-      };
-    });
-    const failedStacks = await deployedBackendClient.listBackends({
-      deploymentType: 'branch',
-    });
-    assert.deepEqual(failedStacks, {
-      nextToken: 'abc',
-      backends: returnedDeleteFailedStacks,
-    });
-
-    assert.equal(listStacksMockFn.mock.callCount(), 1);
-  });
-
-  void it('accepts a nextToken to get the next page', async () => {
-    listStacksMockFn.mock.mockImplementation(
-      (input: ListStacksCommandInput) => {
-        if (!input.NextToken) {
-          return {
-            StackSummaries: listStacksMock.StackSummaries,
-            NextToken: 'abc',
-          };
-        }
-        return listStacksMock;
-      }
-    );
-    const failedStacks = await deployedBackendClient.listBackends({
-      nextToken: 'abc',
-      deploymentType: 'branch',
-    });
-    assert.deepEqual(failedStacks, {
-      nextToken: undefined,
-      backends: returnedDeleteFailedStacks,
-    });
-
-    assert.equal(listStacksMockFn.mock.callCount(), 1);
+    await assert.rejects(listBackendsPromise.next());
   });
 });
