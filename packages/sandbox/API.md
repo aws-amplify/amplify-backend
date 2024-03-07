@@ -9,7 +9,7 @@
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import EventEmitter from 'events';
-import { Printer } from '@aws-amplify/cli-core';
+import { Printer } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
 export type BackendIdSandboxResolver = (sandboxName?: string) => Promise<BackendIdentifier>;
