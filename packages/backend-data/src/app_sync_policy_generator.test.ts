@@ -33,15 +33,15 @@ void describe('AppSyncPolicyGenerator', () => {
   }[] = [
     {
       action: 'query',
-      expectedResourceSuffix: 'Query',
+      expectedResourceSuffix: 'Query/*',
     },
     {
       action: 'mutate',
-      expectedResourceSuffix: 'Mutation',
+      expectedResourceSuffix: 'Mutation/*',
     },
     {
       action: 'listen',
-      expectedResourceSuffix: 'Subscription',
+      expectedResourceSuffix: 'Subscription/*',
     },
   ];
 
@@ -112,7 +112,7 @@ void describe('AppSyncPolicyGenerator', () => {
                     {
                       'Fn::GetAtt': ['testApiD6ECAB50', 'Arn'],
                     },
-                    `/types/Query`,
+                    `/types/Query/*`,
                   ],
                 ],
               },
@@ -123,7 +123,7 @@ void describe('AppSyncPolicyGenerator', () => {
                     {
                       'Fn::GetAtt': ['testApiD6ECAB50', 'Arn'],
                     },
-                    `/types/Mutation`,
+                    `/types/Mutation/*`,
                   ],
                 ],
               },
@@ -134,7 +134,7 @@ void describe('AppSyncPolicyGenerator', () => {
                     {
                       'Fn::GetAtt': ['testApiD6ECAB50', 'Arn'],
                     },
-                    `/types/Subscription`,
+                    `/types/Subscription/*`,
                   ],
                 ],
               },

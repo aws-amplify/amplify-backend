@@ -17,11 +17,7 @@ import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
 import { convertSchemaToCDK, isModelSchema } from './convert_schema.js';
-import {
-  FunctionInstanceProvider,
-  buildConstructFactoryFunctionInstanceProvider,
-  convertFunctionNameMapToCDK,
-} from './convert_functions.js';
+import { convertFunctionNameMapToCDK } from './convert_functions.js';
 import {
   ProvidedAuthConfig,
   buildConstructFactoryProvidedAuthConfig,
@@ -33,6 +29,10 @@ import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
 import { Aspects, IAspect } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
+import {
+  FunctionSchemaAccess,
+  JsResolver,
+} from '@aws-amplify/data-schema-types';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -83,7 +83,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
             )
             ?.getInstance(props)
         ),
-        buildConstructFactoryFunctionInstanceProvider(props),
+        props,
         outputStorageStrategy
       );
     }
@@ -98,7 +98,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: DataProps,
     private readonly providedAuthConfig: ProvidedAuthConfig | undefined,
-    private readonly functionInstanceProvider: FunctionInstanceProvider,
+    private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
@@ -107,10 +107,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     ssmEnvironmentEntriesGenerator,
   }: GenerateContainerEntryProps) => {
     let amplifyGraphqlDefinition;
-    let jsFunctions;
+    let jsFunctions: JsResolver[] = [];
+    let functionSchemaAccess: FunctionSchemaAccess[] = [];
     try {
       if (isModelSchema(this.props.schema)) {
-        ({ jsFunctions } = this.props.schema.transform());
+        ({ jsFunctions, functionSchemaAccess } = this.props.schema.transform());
       }
       amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
     } catch (error) {
@@ -128,12 +129,21 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     let authorizationModes;
 
+    /**
+     * TODO - remove this after the data construct does work to remove the need for allow-listed IAM roles
+     */
+    const functionSchemaAccessRoles = functionSchemaAccess.map(
+      (accessEntry) =>
+        accessEntry.resourceProvider.getInstance(this.getInstanceProps)
+          .resources.lambda.role!
+    );
+
     try {
       authorizationModes = convertAuthorizationModesToCDK(
-        this.functionInstanceProvider,
+        this.getInstanceProps,
         this.providedAuthConfig,
-        this.props.authorizationModes
-        // TODO pass in lambda roles here
+        this.props.authorizationModes,
+        functionSchemaAccessRoles
       );
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
@@ -172,12 +182,9 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     );
 
     const functionNameMap = convertFunctionNameMapToCDK(
-      this.functionInstanceProvider,
+      this.getInstanceProps,
       this.props.functions ?? {}
     );
-
-    // TODO pass the function execution roles into the authorizationModes object
-
     const amplifyApi = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
       definition: amplifyGraphqlDefinition,
@@ -209,16 +216,23 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${this.props.name}_GRAPHQL_API_ID`]:
-          amplifyApi.resources.graphqlApi.apiId,
+        [`${this.props.name}_GRAPHQL_ENDPOINT`]:
+          amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
       });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const policyFactory = new AppSyncPolicyGenerator(
+    const policyGenerator = new AppSyncPolicyGenerator(
       amplifyApi.resources.graphqlApi
     );
 
-    // TODO iterate over access list from schema transform, pass policy and ssm context into each resource access acceptor
+    functionSchemaAccess.forEach((accessDefinition) => {
+      const policy = policyGenerator.generateGraphqlAccessPolicy(
+        accessDefinition.actions
+      );
+      accessDefinition.resourceProvider
+        .getInstance(this.getInstanceProps)
+        .getResourceAccessAcceptor()
+        .acceptResourceAccess(policy, ssmEnvironmentEntries);
+    });
 
     return amplifyApi;
   };

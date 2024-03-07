@@ -29,7 +29,7 @@ export class AppSyncPolicyGenerator {
       // convert from actions to GraphQL Type
       .map((action) => actionToTypeMap[action])
       // convert Type to resourceName
-      .map((type) => [this.graphqlApi.arn, 'types', type].join('/'));
+      .map((type) => [this.graphqlApi.arn, 'types', type, '*'].join('/'));
     return new Policy(this.stack, `${this.policyPrefix}${this.policyCount++}`, {
       statements: [
         new PolicyStatement({

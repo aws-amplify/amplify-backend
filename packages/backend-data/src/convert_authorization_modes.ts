@@ -16,8 +16,11 @@ import {
   LambdaAuthorizationModeProps,
   OIDCAuthorizationModeProps,
 } from './types.js';
-import { FunctionInstanceProvider } from './convert_functions.js';
-import { AuthResources, ResourceProvider } from '@aws-amplify/plugin-types';
+import {
+  AuthResources,
+  ConstructFactoryGetInstanceProps,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 
 const DEFAULT_API_KEY_EXPIRATION_DAYS = 7;
 const DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS = 60;
@@ -63,13 +66,13 @@ const convertApiKeyAuthConfigToCDK = ({
  * Convert to CDK LambdaAuthorizationConfig.
  */
 const convertLambdaAuthorizationConfigToCDK = (
-  functionInstanceProvider: FunctionInstanceProvider,
+  getInstanceProps: ConstructFactoryGetInstanceProps,
   {
     function: authFn,
     timeToLiveInSeconds = DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS,
   }: LambdaAuthorizationModeProps
 ): CDKLambdaAuthorizationConfig => ({
-  function: functionInstanceProvider.provide(authFn),
+  function: authFn.getInstance(getInstanceProps).resources.lambda,
   ttl: Duration.seconds(timeToLiveInSeconds),
 });
 
@@ -173,7 +176,7 @@ const convertAuthorizationModeToCDK = (mode?: DefaultAuthorizationMode) => {
  * Convert to CDK AuthorizationModes.
  */
 export const convertAuthorizationModesToCDK = (
-  functionInstanceProvider: FunctionInstanceProvider,
+  getInstanceProps: ConstructFactoryGetInstanceProps,
   authResources: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined,
   additionalRoles: IRole[] = []
@@ -195,7 +198,7 @@ export const convertAuthorizationModesToCDK = (
   );
   const lambdaConfig = authModes?.lambdaAuthorizationMode
     ? convertLambdaAuthorizationConfigToCDK(
-        functionInstanceProvider,
+        getInstanceProps,
         authModes.lambdaAuthorizationMode
       )
     : undefined;
