@@ -26,6 +26,7 @@ import {
   FunctionOutput,
   functionOutputKey,
 } from '@aws-amplify/backend-output-schemas';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -176,7 +177,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private resolveMemory = () => {
     const memoryMin = 128;
     const memoryMax = 10240;
-    const memoryDefault = memoryMin;
+    const memoryDefault = 512;
     if (this.props.memoryMB === undefined) {
       return memoryDefault;
     }
@@ -292,7 +293,8 @@ class AmplifyFunction
     this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
       functionLambda,
       props.environment,
-      backendSecretResolver
+      backendSecretResolver,
+      new FunctionEnvironmentTypeGenerator(id)
     );
 
     this.resources = {

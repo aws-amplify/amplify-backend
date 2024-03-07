@@ -7,7 +7,14 @@ import {
   GoogleProviderProps,
   OidcProviderProps,
 } from '@aws-amplify/auth-construct-alpha';
-import { BackendSecret } from '@aws-amplify/plugin-types';
+import {
+  BackendSecret,
+  ConstructFactory,
+  ConstructFactoryGetInstanceProps,
+  ResourceAccessAcceptor,
+  ResourceAccessAcceptorFactory,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 
 /**
  * This utility allows us to expand nested types in auto complete prompts.
@@ -175,3 +182,60 @@ export type AuthLoginWithFactoryProps = Omit<
    */
   externalProviders?: ExternalProviderSpecificFactoryProps;
 };
+
+export type AuthAccessBuilder = {
+  resource: (
+    other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
+  ) => AuthActionBuilder;
+};
+
+export type AuthActionBuilder = {
+  to: (actions: AuthAction[]) => AuthAccessDefinition;
+};
+
+export type AuthAccessGenerator = (
+  allow: AuthAccessBuilder
+) => AuthAccessDefinition[];
+
+export type AuthAccessDefinition = {
+  getResourceAccessAcceptor: (
+    getInstanceProps: ConstructFactoryGetInstanceProps
+  ) => ResourceAccessAcceptor;
+
+  // list of auth actions you can perform on the resource
+  actions: AuthAction[];
+};
+
+export type AuthAction = ActionIam | ActionMeta;
+
+/** @todo https://github.com/aws-amplify/amplify-backend/issues/1111 */
+export type ActionMeta =
+  | 'manageUsers'
+  | 'manageGroupMembership'
+  | 'manageUserDevices'
+  | 'managePasswordRecovery';
+
+/**
+ * This maps to Cognito IAM actions.
+ * @todo https://github.com/aws-amplify/amplify-backend/issues/1111
+ * @see https://aws.permissions.cloud/iam/cognito-idp
+ */
+export type ActionIam =
+  | 'addUserToGroup'
+  | 'createUser'
+  | 'deleteUser'
+  | 'deleteUserAttributes'
+  | 'disableUser'
+  | 'enableUser'
+  | 'forgetDevice'
+  | 'getDevice'
+  | 'getUser'
+  | 'listDevices'
+  | 'listGroupsForUser'
+  | 'removeUserFromGroup'
+  | 'resetUserPassword'
+  | 'setUserMfaPreference'
+  | 'setUserPassword'
+  | 'setUserSettings'
+  | 'updateDeviceStatus'
+  | 'updateUserAttributes';

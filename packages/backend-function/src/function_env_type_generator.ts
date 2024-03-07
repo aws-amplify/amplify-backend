@@ -12,10 +12,7 @@ export class FunctionEnvironmentTypeGenerator {
   /**
    * Initialize typed process.env shim file name and location
    */
-  constructor(
-    private readonly functionName: string,
-    private readonly amplifyBackendEnvVars: string[] = []
-  ) {
+  constructor(private readonly functionName: string) {
     this.typeDefFilePath = `${process.cwd()}/.amplify/function-env/${
       this.functionName
     }.ts`;
@@ -24,7 +21,7 @@ export class FunctionEnvironmentTypeGenerator {
   /**
    * Generate a typed process.env shim
    */
-  generateTypedProcessEnvShim() {
+  generateTypedProcessEnvShim(amplifyBackendEnvVars: string[]) {
     const lambdaEnvVarTypeName = 'LambdaProvidedEnvVars';
     const amplifyBackendEnvVarTypeName = 'AmplifyBackendEnvVars';
 
@@ -57,7 +54,7 @@ export class FunctionEnvironmentTypeGenerator {
       `/** Amplify backend environment variables available at runtime, this includes environment variables defined in \`defineFunction\` and by cross resource mechanisms */`
     );
     declarations.push(`type ${amplifyBackendEnvVarTypeName} = {`);
-    this.amplifyBackendEnvVars.forEach((envName) => {
+    amplifyBackendEnvVars.forEach((envName) => {
       const declaration = `${envName}: string;`;
 
       declarations.push(declaration);

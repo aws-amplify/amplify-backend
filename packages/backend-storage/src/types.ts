@@ -21,6 +21,15 @@ export type AmplifyStorageFactoryProps = Omit<
 };
 
 /**
+ * Types of entity IDs that can be substituted in access policies
+ *
+ * 'identity' corresponds to the Cognito Identity Pool IdentityID
+ *
+ * Currently this is the only supported entity type.
+ */
+export type EntityId = 'identity';
+
+/**
  * !EXPERIMENTAL!
  *
  * Resource access patterns are under active development and are subject to breaking changes.
@@ -29,7 +38,8 @@ export type AmplifyStorageFactoryProps = Omit<
 export type StorageAccessBuilder = {
   authenticated: StorageActionBuilder;
   guest: StorageActionBuilder;
-  owner: StorageActionBuilder;
+  group: (groupName: string) => StorageActionBuilder;
+  entity: (entityId: EntityId) => StorageActionBuilder;
   resource: (
     other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
   ) => StorageActionBuilder;
@@ -59,7 +69,7 @@ export type StorageAccessDefinition = {
   /**
    * The value that will be substituted into the resource string in place of the {owner} token
    */
-  ownerPlaceholderSubstitution: string;
+  idSubstitution: string;
 };
 
 /**

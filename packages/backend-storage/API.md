@@ -34,10 +34,14 @@ export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources>>;
 
 // @public
+export type EntityId = 'identity';
+
+// @public
 export type StorageAccessBuilder = {
     authenticated: StorageActionBuilder;
     guest: StorageActionBuilder;
-    owner: StorageActionBuilder;
+    group: (groupName: string) => StorageActionBuilder;
+    entity: (entityId: EntityId) => StorageActionBuilder;
     resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => StorageActionBuilder;
 };
 
@@ -45,7 +49,7 @@ export type StorageAccessBuilder = {
 export type StorageAccessDefinition = {
     getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
     actions: StorageAction[];
-    ownerPlaceholderSubstitution: string;
+    idSubstitution: string;
 };
 
 // @public (undocumented)
