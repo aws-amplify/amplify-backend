@@ -21,23 +21,15 @@ export class UserPoolAccessPolicyFactory {
   }
 
   createPolicy = (actions: AuthAction[]) => {
-    const policyActions: Set<string> = new Set();
-
     if (actions.length === 0) {
       throw new AmplifyUserError('EmptyPolicyError', {
         message: 'At least one action must be specified',
       });
     }
 
-    actions.forEach((authAction) => {
-      const mappedAction = iamActionMap[authAction];
-
-      if (typeof mappedAction === 'string') {
-        policyActions.add(mappedAction);
-      } else {
-        mappedAction.forEach((action) => policyActions.add(action));
-      }
-    });
+    const policyActions = new Set(
+      actions.flatMap((action) => iamActionMap[action])
+    );
 
     if (policyActions.size === 0) {
       throw new AmplifyFault('EmptyPolicyFault', {
