@@ -26,6 +26,7 @@ import {
   FunctionOutput,
   functionOutputKey,
 } from '@aws-amplify/backend-output-schemas';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -292,7 +293,8 @@ class AmplifyFunction
     this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
       functionLambda,
       props.environment,
-      backendSecretResolver
+      backendSecretResolver,
+      new FunctionEnvironmentTypeGenerator(id)
     );
 
     this.resources = {

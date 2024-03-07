@@ -26,7 +26,8 @@ export class FunctionEnvironmentTranslator {
   constructor(
     private readonly lambda: NodejsFunction, // we need to use a specific type here so that we have all the method goodies
     private readonly functionEnvironmentProp: Required<FunctionProps>['environment'],
-    private readonly backendSecretResolver: BackendSecretResolver
+    private readonly backendSecretResolver: BackendSecretResolver,
+    private readonly functionEnvironmentTypeGenerator: FunctionEnvironmentTypeGenerator
   ) {
     for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
       if (key === this.amplifySsmEnvConfigKey) {
@@ -86,10 +87,9 @@ export class FunctionEnvironmentTranslator {
     // Using CDK validation mechanism as a way to generate a typed process.env shim file at the end of synthesis
     this.lambda.node.addValidation({
       validate: (): string[] => {
-        new FunctionEnvironmentTypeGenerator(
-          this.lambda.node.id.replace(/-lambda$/, ''), // Remove -lambda suffix from node id and keep the lambda name
+        this.functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(
           this.amplifyBackendEnvVarNames
-        ).generateTypedProcessEnvShim();
+        );
         return [];
       },
     });
