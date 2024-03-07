@@ -19,7 +19,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
       new FunctionEnvironmentTypeGenerator('testFunction');
     const sampleStaticEnv = '_HANDLER: string;';
 
-    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim();
+    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim([]);
 
     // assert type definition file path
     assert.equal(
@@ -46,10 +46,10 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
       };
     });
     const functionEnvironmentTypeGenerator =
-      new FunctionEnvironmentTypeGenerator('testFunction', ['TEST_ENV']);
+      new FunctionEnvironmentTypeGenerator('testFunction');
     const sampleStaticEnv = 'TEST_ENV: string;';
 
-    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim();
+    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(['TEST_ENV']);
 
     // assert type definition file path
     assert.equal(
@@ -69,10 +69,10 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
   void it('generated type definition file has valid syntax', async () => {
     const targetDirectory = await fsp.mkdtemp('func_env_type_gen_test');
     const functionEnvironmentTypeGenerator =
-      new FunctionEnvironmentTypeGenerator('testFunction', ['TEST_ENV']);
+      new FunctionEnvironmentTypeGenerator('testFunction');
     const filePath = `${process.cwd()}/.amplify/function-env/testFunction.ts`;
 
-    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim();
+    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(['TEST_ENV']);
 
     // import to validate syntax of type definition file
     await import(pathToFileURL(filePath).toString());
