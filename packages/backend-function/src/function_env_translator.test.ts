@@ -224,7 +224,7 @@ void describe('FunctionEnvironmentTranslator', () => {
 });
 
 const getTestLambda = () =>
-  new Function(new Stack(new App()), 'testFunction', {
+  new Function(new Stack(new App()), testLambdaName, {
     code: Code.fromInline('test code'),
     runtime: Runtime.NODEJS_20_X,
     handler: 'handler',
