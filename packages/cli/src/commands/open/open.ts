@@ -1,6 +1,6 @@
 import opn, { Options } from 'open';
 import { ChildProcess } from 'child_process';
-import { printer } from '../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 /**
  * Helper class to open apps (URLs, files, executable). Cross-platform.

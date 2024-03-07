@@ -1,9 +1,9 @@
 import { beforeEach, describe, it, mock } from 'node:test';
+import { printer } from "@aws-amplify/cli-core";
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import assert from 'assert';
 import * as path from 'path';
 import * as os from 'os';
-import { printer } from './printer.js';
 
 void describe('GitIgnoreInitializer', () => {
   const logMock = mock.method(printer, 'log');

@@ -7,16 +7,16 @@
   If customers have a cached version of the create-amplify package, they might execute that cached version even after we publish features and fixes to the package on npm.
  */
 
+import { LogLevel } from '@aws-amplify/plugin-types';
 import {
-  LogLevel,
   PackageManagerControllerFactory,
+  printer,
 } from '@aws-amplify/cli-core';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { printer } from './printer.js';
 
 const projectRoot = await getProjectRoot();
 

@@ -19,22 +19,25 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import { Sandbox } from './sandbox.js';
 import {
   AmplifyPrompter,
-  LogLevel,
   PackageManagerControllerFactory,
-  Printer,
 } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier, type Printer } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 // Watcher mocks
+const printer = {
+  log: mock.fn(),
+  print: mock.fn(),
+};
+
 const unsubscribeMockFn = mock.fn();
 const subscribeMock = mock.method(watcher, 'subscribe', async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
   process.cwd(),
-  new Printer(LogLevel.DEBUG)
+  printer as unknown as Printer
 );
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController()
@@ -59,10 +62,6 @@ const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
     newlyUpdatedSecretItem,
   ])
 );
-const printer = {
-  log: mock.fn(),
-  print: mock.fn(),
-};
 
 const sandboxExecutor = new AmplifySandboxExecutor(
   backendDeployer,

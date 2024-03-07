@@ -3,9 +3,8 @@ import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import {
-  LogLevel,
   PackageManagerControllerFactory,
-  Printer,
+  printer
 } from '@aws-amplify/cli-core';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 
@@ -15,7 +14,7 @@ const mockedPrinter = {
 };
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
   process.cwd(),
-  new Printer(LogLevel.DEBUG)
+  printer
 );
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController()

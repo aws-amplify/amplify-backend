@@ -3,7 +3,7 @@ import {
   USAGE_DATA_TRACKING_ENABLED,
 } from '@aws-amplify/platform-core';
 import { Argv, CommandModule } from 'yargs';
-import { printer } from '../../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 /**
  * Command to configure AWS Amplify profile.
  */

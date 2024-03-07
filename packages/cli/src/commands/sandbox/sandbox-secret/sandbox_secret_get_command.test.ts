@@ -9,7 +9,7 @@ import {
   getSecretClient,
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
-import { printer } from '../../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 const printRecordsMock = mock.method(printer, 'printRecords');
 

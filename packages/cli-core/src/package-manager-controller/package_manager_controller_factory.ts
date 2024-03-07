@@ -1,6 +1,5 @@
-import { type PackageManagerController } from '@aws-amplify/plugin-types';
+import { type PackageManagerController, type Printer } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { Printer } from '../printer/printer.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';

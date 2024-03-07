@@ -5,7 +5,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
 import { cyan } from 'kleur/colors';
-import { Printer } from '@aws-amplify/cli-core';
+import { Printer } from '@aws-amplify/plugin-types';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 

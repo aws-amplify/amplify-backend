@@ -1,6 +1,6 @@
+import { Printer } from "@aws-amplify/plugin-types";
 import {
   PackageManagerControllerFactory,
-  Printer,
 } from '@aws-amplify/cli-core';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { BackendIdSandboxResolver, Sandbox } from './sandbox.js';

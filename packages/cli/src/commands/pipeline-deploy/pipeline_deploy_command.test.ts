@@ -12,9 +12,8 @@ import {
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import {
-  LogLevel,
   PackageManagerControllerFactory,
-  Printer,
+  printer,
 } from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 
@@ -30,7 +29,7 @@ void describe('deploy command', () => {
   );
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
     process.cwd(),
-    new Printer(LogLevel.DEBUG)
+    printer
   );
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(

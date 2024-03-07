@@ -1,3 +1,7 @@
+import {
+  LogLevel,
+  type Printer as PrinterType,
+} from '@aws-amplify/plugin-types';
 import { COLOR, color } from '../colors.js';
 import { EOL } from 'os';
 
@@ -6,7 +10,7 @@ export type RecordValue = string | number | string[] | Date;
 /**
  * The class that pretty prints to the output stream.
  */
-export class Printer {
+export class Printer implements PrinterType {
   // Properties for ellipsis animation
   private timer: ReturnType<typeof setTimeout>;
   private timerSet: boolean;
@@ -166,12 +170,6 @@ export class Printer {
     this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
     this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
   }
-}
-
-export enum LogLevel {
-  ERROR = 0,
-  INFO = 1,
-  DEBUG = 2,
 }
 
 enum EscapeSequence {
