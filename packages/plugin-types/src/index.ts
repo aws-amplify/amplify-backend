@@ -17,3 +17,4 @@ export * from './resource_access_acceptor.js';
 export * from './ssm_environment_entries_generator.js';
 export * from './package_manager_controller.js';
 export * from './printer.js';
+export * from './colors.js';

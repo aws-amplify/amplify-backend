@@ -1,8 +1,9 @@
 import {
+  COLOR,
   LogLevel,
   type Printer as PrinterType,
 } from '@aws-amplify/plugin-types';
-import { COLOR, color } from '../colors.js';
+import { color } from '../colors.js';
 import { EOL } from 'os';
 
 export type RecordValue = string | number | string[] | Date;

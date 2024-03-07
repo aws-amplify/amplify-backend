@@ -19,11 +19,8 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
-import { LogLevel,Printer } from "@aws-amplify/plugin-types";
-import {
-  AmplifyPrompter,
-  COLOR,
-} from '@aws-amplify/cli-core';
+import { COLOR, LogLevel, Printer } from '@aws-amplify/plugin-types';
+import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import {
   FilesChangesTracker,
   createFilesChangesTracker,
