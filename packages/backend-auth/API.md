@@ -25,7 +25,7 @@ import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
 // @public
 export type ActionIam = 'addUserToGroup' | 'confirmSignUp' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'respondToAuthChallenge' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes' | 'userGlobalSignOut';
 
-// @public (undocumented)
+// @public
 export type ActionMeta = 'manageUsers' | 'manageGroupMembership' | 'manageUserDevices' | 'managePasswordRecovery';
 
 // @public
