@@ -115,7 +115,7 @@ export type BackendOutputCredentialsOptions = {
 };
 
 // @public (undocumented)
-export enum BackendStatusFilter {
+export enum BackendStatus {
     // (undocumented)
     DELETE_FAILED = "DELETE_FAILED"
 }
@@ -140,7 +140,7 @@ export enum ConflictResolutionMode {
 
 // @public (undocumented)
 export type DeployedBackendClient = {
-    listBackends: (listBackendsRequest?: ListBackendsRequest) => AsyncGenerator<BackendSummaryMetadata[], void, unknown>;
+    listBackends: (listBackendsRequest?: ListBackendsRequest) => ListBackendsResponse;
     deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>) => Promise<void>;
     getBackendMetadata: (backendId: BackendIdentifier) => Promise<BackendMetadata>;
 };
@@ -189,12 +189,12 @@ export type FunctionConfiguration = {
 // @public (undocumented)
 export type ListBackendsRequest = {
     deploymentType: DeploymentType;
-    backendStatusFilters?: BackendStatusFilter[];
+    backendStatusFilters?: BackendStatus[];
 };
 
 // @public (undocumented)
 export type ListBackendsResponse = {
-    backends: BackendSummaryMetadata[];
+    getBackendSummaryByPage: AsyncGenerator<BackendSummaryMetadata[]>;
 };
 
 // @public (undocumented)
