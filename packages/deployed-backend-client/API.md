@@ -121,7 +121,7 @@ export enum BackendStatusFilter {
 }
 
 // @public (undocumented)
-export type BackendSummariesMetadata = {
+export type BackendSummaryMetadata = {
     name: string;
     lastUpdated: Date | undefined;
     status: BackendDeploymentStatus;
@@ -140,9 +140,7 @@ export enum ConflictResolutionMode {
 
 // @public (undocumented)
 export type DeployedBackendClient = {
-    listBackends: (listBackendsRequest?: ListBackendsRequest) => AsyncGenerator<{
-        backends: BackendSummariesMetadata[];
-    }, void, unknown>;
+    listBackends: (listBackendsRequest?: ListBackendsRequest) => AsyncGenerator<BackendSummaryMetadata[], void, unknown>;
     deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>) => Promise<void>;
     getBackendMetadata: (backendId: BackendIdentifier) => Promise<BackendMetadata>;
 };
@@ -196,7 +194,7 @@ export type ListBackendsRequest = {
 
 // @public (undocumented)
 export type ListBackendsResponse = {
-    backends: BackendSummariesMetadata[];
+    backends: BackendSummaryMetadata[];
 };
 
 // @public (undocumented)
