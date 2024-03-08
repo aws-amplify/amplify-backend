@@ -1,4 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
@@ -36,7 +35,7 @@ export type BackendSummaryMetadata = {
 
 export type ListBackendsRequest = {
   deploymentType: DeploymentType;
-  backendStatusFilters?: BackendStatusFilter[];
+  backendStatusFilters?: BackendStatus[];
 };
 
 export type DeployedBackendResource = {
@@ -84,7 +83,7 @@ export type FunctionConfiguration = {
 };
 
 export type ListBackendsResponse = {
-  backends: BackendSummaryMetadata[];
+  getBackendSummaryByPage: AsyncGenerator<BackendSummaryMetadata[]>;
 };
 
 export enum BackendDeploymentStatus {
@@ -96,14 +95,14 @@ export enum BackendDeploymentStatus {
   UNKNOWN = 'UNKNOWN',
 }
 
-export enum BackendStatusFilter {
+export enum BackendStatus {
   DELETE_FAILED = 'DELETE_FAILED',
 }
 
 export type DeployedBackendClient = {
   listBackends: (
     listBackendsRequest?: ListBackendsRequest
-  ) => AsyncGenerator<BackendSummaryMetadata[], void, unknown>;
+  ) => ListBackendsResponse;
   deleteSandbox: (
     sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ) => Promise<void>;

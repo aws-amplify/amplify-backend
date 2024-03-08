@@ -1,4 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
@@ -10,7 +9,7 @@ import {
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
-import { BackendStatusFilter } from './deployed_backend_client_factory.js';
+import { BackendStatus } from './deployed_backend_client_factory.js';
 import {
   BackendOutputClientError,
   BackendOutputClientErrorType,
@@ -128,10 +127,16 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
   void it('does not paginate listBackends when one page contains delete failed stacks', async () => {
     const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
-      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
+      backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
 
-    for await (const stacks of failedStacks) {
+    //eslint-disable-next-line
+    console.log(
+      'failed stacks -- ',
+      (await failedStacks.getBackendSummaryByPage.next()).value
+    );
+
+    for await (const stacks of failedStacks.getBackendSummaryByPage) {
       assert.deepEqual(stacks, returnedDeleteFailedStacks);
     }
 
@@ -147,14 +152,17 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     });
     const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
-      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
+      backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
     assert.deepEqual(
-      (await failedStacks.next()).value,
+      (await failedStacks.getBackendSummaryByPage.next()).value,
       returnedDeleteFailedStacks
     );
 
-    assert.deepEqual((await failedStacks.next()).done, true);
+    assert.deepEqual(
+      (await failedStacks.getBackendSummaryByPage.next()).done,
+      true
+    );
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
@@ -172,10 +180,10 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     });
     const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
-      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
+      backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
     assert.deepEqual(
-      (await failedStacks.next()).value,
+      (await failedStacks.getBackendSummaryByPage.next()).value,
       returnedDeleteFailedStacks
     );
 
@@ -195,10 +203,10 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     });
     const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
-      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
+      backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
     assert.deepEqual(
-      (await failedStacks.next()).value,
+      (await failedStacks.getBackendSummaryByPage.next()).value,
       returnedDeleteFailedStacks
     );
 
@@ -224,10 +232,10 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     });
     const failedStacks = deployedBackendClient.listBackends({
       deploymentType: 'branch',
-      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
+      backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
     assert.deepEqual(
-      (await failedStacks.next()).value,
+      (await failedStacks.getBackendSummaryByPage.next()).value,
       returnedDeleteFailedStacks
     );
 
@@ -250,8 +258,8 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     });
     const listBackendsPromise = deployedBackendClient.listBackends({
       deploymentType: 'branch',
-      backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
+      backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
-    await assert.rejects(listBackendsPromise.next());
+    await assert.rejects(listBackendsPromise.getBackendSummaryByPage.next());
   });
 });

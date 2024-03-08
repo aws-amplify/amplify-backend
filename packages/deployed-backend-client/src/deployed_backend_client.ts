@@ -1,4 +1,3 @@
-/* eslint-disable spellcheck/spell-checker */
 import {
   BackendIdentifier,
   BackendOutput,
@@ -7,12 +6,13 @@ import {
 import {
   ApiAuthType,
   BackendMetadata,
-  BackendStatusFilter,
+  BackendStatus,
   BackendSummaryMetadata,
   ConflictResolutionMode,
   DeployedBackendClient,
   FunctionConfiguration,
   ListBackendsRequest,
+  ListBackendsResponse,
 } from './deployed_backend_client_factory.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import {
@@ -83,13 +83,21 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     return this.buildBackendMetadata(stackName);
   };
 
+  listBackends = (
+    listBackendsRequest?: ListBackendsRequest
+  ): ListBackendsResponse => {
+    const backends = this.listBackendsSummaries(listBackendsRequest);
+    return {
+      getBackendSummaryByPage: backends,
+    };
+  };
+
   /**
    * Returns a list of stacks for specific deployment type and status
    * @yields
    */
-  async *listBackends(listBackendsRequest?: ListBackendsRequest) {
+  async *listBackendsSummaries(listBackendsRequest?: ListBackendsRequest) {
     const stackMetadata: BackendSummaryMetadata[] = [];
-
     let nextToken;
     const deploymentType = listBackendsRequest?.deploymentType;
     const statusFilter = listBackendsRequest?.backendStatusFilters
@@ -181,7 +189,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
   private listStacks = async (
     nextToken: string | undefined,
-    stackStatusFilter: BackendStatusFilter[]
+    stackStatusFilter: BackendStatus[]
   ): Promise<{
     stackSummaries: StackSummary[];
     nextToken: string | undefined;
