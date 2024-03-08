@@ -128,15 +128,11 @@ const computeIAMAuthFromResource = (
   additionalRoles: IRole[] = []
 ): CDKIAMAuthorizationConfig | undefined => {
   if (providedAuthConfig) {
-    const allowListedRoles = [
-      ...(authModes?.allowListedRoleNames || []),
-      ...additionalRoles,
-    ];
     return {
       authenticatedUserRole: providedAuthConfig.authenticatedUserRole,
       unauthenticatedUserRole: providedAuthConfig.unauthenticatedUserRole,
       identityPoolId: providedAuthConfig.identityPoolId,
-      allowListedRoles,
+      allowListedRoles: additionalRoles,
     };
   }
   return;
