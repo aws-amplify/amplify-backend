@@ -177,7 +177,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private resolveMemory = () => {
     const memoryMin = 128;
     const memoryMax = 10240;
-    const memoryDefault = memoryMin;
+    const memoryDefault = 512;
     if (this.props.memoryMB === undefined) {
       return memoryDefault;
     }
@@ -292,8 +292,9 @@ class AmplifyFunction
 
     this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
       functionLambda,
-      props['environment'],
-      backendSecretResolver
+      props.environment,
+      backendSecretResolver,
+      new FunctionEnvironmentTypeGenerator(id)
     );
 
     this.resources = {
@@ -301,14 +302,6 @@ class AmplifyFunction
     };
 
     this.storeOutput(outputStorageStrategy);
-
-    // Using CDK validation mechanism as a way to generate a type definition file at the end of synthesis
-    this.node.addValidation({
-      validate: (): string[] => {
-        new FunctionEnvironmentTypeGenerator(id).generateTypeDefFile();
-        return [];
-      },
-    });
   }
 
   getResourceAccessAcceptor = () => ({

@@ -3,18 +3,11 @@ import {
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
 } from '@aws-amplify/plugin-types';
-import { AmplifyStorage } from './construct.js';
-import { StorageAccessPolicyArbiterFactory } from './storage_access_policy_arbiter.js';
-import {
-  AmplifyStorageFactoryProps,
-  AmplifyStorageTriggerEvent,
-} from './types.js';
-import {
-  RoleAccessBuilder,
-  roleAccessBuilder as _roleAccessBuilder,
-} from './access_builder.js';
+import { AmplifyStorage, AmplifyStorageTriggerEvent } from './construct.js';
+import { StorageAccessOrchestratorFactory } from './storage_access_orchestrator.js';
+import { AmplifyStorageFactoryProps } from './types.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
-import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
+import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 
 /**
  * Generates a single instance of storage resources
@@ -30,9 +23,7 @@ export class StorageContainerEntryGenerator
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly bucketPolicyArbiterFactory: StorageAccessPolicyArbiterFactory = new StorageAccessPolicyArbiterFactory(),
-    private readonly roleAccessBuilder: RoleAccessBuilder = _roleAccessBuilder,
-    private readonly validateStorageAccessPaths = _validateStorageAccessPaths
+    private readonly storageAccessOrchestratorFactory: StorageAccessOrchestratorFactory = new StorageAccessOrchestratorFactory()
   ) {}
 
   generateContainerEntry = ({
@@ -66,24 +57,24 @@ export class StorageContainerEntryGenerator
       return amplifyStorage;
     }
 
-    // props.access is the access callback defined by the customer
-    // here we inject the roleAccessBuilder into the callback and run it
-    // this produces the access definition that will be used to create the storage policies
-    const accessDefinition = this.props.access(this.roleAccessBuilder);
+    // generate the ssm environment context necessary to access the s3 bucket (in this case, just the bucket name)
+    const ssmEnvironmentEntries =
+      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
+        [`${this.props.name}_BUCKET_NAME`]:
+          amplifyStorage.resources.bucket.bucketName,
+      });
 
-    this.validateStorageAccessPaths(Object.keys(accessDefinition));
+    // we pass the access definition along with other dependencies to the storageAccessOrchestrator
+    const storageAccessOrchestrator =
+      this.storageAccessOrchestratorFactory.getInstance(
+        this.props.access,
+        this.getInstanceProps,
+        ssmEnvironmentEntries,
+        new StorageAccessPolicyFactory(amplifyStorage.resources.bucket)
+      );
 
-    // we pass the access definition along with other dependencies to the bucketPolicyArbiter
-    const bucketPolicyArbiter = this.bucketPolicyArbiterFactory.getInstance(
-      this.props.name,
-      accessDefinition,
-      ssmEnvironmentEntriesGenerator,
-      this.getInstanceProps,
-      amplifyStorage.resources.bucket
-    );
-
-    // the arbiter generates policies according to the accessDefinition and attaches the policies to appropriate roles
-    bucketPolicyArbiter.arbitratePolicies();
+    // the orchestrator generates policies according to the accessDefinition and attaches the policies to appropriate roles
+    storageAccessOrchestrator.orchestrateStorageAccess();
 
     return amplifyStorage;
   };

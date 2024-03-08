@@ -12,6 +12,7 @@ import assert from 'node:assert';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Template } from 'aws-cdk-lib/assertions';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 const testStack = {} as Construct;
 
@@ -20,6 +21,8 @@ const testBackendIdentifier: BackendIdentifier = {
   name: 'testBranchName',
   type: 'branch',
 };
+
+const testLambdaName = 'testFunction';
 
 class TestBackendSecretResolver implements BackendSecretResolver {
   resolveSecret = (backendSecret: BackendSecret): SecretValue => {
@@ -62,7 +65,8 @@ void describe('FunctionEnvironmentTranslator', () => {
     new FunctionEnvironmentTranslator(
       testLambda,
       functionEnvProp,
-      backendResolver
+      backendResolver,
+      new FunctionEnvironmentTypeGenerator(testLambdaName)
     );
 
     const template = Template.fromStack(Stack.of(testLambda));
@@ -88,7 +92,8 @@ void describe('FunctionEnvironmentTranslator', () => {
     new FunctionEnvironmentTranslator(
       testLambda,
       functionEnvProp,
-      backendResolver
+      backendResolver,
+      new FunctionEnvironmentTypeGenerator(testLambdaName)
     );
 
     const template = Template.fromStack(Stack.of(testLambda));
@@ -121,7 +126,8 @@ void describe('FunctionEnvironmentTranslator', () => {
         new FunctionEnvironmentTranslator(
           getTestLambda(),
           functionEnvProp,
-          backendResolver
+          backendResolver,
+          new FunctionEnvironmentTypeGenerator(testLambdaName)
         )
     );
   });
@@ -136,7 +142,8 @@ void describe('FunctionEnvironmentTranslator', () => {
     new FunctionEnvironmentTranslator(
       testLambda,
       functionEnvProp,
-      backendResolver
+      backendResolver,
+      new FunctionEnvironmentTypeGenerator(testLambdaName)
     );
 
     const template = Template.fromStack(Stack.of(testLambda));
@@ -154,7 +161,8 @@ void describe('FunctionEnvironmentTranslator', () => {
     new FunctionEnvironmentTranslator(
       testLambda,
       functionEnvProp,
-      backendResolver
+      backendResolver,
+      new FunctionEnvironmentTypeGenerator(testLambdaName)
     );
 
     const template = Template.fromStack(Stack.of(testLambda));
@@ -216,7 +224,7 @@ void describe('FunctionEnvironmentTranslator', () => {
 });
 
 const getTestLambda = () =>
-  new Function(new Stack(new App()), 'testFunction', {
+  new Function(new Stack(new App()), testLambdaName, {
     code: Code.fromInline('test code'),
     runtime: Runtime.NODEJS_20_X,
     handler: 'handler',

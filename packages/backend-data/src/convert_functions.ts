@@ -6,32 +6,15 @@ import {
 } from '@aws-amplify/plugin-types';
 
 /**
- * Type used for function provider injection while transforming data props.
- */
-export type FunctionInstanceProvider = {
-  provide: (func: ConstructFactory<AmplifyFunction>) => IFunction;
-};
-
-/**
- * Build a function instance provider using the construct factory.
- */
-export const buildConstructFactoryFunctionInstanceProvider = (
-  props: ConstructFactoryGetInstanceProps
-) => ({
-  provide: (func: ConstructFactory<AmplifyFunction>): IFunction =>
-    func.getInstance(props).resources.lambda,
-});
-
-/**
  * Convert the provided function input map into a map of IFunctions.
  */
 export const convertFunctionNameMapToCDK = (
-  functionInstanceProvider: FunctionInstanceProvider,
+  getInstanceProps: ConstructFactoryGetInstanceProps,
   functions: Record<string, ConstructFactory<AmplifyFunction>>
 ): Record<string, IFunction> =>
   Object.fromEntries(
     Object.entries(functions).map(([functionName, functionInput]) => [
       functionName,
-      functionInstanceProvider.provide(functionInput),
+      functionInput.getInstance(getInstanceProps).resources.lambda,
     ])
   );
