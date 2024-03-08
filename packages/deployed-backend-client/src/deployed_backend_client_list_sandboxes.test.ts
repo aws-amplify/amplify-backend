@@ -129,9 +129,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual((await sandboxes.next()).value, {
-      backends: returnedSandboxes,
-    });
+    assert.deepEqual((await sandboxes.next()).value, returnedSandboxes);
 
     assert.equal(listStacksMockFn.mock.callCount(), 1);
   });
@@ -146,9 +144,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual((await sandboxes.next()).value, {
-      backends: returnedSandboxes,
-    });
+    assert.deepEqual((await sandboxes.next()).value, returnedSandboxes);
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
@@ -167,9 +163,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual((await sandboxes.next()).value, {
-      backends: returnedSandboxes,
-    });
+    assert.deepEqual((await sandboxes.next()).value, returnedSandboxes);
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
@@ -188,9 +182,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual((await sandboxes.next()).value, {
-      backends: returnedSandboxes,
-    });
+    assert.deepEqual((await sandboxes.next()).value, returnedSandboxes);
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
@@ -215,9 +207,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    assert.deepEqual((await sandboxes.next()).value, {
-      backends: returnedSandboxes,
-    });
+    assert.deepEqual((await sandboxes.next()).value, returnedSandboxes);
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });

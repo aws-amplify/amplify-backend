@@ -130,9 +130,10 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
       backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual((await failedStacks.next()).value, {
-      backends: returnedDeleteFailedStacks,
-    });
+
+    for await (const stacks of failedStacks) {
+      assert.deepEqual(stacks, returnedDeleteFailedStacks);
+    }
 
     assert.equal(listStacksMockFn.mock.callCount(), 1);
   });
@@ -148,9 +149,10 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
       backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual((await failedStacks.next()).value, {
-      backends: returnedDeleteFailedStacks,
-    });
+    assert.deepEqual(
+      (await failedStacks.next()).value,
+      returnedDeleteFailedStacks
+    );
 
     assert.deepEqual((await failedStacks.next()).done, true);
 
@@ -172,9 +174,10 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
       backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual((await failedStacks.next()).value, {
-      backends: returnedDeleteFailedStacks,
-    });
+    assert.deepEqual(
+      (await failedStacks.next()).value,
+      returnedDeleteFailedStacks
+    );
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
@@ -194,9 +197,10 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
       backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual((await failedStacks.next()).value, {
-      backends: returnedDeleteFailedStacks,
-    });
+    assert.deepEqual(
+      (await failedStacks.next()).value,
+      returnedDeleteFailedStacks
+    );
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
@@ -222,9 +226,10 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
       backendStatusFilters: [BackendStatusFilter.DELETE_FAILED],
     });
-    assert.deepEqual((await failedStacks.next()).value, {
-      backends: returnedDeleteFailedStacks,
-    });
+    assert.deepEqual(
+      (await failedStacks.next()).value,
+      returnedDeleteFailedStacks
+    );
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });

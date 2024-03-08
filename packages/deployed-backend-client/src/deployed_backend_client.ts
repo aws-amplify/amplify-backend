@@ -8,7 +8,7 @@ import {
   ApiAuthType,
   BackendMetadata,
   BackendStatusFilter,
-  BackendSummariesMetadata,
+  BackendSummaryMetadata,
   ConflictResolutionMode,
   DeployedBackendClient,
   FunctionConfiguration,
@@ -88,7 +88,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * @yields
    */
   async *listBackends(listBackendsRequest?: ListBackendsRequest) {
-    const stackMetadata: BackendSummariesMetadata[] = [];
+    const stackMetadata: BackendSummaryMetadata[] = [];
 
     let nextToken;
     const deploymentType = listBackendsRequest?.deploymentType;
@@ -141,9 +141,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       nextToken = listStacksResponse.nextToken;
 
       if (stackMetadata.length !== 0) {
-        yield {
-          backends: stackMetadata,
-        };
+        yield stackMetadata;
       }
     } while (stackMetadata.length === 0 && nextToken);
   }
