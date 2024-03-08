@@ -1,11 +1,11 @@
 {
   "name": "@aws-amplify/integration-tests",
   "private": true,
-  "version": "0.5.0-beta.1",
+  "version": "0.5.0-beta.2",
   "type": "module",
   "devDependencies": {
-    "@aws-amplify/auth-construct-alpha": "^0.6.0-beta.3",
-    "@aws-amplify/backend": "^0.13.0-beta.4",
+    "@aws-amplify/auth-construct-alpha": "^0.6.0-beta.4",
+    "@aws-amplify/backend": "^0.13.0-beta.5",
     "@aws-amplify/backend-secret": "^0.4.5-beta.1",
     "@aws-amplify/client-config": "^0.9.0-beta.3",
     "@aws-amplify/data-schema": "^0.13.11",

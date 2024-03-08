@@ -1,5 +1,11 @@
 # @aws-amplify/sandbox
 
+## 0.5.2-beta.4
+
+### Patch Changes
+
+- 615a3e6: upgrade @parcel/watcher wo use the latest version
+
 ## 0.5.2-beta.3
 
 ### Patch Changes

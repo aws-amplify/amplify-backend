@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/sandbox",
-  "version": "0.5.2-beta.3",
+  "version": "0.5.2-beta.4",
   "type": "module",
   "publishConfig": {
     "access": "public"

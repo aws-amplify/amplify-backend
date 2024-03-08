@@ -1,5 +1,12 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.5
+
+### Patch Changes
+
+- Updated dependencies [615a3e6]
+  - @aws-amplify/sandbox@0.5.2-beta.4
+
 ## 0.12.0-beta.4
 
 ### Patch Changes
