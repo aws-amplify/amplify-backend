@@ -213,7 +213,6 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
         [`${this.props.name}_GRAPHQL_ENDPOINT`]:
