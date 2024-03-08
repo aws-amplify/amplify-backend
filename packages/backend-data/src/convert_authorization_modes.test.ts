@@ -216,50 +216,6 @@ void describe('convertAuthorizationModesToCDK', () => {
       expectedOutput
     );
   });
-
-  void it('allows for specifying allow listed roles with an empty list', () => {
-    const authModes: AuthorizationModes = {
-      allowListedRoleNames: [],
-    };
-
-    const expectedOutput: CDKAuthorizationModes = {
-      userPoolConfig: { userPool },
-      iamConfig: {
-        identityPoolId,
-        authenticatedUserRole,
-        unauthenticatedUserRole,
-        allowListedRoles: [],
-      },
-    };
-
-    assert.deepStrictEqual(
-      convertAuthorizationModesToCDK(
-        getInstancePropsStub,
-        providedAuthConfig,
-        authModes
-      ),
-      expectedOutput
-    );
-  });
-
-  void it('allows for specifying allow listed roles roles with values specified', () => {
-    const authModes: AuthorizationModes = {
-      allowListedRoleNames: ['MyAdminRole', 'MyQARole'],
-    };
-
-    const convertedOutput = convertAuthorizationModesToCDK(
-      getInstancePropsStub,
-      providedAuthConfig,
-      authModes
-    );
-
-    assert.equal(convertedOutput.iamConfig?.allowListedRoles?.length, 2);
-    assert.equal(
-      convertedOutput.iamConfig?.allowListedRoles?.[0],
-      'MyAdminRole'
-    );
-    assert.equal(convertedOutput.iamConfig?.allowListedRoles?.[1], 'MyQARole');
-  });
 });
 
 void describe('isUsingDefaultApiKeyAuth', () => {

@@ -21,7 +21,6 @@ export type AuthorizationModes = {
     apiKeyAuthorizationMode?: ApiKeyAuthorizationModeProps;
     lambdaAuthorizationMode?: LambdaAuthorizationModeProps;
     oidcAuthorizationMode?: OIDCAuthorizationModeProps;
-    allowListedRoleNames?: string[];
 };
 
 // @public
