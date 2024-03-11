@@ -123,8 +123,8 @@ void describe('Sandbox to check if region is bootstrapped', () => {
   let sandboxInstance: FileWatchingSandbox;
 
   beforeEach(async () => {
-    // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
+    // ensures that rootDir only is exists and .gitignore is set as absent
+    mock.method(fs, 'existsSync', (path: string) => path === 'testDir');
     sandboxInstance = new FileWatchingSandbox(
       async () => testSandboxBackendId,
       sandboxExecutor,
@@ -216,8 +216,15 @@ void describe('Sandbox using local project name resolver', () => {
    * file change event function which tests can simulate by calling as desired.
    */
   beforeEach(async () => {
-    // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
+    // ensures that rootDir only is exists and .gitignore is set as absent
+    mock.method(
+      fs,
+      'existsSync',
+      (p: string) =>
+        p === 'testDir' ||
+        p == './amplify' ||
+        p == path.dirname(fileURLToPath(new URL(import.meta.url)))
+    );
   });
 
   afterEach(async () => {

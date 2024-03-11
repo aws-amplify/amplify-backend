@@ -87,9 +87,19 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    this.filesChangesTracker = await createFilesChangesTracker(
-      options.dir ?? './amplify'
-    );
+    const watchDir = options.dir ?? './amplify';
+    options.dir && path.isAbsolute(options.dir)
+      ? options.dir
+      : path.join(process.cwd(), options.dir ?? './amplify');
+    if (!fs.existsSync(watchDir)) {
+      this.printer.log(
+        `${watchDir} does not exist. please try running this command from your project root`,
+        LogLevel.ERROR
+      );
+      return;
+    }
+
+    this.filesChangesTracker = await createFilesChangesTracker(watchDir);
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
       this.printer.log(
@@ -141,7 +151,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
-      options.dir ?? './amplify',
+      watchDir,
       async (_, events) => {
         // Log and track file changes.
         await Promise.all(
