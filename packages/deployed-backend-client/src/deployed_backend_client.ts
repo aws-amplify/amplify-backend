@@ -86,7 +86,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   listBackends = (
     listBackendsRequest?: ListBackendsRequest
   ): ListBackendsResponse => {
-    const backends = this.listBackendsSummaries(listBackendsRequest);
+    const backends = this.listBackendsInternal(listBackendsRequest);
     return {
       getBackendSummaryByPage: backends,
     };
@@ -96,7 +96,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Returns a list of stacks for specific deployment type and status
    * @yields
    */
-  async *listBackendsSummaries(listBackendsRequest?: ListBackendsRequest) {
+  private async *listBackendsInternal(
+    listBackendsRequest?: ListBackendsRequest
+  ) {
     const stackMetadata: BackendSummaryMetadata[] = [];
     let nextToken;
     const deploymentType = listBackendsRequest?.deploymentType;
@@ -106,16 +108,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     do {
       const listStacksResponse = await this.listStacks(nextToken, statusFilter);
 
-      const listStacksSummaries =
-        deploymentType === 'sandbox'
-          ? listStacksResponse.stackSummaries.filter(
-              (stackSummary: StackSummary) => {
-                return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
-              }
-            )
-          : listStacksResponse.stackSummaries;
-
-      const stackMetadataPromises = listStacksSummaries
+      const stackMetadataPromises = listStacksResponse.stackSummaries
         .filter((stackSummary: StackSummary) => {
           return (
             this.getBackendStackType(stackSummary.StackName) === deploymentType
@@ -197,7 +190,12 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     const stacks: ListStacksCommandOutput = await this.cfnClient.send(
       new ListStacksCommand({
         NextToken: nextToken,
-        StackStatusFilter: stackStatusFilter,
+        StackStatusFilter:
+          stackStatusFilter.length > 0
+            ? stackStatusFilter
+            : Object.values(StackStatus).filter(
+                (status) => status !== StackStatus.DELETE_COMPLETE
+              ),
       })
     );
     nextToken = stacks.NextToken;
