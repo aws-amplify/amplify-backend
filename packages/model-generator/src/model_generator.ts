@@ -3,10 +3,9 @@ import {
   StatementsTarget,
   TypesTarget,
 } from '@aws-amplify/graphql-generator';
-export type TargetLanguage = StatementsTarget;
 
 export type DocumentGenerationParameters = {
-  language: TargetLanguage;
+  targetFormat: StatementsTarget;
   maxDepth?: number;
   typenameIntrospection?: boolean;
   relativeTypesPath?: string;
