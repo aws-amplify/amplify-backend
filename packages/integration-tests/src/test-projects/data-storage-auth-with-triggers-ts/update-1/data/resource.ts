@@ -1,3 +1,4 @@
+// @ts-expect-error Ignoring TS here because this code will be hotswapped in for the original data definition. The destination location contains the ../function.js dependency
 import { defaultNodeFunc } from '../function.js';
 import {
   type ClientSchema,
