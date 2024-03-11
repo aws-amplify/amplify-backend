@@ -15,7 +15,7 @@ export const createGraphqlDocumentGenerator: ({ backendIdentifier, credentialPro
 
 // @public (undocumented)
 export type DocumentGenerationParameters = {
-    language: TargetLanguage;
+    targetFormat: StatementsTarget;
     maxDepth?: number;
     typenameIntrospection?: boolean;
     relativeTypesPath?: string;
@@ -165,9 +165,6 @@ export type ModelsGenerationParameters = {
     addTimestampFields?: boolean;
     handleListNullabilityTransparently?: boolean;
 };
-
-// @public (undocumented)
-export type TargetLanguage = StatementsTarget;
 
 // @public (undocumented)
 export type TypesGenerationParameters = {
