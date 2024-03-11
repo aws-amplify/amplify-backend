@@ -11,6 +11,7 @@ export class CdkErrorMapper {
   private knownErrors: Array<{
     errorRegex: RegExp;
     humanReadableErrorMessage: string;
+    resolutionMessage: string;
     errorName: CDKDeploymentError;
     classification: AmplifyErrorClassification;
   }> = [
@@ -18,6 +19,7 @@ export class CdkErrorMapper {
       errorRegex: /ExpiredToken/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
+      resolutionMessage: 'Ensure your local AWS credentials are valid.',
       errorName: 'ExpiredTokenError',
       classification: 'ERROR',
     },
@@ -25,20 +27,26 @@ export class CdkErrorMapper {
       errorRegex: /Access Denied/,
       humanReadableErrorMessage:
         'The deployment role does not have sufficient permissions to perform this deployment.',
+      resolutionMessage:
+        'Ensure your deployment role has the AmplifyBackendDeployFullAccess role along with any additional permissions required to deploy your backend definition.',
       errorName: 'AccessDeniedError',
       classification: 'ERROR',
     },
     {
       errorRegex: /Has the environment been bootstrapped/,
       humanReadableErrorMessage:
-        'This AWS account and region has not been bootstrapped. Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
+        'This AWS account and region has not been bootstrapped',
+      resolutionMessage:
+        'Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
       errorName: 'BootstrapNotDetectedError',
       classification: 'ERROR',
     },
     {
       errorRegex: /(SyntaxError|ReferenceError):(.*)\n/,
       humanReadableErrorMessage:
-        'Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+        'Unable to build the Amplify backend definition',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
       errorName: 'SyntaxError',
       classification: 'ERROR',
     },
@@ -46,6 +54,7 @@ export class CdkErrorMapper {
       errorRegex: /Amplify Backend not found in/,
       humanReadableErrorMessage:
         'Backend definition could not be found in amplify directory',
+      resolutionMessage: 'Ensure that the amplify/backend.(ts|js) file exists',
       errorName: 'FileConventionError',
       classification: 'ERROR',
     },
@@ -53,14 +62,16 @@ export class CdkErrorMapper {
       errorRegex: /Amplify (.*) must be defined in (.*)/,
       humanReadableErrorMessage:
         'File name or path for backend definition are incorrect',
+      resolutionMessage: 'Ensure that the amplify/backend.(ts|js) file exists',
       errorName: 'FileConventionError',
       classification: 'ERROR',
     },
     {
       // the backend entry point file is referenced in the stack indicating a problem in customer code
       errorRegex: /amplify\/backend/,
-      humanReadableErrorMessage:
-        'Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+      humanReadableErrorMessage: 'Unable to build Amplify backend.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
       errorName: 'BackendBuildError',
       classification: 'ERROR',
     },
@@ -68,6 +79,8 @@ export class CdkErrorMapper {
       errorRegex: /Updates are not allowed for property/,
       humanReadableErrorMessage:
         'The changes that you are trying to apply are not supported.',
+      resolutionMessage:
+        'The resources referenced in the error message must be deleted and recreated to apply the changes.',
       errorName: 'CFNUpdateNotSupportedError',
       classification: 'ERROR',
     },
@@ -79,14 +92,17 @@ export class CdkErrorMapper {
         /Invalid AttributeDataType input, consider using the provided AttributeDataType enum/,
       humanReadableErrorMessage:
         'User pool attributes cannot be changed after a user pool has been created.',
+      resolutionMessage:
+        'To change these attributes, remove `defineAuth` from your backend, then add it back.',
       errorName: 'CFNUpdateNotSupportedError',
       classification: 'ERROR',
     },
     {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: /❌ Deployment failed: (.*)\n/,
-      humanReadableErrorMessage:
-        'The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
+      humanReadableErrorMessage: 'The CloudFormation deployment has failed',
+      resolutionMessage:
+        'Find more information in the CloudFormation AWS Console for this stack.',
       errorName: 'CloudFormationDeploymentError',
       classification: 'ERROR',
     },
@@ -116,12 +132,18 @@ export class CdkErrorMapper {
       return matchingError.classification === 'ERROR'
         ? new AmplifyUserError(
             matchingError.errorName,
-            { message: matchingError.humanReadableErrorMessage },
+            {
+              message: matchingError.humanReadableErrorMessage,
+              resolution: matchingError.resolutionMessage,
+            },
             error
           )
         : new AmplifyFault(
             matchingError.errorName,
-            { message: matchingError.humanReadableErrorMessage },
+            {
+              message: matchingError.humanReadableErrorMessage,
+              resolution: matchingError.resolutionMessage,
+            },
             error
           );
     }

@@ -23,7 +23,9 @@ export class UserPoolAccessPolicyFactory {
   createPolicy = (actions: AuthAction[]) => {
     if (actions.length === 0) {
       throw new AmplifyUserError('EmptyPolicyError', {
-        message: 'At least one action must be specified',
+        message: 'At least one action must be specified.',
+        resolution:
+          'Ensure all resource access rules specify at least one action.',
       });
     }
 

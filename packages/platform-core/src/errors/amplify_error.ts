@@ -107,3 +107,11 @@ export type AmplifyErrorOptions = {
   // CloudFormation or NodeJS error codes
   code?: string;
 };
+
+/**
+ * Same as AmplifyErrorOptions except resolution is required
+ */
+export type AmplifyUserErrorOptions = Omit<
+  AmplifyErrorOptions,
+  'resolution'
+> & { resolution: string };

@@ -42,7 +42,7 @@ export type AmplifyErrorClassification = 'FAULT' | 'ERROR';
 export type AmplifyErrorOptions = {
     message: string;
     details?: string;
-    resolution?: string;
+    resolution: string;
     link?: string;
     code?: string;
 };
