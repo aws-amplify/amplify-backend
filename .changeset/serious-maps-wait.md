@@ -1,6 +1,6 @@
 ---
 '@aws-amplify/backend-deployer': patch
-'@aws-amplify/platform-core': patch
+'@aws-amplify/platform-core': minor
 '@aws-amplify/backend-auth': patch
 '@aws-amplify/backend-data': patch
 '@aws-amplify/cli-core': patch
