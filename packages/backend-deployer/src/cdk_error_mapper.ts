@@ -35,7 +35,7 @@ export class CdkErrorMapper {
     {
       errorRegex: /Has the environment been bootstrapped/,
       humanReadableErrorMessage:
-        'This AWS account and region has not been bootstrapped',
+        'This AWS account and region has not been bootstrapped.',
       resolutionMessage:
         'Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
       errorName: 'BootstrapNotDetectedError',
@@ -44,7 +44,7 @@ export class CdkErrorMapper {
     {
       errorRegex: /(SyntaxError|ReferenceError):(.*)\n/,
       humanReadableErrorMessage:
-        'Unable to build the Amplify backend definition',
+        'Unable to build the Amplify backend definition.',
       resolutionMessage:
         'Check your backend definition in the `amplify` folder for syntax and type errors.',
       errorName: 'SyntaxError',
@@ -53,7 +53,7 @@ export class CdkErrorMapper {
     {
       errorRegex: /Amplify Backend not found in/,
       humanReadableErrorMessage:
-        'Backend definition could not be found in amplify directory',
+        'Backend definition could not be found in amplify directory.',
       resolutionMessage: 'Ensure that the amplify/backend.(ts|js) file exists',
       errorName: 'FileConventionError',
       classification: 'ERROR',
@@ -61,7 +61,7 @@ export class CdkErrorMapper {
     {
       errorRegex: /Amplify (.*) must be defined in (.*)/,
       humanReadableErrorMessage:
-        'File name or path for backend definition are incorrect',
+        'File name or path for backend definition are incorrect.',
       resolutionMessage: 'Ensure that the amplify/backend.(ts|js) file exists',
       errorName: 'FileConventionError',
       classification: 'ERROR',
@@ -100,7 +100,7 @@ export class CdkErrorMapper {
     {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: /❌ Deployment failed: (.*)\n/,
-      humanReadableErrorMessage: 'The CloudFormation deployment has failed',
+      humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
       resolutionMessage:
         'Find more information in the CloudFormation AWS Console for this stack.',
       errorName: 'CloudFormationDeploymentError',
