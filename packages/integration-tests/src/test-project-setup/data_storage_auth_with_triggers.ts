@@ -103,6 +103,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   private readonly dataResourceFileSuffix = 'data/resource.ts';
 
+  private readonly functionHandlerFileSuffix = 'func-src/handler.ts';
+
   private readonly testSecretNames = [
     'googleId',
     'googleSecret',
@@ -174,6 +176,16 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const dataResourceFile = pathToFileURL(
       path.join(this.projectAmplifyDirPath, this.dataResourceFileSuffix)
     );
+
+    const sourceFunctionUpdateFile = pathToFileURL(
+      path.join(
+        fileURLToPath(this.sourceProjectUpdateDirPath),
+        this.functionHandlerFileSuffix
+      )
+    );
+    const functionHandlerFile = pathToFileURL(
+      path.join(this.projectAmplifyDirPath, this.functionHandlerFileSuffix)
+    );
     return [
       {
         sourceFile: sourceDataResourceFile,
@@ -181,6 +193,14 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         deployThresholdSec: {
           onWindows: 40,
           onOther: 30,
+        },
+      },
+      {
+        sourceFile: sourceFunctionUpdateFile,
+        projectFile: functionHandlerFile,
+        deployThresholdSec: {
+          onWindows: 15,
+          onOther: 15,
         },
       },
     ];
