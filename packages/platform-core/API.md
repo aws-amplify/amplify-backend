@@ -42,7 +42,7 @@ export type AmplifyErrorClassification = 'FAULT' | 'ERROR';
 export type AmplifyErrorOptions = {
     message: string;
     details?: string;
-    resolution: string;
+    resolution?: string;
     link?: string;
     code?: string;
 };
@@ -54,8 +54,13 @@ export class AmplifyFault<T extends string = string> extends AmplifyError<T> {
 
 // @public
 export class AmplifyUserError<T extends string = string> extends AmplifyError<T> {
-    constructor(name: T, options: AmplifyErrorOptions, cause?: Error);
+    constructor(name: T, options: AmplifyUserErrorOptions, cause?: Error);
 }
+
+// @public
+export type AmplifyUserErrorOptions = Omit<AmplifyErrorOptions, 'resolution'> & {
+    resolution: string;
+};
 
 // @public
 export class BackendIdentifierConversions {
