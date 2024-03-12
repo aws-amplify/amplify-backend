@@ -1,8 +1,7 @@
 import fsp from 'fs/promises';
 import path from 'path';
 import yargs from 'yargs';
-import { AmplifyPrompter, LogLevel } from '@aws-amplify/cli-core';
-import { printer } from './printer.js';
+import { AmplifyPrompter, LogLevel, printer } from '@aws-amplify/cli-core';
 
 /**
  * Returns the project root directory.

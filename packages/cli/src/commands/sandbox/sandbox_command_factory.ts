@@ -14,7 +14,7 @@ import {
 } from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { CommandMiddleware } from '../../command_middleware.js';
-import { printer } from '../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 /**
  * Creates wired sandbox command.
