@@ -245,7 +245,7 @@ export type ClientConfigVersion = `${ClientConfigVersions}`;
 // @public (undocumented)
 export enum ClientConfigVersions {
     // (undocumented)
-    Legacy = "0",
+    LEGACY = "0",
     // (undocumented)
     V1 = "1",
     // (undocumented)
@@ -316,7 +316,7 @@ export type GeoClientConfig = {
     };
 };
 
-// @public (undocumented)
+// @public
 export const getClientConfigFileName: (version: ClientConfigVersion) => ClientConfigFileName;
 
 // @public
