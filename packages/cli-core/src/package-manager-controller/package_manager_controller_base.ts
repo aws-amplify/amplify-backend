@@ -99,45 +99,28 @@ export abstract class PackageManagerControllerBase
 
   /**
    * initializeTsConfig - initializes a tsconfig.json file in the project root
+   *
+   * When changing this method, double check if a corresponding change is needed in the integration test setup in `setup_dir_as_esm_module.ts`.
    */
   async initializeTsConfig(targetDir: string) {
-    const tscArgs = [
-      'tsc',
-      '--init',
-      '--resolveJsonModule',
-      'true',
-      '--module',
-      'es2022',
-      '--moduleResolution',
-      'bundler',
-      '--target',
-      'es2022',
-    ];
-
-    await this.executeWithDebugLogger(
-      targetDir,
-      this.binaryRunner,
-      tscArgs,
-      this.execa,
-      { preferLocal: true, localDir: targetDir }
-    );
-
-    const pathsObj = {
-      // The path here is coupled with backend-function's generated typedef file path
-      '@env/*': ['../.amplify/function-env/*'],
+    const tsConfigTemplate = {
+      compilerOptions: {
+        target: 'es2022',
+        module: 'es2022',
+        moduleResolution: 'bundler',
+        resolveJsonModule: true,
+        // eslint-disable-next-line spellcheck/spell-checker
+        esModuleInterop: true,
+        forceConsistentCasingInFileNames: true,
+        strict: true,
+        skipLibCheck: true,
+        paths: { '@env/*': ['../.amplify/function-env/*'] },
+      },
     };
-
     const tsConfigPath = this.path.resolve(targetDir, 'tsconfig.json');
-    const tsConfigContent = (
-      await this.fsp.readFile(tsConfigPath, 'utf-8')
-    ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, ''); // Removes all comments
-    const tsConfigObject = JSON.parse(tsConfigContent);
-
-    // Add paths object and overwrite the tsconfig file
-    tsConfigObject.compilerOptions.paths = pathsObj;
     await this.fsp.writeFile(
       tsConfigPath,
-      JSON.stringify(tsConfigObject),
+      JSON.stringify(tsConfigTemplate, null, 2),
       'utf-8'
     );
   }
