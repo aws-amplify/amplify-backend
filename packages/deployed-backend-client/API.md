@@ -194,7 +194,7 @@ export type ListBackendsRequest = {
 
 // @public (undocumented)
 export type ListBackendsResponse = {
-    getBackendSummaryByPage: AsyncGenerator<BackendSummaryMetadata[]>;
+    getBackendSummaryByPage: () => AsyncGenerator<BackendSummaryMetadata[]>;
 };
 
 // @public (undocumented)
