@@ -5,18 +5,38 @@
 ```ts
 
 import { a } from '@aws-amplify/data-schema';
+import { AuthCfnResources } from '@aws-amplify/plugin-types';
+import { AuthResources } from '@aws-amplify/plugin-types';
+import { AuthRoleName } from '@aws-amplify/plugin-types';
+import { BackendOutputEntry } from '@aws-amplify/plugin-types';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
+import { BackendSecretResolver } from '@aws-amplify/plugin-types';
 import { ClientConfig } from '@aws-amplify/client-config';
 import { ClientSchema } from '@aws-amplify/data-schema';
+import { ConstructContainer } from '@aws-amplify/plugin-types';
+import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
 import { defineFunction } from '@aws-amplify/backend-function';
 import { defineStorage } from '@aws-amplify/backend-storage';
+import { FunctionResources } from '@aws-amplify/plugin-types';
+import { GenerateContainerEntryProps } from '@aws-amplify/plugin-types';
+import { ImportPathVerifier } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { SsmEnvironmentEntriesGenerator } from '@aws-amplify/plugin-types';
+import { SsmEnvironmentEntry } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 
 export { a }
+
+export { AuthCfnResources }
+
+export { AuthResources }
+
+export { AuthRoleName }
 
 // @public
 export type Backend<T extends DefineBackendProps> = BackendBase & {
@@ -29,7 +49,21 @@ export type BackendBase = {
     addOutput: (clientConfigPart: Partial<ClientConfig>) => void;
 };
 
+export { BackendOutputEntry }
+
+export { BackendOutputStorageStrategy }
+
+export { BackendSecretResolver }
+
 export { ClientSchema }
+
+export { ConstructContainer }
+
+export { ConstructContainerEntryGenerator }
+
+export { ConstructFactory }
+
+export { ConstructFactoryGetInstanceProps }
 
 export { defineAuth }
 
@@ -47,8 +81,20 @@ export { defineFunction }
 
 export { defineStorage }
 
+export { FunctionResources }
+
+export { GenerateContainerEntryProps }
+
+export { ImportPathVerifier }
+
+export { ResourceProvider }
+
 // @public
 export const secret: (name: string) => BackendSecret;
+
+export { SsmEnvironmentEntriesGenerator }
+
+export { SsmEnvironmentEntry }
 
 // (No @packageDocumentation comment for this package)
 

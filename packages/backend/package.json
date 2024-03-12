@@ -10,6 +10,9 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./types/platform": {
+      "types": "./lib/types/platform.d.ts"
     }
   },
   "imports": {
