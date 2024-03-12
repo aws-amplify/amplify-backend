@@ -145,7 +145,7 @@ export class ApiCodeGenerator {
     props: GenerateGraphqlCodegenOptions
   ): Promise<GenerationResult> {
     const generateModelsParams: DocumentGenerationParameters = {
-      language: props.statementTarget,
+      targetFormat: props.statementTarget,
       maxDepth: props.maxDepth,
       typenameIntrospection: props.typeNameIntrospection,
     };
