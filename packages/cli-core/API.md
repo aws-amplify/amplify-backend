@@ -57,7 +57,7 @@ export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream, stderr?: NodeJS.WriteStream, refreshRate?: number);
     indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
     log(message: string, level?: LogLevel, eol?: boolean): void;
-    print: (message: string | string[], formatName?: keyof typeof format) => void;
+    print: (message: string) => void;
     printNewLine: () => void;
     printRecords: <T extends Record<string | number, RecordValue>>(...objects: T[]) => void;
 }

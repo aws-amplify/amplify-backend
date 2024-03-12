@@ -19,7 +19,12 @@ import {
   CloudFormationClient,
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
-import { AmplifyPrompter, LogLevel, Printer } from '@aws-amplify/cli-core';
+import {
+  AmplifyPrompter,
+  LogLevel,
+  Printer,
+  format,
+} from '@aws-amplify/cli-core';
 import {
   FilesChangesTracker,
   createFilesChangesTracker,
@@ -216,7 +221,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       this.emit('successfulDeployment', deployResult);
     } catch (error) {
       // Print a meaningful message
-      this.printer.print(this.getErrorMessage(error), 'error');
+      this.printer.print(format.error(this.getErrorMessage(error)));
       this.emit('failedDeployment', error);
 
       // If the error is because of a non-allowed destructive change such as
@@ -330,8 +335,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     options: SandboxOptions
   ) => {
     this.printer.print(
-      '[Sandbox] We cannot deploy your new changes. You can either revert them or recreate your sandbox with the new changes (deleting all user data)',
-      'error'
+      format.error(
+        '[Sandbox] We cannot deploy your new changes. You can either revert them or recreate your sandbox with the new changes (deleting all user data)'
+      )
     );
     // offer to recreate the sandbox with new properties
     const answer = await AmplifyPrompter.yesOrNo({

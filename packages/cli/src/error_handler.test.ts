@@ -51,7 +51,7 @@ void describe('generateCommandFailureHandler', () => {
       mockPrint.mock.calls[0].arguments[0] as string,
       new RegExp(errMsg)
     );
-    assert.equal(mockPrint.mock.calls[0].arguments[1], 'error');
+    assert.equal(mockPrint.mock.calls[0].arguments[0], errMsg);
   });
 
   void it('handles a prompt force close error', () => {
@@ -75,7 +75,7 @@ void describe('generateCommandFailureHandler', () => {
       mockPrint.mock.calls[0].arguments[0] as string,
       new RegExp(errMsg)
     );
-    assert.equal(mockPrint.mock.calls[0].arguments[1], 'error');
+    assert.equal(mockPrint.mock.calls[0].arguments[0], errMsg);
   });
 
   void it('prints error cause message, if any', () => {
@@ -90,7 +90,7 @@ void describe('generateCommandFailureHandler', () => {
       mockPrint.mock.calls[1].arguments[0] as string,
       new RegExp(errorMessage)
     );
-    assert.equal(mockPrint.mock.calls[1].arguments[1], 'error');
+    assert.equal(mockPrint.mock.calls[1].arguments[0], errorMessage);
   });
 });
 

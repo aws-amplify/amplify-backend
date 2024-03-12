@@ -1,5 +1,4 @@
 import { EOL } from 'os';
-import { format } from '../format/format.js';
 
 export type RecordValue = string | number | string[] | Date;
 
@@ -39,24 +38,8 @@ export class Printer {
   /**
    * Prints a given message (with optional color) to output stream.
    */
-  print = (message: string | string[], formatName?: keyof typeof format) => {
-    if (formatName) {
-      if (
-        formatName in format &&
-        formatName !== 'list' &&
-        !Array.isArray(message)
-      ) {
-        this.stdout.write(format[formatName](message) as unknown as string);
-      } else if (formatName === 'list' && Array.isArray(message)) {
-        this.stdout.write(format[formatName](message) as unknown as string);
-      } else {
-        throw new Error(
-          `Invalid format or the format is not compatible with the message type. Format: ${formatName}. Message type: ${typeof message}.`
-        );
-      }
-    } else if (!Array.isArray(message)) {
-      this.stdout.write(message);
-    }
+  print = (message: string) => {
+    this.stdout.write(message);
   };
 
   /**
