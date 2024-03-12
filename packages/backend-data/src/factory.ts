@@ -110,7 +110,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     let amplifyGraphqlDefinition;
     let jsFunctions: JsResolver[] = [];
     let functionSchemaAccess: FunctionSchemaAccess[] = [];
-    let lambdaFunctions: Record<string, ConstructFactory<AmplifyFunction>>;
+    let lambdaFunctions: Record<string, ConstructFactory<AmplifyFunction>> = {};
     try {
       if (isModelSchema(this.props.schema)) {
         ({ jsFunctions, functionSchemaAccess, lambdaFunctions } =
@@ -184,10 +184,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       this.props.authorizationModes
     );
 
-    const functionNameMap = convertFunctionNameMapToCDK(
-      this.getInstanceProps,
-      { ...this.props.functions, ...lambdaFunctions } ?? {}
-    );
+    const propsFunctions = this.props.functions ?? {};
+
+    const functionNameMap = convertFunctionNameMapToCDK(this.getInstanceProps, {
+      ...propsFunctions,
+      ...lambdaFunctions,
+    });
     const amplifyApi = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
       definition: amplifyGraphqlDefinition,
