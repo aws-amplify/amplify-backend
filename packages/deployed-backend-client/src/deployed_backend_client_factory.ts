@@ -83,7 +83,7 @@ export type FunctionConfiguration = {
 };
 
 export type ListBackendsResponse = {
-  getBackendSummaryByPage: AsyncGenerator<BackendSummaryMetadata[]>;
+  getBackendSummaryByPage: () => AsyncGenerator<BackendSummaryMetadata[]>;
 };
 
 export enum BackendDeploymentStatus {

@@ -130,13 +130,7 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
 
-    //eslint-disable-next-line
-    console.log(
-      'failed stacks -- ',
-      (await failedStacks.getBackendSummaryByPage.next()).value
-    );
-
-    for await (const stacks of failedStacks.getBackendSummaryByPage) {
+    for await (const stacks of failedStacks.getBackendSummaryByPage()) {
       assert.deepEqual(stacks, returnedDeleteFailedStacks);
     }
 
@@ -155,12 +149,12 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
     assert.deepEqual(
-      (await failedStacks.getBackendSummaryByPage.next()).value,
+      (await failedStacks.getBackendSummaryByPage().next()).value,
       returnedDeleteFailedStacks
     );
 
     assert.deepEqual(
-      (await failedStacks.getBackendSummaryByPage.next()).done,
+      (await failedStacks.getBackendSummaryByPage().next()).done,
       true
     );
 
@@ -183,7 +177,7 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
     assert.deepEqual(
-      (await failedStacks.getBackendSummaryByPage.next()).value,
+      (await failedStacks.getBackendSummaryByPage().next()).value,
       returnedDeleteFailedStacks
     );
 
@@ -206,7 +200,7 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
     assert.deepEqual(
-      (await failedStacks.getBackendSummaryByPage.next()).value,
+      (await failedStacks.getBackendSummaryByPage().next()).value,
       returnedDeleteFailedStacks
     );
 
@@ -235,7 +229,7 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
     assert.deepEqual(
-      (await failedStacks.getBackendSummaryByPage.next()).value,
+      (await failedStacks.getBackendSummaryByPage().next()).value,
       returnedDeleteFailedStacks
     );
 
@@ -260,6 +254,6 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
       deploymentType: 'branch',
       backendStatusFilters: [BackendStatus.DELETE_FAILED],
     });
-    await assert.rejects(listBackendsPromise.getBackendSummaryByPage.next());
+    await assert.rejects(listBackendsPromise.getBackendSummaryByPage().next());
   });
 });

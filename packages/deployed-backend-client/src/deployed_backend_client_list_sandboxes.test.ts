@@ -129,7 +129,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
       deploymentType: 'sandbox',
     });
     assert.deepEqual(
-      (await sandboxes.getBackendSummaryByPage.next()).value,
+      (await sandboxes.getBackendSummaryByPage().next()).value,
       returnedSandboxes
     );
 
@@ -147,7 +147,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
       deploymentType: 'sandbox',
     });
     assert.deepEqual(
-      (await sandboxes.getBackendSummaryByPage.next()).value,
+      (await sandboxes.getBackendSummaryByPage().next()).value,
       returnedSandboxes
     );
 
@@ -169,7 +169,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
       deploymentType: 'sandbox',
     });
     assert.deepEqual(
-      (await sandboxes.getBackendSummaryByPage.next()).value,
+      (await sandboxes.getBackendSummaryByPage().next()).value,
       returnedSandboxes
     );
 
@@ -191,7 +191,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
       deploymentType: 'sandbox',
     });
     assert.deepEqual(
-      (await sandboxes.getBackendSummaryByPage.next()).value,
+      (await sandboxes.getBackendSummaryByPage().next()).value,
       returnedSandboxes
     );
 
@@ -219,7 +219,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
       deploymentType: 'sandbox',
     });
     assert.deepEqual(
-      (await sandboxes.getBackendSummaryByPage.next()).value,
+      (await sandboxes.getBackendSummaryByPage().next()).value,
       returnedSandboxes
     );
 
@@ -243,6 +243,6 @@ void describe('Deployed Backend Client list sandboxes', () => {
     const listBackendsPromise = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
-    await assert.rejects(listBackendsPromise.getBackendSummaryByPage.next());
+    await assert.rejects(listBackendsPromise.getBackendSummaryByPage().next());
   });
 });
