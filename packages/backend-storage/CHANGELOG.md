@@ -1,5 +1,11 @@
 # @aws-amplify/backend-storage
 
+## 0.6.0-beta.3
+
+### Minor Changes
+
+- f999897: Enable auth group access to storage and change syntax for specifying owner-based access
+
 ## 0.6.0-beta.2
 
 ### Minor Changes

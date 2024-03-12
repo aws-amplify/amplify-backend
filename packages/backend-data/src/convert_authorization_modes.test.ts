@@ -11,12 +11,12 @@ import {
   convertAuthorizationModesToCDK,
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
-import { Code, Function, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { FunctionInstanceProvider } from './convert_functions.js';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import {
   AmplifyFunction,
   AuthResources,
   ConstructFactory,
+  ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 
@@ -60,13 +60,10 @@ void describe('convertAuthorizationModesToCDK', () => {
   let authenticatedUserRole: IRole;
   let unauthenticatedUserRole: IRole;
   let providedAuthConfig: ProvidedAuthConfig;
-  let functionInstanceProvider: FunctionInstanceProvider;
+  const getInstancePropsStub: ConstructFactoryGetInstanceProps =
+    {} as unknown as ConstructFactoryGetInstanceProps;
 
   void beforeEach(() => {
-    functionInstanceProvider = {
-      provide: (func: ConstructFactory<AmplifyFunction>): IFunction =>
-        func as unknown as IFunction,
-    };
     stack = new Stack();
     userPool = new UserPool(stack, 'TestPool');
     authenticatedUserRole = Role.fromRoleName(stack, 'AuthRole', 'MyAuthRole');
@@ -92,7 +89,7 @@ void describe('convertAuthorizationModesToCDK', () => {
 
     assert.deepStrictEqual(
       convertAuthorizationModesToCDK(
-        functionInstanceProvider,
+        getInstancePropsStub,
         undefined,
         undefined
       ),
@@ -114,7 +111,7 @@ void describe('convertAuthorizationModesToCDK', () => {
 
     assert.deepStrictEqual(
       convertAuthorizationModesToCDK(
-        functionInstanceProvider,
+        getInstancePropsStub,
         providedAuthConfig,
         undefined
       ),
@@ -147,7 +144,7 @@ void describe('convertAuthorizationModesToCDK', () => {
 
     assert.deepStrictEqual(
       convertAuthorizationModesToCDK(
-        functionInstanceProvider,
+        getInstancePropsStub,
         undefined,
         authModes
       ),
@@ -172,7 +169,7 @@ void describe('convertAuthorizationModesToCDK', () => {
 
     assert.deepStrictEqual(
       convertAuthorizationModesToCDK(
-        functionInstanceProvider,
+        getInstancePropsStub,
         undefined,
         authModes
       ),
@@ -195,9 +192,6 @@ void describe('convertAuthorizationModesToCDK', () => {
         },
       }),
     };
-    functionInstanceProvider = {
-      provide: (): IFunction => authFn,
-    };
 
     const authModes: AuthorizationModes = {
       lambdaAuthorizationMode: {
@@ -215,56 +209,12 @@ void describe('convertAuthorizationModesToCDK', () => {
 
     assert.deepStrictEqual(
       convertAuthorizationModesToCDK(
-        functionInstanceProvider,
+        getInstancePropsStub,
         undefined,
         authModes
       ),
       expectedOutput
     );
-  });
-
-  void it('allows for specifying allow listed roles with an empty list', () => {
-    const authModes: AuthorizationModes = {
-      allowListedRoleNames: [],
-    };
-
-    const expectedOutput: CDKAuthorizationModes = {
-      userPoolConfig: { userPool },
-      iamConfig: {
-        identityPoolId,
-        authenticatedUserRole,
-        unauthenticatedUserRole,
-        allowListedRoles: [],
-      },
-    };
-
-    assert.deepStrictEqual(
-      convertAuthorizationModesToCDK(
-        functionInstanceProvider,
-        providedAuthConfig,
-        authModes
-      ),
-      expectedOutput
-    );
-  });
-
-  void it('allows for specifying allow listed roles roles with values specified', () => {
-    const authModes: AuthorizationModes = {
-      allowListedRoleNames: ['MyAdminRole', 'MyQARole'],
-    };
-
-    const convertedOutput = convertAuthorizationModesToCDK(
-      functionInstanceProvider,
-      providedAuthConfig,
-      authModes
-    );
-
-    assert.equal(convertedOutput.iamConfig?.allowListedRoles?.length, 2);
-    assert.equal(
-      convertedOutput.iamConfig?.allowListedRoles?.[0],
-      'MyAdminRole'
-    );
-    assert.equal(convertedOutput.iamConfig?.allowListedRoles?.[1], 'MyQARole');
   });
 });
 

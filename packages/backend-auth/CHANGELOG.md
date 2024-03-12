@@ -1,5 +1,17 @@
 # @aws-amplify/backend-auth
 
+## 0.5.0-beta.4
+
+### Minor Changes
+
+- ab05ae0: attach policy & ssm params to acces userpool from auth resource
+- f999897: Enable auth group access to storage and change syntax for specifying owner-based access
+
+### Patch Changes
+
+- Updated dependencies [1d444df]
+  - @aws-amplify/auth-construct-alpha@0.6.0-beta.4
+
 ## 0.5.0-beta.3
 
 ### Patch Changes

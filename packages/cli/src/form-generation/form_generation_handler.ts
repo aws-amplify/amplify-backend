@@ -31,7 +31,7 @@ export class FormGenerationHandler {
       credentialProvider,
     });
     const modelsResult = await graphqlClientGenerator.generateModels({
-      language: 'typescript',
+      targetFormat: 'typescript',
     });
     await modelsResult.writeToDirectory(modelsOutDir, (message) =>
       printer.log(message)

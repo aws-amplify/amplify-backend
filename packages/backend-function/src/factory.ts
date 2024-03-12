@@ -15,7 +15,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
@@ -27,6 +27,10 @@ import {
   functionOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import { fileURLToPath } from 'url';
+
+const functionStackType = 'function-Lambda';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -302,6 +306,12 @@ class AmplifyFunction
     };
 
     this.storeOutput(outputStorageStrategy);
+
+    new AttributionMetadataStorage().storeAttributionMetadata(
+      Stack.of(this),
+      functionStackType,
+      fileURLToPath(new URL('../package.json', import.meta.url))
+    );
   }
 
   getResourceAccessAcceptor = () => ({

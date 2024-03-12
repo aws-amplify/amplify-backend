@@ -347,4 +347,24 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
   });
+
+  void it('stores single attribution data value in stack with multiple functions', () => {
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'testLambdaName',
+    });
+    const anotherFunction = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'anotherName',
+    });
+    const functionStack = Stack.of(
+      functionFactory.getInstance(getInstanceProps).resources.lambda
+    );
+    anotherFunction.getInstance(getInstanceProps);
+    const template = Template.fromStack(functionStack);
+    assert.equal(
+      JSON.parse(template.toJSON().Description).stackType,
+      'function-Lambda'
+    );
+  });
 });
