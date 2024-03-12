@@ -38,7 +38,14 @@ const schema = a.schema({
     .arguments({ content: a.string() })
     .returns(a.ref('EchoResponse'))
     .authorization([a.allow.private()])
-    .function('echo'),
+    .handler(
+      a.handler.function(
+        defineFunction({
+          name: 'echoFunc',
+          entry: './echo/handler.ts',
+        })
+      )
+    ),
 }) as never; // Not 100% sure why TS is complaining here. The error I'm getting is "The inferred type of 'schema' references an inaccessible 'unique symbol' type. A type annotation is necessary."
 
 // ^ appears to be caused by these 2 rules in tsconfig.base.json: https://github.com/aws-amplify/amplify-backend/blob/8d9a7a4c3033c474b0fc78379cdd4c1854d890ce/tsconfig.base.json#L7-L8
@@ -57,11 +64,5 @@ export const data = defineData({
   },
   functions: {
     reverse: defaultNodeFunc,
-    // Leaving explicit Func invocation here,
-    // ensuring we can use functions not added to `defineBackend`.
-    echo: defineFunction({
-      name: 'echoFunc',
-      entry: './echo/handler.ts',
-    }),
   },
 });
