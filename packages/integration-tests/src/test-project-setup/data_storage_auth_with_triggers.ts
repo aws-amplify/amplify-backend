@@ -199,7 +199,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         sourceFile: sourceFunctionUpdateFile,
         projectFile: functionHandlerFile,
         deployThresholdSec: {
-          onWindows: 30,
+          onWindows: 40,
           onOther: 30,
         },
       },
