@@ -48,7 +48,6 @@ const schema = a.schema({
     .handler(
       a.handler.function(
         defineFunction({
-          name: 'echoFunc',
           entry: './echo/handler2.ts',
         })
       )
