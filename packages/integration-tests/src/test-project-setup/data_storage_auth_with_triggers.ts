@@ -97,13 +97,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   );
 
   private readonly sourceProjectUpdateDirPath: URL = new URL(
-    `${this.sourceProjectDirPath}/update-1`,
+    `${this.sourceProjectDirPath}/hotswap-update-files`,
     import.meta.url
   );
-
-  private readonly dataResourceFileSuffix = 'data/resource.ts';
-
-  private readonly functionHandlerFileSuffix = 'func-src/handler.ts';
 
   private readonly testSecretNames = [
     'googleId',
@@ -167,37 +163,19 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
    * @inheritdoc
    */
   override async getUpdates(): Promise<TestProjectUpdate[]> {
-    const sourceDataResourceFile = pathToFileURL(
-      path.join(
-        fileURLToPath(this.sourceProjectUpdateDirPath),
-        this.dataResourceFileSuffix
-      )
-    );
-    const dataResourceFile = pathToFileURL(
-      path.join(this.projectAmplifyDirPath, this.dataResourceFileSuffix)
-    );
-
-    const sourceFunctionUpdateFile = pathToFileURL(
-      path.join(
-        fileURLToPath(this.sourceProjectUpdateDirPath),
-        this.functionHandlerFileSuffix
-      )
-    );
-    const functionHandlerFile = pathToFileURL(
-      path.join(this.projectAmplifyDirPath, this.functionHandlerFileSuffix)
-    );
     return [
       {
-        sourceFile: sourceDataResourceFile,
-        projectFile: dataResourceFile,
+        replacements: [this.getUpdateReplacementDefinition('data/resource.ts')],
         deployThresholdSec: {
           onWindows: 40,
           onOther: 30,
         },
       },
       {
-        sourceFile: sourceFunctionUpdateFile,
-        projectFile: functionHandlerFile,
+        replacements: [
+          this.getUpdateReplacementDefinition('func-src/handler.ts'),
+          this.getUpdateReplacementDefinition('function.ts'),
+        ],
         deployThresholdSec: {
           onWindows: 40,
           onOther: 30,
@@ -264,6 +242,19 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     assert.ok(typedShimStats.isFile());
   }
+
+  private getUpdateReplacementDefinition = (suffix: string) => ({
+    source: this.getSourcePath(suffix),
+    destination: this.getTestProjectPath(suffix),
+  });
+
+  private getSourcePath = (suffix: string) =>
+    pathToFileURL(
+      path.join(fileURLToPath(this.sourceProjectUpdateDirPath), suffix)
+    );
+
+  private getTestProjectPath = (suffix: string) =>
+    pathToFileURL(path.join(this.projectAmplifyDirPath, suffix));
 
   private setUpDeployEnvironment = async (
     backendId: BackendIdentifier
