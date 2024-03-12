@@ -93,7 +93,7 @@ export class CdkErrorMapper {
       humanReadableErrorMessage:
         'User pool attributes cannot be changed after a user pool has been created.',
       resolutionMessage:
-        'To change these attributes, remove `defineAuth` from your backend, then add it back.',
+        'To change these attributes, remove `defineAuth` from your backend, deploy, then add it back. Note that removing `defineAuth` and deploying will delete any users stored in your UserPool.',
       errorName: 'CFNUpdateNotSupportedError',
       classification: 'ERROR',
     },
