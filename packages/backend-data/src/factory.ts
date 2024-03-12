@@ -1,5 +1,6 @@
 import { IConstruct } from 'constructs';
 import {
+  AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
@@ -109,9 +110,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     let amplifyGraphqlDefinition;
     let jsFunctions: JsResolver[] = [];
     let functionSchemaAccess: FunctionSchemaAccess[] = [];
+    let lambdaFunctions: Record<string, ConstructFactory<AmplifyFunction>> = {};
     try {
       if (isModelSchema(this.props.schema)) {
-        ({ jsFunctions, functionSchemaAccess } = this.props.schema.transform());
+        ({ jsFunctions, functionSchemaAccess, lambdaFunctions } =
+          this.props.schema.transform());
       }
       amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
     } catch (error) {
@@ -181,10 +184,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       this.props.authorizationModes
     );
 
-    const functionNameMap = convertFunctionNameMapToCDK(
-      this.getInstanceProps,
-      this.props.functions ?? {}
-    );
+    const propsFunctions = this.props.functions ?? {};
+
+    const functionNameMap = convertFunctionNameMapToCDK(this.getInstanceProps, {
+      ...propsFunctions,
+      ...lambdaFunctions,
+    });
     const amplifyApi = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
       definition: amplifyGraphqlDefinition,
