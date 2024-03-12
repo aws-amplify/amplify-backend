@@ -38,11 +38,18 @@ const schema = a.schema({
     .arguments({ content: a.string() })
     .returns(a.ref('EchoResponse'))
     .authorization([a.allow.private()])
+    .handler(a.handler.function('echo')),
+
+  echoInline: a
+    .query()
+    .arguments({ content: a.string() })
+    .returns(a.ref('EchoResponse'))
+    .authorization([a.allow.private()])
     .handler(
       a.handler.function(
         defineFunction({
           name: 'echoFunc',
-          entry: './echo/handler.ts',
+          entry: './echo/handler2.ts',
         })
       )
     ),
@@ -64,5 +71,11 @@ export const data = defineData({
   },
   functions: {
     reverse: defaultNodeFunc,
+    // Leaving explicit Func invocation here,
+    // ensuring we can use functions not added to `defineBackend`.
+    echo: defineFunction({
+      name: 'echoFunc',
+      entry: './echo/handler.ts',
+    }),
   },
 });
