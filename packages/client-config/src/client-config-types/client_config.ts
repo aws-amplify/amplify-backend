@@ -33,7 +33,16 @@ export type ClientConfig =
 export { clientConfigTypesV1 };
 export { clientConfigTypesV2 };
 
-export type ClientConfigVersion = '0' | '1' | '2';
+export enum ClientConfigVersions {
+  LEGACY = '0',
+  V1 = '1',
+  V2 = '2',
+}
+
+export const DEFAULT_CLIENT_CONFIG: ClientConfigVersion =
+  ClientConfigVersions.LEGACY;
+
+export type ClientConfigVersion = `${ClientConfigVersions}`;
 
 export type ClientConfigVersionType<T> = T extends '1'
   ? clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
@@ -47,4 +56,9 @@ export enum ClientConfigFormat {
   JSON_MOBILE = 'json-mobile',
   TS = 'ts',
   DART = 'dart',
+}
+
+export enum ClientConfigFileName {
+  LEGACY = 'amplifyconfiguration',
+  GEN2 = 'amplify-outputs',
 }

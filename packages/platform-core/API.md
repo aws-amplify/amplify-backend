@@ -110,7 +110,6 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 // @public
 export class ObjectAccumulator<T> {
     constructor(accumulator: Partial<T>, versionKey?: string);
-    // (undocumented)
     accumulate: (part: Partial<T>) => ObjectAccumulator<T>;
     // (undocumented)
     getAccumulatedObject: () => Partial<T>;

@@ -5,6 +5,9 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import {
   ClientConfigFormat,
   ClientConfigVersion,
+  ClientConfigVersions,
+  DEFAULT_CLIENT_CONFIG,
+  getClientConfigFileName,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
@@ -98,7 +101,11 @@ export class SandboxCommand
       });
     }
     const watchExclusions = args.exclude ?? [];
+    const fileName = getClientConfigFileName(
+      args['config-version'] as ClientConfigVersion
+    );
     const clientConfigWritePath = await getClientConfigPath(
+      fileName,
       args['config-out-dir'],
       args['config-format']
     );
@@ -153,9 +160,9 @@ export class SandboxCommand
           describe: 'Client config format version',
           type: 'string',
           array: false,
-          choices: ['0', '1', '2'],
+          choices: Object.values(ClientConfigVersions),
           global: false,
-          default: '0',
+          default: DEFAULT_CLIENT_CONFIG,
         })
         .option('config-out-dir', {
           describe:

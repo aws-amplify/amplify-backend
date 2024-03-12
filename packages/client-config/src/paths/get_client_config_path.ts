@@ -1,16 +1,16 @@
 import fs from 'fs';
 import path from 'path';
-import { ClientConfigFormat } from '../index.js';
-
-const configFileName = 'amplifyconfiguration';
+import { ClientConfigFileName, ClientConfigFormat } from '../index.js';
 
 /**
  * Get path to config file
+ * @param fileName - name of the file to be used for client config. Can be different based on the version of the client config.
  * @param outDir - path to directory where config is written. If not provided defaults to current process working directory.
  * @param format - The format which the configuration should be exported into. Defaults to JSON.
  * returns path to config file
  */
 export const getClientConfigPath = async (
+  fileName: ClientConfigFileName,
   outDir?: string,
   format?: ClientConfigFormat
 ) => {
@@ -41,6 +41,6 @@ export const getClientConfigPath = async (
       break;
   }
 
-  targetPath = path.resolve(targetPath, `${configFileName}.${extension}`);
+  targetPath = path.resolve(targetPath, `${fileName}.${extension}`);
   return targetPath;
 };

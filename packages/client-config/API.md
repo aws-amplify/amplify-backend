@@ -115,15 +115,15 @@ interface AWSAmplifyGen2BackendOutputs {
         oauth_scope?: string[];
         oauth_redirect_sign_in?: string[];
         oauth_redirect_sign_out?: string[];
-        oauth_response_type?: "code" | "token";
+        oauth_response_type?: 'code' | 'token';
         standard_attributes?: {
             [k: string]: AmazonCognitoStandardAttributesConfig;
         };
-        username_attributes?: ("EMAIL" | "PHONE")[];
-        user_verification_mechanisms?: ("EMAIL" | "PHONE")[];
+        username_attributes?: ('EMAIL' | 'PHONE')[];
+        user_verification_mechanisms?: ('EMAIL' | 'PHONE')[];
         unauthenticated_identities_enabled?: boolean;
-        mfa_configuration?: "NONE" | "OPTIONAL" | "REQUIRED";
-        mfa_methods?: ("SMS" | "TOTP")[];
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
     };
     custom?: {
         [k: string]: unknown;
@@ -148,11 +148,11 @@ interface AWSAmplifyGen2BackendOutputs {
         aws_region?: AwsRegion;
         name?: string;
     };
-    version: "1";
+    version: '1';
 }
 
 // @public (undocumented)
-type AwsAppsyncAuthorizationType = "AMAZON_COGNITO_USER_POOLS" | "API_KEY" | "AWS_IAM" | "AWS_LAMBDA" | "OPENID_CONNECT";
+type AwsAppsyncAuthorizationType = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
 // @public
 type AwsRegion = string;
@@ -171,6 +171,14 @@ enum AwsRegion_2 {
 
 // @public (undocumented)
 export type ClientConfig = clientConfigTypesV1.AWSAmplifyGen2BackendOutputs | clientConfigTypesV2.ClientConfigV2;
+
+// @public (undocumented)
+export enum ClientConfigFileName {
+    // (undocumented)
+    GEN2 = "amplify-outputs",
+    // (undocumented)
+    LEGACY = "amplifyconfiguration"
+}
 
 // @public (undocumented)
 export enum ClientConfigFormat {
@@ -232,7 +240,17 @@ type ClientConfigV2 = {
 };
 
 // @public (undocumented)
-export type ClientConfigVersion = '0' | '1' | '2';
+export type ClientConfigVersion = `${ClientConfigVersions}`;
+
+// @public (undocumented)
+export enum ClientConfigVersions {
+    // (undocumented)
+    Legacy = "0",
+    // (undocumented)
+    V1 = "1",
+    // (undocumented)
+    V2 = "2"
+}
 
 // @public (undocumented)
 export type ClientConfigVersionType<T> = T extends '1' ? clientConfigTypesV1.AWSAmplifyGen2BackendOutputs : T extends '2' ? clientConfigTypesV2.ClientConfigV2 : never;
@@ -260,8 +278,11 @@ type Data = {
     url?: string;
 };
 
+// @public (undocumented)
+export const DEFAULT_CLIENT_CONFIG: ClientConfigVersion;
+
 // @public
-export const generateClientConfig: <T extends ClientConfigVersion>(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
+export const generateClientConfig: <T extends "0" | "1" | "2">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
 
 // @public
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
@@ -295,8 +316,11 @@ export type GeoClientConfig = {
     };
 };
 
+// @public (undocumented)
+export const getClientConfigFileName: (version: ClientConfigVersion) => ClientConfigFileName;
+
 // @public
-export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat) => Promise<string>;
+export const getClientConfigPath: (fileName: ClientConfigFileName, outDir?: string, format?: ClientConfigFormat) => Promise<string>;
 
 // @public
 export type GraphqlClientConfig = {

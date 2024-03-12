@@ -4,7 +4,11 @@ import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { ClientConfigVersion } from '@aws-amplify/client-config';
+import {
+  ClientConfigVersion,
+  ClientConfigVersions,
+  DEFAULT_CLIENT_CONFIG,
+} from '@aws-amplify/client-config';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
@@ -96,8 +100,8 @@ export class PipelineDeployCommand
           'Version of the client config. Version 0 represents classic amplify-cli client config (Default)',
         type: 'string',
         array: false,
-        choices: ['0', '1', '2'],
-        default: '0',
+        choices: Object.values(ClientConfigVersions),
+        default: DEFAULT_CLIENT_CONFIG,
       });
   };
 }

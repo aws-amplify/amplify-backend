@@ -14,7 +14,10 @@ import {
 
 import { ClientConfigContributor } from '../client-config-types/client_config_contributor.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-import { ClientConfigVersion } from '../client-config-types/client_config.js';
+import {
+  ClientConfigVersion,
+  ClientConfigVersions,
+} from '../client-config-types/client_config.js';
 /**
  * Factory to generate client config contributors for Gen2 client config schema given a version
  */
@@ -31,13 +34,13 @@ export class ClientConfigContributorFactory {
     private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter
   ) {
     this.versionedGen2ClientConfigContributors = {
-      ['1']: [
+      [ClientConfigVersions.V1]: [
         new Auth1(),
         new Data1(this.modelIntrospectionSchemaAdapter),
         new VersionContributor1(),
         new Custom1(),
       ],
-      ['2']: [
+      [ClientConfigVersions.V2]: [
         new Auth2(),
         new Data2(this.modelIntrospectionSchemaAdapter),
         new VersionContributor2(),
@@ -45,7 +48,7 @@ export class ClientConfigContributorFactory {
       ],
 
       // Legacy config is derived from V1 of Gen2config
-      ['0']: [
+      [ClientConfigVersions.LEGACY]: [
         new Auth1(),
         new Data1(this.modelIntrospectionSchemaAdapter),
         new VersionContributor1(),

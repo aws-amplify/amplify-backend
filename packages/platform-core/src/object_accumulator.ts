@@ -42,6 +42,13 @@ export class ObjectAccumulator<T> {
     private readonly versionKey = 'version'
   ) {}
 
+  /**
+   * Accumulate a new object part with accumulator.
+   * This method throws if there is any intersection between the object parts
+   * except for the versionKey, which should be the same across all object parts (nested objects included)
+   * @param part a new object part to accumulate
+   * @returns the accumulator object for easy chaining
+   */
   accumulate = (part: Partial<T>): ObjectAccumulator<T> => {
     mergeWith(this.accumulator, part, (existingValue, incomingValue, key) => {
       if (Array.isArray(existingValue)) {

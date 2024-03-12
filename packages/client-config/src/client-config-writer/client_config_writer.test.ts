@@ -6,6 +6,7 @@ import {
 } from './client_config_writer.js';
 import {
   ClientConfig,
+  ClientConfigFileName,
   ClientConfigFormat,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatterLegacy } from './client_config_formatter_legacy.js';
@@ -50,11 +51,20 @@ void describe('client config writer', () => {
       () => formattedContent
     );
 
-    await clientConfigWriter.writeClientConfig(clientConfig, outDir, format);
+    await clientConfigWriter.writeClientConfig(
+      clientConfig,
+      ClientConfigFileName.LEGACY,
+      outDir,
+      format
+    );
 
     assert.strictEqual(pathResolverMock.mock.callCount(), 1);
-    assert.strictEqual(pathResolverMock.mock.calls[0].arguments[0], outDir);
-    assert.strictEqual(pathResolverMock.mock.calls[0].arguments[1], format);
+    assert.strictEqual(
+      pathResolverMock.mock.calls[0].arguments[0],
+      ClientConfigFileName.LEGACY
+    );
+    assert.strictEqual(pathResolverMock.mock.calls[0].arguments[1], outDir);
+    assert.strictEqual(pathResolverMock.mock.calls[0].arguments[2], format);
 
     assert.strictEqual(formatMock.mock.callCount(), 1);
     assert.strictEqual(formatMock.mock.calls[0].arguments[0], clientConfig);
@@ -83,11 +93,15 @@ void describe('client config writer', () => {
       () => formattedContent
     );
 
-    await clientConfigWriter.writeClientConfig(clientConfig, outDir);
+    await clientConfigWriter.writeClientConfig(
+      clientConfig,
+      ClientConfigFileName.LEGACY,
+      outDir
+    );
 
     assert.strictEqual(pathResolverMock.mock.callCount(), 1);
     assert.strictEqual(
-      pathResolverMock.mock.calls[0].arguments[1],
+      pathResolverMock.mock.calls[0].arguments[2],
       ClientConfigFormat.JSON
     );
 

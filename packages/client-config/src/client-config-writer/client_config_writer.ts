@@ -2,11 +2,13 @@ import _fsp from 'fs/promises';
 import path from 'path';
 import {
   ClientConfig,
+  ClientConfigFileName,
   ClientConfigFormat,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatter } from './client_config_formatter.js';
 
 export type ClientConfigPathResolver = (
+  fileName: ClientConfigFileName,
   outDir?: string,
   format?: ClientConfigFormat
 ) => Promise<string>;
@@ -28,12 +30,17 @@ export class ClientConfigWriter {
    */
   writeClientConfig = async (
     clientConfig: ClientConfig,
+    clientConfigFileName: ClientConfigFileName,
     outDir?: string,
     format: ClientConfigFormat = ClientConfigFormat.JSON,
     // TODO: update this type when Printer interface gets defined in platform-core.
     log?: (message: string) => void
   ): Promise<void> => {
-    const targetPath = await this.pathResolver(outDir, format);
+    const targetPath = await this.pathResolver(
+      clientConfigFileName,
+      outDir,
+      format
+    );
     const fileContent = this.formatter.format(clientConfig, format);
     await this.fsp.writeFile(targetPath, fileContent);
     log?.(`File written: ${path.relative(process.cwd(), targetPath)}`);

@@ -1,6 +1,7 @@
 import {
   ClientConfigFormat,
   ClientConfigVersion,
+  getClientConfigFileName,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { ClientConfigGeneratorAdapter } from './client_config_generator_adapter.js';
@@ -33,7 +34,8 @@ export class ClientConfigLifecycleHandler {
   };
 
   deleteClientConfigFile = async () => {
-    const path = await getClientConfigPath(this.outDir, this.format);
+    const fileName = getClientConfigFileName(this.version);
+    const path = await getClientConfigPath(fileName, this.outDir, this.format);
     await fsp.rm(path);
   };
 }
