@@ -79,16 +79,15 @@ const handleError = (
   if (isUserForceClosePromptError(error)) {
     return;
   }
-  const RED = 'red';
   if (error instanceof InvalidCredentialError) {
-    printer.print(`${error.message}${EOL}`, RED);
+    printer.print(`${error.message}${EOL}`, 'error');
     return;
   }
 
   printMessagePreamble?.();
-  printer.print(message || String(error), RED);
+  printer.print(message || String(error), 'error');
   if (errorHasCauseMessage(error)) {
-    printer.print(error.cause.message, RED);
+    printer.print(error.cause.message, 'error');
   }
   printer.printNewLine();
 };

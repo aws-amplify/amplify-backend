@@ -45,7 +45,10 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockPrint.mock.callCount(), 1);
     assert.equal(mockShowHelp.mock.callCount(), 1);
     assert.equal(mockExit.mock.callCount(), 1);
-    assert.match(mockPrint.mock.calls[0].arguments[0], new RegExp(errMsg));
+    assert.match(
+      mockPrint.mock.calls[0].arguments[0] as string,
+      new RegExp(errMsg)
+    );
     assert.equal(mockPrint.mock.calls[0].arguments[1], RED);
   });
 
@@ -66,7 +69,10 @@ void describe('generateCommandFailureHandler', () => {
     );
     assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 1);
-    assert.match(mockPrint.mock.calls[0].arguments[0], new RegExp(errMsg));
+    assert.match(
+      mockPrint.mock.calls[0].arguments[0] as string,
+      new RegExp(errMsg)
+    );
     assert.equal(mockPrint.mock.calls[0].arguments[1], RED);
   });
 
@@ -79,7 +85,7 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 2);
     assert.match(
-      mockPrint.mock.calls[1].arguments[0],
+      mockPrint.mock.calls[1].arguments[0] as string,
       new RegExp(errorMessage)
     );
     assert.equal(mockPrint.mock.calls[1].arguments[1], RED);

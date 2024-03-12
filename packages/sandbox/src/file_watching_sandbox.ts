@@ -29,7 +29,6 @@ import { AmplifyError } from '@aws-amplify/platform-core';
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
 export const CDK_MIN_BOOTSTRAP_VERSION = 6;
-const RED = 'red';
 
 /**
  * Constructs Amplify Console bootstrap URL for a given region
@@ -217,7 +216,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       this.emit('successfulDeployment', deployResult);
     } catch (error) {
       // Print a meaningful message
-      this.printer.print(this.getErrorMessage(error), RED);
+      this.printer.print(this.getErrorMessage(error), 'error');
       this.emit('failedDeployment', error);
 
       // If the error is because of a non-allowed destructive change such as
@@ -332,7 +331,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   ) => {
     this.printer.print(
       '[Sandbox] We cannot deploy your new changes. You can either revert them or recreate your sandbox with the new changes (deleting all user data)',
-      RED
+      'error'
     );
     // offer to recreate the sandbox with new properties
     const answer = await AmplifyPrompter.yesOrNo({
