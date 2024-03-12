@@ -1,10 +1,9 @@
 import { EOL } from 'os';
-import { LogLevel, format } from '@aws-amplify/cli-core';
+import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { printer } from './printer.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
   'https://docs.amplify.aws/gen2/reference/telemetry';

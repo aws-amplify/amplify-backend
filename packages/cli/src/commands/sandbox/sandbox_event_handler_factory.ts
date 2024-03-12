@@ -2,8 +2,7 @@ import { SandboxEventHandlerCreator } from './sandbox_command.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
 import { DeployResult } from '@aws-amplify/backend-deployer';
-import { COLOR } from '@aws-amplify/cli-core';
-import { printer } from '../../printer.js';
+import { COLOR, printer } from '@aws-amplify/cli-core';
 
 /**
  * Coordinates creation of sandbox event handlers

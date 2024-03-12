@@ -3,10 +3,9 @@ import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { ConfigureProfileCommand } from './configure_profile_command.js';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import { Open } from '../open/open.js';
 import { ProfileController } from './profile_controller.js';
-import { printer } from '../../printer.js';
 
 const testAccessKeyId = 'testAccessKeyId';
 const testSecretAccessKey = 'testSecretAccessKey';

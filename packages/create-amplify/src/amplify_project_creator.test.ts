@@ -3,7 +3,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
-import { printer } from './printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 const logSpy = mock.method(printer, 'log');
 const indicateProgressSpy = mock.method(printer, 'indicateProgress');

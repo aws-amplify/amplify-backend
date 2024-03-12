@@ -68,6 +68,9 @@ export class Printer {
 }
 
 // @public (undocumented)
+export const printer: Printer;
+
+// @public (undocumented)
 export type RecordValue = string | number | string[] | Date;
 
 // (No @packageDocumentation comment for this package)
