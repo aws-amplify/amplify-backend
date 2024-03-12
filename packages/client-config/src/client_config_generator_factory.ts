@@ -3,7 +3,7 @@ import { ClientConfigGenerator } from './client_config_generator.js';
 import { BackendOutput } from '@aws-amplify/plugin-types';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
-import { ClientConfigContributorFactory } from './client-config-contributor-gen2/client_config_contributor_factory.js';
+import { ClientConfigContributorFactory } from './client-config-contributor/client_config_contributor_factory.js';
 import { ClientConfigVersion } from './index.js';
 
 /**

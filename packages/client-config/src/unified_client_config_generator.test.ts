@@ -12,7 +12,7 @@ import { ClientConfig } from './client-config-types/client_config.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { ClientConfigContributorFactory } from './client-config-contributor-gen2/client_config_contributor_factory.js';
+import { ClientConfigContributorFactory } from './client-config-contributor/client_config_contributor_factory.js';
 
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
