@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  DeepPartial,
 } from '@aws-amplify/plugin-types';
 import { CustomOutputsAccumulator } from './custom_outputs_accumulator.js';
 import {
@@ -11,7 +12,7 @@ import {
   ObjectAccumulatorPropertyAlreadyExistsError,
   ObjectAccumulatorVersionMismatchError,
 } from '@aws-amplify/platform-core';
-import { ClientConfig, clientConfigTypesV1 } from '@aws-amplify/client-config';
+import { ClientConfig } from '@aws-amplify/client-config';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
@@ -57,11 +58,11 @@ void describe('Custom outputs accumulator', () => {
       objectAccumulator
     );
 
-    const configPart1: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
+    const configPart1: DeepPartial<ClientConfig> = {
       version: '1',
       custom: { output1: 'val1' },
     };
-    const configPart2: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
+    const configPart2: DeepPartial<ClientConfig> = {
       version: '1',
       custom: { output2: 'val2' },
     };
@@ -167,7 +168,7 @@ void describe('Custom outputs accumulator', () => {
       },
     });
 
-    const expectedAccumulatedOutput: Partial<ClientConfig> = {
+    const expectedAccumulatedOutput: DeepPartial<ClientConfig> = {
       auth: {
         user_pool_id: 'some_user_pool_id',
       },

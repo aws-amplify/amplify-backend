@@ -112,7 +112,7 @@ void describe('UnifiedClientConfigGenerator', () => {
     });
 
     void it('throws user error if there are overlapping values', async () => {
-      const customOutputs: Partial<ClientConfig> = {
+      const customOutputs = {
         auth: { user_pool_id: 'overrideUserPoolId' },
       };
       const stubOutput: UnifiedBackendOutput = {

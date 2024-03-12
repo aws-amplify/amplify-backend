@@ -126,6 +126,11 @@ export type ConstructFactoryGetInstanceProps = {
     importPathVerifier?: ImportPathVerifier;
 };
 
+// @public (undocumented)
+export type DeepPartial<T> = {
+    [P in keyof T]?: DeepPartial<T[P]>;
+};
+
 // @public
 export type DeploymentType = 'branch' | 'sandbox';
 

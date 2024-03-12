@@ -1,10 +1,14 @@
-import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
+import {
+  ConstructFactory,
+  DeepPartial,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import { ClientConfig } from '@aws-amplify/client-config';
 
 export type BackendBase = {
   createStack: (name: string) => Stack;
-  addOutput: (clientConfigPart: Partial<ClientConfig>) => void;
+  addOutput: (clientConfigPart: DeepPartial<ClientConfig>) => void;
 };
 
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers

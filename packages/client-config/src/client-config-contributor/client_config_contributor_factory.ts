@@ -6,12 +6,6 @@ import {
   StorageClientConfigContributor as Storage1,
   VersionContributor as VersionContributor1,
 } from './client_config_contributor_v1.js';
-import {
-  AuthClientConfigContributor as Auth2,
-  CustomClientConfigContributor as Custom2,
-  DataClientConfigContributor as Data2,
-  VersionContributor as VersionContributor2,
-} from './client_config_contributor_v2.js';
 
 import { ClientConfigContributor } from '../client-config-types/client_config_contributor.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
@@ -41,12 +35,6 @@ export class ClientConfigContributorFactory {
         new Storage1(),
         new VersionContributor1(),
         new Custom1(),
-      ],
-      [ClientConfigVersions.V2]: [
-        new Auth2(),
-        new Data2(this.modelIntrospectionSchemaAdapter),
-        new VersionContributor2(),
-        new Custom2(),
       ],
 
       // Legacy config is derived from V1 of Gen2config

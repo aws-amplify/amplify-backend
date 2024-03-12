@@ -20,7 +20,7 @@ mock.method(fs, 'lstatSync', (path: string) => {
 });
 
 void describe('getClientConfigPath', () => {
-  void it('returns path to config file', async () => {
+  void it('returns path to legacy config file', async () => {
     const configPath = await getClientConfigPath(ClientConfigFileName.LEGACY);
     assert.equal(
       configPath,
@@ -31,7 +31,7 @@ void describe('getClientConfigPath', () => {
     );
   });
 
-  void it('returns path to config file with provided dir path', async () => {
+  void it('returns path to Gen2 config file with provided dir path', async () => {
     const configPath = await getClientConfigPath(
       ClientConfigFileName.GEN2,
       testPath
@@ -46,7 +46,7 @@ void describe('getClientConfigPath', () => {
     );
   });
 
-  void it('returns path to config file with provided dir path and format', async () => {
+  void it('returns path to Gen2 config file with provided dir path and format', async () => {
     const configPath = await getClientConfigPath(
       ClientConfigFileName.GEN2,
       testPath,
@@ -62,7 +62,7 @@ void describe('getClientConfigPath', () => {
     );
   });
 
-  void it('returns path to config file with provided format, no dir path', async () => {
+  void it('returns path to Gen2 config file with provided format, no dir path', async () => {
     const configPath = await getClientConfigPath(
       ClientConfigFileName.GEN2,
       undefined,
@@ -103,7 +103,7 @@ void describe('getClientConfigPath', () => {
     );
   });
 
-  void it('returns path to config file with absolute path', async () => {
+  void it('returns path to Gen2 config file with absolute path', async () => {
     const configPath = await getClientConfigPath(
       ClientConfigFileName.GEN2,
       `${process.cwd()}/${testPath}`

@@ -4,13 +4,12 @@ import { PlatformClientConfig } from './platform_client_config.js';
 import { StorageClientConfig } from './storage_client_config.js';
 import { CustomClientConfig } from './custom_client_config.js';
 import { GeoClientConfig } from './geo_client_config.js';
+import { RestAPIClientConfig } from './rest_api_client_config.js';
 import { AnalyticsClientConfig } from './analytics_client_config.js';
 import { NotificationsClientConfig } from './notifications_client_config.js';
 
 // Major versions of config schemas
 import * as clientConfigTypesV1 from '../client-config-schema/client_config_v1.js';
-import * as clientConfigTypesV2 from '../client-config-schema/client_config_v2.js';
-import { RestAPIClientConfig } from './rest_api_client_config.js';
 
 /**
  * Merged type of all category client config types
@@ -27,18 +26,14 @@ export type ClientConfigLegacy = Partial<
     CustomClientConfig
 >;
 
-// Versions of client config schema supported by "this" package version
-export type ClientConfig =
-  | clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
-  | clientConfigTypesV2.ClientConfigV2;
+// Versions of client config schema supported by "this" package version. Create union for supported versions here
+export type ClientConfig = clientConfigTypesV1.AWSAmplifyGen2BackendOutputs;
 
 export { clientConfigTypesV1 };
-export { clientConfigTypesV2 };
 
 export enum ClientConfigVersions {
   LEGACY = '0',
   V1 = '1',
-  V2 = '2',
 }
 
 export const DEFAULT_CLIENT_CONFIG: ClientConfigVersion =
@@ -46,10 +41,16 @@ export const DEFAULT_CLIENT_CONFIG: ClientConfigVersion =
 
 export type ClientConfigVersion = `${ClientConfigVersions}`;
 
+// Add new supported version here such as
+/**
 export type ClientConfigVersionType<T> = T extends '1'
   ? clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
   : T extends '2'
   ? clientConfigTypesV2.ClientConfigV2
+  : never;
+ */
+export type ClientConfigVersionType<T> = T extends '1'
+  ? clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
   : never;
 
 export enum ClientConfigFormat {

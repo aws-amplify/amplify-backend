@@ -9,6 +9,7 @@ import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ClientConfig } from '@aws-amplify/client-config';
 import { ClientSchema } from '@aws-amplify/data-schema';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { DeepPartial } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
 import { defineFunction } from '@aws-amplify/backend-function';
@@ -26,7 +27,7 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
 // @public (undocumented)
 export type BackendBase = {
     createStack: (name: string) => Stack;
-    addOutput: (clientConfigPart: Partial<ClientConfig>) => void;
+    addOutput: (clientConfigPart: DeepPartial<ClientConfig>) => void;
 };
 
 export { ClientSchema }

@@ -1,4 +1,8 @@
-import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
+import {
+  ConstructFactory,
+  DeepPartial,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
@@ -121,7 +125,7 @@ export class BackendFactory<
     return this.stackResolver.createCustomStack(name);
   };
 
-  addOutput = (clientConfigPart: Partial<ClientConfig>) => {
+  addOutput = (clientConfigPart: DeepPartial<ClientConfig>) => {
     const { version } = clientConfigPart;
     if (!version) {
       clientConfigPart.version = defaultClientConfigVersion;
