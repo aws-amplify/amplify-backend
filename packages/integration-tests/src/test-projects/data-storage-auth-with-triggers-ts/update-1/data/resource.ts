@@ -1,3 +1,6 @@
+// we have to use ts-ignore instead of ts-expect-error because when the tsc check as part of the deployment runs, there will no longer be an error
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore Ignoring TS here because this code will be hotswapped in for the original data definition. The destination location contains the ../function.js dependency
 import { defaultNodeFunc } from '../function.js';
 import {
   type ClientSchema,
