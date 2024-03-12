@@ -4,4 +4,4 @@
 '@aws-amplify/backend-cli': patch
 ---
 
-refactor `color` function in cli-core and remove `COLOR`
+use `format` to replace `color` and remove `color`.
