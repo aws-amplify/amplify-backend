@@ -16,7 +16,7 @@ import {
   ensureDeploymentTimeLessThan,
   interruptSandbox,
   rejectCleanupSandbox,
-  updatePathContent,
+  replaceFiles,
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
@@ -149,7 +149,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             const updates = await testProject.getUpdates();
             for (const update of updates) {
               processController
-                .do(updatePathContent(update.replacements))
+                .do(replaceFiles(update.replacements))
                 .do(ensureDeploymentTimeLessThan(update.deployThresholdSec));
             }
 

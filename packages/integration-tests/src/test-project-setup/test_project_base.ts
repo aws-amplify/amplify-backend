@@ -18,7 +18,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import fsp from 'fs/promises';
 import assert from 'node:assert';
-import { PathReplacement } from '../process-controller/types.js';
+import { CopyDefinition } from '../process-controller/types.js';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -32,7 +32,7 @@ export type TestProjectUpdate = {
   /**
    * An array of source and destination objects. All replacements will be part of the update operation
    */
-  replacements: PathReplacement[];
+  replacements: CopyDefinition[];
   /**
    * Define a threshold for the hotswap deployment time
    * Windows has a separate threshold because it is consistently slower than other platforms

@@ -8,7 +8,7 @@ import fs from 'fs/promises';
 
 import { killExecaProcess } from './execa_process_killer.js';
 import { ExecaChildProcess } from 'execa';
-import { PathReplacement } from './types.js';
+import { CopyDefinition } from './types.js';
 
 export const CONTROL_C = '\x03';
 /**
@@ -69,7 +69,7 @@ export class PredicatedActionBuilder {
    * Update the last predicated action to update backend code by copying files from
    * `from` location to `to` location.
    */
-  updatePathContent = (replacements: PathReplacement[]) => {
+  replaceFiles = (replacements: CopyDefinition[]) => {
     this.getLastPredicatedAction().then = {
       actionType: ActionType.UPDATE_FILE_CONTENT,
       action: async () => {

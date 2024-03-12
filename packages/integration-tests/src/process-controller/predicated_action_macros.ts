@@ -1,6 +1,6 @@
 import { PredicatedActionBuilder } from './predicated_action_queue_builder.js';
 import { PlatformDeploymentThresholds } from '../test-project-setup/test_project_base.js';
-import { PathReplacement } from './types.js';
+import { CopyDefinition } from './types.js';
 
 /**
  * Convenience predicated actions that can be used to build up more complex CLI flows.
@@ -43,11 +43,11 @@ export const rejectCleanupSandbox = () =>
     .sendNo();
 
 /**
- * Reusable predicated action: Wait for sandbox to become idle and then update the
- * backend code which should trigger sandbox again
+ * Reusable predicated action: Wait for sandbox to become idle,
+ * then perform the specified file replacements in the backend code which will trigger sandbox again
  */
-export const updatePathContent = (replacements: PathReplacement[]) => {
-  return waitForSandboxToBecomeIdle().updatePathContent(replacements);
+export const replaceFiles = (replacements: CopyDefinition[]) => {
+  return waitForSandboxToBecomeIdle().replaceFiles(replacements);
 };
 
 /**
