@@ -11,7 +11,6 @@ import { InvalidCredentialError } from './error/credential_error.js';
 const mockPrint = mock.method(printer, 'print');
 
 void describe('generateCommandFailureHandler', () => {
-  const RED = 'red';
   const mockShowHelp = mock.fn();
   const mockExit = mock.fn();
 
@@ -36,7 +35,10 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockPrint.mock.callCount(), 1);
     assert.equal(mockShowHelp.mock.callCount(), 1);
     assert.equal(mockExit.mock.callCount(), 1);
-    assert.deepStrictEqual(mockPrint.mock.calls[0].arguments, [someMsg, RED]);
+    assert.deepStrictEqual(mockPrint.mock.calls[0].arguments, [
+      someMsg,
+      'error',
+    ]);
   });
 
   void it('prints message from error object', () => {
@@ -49,7 +51,7 @@ void describe('generateCommandFailureHandler', () => {
       mockPrint.mock.calls[0].arguments[0] as string,
       new RegExp(errMsg)
     );
-    assert.equal(mockPrint.mock.calls[0].arguments[1], RED);
+    assert.equal(mockPrint.mock.calls[0].arguments[1], 'error');
   });
 
   void it('handles a prompt force close error', () => {
@@ -73,7 +75,7 @@ void describe('generateCommandFailureHandler', () => {
       mockPrint.mock.calls[0].arguments[0] as string,
       new RegExp(errMsg)
     );
-    assert.equal(mockPrint.mock.calls[0].arguments[1], RED);
+    assert.equal(mockPrint.mock.calls[0].arguments[1], 'error');
   });
 
   void it('prints error cause message, if any', () => {
@@ -88,7 +90,7 @@ void describe('generateCommandFailureHandler', () => {
       mockPrint.mock.calls[1].arguments[0] as string,
       new RegExp(errorMessage)
     );
-    assert.equal(mockPrint.mock.calls[1].arguments[1], RED);
+    assert.equal(mockPrint.mock.calls[1].arguments[1], 'error');
   });
 });
 
