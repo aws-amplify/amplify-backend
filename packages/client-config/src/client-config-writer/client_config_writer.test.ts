@@ -13,6 +13,10 @@ import { ClientConfigFormatterLegacy } from './client_config_formatter_legacy.js
 import { randomUUID } from 'crypto';
 
 void describe('client config writer', () => {
+  const sampleRegion = 'test_region';
+  const sampleIdentityPoolId = 'test_identity_pool_id';
+  const sampleUserPoolClientId = 'test_user_pool_client_id';
+
   const pathResolverMock = mock.fn<ClientConfigPathResolver>();
   const clientFormatter = new ClientConfigFormatterLegacy(undefined as never);
   const fspMock = {
@@ -34,6 +38,9 @@ void describe('client config writer', () => {
   const clientConfig: ClientConfig = {
     version: '1',
     auth: {
+      aws_region: sampleRegion,
+      identity_pool_id: sampleIdentityPoolId,
+      user_pool_client_id: sampleUserPoolClientId,
       user_pool_id: 'something',
     },
   };

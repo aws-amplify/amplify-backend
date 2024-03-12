@@ -102,6 +102,7 @@ void describe('UnifiedClientConfigGenerator', () => {
           api_key: 'testApiKey',
           default_authorization_type: 'API_KEY',
           authorization_types: ['API_KEY'],
+          model_introspection: {},
         },
         version: '1',
       };

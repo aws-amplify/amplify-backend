@@ -27,7 +27,54 @@
           "description": "Amazon Pinpoint App ID",
           "type": "string"
         }
-      }
+      },
+      "required": ["aws_region", "pinpoint_app_id"]
+    },
+    "api": {
+      "description": "Outputs manually specified by developers for use with frontend library",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "description": "API Gateway, HTTP API, or Function URLs",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "description": "API resource name",
+                "type": "string"
+              },
+              "url": {
+                "description": "Invoke endpoint of the API resource",
+                "type": "string"
+              },
+              "aws_region": {
+                "description": "AWS Region of the API resource",
+                "$ref": "#/$defs/aws_region"
+              },
+              "authorization_types": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/amazon_api_gateway_authorization_type"
+                }
+              },
+              "default_authorization_type": {
+                "$ref": "#/$defs/amazon_api_gateway_authorization_type"
+              }
+            },
+            "required": [
+              "name",
+              "url",
+              "aws_region",
+              "authorization_types",
+              "default_authorization_type"
+            ]
+          }
+        }
+      },
+      "required": ["endpoints"]
     },
     "auth": {
       "description": "Outputs generated from defineAuth",
@@ -57,7 +104,8 @@
           "properties": {
             "min_length": {
               "type": "number",
-              "minimum": 1
+              "minimum": 6,
+              "maximum": 99
             },
             "require_numbers": {
               "type": "boolean"
@@ -115,6 +163,7 @@
         "standard_attributes": {
           "description": "Cognito User Pool standard attributes",
           "type": "object",
+          "additionalProperties": false,
           "propertyNames": {
             "$ref": "#/$defs/amazon_cognito_standard_attributes"
           },
@@ -153,7 +202,13 @@
             "enum": ["SMS", "TOTP"]
           }
         }
-      }
+      },
+      "required": [
+        "aws_region",
+        "user_pool_id",
+        "user_pool_client_id",
+        "identity_pool_id"
+      ]
     },
     "data": {
       "description": "Outputs generated from defineData",
@@ -183,7 +238,14 @@
             "$ref": "#/$defs/aws_appsync_authorization_type"
           }
         }
-      }
+      },
+      "required": [
+        "aws_region",
+        "url",
+        "model_introspection",
+        "default_authorization_type",
+        "authorization_types"
+      ]
     },
     "geo": {
       "description": "Outputs manually specified by developers for use with frontend library",
@@ -195,16 +257,58 @@
           "$ref": "#/$defs/aws_region"
         },
         "maps": {
-          "description": "Record of maps from Amazon Location Service",
+          "description": "Maps from Amazon Location Service",
           "type": "object",
-          "properties": {},
-          "patternProperties": {
-            "^([A-z0-9]|-*)+$": {
-              "$ref": "#/$defs/amazon_location_service_config"
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/amazon_location_service_config"
+              }
+            },
+            "default": {
+              "type": "string"
             }
-          }
+          },
+          "required": ["items", "default"]
+        },
+        "search_indices": {
+          "description": "Location search (search by places, addresses, coordinates)",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "default": {
+              "type": "string"
+            }
+          },
+          "required": ["items", "default"]
+        },
+        "geofence_collections": {
+          "description": "Geofencing (visualize virtual perimeters)",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "default": {
+              "type": "string"
+            }
+          },
+          "required": ["items", "default"]
         }
-      }
+      },
+      "required": ["aws_region"]
     },
     "storage": {
       "type": "object",
@@ -214,10 +318,11 @@
         "aws_region": {
           "$ref": "#/$defs/aws_region"
         },
-        "name": {
+        "bucket_name": {
           "type": "string"
         }
-      }
+      },
+      "required": ["aws_region", "bucket_name"]
     },
     "custom": {
       "description": "Outputs generated from backend.addOutput({ custom: <config> })",
@@ -271,6 +376,9 @@
         "AWS_LAMBDA",
         "OPENID_CONNECT"
       ]
+    },
+    "amazon_api_gateway_authorization_type": {
+      "$ref": "#/$defs/aws_appsync_authorization_type"
     },
     "amazon_location_service_config": {
       "type": "object",

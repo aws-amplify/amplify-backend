@@ -14,15 +14,25 @@ import { ClientConfigMobileConverter } from './client_config_to_mobile_legacy_co
 import { ClientConfigMobile } from '../client-config-types/mobile/client_config_mobile_types.js';
 
 void describe('client config formatter', () => {
+  const sampleRegion = 'test_region';
+  const sampleIdentityPoolId = 'test_identity_pool_id';
+  const sampleUserPoolClientId = 'test_user_pool_client_id';
+
   const sampleUserPoolId = randomUUID();
   const clientConfig: ClientConfig = {
     version: '1',
     auth: {
+      aws_region: sampleRegion,
+      identity_pool_id: sampleIdentityPoolId,
+      user_pool_client_id: sampleUserPoolClientId,
       user_pool_id: sampleUserPoolId,
     },
   };
   const expectedLegacyConfig: ClientConfigLegacy = {
+    aws_cognito_identity_pool_id: sampleIdentityPoolId,
+    aws_cognito_region: sampleRegion,
     aws_user_pools_id: sampleUserPoolId,
+    aws_user_pools_web_client_id: sampleUserPoolClientId,
   };
   const clientConfigMobile: ClientConfigMobile = {
     Version: '1.0',

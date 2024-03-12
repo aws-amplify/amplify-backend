@@ -5,7 +5,14 @@ import {
   clientConfigTypesV1,
 } from '../client-config-types/client_config.js';
 
-import { AuthClientConfig } from '../index.js';
+import {
+  AnalyticsClientConfig,
+  AuthClientConfig,
+  GeoClientConfig,
+  GraphqlClientConfig,
+  StorageClientConfig,
+} from '../index.js';
+import { RestAPIClientConfig } from '../client-config-types/rest_api_client_config.js';
 
 /**
  * Converts Gen2 client config to the legacy format.
@@ -28,7 +35,7 @@ export class ClientConfigLegacyConverter {
     if (clientConfig.auth) {
       const authClientConfig: AuthClientConfig = {
         aws_user_pools_id: clientConfig.auth.user_pool_id,
-        aws_cognito_region: clientConfig.auth.aws_region!, //TBD, this should be mandatory in the schema
+        aws_cognito_region: clientConfig.auth.aws_region,
         aws_user_pools_web_client_id: clientConfig.auth.user_pool_client_id,
         aws_cognito_identity_pool_id: clientConfig.auth.identity_pool_id,
       };
@@ -115,6 +122,102 @@ export class ClientConfigLegacyConverter {
       legacyConfig = { ...legacyConfig, ...authClientConfig };
     }
 
+    // Data category
+    if (clientConfig.data) {
+      const dataConfig: GraphqlClientConfig = {
+        aws_appsync_authenticationType:
+          clientConfig.data.default_authorization_type,
+        aws_appsync_region: clientConfig.data.aws_region,
+        aws_appsync_graphqlEndpoint: clientConfig.data.url,
+        modelIntrospection: clientConfig.data.model_introspection,
+      };
+
+      if (clientConfig.data.api_key) {
+        dataConfig.aws_appsync_apiKey = clientConfig.data.api_key;
+      }
+
+      if (clientConfig.data.authorization_types) {
+        dataConfig.aws_appsync_additionalAuthenticationTypes =
+          clientConfig.data.authorization_types.join(',');
+      }
+
+      //TBD dataConfig.aws_appsync_conflictResolutionMode
+
+      legacyConfig = { ...legacyConfig, ...dataConfig };
+    }
+
+    // Storage category
+    if (clientConfig.storage) {
+      const storageConfig: StorageClientConfig = {
+        aws_user_files_s3_bucket: clientConfig.storage.bucket_name,
+        aws_user_files_s3_bucket_region: clientConfig.storage.aws_region,
+      };
+      legacyConfig = { ...legacyConfig, ...storageConfig };
+    }
+
+    // Analytics category
+    if (clientConfig.analytics) {
+      const analyticsConfig: AnalyticsClientConfig = {
+        Analytics: {
+          AWSPinpoint: {
+            appId: clientConfig.analytics.pinpoint_app_id,
+            region: clientConfig.analytics.aws_region,
+          },
+        },
+      };
+      legacyConfig = { ...legacyConfig, ...analyticsConfig };
+    }
+
+    // Geo category
+    if (clientConfig.geo) {
+      const geoConfig: GeoClientConfig = {
+        geo: {
+          amazon_location_service: {
+            region: clientConfig.geo.aws_region,
+          },
+        },
+      };
+
+      if (clientConfig.geo.maps) {
+        const mapsLegacyConfig: Record<string, { style: string }> = {};
+        for (const mapItem of clientConfig.geo.maps.items) {
+          if (mapItem.name && mapItem.style) {
+            mapsLegacyConfig[mapItem.name] = { style: mapItem.style };
+          }
+        }
+        geoConfig.geo!.amazon_location_service.maps = {
+          default: clientConfig.geo.maps.default,
+          items: mapsLegacyConfig,
+        };
+      }
+
+      if (clientConfig.geo.search_indices) {
+        geoConfig.geo!.amazon_location_service.search_indices =
+          clientConfig.geo.search_indices;
+      }
+
+      if (clientConfig.geo.geofence_collections) {
+        geoConfig.geo!.amazon_location_service.geofenceCollections =
+          clientConfig.geo.geofence_collections;
+      }
+
+      legacyConfig = { ...legacyConfig, ...geoConfig };
+    }
+
+    // Rest API
+    if (clientConfig.api && clientConfig.api.endpoints) {
+      const restAPIConfig: RestAPIClientConfig = { aws_cloud_logic_custom: [] };
+      for (const apiEndpoint of clientConfig.api.endpoints) {
+        restAPIConfig.aws_cloud_logic_custom.push({
+          endpoint: apiEndpoint.url,
+          name: apiEndpoint.name,
+          region: apiEndpoint.aws_region,
+        });
+      }
+
+      legacyConfig = { ...legacyConfig, ...restAPIConfig };
+    }
+
     // Custom
     if (clientConfig.custom) {
       legacyConfig = {
@@ -122,8 +225,6 @@ export class ClientConfigLegacyConverter {
         custom: { ...clientConfig.custom } as Record<string, string>,
       };
     }
-
-    //TBD other categories
 
     return legacyConfig;
   };

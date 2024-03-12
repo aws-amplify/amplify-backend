@@ -218,9 +218,9 @@ void describe('data client config contributor v1', () => {
         api_key: 'testApiKey',
         default_authorization_type: 'API_KEY',
         authorization_types: ['API_KEY'],
-        //aws_appsync_conflictResolutionMode: undefined,
         url: 'testApiEndpoint',
         aws_region: 'us-east-1',
+        model_introspection: {},
       },
     } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs);
   });
@@ -283,6 +283,9 @@ void describe('Custom client config contributor v1', () => {
     const customOutputs: ClientConfig = {
       version: '1',
       auth: {
+        aws_region: 'sampleRegion',
+        identity_pool_id: 'sampleIdentityPoolId',
+        user_pool_client_id: 'sampleUserPoolClientId',
         user_pool_id: 'userPoolId',
       },
       custom: {

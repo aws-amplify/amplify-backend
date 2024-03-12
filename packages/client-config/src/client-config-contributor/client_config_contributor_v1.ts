@@ -4,6 +4,7 @@ import {
   authOutputKey,
   customOutputKey,
   graphqlOutputKey,
+  storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import {
   ClientConfig,
@@ -199,6 +200,12 @@ export class DataClientConfigContributor implements ClientConfigContributor {
     const config: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
       version: '1',
     };
+
+    const modelIntrospection =
+      await this.modelIntrospectionSchemaAdapter.getModelIntrospectionSchemaFromS3Uri(
+        graphqlOutput.payload.amplifyApiModelSchemaS3Uri
+      );
+
     config.data = {
       url: graphqlOutput.payload.awsAppsyncApiEndpoint,
       aws_region: graphqlOutput.payload.awsAppsyncRegion,
@@ -209,21 +216,38 @@ export class DataClientConfigContributor implements ClientConfigContributor {
         graphqlOutput.payload.awsAppsyncAdditionalAuthenticationTypes?.split(
           ','
         ) as AwsAppsyncAuthorizationType[],
-      // TBD
-      // aws_appsync_conflictResolutionMode:
-      //   graphqlOutput.payload.awsAppsyncConflictResolutionMode,
+
+      model_introspection:
+        (modelIntrospection as {
+          [k: string]: unknown;
+        }) ?? {},
     };
 
-    const modelIntrospection =
-      await this.modelIntrospectionSchemaAdapter.getModelIntrospectionSchemaFromS3Uri(
-        graphqlOutput.payload.amplifyApiModelSchemaS3Uri
-      );
+    return config;
+  };
+}
 
-    if (modelIntrospection) {
-      config.data.model_introspection = modelIntrospection as {
-        [k: string]: unknown;
-      };
+/**
+ * Translator for the Storage portion of ClientConfig
+ */
+export class StorageClientConfigContributor implements ClientConfigContributor {
+  /**
+   * Given some BackendOutput, contribute the Storage portion of the client config
+   */
+  contribute = async ({
+    [storageOutputKey]: storageOutput,
+  }: UnifiedBackendOutput): Promise<ClientConfig | Record<string, never>> => {
+    if (storageOutput === undefined) {
+      return {};
     }
+    const config: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
+      version: '1',
+    };
+
+    config.storage = {
+      aws_region: storageOutput.payload.storageRegion,
+      bucket_name: storageOutput.payload.bucketName,
+    };
 
     return config;
   };

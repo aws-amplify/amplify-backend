@@ -3,6 +3,7 @@ import {
   AuthClientConfigContributor as Auth1,
   CustomClientConfigContributor as Custom1,
   DataClientConfigContributor as Data1,
+  StorageClientConfigContributor as Storage1,
   VersionContributor as VersionContributor1,
 } from './client_config_contributor_v1.js';
 import {
@@ -37,6 +38,7 @@ export class ClientConfigContributorFactory {
       [ClientConfigVersions.V1]: [
         new Auth1(),
         new Data1(this.modelIntrospectionSchemaAdapter),
+        new Storage1(),
         new VersionContributor1(),
         new Custom1(),
       ],
@@ -51,6 +53,7 @@ export class ClientConfigContributorFactory {
       [ClientConfigVersions.LEGACY]: [
         new Auth1(),
         new Data1(this.modelIntrospectionSchemaAdapter),
+        new Storage1(),
         new VersionContributor1(),
         new Custom1(),
       ],

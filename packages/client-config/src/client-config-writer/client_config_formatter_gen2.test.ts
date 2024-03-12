@@ -9,9 +9,15 @@ import { randomUUID } from 'crypto';
 
 void describe('client config formatter', () => {
   const sampleUserPoolId = randomUUID();
+  const sampleRegion = 'test_region';
+  const sampleIdentityPoolId = 'test_identity_pool_id';
+  const sampleUserPoolClientId = 'test_user_pool_client_id';
   const clientConfig: ClientConfig = {
     version: '1',
     auth: {
+      aws_region: sampleRegion,
+      identity_pool_id: sampleIdentityPoolId,
+      user_pool_client_id: sampleUserPoolClientId,
       user_pool_id: sampleUserPoolId,
     },
   };
@@ -19,6 +25,9 @@ void describe('client config formatter', () => {
   const expectedConfigReturned: ClientConfig = {
     version: '1',
     auth: {
+      aws_region: sampleRegion,
+      identity_pool_id: sampleIdentityPoolId,
+      user_pool_client_id: sampleUserPoolClientId,
       user_pool_id: sampleUserPoolId,
     },
   };

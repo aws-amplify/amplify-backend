@@ -10,6 +10,7 @@ import { NotificationsClientConfig } from './notifications_client_config.js';
 // Major versions of config schemas
 import * as clientConfigTypesV1 from '../client-config-schema/client_config_v1.js';
 import * as clientConfigTypesV2 from '../client-config-schema/client_config_v2.js';
+import { RestAPIClientConfig } from './rest_api_client_config.js';
 
 /**
  * Merged type of all category client config types
@@ -20,6 +21,7 @@ export type ClientConfigLegacy = Partial<
     GeoClientConfig &
     GraphqlClientConfig &
     NotificationsClientConfig &
+    RestAPIClientConfig &
     StorageClientConfig &
     PlatformClientConfig &
     CustomClientConfig

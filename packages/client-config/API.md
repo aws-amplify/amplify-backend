@@ -13,7 +13,7 @@ interface AmazonCognitoStandardAttributesConfig {
     required?: boolean;
 }
 
-// @public
+// @public (undocumented)
 interface AmazonLocationServiceConfig {
     name?: string;
     style?: string;
@@ -95,14 +95,23 @@ enum AuthorizationType {
 interface AWSAmplifyGen2BackendOutputs {
     $schema?: string;
     analytics?: {
-        aws_region?: string;
-        pinpoint_app_id?: string;
+        aws_region: string;
+        pinpoint_app_id: string;
+    };
+    api?: {
+        endpoints: {
+            name: string;
+            url: string;
+            aws_region: string;
+            authorization_types: AwsAppsyncAuthorizationType[];
+            default_authorization_type: AwsAppsyncAuthorizationType;
+        }[];
     };
     auth?: {
-        aws_region?: string;
-        user_pool_id?: string;
-        user_pool_client_id?: string;
-        identity_pool_id?: string;
+        aws_region: string;
+        user_pool_id: string;
+        user_pool_client_id: string;
+        identity_pool_id: string;
         password_policy?: {
             min_length?: number;
             require_numbers?: boolean;
@@ -129,32 +138,41 @@ interface AWSAmplifyGen2BackendOutputs {
         [k: string]: unknown;
     };
     data?: {
-        aws_region?: AwsRegion;
-        url?: string;
-        model_introspection?: {
+        aws_region: AwsRegion;
+        url: string;
+        model_introspection: {
             [k: string]: unknown;
         };
         api_key?: string;
-        default_authorization_type?: AwsAppsyncAuthorizationType;
-        authorization_types?: AwsAppsyncAuthorizationType[];
+        default_authorization_type: AwsAppsyncAuthorizationType;
+        authorization_types: AwsAppsyncAuthorizationType[];
     };
     geo?: {
-        aws_region?: string;
+        aws_region: string;
         maps?: {
-            [k: string]: AmazonLocationServiceConfig;
+            items: AmazonLocationServiceConfig[];
+            default: string;
+        };
+        search_indices?: {
+            items: string[];
+            default: string;
+        };
+        geofence_collections?: {
+            items: string[];
+            default: string;
         };
     };
     storage?: {
-        aws_region?: AwsRegion;
-        name?: string;
+        aws_region: AwsRegion;
+        bucket_name: string;
     };
     version: '1';
 }
 
-// @public (undocumented)
+// @public
 type AwsAppsyncAuthorizationType = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
-// @public
+// @public (undocumented)
 type AwsRegion = string;
 
 // @public (undocumented)
@@ -195,12 +213,12 @@ export enum ClientConfigFormat {
 }
 
 // @public
-export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfig & GeoClientConfig & GraphqlClientConfig & NotificationsClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
+export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfig & GeoClientConfig & GraphqlClientConfig & NotificationsClientConfig & RestAPIClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
 
 declare namespace clientConfigTypesV1 {
     export {
-        AwsRegion,
         AwsAppsyncAuthorizationType,
+        AwsRegion,
         AWSAmplifyGen2BackendOutputs,
         AmazonCognitoStandardAttributesConfig,
         AmazonLocationServiceConfig
@@ -282,7 +300,7 @@ type Data = {
 export const DEFAULT_CLIENT_CONFIG: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "0" | "1" | "2">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
+export const generateClientConfig: <T extends "1" | "2" | "0">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
 
 // @public
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
@@ -416,6 +434,15 @@ type PasswordPolicy = {
 // @public (undocumented)
 export type PlatformClientConfig = {
     aws_project_region: string;
+};
+
+// @public (undocumented)
+export type RestAPIClientConfig = {
+    aws_cloud_logic_custom: {
+        name: string;
+        endpoint: string;
+        region?: string;
+    }[];
 };
 
 // @public (undocumented)

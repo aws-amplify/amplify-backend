@@ -11,6 +11,9 @@ restApi.root.addMethod('GET');
 
 const someConstant1 = 'someHardCodedValue1';
 const someConstant2 = 'someHardCodedValue2';
+const sampleRegion = 'test_region';
+const sampleIdentityPoolId = 'test_identity_pool_id';
+const sampleUserPoolClientId = 'test_user_pool_client_id';
 
 backend.addOutput({
   version: '1',
@@ -36,6 +39,9 @@ backend.addOutput({
   version: '1',
   // test reserved key
   auth: {
+    aws_region: sampleRegion,
+    identity_pool_id: sampleIdentityPoolId,
+    user_pool_client_id: sampleUserPoolClientId,
     user_pool_id: fakeCognitoUserPoolId,
   },
 });
