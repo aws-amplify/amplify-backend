@@ -35,6 +35,7 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockPrint.mock.callCount(), 1);
     assert.equal(mockShowHelp.mock.callCount(), 1);
     assert.equal(mockExit.mock.callCount(), 1);
+    assert.match(mockPrint.mock.calls[0].arguments[0], new RegExp(someMsg));
   });
 
   void it('prints message from error object', () => {
