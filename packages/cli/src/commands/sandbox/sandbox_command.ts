@@ -130,7 +130,7 @@ export class SandboxCommand
         .version(false)
         .option('dir-to-watch', {
           describe:
-            'Directory to watch for file changes. All subdirectories and files will be included. defaults to the current directory.',
+            'Directory to watch for file changes. All subdirectories and files will be included. Defaults to the amplify directory.',
           type: 'string',
           array: false,
           global: false,

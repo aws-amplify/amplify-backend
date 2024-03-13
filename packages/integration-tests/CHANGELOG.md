@@ -1,5 +1,23 @@
 # @aws-amplify/integration-tests
 
+## 0.5.0-beta.2
+
+### Patch Changes
+
+- 7f5edee: Ensure typed shim files contain only the function name
+
+## 0.5.0-beta.1
+
+### Minor Changes
+
+- cec91d5: Add dynamic environment variables to function type definition files
+
+### Patch Changes
+
+- 912034e: limit defineData call to one
+- 3998cd3: Fix how paths is added to tsconfig
+- 318335d: Ensure resource access env vars are added to function typed shim files
+
 ## 0.4.4-beta.0
 
 ### Patch Changes

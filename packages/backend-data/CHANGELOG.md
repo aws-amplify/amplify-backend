@@ -1,5 +1,19 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.4
+
+### Minor Changes
+
+- a777488: plumb function access definition from schema into IAM policies attached to the functions
+- 268acd8: feat: enable destructive schema updates in amplify sandbox
+
+## 0.10.0-beta.3
+
+### Patch Changes
+
+- 912034e: limit defineData call to one
+- 7857f0a: backend-data: add js resolver support
+
 ## 0.10.0-beta.2
 
 ### Minor Changes

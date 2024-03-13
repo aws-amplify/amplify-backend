@@ -77,6 +77,9 @@ void describe('getting started happy path', async () => {
   });
 
   void it('creates new project and deploy them without an error', async () => {
+    if (packageManager === 'pnpm' && process.platform === 'win32') {
+      return;
+    }
     // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
     if (packageManager === 'yarn-classic') {
       await execa('yarn', ['add', 'create-amplify@beta'], { cwd: tempDir });
@@ -132,5 +135,24 @@ void describe('getting started happy path', async () => {
     );
 
     assert.ok(clientConfigStats.isFile());
+  });
+
+  void it('creates new project and deploy them without an error', async () => {
+    if (packageManager === 'pnpm' && process.platform === 'win32') {
+      await assert.rejects(
+        execa('pnpm', ['create', 'amplify@beta', '--yes'], {
+          // TODO: remove the @beta tag once GA https://github.com/aws-amplify/amplify-backend/issues/1013
+          cwd: tempDir,
+        }),
+        (error) => {
+          const errorMessage = error instanceof Error ? error.message : '';
+          assert.match(
+            errorMessage,
+            /Amplify does not support PNPM on Windows./
+          );
+          return true;
+        }
+      );
+    }
   });
 });

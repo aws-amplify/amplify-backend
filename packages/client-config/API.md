@@ -21,8 +21,10 @@ interface AmazonLocationServiceConfig {
 
 // @public (undocumented)
 export type AnalyticsClientConfig = {
+    aws_mobile_analytics_app_id?: string;
+    aws_mobile_analytics_app_region?: string;
     Analytics?: {
-        AWSPinpoint: {
+        Pinpoint: {
             appId: string;
             region: string;
         };
@@ -206,7 +208,7 @@ export const DEFAULT_CLIENT_CONFIG: ClientConfigVersion;
 export const DEFAULT_GEN2_CLIENT_CONFIG_VERSION = ClientConfigVersions.V1;
 
 // @public
-export const generateClientConfig: <T extends "0" | "1">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
+export const generateClientConfig: <T extends "1" | "0">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
 
 // @public
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;

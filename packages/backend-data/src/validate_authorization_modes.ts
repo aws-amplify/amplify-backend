@@ -7,25 +7,6 @@ type AuthorizationModeValidator = (
 ) => void;
 
 /**
- * Admin roles require iam config be specified.
- */
-const validateAdminRolesHaveIAMAuthorizationConfig: AuthorizationModeValidator =
-  (
-    inputAuthorizationModes: AuthorizationModes | undefined,
-    transformedAuthorizationModes: CDKAuthorizationModes
-  ): void => {
-    if (
-      inputAuthorizationModes?.allowListedRoleNames &&
-      inputAuthorizationModes?.allowListedRoleNames.length > 0 &&
-      !transformedAuthorizationModes.iamConfig
-    ) {
-      throw new Error(
-        'Specifying allowListedRoleNames requires presence of IAM Authorization config. Auth must be added to the backend.'
-      );
-    }
-  };
-
-/**
  * At least one auth mode is required on the API, otherwise an exception will be thrown.
  */
 const validateAtLeastOneAuthModeIsConfigured: AuthorizationModeValidator = (
@@ -60,9 +41,6 @@ export const validateAuthorizationModes = (
   inputAuthorizationModes: AuthorizationModes | undefined,
   transformedAuthorizationModes: CDKAuthorizationModes
 ): void =>
-  [
-    validateAdminRolesHaveIAMAuthorizationConfig,
-    validateAtLeastOneAuthModeIsConfigured,
-  ].forEach((validate) =>
+  [validateAtLeastOneAuthModeIsConfigured].forEach((validate) =>
     validate(inputAuthorizationModes, transformedAuthorizationModes)
   );

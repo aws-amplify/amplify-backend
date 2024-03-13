@@ -283,7 +283,7 @@ void describe('client config converter', () => {
   void it('converts analytics config', () => {
     const clientConfig: ClientConfigLegacy = {
       Analytics: {
-        AWSPinpoint: {
+        Pinpoint: {
           appId: 'test_pinpoint_id',
           region: 'us-west-2',
         },

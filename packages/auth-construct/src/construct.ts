@@ -39,7 +39,6 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { coreAttributeNameMap } from './string_maps.js';
-import { build as arnBuilder } from '@aws-sdk/util-arn-parser';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -316,30 +315,6 @@ export class AmplifyAuth
     ];
     // add other providers
     identityPool.supportedLoginProviders = providerSetupResult.oAuthMappings;
-    if (providerSetupResult.oidc) {
-      const oidcArns = [];
-      for (const oidcProvider of providerSetupResult.oidc) {
-        oidcArns.push(
-          arnBuilder({
-            service: 'iam',
-            region,
-            accountId: Stack.of(this).account,
-            resource: `oidc-provider/cognito-idp.${region}.amazonaws.com/${oidcProvider.providerName}`,
-          })
-        );
-      }
-      identityPool.openIdConnectProviderArns = oidcArns;
-    }
-    if (providerSetupResult.saml) {
-      identityPool.samlProviderArns = [
-        arnBuilder({
-          service: 'iam',
-          region,
-          accountId: Stack.of(this).account,
-          resource: `saml-provider/${providerSetupResult.saml.providerName}`,
-        }),
-      ];
-    }
     return {
       identityPool,
       identityPoolRoleAttachment,

@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
 import { App, SecretValue, Stack } from 'aws-cdk-lib';
-import { Match, Template } from 'aws-cdk-lib/assertions';
+import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
   BackendOutputEntry,
@@ -1399,25 +1399,6 @@ void describe('Auth construct', () => {
         ProviderName: oidcProviderName,
         ProviderType: 'OIDC',
       });
-      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
-        OpenIdConnectProviderARNs: [
-          Match.objectEquals({
-            'Fn::Join': [
-              '',
-              [
-                'arn:aws:iam:',
-                { Ref: 'AWS::Region' },
-                ':',
-                { Ref: 'AWS::AccountId' },
-                ':oidc-provider/cognito-idp.',
-                { Ref: 'AWS::Region' },
-                '.amazonaws.com/',
-                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
-              ],
-            ],
-          }),
-        ],
-      });
     });
     void it('oidc defaults to GET for oidc method', () => {
       const app = new App();
@@ -1482,25 +1463,6 @@ void describe('Auth construct', () => {
         ProviderName: oidcProviderName,
         ProviderType: 'OIDC',
       });
-      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
-        OpenIdConnectProviderARNs: [
-          Match.objectEquals({
-            'Fn::Join': [
-              '',
-              [
-                'arn:aws:iam:',
-                { Ref: 'AWS::Region' },
-                ':',
-                { Ref: 'AWS::AccountId' },
-                ':oidc-provider/cognito-idp.',
-                { Ref: 'AWS::Region' },
-                '.amazonaws.com/',
-                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
-              ],
-            ],
-          }),
-        ],
-      });
     });
     void it('supports oidc and phone', () => {
       const app = new App();
@@ -1531,25 +1493,6 @@ void describe('Auth construct', () => {
         'AWS::Cognito::UserPoolIdentityProvider',
         ExpectedOidcIDPProperties
       );
-      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
-        OpenIdConnectProviderARNs: [
-          Match.objectEquals({
-            'Fn::Join': [
-              '',
-              [
-                'arn:aws:iam:',
-                { Ref: 'AWS::Region' },
-                ':',
-                { Ref: 'AWS::AccountId' },
-                ':oidc-provider/cognito-idp.',
-                { Ref: 'AWS::Region' },
-                '.amazonaws.com/',
-                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
-              ],
-            ],
-          }),
-        ],
-      });
     });
     void it('supports multiple oidc providers', () => {
       const app = new App();
@@ -1590,40 +1533,6 @@ void describe('Auth construct', () => {
         'AWS::Cognito::UserPoolIdentityProvider',
         ExpectedOidcIDPProperties2
       );
-      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
-        OpenIdConnectProviderARNs: [
-          Match.objectEquals({
-            'Fn::Join': [
-              '',
-              [
-                'arn:aws:iam:',
-                { Ref: 'AWS::Region' },
-                ':',
-                { Ref: 'AWS::AccountId' },
-                ':oidc-provider/cognito-idp.',
-                { Ref: 'AWS::Region' },
-                '.amazonaws.com/',
-                { Ref: 'testMyOidcProviderOidcIDP837BDEAD' },
-              ],
-            ],
-          }),
-          Match.objectEquals({
-            'Fn::Join': [
-              '',
-              [
-                'arn:aws:iam:',
-                { Ref: 'AWS::Region' },
-                ':',
-                { Ref: 'AWS::AccountId' },
-                ':oidc-provider/cognito-idp.',
-                { Ref: 'AWS::Region' },
-                '.amazonaws.com/',
-                { Ref: 'testMyOidcProvider2OidcIDP43D7B07B' },
-              ],
-            ],
-          }),
-        ],
-      });
     });
     void it('supports saml and email', () => {
       const app = new App();
@@ -1653,23 +1562,6 @@ void describe('Auth construct', () => {
         'AWS::Cognito::UserPoolIdentityProvider',
         ExpectedSAMLIDPProperties
       );
-      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
-        SamlProviderARNs: [
-          Match.objectEquals({
-            'Fn::Join': [
-              '',
-              [
-                'arn:aws:iam:',
-                { Ref: 'AWS::Region' },
-                ':',
-                { Ref: 'AWS::AccountId' },
-                ':saml-provider/',
-                { Ref: 'testSamlIDP7B98F3F4' },
-              ],
-            ],
-          }),
-        ],
-      });
     });
     void it('supports saml and phone', () => {
       const app = new App();
@@ -1699,23 +1591,6 @@ void describe('Auth construct', () => {
         'AWS::Cognito::UserPoolIdentityProvider',
         ExpectedSAMLIDPProperties
       );
-      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
-        SamlProviderARNs: [
-          Match.objectEquals({
-            'Fn::Join': [
-              '',
-              [
-                'arn:aws:iam:',
-                { Ref: 'AWS::Region' },
-                ':',
-                { Ref: 'AWS::AccountId' },
-                ':saml-provider/',
-                { Ref: 'testSamlIDP7B98F3F4' },
-              ],
-            ],
-          }),
-        ],
-      });
     });
     void it('supports saml via URL and email', () => {
       const app = new App();
@@ -1745,23 +1620,6 @@ void describe('Auth construct', () => {
         'AWS::Cognito::UserPoolIdentityProvider',
         ExpectedSAMLIDPViaURLProperties
       );
-      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
-        SamlProviderARNs: [
-          Match.objectEquals({
-            'Fn::Join': [
-              '',
-              [
-                'arn:aws:iam:',
-                { Ref: 'AWS::Region' },
-                ':',
-                { Ref: 'AWS::AccountId' },
-                ':saml-provider/',
-                { Ref: 'testSamlIDP7B98F3F4' },
-              ],
-            ],
-          }),
-        ],
-      });
     });
 
     void it('supports additional oauth settings', () => {

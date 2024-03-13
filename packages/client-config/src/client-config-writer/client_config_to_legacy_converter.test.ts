@@ -301,7 +301,7 @@ void describe('ClientConfigLegacyConverter', () => {
 
     const expectedLegacyConfig: AnalyticsClientConfig = {
       Analytics: {
-        AWSPinpoint: {
+        Pinpoint: {
           appId: 'testAppId',
           region: 'testRegion',
         },

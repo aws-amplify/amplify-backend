@@ -59,38 +59,57 @@ void describe('Printer', () => {
     assert.strictEqual(mockedWrite.mock.callCount(), 0);
   });
 
-  void it('indicateProgress logs message & animates ellipsis if on TTY', async () => {
+  void it('start animating spinner with message and stops animation in TTY terminal', async () => {
     process.stdout.isTTY = true;
-    await new Printer(LogLevel.INFO).indicateProgress(
-      'loading a long list',
-      () => new Promise((resolve) => setTimeout(resolve, 3000))
-    );
-    // filter out the escape characters.
+
+    const message = 'Message 1';
+
+    await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    });
+
     const logMessages = mockedWrite.mock.calls
-      .filter((message) =>
-        message.arguments.toString().match(/loading a long list/)
-      )
+      .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
     logMessages.forEach((message) => {
-      assert.match(message, /loading a long list(.*)/);
+      assert.match(message, /Message(.*)/);
     });
   });
 
-  void it('indicateProgress does not animates ellipsis if not TTY & prints log message once', async () => {
+  void it('animating spinner is a noop in non-TTY terminal and instead logs a message at INFO level', async () => {
     process.stdout.isTTY = false;
-    await new Printer(LogLevel.INFO).indicateProgress(
-      'loading a long list',
-      () => new Promise((resolve) => setTimeout(resolve, 1500))
-    );
-    // filter out the escape characters.
+
+    const message = 'Message 1';
+
+    await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    });
+
     const logMessages = mockedWrite.mock.calls
-      .filter((message) =>
-        message.arguments.toString().match(/loading a long list/)
-      )
+      .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
     assert.strictEqual(logMessages.length, 1);
-    assert.match(logMessages[0], /loading a long list/);
+    assert.strictEqual(logMessages[0], 'Message 1');
+  });
+
+  void it('indicateProgress stops spinner and propagates error when action fails', async () => {
+    process.stdout.isTTY = true;
+
+    const errorMessage = 'Error message';
+    const message = 'Message 1';
+    let errorCaught = false;
+
+    try {
+      await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        throw new Error(errorMessage);
+      });
+    } catch (error) {
+      assert.strictEqual((error as Error).message, errorMessage);
+      errorCaught = true;
+    }
+    assert.strictEqual(errorCaught, true, 'Expected error was not thrown.');
   });
 });

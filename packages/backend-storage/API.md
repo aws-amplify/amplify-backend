@@ -15,11 +15,8 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
-export type AccessGenerator = (allow: RoleAccessBuilder) => Record<StoragePrefix, StorageAccessDefinition[]>;
-
-// @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
-    access?: AccessGenerator;
+    access?: StorageAccessGenerator;
 };
 
 // @public (undocumented)
@@ -37,30 +34,40 @@ export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources>>;
 
 // @public
-export type RoleAccessBuilder = {
-    authenticated: StorageAccessBuilder;
-    guest: StorageAccessBuilder;
-    owner: StorageAccessBuilder;
-    resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => StorageAccessBuilder;
-};
+export type EntityId = 'identity';
 
-// @public (undocumented)
+// @public
 export type StorageAccessBuilder = {
-    to: (actions: StorageAction[]) => StorageAccessDefinition;
+    authenticated: StorageActionBuilder;
+    guest: StorageActionBuilder;
+    group: (groupName: string) => StorageActionBuilder;
+    entity: (entityId: EntityId) => StorageActionBuilder;
+    resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => StorageActionBuilder;
 };
 
 // @public (undocumented)
 export type StorageAccessDefinition = {
     getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
     actions: StorageAction[];
-    ownerPlaceholderSubstitution: string;
+    idSubstitution: string;
 };
 
 // @public (undocumented)
-export type StorageAction = 'read' | 'write' | 'delete';
+export type StorageAccessGenerator = (allow: StorageAccessBuilder) => StorageAccessRecord;
+
+// @public (undocumented)
+export type StorageAccessRecord = Record<StoragePath, StorageAccessDefinition[]>;
 
 // @public
-export type StoragePrefix = `/${string}/*`;
+export type StorageAction = 'read' | 'get' | 'list' | 'write' | 'delete';
+
+// @public (undocumented)
+export type StorageActionBuilder = {
+    to: (actions: StorageAction[]) => StorageAccessDefinition;
+};
+
+// @public
+export type StoragePath = `/${string}/*`;
 
 // @public (undocumented)
 export type StorageResources = {

@@ -12,7 +12,7 @@ import { ClientConfigLifecycleHandler } from '../../client-config/client_config_
 import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'node:path';
-import { printer } from '../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 void describe('sandbox_event_handler_factory', () => {
   // client config mocks

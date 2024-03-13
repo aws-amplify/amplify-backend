@@ -1,6 +1,5 @@
-import { COLOR } from '@aws-amplify/cli-core';
+import { COLOR, printer } from '@aws-amplify/cli-core';
 import { InvalidCredentialError } from './error/credential_error.js';
-import { printer } from './printer.js';
 import { EOL } from 'os';
 import { Argv } from 'yargs';
 

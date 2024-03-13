@@ -3,6 +3,7 @@ import { Arn, Lazy, Stack } from 'aws-cdk-lib';
 import { FunctionProps } from './factory.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 
 /**
  * Translates function environment props into appropriate environment records and builds a policy statement
@@ -16,13 +17,17 @@ export class FunctionEnvironmentTranslator {
   private readonly ssmValuePlaceholderText =
     '<value will be resolved during runtime>';
 
+  // List of environment variable names for typed shim generation
+  private readonly amplifyBackendEnvVarNames: string[] = [];
+
   /**
    * Initialize translated environment variable records
    */
   constructor(
     private readonly lambda: NodejsFunction, // we need to use a specific type here so that we have all the method goodies
     private readonly functionEnvironmentProp: Required<FunctionProps>['environment'],
-    private readonly backendSecretResolver: BackendSecretResolver
+    private readonly backendSecretResolver: BackendSecretResolver,
+    private readonly functionEnvironmentTypeGenerator: FunctionEnvironmentTypeGenerator
   ) {
     for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
       if (key === this.amplifySsmEnvConfigKey) {
@@ -42,6 +47,7 @@ export class FunctionEnvironmentTranslator {
       } else {
         this.lambda.addEnvironment(key, value);
       }
+      this.amplifyBackendEnvVarNames.push(key);
     }
 
     // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
@@ -77,6 +83,16 @@ export class FunctionEnvironmentTranslator {
         return [];
       },
     });
+
+    // Using CDK validation mechanism as a way to generate a typed process.env shim file at the end of synthesis
+    this.lambda.node.addValidation({
+      validate: (): string[] => {
+        this.functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(
+          this.amplifyBackendEnvVarNames
+        );
+        return [];
+      },
+    });
   }
 
   /**
@@ -88,6 +104,7 @@ export class FunctionEnvironmentTranslator {
     this.lambda.addEnvironment(name, this.ssmValuePlaceholderText);
     this.ssmPaths.push(ssmPath);
     this.ssmEnvVars[ssmPath] = { name };
+    this.amplifyBackendEnvVarNames.push(name);
   };
 }
 

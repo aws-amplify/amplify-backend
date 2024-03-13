@@ -1,4 +1,6 @@
+import { IConstruct } from 'constructs';
 import {
+  AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
@@ -7,16 +9,16 @@ import {
   GenerateContainerEntryProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { AmplifyData } from '@aws-amplify/data-construct';
+import {
+  AmplifyData,
+  AmplifyDynamoDbTableWrapper,
+  TranslationBehavior,
+} from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
-import { convertSchemaToCDK } from './convert_schema.js';
-import {
-  FunctionInstanceProvider,
-  buildConstructFactoryFunctionInstanceProvider,
-  convertFunctionNameMapToCDK,
-} from './convert_functions.js';
+import { convertSchemaToCDK, isModelSchema } from './convert_schema.js';
+import { convertFunctionNameMapToCDK } from './convert_functions.js';
 import {
   ProvidedAuthConfig,
   buildConstructFactoryProvidedAuthConfig,
@@ -24,7 +26,14 @@ import {
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
+import { Aspects, IAspect } from 'aws-cdk-lib';
+import { convertJsResolverDefinition } from './convert_js_resolvers.js';
+import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
+import {
+  FunctionSchemaAccess,
+  JsResolver,
+} from '@aws-amplify/data-schema-types';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -75,7 +84,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
             )
             ?.getInstance(props)
         ),
-        buildConstructFactoryFunctionInstanceProvider(props),
+        props,
         outputStorageStrategy
       );
     }
@@ -90,18 +99,54 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: DataProps,
     private readonly providedAuthConfig: ProvidedAuthConfig | undefined,
-    private readonly functionInstanceProvider: FunctionInstanceProvider,
+    private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
-  generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
+  generateContainerEntry = ({
+    scope,
+    ssmEnvironmentEntriesGenerator,
+  }: GenerateContainerEntryProps) => {
+    let amplifyGraphqlDefinition;
+    let jsFunctions: JsResolver[] = [];
+    let functionSchemaAccess: FunctionSchemaAccess[] = [];
+    let lambdaFunctions: Record<string, ConstructFactory<AmplifyFunction>> = {};
+    try {
+      if (isModelSchema(this.props.schema)) {
+        ({ jsFunctions, functionSchemaAccess, lambdaFunctions } =
+          this.props.schema.transform());
+      }
+      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
+    } catch (error) {
+      throw new AmplifyUserError<AmplifyDataError>(
+        'InvalidSchemaError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Cannot covert user schema',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
+
     let authorizationModes;
+
+    /**
+     * TODO - remove this after the data construct does work to remove the need for allow-listed IAM roles
+     */
+    const functionSchemaAccessRoles = functionSchemaAccess.map(
+      (accessEntry) =>
+        accessEntry.resourceProvider.getInstance(this.getInstanceProps)
+          .resources.lambda.role!
+    );
 
     try {
       authorizationModes = convertAuthorizationModesToCDK(
-        this.functionInstanceProvider,
+        this.getInstanceProps,
         this.providedAuthConfig,
-        this.props.authorizationModes
+        this.props.authorizationModes,
+        functionSchemaAccessRoles
       );
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
@@ -139,36 +184,82 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       this.props.authorizationModes
     );
 
-    const functionNameMap = convertFunctionNameMapToCDK(
-      this.functionInstanceProvider,
-      this.props.functions ?? {}
-    );
+    const propsFunctions = this.props.functions ?? {};
 
-    let amplifyGraphqlDefinition;
-    try {
-      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
-    } catch (error) {
-      throw new AmplifyUserError<AmplifyDataError>(
-        'InvalidSchemaError',
-        {
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Cannot covert user schema',
-        },
-        error instanceof Error ? error : undefined
-      );
-    }
-
-    return new AmplifyData(scope, this.defaultName, {
+    const functionNameMap = convertFunctionNameMapToCDK(this.getInstanceProps, {
+      ...propsFunctions,
+      ...lambdaFunctions,
+    });
+    const amplifyApi = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
       definition: amplifyGraphqlDefinition,
       authorizationModes,
       outputStorageStrategy: this.outputStorageStrategy,
       functionNameMap,
-      translationBehavior: { sandboxModeEnabled },
+      translationBehavior: {
+        sandboxModeEnabled,
+        /**
+         * The destructive updates should be always allowed in backend definition and not to be controlled on the IaC
+         * The CI/CD check should take the responsibility to validate if any tables are being replaced and determine whether to execute the changeset
+         */
+        allowDestructiveGraphqlSchemaUpdates: true,
+      },
     });
+
+    /**
+     * Enable the table replacement upon GSI update
+     * This is allowed in sandbox mode ONLY
+     */
+    const isSandboxDeployment =
+      scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
+    if (isSandboxDeployment) {
+      Aspects.of(amplifyApi).add(new ReplaceTableUponGsiUpdateOverrideAspect());
+    }
+
+    convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
+
+    const ssmEnvironmentEntries =
+      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
+        [`${this.props.name}_GRAPHQL_ENDPOINT`]:
+          amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
+      });
+
+    const policyGenerator = new AppSyncPolicyGenerator(
+      amplifyApi.resources.graphqlApi
+    );
+
+    functionSchemaAccess.forEach((accessDefinition) => {
+      const policy = policyGenerator.generateGraphqlAccessPolicy(
+        accessDefinition.actions
+      );
+      accessDefinition.resourceProvider
+        .getInstance(this.getInstanceProps)
+        .getResourceAccessAcceptor()
+        .acceptResourceAccess(policy, ssmEnvironmentEntries);
+    });
+
+    return amplifyApi;
   };
+}
+
+const REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME: keyof TranslationBehavior =
+  'replaceTableUponGsiUpdate';
+
+/**
+ * Aspect class to modify the amplify managed DynamoDB table
+ * to allow table replacement upon GSI update
+ */
+class ReplaceTableUponGsiUpdateOverrideAspect implements IAspect {
+  public visit(scope: IConstruct): void {
+    if (AmplifyDynamoDbTableWrapper.isAmplifyDynamoDbTableResource(scope)) {
+      // These value setters are not exposed in the wrapper
+      // Need to use the property override to escape the hatch
+      scope.addPropertyOverride(
+        REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME,
+        true
+      );
+    }
+  }
 }
 
 /**

@@ -5,6 +5,7 @@ import * as _path from 'path';
 import { type PackageManagerController } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
+import { format } from '../format/format.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 /**
@@ -52,9 +53,14 @@ export abstract class PackageManagerControllerBase
   /**
    * getWelcomeMessage - returns a welcome message for the customer
    */
-  getWelcomeMessage = () =>
-    `Run \`${this.binaryRunner} amplify help\` for a list of available commands. 
-Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
+  getWelcomeMessage = () => {
+    const { amplifyCommand } = format.runner(this.binaryRunner);
+    const welcomeInfo = [
+      `Get started by running ${amplifyCommand('sandbox')}.`,
+      `Run ${amplifyCommand('help')} for a list of available commands. `,
+    ];
+    return format.list(welcomeInfo);
+  };
 
   /**
    * initializeProject - initializes a project in the project root by checking the package.json file
@@ -95,11 +101,6 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
    * initializeTsConfig - initializes a tsconfig.json file in the project root
    */
   async initializeTsConfig(targetDir: string) {
-    const pathsObj = JSON.stringify({
-      // The path here is coupled with backend-function's generated typedef file path
-      '@env/*': ['../.amplify/function-env/*'],
-    });
-
     const tscArgs = [
       'tsc',
       '--init',
@@ -111,8 +112,6 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       'bundler',
       '--target',
       'es2022',
-      '--paths',
-      pathsObj,
     ];
 
     await this.executeWithDebugLogger(
@@ -121,6 +120,25 @@ Get started by running \`${this.binaryRunner} amplify sandbox\`.`;
       tscArgs,
       this.execa,
       { preferLocal: true, localDir: targetDir }
+    );
+
+    const pathsObj = {
+      // The path here is coupled with backend-function's generated typedef file path
+      '@env/*': ['../.amplify/function-env/*'],
+    };
+
+    const tsConfigPath = this.path.resolve(targetDir, 'tsconfig.json');
+    const tsConfigContent = (
+      await this.fsp.readFile(tsConfigPath, 'utf-8')
+    ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, ''); // Removes all comments
+    const tsConfigObject = JSON.parse(tsConfigContent);
+
+    // Add paths object and overwrite the tsconfig file
+    tsConfigObject.compilerOptions.paths = pathsObj;
+    await this.fsp.writeFile(
+      tsConfigPath,
+      JSON.stringify(tsConfigObject),
+      'utf-8'
     );
   }
 

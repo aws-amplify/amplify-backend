@@ -62,8 +62,25 @@ void describe('packageManagerControllerFactory', () => {
 
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),
-        Error,
-        'Package Manager unsupported is not supported.'
+        {
+          message: 'Package Manager unsupported is not supported.',
+        }
+      );
+    });
+
+    void it('should throw an error for pnpm on Windows', () => {
+      const userAgent = 'pnpm/1.0.0 node/v15.0.0 darwin x64';
+      process.env.npm_config_user_agent = userAgent;
+      const packageManagerControllerFactory =
+        new PackageManagerControllerFactory(packageRoot, printer, 'win32');
+
+      assert.throws(
+        () => packageManagerControllerFactory.getPackageManagerController(),
+        {
+          message: 'Amplify does not support PNPM on Windows.',
+          details:
+            'Details: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md',
+        }
       );
     });
   });

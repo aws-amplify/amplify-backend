@@ -159,7 +159,7 @@ export class ClientConfigLegacyConverter {
     if (clientConfig.analytics) {
       const analyticsConfig: AnalyticsClientConfig = {
         Analytics: {
-          AWSPinpoint: {
+          Pinpoint: {
             appId: clientConfig.analytics.pinpoint_app_id,
             region: clientConfig.analytics.aws_region,
           },

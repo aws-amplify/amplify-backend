@@ -1,14 +1,21 @@
+import os from 'node:os';
 import fsp from 'fs/promises';
 import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
+import { cyan } from 'kleur/colors';
 import { Printer } from '@aws-amplify/cli-core';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
 void describe('YarnModernPackageManagerController', () => {
-  const fspMock = { writeFile: mock.fn(() => Promise.resolve()) };
+  const fspMock = {
+    readFile: mock.fn(() =>
+      Promise.resolve(JSON.stringify({ compilerOptions: {} }))
+    ),
+    writeFile: mock.fn(() => Promise.resolve()),
+  };
   const pathMock = {
     resolve: mock.fn(() => '/testProjectRoot'),
   };
@@ -17,6 +24,7 @@ void describe('YarnModernPackageManagerController', () => {
   const printerMock = { log: mock.fn() } as unknown as Printer;
 
   beforeEach(() => {
+    fspMock.readFile.mock.resetCalls();
     fspMock.writeFile.mock.resetCalls();
     pathMock.resolve.mock.resetCalls();
     execaMock.mock.resetCalls();
@@ -68,7 +76,9 @@ void describe('YarnModernPackageManagerController', () => {
 
       assert.equal(
         yarnModernPackageManagerController.getWelcomeMessage(),
-        'Run `yarn amplify help` for a list of available commands. \nGet started by running `yarn amplify sandbox`.'
+        ` - Get started by running ${cyan('yarn amplify sandbox')}.${
+          os.EOL
+        } - Run ${cyan('yarn amplify help')} for a list of available commands. `
       );
     });
   });
@@ -135,7 +145,7 @@ void describe('YarnModernPackageManagerController', () => {
 
       await yarnModernPackageManagerController.initializeTsConfig('./amplify');
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 2);
-      assert.equal(fspMock.writeFile.mock.callCount(), 1);
+      assert.equal(fspMock.writeFile.mock.callCount(), 2);
     });
   });
 });

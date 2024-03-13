@@ -1,11 +1,12 @@
-import { LogLevel } from '@aws-amplify/cli-core';
+import { EOL } from 'os';
+import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { printer } from './printer.js';
 
-const LEARN_MORE_USAGE_DATA_TRACKING_LINK = `https://docs.amplify.aws/gen2/reference/telemetry`;
+const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
+  'https://docs.amplify.aws/gen2/reference/telemetry';
 
 /**
  * Orchestration class that sets up a new Amplify project
@@ -52,49 +53,69 @@ export class AmplifyProjectCreator {
 
     await this.packageManagerController.initializeProject();
 
-    await printer.indicateProgress(
-      `Installing required dependencies`,
-      async () => {
-        await this.packageManagerController.installDependencies(
-          this.defaultProdPackages,
-          'prod'
-        );
+    printer.printNewLine();
+    printer.log(format.sectionHeader(`Installing devDependencies:`));
+    printer.log(format.list(this.defaultDevPackages));
 
-        await this.packageManagerController.installDependencies(
-          this.defaultDevPackages,
-          'dev'
-        );
-      }
+    printer.printNewLine();
+    printer.log(format.sectionHeader(`Installing dependencies:`));
+    printer.log(format.list(this.defaultProdPackages));
+    printer.printNewLine();
+
+    await printer.indicateProgress('Installing devDependencies', () =>
+      this.packageManagerController.installDependencies(
+        this.defaultDevPackages,
+        'dev'
+      )
     );
-
-    await printer.indicateProgress(`Creating template files`, async () => {
+    printer.print(`✔ DevDependencies installed`);
+    printer.printNewLine();
+    await printer.indicateProgress('Installing dependencies', () =>
+      this.packageManagerController.installDependencies(
+        this.defaultProdPackages,
+        'prod'
+      )
+    );
+    printer.print(`✔ Dependencies installed`);
+    printer.printNewLine();
+    await printer.indicateProgress('Creating template files', async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
-
       await this.initialProjectFileGenerator.generateInitialProjectFiles();
     });
+    printer.print(`✔ Template files created`);
+    printer.printNewLine();
 
-    printer.log('Successfully created a new project!');
+    printer.log(format.success('Successfully created a new project!'));
+    printer.printNewLine();
 
     const cdPreamble =
       process.cwd() === this.projectRoot
-        ? ''
-        : `Navigate to your project directory using
-'cd .${this.projectRoot.replace(process.cwd(), '')}'.
-Then get started with the following commands:
-`;
+        ? null
+        : `Navigate to your project directory using ${format.command(
+            `cd .${this.projectRoot.replace(process.cwd(), '')}`
+          )} and then:`;
+
+    printer.log(format.sectionHeader(`Welcome to AWS Amplify!`));
+
+    const instructionSteps = [
+      cdPreamble,
+      this.packageManagerController.getWelcomeMessage(),
+    ]
+      .filter(Boolean)
+      .join(EOL);
+
+    printer.log(instructionSteps);
+    printer.printNewLine();
 
     printer.log(
-      `Welcome to AWS Amplify! 
-${cdPreamble}
-${this.packageManagerController.getWelcomeMessage()}`
+      format.note(
+        `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${format.command(
+          'npx amplify configure telemetry disable'
+        )}. To learn more about telemetry, visit ${format.link(
+          LEARN_MORE_USAGE_DATA_TRACKING_LINK
+        )}`
+      )
     );
-
-    printer.log(
-      `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI.
-
-Participation is optional, and you may opt-out by using \`amplify configure telemetry disable\`.
-
-To learn more about telemetry, visit ${LEARN_MORE_USAGE_DATA_TRACKING_LINK}`
-    );
+    printer.printNewLine();
   };
 }
