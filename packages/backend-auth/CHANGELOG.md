@@ -1,5 +1,13 @@
 # @aws-amplify/backend-auth
 
+## 0.5.0-beta.5
+
+### Patch Changes
+
+- 937086b: require "resolution" in AmplifyUserError options
+  - @aws-amplify/backend-output-storage@0.4.0-beta.2
+  - @aws-amplify/auth-construct-alpha@0.6.0-beta.5
+
 ## 0.5.0-beta.4
 
 ### Minor Changes

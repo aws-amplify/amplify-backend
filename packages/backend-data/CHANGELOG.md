@@ -1,5 +1,17 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.5
+
+### Minor Changes
+
+- 91dae55: remove allowListedRoleNames from defineData
+
+### Patch Changes
+
+- 26cdffd: backend-data: add support for first-class defineFunction
+- 937086b: require "resolution" in AmplifyUserError options
+  - @aws-amplify/backend-output-storage@0.4.0-beta.2
+
 ## 0.10.0-beta.4
 
 ### Minor Changes
