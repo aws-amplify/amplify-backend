@@ -12,7 +12,7 @@ import {
   GraphqlClientConfig,
   StorageClientConfig,
 } from '../index.js';
-import { RestAPIClientConfig } from '../client-config-types/rest_api_client_config.js';
+import { RestApiClientConfig } from '../client-config-types/rest_api_client_config.js';
 
 /**
  * Converts Gen2 client config to the legacy format.
@@ -209,7 +209,7 @@ export class ClientConfigLegacyConverter {
 
     // Rest API
     if (clientConfig.api && clientConfig.api.endpoints) {
-      const restAPIConfig: RestAPIClientConfig = { aws_cloud_logic_custom: [] };
+      const restAPIConfig: RestApiClientConfig = { aws_cloud_logic_custom: [] };
       for (const apiEndpoint of clientConfig.api.endpoints) {
         restAPIConfig.aws_cloud_logic_custom.push({
           endpoint: apiEndpoint.url,
@@ -234,7 +234,7 @@ export class ClientConfigLegacyConverter {
 
   isClientConfigV1 = (
     clientConfig: ClientConfig
-  ): clientConfig is clientConfigTypesV1.AWSAmplifyGen2BackendOutputs => {
+  ): clientConfig is clientConfigTypesV1.AWSAmplifyBackendOutputs => {
     return clientConfig.version === '1';
   };
 }

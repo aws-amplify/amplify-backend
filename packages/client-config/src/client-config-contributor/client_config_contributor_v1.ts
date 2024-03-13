@@ -54,7 +54,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       obj[key] = JSON.parse(value);
     };
 
-    const authClientConfig: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
+    const authClientConfig: clientConfigTypesV1.AWSAmplifyBackendOutputs = {
       version: '1',
     };
 
@@ -197,7 +197,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
     if (graphqlOutput === undefined) {
       return {};
     }
-    const config: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
+    const config: clientConfigTypesV1.AWSAmplifyBackendOutputs = {
       version: '1',
     };
 
@@ -246,7 +246,7 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
     if (storageOutput === undefined) {
       return {};
     }
-    const config: clientConfigTypesV1.AWSAmplifyGen2BackendOutputs = {
+    const config: clientConfigTypesV1.AWSAmplifyBackendOutputs = {
       version: '1',
     };
 

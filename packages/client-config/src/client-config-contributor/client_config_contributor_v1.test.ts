@@ -67,7 +67,7 @@ void describe('auth client config contributor v1', () => {
           identity_pool_id: 'testIdentityPoolId',
           unauthenticated_identities_enabled: true,
         },
-      } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
+      } as clientConfigTypesV1.AWSAmplifyBackendOutputs
     );
   });
 
@@ -93,7 +93,7 @@ void describe('auth client config contributor v1', () => {
           aws_region: 'testRegion',
           identity_pool_id: 'testIdentityPoolId',
         },
-      } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
+      } as clientConfigTypesV1.AWSAmplifyBackendOutputs
     );
   });
 
@@ -156,7 +156,7 @@ void describe('auth client config contributor v1', () => {
           oauth_response_type: 'code',
           identity_providers: ['provider1', 'provider2'],
         },
-      } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
+      } as clientConfigTypesV1.AWSAmplifyBackendOutputs
     );
   });
 });
@@ -223,7 +223,7 @@ void describe('data client config contributor v1', () => {
         url: 'testApiEndpoint',
         aws_region: 'us-east-1',
       },
-    } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs);
+    } as clientConfigTypesV1.AWSAmplifyBackendOutputs);
   });
 
   void it('returns translated config with model introspection when resolvable', async () => {
@@ -273,7 +273,7 @@ void describe('data client config contributor v1', () => {
           enums: {},
         },
       },
-    } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs);
+    } as clientConfigTypesV1.AWSAmplifyBackendOutputs);
   });
 });
 
@@ -317,7 +317,7 @@ void describe('storage client config contributor v1', () => {
           aws_region: 'testRegion',
           bucket_name: 'testBucketName',
         },
-      } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
+      } as clientConfigTypesV1.AWSAmplifyBackendOutputs
     );
   });
 });

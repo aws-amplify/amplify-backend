@@ -4,7 +4,7 @@ import { PlatformClientConfig } from './platform_client_config.js';
 import { StorageClientConfig } from './storage_client_config.js';
 import { CustomClientConfig } from './custom_client_config.js';
 import { GeoClientConfig } from './geo_client_config.js';
-import { RestAPIClientConfig } from './rest_api_client_config.js';
+import { RestApiClientConfig } from './rest_api_client_config.js';
 import { AnalyticsClientConfig } from './analytics_client_config.js';
 import { NotificationsClientConfig } from './notifications_client_config.js';
 
@@ -20,7 +20,7 @@ export type ClientConfigLegacy = Partial<
     GeoClientConfig &
     GraphqlClientConfig &
     NotificationsClientConfig &
-    RestAPIClientConfig &
+    RestApiClientConfig &
     StorageClientConfig &
     PlatformClientConfig &
     CustomClientConfig
@@ -31,7 +31,7 @@ export type ClientConfigLegacy = Partial<
  * Create union for supported versions here, such as
  * ClientConfig = clientConfigTypesV1.AWSAmplifyGen2BackendOutputs | clientConfigTypesV2.AWSAmplifyGen2BackendOutputs;
  */
-export type ClientConfig = clientConfigTypesV1.AWSAmplifyGen2BackendOutputs;
+export type ClientConfig = clientConfigTypesV1.AWSAmplifyBackendOutputs;
 
 export { clientConfigTypesV1 };
 
@@ -61,7 +61,7 @@ export const DEFAULT_GEN2_CLIENT_CONFIG_VERSION = ClientConfigVersions.V1;
  * : never;
  */
 export type ClientConfigVersionType<T> = T extends '1'
-  ? clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
+  ? clientConfigTypesV1.AWSAmplifyBackendOutputs
   : never;
 
 export enum ClientConfigFormat {

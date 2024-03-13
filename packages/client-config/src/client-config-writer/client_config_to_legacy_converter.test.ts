@@ -9,7 +9,7 @@ import {
   CustomClientConfig,
   GeoClientConfig,
   GraphqlClientConfig,
-  RestAPIClientConfig,
+  RestApiClientConfig,
   StorageClientConfig,
 } from '../index.js';
 import { AmplifyFault } from '@aws-amplify/platform-core';
@@ -338,7 +338,7 @@ void describe('ClientConfigLegacyConverter', () => {
       },
     };
 
-    const expectedLegacyConfig: RestAPIClientConfig = {
+    const expectedLegacyConfig: RestApiClientConfig = {
       aws_cloud_logic_custom: [
         { endpoint: 'endPoint1', name: 'name1', region: 'region1' },
         {
