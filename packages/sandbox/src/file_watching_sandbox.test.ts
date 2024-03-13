@@ -532,6 +532,7 @@ void describe('Sandbox using local project name resolver', () => {
         Promise.reject(
           new AmplifyUserError('CFNUpdateNotSupportedError', {
             message: 'some error message',
+            resolution: 'test resolution',
           })
         ),
       { times: 1 } //mock implementation once
@@ -574,6 +575,7 @@ void describe('Sandbox using local project name resolver', () => {
         Promise.reject(
           new AmplifyUserError('CFNUpdateNotSupportedError', {
             message: 'some error message',
+            resolution: 'test resolution',
           })
         ),
       { times: 1 } //mock implementation once
