@@ -126,7 +126,7 @@ export type ConstructFactoryGetInstanceProps = {
     importPathVerifier?: ImportPathVerifier;
 };
 
-// @public (undocumented)
+// @public
 export type DeepPartial<T> = {
     [P in keyof T]?: DeepPartial<T[P]>;
 };

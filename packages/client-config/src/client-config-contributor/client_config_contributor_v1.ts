@@ -234,9 +234,9 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
   /**
    * Given some BackendOutput, contribute the Storage portion of the client config
    */
-  contribute = async ({
+  contribute = ({
     [storageOutputKey]: storageOutput,
-  }: UnifiedBackendOutput): Promise<ClientConfig | Record<string, never>> => {
+  }: UnifiedBackendOutput): ClientConfig | Record<string, never> => {
     if (storageOutput === undefined) {
       return {};
     }

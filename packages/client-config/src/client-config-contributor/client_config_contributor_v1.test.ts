@@ -3,6 +3,7 @@ import {
   AuthClientConfigContributor,
   CustomClientConfigContributor,
   DataClientConfigContributor,
+  StorageClientConfigContributor,
   VersionContributor,
 } from './client_config_contributor_v1.js';
 import {
@@ -15,6 +16,7 @@ import {
   authOutputKey,
   customOutputKey,
   graphqlOutputKey,
+  storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
@@ -273,6 +275,51 @@ void describe('data client config contributor v1', () => {
         },
       },
     } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs);
+  });
+});
+
+void describe('storage client config contributor v1', () => {
+  void it('returns an empty object if output has no storage output', () => {
+    const contributor = new StorageClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [graphqlOutputKey]: {
+          version: '1',
+          payload: {
+            awsAppsyncApiEndpoint: 'testApiEndpoint',
+            awsAppsyncRegion: 'us-east-1',
+            awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
+            awsAppsyncApiKey: 'testApiKey',
+            awsAppsyncApiId: 'testApiId',
+            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
+          },
+        },
+      }),
+      {}
+    );
+  });
+
+  void it('returns translated config when output has auth', () => {
+    const contributor = new StorageClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [storageOutputKey]: {
+          version: '1',
+          payload: {
+            bucketName: 'testBucketName',
+            storageRegion: 'testRegion',
+          },
+        },
+      }),
+      {
+        version: '1',
+        storage: {
+          aws_region: 'testRegion',
+          bucket_name: 'testBucketName',
+        },
+      } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs
+    );
   });
 });
 

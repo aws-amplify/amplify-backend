@@ -141,7 +141,7 @@ type AwsAppsyncAuthorizationType = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AW
 // @public (undocumented)
 type AwsRegion = string;
 
-// @public (undocumented)
+// @public
 export type ClientConfig = clientConfigTypesV1.AWSAmplifyGen2BackendOutputs;
 
 // @public (undocumented)
@@ -196,11 +196,14 @@ export type ClientConfigVersionType<T> = T extends '1' ? clientConfigTypesV1.AWS
 
 // @public (undocumented)
 export type CustomClientConfig = {
-    custom: Record<string, string>;
+    custom: Record<string, unknown>;
 };
 
 // @public (undocumented)
 export const DEFAULT_CLIENT_CONFIG: ClientConfigVersion;
+
+// @public (undocumented)
+export const DEFAULT_GEN2_CLIENT_CONFIG_VERSION = ClientConfigVersions.V1;
 
 // @public
 export const generateClientConfig: <T extends "0" | "1">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
