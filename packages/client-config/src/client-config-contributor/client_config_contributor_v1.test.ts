@@ -222,7 +222,6 @@ void describe('data client config contributor v1', () => {
         authorization_types: ['API_KEY'],
         url: 'testApiEndpoint',
         aws_region: 'us-east-1',
-        model_introspection: {},
       },
     } as clientConfigTypesV1.AWSAmplifyGen2BackendOutputs);
   });
@@ -251,7 +250,7 @@ void describe('data client config contributor v1', () => {
           awsAppsyncRegion: 'us-east-1',
           awsAppsyncAuthenticationType: 'API_KEY',
           awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
-          awsAppsyncConflictResolutionMode: undefined,
+          awsAppsyncConflictResolutionMode: 'AUTO_MERGE',
           awsAppsyncApiKey: 'testApiKey',
           awsAppsyncApiId: 'testApiId',
           amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
@@ -264,7 +263,7 @@ void describe('data client config contributor v1', () => {
         api_key: 'testApiKey',
         default_authorization_type: 'API_KEY',
         authorization_types: ['API_KEY'],
-        //aws_appsync_conflictResolutionMode: undefined,
+        conflict_resolution_mode: 'AUTO_MERGE',
         url: 'testApiEndpoint',
         aws_region: 'us-east-1',
         model_introspection: {

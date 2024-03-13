@@ -50,7 +50,7 @@ void describe('UnifiedClientConfigGenerator', () => {
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
             awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
-            awsAppsyncConflictResolutionMode: undefined,
+            awsAppsyncConflictResolutionMode: 'AUTO_MERGE',
             awsAppsyncApiKey: 'testApiKey',
             awsAppsyncApiId: 'testApiId',
             amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
@@ -102,12 +102,11 @@ void describe('UnifiedClientConfigGenerator', () => {
           api_key: 'testApiKey',
           default_authorization_type: 'API_KEY',
           authorization_types: ['API_KEY'],
-          model_introspection: {},
+          conflict_resolution_mode: 'AUTO_MERGE',
         },
         version: '1',
       };
 
-      // aws_appsync_conflictResolutionMode: undefined,
       assert.deepStrictEqual(result, expectedClientConfig);
     });
 

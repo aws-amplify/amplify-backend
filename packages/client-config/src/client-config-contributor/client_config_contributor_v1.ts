@@ -201,11 +201,6 @@ export class DataClientConfigContributor implements ClientConfigContributor {
       version: '1',
     };
 
-    const modelIntrospection =
-      await this.modelIntrospectionSchemaAdapter.getModelIntrospectionSchemaFromS3Uri(
-        graphqlOutput.payload.amplifyApiModelSchemaS3Uri
-      );
-
     config.data = {
       url: graphqlOutput.payload.awsAppsyncApiEndpoint,
       aws_region: graphqlOutput.payload.awsAppsyncRegion,
@@ -216,12 +211,23 @@ export class DataClientConfigContributor implements ClientConfigContributor {
         graphqlOutput.payload.awsAppsyncAdditionalAuthenticationTypes?.split(
           ','
         ) as AwsAppsyncAuthorizationType[],
-
-      model_introspection:
-        (modelIntrospection as {
-          [k: string]: unknown;
-        }) ?? {},
     };
+
+    const modelIntrospection =
+      await this.modelIntrospectionSchemaAdapter.getModelIntrospectionSchemaFromS3Uri(
+        graphqlOutput.payload.amplifyApiModelSchemaS3Uri
+      );
+
+    if (modelIntrospection) {
+      config.data.model_introspection = modelIntrospection as {
+        [k: string]: unknown;
+      };
+    }
+
+    if (graphqlOutput.payload.awsAppsyncConflictResolutionMode) {
+      config.data.conflict_resolution_mode = graphqlOutput.payload
+        .awsAppsyncConflictResolutionMode as typeof config.data.conflict_resolution_mode;
+    }
 
     return config;
   };

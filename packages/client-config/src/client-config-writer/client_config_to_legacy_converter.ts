@@ -141,7 +141,10 @@ export class ClientConfigLegacyConverter {
           clientConfig.data.authorization_types.join(',');
       }
 
-      //TBD dataConfig.aws_appsync_conflictResolutionMode
+      if (clientConfig.data.conflict_resolution_mode) {
+        dataConfig.aws_appsync_conflictResolutionMode =
+          clientConfig.data.conflict_resolution_mode;
+      }
 
       legacyConfig = { ...legacyConfig, ...dataConfig };
     }

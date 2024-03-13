@@ -139,12 +139,16 @@ export interface AWSAmplifyGen2BackendOutputs {
     /**
      * generated model introspection schema for use with generateClient
      */
-    model_introspection: {
+    model_introspection?: {
       [k: string]: unknown;
     };
     api_key?: string;
     default_authorization_type: AwsAppsyncAuthorizationType;
     authorization_types: AwsAppsyncAuthorizationType[];
+    conflict_resolution_mode?:
+      | 'AUTO_MERGE'
+      | 'OPTIMISTIC_CONCURRENCY'
+      | 'LAMBDA';
   };
   /**
    * Outputs manually specified by developers for use with frontend library

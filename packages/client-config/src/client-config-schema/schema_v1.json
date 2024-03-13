@@ -237,12 +237,15 @@
           "items": {
             "$ref": "#/$defs/aws_appsync_authorization_type"
           }
+        },
+        "conflict_resolution_mode": {
+          "type": "string",
+          "enum": ["AUTO_MERGE", "OPTIMISTIC_CONCURRENCY", "LAMBDA"]
         }
       },
       "required": [
         "aws_region",
         "url",
-        "model_introspection",
         "default_authorization_type",
         "authorization_types"
       ]

@@ -108,12 +108,13 @@ interface AWSAmplifyGen2BackendOutputs {
     data?: {
         aws_region: AwsRegion;
         url: string;
-        model_introspection: {
+        model_introspection?: {
             [k: string]: unknown;
         };
         api_key?: string;
         default_authorization_type: AwsAppsyncAuthorizationType;
         authorization_types: AwsAppsyncAuthorizationType[];
+        conflict_resolution_mode?: 'AUTO_MERGE' | 'OPTIMISTIC_CONCURRENCY' | 'LAMBDA';
     };
     geo?: {
         aws_region: string;
