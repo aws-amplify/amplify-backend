@@ -26,11 +26,6 @@ export class FunctionEnvironmentTypeGenerator {
     const amplifyBackendEnvVarTypeName = 'AmplifyBackendEnvVars';
 
     const declarations = [];
-    const typeDefFileDirname = path.dirname(this.typeDefFilePath);
-
-    if (!fs.existsSync(typeDefFileDirname)) {
-      fs.mkdirSync(typeDefFileDirname, { recursive: true });
-    }
 
     // Add Lambda runtime environment variables to the typed shim
     declarations.push(
@@ -65,6 +60,24 @@ export class FunctionEnvironmentTypeGenerator {
       EOL
     )}`;
 
-    fs.writeFileSync(this.typeDefFilePath, content);
+    this.writeShimFile(content);
   }
+
+  /**
+   * Generate an un-typed process.env shim
+   */
+  generateProcessEnvShim = () => {
+    const content = 'export const env = process.env;';
+    this.writeShimFile(content);
+  };
+
+  private writeShimFile = (content: string) => {
+    const typeDefFileDirname = path.dirname(this.typeDefFilePath);
+
+    if (!fs.existsSync(typeDefFileDirname)) {
+      fs.mkdirSync(typeDefFileDirname, { recursive: true });
+    }
+
+    fs.writeFileSync(this.typeDefFilePath, content);
+  };
 }

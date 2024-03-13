@@ -282,6 +282,13 @@ class AmplifyFunction
       .map((line) => line.replace(/\/\/.*$/, '')) // strip out inline comments because the banner is going to be flattened into a single line
       .join('');
 
+    const functionEnvironmentTypeGenerator =
+      new FunctionEnvironmentTypeGenerator(id);
+
+    // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
+    // This will be overwritten with the typed file at the end of synthesis
+    functionEnvironmentTypeGenerator.generateProcessEnvShim();
+
     const functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
       entry: props.entry,
       timeout: Duration.seconds(props.timeoutSeconds),
@@ -298,7 +305,7 @@ class AmplifyFunction
       functionLambda,
       props.environment,
       backendSecretResolver,
-      new FunctionEnvironmentTypeGenerator(id)
+      functionEnvironmentTypeGenerator
     );
 
     this.resources = {
