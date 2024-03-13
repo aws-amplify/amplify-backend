@@ -1,4 +1,3 @@
-import { COLOR, color } from '../colors.js';
 import { EOL } from 'os';
 
 export type RecordValue = string | number | string[] | Date;
@@ -39,12 +38,8 @@ export class Printer {
   /**
    * Prints a given message (with optional color) to output stream.
    */
-  print = (message: string, colorName?: COLOR) => {
-    if (colorName) {
-      this.stdout.write(color(colorName, message));
-    } else {
-      this.stdout.write(message);
-    }
+  print = (message: string) => {
+    this.stdout.write(message);
   };
 
   /**
