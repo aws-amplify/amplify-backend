@@ -2,7 +2,7 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "@env/*": ["./.amplify/function-env/*"]
+      "@env/*": ["./test-types/*"]
     }
   },
   "include": ["../../**/*", ".amplify/**/*"]
