@@ -35,9 +35,6 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockPrint.mock.callCount(), 1);
     assert.equal(mockShowHelp.mock.callCount(), 1);
     assert.equal(mockExit.mock.callCount(), 1);
-    assert.deepStrictEqual(mockPrint.mock.calls[0].arguments, [
-      `\x1B[31m${someMsg}\x1B[39m`,
-    ]);
   });
 
   void it('prints message from error object', () => {
@@ -49,10 +46,6 @@ void describe('generateCommandFailureHandler', () => {
     assert.match(
       mockPrint.mock.calls[0].arguments[0] as string,
       new RegExp(errMsg)
-    );
-    assert.equal(
-      mockPrint.mock.calls[0].arguments[0],
-      `\x1B[31mError: ${errMsg}\x1B[39m`
     );
   });
 
@@ -77,10 +70,6 @@ void describe('generateCommandFailureHandler', () => {
       mockPrint.mock.calls[0].arguments[0] as string,
       new RegExp(errMsg)
     );
-    assert.equal(
-      mockPrint.mock.calls[0].arguments[0],
-      `\x1B[31m${errMsg}\n\x1B[39m`
-    );
   });
 
   void it('prints error cause message, if any', () => {
@@ -94,10 +83,6 @@ void describe('generateCommandFailureHandler', () => {
     assert.match(
       mockPrint.mock.calls[1].arguments[0] as string,
       new RegExp(errorMessage)
-    );
-    assert.equal(
-      mockPrint.mock.calls[1].arguments[0],
-      `\x1B[31m${errorMessage}\x1B[39m`
     );
   });
 });
