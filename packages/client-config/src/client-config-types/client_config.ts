@@ -47,7 +47,8 @@ export const DEFAULT_CLIENT_CONFIG: ClientConfigVersion =
   ClientConfigVersions.LEGACY;
 
 // Client config version that is used by `backend.addOutput()`
-export const DEFAULT_GEN2_CLIENT_CONFIG_VERSION = ClientConfigVersions.V1;
+export const DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT =
+  ClientConfigVersions.V1;
 
 /**
  * Return type of `getClientConfig`. This types narrow the returned client config version
@@ -74,5 +75,5 @@ export enum ClientConfigFormat {
 
 export enum ClientConfigFileName {
   LEGACY = 'amplifyconfiguration',
-  GEN2 = 'amplify-outputs',
+  DEFAULT = 'amplify-outputs',
 }

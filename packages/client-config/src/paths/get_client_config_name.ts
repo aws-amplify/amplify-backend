@@ -11,5 +11,5 @@ export const getClientConfigFileName = (version: ClientConfigVersion) => {
   const isLegacyConfig = version === ClientConfigVersions.LEGACY;
   return isLegacyConfig
     ? ClientConfigFileName.LEGACY
-    : ClientConfigFileName.GEN2;
+    : ClientConfigFileName.DEFAULT;
 };

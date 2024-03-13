@@ -22,7 +22,7 @@ import { Backend, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 import {
   ClientConfig,
-  DEFAULT_GEN2_CLIENT_CONFIG_VERSION,
+  DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT,
 } from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
 import { ObjectAccumulator } from '@aws-amplify/platform-core';
@@ -128,7 +128,8 @@ export class BackendFactory<
   addOutput = (clientConfigPart: DeepPartial<ClientConfig>) => {
     const { version } = clientConfigPart;
     if (!version) {
-      clientConfigPart.version = DEFAULT_GEN2_CLIENT_CONFIG_VERSION;
+      clientConfigPart.version =
+        DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT;
     }
     this.customOutputsAccumulator.addOutput(clientConfigPart);
   };

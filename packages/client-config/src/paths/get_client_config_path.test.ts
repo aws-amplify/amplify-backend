@@ -33,7 +33,7 @@ void describe('getClientConfigPath', () => {
 
   void it('returns path to Gen2 config file with provided dir path', async () => {
     const configPath = await getClientConfigPath(
-      ClientConfigFileName.GEN2,
+      ClientConfigFileName.DEFAULT,
       testPath
     );
     assert.equal(
@@ -41,14 +41,14 @@ void describe('getClientConfigPath', () => {
       path.join(
         process.cwd(),
         testPath,
-        `${ClientConfigFileName.GEN2}.${ClientConfigFormat.JSON}`
+        `${ClientConfigFileName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
     );
   });
 
   void it('returns path to Gen2 config file with provided dir path and format', async () => {
     const configPath = await getClientConfigPath(
-      ClientConfigFileName.GEN2,
+      ClientConfigFileName.DEFAULT,
       testPath,
       ClientConfigFormat.JSON
     );
@@ -57,14 +57,14 @@ void describe('getClientConfigPath', () => {
       path.join(
         process.cwd(),
         testPath,
-        `${ClientConfigFileName.GEN2}.${ClientConfigFormat.JSON}`
+        `${ClientConfigFileName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
     );
   });
 
   void it('returns path to Gen2 config file with provided format, no dir path', async () => {
     const configPath = await getClientConfigPath(
-      ClientConfigFileName.GEN2,
+      ClientConfigFileName.DEFAULT,
       undefined,
       ClientConfigFormat.TS
     );
@@ -72,7 +72,7 @@ void describe('getClientConfigPath', () => {
       configPath,
       path.join(
         process.cwd(),
-        `${ClientConfigFileName.GEN2}.${ClientConfigFormat.TS}`
+        `${ClientConfigFileName.DEFAULT}.${ClientConfigFormat.TS}`
       )
     );
   });
@@ -81,7 +81,7 @@ void describe('getClientConfigPath', () => {
     await assert.rejects(
       async () =>
         await getClientConfigPath(
-          ClientConfigFileName.GEN2,
+          ClientConfigFileName.DEFAULT,
           `${testPath}/testConfig.json`
         ),
       new Error(
@@ -94,7 +94,7 @@ void describe('getClientConfigPath', () => {
     await assert.rejects(
       async () =>
         await getClientConfigPath(
-          ClientConfigFileName.GEN2,
+          ClientConfigFileName.DEFAULT,
           'some/not/existing/path'
         ),
       new Error(
@@ -105,7 +105,7 @@ void describe('getClientConfigPath', () => {
 
   void it('returns path to Gen2 config file with absolute path', async () => {
     const configPath = await getClientConfigPath(
-      ClientConfigFileName.GEN2,
+      ClientConfigFileName.DEFAULT,
       `${process.cwd()}/${testPath}`
     );
     assert.equal(
@@ -113,7 +113,7 @@ void describe('getClientConfigPath', () => {
       path.join(
         process.cwd(),
         testPath,
-        `${ClientConfigFileName.GEN2}.${ClientConfigFormat.JSON}`
+        `${ClientConfigFileName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
     );
   });
@@ -143,7 +143,7 @@ void describe('getClientConfigPath', () => {
   expectedFileExtensions.forEach((entry) => {
     void it(`path for ${entry.format} should have ${entry.expectedFileExtension} suffix`, async () => {
       const configPath = await getClientConfigPath(
-        ClientConfigFileName.GEN2,
+        ClientConfigFileName.DEFAULT,
         undefined,
         entry.format
       );
