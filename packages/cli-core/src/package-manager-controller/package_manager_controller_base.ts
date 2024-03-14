@@ -114,6 +114,7 @@ export abstract class PackageManagerControllerBase
         forceConsistentCasingInFileNames: true,
         strict: true,
         skipLibCheck: true,
+        // The path here is coupled with backend-function's generated typedef file path
         paths: { '@env/*': ['../.amplify/function-env/*'] },
       },
     };
