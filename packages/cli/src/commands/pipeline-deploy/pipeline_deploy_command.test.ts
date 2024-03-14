@@ -17,7 +17,7 @@ import {
   Printer,
 } from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { DEFAULT_CLIENT_CONFIG } from '@aws-amplify/client-config';
+import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
 
 void describe('deploy command', () => {
   const credentialProvider = fromNodeProviderChain();
@@ -130,7 +130,7 @@ void describe('deploy command', () => {
         namespace: 'abc',
         type: 'branch',
       },
-      DEFAULT_CLIENT_CONFIG,
+      DEFAULT_CLIENT_CONFIG_VERSION,
       'src',
     ]);
   });

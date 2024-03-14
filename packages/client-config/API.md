@@ -60,7 +60,7 @@ export type AuthClientConfig = {
 };
 
 // @public
-interface AWSAmplifyGen2BackendOutputs {
+interface AWSAmplifyBackendOutputs {
     $schema?: string;
     analytics?: {
         aws_region: string;
@@ -145,12 +145,12 @@ type AwsAppsyncAuthorizationType = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AW
 type AwsRegion = string;
 
 // @public
-export type ClientConfig = clientConfigTypesV1.AWSAmplifyGen2BackendOutputs;
+export type ClientConfig = clientConfigTypesV1.AWSAmplifyBackendOutputs;
 
 // @public (undocumented)
-export enum ClientConfigFileName {
+export enum ClientConfigFileBaseName {
     // (undocumented)
-    GEN2 = "amplify-outputs",
+    DEFAULT = "amplify-outputs",
     // (undocumented)
     LEGACY = "amplifyconfiguration"
 }
@@ -170,13 +170,13 @@ export enum ClientConfigFormat {
 }
 
 // @public
-export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfig & GeoClientConfig & GraphqlClientConfig & NotificationsClientConfig & RestAPIClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
+export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfig & GeoClientConfig & GraphqlClientConfig & NotificationsClientConfig & RestApiClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
 
 declare namespace clientConfigTypesV1 {
     export {
         AwsAppsyncAuthorizationType,
         AwsRegion,
-        AWSAmplifyGen2BackendOutputs,
+        AWSAmplifyBackendOutputs,
         AmazonCognitoStandardAttributesConfig,
         AmazonLocationServiceConfig
     }
@@ -184,10 +184,10 @@ declare namespace clientConfigTypesV1 {
 export { clientConfigTypesV1 }
 
 // @public (undocumented)
-export type ClientConfigVersion = `${ClientConfigVersions}`;
+export type ClientConfigVersion = `${ClientConfigVersionOption}`;
 
 // @public (undocumented)
-export enum ClientConfigVersions {
+export enum ClientConfigVersionOption {
     // (undocumented)
     LEGACY = "0",
     // (undocumented)
@@ -195,7 +195,7 @@ export enum ClientConfigVersions {
 }
 
 // @public
-export type ClientConfigVersionType<T> = T extends '1' ? clientConfigTypesV1.AWSAmplifyGen2BackendOutputs : never;
+export type ClientConfigVersionTemplateType<T> = T extends '1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
 
 // @public (undocumented)
 export type CustomClientConfig = {
@@ -203,13 +203,13 @@ export type CustomClientConfig = {
 };
 
 // @public (undocumented)
-export const DEFAULT_CLIENT_CONFIG: ClientConfigVersion;
+export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public (undocumented)
-export const DEFAULT_GEN2_CLIENT_CONFIG_VERSION = ClientConfigVersions.V1;
+export const DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT = ClientConfigVersionOption.V1;
 
 // @public
-export const generateClientConfig: <T extends "1" | "0">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionType<T>>;
+export const generateClientConfig: <T extends "1" | "0">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
 
 // @public
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
@@ -238,10 +238,10 @@ export type GeoClientConfig = {
 };
 
 // @public
-export const getClientConfigFileName: (version: ClientConfigVersion) => ClientConfigFileName;
+export const getClientConfigFileName: (version: ClientConfigVersion) => ClientConfigFileBaseName;
 
 // @public
-export const getClientConfigPath: (fileName: ClientConfigFileName, outDir?: string, format?: ClientConfigFormat) => Promise<string>;
+export const getClientConfigPath: (fileName: ClientConfigFileBaseName, outDir?: string, format?: ClientConfigFormat) => Promise<string>;
 
 // @public
 export type GraphqlClientConfig = {
@@ -296,7 +296,7 @@ export type PlatformClientConfig = {
 };
 
 // @public (undocumented)
-export type RestAPIClientConfig = {
+export type RestApiClientConfig = {
     aws_cloud_logic_custom: {
         name: string;
         endpoint: string;

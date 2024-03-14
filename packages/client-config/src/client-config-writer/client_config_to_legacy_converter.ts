@@ -15,7 +15,7 @@ import {
 import { RestApiClientConfig } from '../client-config-types/rest_api_client_config.js';
 
 /**
- * Converts Gen2 client config to the legacy format.
+ * Converts unified client config to the legacy format.
  */
 export class ClientConfigLegacyConverter {
   /**
@@ -223,10 +223,7 @@ export class ClientConfigLegacyConverter {
 
     // Custom
     if (clientConfig.custom) {
-      legacyConfig = {
-        ...legacyConfig,
-        custom: { ...clientConfig.custom } as Record<string, string>,
-      };
+      legacyConfig.custom = clientConfig.custom;
     }
 
     return legacyConfig;

@@ -12,7 +12,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import {
-  ClientConfigFileName,
+  ClientConfigFileBaseName,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { TestBranch, amplifyAppPool } from './amplify_app_pool.js';
@@ -131,7 +131,7 @@ void describe('getting started happy path', async () => {
     ).run();
 
     const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(ClientConfigFileName.LEGACY, tempDir)
+      await getClientConfigPath(ClientConfigFileBaseName.LEGACY, tempDir)
     );
 
     assert.ok(clientConfigStats.isFile());

@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { ClientConfigFormatterGen2 } from './client_config_formatter_gen2.js';
+import { ClientConfigFormatterDefault } from './client_config_formatter_default.js';
 import {
   ClientConfig,
   ClientConfigFormat,
@@ -32,8 +32,8 @@ void describe('client config formatter', () => {
     },
   };
 
-  const clientConfigFormatter: ClientConfigFormatterGen2 =
-    new ClientConfigFormatterGen2();
+  const clientConfigFormatter: ClientConfigFormatterDefault =
+    new ClientConfigFormatterDefault();
 
   void it('formats config as json', () => {
     const formattedConfig = clientConfigFormatter.format(
@@ -59,7 +59,7 @@ void describe('client config formatter', () => {
   void it('throws error for non-supported format', () => {
     assert.throws(
       () => clientConfigFormatter.format(clientConfig, ClientConfigFormat.TS),
-      new Error('Unsupported client config format ts for Gen2 client config')
+      new Error('Unsupported client config format ts for client config')
     );
   });
 });

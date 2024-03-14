@@ -5,7 +5,7 @@ import {
   AnalyticsClientConfig,
   AuthClientConfig,
   ClientConfig,
-  ClientConfigVersions,
+  ClientConfigVersionOption,
   CustomClientConfig,
   GeoClientConfig,
   GraphqlClientConfig,
@@ -34,7 +34,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersions.V1,
+      version: ClientConfigVersionOption.V1,
       auth: {
         identity_pool_id: 'testIdentityPoolId',
         user_pool_id: 'testUserPoolId',
@@ -100,7 +100,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersions.V1,
+      version: ClientConfigVersionOption.V1,
       data: {
         aws_region: 'testRegion',
         url: 'testUrl',
@@ -240,7 +240,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersions.V1,
+      version: ClientConfigVersionOption.V1,
       storage: {
         aws_region: 'testRegion',
         bucket_name: 'testBucket',
@@ -261,7 +261,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersions.V1,
+      version: ClientConfigVersionOption.V1,
       custom: {
         customKey: {
           customNestedKey: {
@@ -292,7 +292,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersions.V1,
+      version: ClientConfigVersionOption.V1,
       analytics: {
         aws_region: 'testRegion',
         pinpoint_app_id: 'testAppId',
@@ -317,7 +317,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersions.V1,
+      version: ClientConfigVersionOption.V1,
       api: {
         endpoints: [
           {
@@ -358,7 +358,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersions.V1,
+      version: ClientConfigVersionOption.V1,
       geo: {
         aws_region: 'testRegion',
         maps: {

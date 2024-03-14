@@ -2,8 +2,8 @@ import { Argv, CommandModule } from 'yargs';
 import {
   ClientConfigFormat,
   ClientConfigVersion,
-  ClientConfigVersions,
-  DEFAULT_CLIENT_CONFIG,
+  ClientConfigVersionOption,
+  DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
@@ -112,8 +112,8 @@ export class GenerateConfigCommand
           'Version of the client config. Version 0 represents classic amplify-cli client config (Default)',
         type: 'string',
         array: false,
-        choices: Object.values(ClientConfigVersions),
-        default: DEFAULT_CLIENT_CONFIG,
+        choices: Object.values(ClientConfigVersionOption),
+        default: DEFAULT_CLIENT_CONFIG_VERSION,
       });
   };
 }

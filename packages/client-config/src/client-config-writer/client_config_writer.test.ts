@@ -6,7 +6,7 @@ import {
 } from './client_config_writer.js';
 import {
   ClientConfig,
-  ClientConfigFileName,
+  ClientConfigFileBaseName,
   ClientConfigFormat,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatterLegacy } from './client_config_formatter_legacy.js';
@@ -60,7 +60,7 @@ void describe('client config writer', () => {
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
-      ClientConfigFileName.LEGACY,
+      ClientConfigFileBaseName.LEGACY,
       outDir,
       format
     );
@@ -68,7 +68,7 @@ void describe('client config writer', () => {
     assert.strictEqual(pathResolverMock.mock.callCount(), 1);
     assert.strictEqual(
       pathResolverMock.mock.calls[0].arguments[0],
-      ClientConfigFileName.LEGACY
+      ClientConfigFileBaseName.LEGACY
     );
     assert.strictEqual(pathResolverMock.mock.calls[0].arguments[1], outDir);
     assert.strictEqual(pathResolverMock.mock.calls[0].arguments[2], format);
@@ -102,7 +102,7 @@ void describe('client config writer', () => {
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
-      ClientConfigFileName.LEGACY,
+      ClientConfigFileBaseName.LEGACY,
       outDir
     );
 

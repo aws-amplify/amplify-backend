@@ -4,7 +4,7 @@ import { ClientConfigWriter } from './client-config-writer/client_config_writer.
 import {
   ClientConfigFormat,
   ClientConfigVersion,
-  ClientConfigVersions,
+  ClientConfigVersionOption,
 } from './client-config-types/client_config.js';
 import { getClientConfigPath } from './paths/index.js';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
@@ -12,7 +12,7 @@ import { ClientConfigMobileConverter } from './client-config-writer/client_confi
 import { fileURLToPath } from 'url';
 import * as fsp from 'fs/promises';
 import { ClientConfigFormatterLegacy } from './client-config-writer/client_config_formatter_legacy.js';
-import { ClientConfigFormatterGen2 } from './client-config-writer/client_config_formatter_gen2.js';
+import { ClientConfigFormatterDefault } from './client-config-writer/client_config_formatter_default.js';
 import { getClientConfigFileName } from './paths/get_client_config_name.js';
 
 /**
@@ -29,7 +29,7 @@ export const generateClientConfigToFile = async (
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
-  const isLegacyConfig = version === ClientConfigVersions.LEGACY;
+  const isLegacyConfig = version === ClientConfigVersionOption.LEGACY;
 
   const clientConfigWriter = new ClientConfigWriter(
     getClientConfigPath,
@@ -37,7 +37,7 @@ export const generateClientConfigToFile = async (
       ? new ClientConfigFormatterLegacy(
           new ClientConfigMobileConverter(packageJson.name, packageJson.version)
         )
-      : new ClientConfigFormatterGen2()
+      : new ClientConfigFormatterDefault()
   );
 
   const clientConfig = await generateClientConfig(

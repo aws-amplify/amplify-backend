@@ -5,9 +5,9 @@ import {
 import { ClientConfigFormatter } from './client_config_formatter.js';
 
 /**
- * Formats Gen2 client config to desired format
+ * Formats client config to desired format
  */
-export class ClientConfigFormatterGen2 implements ClientConfigFormatter {
+export class ClientConfigFormatterDefault implements ClientConfigFormatter {
   /**
    * Creates new client config formatter.
    */
@@ -26,7 +26,7 @@ export class ClientConfigFormatterGen2 implements ClientConfigFormatter {
         return JSON.stringify(clientConfig, null, 2);
       default:
         throw new Error(
-          `Unsupported client config format ${format} for Gen2 client config`
+          `Unsupported client config format ${format} for client config`
         );
     }
   };

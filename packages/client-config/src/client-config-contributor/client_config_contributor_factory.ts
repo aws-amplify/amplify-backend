@@ -11,13 +11,13 @@ import { ClientConfigContributor } from '../client-config-types/client_config_co
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import {
   ClientConfigVersion,
-  ClientConfigVersions,
+  ClientConfigVersionOption,
 } from '../client-config-types/client_config.js';
 /**
- * Factory to generate client config contributors for Gen2 client config schema given a version
+ * Factory to generate client config contributors for client config schema given a version
  */
 export class ClientConfigContributorFactory {
-  versionedGen2ClientConfigContributors: Record<
+  versionedClientConfigContributors: Record<
     ClientConfigVersion,
     ClientConfigContributor[]
   >;
@@ -28,8 +28,8 @@ export class ClientConfigContributorFactory {
   constructor(
     private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter
   ) {
-    this.versionedGen2ClientConfigContributors = {
-      [ClientConfigVersions.V1]: [
+    this.versionedClientConfigContributors = {
+      [ClientConfigVersionOption.V1]: [
         new Auth1(),
         new Data1(this.modelIntrospectionSchemaAdapter),
         new Storage1(),
@@ -37,8 +37,8 @@ export class ClientConfigContributorFactory {
         new Custom1(),
       ],
 
-      // Legacy config is derived from V1 of Gen2config
-      [ClientConfigVersions.LEGACY]: [
+      // Legacy config is derived from V1 of unified default config
+      [ClientConfigVersionOption.LEGACY]: [
         new Auth1(),
         new Data1(this.modelIntrospectionSchemaAdapter),
         new Storage1(),
@@ -52,6 +52,6 @@ export class ClientConfigContributorFactory {
    * Return all the contributors for the given version
    */
   getContributors(version: ClientConfigVersion) {
-    return this.versionedGen2ClientConfigContributors[version];
+    return this.versionedClientConfigContributors[version];
   }
 }

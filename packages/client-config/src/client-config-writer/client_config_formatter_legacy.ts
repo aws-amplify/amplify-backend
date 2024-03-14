@@ -17,7 +17,7 @@ export class ClientConfigFormatterLegacy implements ClientConfigFormatter {
   constructor(private readonly configConverter: ClientConfigMobileConverter) {}
 
   format = (clientConfig: ClientConfig, format: ClientConfigFormat): string => {
-    // This library only generates ClientConfig (Gen2) but older version of libraries only support legacy format. So we convert it first.
+    // This library only generates unified ClientConfig but older version of frontend libraries only support legacy format. So we convert it first.
     const legacyConfig =
       new ClientConfigLegacyConverter().convertToLegacyConfig(clientConfig);
 

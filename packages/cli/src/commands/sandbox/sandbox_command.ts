@@ -5,8 +5,8 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import {
   ClientConfigFormat,
   ClientConfigVersion,
-  ClientConfigVersions,
-  DEFAULT_CLIENT_CONFIG,
+  ClientConfigVersionOption,
+  DEFAULT_CLIENT_CONFIG_VERSION,
   getClientConfigFileName,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
@@ -160,9 +160,9 @@ export class SandboxCommand
           describe: 'Client config format version',
           type: 'string',
           array: false,
-          choices: Object.values(ClientConfigVersions),
+          choices: Object.values(ClientConfigVersionOption),
           global: false,
-          default: DEFAULT_CLIENT_CONFIG,
+          default: DEFAULT_CLIENT_CONFIG_VERSION,
         })
         .option('config-out-dir', {
           describe:

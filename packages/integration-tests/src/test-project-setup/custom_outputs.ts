@@ -5,7 +5,7 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
-  ClientConfigFileName,
+  ClientConfigFileBaseName,
   ClientConfigFormat,
   ClientConfigLegacy,
   getClientConfigPath,
@@ -75,7 +75,7 @@ class CustomOutputsTestProject extends TestProjectBase {
     await super.assertPostDeployment(backendId);
 
     const clientConfigPath = await getClientConfigPath(
-      ClientConfigFileName.LEGACY,
+      ClientConfigFileBaseName.LEGACY,
       this.projectDirPath,
       ClientConfigFormat.JSON
     );

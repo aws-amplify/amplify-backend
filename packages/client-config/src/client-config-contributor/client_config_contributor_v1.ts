@@ -8,7 +8,7 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import {
   ClientConfig,
-  ClientConfigVersions,
+  ClientConfigVersionOption,
   clientConfigTypesV1,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
@@ -25,7 +25,7 @@ export class VersionContributor implements ClientConfigContributor {
    * Return the version of the schema types that this contributor uses
    */
   contribute = (): ClientConfig => {
-    return { version: ClientConfigVersions.V1 };
+    return { version: ClientConfigVersionOption.V1 };
   };
 }
 

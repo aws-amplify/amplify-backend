@@ -6,8 +6,8 @@ import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   ClientConfigVersion,
-  ClientConfigVersions,
-  DEFAULT_CLIENT_CONFIG,
+  ClientConfigVersionOption,
+  DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
 
 export type PipelineDeployCommandOptions =
@@ -100,8 +100,8 @@ export class PipelineDeployCommand
           'Version of the client config. Version 0 represents classic amplify-cli client config (Default)',
         type: 'string',
         array: false,
-        choices: Object.values(ClientConfigVersions),
-        default: DEFAULT_CLIENT_CONFIG,
+        choices: Object.values(ClientConfigVersionOption),
+        default: DEFAULT_CLIENT_CONFIG_VERSION,
       });
   };
 }

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { ClientConfigFileName, ClientConfigFormat } from '../index.js';
+import { ClientConfigFileBaseName, ClientConfigFormat } from '../index.js';
 
 /**
  * Get path to config file
@@ -10,7 +10,7 @@ import { ClientConfigFileName, ClientConfigFormat } from '../index.js';
  * returns path to config file
  */
 export const getClientConfigPath = async (
-  fileName: ClientConfigFileName,
+  fileName: ClientConfigFileBaseName,
   outDir?: string,
   format?: ClientConfigFormat
 ) => {
