@@ -2,8 +2,11 @@
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "paths": {
+      // we are explicitly pointing to a location besides .amplify/function-env here so that the integration tests will build,
+      // but the e2e tests will check that generating this file in the correct location is picked up correctly
+      // (because this tsconfig is only used in integ tests, not used in e2e tests)
       "@env/*": ["./test-types/*"]
     }
   },
-  "include": ["../../**/*", ".amplify/**/*"]
+  "include": ["../../**/*", "test-types/**/*"]
 }
