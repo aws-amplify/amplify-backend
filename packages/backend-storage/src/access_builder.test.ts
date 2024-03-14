@@ -10,11 +10,15 @@ import {
 
 void describe('storageAccessBuilder', () => {
   const resourceAccessAcceptorMock = mock.fn();
+  const groupAccessAcceptorMock = mock.fn();
 
   const getResourceAccessAcceptorMock = mock.fn(
     // allows us to get proper typing on the mock args
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (_: string) => resourceAccessAcceptorMock
+    (roleName: string) =>
+      roleName === 'testGroupName'
+        ? groupAccessAcceptorMock
+        : resourceAccessAcceptorMock
   );
 
   const getConstructFactoryMock = mock.fn(
@@ -50,7 +54,7 @@ void describe('storageAccessBuilder', () => {
       'write',
       'delete',
     ]);
-    assert.equal(accessDefinition.ownerPlaceholderSubstitution, '*');
+    assert.equal(accessDefinition.idSubstitution, '*');
     assert.equal(
       accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
       resourceAccessAcceptorMock
@@ -75,7 +79,7 @@ void describe('storageAccessBuilder', () => {
       'write',
       'delete',
     ]);
-    assert.equal(accessDefinition.ownerPlaceholderSubstitution, '*');
+    assert.equal(accessDefinition.idSubstitution, '*');
     assert.equal(
       accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
       resourceAccessAcceptorMock
@@ -89,20 +93,18 @@ void describe('storageAccessBuilder', () => {
       'unauthenticatedUserIamRole'
     );
   });
-  void it('builds storage access definition for owner', () => {
-    const accessDefinition = roleAccessBuilder.owner.to([
-      'read',
-      'write',
-      'delete',
-    ]);
+  void it('builds storage access definition for IdP identity', () => {
+    const accessDefinition = roleAccessBuilder
+      .entity('identity')
+      .to(['read', 'write', 'delete']);
     assert.deepStrictEqual(accessDefinition.actions, [
       'read',
       'write',
       'delete',
     ]);
     assert.equal(
-      accessDefinition.ownerPlaceholderSubstitution,
-      '${cognito-identity.amazon.com:sub}'
+      accessDefinition.idSubstitution,
+      '${cognito-identity.amazonaws.com:sub}'
     );
     assert.equal(
       accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
@@ -133,10 +135,23 @@ void describe('storageAccessBuilder', () => {
       'write',
       'delete',
     ]);
-    assert.equal(accessDefinition.ownerPlaceholderSubstitution, '*');
+    assert.equal(accessDefinition.idSubstitution, '*');
     assert.equal(
       accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
       resourceAccessAcceptorMock
+    );
+  });
+
+  void it('builds storage access definition for user pool groups', () => {
+    const accessDefinition = roleAccessBuilder
+      .group('testGroupName')
+      .to(['read', 'write']);
+
+    assert.deepStrictEqual(accessDefinition.actions, ['read', 'write']);
+    assert.equal(accessDefinition.idSubstitution, '*');
+    assert.equal(
+      accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
+      groupAccessAcceptorMock
     );
   });
 });

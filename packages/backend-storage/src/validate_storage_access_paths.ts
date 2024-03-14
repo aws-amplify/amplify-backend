@@ -1,5 +1,5 @@
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { ownerPathPartToken } from './constants.js';
+import { entityIdPathToken } from './constants.js';
 import { StorageError } from './private_types.js';
 
 /**
@@ -19,6 +19,13 @@ const validateStoragePath = (
   if (!(path.startsWith('/') && path.endsWith('/*'))) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `All storage access paths must start with "/" and end with "/*. Found [${path}].`,
+      resolution: 'Update all paths to match the format requirements.',
+    });
+  }
+
+  if (path.includes('//')) {
+    throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
+      message: `Path cannot contain "//". Found [${path}].`,
       resolution: 'Update all paths to match the format requirements.',
     });
   }
@@ -50,21 +57,34 @@ const validateStoragePath = (
     });
   }
 
-  if (path.includes(ownerPathPartToken)) {
-    validatePathWithOwnerToken(path, allPaths);
-  }
+  validateOwnerTokenRules(path, otherPrefixes);
 };
 
 /**
  * Extra validations that are only necessary if the path includes an owner token
  */
-const validatePathWithOwnerToken = (path: string, allPaths: string[]) => {
-  const ownerSplit = path.split(ownerPathPartToken);
+const validateOwnerTokenRules = (path: string, otherPrefixes: string[]) => {
+  // if there's no owner token in the path, this validation is a noop
+  if (!path.includes(entityIdPathToken)) {
+    return;
+  }
+
+  if (otherPrefixes.length > 0) {
+    throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
+      message: `A path cannot be a prefix of another path that contains the ${entityIdPathToken} token.`,
+      details: `Found [${path}] which has prefixes [${otherPrefixes.join(
+        ', '
+      )}].`,
+      resolution: `Update the storage access paths such that any given path has at most one other path that is a prefix.`,
+    });
+  }
+
+  const ownerSplit = path.split(entityIdPathToken);
 
   if (ownerSplit.length > 2) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `The ${ownerPathPartToken} token can only appear once in a path. Found [${path}]`,
-      resolution: `Remove all but one occurrence of the ${ownerPathPartToken} token`,
+      message: `The ${entityIdPathToken} token can only appear once in a path. Found [${path}]`,
+      resolution: `Remove all but one occurrence of the ${entityIdPathToken} token`,
     });
   }
 
@@ -72,41 +92,22 @@ const validatePathWithOwnerToken = (path: string, allPaths: string[]) => {
 
   if (substringAfterOwnerToken !== '/*') {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `The ${ownerPathPartToken} token must be the path part right before the ending wildcard. Found [${path}].`,
-      resolution: `Update the path such that the owner token is the last path part before the ending wildcard. For example: "/foo/bar/${ownerPathPartToken}/*.`,
+      message: `The ${entityIdPathToken} token must be the path part right before the ending wildcard. Found [${path}].`,
+      resolution: `Update the path such that the owner token is the last path part before the ending wildcard. For example: "/foo/bar/${entityIdPathToken}/*.`,
     });
   }
 
   if (substringBeforeOwnerToken === '/') {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `The ${ownerPathPartToken} token must not be the first path part. Found [${path}].`,
-      resolution: `Add an additional prefix to the path. For example: "/foo/${ownerPathPartToken}/*.`,
+      message: `The ${entityIdPathToken} token must not be the first path part. Found [${path}].`,
+      resolution: `Add an additional prefix to the path. For example: "/foo/${entityIdPathToken}/*.`,
     });
   }
 
   if (!substringBeforeOwnerToken.endsWith('/')) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `A path part that includes the ${ownerPathPartToken} token cannot include any other characters. Found [${path}].`,
-      resolution: `Remove all other characters from the path part with the ${ownerPathPartToken} token. For example: "/foo/${ownerPathPartToken}/*"`,
-    });
-  }
-
-  /**
-   * If the path includes the owner token, we need to do one more pass through the prefixes where we substitute the owner toke with a * and check for prefixes again
-   * This is because the owner token becomes a * for all access except owner rules so we need to make sure there are no other prefix conflicts
-   */
-
-  const substitutionPrefixes = getPrefixes(
-    path.replace(ownerPathPartToken, '*'),
-    allPaths
-  );
-  if (substitutionPrefixes.length > 0) {
-    throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `Wildcard conflict detected with an ${ownerPathPartToken} token.`,
-      details: `Paths [${substitutionPrefixes.join(
-        ', '
-      )}] conflicts with ${ownerPathPartToken} token in path [${path}].`,
-      resolution: `Update the storage access paths such that no path has a wildcard that conflicts with an ${ownerPathPartToken} token.`,
+      message: `A path part that includes the ${entityIdPathToken} token cannot include any other characters. Found [${path}].`,
+      resolution: `Remove all other characters from the path part with the ${entityIdPathToken} token. For example: "/foo/${entityIdPathToken}/*"`,
     });
   }
 };
@@ -115,5 +116,13 @@ const validatePathWithOwnerToken = (path: string, allPaths: string[]) => {
  * Returns a subset of paths where each element is a prefix of path
  * Equivalent paths are NOT considered prefixes of each other (mainly just for simplicity of the calling logic)
  */
-const getPrefixes = (path: string, paths: string[]): string[] =>
-  paths.filter((p) => path !== p && path.startsWith(p.replaceAll('*', '')));
+const getPrefixes = (
+  path: string,
+  paths: string[],
+  treatWildcardAsLiteral = false
+): string[] =>
+  paths.filter(
+    (p) =>
+      path !== p &&
+      path.startsWith(treatWildcardAsLiteral ? p : p.replaceAll('*', ''))
+  );

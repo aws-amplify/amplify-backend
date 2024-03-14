@@ -65,7 +65,7 @@ void describe('generateAPICode', () => {
       assert.deepEqual(
         (generateModels.mock.calls[0].arguments as unknown[])[0],
         {
-          language: 'typescript',
+          targetFormat: 'typescript',
           maxDepth: undefined,
           typenameIntrospection: undefined,
         }
@@ -112,7 +112,7 @@ void describe('generateAPICode', () => {
       assert.deepEqual(
         (generateModels.mock.calls[0].arguments as unknown[])[0],
         {
-          language: 'typescript',
+          targetFormat: 'typescript',
           maxDepth: 3,
           typenameIntrospection: false,
         }
@@ -158,7 +158,7 @@ void describe('generateAPICode', () => {
       assert.deepEqual(
         (generateModels.mock.calls[0].arguments as unknown[])[0],
         {
-          language: 'typescript',
+          targetFormat: 'typescript',
           maxDepth: undefined,
           relativeTypesPath: './API',
           typenameIntrospection: undefined,

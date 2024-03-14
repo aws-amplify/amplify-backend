@@ -1,4 +1,4 @@
-import { AmplifyError, AmplifyErrorOptions } from './amplify_error';
+import { AmplifyError, AmplifyUserErrorOptions } from './amplify_error';
 
 /**
  * Base class for all Amplify user errors
@@ -19,7 +19,7 @@ export class AmplifyUserError<
    *    throw new AmplifyError(...,...,error);
    * }
    */
-  constructor(name: T, options: AmplifyErrorOptions, cause?: Error) {
+  constructor(name: T, options: AmplifyUserErrorOptions, cause?: Error) {
     super(name, 'ERROR', options, cause);
   }
 }

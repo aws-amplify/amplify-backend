@@ -19,7 +19,7 @@ export class AppSyncGraphqlDocumentGenerator
     private resultBuilder: (fileMap: Record<string, string>) => GenerationResult
   ) {}
   generateModels = async ({
-    language,
+    targetFormat,
     maxDepth,
     typenameIntrospection,
     relativeTypesPath,
@@ -32,7 +32,7 @@ export class AppSyncGraphqlDocumentGenerator
 
     const generatedStatements = generateStatements({
       schema,
-      target: language,
+      target: targetFormat,
       maxDepth,
       typenameIntrospection,
       relativeTypesPath,

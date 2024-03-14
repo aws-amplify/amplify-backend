@@ -6,7 +6,8 @@
     { "path": "../backend" },
     { "path": "../backend-secret" },
     { "path": "../client-config" },
-    { "path": "../platform-core" }
+    { "path": "../platform-core" },
+    { "path": "./src/test-projects/data-storage-auth-with-triggers-ts" }
   ],
   "exclude": ["**/node_modules", "**/lib", "src/e2e-tests"]
 }

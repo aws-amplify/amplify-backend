@@ -63,7 +63,7 @@ The following diagram has a basic dependency graph of the package structure. Thi
 
 ![Simple dependency graph](markdown-assets/simple-dependency-graph.png)
 
-At the root, the customer project declares a dependency on `@aws-amplify/cli` and `@aws-amplify/backend`. The cli package depends on several packages for handling various subcommands.
+At the root, the customer project declares a dependency on `@aws-amplify/backend-cli` and `@aws-amplify/backend`. The backend-cli package depends on several packages for handling various subcommands.
 
 The backend package depends on several feature vertical packages (auth, data, storage, functions). The feature vertical packages implement interfaces defined in plugin-types which the backend package also depends on.
 

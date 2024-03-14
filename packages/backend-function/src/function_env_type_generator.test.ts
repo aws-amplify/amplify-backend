@@ -19,13 +19,44 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
       new FunctionEnvironmentTypeGenerator('testFunction');
     const sampleStaticEnv = '_HANDLER: string;';
 
-    functionEnvironmentTypeGenerator.generateTypeDefFile();
+    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim([]);
 
     // assert type definition file path
     assert.equal(
       fsWriteFileSyncMock.mock.calls[0].arguments[0],
       `${process.cwd()}/.amplify/function-env/testFunction.ts`
     );
+    // assert content
+    assert.ok(
+      fsWriteFileSyncMock.mock.calls[0].arguments[1]
+        ?.toString()
+        .includes(sampleStaticEnv)
+    );
+
+    mock.restoreAll();
+  });
+
+  void it('generates a type definition file with Amplify backend environment variables', () => {
+    const fdCloseMock = mock.fn();
+    const fsOpenSyncMock = mock.method(fs, 'openSync');
+    const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);
+    fsOpenSyncMock.mock.mockImplementation(() => {
+      return {
+        close: fdCloseMock,
+      };
+    });
+    const functionEnvironmentTypeGenerator =
+      new FunctionEnvironmentTypeGenerator('testFunction');
+    const sampleStaticEnv = 'TEST_ENV: string;';
+
+    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(['TEST_ENV']);
+
+    // assert type definition file path
+    assert.equal(
+      fsWriteFileSyncMock.mock.calls[0].arguments[0],
+      `${process.cwd()}/.amplify/function-env/testFunction.ts`
+    );
+    // assert content
     assert.ok(
       fsWriteFileSyncMock.mock.calls[0].arguments[1]
         ?.toString()
@@ -41,7 +72,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
       new FunctionEnvironmentTypeGenerator('testFunction');
     const filePath = `${process.cwd()}/.amplify/function-env/testFunction.ts`;
 
-    functionEnvironmentTypeGenerator.generateTypeDefFile();
+    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(['TEST_ENV']);
 
     // import to validate syntax of type definition file
     await import(pathToFileURL(filePath).toString());

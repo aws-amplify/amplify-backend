@@ -115,6 +115,20 @@ export type BackendOutputCredentialsOptions = {
 };
 
 // @public (undocumented)
+export enum BackendStatus {
+    // (undocumented)
+    DELETE_FAILED = "DELETE_FAILED"
+}
+
+// @public (undocumented)
+export type BackendSummaryMetadata = {
+    name: string;
+    lastUpdated: Date | undefined;
+    status: BackendDeploymentStatus;
+    backendId: BackendIdentifier | undefined;
+};
+
+// @public (undocumented)
 export enum ConflictResolutionMode {
     // (undocumented)
     AUTOMERGE = "AUTOMERGE",
@@ -126,7 +140,7 @@ export enum ConflictResolutionMode {
 
 // @public (undocumented)
 export type DeployedBackendClient = {
-    listSandboxes: (listSandboxesRequest?: ListSandboxesRequest) => Promise<ListSandboxesResponse>;
+    listBackends: (listBackendsRequest?: ListBackendsRequest) => ListBackendsResponse;
     deleteSandbox: (sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>) => Promise<void>;
     getBackendMetadata: (backendId: BackendIdentifier) => Promise<BackendMetadata>;
 };
@@ -173,22 +187,14 @@ export type FunctionConfiguration = {
 };
 
 // @public (undocumented)
-export type ListSandboxesRequest = {
-    nextToken?: string;
+export type ListBackendsRequest = {
+    deploymentType: DeploymentType;
+    backendStatusFilters?: BackendStatus[];
 };
 
 // @public (undocumented)
-export type ListSandboxesResponse = {
-    sandboxes: SandboxMetadata[];
-    nextToken: string | undefined;
-};
-
-// @public (undocumented)
-export type SandboxMetadata = {
-    name: string;
-    lastUpdated: Date | undefined;
-    status: BackendDeploymentStatus;
-    backendId: BackendIdentifier | undefined;
+export type ListBackendsResponse = {
+    getBackendSummaryByPage: () => AsyncGenerator<BackendSummaryMetadata[]>;
 };
 
 // @public (undocumented)

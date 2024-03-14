@@ -26,21 +26,21 @@ const testErrorMappings = [
   {
     errorMessage: 'ReferenceError: var is not defined\n',
     expectedTopLevelErrorMessage:
-      'Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+      'Unable to build the Amplify backend definition.',
     errorName: 'SyntaxError',
     expectedDownstreamErrorMessage: 'ReferenceError: var is not defined\n',
   },
   {
     errorMessage: 'Has the environment been bootstrapped',
     expectedTopLevelErrorMessage:
-      'This AWS account and region has not been bootstrapped. Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
+      'This AWS account and region has not been bootstrapped.',
     errorName: 'BootstrapNotDetectedError',
     expectedDownstreamErrorMessage: 'Has the environment been bootstrapped',
   },
   {
     errorMessage: 'Amplify Backend not found in amplify/backend.ts',
     expectedTopLevelErrorMessage:
-      'Backend definition could not be found in amplify directory',
+      'Backend definition could not be found in amplify directory.',
     errorName: 'FileConventionError',
     expectedDownstreamErrorMessage:
       'Amplify Backend not found in amplify/backend.ts',
@@ -48,23 +48,21 @@ const testErrorMappings = [
   {
     errorMessage: 'Amplify Auth must be defined in amplify/auth/resource.ts',
     expectedTopLevelErrorMessage:
-      'File name or path for backend definition are incorrect',
+      'File name or path for backend definition are incorrect.',
     errorName: 'FileConventionError',
     expectedDownstreamErrorMessage:
       'Amplify Auth must be defined in amplify/auth/resource.ts',
   },
   {
     errorMessage: 'amplify/backend.ts',
-    expectedTopLevelErrorMessage:
-      'Unable to build Amplify backend. Check your backend definition in the `amplify` folder.',
+    expectedTopLevelErrorMessage: 'Unable to build Amplify backend.',
     errorName: 'BackendBuildError',
     expectedDownstreamErrorMessage: 'amplify/backend.ts',
   },
   {
     errorMessage:
       'Overall error message had other stuff before ❌ Deployment failed: something bad happened\n and after',
-    expectedTopLevelErrorMessage:
-      'The CloudFormation deployment has failed. Find more information in the CloudFormation AWS Console for this stack.',
+    expectedTopLevelErrorMessage: 'The CloudFormation deployment has failed.',
     errorName: 'CloudFormationDeploymentError',
     expectedDownstreamErrorMessage:
       '❌ Deployment failed: something bad happened\n',

@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -16,7 +16,6 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import path from 'path';
-import { printer } from '../../printer.js';
 
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {

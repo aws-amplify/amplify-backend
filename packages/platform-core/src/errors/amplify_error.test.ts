@@ -7,9 +7,14 @@ void describe('amplify error', () => {
   void it('serialize and deserialize correctly', () => {
     const testError = new AmplifyUserError(
       'SyntaxError',
-      { message: 'test error message', details: 'test error details' },
+      {
+        message: 'test error message',
+        details: 'test error details',
+        resolution: 'test resolution',
+      },
       new AmplifyUserError('AccessDeniedError', {
         message: 'some downstream error message',
+        resolution: 'test resolution',
       })
     );
     const sampleStderr = `some random stderr

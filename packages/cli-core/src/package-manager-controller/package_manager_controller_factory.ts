@@ -1,4 +1,5 @@
 import { type PackageManagerController } from '@aws-amplify/plugin-types';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { Printer } from '../printer/printer.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
@@ -15,7 +16,8 @@ export class PackageManagerControllerFactory {
    */
   constructor(
     private readonly cwd: string,
-    private readonly printer: Printer
+    private readonly printer: Printer,
+    private readonly platform = process.platform
   ) {}
 
   /**
@@ -27,6 +29,16 @@ export class PackageManagerControllerFactory {
       case 'npm':
         return new NpmPackageManagerController(this.cwd);
       case 'pnpm':
+        if (this.platform === 'win32') {
+          const message = 'Amplify does not support PNPM on Windows.';
+          const details =
+            'Details: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md';
+          throw new AmplifyUserError('UnsupportedPackageManagerError', {
+            message,
+            details,
+            resolution: 'Use a supported package manager for your OS',
+          });
+        }
         return new PnpmPackageManagerController(this.cwd);
       case 'yarn-classic':
         return new YarnClassicPackageManagerController(this.cwd);

@@ -1,5 +1,16 @@
 # @aws-amplify/model-generator
 
+## 0.5.0-beta.3
+
+### Minor Changes
+
+- 05c3c9b: Rename target format type and prop in model gen package
+
+### Patch Changes
+
+- Updated dependencies [b931980]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.3
+
 ## 0.4.1-beta.2
 
 ### Patch Changes

@@ -2,7 +2,7 @@ import * as os from 'node:os';
 import { Argv, CommandModule } from 'yargs';
 import { CdkInfoProvider } from '../../info/cdk_info_provider.js';
 import { EnvironmentInfoProvider } from '../../info/env_info_provider.js';
-import { printer } from '../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 /**
  * Represents the InfoCommand class.

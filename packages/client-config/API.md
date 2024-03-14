@@ -9,8 +9,10 @@ import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client'
 
 // @public (undocumented)
 export type AnalyticsClientConfig = {
+    aws_mobile_analytics_app_id?: string;
+    aws_mobile_analytics_app_region?: string;
     Analytics?: {
-        AWSPinpoint: {
+        Pinpoint: {
             appId: string;
             region: string;
         };
