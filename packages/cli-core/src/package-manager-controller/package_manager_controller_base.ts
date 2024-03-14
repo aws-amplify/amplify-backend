@@ -109,7 +109,6 @@ export abstract class PackageManagerControllerBase
         module: 'es2022',
         moduleResolution: 'bundler',
         resolveJsonModule: true,
-        // eslint-disable-next-line spellcheck/spell-checker
         esModuleInterop: true,
         forceConsistentCasingInFileNames: true,
         strict: true,
