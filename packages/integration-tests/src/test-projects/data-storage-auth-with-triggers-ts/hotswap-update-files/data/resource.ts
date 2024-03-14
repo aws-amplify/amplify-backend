@@ -1,6 +1,3 @@
-// we have to use ts-ignore instead of ts-expect-error because when the tsc check as part of the deployment runs, there will no longer be an error
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore Ignoring TS here because this code will be hotswapped in for the original data definition. The destination location contains the ../function.js dependency
 import { defaultNodeFunc } from '../function.js';
 import {
   type ClientSchema,
@@ -41,7 +38,20 @@ const schema = a.schema({
     .arguments({ content: a.string() })
     .returns(a.ref('EchoResponse'))
     .authorization([a.allow.private()])
-    .function('echo'),
+    .handler(a.handler.function('echo')),
+
+  echoInline: a
+    .query()
+    .arguments({ content: a.string() })
+    .returns(a.ref('EchoResponse'))
+    .authorization([a.allow.private()])
+    .handler(
+      a.handler.function(
+        defineFunction({
+          entry: './echo/handler2.ts',
+        })
+      )
+    ),
 }) as never; // Not 100% sure why TS is complaining here. The error I'm getting is "The inferred type of 'schema' references an inaccessible 'unique symbol' type. A type annotation is necessary."
 
 export type Schema = ClientSchema<typeof schema>;

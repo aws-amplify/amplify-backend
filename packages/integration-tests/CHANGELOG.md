@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.5.0-beta.3
+
+### Patch Changes
+
+- 26cdffd: backend-data: add support for first-class defineFunction
+
 ## 0.5.0-beta.2
 
 ### Patch Changes

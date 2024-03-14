@@ -83,6 +83,7 @@ void describe('UsageDataEmitter', () => {
       'BackendBuildError',
       {
         message: 'some error message',
+        resolution: 'test resolution',
       },
       new Error('some downstream exception')
     );

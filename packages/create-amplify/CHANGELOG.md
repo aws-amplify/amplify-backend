@@ -1,5 +1,16 @@
 # create-amplify
 
+## 0.7.0-beta.4
+
+### Patch Changes
+
+- ee247fd: use printer from cli-core
+- Updated dependencies [3e34244]
+- Updated dependencies [ee247fd]
+- Updated dependencies [937086b]
+  - @aws-amplify/cli-core@0.5.0-beta.2
+  - @aws-amplify/platform-core@0.5.0-beta.2
+
 ## 0.7.0-beta.3
 
 ### Minor Changes

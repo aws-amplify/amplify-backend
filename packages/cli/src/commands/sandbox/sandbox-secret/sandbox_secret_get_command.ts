@@ -2,7 +2,7 @@ import { Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { printer } from '../../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 /**
  * Command to get sandbox secret.

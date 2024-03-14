@@ -36,6 +36,7 @@ export class PackageManagerControllerFactory {
           throw new AmplifyUserError('UnsupportedPackageManagerError', {
             message,
             details,
+            resolution: 'Use a supported package manager for your OS',
           });
         }
         return new PnpmPackageManagerController(this.cwd);

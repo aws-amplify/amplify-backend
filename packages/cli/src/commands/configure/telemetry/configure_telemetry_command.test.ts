@@ -7,7 +7,7 @@ import {
   USAGE_DATA_TRACKING_ENABLED,
   configControllerFactory,
 } from '@aws-amplify/platform-core';
-import { printer } from '../../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 void describe('configure command', () => {
   const mockedConfigControllerSet = mock.fn();
