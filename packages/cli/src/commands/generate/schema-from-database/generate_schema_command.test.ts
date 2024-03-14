@@ -68,7 +68,7 @@ void describe('generate graphql-client-code command', () => {
 
   void it('uses the sandbox id by default if stack or branch are not provided', async () => {
     await commandRunner.runCommand(
-      'schema-from-database --connection-string CONN_STRING --out schema.rds.ts'
+      'schema-from-database --connection-string-secret CONN_STRING --out schema.rds.ts'
     );
 
     assert.equal(
@@ -82,24 +82,24 @@ void describe('generate graphql-client-code command', () => {
 
   void it('generates and writes schema for stack', async () => {
     await commandRunner.runCommand(
-      'schema-from-database --stack stack_name --connection-string CONN_STRING --out schema.rds.ts'
+      'schema-from-database --stack stack_name --connection-string-secret CONN_STRING --out schema.rds.ts'
     );
     assert.equal(secretClientGetSecret.mock.callCount(), 1);
     assert.equal(schemaGeneratorGenerateMethod.mock.callCount(), 1);
     assert.deepEqual(schemaGeneratorGenerateMethod.mock.calls[0].arguments[0], {
-      connectionString: 'FAKE_CONN_STRING_VALUE',
+      connectionStringSecret: 'FAKE_CONN_STRING_VALUE',
       out: 'schema.rds.ts',
     });
   });
 
   void it('generates and writes schema for branch', async () => {
     await commandRunner.runCommand(
-      'schema-from-database --branch branch_name --appId app_id --connection-string CONN_STRING --out schema.rds.ts'
+      'schema-from-database --branch branch_name --appId app_id --connection-string-secret CONN_STRING --out schema.rds.ts'
     );
     assert.equal(secretClientGetSecret.mock.callCount(), 1);
     assert.equal(schemaGeneratorGenerateMethod.mock.callCount(), 1);
     assert.deepEqual(schemaGeneratorGenerateMethod.mock.calls[0].arguments[0], {
-      connectionString: 'FAKE_CONN_STRING_VALUE',
+      connectionStringSecret: 'FAKE_CONN_STRING_VALUE',
       out: 'schema.rds.ts',
     });
   });
@@ -119,7 +119,7 @@ void describe('generate graphql-client-code command', () => {
     assert.match(output, /--app-id/);
     assert.match(output, /--branch/);
     assert.match(output, /--out/);
-    assert.match(output, /--connection-string/);
+    assert.match(output, /--connection-string-secret/);
   });
 
   // Note: after this test, future tests seem to be in a weird state, leaving this at the end

@@ -15,7 +15,7 @@ type GenerateSchemaCommandOptionsCamelCase = {
   appId: string | undefined;
   branch: string | undefined;
   out: string | undefined;
-  connectionString: string | undefined;
+  connectionStringSecret: string | undefined;
 };
 
 /**
@@ -62,7 +62,7 @@ export class GenerateSchemaCommand
       throw new Error('Could not resolve the backend identifier');
     }
 
-    const secretName = args['connection-string'] as string;
+    const secretName = args['connection-string-secret'] as string;
     const outputFile = args['out'] as string;
 
     const connectionString = await this.secretClient.getSecret(
@@ -113,7 +113,7 @@ export class GenerateSchemaCommand
         array: false,
         group: 'Schema Generation',
       })
-      .option('connection-string', {
+      .option('connection-string-secret', {
         describe: 'Secret name for the database connection string',
         type: 'string',
         array: false,
