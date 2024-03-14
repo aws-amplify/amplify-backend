@@ -38,12 +38,8 @@ export class DataStorageAuthWithTriggerTestProjectCreator
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
-    const {
-      projectName,
-      projectRoot,
-      projectAmplifyDir,
-      projectDotAmplifyDir,
-    } = await createEmptyAmplifyProject(this.name, e2eProjectDir);
+    const { projectName, projectRoot, projectAmplifyDir } =
+      await createEmptyAmplifyProject(this.name, e2eProjectDir);
 
     const project = new DataStorageAuthWithTriggerTestProject(
       projectName,
@@ -63,11 +59,6 @@ export class DataStorageAuthWithTriggerTestProjectCreator
         recursive: true,
       }
     );
-
-    // copy .amplify folder with typedef file from source project
-    await fs.cp(project.sourceProjectDotAmplifyDirPath, projectDotAmplifyDir, {
-      recursive: true,
-    });
 
     return project;
   };

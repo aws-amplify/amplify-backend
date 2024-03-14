@@ -191,10 +191,9 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             ['sandbox', '--dirToWatch', 'amplify'],
             testProject.projectDirPath
           )
-            .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
             .do(
               new PredicatedActionBuilder().waitForLineIncludes(
-                'Unexpected keyword or identifier'
+                'Caused By: [esbuild Error]: Expected ";" but found "won"'
               )
             )
             .do(interruptSandbox())
