@@ -25,9 +25,6 @@ export class CdkInfoProvider {
 
     const output = await this.execa('npx', cdkDoctorArgs, {
       all: true,
-      // env: {
-      //   CDK_NOTICES: 'false',
-      // },
     });
 
     return this.formatCdkInfo(output.all ?? output.stderr);
