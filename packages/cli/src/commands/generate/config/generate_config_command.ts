@@ -109,7 +109,7 @@ export class GenerateConfigCommand
       })
       .option('config-version', {
         describe:
-          'Version of the client config. Version 0 represents classic amplify-cli client config (Default)',
+          'Version of the client config. Version 0 represents classic amplify-cli client config amplify-configuration (Default) and 1 represents new unified client config amplify-outputs',
         type: 'string',
         array: false,
         choices: Object.values(ClientConfigVersionOption),
