@@ -1,5 +1,18 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.2
+
+### Minor Changes
+
+- 3e34244: use `format` to replace `color` and remove `color`.
+
+### Patch Changes
+
+- ee247fd: use printer from cli-core
+- 937086b: require "resolution" in AmplifyUserError options
+- Updated dependencies [937086b]
+  - @aws-amplify/platform-core@0.5.0-beta.2
+
 ## 0.5.0-beta.1
 
 ### Minor Changes
