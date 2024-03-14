@@ -143,7 +143,8 @@ void describe('PnpmPackageManagerController', () => {
         existsSyncMock
       );
       await pnpmPackageManagerController.initializeTsConfig('./amplify');
-      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
+      assert.equal(executeWithDebugLoggerMock.mock.callCount(), 0);
+      assert.equal(fspMock.writeFile.mock.callCount(), 1);
     });
   });
 });
