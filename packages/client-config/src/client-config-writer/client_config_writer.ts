@@ -4,6 +4,7 @@ import {
   ClientConfig,
   ClientConfigFileBaseName,
   ClientConfigFormat,
+  ClientConfigVersion,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatter } from './client_config_formatter.js';
 
@@ -12,6 +13,10 @@ export type ClientConfigPathResolver = (
   outDir?: string,
   format?: ClientConfigFormat
 ) => Promise<string>;
+
+export type ClientConfigNameResolver = (
+  version: ClientConfigVersion
+) => ClientConfigFileBaseName;
 
 /**
  * A class that persists client config to disk.
@@ -22,6 +27,7 @@ export class ClientConfigWriter {
    */
   constructor(
     private readonly pathResolver: ClientConfigPathResolver,
+    private readonly nameResolver: ClientConfigNameResolver,
     private readonly formatter: ClientConfigFormatter,
     private readonly fsp = _fsp
   ) {}
@@ -30,14 +36,14 @@ export class ClientConfigWriter {
    */
   writeClientConfig = async (
     clientConfig: ClientConfig,
-    clientConfigFileName: ClientConfigFileBaseName,
+    version: ClientConfigVersion,
     outDir?: string,
     format: ClientConfigFormat = ClientConfigFormat.JSON,
     // TODO: update this type when Printer interface gets defined in platform-core.
     log?: (message: string) => void
   ): Promise<void> => {
     const targetPath = await this.pathResolver(
-      clientConfigFileName,
+      this.nameResolver(version),
       outDir,
       format
     );

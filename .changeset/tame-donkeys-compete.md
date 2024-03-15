@@ -7,4 +7,4 @@
 '@aws-amplify/plugin-types': patch
 ---
 
-poc(client-config): unified schema based gen2 client config prototype
+feat(client-config): Generate client configuration based on a unified JSON schema

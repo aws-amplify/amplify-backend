@@ -33,6 +33,7 @@ export const generateClientConfigToFile = async (
 
   const clientConfigWriter = new ClientConfigWriter(
     getClientConfigPath,
+    getClientConfigFileName,
     isLegacyConfig
       ? new ClientConfigFormatterLegacy(
           new ClientConfigMobileConverter(packageJson.name, packageJson.version)
@@ -46,11 +47,9 @@ export const generateClientConfigToFile = async (
     version
   );
 
-  const fileName = getClientConfigFileName(version);
-
   await clientConfigWriter.writeClientConfig(
     clientConfig,
-    fileName,
+    version,
     outDir,
     format,
     log

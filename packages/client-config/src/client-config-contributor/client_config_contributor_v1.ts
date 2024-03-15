@@ -38,7 +38,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
    */
   contribute = ({
     [authOutputKey]: authOutput,
-  }: UnifiedBackendOutput): ClientConfig | Record<string, never> => {
+  }: UnifiedBackendOutput): Partial<ClientConfig> | Record<string, never> => {
     if (authOutput === undefined) {
       return {};
     }
@@ -54,9 +54,8 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       obj[key] = JSON.parse(value);
     };
 
-    const authClientConfig: clientConfigTypesV1.AWSAmplifyBackendOutputs = {
-      version: '1',
-    };
+    const authClientConfig: Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs> =
+      {};
 
     authClientConfig.auth = {
       user_pool_id: authOutput.payload.userPoolId,
@@ -193,13 +192,13 @@ export class DataClientConfigContributor implements ClientConfigContributor {
    */
   contribute = async ({
     [graphqlOutputKey]: graphqlOutput,
-  }: UnifiedBackendOutput): Promise<ClientConfig | Record<string, never>> => {
+  }: UnifiedBackendOutput): Promise<
+    Partial<ClientConfig> | Record<string, never>
+  > => {
     if (graphqlOutput === undefined) {
       return {};
     }
-    const config: clientConfigTypesV1.AWSAmplifyBackendOutputs = {
-      version: '1',
-    };
+    const config: Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs> = {};
 
     config.data = {
       url: graphqlOutput.payload.awsAppsyncApiEndpoint,
@@ -242,13 +241,11 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
    */
   contribute = ({
     [storageOutputKey]: storageOutput,
-  }: UnifiedBackendOutput): ClientConfig | Record<string, never> => {
+  }: UnifiedBackendOutput): Partial<ClientConfig> | Record<string, never> => {
     if (storageOutput === undefined) {
       return {};
     }
-    const config: clientConfigTypesV1.AWSAmplifyBackendOutputs = {
-      version: '1',
-    };
+    const config: Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs> = {};
 
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,

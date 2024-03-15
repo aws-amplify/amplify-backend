@@ -1,6 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
+  ClientConfigNameResolver,
   ClientConfigPathResolver,
   ClientConfigWriter,
 } from './client_config_writer.js';
@@ -8,6 +9,7 @@ import {
   ClientConfig,
   ClientConfigFileBaseName,
   ClientConfigFormat,
+  ClientConfigVersionOption,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatterLegacy } from './client_config_formatter_legacy.js';
 import { randomUUID } from 'crypto';
@@ -18,6 +20,7 @@ void describe('client config writer', () => {
   const sampleUserPoolClientId = 'test_user_pool_client_id';
 
   const pathResolverMock = mock.fn<ClientConfigPathResolver>();
+  const nameResolverMock = mock.fn<ClientConfigNameResolver>();
   const clientFormatter = new ClientConfigFormatterLegacy(undefined as never);
   const fspMock = {
     writeFile: mock.fn<(path: string, content: string) => Promise<void>>(() =>
@@ -26,6 +29,7 @@ void describe('client config writer', () => {
   };
   const clientConfigWriter: ClientConfigWriter = new ClientConfigWriter(
     pathResolverMock,
+    nameResolverMock,
     clientFormatter,
     fspMock as never
   );
@@ -33,6 +37,7 @@ void describe('client config writer', () => {
   beforeEach(() => {
     fspMock.writeFile.mock.resetCalls();
     pathResolverMock.mock.resetCalls();
+    nameResolverMock.mock.resetCalls();
   });
 
   const clientConfig: ClientConfig = {
@@ -52,6 +57,9 @@ void describe('client config writer', () => {
     const formattedContent = randomUUID().toString();
 
     pathResolverMock.mock.mockImplementation(() => targetFile);
+    nameResolverMock.mock.mockImplementation(
+      () => ClientConfigFileBaseName.LEGACY
+    );
     const formatMock = mock.method(
       clientFormatter,
       'format',
@@ -60,7 +68,7 @@ void describe('client config writer', () => {
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
-      ClientConfigFileBaseName.LEGACY,
+      ClientConfigVersionOption.LEGACY,
       outDir,
       format
     );
@@ -94,6 +102,10 @@ void describe('client config writer', () => {
     const formattedContent = randomUUID().toString();
 
     pathResolverMock.mock.mockImplementation(() => targetFile);
+    nameResolverMock.mock.mockImplementation(
+      () => ClientConfigFileBaseName.LEGACY
+    );
+
     const formatMock = mock.method(
       clientFormatter,
       'format',
@@ -102,11 +114,15 @@ void describe('client config writer', () => {
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
-      ClientConfigFileBaseName.LEGACY,
+      ClientConfigVersionOption.LEGACY,
       outDir
     );
 
     assert.strictEqual(pathResolverMock.mock.callCount(), 1);
+    assert.strictEqual(
+      pathResolverMock.mock.calls[0].arguments[0],
+      ClientConfigFileBaseName.LEGACY
+    );
     assert.strictEqual(
       pathResolverMock.mock.calls[0].arguments[2],
       ClientConfigFormat.JSON
