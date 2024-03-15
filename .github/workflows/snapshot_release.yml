@@ -1,4 +1,4 @@
-name: health_checks
+name: snapshot_release
 
 on:
   push:
