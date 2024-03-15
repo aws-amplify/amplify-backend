@@ -17,10 +17,6 @@ export type PublishOptions = {
    * See https://github.com/changesets/changesets/blob/main/docs/snapshot-releases.md
    */
   snapshotRelease?: boolean;
-  /**
-   * A release tag. Required for snapshot releases.
-   */
-  tag?: string;
 };
 
 const publishDefaults: PublishOptions = {
@@ -38,19 +34,20 @@ export const runPublish = async (props?: PublishOptions) => {
     ...publishDefaults,
     ...props,
   };
-  validatePublishOptions(options);
 
   const execaOptions: Options = {
     stdio: 'inherit',
   };
 
-  if (options.snapshotRelease && options.tag) {
+  const snapshotTag = 'test';
+
+  if (options.snapshotRelease) {
     // Snapshot releases are not allowed in pre mode.
     // Exit pre mode. This is no-op if not in pre mode.
     await execa('changeset', ['pre', 'exit'], execaOptions);
     await execa(
       'changeset',
-      ['version', '--snapshot', options.tag],
+      ['version', '--snapshot', snapshotTag],
       execaOptions
     );
   }
@@ -59,8 +56,8 @@ export const runPublish = async (props?: PublishOptions) => {
   if (!options.includeGitTags) {
     changesetArgs.push('--no-git-tag');
   }
-  if (options.tag) {
-    changesetArgs.push('--tag', options.tag);
+  if (options.snapshotRelease) {
+    changesetArgs.push('--tag', snapshotTag);
   }
 
   const execaPublishOptions: Options = {
@@ -70,16 +67,4 @@ export const runPublish = async (props?: PublishOptions) => {
       : {}),
   };
   await execa('changeset', changesetArgs, execaPublishOptions);
-};
-
-const validatePublishOptions = (options: PublishOptions) => {
-  if (options.snapshotRelease && !options.tag) {
-    throw new Error('Tag must be provided for snapshot release.');
-  }
-  if (options.tag && !options.snapshotRelease) {
-    throw new Error('Tag can be used only for snapshot release.');
-  }
-  if (options.tag === 'latest') {
-    throw new Error("A tag for release must not be 'latest'");
-  }
 };
