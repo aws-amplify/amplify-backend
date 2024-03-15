@@ -24,6 +24,7 @@
     "prepare": "husky install",
     "publish": "tsx scripts/publish.ts",
     "publish:local": "tsx scripts/publish_local.ts",
+    "publish:snapshot": "tsx scripts/publish_snapshot.ts",
     "set-script-shell": "npm config set script-shell bash --userconfig ./.npmrc",
     "setup:local": "npm run set-script-shell && npm install && npm run build && npm link ./packages/cli ./packages/create-amplify",
     "setup:test-project": "tsx scripts/setup_test_project.ts",
