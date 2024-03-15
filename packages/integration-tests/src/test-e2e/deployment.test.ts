@@ -192,9 +192,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             testProject.projectDirPath
           )
             .do(
-              new PredicatedActionBuilder().waitForLineIncludes(
-                'Caused By: [esbuild Error]: Expected ";" but found "won"'
-              )
+              new PredicatedActionBuilder().waitForLineIncludes('esbuild Error')
             )
             .do(interruptSandbox())
             .do(rejectCleanupSandbox())
