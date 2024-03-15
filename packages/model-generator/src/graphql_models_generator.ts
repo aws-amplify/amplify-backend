@@ -4,7 +4,6 @@ import {
   GraphqlModelsGenerator,
   ModelsGenerationParameters,
 } from './model_generator.js';
-import { defaultDirectiveDefinitions } from './default_directive_definitions.js';
 
 /**
  * Generates GraphQL types for a given AppSync API
@@ -27,6 +26,7 @@ export class StackMetadataGraphqlModelsGenerator
     useExperimentalPipelinedTransformer,
     transformerVersion,
     respectPrimaryKeyAttributesOnConnectionField,
+    improvePluralization,
     generateModelsForLazyLoadAndCustomSelectionSet,
     addTimestampFields,
     handleListNullabilityTransparently,
@@ -40,12 +40,12 @@ export class StackMetadataGraphqlModelsGenerator
     const generatedModels = await generateModels({
       schema,
       target,
-      directives: defaultDirectiveDefinitions,
       generateIndexRules,
       emitAuthProvider,
       useExperimentalPipelinedTransformer,
       transformerVersion,
       respectPrimaryKeyAttributesOnConnectionField,
+      improvePluralization,
       generateModelsForLazyLoadAndCustomSelectionSet,
       addTimestampFields,
       handleListNullabilityTransparently,
