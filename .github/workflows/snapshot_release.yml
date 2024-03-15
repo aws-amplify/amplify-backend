@@ -32,7 +32,6 @@ jobs:
       - run: npm run set-script-shell
       - run: npm run test
   check_package_versions:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs:
       - install
