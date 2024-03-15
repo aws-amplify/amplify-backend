@@ -28,6 +28,7 @@ const publishDefaults: PublishOptions = {
   useLocalRegistry: false,
   snapshotRelease: false,
 };
+
 /**
  * Wrapper around `changeset publish` that exposes a few config options
  * To keep behavior consistent, this wrapper should be the ONLY path by which we execute `changeset publish`

@@ -1,10 +1,11 @@
 name: snapshot_release
 
 on:
-  push:
-    branches:
-      - snapshot-release-workflow
   workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
 
 jobs:
   install:
@@ -56,4 +57,4 @@ jobs:
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - name: Publish snapshot to npm
         run: |
-          npm run publish:snapshot test
+          npm run publish:snapshot ${{ github.event.inputs.tag }}
