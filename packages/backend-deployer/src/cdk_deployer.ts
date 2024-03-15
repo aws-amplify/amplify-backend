@@ -24,12 +24,14 @@ import { dirname } from 'path';
 enum InvokableCommand {
   DEPLOY = 'deploy',
   DESTROY = 'destroy',
+  SYNTH = 'synth',
 }
 
 /**
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
+  private readonly relativeCloudAssemblyLocation = '.amplify/artifacts/cdk.out';
   /**
    * Instantiates instance of CDKDeployer
    */
@@ -42,8 +44,6 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk deploy command
    */
   deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
-    await this.invokeTsc(deployProps);
-
     const cdkCommandArgs: string[] = [];
     if (backendId.type === 'sandbox') {
       cdkCommandArgs.push('--hotswap-fallback');
@@ -56,18 +56,47 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    return this.tryInvokeCdk(
+    // first synth with the backend definition
+    const startTime = Date.now();
+    await this.tryInvokeCdk(
+      InvokableCommand.SYNTH,
+      backendId,
+      this.getAppCommand(),
+      cdkCommandArgs.concat('--quiet') // don't print the CFN template to stdout
+    );
+    // CDK prints synth time in seconds rounded to 2 decimal places. Here we duplicate that behavior.
+    const synthTimeSeconds = Math.floor((Date.now() - startTime) / 10) / 100;
+
+    // then run type checks
+    await this.invokeTsc(deployProps);
+
+    // then deploy with the cloud assembly that was generated during synth
+    const deployResult = await this.tryInvokeCdk(
       InvokableCommand.DEPLOY,
       backendId,
+      this.relativeCloudAssemblyLocation,
       cdkCommandArgs
     );
+
+    return {
+      deploymentTimes: {
+        synthesisTime: synthTimeSeconds,
+        totalTime:
+          synthTimeSeconds + (deployResult?.deploymentTimes?.totalTime || 0),
+      },
+    };
   };
 
   /**
    * Invokes cdk destroy command
    */
   destroy = async (backendId: BackendIdentifier) => {
-    return this.tryInvokeCdk(InvokableCommand.DESTROY, backendId, ['--force']);
+    return this.tryInvokeCdk(
+      InvokableCommand.DESTROY,
+      backendId,
+      this.getAppCommand(),
+      ['--force']
+    );
   };
 
   /**
@@ -125,6 +154,12 @@ export class CDKDeployer implements BackendDeployer {
     }
   };
 
+  private getAppCommand = () =>
+    this.packageManagerController.getCommand([
+      'tsx',
+      this.backendLocator.locate(),
+    ]);
+
   private invokeTsc = async (deployProps?: DeployProps) => {
     if (!deployProps?.validateAppSources) {
       return;
@@ -171,12 +206,14 @@ export class CDKDeployer implements BackendDeployer {
   private tryInvokeCdk = async (
     invokableCommand: InvokableCommand,
     backendId: BackendIdentifier,
+    appArgument: string,
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
     try {
       return await this.invokeCdk(
         invokableCommand,
         backendId,
+        appArgument,
         additionalArguments
       );
     } catch (err) {
@@ -190,6 +227,7 @@ export class CDKDeployer implements BackendDeployer {
   private invokeCdk = async (
     invokableCommand: InvokableCommand,
     backendId: BackendIdentifier,
+    appArgument: string,
     additionalArguments?: string[]
   ): Promise<DeployResult | DestroyResult> => {
     // Basic args
@@ -200,13 +238,10 @@ export class CDKDeployer implements BackendDeployer {
       // See https://github.com/aws/aws-cdk/issues/7717 for more details.
       '--ci',
       '--app',
-      this.packageManagerController.getCommand([
-        'tsx',
-        this.backendLocator.locate(),
-      ]),
+      appArgument,
       '--all',
       '--output',
-      '.amplify/artifacts/cdk.out',
+      this.relativeCloudAssemblyLocation,
     ];
 
     // Add context information if available

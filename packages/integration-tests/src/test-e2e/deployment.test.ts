@@ -191,11 +191,8 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             ['sandbox', '--dirToWatch', 'amplify'],
             testProject.projectDirPath
           )
-            .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
             .do(
-              new PredicatedActionBuilder().waitForLineIncludes(
-                'Unexpected keyword or identifier'
-              )
+              new PredicatedActionBuilder().waitForLineIncludes('esbuild Error')
             )
             .do(interruptSandbox())
             .do(rejectCleanupSandbox())
