@@ -35,9 +35,12 @@ export class SchemaGenerator {
   };
 }
 
+// eslint-disable-next-line spellcheck/spell-checker
 export type MySQLEngine = 'mysql';
-export type PostgreSQLEngine = 'postgresql';
-export type SQLEngine = MySQLEngine | PostgreSQLEngine;
+// eslint-disable-next-line spellcheck/spell-checker
+export type PostgresSQLEngine = 'postgresql';
+// eslint-disable-next-line spellcheck/spell-checker
+export type SQLEngine = MySQLEngine | PostgresSQLEngine;
 
 export type SQLDataSourceConfig = {
   engine: SQLEngine;
@@ -55,7 +58,9 @@ export class DatabaseConnectError extends Error {
   /**
    * Creates database connection error.
    */
+  // eslint-disable-next-line spellcheck/spell-checker
   constructor(readonly code: string, readonly errorno: string) {
+    // eslint-disable-next-line spellcheck/spell-checker
     super(`Database connection error: ${code} ${errorno}`);
   }
 }

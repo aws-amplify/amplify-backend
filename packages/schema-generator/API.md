@@ -20,7 +20,7 @@ export type MySQLEngine = 'mysql';
 export const parseDatabaseUrl: (databaseUrl: string) => SQLDataSourceConfig;
 
 // @public (undocumented)
-export type PostgreSQLEngine = 'postgresql';
+export type PostgresSQLEngine = 'postgresql';
 
 // @public
 export class SchemaGenerator {
@@ -45,7 +45,7 @@ export type SQLDataSourceConfig = {
 };
 
 // @public (undocumented)
-export type SQLEngine = MySQLEngine | PostgreSQLEngine;
+export type SQLEngine = MySQLEngine | PostgresSQLEngine;
 
 // (No @packageDocumentation comment for this package)
 
