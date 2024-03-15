@@ -43,7 +43,7 @@ export class GenerateSchemaCommand
     private readonly schemaGenerator: SchemaGenerator
   ) {
     this.command = 'schema-from-database';
-    this.describe = 'Generates typescript data schema from database';
+    this.describe = 'Generates typescript data schema from a SQL database';
   }
 
   getBackendIdentifier = async (args: GenerateSchemaCommandOptions) => {
@@ -114,7 +114,7 @@ export class GenerateSchemaCommand
         group: 'Schema Generation',
       })
       .option('connection-string-secret', {
-        describe: 'Secret name for the database connection string',
+        describe: 'Amplify secret name for the database connection string',
         type: 'string',
         array: false,
         group: 'Schema Generation',
