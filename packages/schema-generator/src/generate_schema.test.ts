@@ -53,8 +53,8 @@ void describe('SchemaGenerator', () => {
   });
 
   void it('should throw error if the connection string is missing port', async () => {
-    // eslint-disable-next-line spellcheck/spell-checker
     const parse = () =>
+      // eslint-disable-next-line spellcheck/spell-checker
       parseDatabaseUrl('mysql://user:password@mysql-hostname/db');
     assert.throws(parse, {
       name: 'DatabaseUrlParseError',
