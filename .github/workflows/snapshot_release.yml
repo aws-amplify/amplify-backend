@@ -53,7 +53,7 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
       - name: Publish snapshot to npm
         run: |
-          publish: npm run publish:snapshot
+          publish: npm run publish:snapshot test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

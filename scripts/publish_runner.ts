@@ -5,12 +5,12 @@ export type PublishOptions = {
    * Publish defaults to creating git tags for the packages being published.
    * Set false to disable this behavior
    */
-  includeGitTags: boolean;
+  includeGitTags?: boolean;
   /**
    * Defaults to publishing to the public npm registry
    * Set true to publish to the local registry
    */
-  useLocalRegistry: boolean;
+  useLocalRegistry?: boolean;
   /**
    * Defaults to publishing a usual release.
    * Set true to publish a snapshot.
