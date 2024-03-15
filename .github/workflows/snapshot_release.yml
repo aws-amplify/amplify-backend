@@ -30,7 +30,6 @@ jobs:
       - run: npm run test
   publish_snapshot:
     needs:
-      - build
       - test
     runs-on: ubuntu-latest
     steps:
