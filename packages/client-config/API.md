@@ -61,22 +61,21 @@ export type AuthClientConfig = {
 
 // @public
 interface AWSAmplifyBackendOutputs {
-    $schema?: string;
     analytics?: {
-        aws_region: string;
+        aws_region: AwsRegion;
         pinpoint_app_id: string;
     };
     api?: {
         endpoints: {
             name: string;
             url: string;
-            aws_region: string;
+            aws_region: AwsRegion;
             authorization_types: AwsAppsyncAuthorizationType[];
             default_authorization_type: AwsAppsyncAuthorizationType;
         }[];
     };
     auth?: {
-        aws_region: string;
+        aws_region: AwsRegion;
         user_pool_id: string;
         user_pool_client_id: string;
         identity_pool_id: string;
@@ -117,7 +116,7 @@ interface AWSAmplifyBackendOutputs {
         conflict_resolution_mode?: 'AUTO_MERGE' | 'OPTIMISTIC_CONCURRENCY' | 'LAMBDA';
     };
     geo?: {
-        aws_region: string;
+        aws_region: AwsRegion;
         maps?: {
             items: AmazonLocationServiceConfig[];
             default: string;
