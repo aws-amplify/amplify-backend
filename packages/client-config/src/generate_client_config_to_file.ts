@@ -29,7 +29,7 @@ export const generateClientConfigToFile = async (
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
-  const isLegacyConfig = version === ClientConfigVersionOption.LEGACY;
+  const isLegacyConfig = version === ClientConfigVersionOption.V0;
 
   const clientConfigWriter = new ClientConfigWriter(
     getClientConfigPath,

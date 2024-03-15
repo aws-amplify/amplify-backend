@@ -68,7 +68,7 @@ void describe('client config writer', () => {
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
-      ClientConfigVersionOption.LEGACY,
+      ClientConfigVersionOption.V0,
       outDir,
       format
     );
@@ -114,7 +114,7 @@ void describe('client config writer', () => {
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
-      ClientConfigVersionOption.LEGACY,
+      ClientConfigVersionOption.V0,
       outDir
     );
 

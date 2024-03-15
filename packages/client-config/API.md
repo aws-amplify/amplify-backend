@@ -188,7 +188,7 @@ export type ClientConfigVersion = `${ClientConfigVersionOption}`;
 // @public (undocumented)
 export enum ClientConfigVersionOption {
     // (undocumented)
-    LEGACY = "0",
+    V0 = "0",
     // (undocumented)
     V1 = "1"
 }
@@ -204,11 +204,8 @@ export type CustomClientConfig = {
 // @public (undocumented)
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
-// @public (undocumented)
-export const DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT = ClientConfigVersionOption.V1;
-
 // @public
-export const generateClientConfig: <T extends "1" | "0">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
+export const generateClientConfig: <T extends "0" | "1">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
 
 // @public
 export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined) => Promise<void>;
