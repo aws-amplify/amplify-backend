@@ -33,20 +33,52 @@ const publishDefaults: PublishOptions = {
  * To keep behavior consistent, this wrapper should be the ONLY path by which we execute `changeset publish`
  */
 export const runPublish = async (props?: PublishOptions) => {
-  const { includeGitTags, useLocalRegistry, snapshotRelease, tag } = {
+  const options = {
     ...publishDefaults,
     ...props,
   };
-  const changesetArgs = ['publish'];
-  if (!includeGitTags) {
-    changesetArgs.push('--no-git-tag');
-  }
+  validatePublishOptions(options);
 
   const execaOptions: Options = {
     stdio: 'inherit',
-    ...(useLocalRegistry
+  };
+
+  if (options.snapshotRelease && options.tag) {
+    // Snapshot releases are not allowed in pre mode.
+    // Exit pre mode. This is no-op if not in pre mode.
+    await execa('changeset', ['pre', 'exit'], execaOptions);
+    await execa(
+      'changeset',
+      ['version', '--snapshot', options.tag],
+      execaOptions
+    );
+  }
+
+  const changesetArgs = ['publish'];
+  if (!options.includeGitTags) {
+    changesetArgs.push('--no-git-tag');
+  }
+  if (options.tag) {
+    changesetArgs.push('--tag', options.tag);
+  }
+
+  const execaPublishOptions: Options = {
+    stdio: 'inherit',
+    ...(options.useLocalRegistry
       ? { env: { npm_config_registry: 'http://localhost:4873/' } }
       : {}),
   };
-  await execa('changeset', changesetArgs, execaOptions);
+  await execa('changeset', changesetArgs, execaPublishOptions);
+};
+
+const validatePublishOptions = (options: PublishOptions) => {
+  if (options.snapshotRelease && !options.tag) {
+    throw new Error('Tag must be provided for snapshot release.');
+  }
+  if (options.tag && !options.snapshotRelease) {
+    throw new Error('Tag can be used only for snapshot release.');
+  }
+  if (options.tag === 'latest') {
+    throw new Error("A tag for release must not be 'latest'");
+  }
 };
