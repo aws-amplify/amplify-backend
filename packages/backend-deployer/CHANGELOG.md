@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 0.5.1-beta.3
+
+### Patch Changes
+
+- a05933c: run tsc after CDK synth but before deploy
+
 ## 0.5.1-beta.2
 
 ### Patch Changes
