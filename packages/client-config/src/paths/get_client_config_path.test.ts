@@ -82,7 +82,7 @@ void describe('getClientConfigPath', () => {
       path.join(
         process.cwd(),
         pathContainingDot,
-        `${configFileName}.${ClientConfigFormat.JSON}`
+        `${ClientConfigFileBaseName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
     );
   });
@@ -99,7 +99,7 @@ void describe('getClientConfigPath', () => {
       path.join(
         process.cwd(),
         nonExistingPath,
-        `${configFileName}.${ClientConfigFormat.JSON}`
+        `${ClientConfigFileBaseName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
     );
   });
