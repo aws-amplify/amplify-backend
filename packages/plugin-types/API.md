@@ -127,6 +127,11 @@ export type ConstructFactoryGetInstanceProps = {
 };
 
 // @public
+export type DeepPartial<T> = {
+    [P in keyof T]?: DeepPartial<T[P]>;
+};
+
+// @public
 export type DeploymentType = 'branch' | 'sandbox';
 
 // @public (undocumented)

@@ -5,7 +5,7 @@
   "type": "module",
   "devDependencies": {
     "@aws-amplify/auth-construct-alpha": "^0.6.0-beta.5",
-    "@aws-amplify/backend": "^0.13.0-beta.6",
+    "@aws-amplify/backend": "^0.13.0-beta.7",
     "@aws-amplify/backend-secret": "^0.4.5-beta.2",
     "@aws-amplify/client-config": "^0.9.0-beta.4",
     "@aws-amplify/data-schema": "^0.13.15",

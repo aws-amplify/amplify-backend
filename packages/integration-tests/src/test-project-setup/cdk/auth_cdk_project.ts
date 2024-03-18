@@ -63,12 +63,16 @@ class AuthTestCdkProject extends TestCdkProjectBase {
     assert.equal(userPools.length, 1);
 
     // assert that we can generate client config
-    const clientConfig = await generateClientConfig(fromNodeProviderChain(), {
-      stackName: this.stackName,
-    });
+    const clientConfig = await generateClientConfig(
+      fromNodeProviderChain(),
+      {
+        stackName: this.stackName,
+      },
+      '1' //version of the config
+    );
 
     assert.ok(
-      clientConfig.aws_user_pools_id,
+      clientConfig.auth?.user_pool_id,
       'client config should include user pool'
     );
   };

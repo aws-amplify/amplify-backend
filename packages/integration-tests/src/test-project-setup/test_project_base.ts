@@ -1,6 +1,7 @@
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
+  ClientConfigFileBaseName,
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
@@ -134,7 +135,11 @@ export abstract class TestProjectBase {
    */
   async assertClientConfigExists(dir?: string, format?: ClientConfigFormat) {
     const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(dir ?? this.projectDirPath, format)
+      await getClientConfigPath(
+        ClientConfigFileBaseName.LEGACY,
+        dir ?? this.projectDirPath,
+        format
+      )
     );
 
     assert.ok(clientConfigStats.isFile());

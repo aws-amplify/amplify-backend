@@ -1,5 +1,12 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.7
+
+### Patch Changes
+
+- Updated dependencies [a05933c]
+  - @aws-amplify/backend-function@0.8.0-beta.5
+
 ## 0.13.0-beta.6
 
 ### Minor Changes

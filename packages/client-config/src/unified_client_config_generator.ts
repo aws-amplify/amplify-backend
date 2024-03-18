@@ -1,12 +1,13 @@
-import { BackendOutput } from '@aws-amplify/plugin-types';
+import { BackendOutput, DeepPartial } from '@aws-amplify/plugin-types';
 import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
-import { ClientConfigContributor } from './client-config-contributor/client_config_contributor.js';
+import { ClientConfigContributor } from './client-config-types/client_config_contributor.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
 import {
   AmplifyUserError,
   ObjectAccumulator,
   ObjectAccumulatorPropertyAlreadyExistsError,
+  ObjectAccumulatorVersionMismatchError,
 } from '@aws-amplify/platform-core';
 
 /**
@@ -32,12 +33,16 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
     );
 
     const accumulator = new ObjectAccumulator<ClientConfig>({});
+
     for (const contributor of this.clientConfigContributors) {
       const clientConfigContribution = await contributor.contribute(
         backendOutput
       );
       try {
-        accumulator.accumulate(clientConfigContribution);
+        // Partial to DeepPartial is always a safe case since it's up-casting
+        accumulator.accumulate(
+          clientConfigContribution as DeepPartial<ClientConfig>
+        );
       } catch (error) {
         if (error instanceof ObjectAccumulatorPropertyAlreadyExistsError) {
           throw new AmplifyUserError(
@@ -51,9 +56,21 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
             error
           );
         }
+        if (error instanceof ObjectAccumulatorVersionMismatchError) {
+          throw new AmplifyUserError(
+            'VersionMismatchError',
+            {
+              message: `Conflicting versions of client configuration found. `,
+              resolution:
+                "Ensure that the version specified in 'backend.addOutput' is consistent" +
+                ' and is same as the one used for generating the client config',
+            },
+            error
+          );
+        }
         throw error;
       }
     }
-    return accumulator.getAccumulatedObject();
+    return <ClientConfig>accumulator.getAccumulatedObject();
   };
 }
