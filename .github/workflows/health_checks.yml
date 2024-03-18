@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - main
-      - feature/**
   pull_request:
     branches:
       - main
+      - feature/**
   workflow_dispatch:
 
 jobs:
