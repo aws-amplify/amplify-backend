@@ -1,6 +1,7 @@
 import fsp from 'fs/promises';
 import path from 'path';
 import yargs from 'yargs';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { AmplifyPrompter, LogLevel, printer } from '@aws-amplify/cli-core';
 
 /**
@@ -36,7 +37,14 @@ export const getProjectRoot = async () => {
       LogLevel.DEBUG
     );
     printer.log(`Creating directory ${projectRoot}`, LogLevel.DEBUG);
-    await fsp.mkdir(projectRoot, { recursive: true });
+    try {
+      await fsp.mkdir(projectRoot, { recursive: true });
+    } catch (err) {
+      throw new AmplifyUserError('ProjectDirectoryCreateError', {
+        message: `Failed to create project directory`,
+        resolution: `Ensure that ${projectRoot} is the correct path and you have write permissions to this location.`,
+      });
+    }
   }
   return projectRoot;
 };
