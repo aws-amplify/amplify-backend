@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - feature/data-iam-auth
   pull_request:
     branches:
       - main
