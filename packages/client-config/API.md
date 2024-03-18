@@ -7,6 +7,18 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 
+// @public
+interface AmazonCognitoStandardAttributesConfig {
+    // (undocumented)
+    required?: boolean;
+}
+
+// @public (undocumented)
+interface AmazonLocationServiceConfig {
+    name?: string;
+    style?: string;
+}
+
 // @public (undocumented)
 export type AnalyticsClientConfig = {
     aws_mobile_analytics_app_id?: string;
@@ -48,7 +60,99 @@ export type AuthClientConfig = {
 };
 
 // @public
-export type ClientConfig = Partial<AnalyticsClientConfig & AuthClientConfig & GeoClientConfig & GraphqlClientConfig & NotificationsClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
+interface AWSAmplifyBackendOutputs {
+    analytics?: {
+        aws_region: AwsRegion;
+        pinpoint_app_id: string;
+    };
+    api?: {
+        endpoints: {
+            name: string;
+            url: string;
+            aws_region: AwsRegion;
+            authorization_types: AwsAppsyncAuthorizationType[];
+            default_authorization_type: AwsAppsyncAuthorizationType;
+        }[];
+    };
+    auth?: {
+        aws_region: AwsRegion;
+        user_pool_id: string;
+        user_pool_client_id: string;
+        identity_pool_id: string;
+        password_policy?: {
+            min_length?: number;
+            require_numbers?: boolean;
+            require_lowercase?: boolean;
+            require_uppercase?: boolean;
+            require_symbols?: boolean;
+        };
+        identity_providers?: string[];
+        oauth_domain?: string;
+        oauth_scope?: string[];
+        oauth_redirect_sign_in?: string[];
+        oauth_redirect_sign_out?: string[];
+        oauth_response_type?: 'code' | 'token';
+        standard_attributes?: {
+            [k: string]: AmazonCognitoStandardAttributesConfig;
+        };
+        username_attributes?: ('EMAIL' | 'PHONE')[];
+        user_verification_mechanisms?: ('EMAIL' | 'PHONE')[];
+        unauthenticated_identities_enabled?: boolean;
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
+    };
+    custom?: {
+        [k: string]: unknown;
+    };
+    data?: {
+        aws_region: AwsRegion;
+        url: string;
+        model_introspection?: {
+            [k: string]: unknown;
+        };
+        api_key?: string;
+        default_authorization_type: AwsAppsyncAuthorizationType;
+        authorization_types: AwsAppsyncAuthorizationType[];
+        conflict_resolution_mode?: 'AUTO_MERGE' | 'OPTIMISTIC_CONCURRENCY' | 'LAMBDA';
+    };
+    geo?: {
+        aws_region: AwsRegion;
+        maps?: {
+            items: AmazonLocationServiceConfig[];
+            default: string;
+        };
+        search_indices?: {
+            items: string[];
+            default: string;
+        };
+        geofence_collections?: {
+            items: string[];
+            default: string;
+        };
+    };
+    storage?: {
+        aws_region: AwsRegion;
+        bucket_name: string;
+    };
+    version: '1';
+}
+
+// @public
+type AwsAppsyncAuthorizationType = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
+
+// @public (undocumented)
+type AwsRegion = string;
+
+// @public
+export type ClientConfig = clientConfigTypesV1.AWSAmplifyBackendOutputs;
+
+// @public (undocumented)
+export enum ClientConfigFileBaseName {
+    // (undocumented)
+    DEFAULT = "amplify-outputs",
+    // (undocumented)
+    LEGACY = "amplifyconfiguration"
+}
 
 // @public (undocumented)
 export enum ClientConfigFormat {
@@ -64,16 +168,47 @@ export enum ClientConfigFormat {
     TS = "ts"
 }
 
+// @public
+export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfig & GeoClientConfig & GraphqlClientConfig & NotificationsClientConfig & RestApiClientConfig & StorageClientConfig & PlatformClientConfig & CustomClientConfig>;
+
+declare namespace clientConfigTypesV1 {
+    export {
+        AwsAppsyncAuthorizationType,
+        AwsRegion,
+        AWSAmplifyBackendOutputs,
+        AmazonCognitoStandardAttributesConfig,
+        AmazonLocationServiceConfig
+    }
+}
+export { clientConfigTypesV1 }
+
+// @public (undocumented)
+export type ClientConfigVersion = `${ClientConfigVersionOption}`;
+
+// @public (undocumented)
+export enum ClientConfigVersionOption {
+    // (undocumented)
+    V0 = "0",
+    // (undocumented)
+    V1 = "1"
+}
+
+// @public
+export type ClientConfigVersionTemplateType<T> = T extends '1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
+
 // @public (undocumented)
 export type CustomClientConfig = {
-    custom: Record<string, string>;
+    custom: Record<string, unknown>;
 };
 
-// @public
-export const generateClientConfig: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier) => Promise<ClientConfig>;
+// @public (undocumented)
+export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined, debug?: ((message: string) => void) | undefined) => Promise<void>;
+export const generateClientConfig: <T extends "1" | "0">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
+
+// @public
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, log?: ((message: string) => void) | undefined, debug?: ((message: string) => void) | undefined) => Promise<void>;
 
 // @public (undocumented)
 export type GeoClientConfig = {
@@ -99,7 +234,10 @@ export type GeoClientConfig = {
 };
 
 // @public
-export const getClientConfigPath: (outDir?: string, format?: ClientConfigFormat, debug?: ((message: string) => void) | undefined) => Promise<string>;
+export const getClientConfigFileName: (version: ClientConfigVersion) => ClientConfigFileBaseName;
+
+// @public
+export const getClientConfigPath: (fileName: ClientConfigFileBaseName, outDir?: string, format?: ClientConfigFormat, debug?: ((message: string) => void) | undefined) => Promise<string>;
 
 // @public
 export type GraphqlClientConfig = {
@@ -151,6 +289,15 @@ export type NotificationsClientConfig = {
 // @public (undocumented)
 export type PlatformClientConfig = {
     aws_project_region: string;
+};
+
+// @public (undocumented)
+export type RestApiClientConfig = {
+    aws_cloud_logic_custom: {
+        name: string;
+        endpoint: string;
+        region?: string;
+    }[];
 };
 
 // @public

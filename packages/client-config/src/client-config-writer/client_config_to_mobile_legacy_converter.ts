@@ -1,4 +1,4 @@
-import { ClientConfig } from '../client-config-types/client_config.js';
+import { ClientConfigLegacy } from '../client-config-types/client_config.js';
 import {
   ClientConfigMobile,
   ClientConfigMobileApi,
@@ -7,9 +7,9 @@ import {
 } from '../client-config-types/mobile/client_config_mobile_types.js';
 
 /**
- * Converts client config to a different shapes.
+ * Converts client config to a different shapes needed by mobile libraries for Gen1 format.
  */
-export class ClientConfigConverter {
+export class ClientConfigMobileConverter {
   /**
    * Creates client config converter
    */
@@ -20,7 +20,9 @@ export class ClientConfigConverter {
   /**
    * Converts client config to a shape consumable by mobile libraries.
    */
-  convertToMobileConfig = (clientConfig: ClientConfig): ClientConfigMobile => {
+  convertToMobileConfig = (
+    clientConfig: ClientConfigLegacy
+  ): ClientConfigMobile => {
     const userAgent = `${this.packageName}/${this.packageVersion}`;
 
     const mobileConfig: ClientConfigMobile = {
