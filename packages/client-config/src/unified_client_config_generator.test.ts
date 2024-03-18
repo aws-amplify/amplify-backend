@@ -1,8 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 import assert from 'node:assert';
-import { AuthClientConfigContributor } from './client-config-contributor/auth_client_config_contributor.js';
-import { GraphqlClientConfigContributor } from './client-config-contributor/graphql_client_config_contributor.js';
 import {
   UnifiedBackendOutput,
   authOutputKey,
@@ -12,10 +10,9 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { ModelIntrospectionSchemaAdapter } from './client-config-contributor/model_introspection_schema_adapater.js';
-import { PlatformClientConfigContributor } from './client-config-contributor/platform_client_config_contributor.js';
-import { CustomClientConfigContributor } from './client-config-contributor/custom_client_config_contributor.js';
+import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { ClientConfigContributorFactory } from './client-config-contributor/client_config_contributor_factory.js';
 
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
@@ -34,7 +31,7 @@ void describe('UnifiedClientConfigGenerator', () => {
             identityPoolId: 'testIdentityPoolId',
             userPoolId: 'testUserPoolId',
             webClientId: 'testWebClientId',
-            authRegion: 'testRegion',
+            authRegion: 'us-east-1',
             passwordPolicyMinLength: '8',
             passwordPolicyRequirements:
               '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
@@ -43,13 +40,6 @@ void describe('UnifiedClientConfigGenerator', () => {
             verificationMechanisms: '["EMAIL","PHONE"]',
             usernameAttributes: '["EMAIL"]',
             signupAttributes: '["EMAIL"]',
-            oauthClientId: 'oauthClientId',
-            oauthDomain: 'test-prefix.auth.us-east-1.amazoncognito.com',
-            oauthScope: '["email","profile","phone_number"]',
-            oauthRedirectSignIn: 'http://callback.com',
-            oauthRedirectSignOut: 'http://logout.com',
-            oauthResponseType: 'code',
-            socialProviders: `["GOOGLE","provider1","provider2"]`,
             allowUnauthenticatedIdentities: 'true',
           },
         },
@@ -60,7 +50,7 @@ void describe('UnifiedClientConfigGenerator', () => {
             awsAppsyncRegion: 'us-east-1',
             awsAppsyncAuthenticationType: 'API_KEY',
             awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
-            awsAppsyncConflictResolutionMode: undefined,
+            awsAppsyncConflictResolutionMode: 'AUTO_MERGE',
             awsAppsyncApiKey: 'testApiKey',
             awsAppsyncApiId: 'testApiId',
             amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
@@ -77,59 +67,52 @@ void describe('UnifiedClientConfigGenerator', () => {
         'getModelIntrospectionSchemaFromS3Uri',
         () => undefined
       );
-      const configContributors = [
-        new PlatformClientConfigContributor(),
-        new AuthClientConfigContributor(),
-        new GraphqlClientConfigContributor(modelSchemaAdapter),
-      ];
-
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1');
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
         configContributors
       );
       const result = await clientConfigGenerator.generateClientConfig();
       const expectedClientConfig: ClientConfig = {
-        aws_project_region: 'us-east-1',
-        aws_user_pools_id: 'testUserPoolId',
-        aws_user_pools_web_client_id: 'testWebClientId',
-        aws_cognito_region: 'testRegion',
-        aws_cognito_identity_pool_id: 'testIdentityPoolId',
-        aws_cognito_mfa_configuration: 'OPTIONAL',
-        aws_cognito_mfa_types: ['SMS', 'TOTP'],
-        aws_cognito_password_protection_settings: {
-          passwordPolicyCharacters: [
-            'REQUIRES_NUMBERS',
-            'REQUIRES_LOWERCASE',
-            'REQUIRES_UPPERCASE',
-          ],
-          passwordPolicyMinLength: 8,
+        auth: {
+          user_pool_id: 'testUserPoolId',
+          aws_region: 'us-east-1',
+          user_pool_client_id: 'testWebClientId',
+          identity_pool_id: 'testIdentityPoolId',
+          mfa_methods: ['SMS', 'TOTP'],
+          standard_attributes: { EMAIL: { required: true } },
+          username_attributes: ['EMAIL'],
+          user_verification_mechanisms: ['EMAIL', 'PHONE'],
+          mfa_configuration: 'OPTIONAL',
+
+          password_policy: {
+            min_length: 8,
+            require_lowercase: true,
+            require_numbers: true,
+            require_uppercase: true,
+          },
+
+          unauthenticated_identities_enabled: true,
         },
-        aws_cognito_signup_attributes: ['EMAIL'],
-        aws_cognito_username_attributes: ['EMAIL'],
-        aws_cognito_verification_mechanisms: ['EMAIL', 'PHONE'],
-        aws_appsync_apiKey: 'testApiKey',
-        aws_appsync_authenticationType: 'API_KEY',
-        aws_appsync_conflictResolutionMode: undefined,
-        aws_appsync_graphqlEndpoint: 'testApiEndpoint',
-        aws_appsync_region: 'us-east-1',
-        aws_appsync_additionalAuthenticationTypes: 'API_KEY',
-        allowUnauthenticatedIdentities: 'true',
-        oauth: {
-          domain: 'test-prefix.auth.us-east-1.amazoncognito.com',
-          scope: ['email', 'profile', 'phone_number'],
-          redirectSignIn: 'http://callback.com',
-          redirectSignOut: 'http://logout.com',
-          clientId: 'oauthClientId',
-          responseType: 'code',
+        data: {
+          url: 'testApiEndpoint',
+          aws_region: 'us-east-1',
+          api_key: 'testApiKey',
+          default_authorization_type: 'API_KEY',
+          authorization_types: ['API_KEY'],
+          conflict_resolution_mode: 'AUTO_MERGE',
         },
-        aws_cognito_social_providers: ['GOOGLE', 'provider1', 'provider2'],
+        version: '1',
       };
+
       assert.deepStrictEqual(result, expectedClientConfig);
     });
 
     void it('throws user error if there are overlapping values', async () => {
-      const customOutputs: Partial<ClientConfig> = {
-        aws_user_pools_id: 'overrideUserPoolId',
+      const customOutputs = {
+        auth: { user_pool_id: 'overrideUserPoolId' },
       };
       const stubOutput: UnifiedBackendOutput = {
         [authOutputKey]: {
@@ -149,10 +132,18 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
-      const configContributors = [
-        new AuthClientConfigContributor(),
-        new CustomClientConfigContributor(),
-      ];
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        fromNodeProviderChain()
+      );
+
+      mock.method(
+        modelSchemaAdapter,
+        'getModelIntrospectionSchemaFromS3Uri',
+        () => undefined
+      );
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -163,7 +154,7 @@ void describe('UnifiedClientConfigGenerator', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Duplicated entry with key aws_user_pools_id detected in deployment outputs'
+            'Duplicated entry with key user_pool_id detected in deployment outputs'
           );
           assert.ok(error.resolution);
           return true;

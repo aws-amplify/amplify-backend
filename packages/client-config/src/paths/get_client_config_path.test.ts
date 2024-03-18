@@ -3,9 +3,8 @@ import { describe, it, mock } from 'node:test';
 import * as path from 'path';
 import assert from 'node:assert';
 import { getClientConfigPath } from './get_client_config_path.js';
-import { ClientConfigFormat } from '../index.js';
+import { ClientConfigFileBaseName, ClientConfigFormat } from '../index.js';
 
-const configFileName = 'amplifyconfiguration';
 const testPath = 'some/path';
 
 mock.method(fs, 'lstatSync', (path: string) => {
@@ -21,28 +20,37 @@ mock.method(fs, 'lstatSync', (path: string) => {
 });
 
 void describe('getClientConfigPath', () => {
-  void it('returns path to config file', async () => {
-    const configPath = await getClientConfigPath();
+  void it('returns path to legacy config file', async () => {
+    const configPath = await getClientConfigPath(
+      ClientConfigFileBaseName.LEGACY
+    );
     assert.equal(
       configPath,
-      path.join(process.cwd(), `${configFileName}.${ClientConfigFormat.JSON}`)
+      path.join(
+        process.cwd(),
+        `${ClientConfigFileBaseName.LEGACY}.${ClientConfigFormat.JSON}`
+      )
     );
   });
 
-  void it('returns path to config file with provided dir path', async () => {
-    const configPath = await getClientConfigPath(testPath);
+  void it('returns path to client config file with provided dir path', async () => {
+    const configPath = await getClientConfigPath(
+      ClientConfigFileBaseName.DEFAULT,
+      testPath
+    );
     assert.equal(
       configPath,
       path.join(
         process.cwd(),
         testPath,
-        `${configFileName}.${ClientConfigFormat.JSON}`
+        `${ClientConfigFileBaseName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
     );
   });
 
-  void it('returns path to config file with provided dir path and format', async () => {
+  void it('returns path to client config file with provided dir path and format', async () => {
     const configPath = await getClientConfigPath(
+      ClientConfigFileBaseName.DEFAULT,
       testPath,
       ClientConfigFormat.JSON
     );
@@ -51,25 +59,33 @@ void describe('getClientConfigPath', () => {
       path.join(
         process.cwd(),
         testPath,
-        `${configFileName}.${ClientConfigFormat.JSON}`
+        `${ClientConfigFileBaseName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
     );
   });
 
-  void it('returns path to config file with provided format, no dir path', async () => {
+  void it('returns path to client config file with provided format, no dir path', async () => {
     const configPath = await getClientConfigPath(
+      ClientConfigFileBaseName.DEFAULT,
       undefined,
       ClientConfigFormat.TS
     );
     assert.equal(
       configPath,
-      path.join(process.cwd(), `${configFileName}.${ClientConfigFormat.TS}`)
+      path.join(
+        process.cwd(),
+        `${ClientConfigFileBaseName.DEFAULT}.${ClientConfigFormat.TS}`
+      )
     );
   });
 
   void it('throw error if it is provided a file path', async () => {
     await assert.rejects(
-      async () => await getClientConfigPath(`${testPath}/testConfig.json`),
+      async () =>
+        await getClientConfigPath(
+          ClientConfigFileBaseName.DEFAULT,
+          `${testPath}/testConfig.json`
+        ),
       new Error(
         "ENOENT: no such file or directory, lstat 'some/path/testConfig.json'"
       )
@@ -78,15 +94,20 @@ void describe('getClientConfigPath', () => {
 
   void it('throw error if it is provided invalid path', async () => {
     await assert.rejects(
-      async () => await getClientConfigPath('some/not/existing/path'),
+      async () =>
+        await getClientConfigPath(
+          ClientConfigFileBaseName.DEFAULT,
+          'some/not/existing/path'
+        ),
       new Error(
         "ENOENT: no such file or directory, lstat 'some/not/existing/path'"
       )
     );
   });
 
-  void it('returns path to config file with absolute path', async () => {
+  void it('returns path to client config file with absolute path', async () => {
     const configPath = await getClientConfigPath(
+      ClientConfigFileBaseName.DEFAULT,
       `${process.cwd()}/${testPath}`
     );
     assert.equal(
@@ -94,7 +115,7 @@ void describe('getClientConfigPath', () => {
       path.join(
         process.cwd(),
         testPath,
-        `${configFileName}.${ClientConfigFormat.JSON}`
+        `${ClientConfigFileBaseName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
     );
   });
@@ -123,7 +144,11 @@ void describe('getClientConfigPath', () => {
   ] as const;
   expectedFileExtensions.forEach((entry) => {
     void it(`path for ${entry.format} should have ${entry.expectedFileExtension} suffix`, async () => {
-      const configPath = await getClientConfigPath(undefined, entry.format);
+      const configPath = await getClientConfigPath(
+        ClientConfigFileBaseName.DEFAULT,
+        undefined,
+        entry.format
+      );
 
       assert.ok(configPath.endsWith(entry.expectedFileExtension));
     });

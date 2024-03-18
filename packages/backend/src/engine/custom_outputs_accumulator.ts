@@ -1,4 +1,7 @@
-import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import {
+  BackendOutputStorageStrategy,
+  DeepPartial,
+} from '@aws-amplify/plugin-types';
 import { ClientConfig } from '@aws-amplify/client-config';
 import {
   CustomOutput,
@@ -9,6 +12,7 @@ import {
   AmplifyUserError,
   ObjectAccumulator,
   ObjectAccumulatorPropertyAlreadyExistsError,
+  ObjectAccumulatorVersionMismatchError,
 } from '@aws-amplify/platform-core';
 
 /**
@@ -25,7 +29,7 @@ export class CustomOutputsAccumulator {
     private readonly clientConfigAccumulator: ObjectAccumulator<ClientConfig>
   ) {}
 
-  addOutput = (clientConfigPart: Partial<ClientConfig>) => {
+  addOutput = (clientConfigPart: DeepPartial<ClientConfig>) => {
     try {
       this.clientConfigAccumulator.accumulate(clientConfigPart);
     } catch (error) {
@@ -36,6 +40,18 @@ export class CustomOutputsAccumulator {
             message: `Output entry with key ${error.key} already exists`,
             resolution:
               "Check if 'backend.addOutput' is called multiple times with overlapping inputs",
+          },
+          error
+        );
+      }
+      if (error instanceof ObjectAccumulatorVersionMismatchError) {
+        throw new AmplifyUserError(
+          'VersionMismatchError',
+          {
+            message: `Conflicting versions of client configuration found.`,
+            resolution:
+              "Ensure that the version specified in 'backend.addOutput' is consistent" +
+              ' and is same as the one used for generating the client config',
           },
           error
         );

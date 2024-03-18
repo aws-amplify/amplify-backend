@@ -1,20 +1,20 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { ClientConfigConverter } from './client_config_converter.js';
+import { ClientConfigMobileConverter } from './client_config_to_mobile_legacy_converter.js';
 import { ClientConfigMobile } from '../client-config-types/mobile/client_config_mobile_types.js';
-import { ClientConfig } from '../client-config-types/client_config.js';
+import { ClientConfigLegacy } from '../client-config-types/client_config.js';
 
 void describe('client config converter', () => {
   const testPackageName = 'test_package_name';
   const testPackageVersion = 'test_package_version;';
-  const converter = new ClientConfigConverter(
+  const converter = new ClientConfigMobileConverter(
     testPackageName,
     testPackageVersion
   );
   const expectedUserAgent = `${testPackageName}/${testPackageVersion}`;
 
   void it('converts auth only config', () => {
-    const clientConfig: ClientConfig = {
+    const clientConfig: ClientConfigLegacy = {
       aws_cognito_region: 'test_cognito_region',
       aws_user_pools_id: 'test_user_pool_id',
       aws_user_pools_web_client_id: 'test_user_pool_app_client_id',
@@ -95,7 +95,7 @@ void describe('client config converter', () => {
   });
 
   void it('converts data only config', () => {
-    const clientConfig: ClientConfig = {
+    const clientConfig: ClientConfigLegacy = {
       aws_appsync_region: 'test_app_sync_region',
       aws_appsync_graphqlEndpoint: 'https://test_api_endpoint.amazon.com',
       aws_appsync_apiKey: 'test_api_key',
@@ -125,7 +125,7 @@ void describe('client config converter', () => {
   });
 
   void it('converts auth with data config', () => {
-    const clientConfig: ClientConfig = {
+    const clientConfig: ClientConfigLegacy = {
       aws_cognito_region: 'test_cognito_region',
       aws_user_pools_id: 'test_user_pool_id',
       aws_cognito_identity_pool_id: 'test_identity_pool_id',
@@ -221,7 +221,7 @@ void describe('client config converter', () => {
   });
 
   void it('converts geo config', () => {
-    const clientConfig: ClientConfig = {
+    const clientConfig: ClientConfigLegacy = {
       geo: {
         amazon_location_service: {
           region: 'us-west-2',
@@ -281,7 +281,7 @@ void describe('client config converter', () => {
   });
 
   void it('converts analytics config', () => {
-    const clientConfig: ClientConfig = {
+    const clientConfig: ClientConfigLegacy = {
       Analytics: {
         Pinpoint: {
           appId: 'test_pinpoint_id',
@@ -314,7 +314,7 @@ void describe('client config converter', () => {
   });
 
   void it('converts full notifications config', () => {
-    const clientConfig: ClientConfig = {
+    const clientConfig: ClientConfigLegacy = {
       Notifications: {
         SMS: {
           AWSPinpoint: {
@@ -380,7 +380,7 @@ void describe('client config converter', () => {
   });
 
   void it('converts apn notifications config', () => {
-    const clientConfig: ClientConfig = {
+    const clientConfig: ClientConfigLegacy = {
       Notifications: {
         APNS: {
           AWSPinpoint: {
@@ -410,7 +410,7 @@ void describe('client config converter', () => {
   });
 
   void it('converts fcm notifications config', () => {
-    const clientConfig: ClientConfig = {
+    const clientConfig: ClientConfigLegacy = {
       Notifications: {
         FCM: {
           AWSPinpoint: {
@@ -440,7 +440,7 @@ void describe('client config converter', () => {
   });
 
   void it('throw on ambiguous push config', () => {
-    const clientConfig: ClientConfig = {
+    const clientConfig: ClientConfigLegacy = {
       Notifications: {
         FCM: {
           AWSPinpoint: {

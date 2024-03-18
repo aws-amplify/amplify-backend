@@ -1,13 +1,19 @@
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { generateClientConfig } from './generate_client_config.js';
 import { ClientConfigWriter } from './client-config-writer/client_config_writer.js';
-import { ClientConfigFormat } from './client-config-types/client_config.js';
+import {
+  ClientConfigFormat,
+  ClientConfigVersion,
+  ClientConfigVersionOption,
+} from './client-config-types/client_config.js';
 import { getClientConfigPath } from './paths/index.js';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { ClientConfigFormatter } from './client-config-writer/client_config_formatter.js';
-import { ClientConfigConverter } from './client-config-writer/client_config_converter.js';
+import { ClientConfigMobileConverter } from './client-config-writer/client_config_to_mobile_legacy_converter.js';
 import { fileURLToPath } from 'url';
 import * as fsp from 'fs/promises';
+import { ClientConfigFormatterLegacy } from './client-config-writer/client_config_formatter_legacy.js';
+import { ClientConfigFormatterDefault } from './client-config-writer/client_config_formatter_default.js';
+import { getClientConfigFileName } from './paths/get_client_config_name.js';
 
 /**
  * Main entry point for generating client config and writing to a file
@@ -15,6 +21,7 @@ import * as fsp from 'fs/promises';
 export const generateClientConfigToFile = async (
   credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: DeployedBackendIdentifier,
+  version: ClientConfigVersion,
   outDir?: string,
   format?: ClientConfigFormat,
   // TODO: update this type when Printer interface gets defined in platform-core.
@@ -22,18 +29,31 @@ export const generateClientConfigToFile = async (
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
+  const isLegacyConfig = version === ClientConfigVersionOption.V0;
+
   const clientConfigWriter = new ClientConfigWriter(
     getClientConfigPath,
-    new ClientConfigFormatter(
-      new ClientConfigConverter(packageJson.name, packageJson.version)
-    )
+    getClientConfigFileName,
+    isLegacyConfig
+      ? new ClientConfigFormatterLegacy(
+          new ClientConfigMobileConverter(packageJson.name, packageJson.version)
+        )
+      : new ClientConfigFormatterDefault()
   );
 
   const clientConfig = await generateClientConfig(
     credentialProvider,
-    backendIdentifier
+    backendIdentifier,
+    version
   );
-  await clientConfigWriter.writeClientConfig(clientConfig, outDir, format, log);
+
+  await clientConfigWriter.writeClientConfig(
+    clientConfig,
+    version,
+    outDir,
+    format,
+    log
+  );
 };
 
 const readPackageJson = async (): Promise<{

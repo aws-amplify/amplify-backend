@@ -1,5 +1,10 @@
 import { Argv, CommandModule } from 'yargs';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
+import {
+  ClientConfigFormat,
+  ClientConfigVersion,
+  ClientConfigVersionOption,
+  DEFAULT_CLIENT_CONFIG_VERSION,
+} from '@aws-amplify/client-config';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
@@ -13,6 +18,7 @@ type GenerateConfigCommandOptionsCamelCase = {
   branch: string | undefined;
   format: ClientConfigFormat | undefined;
   outDir: string | undefined;
+  configVersion: string;
 };
 
 /**
@@ -56,6 +62,7 @@ export class GenerateConfigCommand
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
+      args['config-version'] as ClientConfigVersion,
       args['out-dir'],
       args.format
     );
@@ -99,6 +106,14 @@ export class GenerateConfigCommand
           'A path to directory where config is written. If not provided defaults to current process working directory.',
         type: 'string',
         array: false,
+      })
+      .option('config-version', {
+        describe:
+          'Version of the client config. Version 0 represents classic amplify-cli client config amplify-configuration (Default) and 1 represents new unified client config amplify-outputs',
+        type: 'string',
+        array: false,
+        choices: Object.values(ClientConfigVersionOption),
+        default: DEFAULT_CLIENT_CONFIG_VERSION,
       });
   };
 }
