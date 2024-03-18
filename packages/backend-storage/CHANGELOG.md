@@ -1,5 +1,17 @@
 # @aws-amplify/backend-storage
 
+## 0.6.0-beta.4
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.4.0-beta.2
+
+## 0.6.0-beta.3
+
+### Minor Changes
+
+- f999897: Enable auth group access to storage and change syntax for specifying owner-based access
+
 ## 0.6.0-beta.2
 
 ### Minor Changes

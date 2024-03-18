@@ -1,5 +1,17 @@
 # @aws-amplify/integration-tests
 
+## 0.5.0-beta.3
+
+### Patch Changes
+
+- 26cdffd: backend-data: add support for first-class defineFunction
+
+## 0.5.0-beta.2
+
+### Patch Changes
+
+- 7f5edee: Ensure typed shim files contain only the function name
+
 ## 0.5.0-beta.1
 
 ### Minor Changes

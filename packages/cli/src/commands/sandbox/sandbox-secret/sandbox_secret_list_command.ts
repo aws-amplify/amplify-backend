@@ -1,7 +1,7 @@
 import { CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { printer } from '../../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 /**
  * Command to list sandbox secrets.

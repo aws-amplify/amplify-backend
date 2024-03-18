@@ -1,5 +1,28 @@
 # @aws-amplify/sandbox
 
+## 0.5.2-beta.5
+
+### Patch Changes
+
+- 3e34244: use `format` to replace `color` and remove `color`.
+- 937086b: require "resolution" in AmplifyUserError options
+- Updated dependencies [3e34244]
+- Updated dependencies [ee247fd]
+- Updated dependencies [937086b]
+- Updated dependencies [b931980]
+  - @aws-amplify/cli-core@0.5.0-beta.2
+  - @aws-amplify/backend-deployer@0.5.1-beta.2
+  - @aws-amplify/platform-core@0.5.0-beta.2
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.3
+  - @aws-amplify/client-config@0.9.0-beta.4
+  - @aws-amplify/backend-secret@0.4.5-beta.2
+
+## 0.5.2-beta.4
+
+### Patch Changes
+
+- 615a3e6: upgrade @parcel/watcher wo use the latest version
+
 ## 0.5.2-beta.3
 
 ### Patch Changes

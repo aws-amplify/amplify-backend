@@ -1,5 +1,6 @@
 import { IConstruct } from 'constructs';
 import {
+  AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
@@ -17,11 +18,7 @@ import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
 import { convertSchemaToCDK, isModelSchema } from './convert_schema.js';
-import {
-  FunctionInstanceProvider,
-  buildConstructFactoryFunctionInstanceProvider,
-  convertFunctionNameMapToCDK,
-} from './convert_functions.js';
+import { convertFunctionNameMapToCDK } from './convert_functions.js';
 import {
   ProvidedAuthConfig,
   buildConstructFactoryProvidedAuthConfig,
@@ -32,6 +29,11 @@ import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
 import { Aspects, IAspect } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
+import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
+import {
+  FunctionSchemaAccess,
+  JsResolver,
+} from '@aws-amplify/data-schema-types';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -82,7 +84,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
             )
             ?.getInstance(props)
         ),
-        buildConstructFactoryFunctionInstanceProvider(props),
+        props,
         outputStorageStrategy
       );
     }
@@ -97,18 +99,56 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: DataProps,
     private readonly providedAuthConfig: ProvidedAuthConfig | undefined,
-    private readonly functionInstanceProvider: FunctionInstanceProvider,
+    private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {}
 
-  generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
+  generateContainerEntry = ({
+    scope,
+    ssmEnvironmentEntriesGenerator,
+  }: GenerateContainerEntryProps) => {
+    let amplifyGraphqlDefinition;
+    let jsFunctions: JsResolver[] = [];
+    let functionSchemaAccess: FunctionSchemaAccess[] = [];
+    let lambdaFunctions: Record<string, ConstructFactory<AmplifyFunction>> = {};
+    try {
+      if (isModelSchema(this.props.schema)) {
+        ({ jsFunctions, functionSchemaAccess, lambdaFunctions } =
+          this.props.schema.transform());
+      }
+      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
+    } catch (error) {
+      throw new AmplifyUserError<AmplifyDataError>(
+        'InvalidSchemaError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to parse schema definition.',
+          resolution:
+            'Check your data schema definition for syntax and type errors.',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
+
     let authorizationModes;
+
+    /**
+     * TODO - remove this after the data construct does work to remove the need for allow-listed IAM roles
+     */
+    const functionSchemaAccessRoles = functionSchemaAccess.map(
+      (accessEntry) =>
+        accessEntry.resourceProvider.getInstance(this.getInstanceProps)
+          .resources.lambda.role!
+    );
 
     try {
       authorizationModes = convertAuthorizationModesToCDK(
-        this.functionInstanceProvider,
+        this.getInstanceProps,
         this.providedAuthConfig,
-        this.props.authorizationModes
+        this.props.authorizationModes,
+        functionSchemaAccessRoles
       );
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
@@ -117,7 +157,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           message:
             error instanceof Error
               ? error.message
-              : 'Cannot covert authorization modes',
+              : 'Failed to parse authorization modes.',
+          resolution: 'Ensure the auth rules on your schema are valid.',
         },
         error instanceof Error ? error : undefined
       );
@@ -136,6 +177,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
             error instanceof Error
               ? error.message
               : 'Failed to validate authorization modes',
+          resolution: 'Ensure the auth rules on your schema are valid.',
         },
         error instanceof Error ? error : undefined
       );
@@ -146,31 +188,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       this.props.authorizationModes
     );
 
-    const functionNameMap = convertFunctionNameMapToCDK(
-      this.functionInstanceProvider,
-      this.props.functions ?? {}
-    );
+    const propsFunctions = this.props.functions ?? {};
 
-    let amplifyGraphqlDefinition;
-    let jsFunctions;
-    try {
-      if (isModelSchema(this.props.schema)) {
-        ({ jsFunctions } = this.props.schema.transform());
-      }
-      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
-    } catch (error) {
-      throw new AmplifyUserError<AmplifyDataError>(
-        'InvalidSchemaError',
-        {
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Cannot covert user schema',
-        },
-        error instanceof Error ? error : undefined
-      );
-    }
-
+    const functionNameMap = convertFunctionNameMapToCDK(this.getInstanceProps, {
+      ...propsFunctions,
+      ...lambdaFunctions,
+    });
     const amplifyApi = new AmplifyData(scope, this.defaultName, {
       apiName: this.props.name,
       definition: amplifyGraphqlDefinition,
@@ -198,6 +221,26 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     }
 
     convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
+
+    const ssmEnvironmentEntries =
+      ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
+        [`${this.props.name}_GRAPHQL_ENDPOINT`]:
+          amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
+      });
+
+    const policyGenerator = new AppSyncPolicyGenerator(
+      amplifyApi.resources.graphqlApi
+    );
+
+    functionSchemaAccess.forEach((accessDefinition) => {
+      const policy = policyGenerator.generateGraphqlAccessPolicy(
+        accessDefinition.actions
+      );
+      accessDefinition.resourceProvider
+        .getInstance(this.getInstanceProps)
+        .getResourceAccessAcceptor()
+        .acceptResourceAccess(policy, ssmEnvironmentEntries);
+    });
 
     return amplifyApi;
   };

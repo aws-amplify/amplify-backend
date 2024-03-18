@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { beforeEach, describe, it } from 'node:test';
-import { Duration, Stack } from 'aws-cdk-lib';
+import { Stack } from 'aws-cdk-lib';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 
@@ -13,44 +13,22 @@ void describe('validateAuthorizationModes', () => {
 
   void it('does not throw on well-formed input', () => {
     assert.doesNotThrow(() =>
-      validateAuthorizationModes(
-        {
-          allowListedRoleNames: ['MyAdminRole'],
+      validateAuthorizationModes(undefined, {
+        iamConfig: {
+          identityPoolId: 'testIdentityPool',
+          authenticatedUserRole: Role.fromRoleName(
+            stack,
+            'AuthUserRole',
+            'MyAuthUserRole'
+          ),
+          unauthenticatedUserRole: Role.fromRoleName(
+            stack,
+            'UnauthUserRole',
+            'MyUnauthUserRole'
+          ),
+          allowListedRoles: ['MyAdminRole'],
         },
-        {
-          iamConfig: {
-            identityPoolId: 'testIdentityPool',
-            authenticatedUserRole: Role.fromRoleName(
-              stack,
-              'AuthUserRole',
-              'MyAuthUserRole'
-            ),
-            unauthenticatedUserRole: Role.fromRoleName(
-              stack,
-              'UnauthUserRole',
-              'MyUnauthUserRole'
-            ),
-            allowListedRoles: ['MyAdminRole'],
-          },
-        }
-      )
-    );
-  });
-
-  void it('throws if admin roles are specified and there is no iam auth configured', () => {
-    assert.throws(
-      () =>
-        validateAuthorizationModes(
-          {
-            allowListedRoleNames: ['MyAdminRole'],
-          },
-          {
-            apiKeyConfig: {
-              expires: Duration.days(7),
-            },
-          }
-        ),
-      /Specifying allowListedRoleNames requires presence of IAM Authorization config. Auth must be added to the backend./
+      })
     );
   });
 

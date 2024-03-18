@@ -1,5 +1,19 @@
 # @aws-amplify/backend-function
 
+## 0.8.0-beta.4
+
+### Patch Changes
+
+- 75f69ea: store attribution string in funciton stack
+  - @aws-amplify/backend-output-storage@0.4.0-beta.2
+
+## 0.8.0-beta.3
+
+### Patch Changes
+
+- bdbf6e8: Set default function memory to 512
+- 7f5edee: Ensure typed shim files contain only the function name
+
 ## 0.8.0-beta.2
 
 ### Minor Changes

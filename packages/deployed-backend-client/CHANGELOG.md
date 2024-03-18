@@ -1,5 +1,16 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.4.0-beta.3
+
+### Minor Changes
+
+- b931980: Add listBackends method to return a list of stacks for sandbox and branch deployments
+
+### Patch Changes
+
+- Updated dependencies [937086b]
+  - @aws-amplify/platform-core@0.5.0-beta.2
+
 ## 0.4.0-beta.2
 
 ### Minor Changes
