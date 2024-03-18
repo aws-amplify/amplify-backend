@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.5.0-beta.2
+
+### Minor Changes
+
+- 937086b: require "resolution" in AmplifyUserError options
+
 ## 0.5.0-beta.1
 
 ### Minor Changes

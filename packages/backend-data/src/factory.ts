@@ -124,7 +124,9 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           message:
             error instanceof Error
               ? error.message
-              : 'Cannot covert user schema',
+              : 'Failed to parse schema definition.',
+          resolution:
+            'Check your data schema definition for syntax and type errors.',
         },
         error instanceof Error ? error : undefined
       );
@@ -155,7 +157,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           message:
             error instanceof Error
               ? error.message
-              : 'Cannot covert authorization modes',
+              : 'Failed to parse authorization modes.',
+          resolution: 'Ensure the auth rules on your schema are valid.',
         },
         error instanceof Error ? error : undefined
       );
@@ -174,6 +177,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
             error instanceof Error
               ? error.message
               : 'Failed to validate authorization modes',
+          resolution: 'Ensure the auth rules on your schema are valid.',
         },
         error instanceof Error ? error : undefined
       );

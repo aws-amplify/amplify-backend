@@ -91,6 +91,7 @@ void describe('sandbox_event_handler_factory', () => {
   void it('calls the usage emitter on the failedDeployment event with AmplifyError', async () => {
     const testError = new AmplifyUserError('BackendBuildError', {
       message: 'test message',
+      resolution: 'test resolution',
     });
     await Promise.all(
       eventFactory

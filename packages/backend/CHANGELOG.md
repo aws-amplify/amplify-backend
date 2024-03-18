@@ -1,5 +1,26 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.6
+
+### Minor Changes
+
+- c9f03ee: Re-export some plugin-types from submodule export @aws-amplify/backend/types/platform
+
+### Patch Changes
+
+- Updated dependencies [91dae55]
+- Updated dependencies [26cdffd]
+- Updated dependencies [75f69ea]
+- Updated dependencies [937086b]
+  - @aws-amplify/backend-data@0.10.0-beta.5
+  - @aws-amplify/backend-function@0.8.0-beta.4
+  - @aws-amplify/platform-core@0.5.0-beta.2
+  - @aws-amplify/backend-auth@0.5.0-beta.5
+  - @aws-amplify/client-config@0.9.0-beta.4
+  - @aws-amplify/backend-output-storage@0.4.0-beta.2
+  - @aws-amplify/backend-secret@0.4.5-beta.2
+  - @aws-amplify/backend-storage@0.6.0-beta.4
+
 ## 0.13.0-beta.5
 
 ### Patch Changes

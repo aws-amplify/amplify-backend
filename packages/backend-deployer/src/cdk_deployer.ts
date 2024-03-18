@@ -156,8 +156,9 @@ export class CDKDeployer implements BackendDeployer {
       throw new AmplifyUserError<CDKDeploymentError>(
         'SyntaxError',
         {
-          message:
-            'TypeScript validation check failed, check your backend definition',
+          message: 'TypeScript validation check failed.',
+          resolution:
+            'Fix the syntax and type errors in your backend definition.',
         },
         err instanceof Error ? err : undefined
       );
