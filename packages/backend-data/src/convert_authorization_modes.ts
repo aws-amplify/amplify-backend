@@ -4,7 +4,7 @@ import { IRole } from 'aws-cdk-lib/aws-iam';
 import {
   ApiKeyAuthorizationConfig as CDKApiKeyAuthorizationConfig,
   AuthorizationModes as CDKAuthorizationModes,
-  IAMAuthorizationConfig as CDKIAMAuthorizationConfig,
+  IdentityPoolAuthorizationConfig as CDKIdentityPoolAuthorizationConfig,
   LambdaAuthorizationConfig as CDKLambdaAuthorizationConfig,
   OIDCAuthorizationConfig as CDKOIDCAuthorizationConfig,
   UserPoolAuthorizationConfig as CDKUserPoolAuthorizationConfig,
@@ -95,13 +95,34 @@ const convertOIDCAuthConfigToCDK = ({
 
 /**
  * Compute default auth mode based on availability of auth resources.
- * Will specify userPool if both user pool is specified, and no auth resources are specified, else rely on override value if needed.
+ *
+ * Will specify userPool if both user pool is specified, and no auth resources are specified.
+ *
+ * If no auth resources are provided and there's only one mode we'll use that as we implicitly always add iam auth.
  */
 const computeDefaultAuthorizationMode = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): DefaultAuthorizationMode | undefined => {
-  if (providedAuthConfig && !authModes) return 'userPool';
+  if (!providedAuthConfig && !authModes) {
+    // if no auth is configured or provided use api key.
+    // see also computeApiKeyAuthFromResource
+    return 'apiKey';
+  } else if (providedAuthConfig && !authModes) {
+    return 'userPool';
+  } else if (
+    !providedAuthConfig &&
+    authModes &&
+    Object.keys(authModes).length === 1
+  ) {
+    if (authModes.oidcAuthorizationMode) {
+      return 'oidc';
+    } else if (authModes.lambdaAuthorizationMode) {
+      return 'lambda';
+    } else if (authModes.apiKeyAuthorizationMode) {
+      return 'apiKey';
+    }
+  }
   return;
 };
 
@@ -119,20 +140,17 @@ const computeUserPoolAuthFromResource = (
 };
 
 /**
- * Compute iam auth config from auth resource provider.
+ * Compute identity pool auth config from auth resource provider.
  * @returns an iam auth config, if relevant
  */
-const computeIAMAuthFromResource = (
-  providedAuthConfig: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined,
-  additionalRoles: IRole[] = []
-): CDKIAMAuthorizationConfig | undefined => {
+const computeIdentityPoolAuthFromResource = (
+  providedAuthConfig: ProvidedAuthConfig | undefined
+): CDKIdentityPoolAuthorizationConfig | undefined => {
   if (providedAuthConfig) {
     return {
       authenticatedUserRole: providedAuthConfig.authenticatedUserRole,
       unauthenticatedUserRole: providedAuthConfig.unauthenticatedUserRole,
       identityPoolId: providedAuthConfig.identityPoolId,
-      allowListedRoles: additionalRoles,
     };
   }
   return;
@@ -146,6 +164,7 @@ const computeApiKeyAuthFromResource = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): CDKApiKeyAuthorizationConfig | undefined => {
+  // See also computeDefaultAuthorizationMode.
   if (providedAuthConfig || authModes) {
     return;
   }
@@ -174,8 +193,7 @@ const convertAuthorizationModeToCDK = (mode?: DefaultAuthorizationMode) => {
 export const convertAuthorizationModesToCDK = (
   getInstanceProps: ConstructFactoryGetInstanceProps,
   authResources: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined,
-  additionalRoles: IRole[] = []
+  authModes: AuthorizationModes | undefined
 ): CDKAuthorizationModes => {
   const defaultAuthorizationMode =
     authModes?.defaultAuthorizationMode ??
@@ -187,11 +205,7 @@ export const convertAuthorizationModesToCDK = (
     ? convertApiKeyAuthConfigToCDK(authModes.apiKeyAuthorizationMode)
     : computeApiKeyAuthFromResource(authResources, authModes);
   const userPoolConfig = computeUserPoolAuthFromResource(authResources);
-  const iamConfig = computeIAMAuthFromResource(
-    authResources,
-    authModes,
-    additionalRoles
-  );
+  const identityPoolConfig = computeIdentityPoolAuthFromResource(authResources);
   const lambdaConfig = authModes?.lambdaAuthorizationMode
     ? convertLambdaAuthorizationConfigToCDK(
         getInstanceProps,
@@ -208,9 +222,12 @@ export const convertAuthorizationModesToCDK = (
       : undefined),
     ...(apiKeyConfig ? { apiKeyConfig } : undefined),
     ...(userPoolConfig ? { userPoolConfig } : undefined),
-    ...(iamConfig ? { iamConfig } : undefined),
+    ...(identityPoolConfig ? { identityPoolConfig } : undefined),
     ...(lambdaConfig ? { lambdaConfig } : undefined),
     ...(oidcConfig ? { oidcConfig } : undefined),
+    iamConfig: {
+      enableIamAuthorizationMode: true,
+    },
   };
 };
 

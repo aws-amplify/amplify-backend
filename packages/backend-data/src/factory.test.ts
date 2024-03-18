@@ -215,7 +215,7 @@ void describe('DataFactory', () => {
     });
   });
 
-  void it('does not throw if no auth resources are registered', () => {
+  void it('does not throw if no auth resources are registered and only api key is provided', () => {
     resetFactoryCount();
     dataFactory = defineData({
       schema: testSchema,
@@ -224,6 +224,83 @@ void describe('DataFactory', () => {
           expiresInDays: 7,
         },
       },
+    });
+
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
+    );
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    };
+    dataFactory.getInstance(getInstanceProps);
+  });
+
+  void it('does not throw if no auth resources are registered and only lambda is provided', () => {
+    resetFactoryCount();
+    const echo: ConstructFactory<AmplifyFunction> = {
+      getInstance: () => ({
+        resources: {
+          lambda: new Function(stack, 'MyEchoFn', {
+            runtime: Runtime.NODEJS_18_X,
+            code: Code.fromInline(
+              'module.handler = async () => console.log("Hello");'
+            ),
+            handler: 'index.handler',
+          }),
+        },
+      }),
+    };
+    dataFactory = defineData({
+      schema: testSchema,
+      authorizationModes: {
+        lambdaAuthorizationMode: {
+          function: echo,
+        },
+      },
+    });
+
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
+    );
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    };
+    dataFactory.getInstance(getInstanceProps);
+  });
+
+  void it('does not throw if no auth resources are registered and only oidc is provided', () => {
+    resetFactoryCount();
+    dataFactory = defineData({
+      schema: testSchema,
+      authorizationModes: {
+        oidcAuthorizationMode: {
+          oidcProviderName: 'test',
+          oidcIssuerUrl: 'https://localhost/',
+          tokenExpireFromIssueInSeconds: 1,
+          tokenExpiryFromAuthInSeconds: 1,
+        },
+      },
+    });
+
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
+    );
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    };
+    dataFactory.getInstance(getInstanceProps);
+  });
+
+  void it('does not throw if no auth resources and no auth mode is specified', () => {
+    resetFactoryCount();
+    dataFactory = defineData({
+      schema: testSchema,
     });
 
     constructContainer = new ConstructContainerStub(

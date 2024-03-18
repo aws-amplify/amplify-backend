@@ -82,8 +82,12 @@ void describe('convertAuthorizationModesToCDK', () => {
 
   void it('defaults to api key if nothing is provided', () => {
     const expectedOutput: CDKAuthorizationModes = {
+      defaultAuthorizationMode: 'API_KEY',
       apiKeyConfig: {
         expires: Duration.days(7),
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
       },
     };
 
@@ -101,11 +105,13 @@ void describe('convertAuthorizationModesToCDK', () => {
     const expectedOutput: CDKAuthorizationModes = {
       defaultAuthorizationMode: 'AMAZON_COGNITO_USER_POOLS',
       userPoolConfig: { userPool },
-      iamConfig: {
+      identityPoolConfig: {
         identityPoolId,
         authenticatedUserRole,
         unauthenticatedUserRole,
-        allowListedRoles: [],
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
       },
     };
 
@@ -140,6 +146,9 @@ void describe('convertAuthorizationModesToCDK', () => {
         tokenExpiryFromIssue: Duration.seconds(60),
         tokenExpiryFromAuth: Duration.seconds(90),
       },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
     };
 
     assert.deepStrictEqual(
@@ -161,9 +170,13 @@ void describe('convertAuthorizationModesToCDK', () => {
     };
 
     const expectedOutput: CDKAuthorizationModes = {
+      defaultAuthorizationMode: 'API_KEY',
       apiKeyConfig: {
         description: 'MyApiKey',
         expires: Duration.days(30),
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
       },
     };
 
@@ -201,9 +214,13 @@ void describe('convertAuthorizationModesToCDK', () => {
     };
 
     const expectedOutput: CDKAuthorizationModes = {
+      defaultAuthorizationMode: 'AWS_LAMBDA',
       lambdaConfig: {
         function: authFn,
         ttl: Duration.seconds(30),
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
       },
     };
 
