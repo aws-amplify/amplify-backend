@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.3
+
+### Patch Changes
+
+- e0ae60c: initialize tsconfig file from object template rather than IPC call
+
 ## 0.5.0-beta.2
 
 ### Minor Changes
