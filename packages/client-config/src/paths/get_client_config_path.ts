@@ -1,7 +1,6 @@
 import fsp from 'fs/promises';
 import path from 'path';
 import { ClientConfigFormat } from '../index.js';
-import { LogLevel } from '@aws-amplify/cli-core';
 
 const configFileName = 'amplifyconfiguration';
 
@@ -15,7 +14,7 @@ export const getClientConfigPath = async (
   outDir?: string,
   format?: ClientConfigFormat,
   // TODO: update this type when Printer interface gets defined in platform-core.
-  log?: (message: string, logLevel: LogLevel) => void
+  debug?: (message: string) => void
 ) => {
   const defaultArgs = {
     out: process.cwd(),
@@ -32,15 +31,12 @@ export const getClientConfigPath = async (
 
     const relativeTargetPath = path.relative(process.cwd(), targetPath);
     try {
-      log?.(
-        `Checking if directory ${relativeTargetPath} exists...`,
-        LogLevel.DEBUG
-      );
+      debug?.(`Checking if directory ${relativeTargetPath} exists...`);
       await fsp.access(outDir);
     } catch (error) {
       // outDir does not exist, so create dir
       await fsp.mkdir(outDir, { recursive: true });
-      log?.(`Directory created: ${relativeTargetPath}`, LogLevel.DEBUG);
+      debug?.(`Directory created: ${relativeTargetPath}`);
     }
   }
 
