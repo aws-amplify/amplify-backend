@@ -22,6 +22,7 @@ import {
   LogLevel,
   PackageManagerControllerFactory,
   Printer,
+  format,
 } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -145,6 +146,10 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     backendDeployerDestroyMock.mock.resetCalls();
     backendDeployerDeployMock.mock.resetCalls();
     await sandboxInstance.stop();
+
+    // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
+    printer.log.mock.resetCalls();
+    printer.print.mock.resetCalls();
   });
 
   void it('when region has not bootstrapped, then opens console to initiate bootstrap', async () => {
@@ -226,6 +231,34 @@ void describe('Sandbox using local project name resolver', () => {
     subscribeMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
+
+    // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
+    printer.log.mock.resetCalls();
+    printer.print.mock.resetCalls();
+  });
+
+  void it('correctly displays the sandbox name at the startup and helper message when --name is not provided', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      false
+    ));
+    assert.strictEqual(printer.log.mock.callCount(), 5);
+    // eslint-disable-next-line spellcheck/spell-checker
+    assert.strictEqual(
+      printer.log.mock.calls[0].arguments[0],
+      format.bold(
+        `Starting sandbox for ${format.command(
+          'amplify-testSandboxId-testSandboxName-sandbox-197ae78b6d'
+        )}`
+      )
+    );
+    assert.strictEqual(
+      printer.log.mock.calls[1].arguments[0],
+      `To specify a different name, use ${format.bold('--name')}`
+    );
   });
 
   void it('makes initial deployment without type checking at start if no typescript file is present', async () => {

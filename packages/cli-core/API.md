@@ -31,6 +31,7 @@ export const format: {
     command: (command: string) => string;
     success: (message: string) => string;
     sectionHeader: (header: string) => string;
+    bold: (message: string) => string;
     link: (link: string) => string;
     list: (lines: string[]) => string;
     indent: (message: string) => string;

@@ -29,7 +29,10 @@ import {
   FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
-import { AmplifyError } from '@aws-amplify/platform-core';
+import {
+  AmplifyError,
+  BackendIdentifierConversions,
+} from '@aws-amplify/platform-core';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -105,7 +108,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
 
-    this.printer.log(`[Sandbox] Initializing...`, LogLevel.DEBUG);
+    await this.printSandboxNameInfo(options.name);
+
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
     // introduce a concurrency latch that tracks the state.
     // This way, if file change events arrive when a 'cdk deploy' is still executing,
@@ -350,5 +354,19 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       await this.reset(options);
     }
     // else let the sandbox continue so customers can revert their changes
+  };
+
+  private printSandboxNameInfo = async (optionalName?: string) => {
+    const sandboxBackendId = await this.backendIdSandboxResolver(optionalName);
+    const sandboxName =
+      BackendIdentifierConversions.toStackName(sandboxBackendId);
+    this.printer.log(
+      format.bold(`Starting sandbox for ${format.command(sandboxName)}`)
+    );
+    if (!optionalName) {
+      this.printer.log(
+        `To specify a different name, use ${format.bold('--name')}`
+      );
+    }
   };
 }

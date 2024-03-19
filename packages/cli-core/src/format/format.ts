@@ -18,6 +18,7 @@ export const format = {
   command: (command: string) => cyan(command),
   success: (message: string) => green(message),
   sectionHeader: (header: string) => bold(blue(header)),
+  bold: (message: string) => bold(message),
   link: (link: string) => underline(blue(link)),
   list: (lines: string[]) =>
     lines.map((line: string) => ` - ${line}`).join(os.EOL),
