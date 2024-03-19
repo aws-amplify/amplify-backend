@@ -91,6 +91,9 @@ export class ApiUsageGenerator {
     }
   };
 
+  /**
+   * This method scans top level AST statements to find namespaces and symbols exported via namespace.
+   */
   private getNamespaceDefinitions = (): NamespaceDefinitions => {
     const namespaceDefinitions: NamespaceDefinitions = {
       namespaceBySymbol: new Map<string, string>(),
