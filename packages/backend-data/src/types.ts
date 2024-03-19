@@ -132,4 +132,5 @@ export type DataProps = {
 export type AmplifyDataError =
   | 'InvalidSchemaAuthError'
   | 'InvalidSchemaError'
-  | 'MultipleSingletonResourcesError';
+  | 'MultipleSingletonResourcesError'
+  | 'MissingDefaultAuthorizationModeError';

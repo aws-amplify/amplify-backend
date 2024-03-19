@@ -4,7 +4,7 @@ import { Duration, Stack } from 'aws-cdk-lib';
 import { UserPool } from 'aws-cdk-lib/aws-cognito';
 import { IRole, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthorizationModes as CDKAuthorizationModes } from '@aws-amplify/data-construct';
-import { AuthorizationModes } from './types.js';
+import { AmplifyDataError, AuthorizationModes } from './types.js';
 import {
   ProvidedAuthConfig,
   buildConstructFactoryProvidedAuthConfig,
@@ -19,6 +19,7 @@ import {
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 void describe('buildConstructFactoryProvidedAuthConfig', () => {
   void it('returns undefined if authResourceProvider is undefined', () => {
@@ -344,7 +345,7 @@ void describe('convertAuthorizationModesToCDK', () => {
     );
   });
 
-  void it('does not default if multiple modes are specified', () => {
+  void it('throws if not default if multiple modes are specified', () => {
     const authModes: AuthorizationModes = {
       apiKeyAuthorizationMode: {
         description: 'MyApiKey',
@@ -359,30 +360,24 @@ void describe('convertAuthorizationModesToCDK', () => {
       },
     };
 
-    const expectedOutput: CDKAuthorizationModes = {
-      apiKeyConfig: {
-        description: 'MyApiKey',
-        expires: Duration.days(30),
-      },
-      oidcConfig: {
-        clientId: 'testClient',
-        oidcProviderName: 'testProvider',
-        oidcIssuerUrl: 'https://test.provider/',
-        tokenExpiryFromIssue: Duration.seconds(60),
-        tokenExpiryFromAuth: Duration.seconds(90),
-      },
-      iamConfig: {
-        enableIamAuthorizationMode: true,
-      },
-    };
-
-    assert.deepStrictEqual(
-      convertAuthorizationModesToCDK(
-        getInstancePropsStub,
-        undefined,
-        authModes
-      ),
-      expectedOutput
+    assert.throws(
+      () =>
+        convertAuthorizationModesToCDK(
+          getInstancePropsStub,
+          undefined,
+          authModes
+        ),
+      (err: AmplifyUserError<AmplifyDataError>) => {
+        assert.strictEqual(
+          err.message,
+          'A defaultAuthorizationMode is required if multiple authorization modes are configured'
+        );
+        assert.strictEqual(
+          err.resolution,
+          "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'"
+        );
+        return true;
+      }
     );
   });
 });

@@ -10,6 +10,7 @@ import {
   UserPoolAuthorizationConfig as CDKUserPoolAuthorizationConfig,
 } from '@aws-amplify/data-construct';
 import {
+  AmplifyDataError,
   ApiKeyAuthorizationModeProps,
   AuthorizationModes,
   DefaultAuthorizationMode,
@@ -21,6 +22,7 @@ import {
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const DEFAULT_API_KEY_EXPIRATION_DAYS = 7;
 const DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS = 60;
@@ -121,7 +123,13 @@ const computeDefaultAuthorizationMode = (
       return 'apiKey';
     }
   }
-  return;
+  throw new AmplifyUserError<AmplifyDataError>(
+    'MissingDefaultAuthorizationModeError',
+    {
+      message: 'A defaultAuthorizationMode is required if multiple authorization modes are configured',
+      resolution: "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'",
+    }
+  );
 };
 
 /**

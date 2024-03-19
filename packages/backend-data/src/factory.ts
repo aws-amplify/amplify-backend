@@ -132,26 +132,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       );
     }
 
-    let authorizationModes;
-    try {
-      authorizationModes = convertAuthorizationModesToCDK(
-        this.getInstanceProps,
-        this.providedAuthConfig,
-        this.props.authorizationModes
-      );
-    } catch (error) {
-      throw new AmplifyUserError<AmplifyDataError>(
-        'InvalidSchemaAuthError',
-        {
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Failed to parse authorization modes.',
-          resolution: 'Ensure the auth rules on your schema are valid.',
-        },
-        error instanceof Error ? error : undefined
-      );
-    }
+    const authorizationModes = convertAuthorizationModesToCDK(
+      this.getInstanceProps,
+      this.providedAuthConfig,
+      this.props.authorizationModes
+    );
 
     try {
       validateAuthorizationModes(

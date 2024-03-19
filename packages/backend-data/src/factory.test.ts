@@ -36,6 +36,7 @@ import {
 import { AmplifyDataResources } from '@aws-amplify/data-construct';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { a } from '@aws-amplify/data-schema';
+import { AmplifyDataError } from './types.js';
 
 const CUSTOM_DDB_CFN_TYPE = 'Custom::AmplifyDynamoDBTable';
 
@@ -312,6 +313,45 @@ void describe('DataFactory', () => {
       importPathVerifier,
     };
     dataFactory.getInstance(getInstanceProps);
+  });
+
+  void it('throws if multiple authorization modes are provided but no default', () => {
+    resetFactoryCount();
+    dataFactory = defineData({
+      schema: testSchema,
+      authorizationModes: {
+        apiKeyAuthorizationMode: {},
+        oidcAuthorizationMode: {
+          oidcProviderName: 'test',
+          oidcIssuerUrl: 'https://localhost/',
+          tokenExpireFromIssueInSeconds: 1,
+          tokenExpiryFromAuthInSeconds: 1,
+        },
+      },
+    });
+
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
+    );
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+    };
+    assert.throws(
+      () => dataFactory.getInstance(getInstanceProps),
+      (err: AmplifyUserError<AmplifyDataError>) => {
+        assert.strictEqual(
+          err.message,
+          'A defaultAuthorizationMode is required if multiple authorization modes are configured'
+        );
+        assert.strictEqual(
+          err.resolution,
+          "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'"
+        );
+        return true;
+      }
+    );
   });
 
   void it('accepts functions as inputs to the defineData call', () => {
