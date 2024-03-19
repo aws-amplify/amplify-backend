@@ -6,12 +6,13 @@ import {
 import {
   ApiAuthType,
   BackendMetadata,
+  BackendStatus,
+  BackendSummaryMetadata,
   ConflictResolutionMode,
   DeployedBackendClient,
   FunctionConfiguration,
-  ListSandboxesRequest,
-  ListSandboxesResponse,
-  SandboxMetadata,
+  ListBackendsRequest,
+  ListBackendsResponse,
 } from './deployed_backend_client_factory.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import {
@@ -82,23 +83,36 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     return this.buildBackendMetadata(stackName);
   };
 
-  /**
-   * Returns Amplify Sandboxes for the account and region. The number of sandboxes returned can vary
-   */
-  listSandboxes = async (
-    listSandboxesRequest?: ListSandboxesRequest
-  ): Promise<ListSandboxesResponse> => {
-    const stackMetadata: SandboxMetadata[] = [];
-    let nextToken = listSandboxesRequest?.nextToken;
+  listBackends = (
+    listBackendsRequest?: ListBackendsRequest
+  ): ListBackendsResponse => {
+    const backends = this.listBackendsInternal(listBackendsRequest);
+    return {
+      getBackendSummaryByPage: () => backends,
+    };
+  };
 
+  /**
+   * Returns a list of stacks for specific deployment type and status
+   * @yields
+   */
+  private async *listBackendsInternal(
+    listBackendsRequest?: ListBackendsRequest
+  ) {
+    const stackMetadata: BackendSummaryMetadata[] = [];
+    let nextToken;
+    const deploymentType = listBackendsRequest?.deploymentType;
+    const statusFilter = listBackendsRequest?.backendStatusFilters
+      ? listBackendsRequest?.backendStatusFilters
+      : [];
     do {
-      const listStacksResponse = await this.listStacks(nextToken);
+      const listStacksResponse = await this.listStacks(nextToken, statusFilter);
+
       const stackMetadataPromises = listStacksResponse.stackSummaries
         .filter((stackSummary: StackSummary) => {
-          return stackSummary.StackStatus !== StackStatus.DELETE_COMPLETE;
-        })
-        .filter((stackSummary: StackSummary) => {
-          return this.isSandboxStack(stackSummary.StackName);
+          return (
+            this.getBackendStackType(stackSummary.StackName) === deploymentType
+          );
         })
         .map(async (stackSummary: StackSummary) => {
           const deploymentType = await this.tryGetDeploymentType(stackSummary);
@@ -121,23 +135,24 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         stackMetadataPromises
       );
       const filteredMetadata = stackMetadataResolvedPromises.filter(
-        (stackMetadata) => stackMetadata.deploymentType === 'sandbox'
+        (stackMetadata) => stackMetadata.deploymentType === deploymentType
       );
 
       stackMetadata.push(...filteredMetadata);
       nextToken = listStacksResponse.nextToken;
+
+      if (stackMetadata.length !== 0) {
+        yield stackMetadata;
+      }
     } while (stackMetadata.length === 0 && nextToken);
+  }
 
-    return {
-      sandboxes: stackMetadata,
-      nextToken,
-    };
-  };
-
-  private isSandboxStack = (stackName: string | undefined): boolean => {
+  private getBackendStackType = (
+    stackName: string | undefined
+  ): string | undefined => {
     const backendIdentifier =
       BackendIdentifierConversions.fromStackName(stackName);
-    return backendIdentifier?.type === 'sandbox';
+    return backendIdentifier?.type;
   };
 
   private tryGetDeploymentType = async (
@@ -166,13 +181,22 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   };
 
   private listStacks = async (
-    nextToken: string | undefined
+    nextToken: string | undefined,
+    stackStatusFilter: BackendStatus[]
   ): Promise<{
     stackSummaries: StackSummary[];
     nextToken: string | undefined;
   }> => {
     const stacks: ListStacksCommandOutput = await this.cfnClient.send(
-      new ListStacksCommand({ NextToken: nextToken })
+      new ListStacksCommand({
+        NextToken: nextToken,
+        StackStatusFilter:
+          stackStatusFilter.length > 0
+            ? stackStatusFilter
+            : Object.values(StackStatus).filter(
+                (status) => status !== StackStatus.DELETE_COMPLETE
+              ),
+      })
     );
     nextToken = stacks.NextToken;
     return { stackSummaries: stacks.StackSummaries ?? [], nextToken };

@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { validateStorageAccessPaths } from './validate_storage_access_paths.js';
 import assert from 'node:assert';
-import { ownerPathPartToken } from './constants.js';
+import { entityIdPathToken } from './constants.js';
 
 void describe('validateStorageAccessPaths', () => {
   void it('is a noop on valid paths', () => {
@@ -10,8 +10,8 @@ void describe('validateStorageAccessPaths', () => {
       '/foo/bar/*',
       '/foo/baz/*',
       '/other/*',
-      '/something/{owner}/*',
-      '/another/{owner}/*',
+      '/something/{entity_id}/*',
+      '/another/{entity_id}/*',
     ]);
     // completing successfully indicates success
   });
@@ -27,6 +27,12 @@ void describe('validateStorageAccessPaths', () => {
     assert.throws(() => validateStorageAccessPaths(['/foo']), {
       message:
         'All storage access paths must start with "/" and end with "/*. Found [/foo].',
+    });
+  });
+
+  void it('throws on path that has "//" in it', () => {
+    assert.throws(() => validateStorageAccessPaths(['/foo//bar/*']), {
+      message: 'Path cannot contain "//". Found [/foo//bar/*].',
     });
   });
 
@@ -49,36 +55,45 @@ void describe('validateStorageAccessPaths', () => {
 
   void it('throws on path that has multiple owner tokens', () => {
     assert.throws(
-      () => validateStorageAccessPaths(['/foo/{owner}/{owner}/*']),
+      () => validateStorageAccessPaths(['/foo/{entity_id}/{entity_id}/*']),
       {
-        message: `The ${ownerPathPartToken} token can only appear once in a path. Found [/foo/{owner}/{owner}/*]`,
+        message: `The ${entityIdPathToken} token can only appear once in a path. Found [/foo/{entity_id}/{entity_id}/*]`,
       }
     );
   });
 
   void it('throws on path where owner token is not at the end', () => {
-    assert.throws(() => validateStorageAccessPaths(['/foo/{owner}/bar/*']), {
-      message: `The ${ownerPathPartToken} token must be the path part right before the ending wildcard. Found [/foo/{owner}/bar/*].`,
-    });
+    assert.throws(
+      () => validateStorageAccessPaths(['/foo/{entity_id}/bar/*']),
+      {
+        message: `The ${entityIdPathToken} token must be the path part right before the ending wildcard. Found [/foo/{entity_id}/bar/*].`,
+      }
+    );
   });
 
   void it('throws on path that starts with owner token', () => {
-    assert.throws(() => validateStorageAccessPaths(['/{owner}/*']), {
-      message: `The ${ownerPathPartToken} token must not be the first path part. Found [/{owner}/*].`,
+    assert.throws(() => validateStorageAccessPaths(['/{entity_id}/*']), {
+      message: `The ${entityIdPathToken} token must not be the first path part. Found [/{entity_id}/*].`,
     });
   });
 
   void it('throws on path that has owner token and other characters in single path part', () => {
-    assert.throws(() => validateStorageAccessPaths(['/abc{owner}/*']), {
-      message: `A path part that includes the ${ownerPathPartToken} token cannot include any other characters. Found [/abc{owner}/*].`,
+    assert.throws(() => validateStorageAccessPaths(['/abc{entity_id}/*']), {
+      message: `A path part that includes the ${entityIdPathToken} token cannot include any other characters. Found [/abc{entity_id}/*].`,
     });
   });
 
-  void it('throws on path where owner token conflicts with wildcard in another path', () => {
+  void it('throws on path that is a prefix of a path with an owner token', () => {
     assert.throws(
-      () => validateStorageAccessPaths(['/foo/{owner}/*', '/foo/*']),
+      () => validateStorageAccessPaths(['/foo/{entity_id}/*', '/foo/*']),
       {
-        message: `Wildcard conflict detected with an ${ownerPathPartToken} token.`,
+        message: `A path cannot be a prefix of another path that contains the ${entityIdPathToken} token.`,
+      }
+    );
+    assert.throws(
+      () => validateStorageAccessPaths(['/foo/bar/{entity_id}/*', '/foo/*']),
+      {
+        message: `A path cannot be a prefix of another path that contains the ${entityIdPathToken} token.`,
       }
     );
   });

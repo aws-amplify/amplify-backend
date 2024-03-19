@@ -1,5 +1,5 @@
 import * as os from 'node:os';
-import { blue, bold, cyan, green, grey, underline } from 'kleur/colors';
+import { blue, bold, cyan, green, grey, red, underline } from 'kleur/colors';
 
 /**
  * Formats various inputs into single string.
@@ -13,6 +13,7 @@ export const format = {
       return cyan(`${binaryRunner} amplify ${command}`);
     },
   }),
+  error: (message: string) => red(message),
   note: (message: string) => grey(message),
   command: (command: string) => cyan(command),
   success: (message: string) => green(message),

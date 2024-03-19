@@ -22,16 +22,11 @@ export class AmplifyPrompter {
 }
 
 // @public
-export enum COLOR {
-    // (undocumented)
-    RED = "31m"
-}
-
-// @public
 export const format: {
     runner: (binaryRunner: string) => {
         amplifyCommand: (command: string) => string;
     };
+    error: (message: string) => string;
     note: (message: string) => string;
     command: (command: string) => string;
     success: (message: string) => string;
@@ -62,10 +57,13 @@ export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream, stderr?: NodeJS.WriteStream, refreshRate?: number);
     indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
     log(message: string, level?: LogLevel, eol?: boolean): void;
-    print: (message: string, colorName?: COLOR) => void;
+    print: (message: string) => void;
     printNewLine: () => void;
     printRecords: <T extends Record<string | number, RecordValue>>(...objects: T[]) => void;
 }
+
+// @public (undocumented)
+export const printer: Printer;
 
 // @public (undocumented)
 export type RecordValue = string | number | string[] | Date;

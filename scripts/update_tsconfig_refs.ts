@@ -24,6 +24,22 @@ type PackageInfo = {
 
 const packagePaths = globSync('./packages/*');
 
+type TsconfigReference = {
+  path: string;
+};
+
+// Additional references for specific packages that are not package dependencies
+const additionalRefs: Record<string, TsconfigReference[]> = {
+  '@aws-amplify/integration-tests': [
+    // Added to allow tsc to work with nested tsconfig
+    { path: './src/test-projects/data-storage-auth-with-triggers-ts' },
+  ],
+  '@aws-amplify/backend-data': [
+    // Added to allow tsc to work with nested tsconfig - prevents generating inline sourcemaps in an asset we deploy for customers
+    { path: './src/assets' },
+  ],
+};
+
 // First collect information about all the packages in the repo
 const repoPackagesInfoRecord: Record<string, PackageInfo> = {};
 
@@ -61,16 +77,23 @@ const updatePromises = Object.values(repoPackagesInfoRecord).map(
       ])
     );
 
+    // collect any additional references to add for the package
+    const additionalRefsToAdd =
+      additionalRefs[packageJson.name as string] ?? [];
+
     // construct the references array in tsconfig for inter-repo dependencies
-    tsconfig.references = allDeps
-      .filter((dep) => dep in repoPackagesInfoRecord)
-      .reduce(
-        (accumulator: unknown[], dep) =>
-          accumulator.concat({
-            path: repoPackagesInfoRecord[dep].relativeReferencePath,
-          }),
-        []
-      );
+    tsconfig.references = [
+      ...allDeps
+        .filter((dep) => dep in repoPackagesInfoRecord)
+        .reduce(
+          (accumulator: unknown[], dep) =>
+            accumulator.concat({
+              path: repoPackagesInfoRecord[dep].relativeReferencePath,
+            }),
+          []
+        ),
+      ...additionalRefsToAdd,
+    ];
 
     // write out the tsconfig file using prettier formatting
     const prettierConfig = await prettier.resolveConfig(tsconfigPath);

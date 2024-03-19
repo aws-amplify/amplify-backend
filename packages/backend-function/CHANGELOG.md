@@ -1,5 +1,36 @@
 # @aws-amplify/backend-function
 
+## 0.8.0-beta.5
+
+### Patch Changes
+
+- a05933c: run tsc after CDK synth but before deploy
+
+## 0.8.0-beta.4
+
+### Patch Changes
+
+- 75f69ea: store attribution string in funciton stack
+  - @aws-amplify/backend-output-storage@0.4.0-beta.2
+
+## 0.8.0-beta.3
+
+### Patch Changes
+
+- bdbf6e8: Set default function memory to 512
+- 7f5edee: Ensure typed shim files contain only the function name
+
+## 0.8.0-beta.2
+
+### Minor Changes
+
+- cec91d5: Add dynamic environment variables to function type definition files
+- b0ba24d: Generate type definition file for static environment variables for functions
+
+### Patch Changes
+
+- 318335d: Ensure resource access env vars are added to function typed shim files
+
 ## 0.8.0-beta.1
 
 ### Minor Changes

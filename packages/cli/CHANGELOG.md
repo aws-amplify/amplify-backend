@@ -1,5 +1,58 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.7
+
+### Patch Changes
+
+- Updated dependencies [e0ae60c]
+- Updated dependencies [a05933c]
+  - @aws-amplify/cli-core@0.5.0-beta.3
+  - @aws-amplify/backend-deployer@0.5.1-beta.3
+  - @aws-amplify/sandbox@0.5.2-beta.6
+
+## 0.12.0-beta.6
+
+### Patch Changes
+
+- 05c3c9b: Rename target format type and prop in model gen package
+- beb1591: Update text to match sandbox default behavior
+- 3e34244: use `format` to replace `color` and remove `color`.
+- ee247fd: use printer from cli-core
+- 937086b: require "resolution" in AmplifyUserError options
+- Updated dependencies [05c3c9b]
+- Updated dependencies [3e34244]
+- Updated dependencies [ee247fd]
+- Updated dependencies [937086b]
+- Updated dependencies [b931980]
+  - @aws-amplify/model-generator@0.5.0-beta.3
+  - @aws-amplify/cli-core@0.5.0-beta.2
+  - @aws-amplify/sandbox@0.5.2-beta.5
+  - @aws-amplify/backend-deployer@0.5.1-beta.2
+  - @aws-amplify/platform-core@0.5.0-beta.2
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.3
+  - @aws-amplify/client-config@0.9.0-beta.4
+  - @aws-amplify/backend-secret@0.4.5-beta.2
+
+## 0.12.0-beta.5
+
+### Patch Changes
+
+- Updated dependencies [615a3e6]
+  - @aws-amplify/sandbox@0.5.2-beta.4
+
+## 0.12.0-beta.4
+
+### Patch Changes
+
+- Updated dependencies [3998cd3]
+- Updated dependencies [79cff6d]
+- Updated dependencies [8d9a7a4]
+- Updated dependencies [b0ba24d]
+- Updated dependencies [8d9a7a4]
+  - @aws-amplify/cli-core@0.5.0-beta.1
+  - @aws-amplify/client-config@0.9.0-beta.3
+  - @aws-amplify/sandbox@0.5.2-beta.3
+
 ## 0.12.0-beta.3
 
 ### Patch Changes

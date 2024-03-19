@@ -1,11 +1,10 @@
 import { Argv, CommandModule } from 'yargs';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import { EOL } from 'os';
 import { Open } from '../open/open.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { ProfileController } from './profile_controller.js';
-import { printer } from '../../printer.js';
 
 const configureAccountUrl =
   'https://docs.amplify.aws/gen2/start/account-setup/';

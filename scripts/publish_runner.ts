@@ -1,36 +1,70 @@
 import { Options, execa } from 'execa';
 
-const publishDefaults = {
+export type PublishOptions = {
   /**
    * Publish defaults to creating git tags for the packages being published.
    * Set false to disable this behavior
    */
-  includeGitTags: true,
+  includeGitTags?: boolean;
   /**
    * Defaults to publishing to the public npm registry
    * Set true to publish to the local registry
    */
-  useLocalRegistry: false,
+  useLocalRegistry?: boolean;
+  /**
+   * Defaults to publishing a usual release.
+   * Set true to publish a snapshot.
+   * See https://github.com/changesets/changesets/blob/main/docs/snapshot-releases.md
+   */
+  snapshotRelease?: boolean;
 };
+
+const publishDefaults: PublishOptions = {
+  includeGitTags: true,
+  useLocalRegistry: false,
+  snapshotRelease: false,
+};
+
 /**
  * Wrapper around `changeset publish` that exposes a few config options
  * To keep behavior consistent, this wrapper should be the ONLY path by which we execute `changeset publish`
  */
-export const runPublish = async (props?: Partial<typeof publishDefaults>) => {
-  const { includeGitTags, useLocalRegistry } = {
+export const runPublish = async (props?: PublishOptions) => {
+  const options = {
     ...publishDefaults,
     ...props,
   };
-  const changesetArgs = ['publish'];
-  if (!includeGitTags) {
-    changesetArgs.push('--no-git-tag');
-  }
 
   const execaOptions: Options = {
     stdio: 'inherit',
-    ...(useLocalRegistry
+  };
+
+  const snapshotTag = 'test';
+
+  if (options.snapshotRelease) {
+    // Snapshot releases are not allowed in pre mode.
+    // Exit pre mode. This is no-op if not in pre mode.
+    await execa('changeset', ['pre', 'exit'], execaOptions);
+    await execa(
+      'changeset',
+      ['version', '--snapshot', snapshotTag],
+      execaOptions
+    );
+  }
+
+  const changesetArgs = ['publish'];
+  if (!options.includeGitTags) {
+    changesetArgs.push('--no-git-tag');
+  }
+  if (options.snapshotRelease) {
+    changesetArgs.push('--tag', snapshotTag);
+  }
+
+  const execaPublishOptions: Options = {
+    stdio: 'inherit',
+    ...(options.useLocalRegistry
       ? { env: { npm_config_registry: 'http://localhost:4873/' } }
       : {}),
   };
-  await execa('changeset', changesetArgs, execaOptions);
+  await execa('changeset', changesetArgs, execaPublishOptions);
 };

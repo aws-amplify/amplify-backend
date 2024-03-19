@@ -4,6 +4,7 @@ import fsp from 'fs/promises';
 import path from 'path';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { getProjectRoot } from './get_project_root.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const originalEnv = process.env;
 
@@ -70,6 +71,28 @@ void describe('getProjectRoot', () => {
       path.resolve(userInput)
     );
     assert.equal(projectRoot, path.resolve(userInput));
+  });
+
+  void it('prints warning if creation of project root failed and path is absolute', async () => {
+    process.env.npm_config_yes = 'false';
+    const userInput = 'some/absolute/path';
+    mock.method(AmplifyPrompter, 'input', () => Promise.resolve(userInput));
+    const expectedError = new AmplifyUserError('ProjectDirectoryCreateError', {
+      message: `Failed to create project directory`,
+      resolution: `Ensure that ${path.resolve(
+        userInput
+      )} is the correct path and you have write permissions to this location.`,
+    });
+    fsMkDirSyncMock.mock.mockImplementationOnce(() =>
+      Promise.reject(expectedError)
+    );
+
+    await assert.rejects(getProjectRoot, expectedError);
+    assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
+    assert.equal(
+      fsMkDirSyncMock.mock.calls[0].arguments[0],
+      path.resolve(userInput)
+    );
   });
 
   void it('use default options if `yes`', async (ctx) => {

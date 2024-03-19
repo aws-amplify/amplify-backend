@@ -1,12 +1,13 @@
 import {
   ClientConfig,
   ClientConfigFormat,
+  ClientConfigVersion,
   generateClientConfig,
   generateClientConfigToFile,
 } from '@aws-amplify/client-config';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { printer } from '../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 
 /**
  * Adapts static generateClientConfigToFile from @aws-amplify/client-config call to make it injectable and testable.
@@ -22,9 +23,14 @@ export class ClientConfigGeneratorAdapter {
    * Generates the client configuration for a given backend
    */
   generateClientConfig = async (
-    backendIdentifier: DeployedBackendIdentifier
+    backendIdentifier: DeployedBackendIdentifier,
+    version: ClientConfigVersion
   ): Promise<ClientConfig> => {
-    return generateClientConfig(this.awsCredentialProvider, backendIdentifier);
+    return generateClientConfig(
+      this.awsCredentialProvider,
+      backendIdentifier,
+      version
+    );
   };
 
   /**
@@ -33,12 +39,14 @@ export class ClientConfigGeneratorAdapter {
    */
   generateClientConfigToFile = async (
     backendIdentifier: DeployedBackendIdentifier,
+    version: ClientConfigVersion,
     outDir?: string,
     format?: ClientConfigFormat
   ): Promise<void> => {
     await generateClientConfigToFile(
       this.awsCredentialProvider,
       backendIdentifier,
+      version,
       outDir,
       format,
       (message) => printer.log(message)

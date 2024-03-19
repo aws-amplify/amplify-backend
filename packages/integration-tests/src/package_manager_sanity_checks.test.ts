@@ -11,7 +11,10 @@ import {
   DeleteStackCommand,
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
-import { getClientConfigPath } from '@aws-amplify/client-config';
+import {
+  ClientConfigFileBaseName,
+  getClientConfigPath,
+} from '@aws-amplify/client-config';
 import { TestBranch, amplifyAppPool } from './amplify_app_pool.js';
 import { e2eToolingClientConfig } from './e2e_tooling_client_config.js';
 import {
@@ -128,7 +131,7 @@ void describe('getting started happy path', async () => {
     ).run();
 
     const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(tempDir)
+      await getClientConfigPath(ClientConfigFileBaseName.LEGACY, tempDir)
     );
 
     assert.ok(clientConfigStats.isFile());

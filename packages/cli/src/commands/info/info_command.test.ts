@@ -5,7 +5,7 @@ import { InfoCommand } from './info_command.js';
 import { EnvironmentInfoProvider } from '../../info/env_info_provider.js';
 import { CdkInfoProvider } from '../../info/cdk_info_provider.js';
 import { TestCommandRunner } from '../../test-utils/command_runner.js';
-import { printer } from '../../printer.js';
+import { printer } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
 import yargs from 'yargs';
 

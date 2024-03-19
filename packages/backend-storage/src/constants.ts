@@ -1,1 +1,1 @@
-export const ownerPathPartToken = '{owner}';
+export const entityIdPathToken = '{entity_id}';

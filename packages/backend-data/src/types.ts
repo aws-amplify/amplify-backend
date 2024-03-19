@@ -97,11 +97,6 @@ export type AuthorizationModes = {
    * OIDC authorization config if oidc provider is specified in the api definition.
    */
   oidcAuthorizationMode?: OIDCAuthorizationModeProps;
-
-  /**
-   * IAM Role names which are provided full r/w access to the API for models with IAM authorization.
-   */
-  allowListedRoleNames?: string[];
 };
 
 /**

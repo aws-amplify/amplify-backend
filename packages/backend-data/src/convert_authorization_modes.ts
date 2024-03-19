@@ -16,8 +16,11 @@ import {
   LambdaAuthorizationModeProps,
   OIDCAuthorizationModeProps,
 } from './types.js';
-import { FunctionInstanceProvider } from './convert_functions.js';
-import { AuthResources, ResourceProvider } from '@aws-amplify/plugin-types';
+import {
+  AuthResources,
+  ConstructFactoryGetInstanceProps,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 
 const DEFAULT_API_KEY_EXPIRATION_DAYS = 7;
 const DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS = 60;
@@ -63,13 +66,13 @@ const convertApiKeyAuthConfigToCDK = ({
  * Convert to CDK LambdaAuthorizationConfig.
  */
 const convertLambdaAuthorizationConfigToCDK = (
-  functionInstanceProvider: FunctionInstanceProvider,
+  getInstanceProps: ConstructFactoryGetInstanceProps,
   {
     function: authFn,
     timeToLiveInSeconds = DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS,
   }: LambdaAuthorizationModeProps
 ): CDKLambdaAuthorizationConfig => ({
-  function: functionInstanceProvider.provide(authFn),
+  function: authFn.getInstance(getInstanceProps).resources.lambda,
   ttl: Duration.seconds(timeToLiveInSeconds),
 });
 
@@ -121,14 +124,15 @@ const computeUserPoolAuthFromResource = (
  */
 const computeIAMAuthFromResource = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined
+  authModes: AuthorizationModes | undefined,
+  additionalRoles: IRole[] = []
 ): CDKIAMAuthorizationConfig | undefined => {
   if (providedAuthConfig) {
     return {
       authenticatedUserRole: providedAuthConfig.authenticatedUserRole,
       unauthenticatedUserRole: providedAuthConfig.unauthenticatedUserRole,
       identityPoolId: providedAuthConfig.identityPoolId,
-      allowListedRoles: authModes?.allowListedRoleNames ?? [],
+      allowListedRoles: additionalRoles,
     };
   }
   return;
@@ -168,9 +172,10 @@ const convertAuthorizationModeToCDK = (mode?: DefaultAuthorizationMode) => {
  * Convert to CDK AuthorizationModes.
  */
 export const convertAuthorizationModesToCDK = (
-  functionInstanceProvider: FunctionInstanceProvider,
+  getInstanceProps: ConstructFactoryGetInstanceProps,
   authResources: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined
+  authModes: AuthorizationModes | undefined,
+  additionalRoles: IRole[] = []
 ): CDKAuthorizationModes => {
   const defaultAuthorizationMode =
     authModes?.defaultAuthorizationMode ??
@@ -182,10 +187,14 @@ export const convertAuthorizationModesToCDK = (
     ? convertApiKeyAuthConfigToCDK(authModes.apiKeyAuthorizationMode)
     : computeApiKeyAuthFromResource(authResources, authModes);
   const userPoolConfig = computeUserPoolAuthFromResource(authResources);
-  const iamConfig = computeIAMAuthFromResource(authResources, authModes);
+  const iamConfig = computeIAMAuthFromResource(
+    authResources,
+    authModes,
+    additionalRoles
+  );
   const lambdaConfig = authModes?.lambdaAuthorizationMode
     ? convertLambdaAuthorizationConfigToCDK(
-        functionInstanceProvider,
+        getInstanceProps,
         authModes.lambdaAuthorizationMode
       )
     : undefined;

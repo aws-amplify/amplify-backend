@@ -1,6 +1,7 @@
 import { beforeEach, describe, it } from 'node:test';
 import {
   ConstructFactory,
+  DeepPartial,
   DeploymentType,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
@@ -9,6 +10,7 @@ import { BackendFactory } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
+import { ClientConfig } from '@aws-amplify/client-config';
 
 const createStackAndSetContext = (deploymentType: DeploymentType): Stack => {
   const app = new App();
@@ -187,7 +189,8 @@ void describe('Backend', () => {
   void it('can add custom output', () => {
     const rootStack = createStackAndSetContext('sandbox');
     const backend = new BackendFactory({}, rootStack);
-    const clientConfigPartial = {
+    const clientConfigPartial: DeepPartial<ClientConfig> = {
+      version: '1',
       custom: {
         someCustomOutput: 'someCustomOutputValue',
       },

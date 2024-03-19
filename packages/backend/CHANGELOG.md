@@ -1,5 +1,74 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.7
+
+### Patch Changes
+
+- Updated dependencies [a05933c]
+  - @aws-amplify/backend-function@0.8.0-beta.5
+
+## 0.13.0-beta.6
+
+### Minor Changes
+
+- c9f03ee: Re-export some plugin-types from submodule export @aws-amplify/backend/types/platform
+
+### Patch Changes
+
+- Updated dependencies [91dae55]
+- Updated dependencies [26cdffd]
+- Updated dependencies [75f69ea]
+- Updated dependencies [937086b]
+  - @aws-amplify/backend-data@0.10.0-beta.5
+  - @aws-amplify/backend-function@0.8.0-beta.4
+  - @aws-amplify/platform-core@0.5.0-beta.2
+  - @aws-amplify/backend-auth@0.5.0-beta.5
+  - @aws-amplify/client-config@0.9.0-beta.4
+  - @aws-amplify/backend-output-storage@0.4.0-beta.2
+  - @aws-amplify/backend-secret@0.4.5-beta.2
+  - @aws-amplify/backend-storage@0.6.0-beta.4
+
+## 0.13.0-beta.5
+
+### Patch Changes
+
+- Updated dependencies [bdbf6e8]
+- Updated dependencies [a777488]
+- Updated dependencies [ab05ae0]
+- Updated dependencies [268acd8]
+- Updated dependencies [7f5edee]
+- Updated dependencies [f999897]
+  - @aws-amplify/backend-function@0.8.0-beta.3
+  - @aws-amplify/backend-data@0.10.0-beta.4
+  - @aws-amplify/backend-auth@0.5.0-beta.4
+  - @aws-amplify/backend-storage@0.6.0-beta.3
+
+## 0.13.0-beta.4
+
+### Patch Changes
+
+- 7857f0a: backend-data: add js resolver support
+- 7dc3132: add aspect on root stack to valid role trust policies
+- Updated dependencies [64e425c]
+- Updated dependencies [912034e]
+- Updated dependencies [7857f0a]
+- Updated dependencies [5969a32]
+- Updated dependencies [c760df4]
+- Updated dependencies [916d3f0]
+- Updated dependencies [79cff6d]
+- Updated dependencies [318335d]
+- Updated dependencies [215d65d]
+- Updated dependencies [cec91d5]
+- Updated dependencies [b0ba24d]
+- Updated dependencies [3adf7df]
+- Updated dependencies [aee7501]
+- Updated dependencies [82006e5]
+  - @aws-amplify/backend-storage@0.6.0-beta.2
+  - @aws-amplify/backend-data@0.10.0-beta.3
+  - @aws-amplify/client-config@0.9.0-beta.3
+  - @aws-amplify/backend-function@0.8.0-beta.2
+  - @aws-amplify/backend-auth@0.5.0-beta.3
+
 ## 0.13.0-beta.3
 
 ### Patch Changes

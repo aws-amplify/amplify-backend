@@ -6,6 +6,7 @@
 
 import { AppId } from '@aws-amplify/plugin-types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { DeepPartial } from '@aws-amplify/plugin-types';
 import z from 'zod';
 
 // @public
@@ -54,8 +55,13 @@ export class AmplifyFault<T extends string = string> extends AmplifyError<T> {
 
 // @public
 export class AmplifyUserError<T extends string = string> extends AmplifyError<T> {
-    constructor(name: T, options: AmplifyErrorOptions, cause?: Error);
+    constructor(name: T, options: AmplifyUserErrorOptions, cause?: Error);
 }
+
+// @public
+export type AmplifyUserErrorOptions = Omit<AmplifyErrorOptions, 'resolution'> & {
+    resolution: string;
+};
 
 // @public
 export class BackendIdentifierConversions {
@@ -109,11 +115,10 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 // @public
 export class ObjectAccumulator<T> {
-    constructor(accumulator: Partial<T>);
+    constructor(accumulator: DeepPartial<T>, versionKey?: string);
+    accumulate: (part: DeepPartial<T>) => ObjectAccumulator<T>;
     // (undocumented)
-    accumulate: (part: Partial<T>) => ObjectAccumulator<T>;
-    // (undocumented)
-    getAccumulatedObject: () => Partial<T>;
+    getAccumulatedObject: () => DeepPartial<T>;
 }
 
 // @public
@@ -125,6 +130,15 @@ export class ObjectAccumulatorPropertyAlreadyExistsError extends Error {
     readonly incomingValue: unknown;
     // (undocumented)
     readonly key: string;
+}
+
+// @public
+export class ObjectAccumulatorVersionMismatchError extends Error {
+    constructor(existingVersion: string, newVersion: string);
+    // (undocumented)
+    readonly existingVersion: string;
+    // (undocumented)
+    readonly newVersion: string;
 }
 
 // @public (undocumented)

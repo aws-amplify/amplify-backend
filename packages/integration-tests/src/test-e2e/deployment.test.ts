@@ -16,7 +16,7 @@ import {
   ensureDeploymentTimeLessThan,
   interruptSandbox,
   rejectCleanupSandbox,
-  updateFileContent,
+  replaceFiles,
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
@@ -149,7 +149,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             const updates = await testProject.getUpdates();
             for (const update of updates) {
               processController
-                .do(updateFileContent(update.sourceFile, update.projectFile))
+                .do(replaceFiles(update.replacements))
                 .do(ensureDeploymentTimeLessThan(update.deployThresholdSec));
             }
 
@@ -191,11 +191,8 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             ['sandbox', '--dirToWatch', 'amplify'],
             testProject.projectDirPath
           )
-            .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
             .do(
-              new PredicatedActionBuilder().waitForLineIncludes(
-                'Unexpected keyword or identifier'
-              )
+              new PredicatedActionBuilder().waitForLineIncludes('esbuild Error')
             )
             .do(interruptSandbox())
             .do(rejectCleanupSandbox())

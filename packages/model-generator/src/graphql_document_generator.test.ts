@@ -12,7 +12,7 @@ void describe('client generator', () => {
       })
     );
     await assert.rejects(() =>
-      generator.generateModels({ language: 'typescript' })
+      generator.generateModels({ targetFormat: 'typescript' })
     );
   });
 });

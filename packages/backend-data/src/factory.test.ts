@@ -11,10 +11,13 @@ import {
   ConstructContainer,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
+  FunctionResources,
   ImportPathVerifier,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
+  SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
-import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { Policy, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
   CfnIdentityPool,
   CfnIdentityPoolRoleAttachment,
@@ -32,6 +35,9 @@ import {
 } from '@aws-amplify/backend-platform-test-stubs';
 import { AmplifyDataResources } from '@aws-amplify/data-construct';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { a } from '@aws-amplify/data-schema';
+
+const CUSTOM_DDB_CFN_TYPE = 'Custom::AmplifyDynamoDBTable';
 
 const testSchema = /* GraphQL */ `
   type Todo @model {
@@ -41,13 +47,79 @@ const testSchema = /* GraphQL */ `
   }
 `;
 
-const createStackAndSetContext = (): Stack => {
+const createStackAndSetContext = (settings: {
+  isSandboxMode: boolean;
+}): Stack => {
   const app = new App();
   app.node.setContext('amplify-backend-name', 'testEnvName');
   app.node.setContext('amplify-backend-namespace', 'testBackendId');
-  app.node.setContext('amplify-backend-type', 'branch');
+  app.node.setContext(
+    'amplify-backend-type',
+    settings.isSandboxMode ? 'sandbox' : 'branch'
+  );
   const stack = new Stack(app);
   return stack;
+};
+
+const createConstructContainerWithUserPoolAuthRegistered = (
+  stack: Stack
+): ConstructContainer => {
+  const constructContainer = new ConstructContainerStub(
+    new StackResolverStub(stack)
+  );
+  const sampleUserPool = new UserPool(stack, 'UserPool');
+  constructContainer.registerConstructFactory('AuthResources', {
+    provides: 'AuthResources',
+    getInstance: (): ResourceProvider<AuthResources> => ({
+      resources: {
+        userPool: sampleUserPool,
+        userPoolClient: new UserPoolClient(stack, 'UserPoolClient', {
+          userPool: sampleUserPool,
+        }),
+        unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
+          assumedBy: new ServicePrincipal('test.amazon.com'),
+        }),
+        authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
+          assumedBy: new ServicePrincipal('test.amazon.com'),
+        }),
+        cfnResources: {
+          cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
+          cfnUserPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
+            userPoolId: 'userPool',
+          }),
+          cfnIdentityPool: new CfnIdentityPool(stack, 'identityPool', {
+            allowUnauthenticatedIdentities: true,
+          }),
+          cfnIdentityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
+            stack,
+            'identityPoolRoleAttachment',
+            { identityPoolId: 'identityPool' }
+          ),
+        },
+        groups: {},
+      },
+    }),
+  });
+  return constructContainer;
+};
+
+const createInstancePropsBySetupCDKApp = (settings: {
+  isSandboxMode: boolean;
+}): ConstructFactoryGetInstanceProps => {
+  const stack: Stack = createStackAndSetContext({
+    isSandboxMode: settings.isSandboxMode,
+  });
+  const constructContainer: ConstructContainer =
+    createConstructContainerWithUserPoolAuthRegistered(stack);
+  const outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+    new StackMetadataBackendOutputStorageStrategy(stack);
+  const importPathVerifier: ImportPathVerifier = new ImportPathVerifierStub();
+
+  return {
+    constructContainer,
+    outputStorageStrategy,
+    importPathVerifier,
+  };
 };
 
 void describe('DataFactory', () => {
@@ -61,48 +133,10 @@ void describe('DataFactory', () => {
   beforeEach(() => {
     resetFactoryCount();
     dataFactory = defineData({ schema: testSchema });
-    stack = createStackAndSetContext();
+    stack = createStackAndSetContext({ isSandboxMode: false });
 
-    constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
-    );
-    const sampleUserPool = new UserPool(stack, 'UserPool');
-    constructContainer.registerConstructFactory('AuthResources', {
-      provides: 'AuthResources',
-      getInstance: (): ResourceProvider<AuthResources> => ({
-        resources: {
-          userPool: sampleUserPool,
-          userPoolClient: new UserPoolClient(stack, 'UserPoolClient', {
-            userPool: sampleUserPool,
-          }),
-          unauthenticatedUserIamRole: new Role(stack, 'testUnauthRole', {
-            assumedBy: new ServicePrincipal('test.amazon.com'),
-          }),
-          authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
-            assumedBy: new ServicePrincipal('test.amazon.com'),
-          }),
-          cfnResources: {
-            cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
-            cfnUserPoolClient: new CfnUserPoolClient(
-              stack,
-              'CfnUserPoolClient',
-              {
-                userPoolId: 'userPool',
-              }
-            ),
-            cfnIdentityPool: new CfnIdentityPool(stack, 'identityPool', {
-              allowUnauthenticatedIdentities: true,
-            }),
-            cfnIdentityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
-              stack,
-              'identityPoolRoleAttachment',
-              { identityPoolId: 'identityPool' }
-            ),
-          },
-          groups: {},
-        },
-      }),
-    });
+    constructContainer =
+      createConstructContainerWithUserPoolAuthRegistered(stack);
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
       stack
     );
@@ -257,6 +291,355 @@ void describe('DataFactory', () => {
         resolution: 'Remove all but one `defineData` call',
       })
     );
+  });
+
+  void describe('function access', () => {
+    beforeEach(() => {
+      resetFactoryCount();
+    });
+
+    void it('should attach expected policy to function role when schema access is defined', () => {
+      const lambda = new Function(stack, 'testFunc', {
+        code: Code.fromInline('test code'),
+        runtime: Runtime.NODEJS_LATEST,
+        handler: 'index.handler',
+      });
+      const acceptResourceAccessMock = mock.fn<
+        (policy: Policy, ssmEnvironmentEntries: SsmEnvironmentEntry[]) => void
+      >((policy) => {
+        policy.attachToRole(lambda.role!);
+      });
+      const myFunc: ConstructFactory<
+        ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
+      > = {
+        getInstance: () => ({
+          resources: {
+            lambda,
+          },
+          getResourceAccessAcceptor: () => ({
+            identifier: 'testId',
+            acceptResourceAccess: acceptResourceAccessMock,
+          }),
+        }),
+      };
+      const schema = a
+        .schema({
+          Todo: a.model({
+            content: a.string(),
+          }),
+        })
+        .authorization([
+          a.allow.private().to(['read']),
+          a.allow.resource(myFunc),
+        ]);
+
+      const dataFactory = defineData({
+        schema,
+      });
+
+      const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+      const template = Template.fromStack(Stack.of(dataConstruct));
+
+      // expect 2 policies in the template
+      // 1 is for a custom resource created by data and the other is the policy for the access config above
+      template.resourceCountIs('AWS::IAM::Policy', 2);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: 'appsync:GraphQL',
+              Resource: [
+                {
+                  'Fn::Join': [
+                    '',
+                    [
+                      'arn:',
+                      {
+                        Ref: 'AWS::Partition',
+                      },
+                      ':appsync:',
+                      {
+                        Ref: 'AWS::Region',
+                      },
+                      ':',
+                      {
+                        Ref: 'AWS::AccountId',
+                      },
+                      // eslint-disable-next-line spellcheck/spell-checker
+                      ':apis/',
+                      {
+                        'Fn::GetAtt': [
+                          'amplifyDataGraphQLAPI42A6FA33',
+                          'ApiId',
+                        ],
+                      },
+                      '/types/Query/*',
+                    ],
+                  ],
+                },
+                {
+                  'Fn::Join': [
+                    '',
+                    [
+                      'arn:',
+                      {
+                        Ref: 'AWS::Partition',
+                      },
+                      ':appsync:',
+                      {
+                        Ref: 'AWS::Region',
+                      },
+                      ':',
+                      {
+                        Ref: 'AWS::AccountId',
+                      },
+                      // eslint-disable-next-line spellcheck/spell-checker
+                      ':apis/',
+                      {
+                        'Fn::GetAtt': [
+                          'amplifyDataGraphQLAPI42A6FA33',
+                          'ApiId',
+                        ],
+                      },
+                      '/types/Mutation/*',
+                    ],
+                  ],
+                },
+                {
+                  'Fn::Join': [
+                    '',
+                    [
+                      'arn:',
+                      {
+                        Ref: 'AWS::Partition',
+                      },
+                      ':appsync:',
+                      {
+                        Ref: 'AWS::Region',
+                      },
+                      ':',
+                      {
+                        Ref: 'AWS::AccountId',
+                      },
+                      // eslint-disable-next-line spellcheck/spell-checker
+                      ':apis/',
+                      {
+                        'Fn::GetAtt': [
+                          'amplifyDataGraphQLAPI42A6FA33',
+                          'ApiId',
+                        ],
+                      },
+                      '/types/Subscription/*',
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        Roles: [
+          {
+            // eslint-disable-next-line spellcheck/spell-checker
+            Ref: 'referencetotestFuncServiceRole67735AD9Ref',
+          },
+        ],
+      });
+    });
+
+    void it('should attach expected policy to multiple function roles', () => {
+      // create lambda1 stub
+      const lambda1 = new Function(stack, 'testFunc1', {
+        code: Code.fromInline('test code'),
+        runtime: Runtime.NODEJS_LATEST,
+        handler: 'index.handler',
+      });
+      const acceptResourceAccessMock1 = mock.fn<
+        (policy: Policy, ssmEnvironmentEntries: SsmEnvironmentEntry[]) => void
+      >((policy) => {
+        policy.attachToRole(lambda1.role!);
+      });
+      const myFunc1: ConstructFactory<
+        ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
+      > = {
+        getInstance: () => ({
+          resources: {
+            lambda: lambda1,
+          },
+          getResourceAccessAcceptor: () => ({
+            identifier: 'testId1',
+            acceptResourceAccess: acceptResourceAccessMock1,
+          }),
+        }),
+      };
+
+      // create lambda1 stub
+      const lambda2 = new Function(stack, 'testFunc2', {
+        code: Code.fromInline('test code'),
+        runtime: Runtime.NODEJS_LATEST,
+        handler: 'index.handler',
+      });
+      const acceptResourceAccessMock2 = mock.fn<
+        (policy: Policy, ssmEnvironmentEntries: SsmEnvironmentEntry[]) => void
+      >((policy) => {
+        policy.attachToRole(lambda2.role!);
+      });
+      const myFunc2: ConstructFactory<
+        ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
+      > = {
+        getInstance: () => ({
+          resources: {
+            lambda: lambda2,
+          },
+          getResourceAccessAcceptor: () => ({
+            identifier: 'testId2',
+            acceptResourceAccess: acceptResourceAccessMock2,
+          }),
+        }),
+      };
+      const schema = a
+        .schema({
+          Todo: a.model({
+            content: a.string(),
+          }),
+        })
+        .authorization([
+          a.allow.private().to(['read']),
+          a.allow.resource(myFunc1).to(['mutate']),
+          a.allow.resource(myFunc2).to(['query']),
+        ]);
+
+      const dataFactory = defineData({
+        schema,
+      });
+
+      const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+      const template = Template.fromStack(Stack.of(dataConstruct));
+
+      // expect 3 policies in the template
+      // 1 is for a custom resource created by data and the other two are for the two function access definition above
+      template.resourceCountIs('AWS::IAM::Policy', 3);
+
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: 'appsync:GraphQL',
+              Resource: {
+                'Fn::Join': [
+                  '',
+                  [
+                    'arn:',
+                    {
+                      Ref: 'AWS::Partition',
+                    },
+                    ':appsync:',
+                    {
+                      Ref: 'AWS::Region',
+                    },
+                    ':',
+                    {
+                      Ref: 'AWS::AccountId',
+                    },
+                    // eslint-disable-next-line spellcheck/spell-checker
+                    ':apis/',
+                    {
+                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'ApiId'],
+                    },
+                    '/types/Mutation/*',
+                  ],
+                ],
+              },
+            },
+          ],
+        },
+        Roles: [
+          {
+            // eslint-disable-next-line spellcheck/spell-checker
+            Ref: 'referencetotestFunc1ServiceRoleBD09EB83Ref',
+          },
+        ],
+      });
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: 'appsync:GraphQL',
+              Resource: {
+                'Fn::Join': [
+                  '',
+                  [
+                    'arn:',
+                    {
+                      Ref: 'AWS::Partition',
+                    },
+                    ':appsync:',
+                    {
+                      Ref: 'AWS::Region',
+                    },
+                    ':',
+                    {
+                      Ref: 'AWS::AccountId',
+                    },
+                    // eslint-disable-next-line spellcheck/spell-checker
+                    ':apis/',
+                    {
+                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'ApiId'],
+                    },
+                    '/types/Query/*',
+                  ],
+                ],
+              },
+            },
+          ],
+        },
+        Roles: [
+          {
+            // eslint-disable-next-line spellcheck/spell-checker
+            Ref: 'referencetotestFunc2ServiceRole9C59B5B3Ref',
+          },
+        ],
+      });
+    });
+  });
+});
+
+void describe('Destructive Schema Updates & Replace tables upon GSI updates', () => {
+  let dataFactory: ConstructFactory<ResourceProvider<AmplifyDataResources>>;
+  let getInstanceProps: ConstructFactoryGetInstanceProps;
+
+  beforeEach(() => {
+    resetFactoryCount();
+    dataFactory = defineData({ schema: testSchema });
+  });
+
+  void it('should allow destructive updates and disable GSI update replacing tables in non-sandbox mode', () => {
+    getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+    const amplifyTableStackTemplate = Template.fromStack(
+      Stack.of(dataConstruct.resources.nestedStacks['Todo'])
+    );
+    amplifyTableStackTemplate.hasResourceProperties(CUSTOM_DDB_CFN_TYPE, {
+      allowDestructiveGraphqlSchemaUpdates: true,
+      replaceTableUponGsiUpdate: false,
+    });
+  });
+  void it('should allow destructive updates and enable GSI update replacing tables in sandbox mode', () => {
+    getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: true,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+    const amplifyTableStackTemplate = Template.fromStack(
+      Stack.of(dataConstruct.resources.nestedStacks['Todo'])
+    );
+    amplifyTableStackTemplate.hasResourceProperties(CUSTOM_DDB_CFN_TYPE, {
+      allowDestructiveGraphqlSchemaUpdates: true,
+      replaceTableUponGsiUpdate: true,
+    });
   });
 });
 

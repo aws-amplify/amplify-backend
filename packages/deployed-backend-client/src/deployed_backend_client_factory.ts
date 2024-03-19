@@ -26,15 +26,16 @@ export enum ApiAuthType {
   AMAZON_COGNITO_USER_POOLS = 'AMAZON_COGNITO_USER_POOLS',
 }
 
-export type SandboxMetadata = {
+export type BackendSummaryMetadata = {
   name: string;
   lastUpdated: Date | undefined;
   status: BackendDeploymentStatus;
   backendId: BackendIdentifier | undefined;
 };
 
-export type ListSandboxesRequest = {
-  nextToken?: string;
+export type ListBackendsRequest = {
+  deploymentType: DeploymentType;
+  backendStatusFilters?: BackendStatus[];
 };
 
 export type DeployedBackendResource = {
@@ -82,9 +83,8 @@ export type FunctionConfiguration = {
   functionName: string;
 };
 
-export type ListSandboxesResponse = {
-  sandboxes: SandboxMetadata[];
-  nextToken: string | undefined;
+export type ListBackendsResponse = {
+  getBackendSummaryByPage: () => AsyncGenerator<BackendSummaryMetadata[]>;
 };
 
 export enum BackendDeploymentStatus {
@@ -96,10 +96,14 @@ export enum BackendDeploymentStatus {
   UNKNOWN = 'UNKNOWN',
 }
 
+export enum BackendStatus {
+  DELETE_FAILED = 'DELETE_FAILED',
+}
+
 export type DeployedBackendClient = {
-  listSandboxes: (
-    listSandboxesRequest?: ListSandboxesRequest
-  ) => Promise<ListSandboxesResponse>;
+  listBackends: (
+    listBackendsRequest?: ListBackendsRequest
+  ) => ListBackendsResponse;
   deleteSandbox: (
     sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
   ) => Promise<void>;

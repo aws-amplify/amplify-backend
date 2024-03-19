@@ -4,6 +4,10 @@ import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import {
   ClientConfigFormat,
+  ClientConfigVersion,
+  ClientConfigVersionOption,
+  DEFAULT_CLIENT_CONFIG_VERSION,
+  getClientConfigFileName,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
@@ -20,6 +24,7 @@ type SandboxCommandOptionsCamelCase = {
   name: string | undefined;
   configFormat: ClientConfigFormat | undefined;
   configOutDir: string | undefined;
+  configVersion: string;
   profile: string | undefined;
 };
 
@@ -82,6 +87,7 @@ export class SandboxCommand
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
       this.clientConfigGeneratorAdapter,
+      args['config-version'] as ClientConfigVersion,
       args['config-out-dir'],
       args['config-format']
     );
@@ -95,7 +101,11 @@ export class SandboxCommand
       });
     }
     const watchExclusions = args.exclude ?? [];
+    const fileName = getClientConfigFileName(
+      args['config-version'] as ClientConfigVersion
+    );
     const clientConfigWritePath = await getClientConfigPath(
+      fileName,
       args['config-out-dir'],
       args['config-format']
     );
@@ -120,7 +130,7 @@ export class SandboxCommand
         .version(false)
         .option('dir-to-watch', {
           describe:
-            'Directory to watch for file changes. All subdirectories and files will be included. defaults to the current directory.',
+            'Directory to watch for file changes. All subdirectories and files will be included. Defaults to the amplify directory.',
           type: 'string',
           array: false,
           global: false,
@@ -145,6 +155,14 @@ export class SandboxCommand
           array: false,
           choices: Object.values(ClientConfigFormat),
           global: false,
+        })
+        .option('config-version', {
+          describe: 'Client config format version',
+          type: 'string',
+          array: false,
+          choices: Object.values(ClientConfigVersionOption),
+          global: false,
+          default: DEFAULT_CLIENT_CONFIG_VERSION,
         })
         .option('config-out-dir', {
           describe:

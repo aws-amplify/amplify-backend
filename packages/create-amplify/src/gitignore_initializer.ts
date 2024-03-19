@@ -2,8 +2,7 @@ import { existsSync as _existsSync } from 'fs';
 import _fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { LogLevel } from '@aws-amplify/cli-core';
-import { printer } from './printer.js';
+import { LogLevel, printer } from '@aws-amplify/cli-core';
 
 /**
  * Ensure that the .gitignore file exists with the correct contents in the current working directory

@@ -1,6 +1,7 @@
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
+  ClientConfigFileBaseName,
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
@@ -18,6 +19,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import fsp from 'fs/promises';
 import assert from 'node:assert';
+import { CopyDefinition } from '../process-controller/types.js';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -28,8 +30,10 @@ export type PlatformDeploymentThresholds = {
  * Keeps test project update info.
  */
 export type TestProjectUpdate = {
-  sourceFile: URL;
-  projectFile: URL;
+  /**
+   * An array of source and destination objects. All replacements will be part of the update operation
+   */
+  replacements: CopyDefinition[];
   /**
    * Define a threshold for the hotswap deployment time
    * Windows has a separate threshold because it is consistently slower than other platforms
@@ -131,7 +135,11 @@ export abstract class TestProjectBase {
    */
   async assertClientConfigExists(dir?: string, format?: ClientConfigFormat) {
     const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(dir ?? this.projectDirPath, format)
+      await getClientConfigPath(
+        ClientConfigFileBaseName.LEGACY,
+        dir ?? this.projectDirPath,
+        format
+      )
     );
 
     assert.ok(clientConfigStats.isFile());

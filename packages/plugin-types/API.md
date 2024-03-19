@@ -127,6 +127,11 @@ export type ConstructFactoryGetInstanceProps = {
 };
 
 // @public
+export type DeepPartial<T> = {
+    [P in keyof T]?: DeepPartial<T[P]>;
+};
+
+// @public
 export type DeploymentType = 'branch' | 'sandbox';
 
 // @public (undocumented)
@@ -182,8 +187,8 @@ export type ResourceAccessAcceptor = {
 };
 
 // @public (undocumented)
-export type ResourceAccessAcceptorFactory<RoleName extends string | undefined = undefined> = {
-    getResourceAccessAcceptor: (...roleName: RoleName extends string ? [RoleName] : []) => ResourceAccessAcceptor;
+export type ResourceAccessAcceptorFactory<RoleIdentifier extends string | undefined = undefined> = {
+    getResourceAccessAcceptor: (...roleIdentifier: RoleIdentifier extends string ? [RoleIdentifier] : []) => ResourceAccessAcceptor;
 };
 
 // @public

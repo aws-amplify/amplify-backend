@@ -1,4 +1,8 @@
-import { ConstructFactory, ResourceProvider } from '@aws-amplify/plugin-types';
+import {
+  ConstructFactory,
+  DeepPartial,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
@@ -16,12 +20,19 @@ import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'url';
 import { Backend, DefineBackendProps } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
-import { ClientConfig } from '@aws-amplify/client-config';
+import {
+  ClientConfig,
+  ClientConfigVersionOption,
+} from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
 import { ObjectAccumulator } from '@aws-amplify/platform-core';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
+
+// Client config version that is used by `backend.addOutput()`
+const DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT =
+  ClientConfigVersionOption.V1;
 
 /**
  * Factory that collects and instantiates all the Amplify backend constructs
@@ -118,8 +129,14 @@ export class BackendFactory<
     return this.stackResolver.createCustomStack(name);
   };
 
-  addOutput = (clientConfigPart: Partial<ClientConfig>) =>
+  addOutput = (clientConfigPart: DeepPartial<ClientConfig>) => {
+    const { version } = clientConfigPart;
+    if (!version) {
+      clientConfigPart.version =
+        DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT;
+    }
     this.customOutputsAccumulator.addOutput(clientConfigPart);
+  };
 }
 
 /**

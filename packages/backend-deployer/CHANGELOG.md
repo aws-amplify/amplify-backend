@@ -1,5 +1,19 @@
 # @aws-amplify/backend-deployer
 
+## 0.5.1-beta.3
+
+### Patch Changes
+
+- a05933c: run tsc after CDK synth but before deploy
+
+## 0.5.1-beta.2
+
+### Patch Changes
+
+- 937086b: require "resolution" in AmplifyUserError options
+- Updated dependencies [937086b]
+  - @aws-amplify/platform-core@0.5.0-beta.2
+
 ## 0.5.1-beta.1
 
 ### Patch Changes

@@ -5,8 +5,9 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
-  ClientConfig,
+  ClientConfigFileBaseName,
   ClientConfigFormat,
+  ClientConfigLegacy,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import assert from 'node:assert';
@@ -74,10 +75,11 @@ class CustomOutputsTestProject extends TestProjectBase {
     await super.assertPostDeployment(backendId);
 
     const clientConfigPath = await getClientConfigPath(
+      ClientConfigFileBaseName.LEGACY,
       this.projectDirPath,
       ClientConfigFormat.JSON
     );
-    const clientConfig: ClientConfig = JSON.parse(
+    const clientConfig: ClientConfigLegacy = JSON.parse(
       await fsp.readFile(clientConfigPath, 'utf-8')
     );
 
@@ -93,7 +95,7 @@ class CustomOutputsTestProject extends TestProjectBase {
     assert.ok(clientConfig.custom?.restApiUrl);
     assert.ok(
       /^https:\/\/\S+\.execute-api\.\S+\.amazonaws\.com\/prod\//.test(
-        clientConfig.custom?.restApiUrl ?? 'undefined'
+        (clientConfig.custom?.restApiUrl as string) ?? 'undefined'
       )
     );
   };
