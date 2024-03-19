@@ -258,6 +258,7 @@ void describe('Deployed Backend Client', () => {
         additionalAuthTypes: [],
         conflictResolutionMode: undefined,
         apiId: 'awsAppsyncApiId',
+        modelSchemaS3Uri: 's3://bucketName/model-schema.graphql',
       },
       functionConfigurations: [
         {
