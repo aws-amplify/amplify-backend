@@ -111,6 +111,13 @@ void describe('generate graphql-client-code command', () => {
     assert.match(command, /Missing required argument: connection-string/);
   });
 
+  void it('fails if both stack and branch are present', async () => {
+    const output = await commandRunner.runCommand(
+      'schema-from-database --stack foo --branch baz'
+    );
+    assert.match(output, /Arguments .* are mutually exclusive/);
+  });
+
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand(
       'schema-from-database --help'
@@ -120,13 +127,5 @@ void describe('generate graphql-client-code command', () => {
     assert.match(output, /--branch/);
     assert.match(output, /--out/);
     assert.match(output, /--connection-string-secret/);
-  });
-
-  // Note: after this test, future tests seem to be in a weird state, leaving this at the end
-  void it('fails if both stack and branch are present', async () => {
-    const output = await commandRunner.runCommand(
-      'schema-from-database --stack foo --branch baz'
-    );
-    assert.match(output, /Arguments .* are mutually exclusive/);
   });
 });

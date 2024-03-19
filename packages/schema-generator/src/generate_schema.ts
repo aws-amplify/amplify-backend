@@ -1,5 +1,5 @@
 import { TypescriptDataSchemaGenerator } from '@aws-amplify/graphql-schema-generator';
-import * as fs from 'fs';
+import fs from 'fs/promises';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type SchemaGeneratorConfig = {
@@ -16,7 +16,7 @@ export class SchemaGenerator {
 
     try {
       const schema = await TypescriptDataSchemaGenerator.generate(dbConfig);
-      fs.writeFileSync(props.out, schema);
+      await fs.writeFile(props.out, schema);
     } catch (err) {
       const databaseError = err as DatabaseConnectError;
       if (databaseError.code === 'ETIMEDOUT') {
@@ -69,26 +69,41 @@ export class DatabaseConnectError extends Error {
  * Parses database URL into a configuration object.
  */
 export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
-  let config = {} as SQLDataSourceConfig;
   try {
     const parsedDatabaseUrl = new URL(databaseUrl);
-    const { username, password, hostname: host } = parsedDatabaseUrl;
-    const database = parsedDatabaseUrl?.pathname?.slice(1);
+    const {
+      username: encodedUsername,
+      password: encodedPassword,
+      hostname: encodedHost,
+    } = parsedDatabaseUrl;
+    const username = decodeURIComponent(encodedUsername);
+    const password = decodeURIComponent(encodedPassword);
+    const host = decodeURIComponent(encodedHost);
+    const database = decodeURIComponent(parsedDatabaseUrl?.pathname?.slice(1));
     const port = parseInt(parsedDatabaseUrl?.port, 10);
     const engine = parsedDatabaseUrl?.protocol?.slice(0, -1) as SQLEngine;
 
-    if ([engine, username, password, host, database, port].some((x) => !x)) {
-      throw new Error('One or more parts of the database URL is missing.');
-    }
-
-    config = {
+    const config = {
       engine,
       username,
       password,
       database,
       host,
       port,
-    };
+    } as SQLDataSourceConfig;
+
+    const missingParts = (
+      Object.keys(config) as Array<keyof SQLDataSourceConfig>
+    ).filter((part) => !config[part]);
+
+    if (missingParts.length > 0) {
+      throw new Error(
+        `One or more parts of the database URL is missing. Missing [${missingParts.join(
+          ', '
+        )}].`
+      );
+    }
+
     return config;
   } catch (err) {
     const error = err as Error;

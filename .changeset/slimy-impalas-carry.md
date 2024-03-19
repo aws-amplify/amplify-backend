@@ -3,4 +3,4 @@
 '@aws-amplify/backend-cli': patch
 ---
 
-Add support to generate typebeast data schema from database schema
+Add support to generate typescript data schema from database schema
