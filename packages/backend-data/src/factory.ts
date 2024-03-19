@@ -26,7 +26,11 @@ import {
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
-import { AmplifyUserError, CDKContextKey } from '@aws-amplify/platform-core';
+import {
+  AmplifyError,
+  AmplifyUserError,
+  CDKContextKey,
+} from '@aws-amplify/platform-core';
 import { Aspects, IAspect } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
@@ -133,24 +137,16 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     }
 
     let authorizationModes;
-
-    /**
-     * TODO - remove this after the data construct does work to remove the need for allow-listed IAM roles
-     */
-    const functionSchemaAccessRoles = functionSchemaAccess.map(
-      (accessEntry) =>
-        accessEntry.resourceProvider.getInstance(this.getInstanceProps)
-          .resources.lambda.role!
-    );
-
     try {
       authorizationModes = convertAuthorizationModesToCDK(
         this.getInstanceProps,
         this.providedAuthConfig,
-        this.props.authorizationModes,
-        functionSchemaAccessRoles
+        this.props.authorizationModes
       );
     } catch (error) {
+      if (error instanceof AmplifyError) {
+        throw error;
+      }
       throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaAuthError',
         {
