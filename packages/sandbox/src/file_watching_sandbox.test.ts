@@ -246,11 +246,12 @@ void describe('Sandbox using local project name resolver', () => {
       false
     ));
     assert.strictEqual(printer.log.mock.callCount(), 5);
-    // eslint-disable-next-line spellcheck/spell-checker
+
     assert.strictEqual(
       printer.log.mock.calls[0].arguments[0],
       format.bold(
         `Starting sandbox for ${format.command(
+          // eslint-disable-next-line spellcheck/spell-checker
           'amplify-testSandboxId-testSandboxName-sandbox-197ae78b6d'
         )}`
       )
