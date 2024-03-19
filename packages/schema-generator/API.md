@@ -4,6 +4,9 @@
 
 ```ts
 
+// @public (undocumented)
+export type AmplifyGenerateSchemaError = 'DatabaseConnectionError' | 'DatabaseUrlParseError';
+
 // @public
 export class DatabaseConnectError extends Error {
     constructor(code: string, errorno: string);
@@ -13,14 +16,8 @@ export class DatabaseConnectError extends Error {
     readonly errorno: string;
 }
 
-// @public (undocumented)
-export type MySQLEngine = 'mysql';
-
 // @public
 export const parseDatabaseUrl: (databaseUrl: string) => SQLDataSourceConfig;
-
-// @public (undocumented)
-export type PostgresSQLEngine = 'postgresql';
 
 // @public
 export class SchemaGenerator {
@@ -45,7 +42,7 @@ export type SQLDataSourceConfig = {
 };
 
 // @public (undocumented)
-export type SQLEngine = MySQLEngine | PostgresSQLEngine;
+export type SQLEngine = 'mysql' | 'postgresql';
 
 // (No @packageDocumentation comment for this package)
 

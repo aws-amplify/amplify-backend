@@ -7,6 +7,10 @@ export type SchemaGeneratorConfig = {
   out: string;
 };
 
+export type AmplifyGenerateSchemaError =
+  | 'DatabaseConnectionError'
+  | 'DatabaseUrlParseError';
+
 /**
  * Schema generator class.
  */
@@ -20,7 +24,7 @@ export class SchemaGenerator {
     } catch (err) {
       const databaseError = err as DatabaseConnectError;
       if (databaseError.code === 'ETIMEDOUT') {
-        throw new AmplifyUserError(
+        throw new AmplifyUserError<AmplifyGenerateSchemaError>(
           'DatabaseConnectionError',
           {
             message: `Unable to connect to the database at ${dbConfig.host}:${dbConfig.port}. `,
@@ -35,12 +39,7 @@ export class SchemaGenerator {
   };
 }
 
-// eslint-disable-next-line spellcheck/spell-checker
-export type MySQLEngine = 'mysql';
-// eslint-disable-next-line spellcheck/spell-checker
-export type PostgresSQLEngine = 'postgresql';
-// eslint-disable-next-line spellcheck/spell-checker
-export type SQLEngine = MySQLEngine | PostgresSQLEngine;
+export type SQLEngine = 'mysql' | 'postgresql';
 
 export type SQLDataSourceConfig = {
   engine: SQLEngine;
@@ -60,6 +59,8 @@ export class DatabaseConnectError extends Error {
    */
   // eslint-disable-next-line spellcheck/spell-checker
   constructor(readonly code: string, readonly errorno: string) {
+    // eslint-disable-next-line spellcheck/spell-checker
+    // 'errorno' is a field in the error object returned by the underlying library.
     // eslint-disable-next-line spellcheck/spell-checker
     super(`Database connection error: ${code} ${errorno}`);
   }
@@ -97,21 +98,27 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
     ).filter((part) => !config[part]);
 
     if (missingParts.length > 0) {
-      throw new AmplifyUserError('DatabaseUrlParseError', {
-        message: `One or more parts of the database URL is missing. Missing [${missingParts.join(
-          ', '
-        )}].`,
-        resolution:
-          'Database URL must follow the pattern "[mysql|postgresql]://username:password@hostname:port/database".',
-      });
+      throw new AmplifyUserError<AmplifyGenerateSchemaError>(
+        'DatabaseUrlParseError',
+        {
+          message: `One or more parts of the database URL is missing. Missing [${missingParts.join(
+            ', '
+          )}].`,
+          resolution:
+            'Database URL must follow the pattern "[mysql|postgresql]://username:password@hostname:port/database".',
+        }
+      );
     }
 
     return config;
   } catch (err) {
     const error = err as Error;
-    throw new AmplifyUserError('DatabaseUrlParseError', {
-      message: `Unable to parse the database URL. ${error.message}`,
-      resolution: 'Check if the database URL is correct and accessible.',
-    });
+    throw new AmplifyUserError<AmplifyGenerateSchemaError>(
+      'DatabaseUrlParseError',
+      {
+        message: `Unable to parse the database URL. ${error.message}`,
+        resolution: 'Check if the database URL is correct and accessible.',
+      }
+    );
   }
 };

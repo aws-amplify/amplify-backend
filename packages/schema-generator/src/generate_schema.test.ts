@@ -31,7 +31,6 @@ void describe('SchemaGenerator', () => {
     const dbConfig = parseDatabaseUrl(
       'mysql://user:password@test-host-name:3306/db'
     );
-    // eslint-disable-next-line spellcheck/spell-checker
     assert.strictEqual(dbConfig.engine, 'mysql');
     assert.strictEqual(dbConfig.username, 'user');
     assert.strictEqual(dbConfig.password, 'password');
@@ -44,7 +43,6 @@ void describe('SchemaGenerator', () => {
     const dbConfig = parseDatabaseUrl(
       'mysql://user:password@123!@test-host-name:3306/db'
     );
-    // eslint-disable-next-line spellcheck/spell-checker
     assert.strictEqual(dbConfig.engine, 'mysql');
     assert.strictEqual(dbConfig.username, 'user');
     assert.strictEqual(dbConfig.password, 'password@123!');

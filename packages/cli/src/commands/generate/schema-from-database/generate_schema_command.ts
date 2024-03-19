@@ -46,10 +46,6 @@ export class GenerateSchemaCommand
     this.describe = 'Generates typescript data schema from a SQL database';
   }
 
-  getBackendIdentifier = async (args: GenerateSchemaCommandOptions) => {
-    return await this.backendIdentifierResolver.resolve(args);
-  };
-
   /**
    * @inheritDoc
    */
