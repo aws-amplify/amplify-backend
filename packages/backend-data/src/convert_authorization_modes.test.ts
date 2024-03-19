@@ -161,7 +161,72 @@ void describe('convertAuthorizationModesToCDK', () => {
     );
   });
 
+  void it('defaults to oidc if no other mode is provided', () => {
+    const authModes: AuthorizationModes = {
+      oidcAuthorizationMode: {
+        clientId: 'testClient',
+        oidcProviderName: 'testProvider',
+        oidcIssuerUrl: 'https://test.provider/',
+        tokenExpireFromIssueInSeconds: 60,
+        tokenExpiryFromAuthInSeconds: 90,
+      },
+    };
+
+    const expectedOutput: CDKAuthorizationModes = {
+      defaultAuthorizationMode: 'OPENID_CONNECT',
+      oidcConfig: {
+        clientId: 'testClient',
+        oidcProviderName: 'testProvider',
+        oidcIssuerUrl: 'https://test.provider/',
+        tokenExpiryFromIssue: Duration.seconds(60),
+        tokenExpiryFromAuth: Duration.seconds(90),
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
+    };
+
+    assert.deepStrictEqual(
+      convertAuthorizationModesToCDK(
+        getInstancePropsStub,
+        undefined,
+        authModes
+      ),
+      expectedOutput
+    );
+  });
+
   void it('allows for overriding api key config', () => {
+    const authModes: AuthorizationModes = {
+      defaultAuthorizationMode: 'apiKey',
+      apiKeyAuthorizationMode: {
+        description: 'MyApiKey',
+        expiresInDays: 30,
+      },
+    };
+
+    const expectedOutput: CDKAuthorizationModes = {
+      defaultAuthorizationMode: 'API_KEY',
+      apiKeyConfig: {
+        description: 'MyApiKey',
+        expires: Duration.days(30),
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
+    };
+
+    assert.deepStrictEqual(
+      convertAuthorizationModesToCDK(
+        getInstancePropsStub,
+        undefined,
+        authModes
+      ),
+      expectedOutput
+    );
+  });
+
+  void it('defaults to api key if no other mode is provided', () => {
     const authModes: AuthorizationModes = {
       apiKeyAuthorizationMode: {
         description: 'MyApiKey',
@@ -207,6 +272,7 @@ void describe('convertAuthorizationModesToCDK', () => {
     };
 
     const authModes: AuthorizationModes = {
+      defaultAuthorizationMode: 'lambda',
       lambdaAuthorizationMode: {
         function: authFnFactory,
         timeToLiveInSeconds: 30,
@@ -218,6 +284,92 @@ void describe('convertAuthorizationModesToCDK', () => {
       lambdaConfig: {
         function: authFn,
         ttl: Duration.seconds(30),
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
+    };
+
+    assert.deepStrictEqual(
+      convertAuthorizationModesToCDK(
+        getInstancePropsStub,
+        undefined,
+        authModes
+      ),
+      expectedOutput
+    );
+  });
+
+  void it('defaults to lambda if no other mode is provided', () => {
+    const authFn = new Function(stack, 'MyAuthFn', {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromInline(
+        'module.handler = async () => console.log("Hello");'
+      ),
+      handler: 'index.handler',
+    });
+    const authFnFactory: ConstructFactory<AmplifyFunction> = {
+      getInstance: () => ({
+        resources: {
+          lambda: authFn,
+        },
+      }),
+    };
+
+    const authModes: AuthorizationModes = {
+      lambdaAuthorizationMode: {
+        function: authFnFactory,
+        timeToLiveInSeconds: 30,
+      },
+    };
+
+    const expectedOutput: CDKAuthorizationModes = {
+      defaultAuthorizationMode: 'AWS_LAMBDA',
+      lambdaConfig: {
+        function: authFn,
+        ttl: Duration.seconds(30),
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
+    };
+
+    assert.deepStrictEqual(
+      convertAuthorizationModesToCDK(
+        getInstancePropsStub,
+        undefined,
+        authModes
+      ),
+      expectedOutput
+    );
+  });
+
+  void it('does not default if multiple modes are specified', () => {
+    const authModes: AuthorizationModes = {
+      apiKeyAuthorizationMode: {
+        description: 'MyApiKey',
+        expiresInDays: 30,
+      },
+      oidcAuthorizationMode: {
+        clientId: 'testClient',
+        oidcProviderName: 'testProvider',
+        oidcIssuerUrl: 'https://test.provider/',
+        tokenExpireFromIssueInSeconds: 60,
+        tokenExpiryFromAuthInSeconds: 90,
+      },
+    };
+
+    const expectedOutput: CDKAuthorizationModes = {
+      apiKeyConfig: {
+        description: 'MyApiKey',
+        expires: Duration.days(30),
+      },
+      oidcConfig: {
+        clientId: 'testClient',
+        oidcProviderName: 'testProvider',
+        oidcIssuerUrl: 'https://test.provider/',
+        tokenExpiryFromIssue: Duration.seconds(60),
+        tokenExpiryFromAuth: Duration.seconds(90),
       },
       iamConfig: {
         enableIamAuthorizationMode: true,
