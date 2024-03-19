@@ -5,9 +5,6 @@
 ```ts
 
 // @public
-export const parseDatabaseUrl: (databaseUrl: string) => SQLDataSourceConfig;
-
-// @public
 export class SchemaGenerator {
     // (undocumented)
     generate: (props: SchemaGeneratorConfig) => Promise<void>;

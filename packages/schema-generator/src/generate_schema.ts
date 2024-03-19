@@ -103,7 +103,7 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
             ', '
           )}].`,
           resolution:
-            'Database URL must follow the pattern "[mysql|postgresql]://username:password@hostname:port/database".',
+            'Ensure the database URL follows the pattern "[mysql|postgresql]://username:password@hostname:port/database".',
         }
       );
     }
