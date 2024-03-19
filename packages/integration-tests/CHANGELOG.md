@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.5.0-beta.4
+
+### Patch Changes
+
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+
 ## 0.5.0-beta.3
 
 ### Patch Changes
