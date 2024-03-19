@@ -97,11 +97,13 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
     ).filter((part) => !config[part]);
 
     if (missingParts.length > 0) {
-      throw new Error(
-        `One or more parts of the database URL is missing. Missing [${missingParts.join(
+      throw new AmplifyUserError('DatabaseUrlParseError', {
+        message: `One or more parts of the database URL is missing. Missing [${missingParts.join(
           ', '
-        )}].`
-      );
+        )}].`,
+        resolution:
+          'Database URL must follow the pattern "[mysql|postgresql]://username:password@hostname:port/database".',
+      });
     }
 
     return config;
