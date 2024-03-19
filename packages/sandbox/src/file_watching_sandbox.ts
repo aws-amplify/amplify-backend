@@ -361,7 +361,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     const sandboxName =
       BackendIdentifierConversions.toStackName(sandboxBackendId);
     this.printer.log(
-      format.bold(`Starting sandbox for ${format.command(sandboxName)}`)
+      format.bold(`Starting sandbox for ${format.highlight(sandboxName)}`)
     );
     if (!optionalName) {
       this.printer.log(

@@ -250,7 +250,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(
       printer.log.mock.calls[0].arguments[0],
       format.bold(
-        `Starting sandbox for ${format.command(
+        `Starting sandbox for ${format.highlight(
           // eslint-disable-next-line spellcheck/spell-checker
           'amplify-testSandboxId-testSandboxName-sandbox-197ae78b6d'
         )}`

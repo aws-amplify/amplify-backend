@@ -16,6 +16,7 @@ export const format = {
   error: (message: string) => red(message),
   note: (message: string) => grey(message),
   command: (command: string) => cyan(command),
+  highlight: (command: string) => cyan(command),
   success: (message: string) => green(message),
   sectionHeader: (header: string) => bold(blue(header)),
   bold: (message: string) => bold(message),
