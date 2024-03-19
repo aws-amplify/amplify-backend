@@ -7,7 +7,7 @@ export type SchemaGeneratorConfig = {
   out: string;
 };
 
-export type AmplifyGenerateSchemaError =
+type AmplifyGenerateSchemaError =
   | 'DatabaseConnectionError'
   | 'DatabaseUrlParseError';
 
@@ -55,7 +55,7 @@ export type SQLDataSourceConfig = {
  * This class is intended to be used for casting database connection errors.
  * Do not create instances of this class directly.
  */
-export abstract class DatabaseConnectError extends Error {
+abstract class DatabaseConnectError extends Error {
   /**
    * Creates database connection error.
    */

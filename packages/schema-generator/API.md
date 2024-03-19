@@ -4,16 +4,6 @@
 
 ```ts
 
-// @public (undocumented)
-export type AmplifyGenerateSchemaError = 'DatabaseConnectionError' | 'DatabaseUrlParseError';
-
-// @public
-export abstract class DatabaseConnectError extends Error {
-    constructor(code?: string | undefined);
-    // (undocumented)
-    readonly code?: string | undefined;
-}
-
 // @public
 export const parseDatabaseUrl: (databaseUrl: string) => SQLDataSourceConfig;
 
