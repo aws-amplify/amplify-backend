@@ -1,5 +1,21 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.8
+
+### Patch Changes
+
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+- Updated dependencies [5e12247]
+  - @aws-amplify/client-config@0.9.0-beta.5
+  - @aws-amplify/platform-core@0.5.0-beta.3
+  - @aws-amplify/plugin-types@0.9.0-beta.1
+  - @aws-amplify/backend-auth@0.5.0-beta.6
+  - @aws-amplify/backend-data@0.10.0-beta.6
+  - @aws-amplify/backend-function@0.8.0-beta.6
+  - @aws-amplify/backend-output-storage@0.4.0-beta.3
+  - @aws-amplify/backend-secret@0.4.5-beta.3
+  - @aws-amplify/backend-storage@0.6.0-beta.5
+
 ## 0.13.0-beta.7
 
 ### Patch Changes

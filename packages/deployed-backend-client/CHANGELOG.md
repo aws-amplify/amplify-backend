@@ -1,5 +1,16 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.4.0-beta.4
+
+### Minor Changes
+
+- b0112e3: Surface model schema uri in deployed backend client output
+
+### Patch Changes
+
+- Updated dependencies [5e12247]
+  - @aws-amplify/platform-core@0.5.0-beta.3
+
 ## 0.4.0-beta.3
 
 ### Minor Changes
