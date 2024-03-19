@@ -8,12 +8,10 @@
 export type AmplifyGenerateSchemaError = 'DatabaseConnectionError' | 'DatabaseUrlParseError';
 
 // @public
-export class DatabaseConnectError extends Error {
-    constructor(code: string, errorno: string);
+export abstract class DatabaseConnectError extends Error {
+    constructor(code?: string | undefined);
     // (undocumented)
-    readonly code: string;
-    // (undocumented)
-    readonly errorno: string;
+    readonly code?: string | undefined;
 }
 
 // @public
