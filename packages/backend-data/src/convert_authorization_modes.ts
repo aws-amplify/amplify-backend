@@ -123,13 +123,12 @@ const computeDefaultAuthorizationMode = (
       return 'apiKey';
     }
   }
-  throw new AmplifyUserError<AmplifyDataError>(
-    'MissingDefaultAuthorizationModeError',
-    {
-      message: 'A defaultAuthorizationMode is required if multiple authorization modes are configured',
-      resolution: "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'",
-    }
-  );
+  throw new AmplifyUserError<AmplifyDataError>('DefineDataConfigurationError', {
+    message:
+      'A defaultAuthorizationMode is required if multiple authorization modes are configured',
+    resolution:
+      "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'",
+  });
 };
 
 /**

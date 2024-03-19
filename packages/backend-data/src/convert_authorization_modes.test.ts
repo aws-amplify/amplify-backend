@@ -368,6 +368,7 @@ void describe('convertAuthorizationModesToCDK', () => {
           authModes
         ),
       (err: AmplifyUserError<AmplifyDataError>) => {
+        assert.strictEqual(err.name, 'DefineDataConfigurationError');
         assert.strictEqual(
           err.message,
           'A defaultAuthorizationMode is required if multiple authorization modes are configured'

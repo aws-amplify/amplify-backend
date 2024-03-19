@@ -341,6 +341,7 @@ void describe('DataFactory', () => {
     assert.throws(
       () => dataFactory.getInstance(getInstanceProps),
       (err: AmplifyUserError<AmplifyDataError>) => {
+        assert.strictEqual(err.name, 'DefineDataConfigurationError');
         assert.strictEqual(
           err.message,
           'A defaultAuthorizationMode is required if multiple authorization modes are configured'
