@@ -96,7 +96,7 @@ const convertOIDCAuthConfigToCDK = ({
 /**
  * Compute default auth mode based on availability of auth resources.
  *
- * Will specify userPool if both user pool is specified, and no auth resources are specified.
+ * Will default to userPool if userPool is provided and auth resources are not provided.
  *
  * If no auth resources are provided and there's only one mode we'll use that as we implicitly always add iam auth.
  */
