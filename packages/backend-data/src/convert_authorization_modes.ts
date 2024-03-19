@@ -104,9 +104,7 @@ const computeDefaultAuthorizationMode = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): DefaultAuthorizationMode | undefined => {
-  if (!providedAuthConfig && !authModes) {
-    // if no auth is configured or provided use api key.
-    // see also computeApiKeyAuthFromResource
+  if (isUsingDefaultApiKeyAuth(providedAuthConfig, authModes)) {
     return 'apiKey';
   } else if (providedAuthConfig && !authModes) {
     return 'userPool';
@@ -164,13 +162,12 @@ const computeApiKeyAuthFromResource = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): CDKApiKeyAuthorizationConfig | undefined => {
-  // See also computeDefaultAuthorizationMode.
-  if (providedAuthConfig || authModes) {
-    return;
+  if (isUsingDefaultApiKeyAuth(providedAuthConfig, authModes)) {
+    return {
+      expires: Duration.days(DEFAULT_API_KEY_EXPIRATION_DAYS),
+    };
   }
-  return {
-    expires: Duration.days(DEFAULT_API_KEY_EXPIRATION_DAYS),
-  };
+  return;
 };
 
 const authorizationModeMapping = {
@@ -241,8 +238,5 @@ export const isUsingDefaultApiKeyAuth = (
   authResources: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): boolean => {
-  return (
-    authModes === undefined &&
-    computeApiKeyAuthFromResource(authResources, authModes) !== undefined
-  );
+  return authModes === undefined && authResources === undefined;
 };
