@@ -5,7 +5,7 @@ import { SecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
 
-const DEFAULT_OUTPUT = 'schema.sql.ts';
+const DEFAULT_OUTPUT = 'amplify/data/schema.sql.ts';
 
 export type GenerateSchemaCommandOptions =
   ArgumentsKebabCase<GenerateSchemaCommandOptionsCamelCase>;
@@ -55,7 +55,9 @@ export class GenerateSchemaCommand
     );
 
     if (!backendIdentifier) {
-      throw new Error('Could not resolve the backend identifier');
+      throw new AmplifyFault('BackendIdentifierFault', {
+        message: 'Could not resolve the backend identifier',
+      });
     }
 
     const secretName = args['connection-string-secret'] as string;

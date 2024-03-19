@@ -58,7 +58,7 @@ export class DatabaseConnectError extends Error {
    * Creates database connection error.
    */
   // eslint-disable-next-line spellcheck/spell-checker
-  constructor(readonly code: string, readonly errorno: string) {
+  constructor(readonly code?: string, readonly errorno?: string) {
     // eslint-disable-next-line spellcheck/spell-checker
     // 'errorno' is a field in the error object returned by the underlying library.
     // eslint-disable-next-line spellcheck/spell-checker
