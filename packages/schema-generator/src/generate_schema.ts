@@ -52,17 +52,15 @@ export type SQLDataSourceConfig = {
 
 /**
  * Error for database connection failures.
+ * This class is intended to be used for casting database connection errors.
+ * Do not create instances of this class directly.
  */
-export class DatabaseConnectError extends Error {
+export abstract class DatabaseConnectError extends Error {
   /**
    * Creates database connection error.
    */
-  // eslint-disable-next-line spellcheck/spell-checker
-  constructor(readonly code?: string, readonly errorno?: string) {
-    // eslint-disable-next-line spellcheck/spell-checker
-    // 'errorno' is a field in the error object returned by the underlying library.
-    // eslint-disable-next-line spellcheck/spell-checker
-    super(`Database connection error: ${code} ${errorno}`);
+  constructor(readonly code?: string) {
+    super(`Database connection error: ${code}`);
   }
 }
 

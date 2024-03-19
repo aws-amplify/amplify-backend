@@ -4,6 +4,7 @@ import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
+import { AmplifyFault } from '@aws-amplify/platform-core';
 
 const DEFAULT_OUTPUT = 'amplify/data/schema.sql.ts';
 
