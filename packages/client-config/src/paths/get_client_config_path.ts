@@ -12,9 +12,7 @@ import { ClientConfigFileBaseName, ClientConfigFormat } from '../index.js';
 export const getClientConfigPath = async (
   fileName: ClientConfigFileBaseName,
   outDir?: string,
-  format?: ClientConfigFormat,
-  // TODO: update this type when Printer interface gets defined in platform-core.
-  debug?: (message: string) => void
+  format?: ClientConfigFormat
 ) => {
   const defaultArgs = {
     out: process.cwd(),
@@ -29,14 +27,11 @@ export const getClientConfigPath = async (
       ? outDir
       : path.resolve(process.cwd(), outDir);
 
-    const relativeTargetPath = path.relative(process.cwd(), targetPath);
     try {
-      debug?.(`Checking if directory ${relativeTargetPath} exists...`);
       await fsp.access(outDir);
     } catch (error) {
       // outDir does not exist, so create dir
       await fsp.mkdir(outDir, { recursive: true });
-      debug?.(`Directory created: ${relativeTargetPath}`);
     }
   }
 

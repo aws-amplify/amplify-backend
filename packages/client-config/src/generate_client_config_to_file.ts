@@ -25,8 +25,7 @@ export const generateClientConfigToFile = async (
   outDir?: string,
   format?: ClientConfigFormat,
   // TODO: update this type when Printer interface gets defined in platform-core.
-  log?: (message: string) => void,
-  debug?: (message: string) => void
+  log?: (message: string) => void
 ): Promise<void> => {
   const packageJson = await readPackageJson();
 
@@ -51,13 +50,9 @@ export const generateClientConfigToFile = async (
   await clientConfigWriter.writeClientConfig(
     clientConfig,
     version,
-
     outDir,
-
     format,
-
-    log,
-    debug
+    log
   );
 };
 

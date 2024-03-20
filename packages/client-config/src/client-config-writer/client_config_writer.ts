@@ -11,9 +11,7 @@ import { ClientConfigFormatter } from './client_config_formatter.js';
 export type ClientConfigPathResolver = (
   fileName: ClientConfigFileBaseName,
   outDir?: string,
-  format?: ClientConfigFormat,
-  // TODO: update this type when Printer interface gets defined in platform-core.
-  debug?: (message: string) => void
+  format?: ClientConfigFormat
 ) => Promise<string>;
 
 export type ClientConfigNameResolver = (
@@ -42,14 +40,12 @@ export class ClientConfigWriter {
     outDir?: string,
     format: ClientConfigFormat = ClientConfigFormat.JSON,
     // TODO: update this type when Printer interface gets defined in platform-core.
-    log?: (message: string) => void,
-    debug?: (message: string) => void
+    log?: (message: string) => void
   ): Promise<void> => {
     const targetPath = await this.pathResolver(
       this.nameResolver(version),
       outDir,
-      format,
-      debug
+      format
     );
     const fileContent = this.formatter.format(clientConfig, format);
     await this.fsp.writeFile(targetPath, fileContent);
