@@ -1,5 +1,11 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.10
+
+### Minor Changes
+
+- b011701: add no-notice to info command
+
 ## 0.12.0-beta.9
 
 ### Patch Changes
