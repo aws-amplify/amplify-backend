@@ -23,7 +23,7 @@ export const setupDirAsEsmModule = async (absoluteDirPath: string) => {
       strict: true,
       skipLibCheck: true,
       // The path here is coupled with backend-function's generated typedef file path
-      paths: { '@env/*': ['../.amplify/function-env/*'] },
+      paths: { '$amplify/env/*': ['../.amplify/function-env/*'] },
     },
   };
   const tsConfigPath = path.resolve(absoluteDirPath, 'tsconfig.json');
