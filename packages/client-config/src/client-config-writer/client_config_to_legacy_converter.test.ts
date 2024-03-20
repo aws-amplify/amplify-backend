@@ -9,6 +9,7 @@ import {
   CustomClientConfig,
   GeoClientConfig,
   GraphqlClientConfig,
+  PlatformClientConfig,
   RestApiClientConfig,
   StorageClientConfig,
 } from '../index.js';
@@ -61,7 +62,8 @@ void describe('ClientConfigLegacyConverter', () => {
       },
     };
 
-    const expectedLegacyConfig: AuthClientConfig = {
+    const expectedLegacyConfig: AuthClientConfig & PlatformClientConfig = {
+      aws_project_region: 'testRegion',
       aws_user_pools_id: 'testUserPoolId',
       aws_user_pools_web_client_id: 'testWebClientId',
       aws_cognito_region: 'testRegion',
@@ -166,7 +168,8 @@ void describe('ClientConfigLegacyConverter', () => {
       },
     };
 
-    const expectedLegacyConfig: GraphqlClientConfig = {
+    const expectedLegacyConfig: GraphqlClientConfig & PlatformClientConfig = {
+      aws_project_region: 'testRegion',
       aws_appsync_authenticationType: 'AMAZON_COGNITO_USER_POOLS',
       aws_appsync_region: 'testRegion',
       aws_appsync_graphqlEndpoint: 'testUrl',
@@ -247,7 +250,8 @@ void describe('ClientConfigLegacyConverter', () => {
       },
     };
 
-    const expectedLegacyConfig: StorageClientConfig = {
+    const expectedLegacyConfig: StorageClientConfig & PlatformClientConfig = {
+      aws_project_region: 'testRegion',
       aws_user_files_s3_bucket_region: 'testRegion',
       aws_user_files_s3_bucket: 'testBucket',
     };

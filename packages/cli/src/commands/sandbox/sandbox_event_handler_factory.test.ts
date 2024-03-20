@@ -12,7 +12,7 @@ import { ClientConfigLifecycleHandler } from '../../client-config/client_config_
 import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'node:path';
-import { printer } from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 
 void describe('sandbox_event_handler_factory', () => {
   // client config mocks
@@ -171,12 +171,15 @@ void describe('sandbox_event_handler_factory', () => {
         .successfulDeployment.map((e) => e())
     );
 
-    assert.match(
+    assert.deepStrictEqual(
       printMock.mock.calls[0].arguments[0],
-      /Amplify configuration could not be generated./
+      format.error('Amplify configuration could not be generated.')
     );
 
-    assert.match(printMock.mock.calls[1].arguments[0], /test error message/);
+    assert.deepStrictEqual(
+      printMock.mock.calls[1].arguments[0],
+      format.error('test error message')
+    );
 
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
       {
