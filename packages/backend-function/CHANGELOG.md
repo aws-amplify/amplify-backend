@@ -1,5 +1,13 @@
 # @aws-amplify/backend-function
 
+## 0.8.0-beta.6
+
+### Patch Changes
+
+- Updated dependencies [5e12247]
+  - @aws-amplify/plugin-types@0.9.0-beta.1
+  - @aws-amplify/backend-output-storage@0.4.0-beta.3
+
 ## 0.8.0-beta.5
 
 ### Patch Changes

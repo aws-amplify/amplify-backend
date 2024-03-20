@@ -1,5 +1,12 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.4
+
+### Patch Changes
+
+- Updated dependencies [5e12247]
+  - @aws-amplify/platform-core@0.5.0-beta.3
+
 ## 0.5.0-beta.3
 
 ### Patch Changes

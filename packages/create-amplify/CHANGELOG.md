@@ -1,5 +1,16 @@
 # create-amplify
 
+## 0.7.0-beta.6
+
+### Patch Changes
+
+- d452e8e: remove comments from defineAuth template
+- c6a65d5: fix: when you do create-amplify absolute path, raised error and log.
+- Updated dependencies [5e12247]
+  - @aws-amplify/platform-core@0.5.0-beta.3
+  - @aws-amplify/plugin-types@0.9.0-beta.1
+  - @aws-amplify/cli-core@0.5.0-beta.4
+
 ## 0.7.0-beta.5
 
 ### Patch Changes
