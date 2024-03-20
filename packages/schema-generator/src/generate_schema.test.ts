@@ -20,7 +20,7 @@ void describe('SchemaGenerator', () => {
   void it('should generate schema', async () => {
     const schemaGenerator = new SchemaGenerator();
     await schemaGenerator.generate({
-      connectionString: 'mysql://user:password@hostname:3306/db',
+      connectionUri: 'mysql://user:password@hostname:3306/db',
       out: 'schema.ts',
     });
     assert.strictEqual(mockGenerateMethod.mock.calls.length, 1);

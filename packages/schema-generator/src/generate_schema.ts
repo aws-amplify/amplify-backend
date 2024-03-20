@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type SchemaGeneratorConfig = {
-  connectionString: string;
+  connectionUri: string;
   out: string;
 };
 
@@ -16,7 +16,7 @@ type AmplifyGenerateSchemaError =
  */
 export class SchemaGenerator {
   generate = async (props: SchemaGeneratorConfig) => {
-    const dbConfig = parseDatabaseUrl(props.connectionString);
+    const dbConfig = parseDatabaseUrl(props.connectionUri);
 
     try {
       const schema = await TypescriptDataSchemaGenerator.generate(dbConfig);

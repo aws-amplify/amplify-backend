@@ -16,7 +16,7 @@ type GenerateSchemaCommandOptionsCamelCase = {
   appId: string | undefined;
   branch: string | undefined;
   out: string | undefined;
-  connectionStringSecret: string | undefined;
+  connectionUriSecret: string | undefined;
 };
 
 /**
@@ -61,10 +61,10 @@ export class GenerateSchemaCommand
       });
     }
 
-    const secretName = args['connection-string-secret'] as string;
+    const secretName = args['connection-uri-secret'] as string;
     const outputFile = args['out'] as string;
 
-    const connectionString = await this.secretClient.getSecret(
+    const connectionUriSecret = await this.secretClient.getSecret(
       backendIdentifier as BackendIdentifier,
       {
         name: secretName,
@@ -72,7 +72,7 @@ export class GenerateSchemaCommand
     );
 
     await this.schemaGenerator.generate({
-      connectionString: connectionString.value,
+      connectionUri: connectionUriSecret.value,
       out: outputFile,
     });
   };
@@ -112,7 +112,7 @@ export class GenerateSchemaCommand
         array: false,
         group: 'Schema Generation',
       })
-      .option('connection-string-secret', {
+      .option('connection-uri-secret', {
         describe: 'Amplify secret name for the database connection string',
         type: 'string',
         array: false,

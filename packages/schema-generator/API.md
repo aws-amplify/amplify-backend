@@ -12,7 +12,7 @@ export class SchemaGenerator {
 
 // @public (undocumented)
 export type SchemaGeneratorConfig = {
-    connectionString: string;
+    connectionUri: string;
     out: string;
 };
 
