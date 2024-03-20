@@ -31,7 +31,11 @@ export const getClientConfigPath = async (
       await fsp.access(outDir);
     } catch (error) {
       // outDir does not exist, so create dir
-      await fsp.mkdir(outDir, { recursive: true });
+      if (error instanceof Error && error.message.includes('ENOENT')) {
+        await fsp.mkdir(outDir, { recursive: true });
+      } else {
+        throw error;
+      }
     }
   }
 
