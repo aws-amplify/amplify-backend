@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.9.0-beta.6
+
+### Patch Changes
+
+- 4cd282e: fix: populate top level region in the client config
+
 ## 0.9.0-beta.5
 
 ### Minor Changes
