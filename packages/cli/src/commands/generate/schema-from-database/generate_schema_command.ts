@@ -113,7 +113,7 @@ export class GenerateSchemaCommand
         group: 'Schema Generation',
       })
       .option('connection-uri-secret', {
-        describe: 'Amplify secret name for the database connection string',
+        describe: 'Amplify secret name for the database connection uri',
         type: 'string',
         array: false,
         group: 'Schema Generation',

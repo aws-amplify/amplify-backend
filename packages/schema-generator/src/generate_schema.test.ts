@@ -60,7 +60,7 @@ void describe('SchemaGenerator', () => {
     });
   });
 
-  void it('should throw error if the connection string is missing port', async () => {
+  void it('should throw error if the connection uri is missing port', async () => {
     const parse = () =>
       parseDatabaseUrl('mysql://user:password@mysql-hostname/db');
     assert.throws(parse, {

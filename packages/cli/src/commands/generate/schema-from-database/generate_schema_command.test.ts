@@ -104,11 +104,11 @@ void describe('generate graphql-client-code command', () => {
     });
   });
 
-  void it('requires connection string secret name', async () => {
+  void it('requires connection uri secret name', async () => {
     const command = await commandRunner.runCommand(
       'schema-from-database --branch branch_name --appId app_id'
     );
-    assert.match(command, /Missing required argument: connection-uri/);
+    assert.match(command, /Missing required argument: connection-uri-secret/);
   });
 
   void it('fails if both stack and branch are present', async () => {
