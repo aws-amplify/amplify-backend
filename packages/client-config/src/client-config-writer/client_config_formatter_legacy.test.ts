@@ -33,6 +33,7 @@ void describe('client config formatter', () => {
     aws_cognito_region: sampleRegion,
     aws_user_pools_id: sampleUserPoolId,
     aws_user_pools_web_client_id: sampleUserPoolClientId,
+    aws_project_region: sampleRegion,
   };
   const clientConfigMobile: ClientConfigMobile = {
     Version: '1.0',
