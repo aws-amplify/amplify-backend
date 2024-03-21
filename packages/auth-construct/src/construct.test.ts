@@ -380,26 +380,37 @@ void describe('Auth construct', () => {
           },
         })
     );
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      VerificationMessageTemplate: {
+        DefaultEmailOption: 'CONFIRM_WITH_LINK',
+        EmailMessageByLink: 'valid message {##Verify Email##} with link',
+      },
+    });
   });
 
-  void it('does not throw if valid email verification message for LINK with custom link text', () => {
+  void it('correctly formats email verification message for LINK with custom link text', () => {
     const app = new App();
     const stack = new Stack(app);
     const emailBodyFunction = (link: (customLinkText?: string) => string) =>
       `valid message ${link('my custom link')} with link`;
     const customEmailVerificationSubject = 'custom subject';
-    assert.doesNotThrow(
-      () =>
-        new AmplifyAuth(stack, 'test', {
-          loginWith: {
-            email: {
-              verificationEmailBody: emailBodyFunction,
-              verificationEmailStyle: 'LINK',
-              verificationEmailSubject: customEmailVerificationSubject,
-            },
-          },
-        })
-    );
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: {
+          verificationEmailBody: emailBodyFunction,
+          verificationEmailStyle: 'LINK',
+          verificationEmailSubject: customEmailVerificationSubject,
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      VerificationMessageTemplate: {
+        DefaultEmailOption: 'CONFIRM_WITH_LINK',
+        EmailMessageByLink: 'valid message {##my custom link##} with link',
+      },
+    });
   });
 
   void it('throws error if invalid sms verification message', () => {
