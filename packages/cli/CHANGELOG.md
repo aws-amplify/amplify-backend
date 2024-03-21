@@ -1,5 +1,13 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.11
+
+### Patch Changes
+
+- acf28c1: Add support to generate typescript data schema from database schema
+- Updated dependencies [acf28c1]
+  - @aws-amplify/schema-generator@0.1.0-beta.2
+
 ## 0.12.0-beta.10
 
 ### Minor Changes
