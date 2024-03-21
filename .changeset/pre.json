@@ -24,7 +24,8 @@
     "@aws-amplify/model-generator": "0.4.0",
     "@aws-amplify/platform-core": "0.4.4",
     "@aws-amplify/plugin-types": "0.8.0",
-    "@aws-amplify/sandbox": "0.5.1"
+    "@aws-amplify/sandbox": "0.5.1",
+    "@aws-amplify/schema-generator": "0.1.0-beta.1"
   },
   "changesets": [
     "afraid-flies-repair",
@@ -86,6 +87,7 @@
     "short-olives-bow",
     "shy-horses-act",
     "silver-needles-rush",
+    "slimy-impalas-carry",
     "small-hotels-do",
     "smart-crews-serve",
     "smooth-penguins-joke",

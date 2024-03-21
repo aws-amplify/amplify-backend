@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-cli",
-  "version": "0.12.0-beta.10",
+  "version": "0.12.0-beta.11",
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "amplify": "lib/amplify.js"
@@ -39,7 +39,7 @@
     "@aws-amplify/model-generator": "^0.5.0-beta.4",
     "@aws-amplify/platform-core": "^0.5.0-beta.3",
     "@aws-amplify/sandbox": "^0.5.2-beta.8",
-    "@aws-amplify/schema-generator": "^0.1.0-beta.1",
+    "@aws-amplify/schema-generator": "^0.1.0-beta.2",
     "@aws-sdk/credential-provider-ini": "^3.465.0",
     "@aws-sdk/credential-providers": "^3.465.0",
     "@aws-sdk/region-config-resolver": "^3.465.0",
