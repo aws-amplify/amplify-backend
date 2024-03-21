@@ -82,7 +82,6 @@ export const runPublish = async (props?: PublishOptions) => {
     return;
   }
   if (!(await publishWithTimeout(publishProcess, options.retryAfterSeconds))) {
-    console.log('First changeset publish failed or timed out. Retrying once.');
     const retryPublish = execa('changeset', changesetArgs, execaPublishOptions);
     await publishWithTimeout(retryPublish, options.retryAfterSeconds);
   }
