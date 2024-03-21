@@ -10,7 +10,7 @@ import {
 const emailLinkResolver = (customLinkText?: string) =>
   `{##${customLinkText ?? 'Verify Email'}##}`;
 const emailCodeResolver = () => `{##CODE##}`;
-type VerificationEmailWithLink = {
+export type VerificationEmailWithLink = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
    */
@@ -32,7 +32,7 @@ type VerificationEmailWithLink = {
    */
   verificationEmailSubject?: string;
 };
-type VerificationEmailWithCode = {
+export type VerificationEmailWithCode = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
    */

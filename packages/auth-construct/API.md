@@ -42,14 +42,10 @@ export type AuthProps = {
 };
 
 // @public
-export type EmailLogin = true | EmailLoginSettings;
+export type EmailLogin = true | EmailLoginSettings | Record<string, never>;
 
 // @public
-export type EmailLoginSettings = {
-    verificationEmailStyle?: 'CODE' | 'LINK';
-    verificationEmailBody?: (codeOrLink: string) => string;
-    verificationEmailSubject?: string;
-};
+export type EmailLoginSettings = VerificationEmailWithLink | VerificationEmailWithCode;
 
 // @public
 export type ExternalProviderOptions = {
@@ -108,6 +104,25 @@ export type TriggerEvent = (typeof triggerEvents)[number];
 
 // @public
 export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
+
+// @public (undocumented)
+export type VerificationEmailWithCode = {
+    verificationEmailStyle?: 'CODE';
+    verificationEmailBody?: (code: typeof emailCodeResolver) => string;
+    verificationEmailSubject?: string;
+};
+
+// @public (undocumented)
+export type VerificationEmailWithLink = {
+    verificationEmailStyle?: 'LINK';
+    verificationEmailBody?: (link: typeof emailLinkResolver) => string;
+    verificationEmailSubject?: string;
+};
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:29:3 - (ae-forgotten-export) The symbol "emailLinkResolver" needs to be exported by the entry point index.d.ts
+// src/types.ts:47:3 - (ae-forgotten-export) The symbol "emailCodeResolver" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
