@@ -24,7 +24,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     // assert type definition file path
     assert.equal(
       fsWriteFileSyncMock.mock.calls[0].arguments[0],
-      `${process.cwd()}/.amplify/function-env/testFunction.ts`
+      `${process.cwd()}/.amplify/types/env/testFunction.ts`
     );
     // assert content
     assert.ok(
@@ -54,7 +54,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     // assert type definition file path
     assert.equal(
       fsWriteFileSyncMock.mock.calls[0].arguments[0],
-      `${process.cwd()}/.amplify/function-env/testFunction.ts`
+      `${process.cwd()}/.amplify/types/env/testFunction.ts`
     );
     // assert content
     assert.ok(
@@ -70,7 +70,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     const targetDirectory = await fsp.mkdtemp('func_env_type_gen_test');
     const functionEnvironmentTypeGenerator =
       new FunctionEnvironmentTypeGenerator('testFunction');
-    const filePath = `${process.cwd()}/.amplify/function-env/testFunction.ts`;
+    const filePath = `${process.cwd()}/.amplify/types/env/testFunction.ts`;
 
     functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(['TEST_ENV']);
 
