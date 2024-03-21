@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.5
+
+### Minor Changes
+
+- 7537216: Move record formatting from printer to formatter
+
 ## 0.5.0-beta.4
 
 ### Patch Changes

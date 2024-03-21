@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.7
+
+### Patch Changes
+
+- 4e6287e: chore: bump @aws-amplify/data-schema version to 0.14.0
+
 ## 0.10.0-beta.6
 
 ### Patch Changes
