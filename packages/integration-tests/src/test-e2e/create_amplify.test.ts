@@ -13,7 +13,7 @@ import { amplifyAtTag } from '../constants.js';
 void describe(
   'create-amplify script',
   {
-    concurrency: process.platform.startsWith('win') ? 1 : testConcurrencyLevel,
+    concurrency: testConcurrencyLevel,
   },
   () => {
     let baselineCdkVersion: string;
