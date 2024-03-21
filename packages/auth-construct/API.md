@@ -108,21 +108,16 @@ export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "d
 // @public (undocumented)
 export type VerificationEmailWithCode = {
     verificationEmailStyle?: 'CODE';
-    verificationEmailBody?: (code: typeof emailCodeResolver) => string;
+    verificationEmailBody?: (code: () => string) => string;
     verificationEmailSubject?: string;
 };
 
 // @public (undocumented)
 export type VerificationEmailWithLink = {
     verificationEmailStyle?: 'LINK';
-    verificationEmailBody?: (link: typeof emailLinkResolver) => string;
+    verificationEmailBody?: (link: (customLinkText?: string) => string) => string;
     verificationEmailSubject?: string;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:29:3 - (ae-forgotten-export) The symbol "emailLinkResolver" needs to be exported by the entry point index.d.ts
-// src/types.ts:47:3 - (ae-forgotten-export) The symbol "emailCodeResolver" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

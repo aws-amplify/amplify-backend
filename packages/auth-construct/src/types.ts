@@ -6,10 +6,6 @@ import {
   StandardAttributes,
   UserPoolIdentityProviderSamlMetadata,
 } from 'aws-cdk-lib/aws-cognito';
-
-const emailLinkResolver = (customLinkText?: string) =>
-  `{##${customLinkText ?? 'Verify Email'}##}`;
-const emailCodeResolver = () => `{##CODE##}`;
 export type VerificationEmailWithLink = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
@@ -26,7 +22,7 @@ export type VerificationEmailWithLink = {
    * To customize the link text, you can provide custom link text to the .
    * verificationEmailBody: (link) => `Your custom verification link is ${link('custom link text')}.`
    */
-  verificationEmailBody?: (link: typeof emailLinkResolver) => string;
+  verificationEmailBody?: (link: (customLinkText?: string) => string) => string;
   /**
    * The verification email subject.
    */
@@ -44,7 +40,7 @@ export type VerificationEmailWithCode = {
    * verificationEmailStyle: "CODE",
    * verificationEmailBody: (code) => `Your verification code is ${code()}.`
    */
-  verificationEmailBody?: (code: typeof emailCodeResolver) => string;
+  verificationEmailBody?: (code: () => string) => string;
   /**
    * The verification email subject.
    */
