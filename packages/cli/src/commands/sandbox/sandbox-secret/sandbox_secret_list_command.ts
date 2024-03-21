@@ -1,7 +1,7 @@
 import { CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { printer } from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 
 /**
  * Command to list sandbox secrets.
@@ -33,12 +33,19 @@ export class SandboxSecretListCommand implements CommandModule<object> {
    */
   handler = async (): Promise<void> => {
     const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve();
-    const secretIds = await this.secretClient.listSecrets(
+    const secrets = await this.secretClient.listSecrets(
       sandboxBackendIdentifier
     );
 
-    printer.printRecords({
-      names: secretIds.map((secretId) => secretId.name),
-    });
+    if (secrets.length > 0) {
+      printer.print(format.list(secrets.map((secret) => secret.name)));
+    } else {
+      printer.print(
+        `No sandbox secrets found. To create a secret use ${format.command(
+          'amplify sandbox secret set <secret-name>'
+        )}.`
+      );
+    }
+    printer.printNewLine();
   };
 }

@@ -3,31 +3,32 @@ import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { Secret, getSecretClient } from '@aws-amplify/backend-secret';
+import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
-import { printer } from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 
 const testBackendId = 'testBackendId';
 const testSandboxName = 'testSandboxName';
 
-const testSecrets: Secret[] = [
+const testSecrets: SecretListItem[] = [
   {
     name: 'testSecret1',
-    value: 'val1',
   },
   {
     name: 'testSecret2',
-    value: 'val2',
   },
 ];
-const printRecordsMock = mock.method(printer, 'printRecords');
+const printMock = mock.method(printer, 'print');
 
 void describe('sandbox secret list command', () => {
+  const listSecretsResponseMock = mock.fn<() => Promise<SecretListItem[]>>(
+    async () => testSecrets
+  );
   const secretClient = getSecretClient();
   const secretListMock = mock.method(
     secretClient,
     'listSecrets',
-    (): Promise<Secret[] | undefined> => Promise.resolve(testSecrets)
+    listSecretsResponseMock
   );
   const sandboxIdResolver: SandboxBackendIdResolver = {
     resolve: () =>
@@ -48,7 +49,7 @@ void describe('sandbox secret list command', () => {
 
   beforeEach(async () => {
     secretListMock.mock.resetCalls();
-    printRecordsMock.mock.resetCalls();
+    printMock.mock.resetCalls();
   });
 
   void it('list secrets', async () => {
@@ -61,10 +62,30 @@ void describe('sandbox secret list command', () => {
       type: 'sandbox',
     });
 
-    assert.equal(printRecordsMock.mock.callCount(), 1);
-    assert.deepStrictEqual(printRecordsMock.mock.calls[0].arguments[0], {
-      names: testSecrets.map((s) => s.name),
+    assert.equal(printMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      printMock.mock.calls[0].arguments[0],
+      format.list(testSecrets.map((s) => s.name))
+    );
+  });
+
+  void it('prints no secrets message if no secrets found', async () => {
+    listSecretsResponseMock.mock.mockImplementationOnce(async () => []);
+    await commandRunner.runCommand(`list`);
+    assert.equal(secretListMock.mock.callCount(), 1);
+
+    assert.deepStrictEqual(secretListMock.mock.calls[0].arguments[0], {
+      namespace: testBackendId,
+      name: testSandboxName,
+      type: 'sandbox',
     });
+
+    assert.equal(printMock.mock.callCount(), 1);
+    assert.ok(
+      printMock.mock.calls[0].arguments[0].startsWith(
+        'No sandbox secrets found.'
+      )
+    );
   });
 
   void it('show --help', async () => {
