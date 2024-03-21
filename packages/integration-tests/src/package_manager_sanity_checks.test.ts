@@ -34,6 +34,7 @@ void describe('getting started happy path', async () => {
   let packageManager: PackageManager;
 
   before(async () => {
+    await execa('git', ['fetch', '--depth=100']);
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
