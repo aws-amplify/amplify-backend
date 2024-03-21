@@ -243,7 +243,8 @@ void describe('Auth construct', () => {
   void it('creates email login mechanism with specific settings', () => {
     const app = new App();
     const stack = new Stack(app);
-    const emailBodyFunction = (code: string) => `custom email body ${code}`;
+    const emailBodyFunction = (code: () => string) =>
+      `custom email body ${code()}`;
     const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
     new AmplifyAuth(stack, 'test', {
@@ -271,7 +272,8 @@ void describe('Auth construct', () => {
   void it('creates email login mechanism with MFA', () => {
     const app = new App();
     const stack = new Stack(app);
-    const emailBodyFunction = (code: string) => `custom email body ${code}`;
+    const emailBodyFunction = (code: () => string) =>
+      `custom email body ${code()}`;
     const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
     const smsVerificationMessageFunction = (code: string) =>
@@ -363,8 +365,28 @@ void describe('Auth construct', () => {
   void it('does not throw if valid email verification message for LINK', () => {
     const app = new App();
     const stack = new Stack(app);
-    const emailBodyFunction = (link: string) =>
-      `valid message ${link} with link`;
+    const emailBodyFunction = (link: (customLinkText?: string) => string) =>
+      `valid message ${link()} with link`;
+    const customEmailVerificationSubject = 'custom subject';
+    assert.doesNotThrow(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: {
+              verificationEmailBody: emailBodyFunction,
+              verificationEmailStyle: 'LINK',
+              verificationEmailSubject: customEmailVerificationSubject,
+            },
+          },
+        })
+    );
+  });
+
+  void it('does not throw if valid email verification message for LINK with custom link text', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const emailBodyFunction = (link: (customLinkText?: string) => string) =>
+      `valid message ${link('my custom link')} with link`;
     const customEmailVerificationSubject = 'custom subject';
     assert.doesNotThrow(
       () =>
