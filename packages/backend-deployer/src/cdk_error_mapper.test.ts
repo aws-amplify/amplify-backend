@@ -94,6 +94,14 @@ const testErrorMappings = [
       'Another CLI (PID=22981) is currently synthing to .amplify/artifacts/cdk.out. ',
   },
   {
+    errorMessage:
+      "Some random cdk log Other CLIs (PID=68436) are currently reading from .amplify/artifacts/cdk.out. Invoke the CLI in sequence, or use '--output' to synth into different directories.Some random cdk log",
+    expectedTopLevelErrorMessage: 'Multiple sandbox instances detected.',
+    errorName: 'MultipleSandboxInstancesError',
+    expectedDownstreamErrorMessage:
+      'Other CLIs (PID=68436) are currently reading from .amplify/artifacts/cdk.out. ',
+  },
+  {
     errorMessage: `[esbuild Error]: Expected identifier but found ")"
       at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
     expectedTopLevelErrorMessage:

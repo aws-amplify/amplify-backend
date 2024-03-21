@@ -60,7 +60,8 @@ export class CdkErrorMapper {
     },
     {
       // Truncate the cdk error message's second line (Invoke the CLI in sequence, or use '--output' to synth into different directories.)
-      errorRegex: /Another CLI (.*) is currently(.*)\. /,
+      errorRegex:
+        /Another CLI (.*) is currently(.*)\. |Other CLIs (.*) are currently reading from(.*)\. /,
       humanReadableErrorMessage: 'Multiple sandbox instances detected.',
       resolutionMessage:
         'Make sure only one instance of sandbox is running for this project',
@@ -94,15 +95,6 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      // the backend entry point file is referenced in the stack indicating a problem in customer code
-      errorRegex: /amplify\/backend/,
-      humanReadableErrorMessage: 'Unable to build Amplify backend.',
-      resolutionMessage:
-        'Check your backend definition in the `amplify` folder for syntax and type errors.',
-      errorName: 'BackendBuildError',
-      classification: 'ERROR',
-    },
-    {
       errorRegex: /Updates are not allowed for property/,
       humanReadableErrorMessage:
         'The changes that you are trying to apply are not supported.',
@@ -122,6 +114,15 @@ export class CdkErrorMapper {
       resolutionMessage:
         'To change these attributes, remove `defineAuth` from your backend, deploy, then add it back. Note that removing `defineAuth` and deploying will delete any users stored in your UserPool.',
       errorName: 'CFNUpdateNotSupportedError',
+      classification: 'ERROR',
+    },
+    {
+      // "Catch all" the backend entry point file is referenced in the stack indicating a problem in customer code
+      errorRegex: /amplify\/backend/,
+      humanReadableErrorMessage: 'Unable to build Amplify backend.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'BackendBuildError',
       classification: 'ERROR',
     },
     {
