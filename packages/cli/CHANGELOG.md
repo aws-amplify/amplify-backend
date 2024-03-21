@@ -1,5 +1,20 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.10
+
+### Minor Changes
+
+- b011701: add no-notice to info command
+
+## 0.12.0-beta.9
+
+### Patch Changes
+
+- 4cd282e: fix: populate top level region in the client config
+- Updated dependencies [4cd282e]
+  - @aws-amplify/client-config@0.9.0-beta.6
+  - @aws-amplify/sandbox@0.5.2-beta.8
+
 ## 0.12.0-beta.8
 
 ### Minor Changes
