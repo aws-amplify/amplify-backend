@@ -75,14 +75,6 @@ void describe(
         });
 
         void it(`starting from ${initialState} project`, async () => {
-          // we want to execute these tests in parallel because they take a while
-          // but there is an issue with parallel executions of npm install on windows where it tries to write to currently open files
-          // to work around this we can jitter the start time of these tests randomly to avoid hot spots on the file system
-          const jitterMS = Math.random() * 10 * 1000; // random number of seconds between 0 and 10, expressed in MS
-          console.log(`Waiting ${jitterMS} to start test`);
-          await new Promise((resolve) => setTimeout(resolve, jitterMS));
-          console.log('Starting test');
-
           if (initialState != 'empty') {
             await fs.writeFile(
               path.join(tempDir, 'package.json'),
