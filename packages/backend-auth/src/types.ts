@@ -211,6 +211,7 @@ export type AuthAction = ActionIam | ActionMeta;
 /** @todo https://github.com/aws-amplify/amplify-backend/issues/1111 */
 export type ActionMeta =
   | 'manageUsers'
+  | 'manageGroups'
   | 'manageGroupMembership'
   | 'manageUserDevices'
   | 'managePasswordRecovery';
