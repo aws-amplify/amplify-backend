@@ -51,6 +51,33 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /\[ERR_MODULE_NOT_FOUND\]:(.*)\n/,
+      humanReadableErrorMessage: 'Cannot find module',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for missing file or package imports. Try running npm or yarn install.',
+      errorName: 'ModuleNotFoundError',
+      classification: 'ERROR',
+    },
+    {
+      // Truncate the cdk error message's second line (Invoke the CLI in sequence, or use '--output' to synth into different directories.)
+      errorRegex: /Another CLI (.*) is currently(.*)\. /,
+      humanReadableErrorMessage: 'Multiple sandbox instances detected.',
+      resolutionMessage:
+        'Make sure only one instance of sandbox is running for this project',
+      errorName: 'MultipleSandboxInstancesError',
+      classification: 'ERROR',
+    },
+    {
+      // Also extracts the first line in the stack where the error happened
+      errorRegex: /\[esbuild Error\]: ((?:.|\n)*?at .*)/,
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'ESBuildError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: /Amplify Backend not found in/,
       humanReadableErrorMessage:
         'Backend definition could not be found in amplify directory.',
@@ -152,13 +179,15 @@ export class CdkErrorMapper {
 }
 
 export type CDKDeploymentError =
-  | 'ExpiredTokenError'
   | 'AccessDeniedError'
-  | 'BootstrapNotDetectedError'
-  | 'SyntaxError'
-  | 'FileConventionError'
-  | 'FileConventionError'
   | 'BackendBuildError'
+  | 'BootstrapNotDetectedError'
   | 'CFNUpdateNotSupportedError'
-  | 'CFNUpdateNotSupportedError'
-  | 'CloudFormationDeploymentError';
+  | 'CloudFormationDeploymentError'
+  | 'MultipleSandboxInstancesError'
+  | 'ESBuildError'
+  | 'ExpiredTokenError'
+  | 'FileConventionError'
+  | 'FileConventionError'
+  | 'ModuleNotFoundError'
+  | 'SyntaxError';

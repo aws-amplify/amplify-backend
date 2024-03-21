@@ -230,8 +230,28 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 4);
-    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 17);
+
+    // Call 0 -> tsc showConfig
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 4);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
+      'tsc',
+      '--showConfig',
+      '--project',
+      'amplify',
+    ]);
+
+    // Call 1 -> tsc
+    assert.equal(execaMock.mock.calls[1].arguments[0]?.length, 5);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[0], [
+      'tsc',
+      '--noEmit',
+      '--skipLibCheck',
+      '--project',
+      'amplify',
+    ]);
+
+    // Call 2 -> synth
+    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[0], [
       'cdk',
       'synth',
       '--ci',
@@ -250,21 +270,9 @@ void describe('invokeCDKCommand', () => {
       `amplify-backend-type=branch`,
       '--quiet',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[0]?.length, 4);
-    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[0], [
-      'tsc',
-      '--showConfig',
-      '--project',
-      'amplify',
-    ]);
-    assert.equal(execaMock.mock.calls[2].arguments[0]?.length, 5);
-    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[0], [
-      'tsc',
-      '--noEmit',
-      '--skipLibCheck',
-      '--project',
-      'amplify',
-    ]);
+    assert.equal(execaMock.mock.calls[2].arguments[0]?.length, 17);
+
+    // Call 3 -> deploy
     assert.equal(execaMock.mock.calls[3].arguments[0]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[3].arguments[0], [
       'cdk',
@@ -291,8 +299,29 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 4);
-    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 17);
+
+    // Call 0 -> tsc showConfig
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 4);
     assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
+      'tsc',
+      '--showConfig',
+      '--project',
+      'amplify',
+    ]);
+
+    // Call 1 -> tsc
+    assert.equal(execaMock.mock.calls[1].arguments[0]?.length, 5);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[0], [
+      'tsc',
+      '--noEmit',
+      '--skipLibCheck',
+      '--project',
+      'amplify',
+    ]);
+
+    // Call 2 -> synth
+    assert.equal(execaMock.mock.calls[2].arguments[0]?.length, 17);
+    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[0], [
       'cdk',
       'synth',
       '--ci',
@@ -311,21 +340,8 @@ void describe('invokeCDKCommand', () => {
       '--method=direct',
       '--quiet',
     ]);
-    assert.equal(execaMock.mock.calls[1].arguments[0]?.length, 4);
-    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[0], [
-      'tsc',
-      '--showConfig',
-      '--project',
-      'amplify',
-    ]);
-    assert.equal(execaMock.mock.calls[2].arguments[0]?.length, 5);
-    assert.deepStrictEqual(execaMock.mock.calls[2].arguments[0], [
-      'tsc',
-      '--noEmit',
-      '--skipLibCheck',
-      '--project',
-      'amplify',
-    ]);
+
+    // Call 3 -> deploy
     assert.equal(execaMock.mock.calls[3].arguments[0]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[3].arguments[0], [
       'cdk',
@@ -359,13 +375,39 @@ void describe('invokeCDKCommand', () => {
       validateAppSources: true,
     });
     assert.strictEqual(execaMock.mock.callCount(), 3);
-    assert.equal(execaMock.mock.calls[1].arguments[0]?.length, 4);
-    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[0], [
+
+    // Call 0 -> tsc showConfig
+    assert.equal(execaMock.mock.calls[0].arguments[0]?.length, 4);
+    assert.deepStrictEqual(execaMock.mock.calls[0].arguments[0], [
       'tsc',
       '--showConfig',
       '--project',
       'amplify',
     ]);
+
+    // Call 1 -> synth (Skipping tsc)
+    assert.equal(execaMock.mock.calls[1].arguments[0]?.length, 17);
+    assert.deepStrictEqual(execaMock.mock.calls[1].arguments[0], [
+      'cdk',
+      'synth',
+      '--ci',
+      '--app',
+      "'npx tsx amplify/backend.ts'",
+      '--all',
+      '--output',
+      '.amplify/artifacts/cdk.out',
+      '--context',
+      `amplify-backend-namespace=123`,
+      '--context',
+      `amplify-backend-name=testBranch`,
+      '--require-approval',
+      'never',
+      '--context',
+      `amplify-backend-type=branch`,
+      '--quiet',
+    ]);
+
+    // Call 2 -> Deploy
     assert.equal(execaMock.mock.calls[2].arguments[0]?.length, 16);
     assert.deepStrictEqual(execaMock.mock.calls[2].arguments[0], [
       'cdk',

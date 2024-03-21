@@ -56,7 +56,10 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    // first synth with the backend definition
+    // First run type checks to ensure the project builds
+    await this.invokeTsc(deployProps);
+
+    // Then run synth with the backend definition
     const startTime = Date.now();
     await this.tryInvokeCdk(
       InvokableCommand.SYNTH,
@@ -66,9 +69,6 @@ export class CDKDeployer implements BackendDeployer {
     );
     // CDK prints synth time in seconds rounded to 2 decimal places. Here we duplicate that behavior.
     const synthTimeSeconds = Math.floor((Date.now() - startTime) / 10) / 100;
-
-    // then run type checks
-    await this.invokeTsc(deployProps);
 
     // then deploy with the cloud assembly that was generated during synth
     const deployResult = await this.tryInvokeCdk(
