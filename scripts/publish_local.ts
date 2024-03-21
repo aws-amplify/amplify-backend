@@ -28,6 +28,7 @@ await execa('changeset', ['version'], {
 await runPublish({
   includeGitTags: false,
   useLocalRegistry: true,
+  retryAfterSeconds: 30,
 });
 
 if (!keepGitDiff) {
