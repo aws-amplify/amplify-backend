@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.9.0-beta.7
+
+### Patch Changes
+
+- d95ab02: dir options create the target dir if it does not exist
+
 ## 0.9.0-beta.6
 
 ### Patch Changes
