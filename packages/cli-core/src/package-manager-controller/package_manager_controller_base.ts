@@ -114,7 +114,7 @@ export abstract class PackageManagerControllerBase
         strict: true,
         skipLibCheck: true,
         // The path here is coupled with backend-function's generated typedef file path
-        paths: { '$amplify/*': ['../.amplify/types/*'] },
+        paths: { '$amplify/*': ['../.amplify/generated/*'] },
       },
     };
     const tsConfigPath = this.path.resolve(targetDir, 'tsconfig.json');

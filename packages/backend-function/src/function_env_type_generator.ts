@@ -16,7 +16,7 @@ export class FunctionEnvironmentTypeGenerator {
    * Initialize typed process.env shim file name and location
    */
   constructor(private readonly functionName: string) {
-    this.typeDefFilePath = `${process.cwd()}/.amplify/types/env/${
+    this.typeDefFilePath = `${process.cwd()}/.amplify/generated/env/${
       this.functionName
     }.ts`;
   }

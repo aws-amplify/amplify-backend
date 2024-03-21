@@ -170,7 +170,7 @@ void describe(
           assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
           assert.deepStrictEqual(tsConfigObject.compilerOptions.paths, {
             // The path here is coupled with backend-function's generated typedef file path
-            '$amplify/*': ['../.amplify/types/*'],
+            '$amplify/*': ['../.amplify/generated/*'],
           });
 
           const pathPrefix = path.join(tempDir, 'amplify');
