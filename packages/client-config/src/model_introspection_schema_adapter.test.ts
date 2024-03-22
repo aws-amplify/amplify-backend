@@ -1,9 +1,7 @@
 import assert from 'assert';
 import { beforeEach, describe, it } from 'node:test';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { mockClient } from 'aws-sdk-client-mock';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { sdkStreamMixin } from '@aws-sdk/util-stream-node';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Readable } from 'node:stream';

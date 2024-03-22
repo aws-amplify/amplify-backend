@@ -31,12 +31,8 @@ export const createGraphqlModelsGenerator = (
       params.backendIdentifier,
       params.credentialProvider
     );
-  } else if ('modelSchemaS3Uri' in params) {
-    return createGraphqlModelsFromS3UriGenerator(params);
-  } else {
-    // this should never happen.
-    throw new Error('Unsupported createGraphqlModelsGenerator params');
   }
+  return createGraphqlModelsFromS3UriGenerator(params);
 };
 
 /**
