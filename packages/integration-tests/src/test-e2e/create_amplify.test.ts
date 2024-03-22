@@ -105,7 +105,7 @@ void describe(
             );
           }
 
-          await execa('npm', ['create', amplifyAtTag, '--yes'], {
+          await execa('npm', ['create', amplifyAtTag, '--yes', '--debug'], {
             cwd: tempDir,
             stdio: 'inherit',
           });
