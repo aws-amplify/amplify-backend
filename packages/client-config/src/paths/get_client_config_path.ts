@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 import { ClientConfigFileBaseName, ClientConfigFormat } from '../index.js';
 
@@ -23,11 +23,19 @@ export const getClientConfigPath = async (
   let targetPath = defaultArgs.out;
 
   if (outDir) {
-    const outDirIsFile = fs.lstatSync(outDir).isFile();
-    if (!outDirIsFile) {
-      targetPath = path.isAbsolute(outDir)
-        ? outDir
-        : path.resolve(process.cwd(), outDir);
+    targetPath = path.isAbsolute(outDir)
+      ? outDir
+      : path.resolve(process.cwd(), outDir);
+
+    try {
+      await fsp.access(outDir);
+    } catch (error) {
+      // outDir does not exist, so create dir
+      if (error instanceof Error && error.message.includes('ENOENT')) {
+        await fsp.mkdir(outDir, { recursive: true });
+      } else {
+        throw error;
+      }
     }
   }
 

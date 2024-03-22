@@ -1,5 +1,24 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.11
+
+### Patch Changes
+
+- Updated dependencies [8d73779]
+- Updated dependencies [0d1b00e]
+  - @aws-amplify/client-config@0.9.0-beta.8
+  - @aws-amplify/backend-function@0.8.0-beta.7
+
+## 0.13.0-beta.10
+
+### Patch Changes
+
+- 4e6287e: chore: bump @aws-amplify/data-schema version to 0.14.0
+- Updated dependencies [d95ab02]
+- Updated dependencies [4e6287e]
+  - @aws-amplify/client-config@0.9.0-beta.7
+  - @aws-amplify/backend-data@0.10.0-beta.7
+
 ## 0.13.0-beta.9
 
 ### Patch Changes

@@ -1,5 +1,36 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.13
+
+### Patch Changes
+
+- Updated dependencies [8d73779]
+- Updated dependencies [0d1b00e]
+  - @aws-amplify/model-generator@0.5.0-beta.5
+  - @aws-amplify/client-config@0.9.0-beta.8
+  - @aws-amplify/cli-core@0.5.0-beta.6
+  - @aws-amplify/sandbox@0.5.2-beta.10
+
+## 0.12.0-beta.12
+
+### Patch Changes
+
+- d95ab02: dir options create the target dir if it does not exist
+- 7537216: Improve formatting of `sandbox secret list`
+- Updated dependencies [7537216]
+- Updated dependencies [d95ab02]
+  - @aws-amplify/cli-core@0.5.0-beta.5
+  - @aws-amplify/client-config@0.9.0-beta.7
+  - @aws-amplify/sandbox@0.5.2-beta.9
+
+## 0.12.0-beta.11
+
+### Patch Changes
+
+- acf28c1: Add support to generate typescript data schema from database schema
+- Updated dependencies [acf28c1]
+  - @aws-amplify/schema-generator@0.1.0-beta.2
+
 ## 0.12.0-beta.10
 
 ### Minor Changes
