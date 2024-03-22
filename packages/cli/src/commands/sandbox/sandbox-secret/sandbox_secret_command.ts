@@ -19,7 +19,7 @@ export class SandboxSecretCommand implements CommandModule<object> {
    */
   constructor(private readonly secretSubCommands: CommandModule[]) {
     this.command = 'secret <command>';
-    this.describe = 'Manage sandbox secret';
+    this.describe = 'Manage sandbox secrets';
   }
 
   /**

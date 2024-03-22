@@ -26,10 +26,10 @@ void describe('sandbox secret set command', () => {
   );
 
   const sandboxIdResolver: SandboxBackendIdResolver = {
-    resolve: () =>
+    resolve: (nameOverride?: string) =>
       Promise.resolve({
         namespace: testBackendId,
-        name: testSandboxName,
+        name: nameOverride || testSandboxName,
         type: 'sandbox',
       }),
   } as SandboxBackendIdResolver;
@@ -65,6 +65,28 @@ void describe('sandbox secret set command', () => {
         type: 'sandbox',
         namespace: testBackendId,
         name: testSandboxName,
+      },
+      testSecretName,
+      testSecretValue,
+    ]);
+  });
+
+  void it('sets a secret in a named sandbox', async (contextual) => {
+    const mockSecretValue = contextual.mock.method(
+      AmplifyPrompter,
+      'secretValue',
+      () => Promise.resolve(testSecretValue)
+    );
+
+    await commandRunner.runCommand(`set ${testSecretName} --name anotherName`);
+    assert.equal(mockSecretValue.mock.callCount(), 1);
+    assert.equal(secretSetMock.mock.callCount(), 1);
+
+    assert.deepStrictEqual(secretSetMock.mock.calls[0].arguments, [
+      {
+        type: 'sandbox',
+        namespace: testBackendId,
+        name: 'anotherName',
       },
       testSecretName,
       testSecretValue,
