@@ -42,7 +42,7 @@ export type AuthProps = {
 };
 
 // @public
-export type EmailLogin = true | EmailLoginSettings | Record<string, never>;
+export type EmailLogin = true | EmailLoginSettings;
 
 // @public
 export type EmailLoginSettings = VerificationEmailWithLink | VerificationEmailWithCode;
