@@ -27,9 +27,5 @@
     "@aws-sdk/credential-providers": "^3.465.0",
     "@aws-sdk/types": "^3.465.0",
     "graphql": "^15.8.0"
-  },
-  "devDependencies": {
-    "aws-sdk-client-mock": "^3.0.0",
-    "@aws-sdk/util-stream-node": "^3.374.0"
   }
 }
