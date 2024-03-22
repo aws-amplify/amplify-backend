@@ -134,7 +134,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest-xl, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
+    timeout-minutes: 25
     needs:
       - do_include_e2e
       - build
@@ -168,14 +168,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest-xl, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
+    timeout-minutes: 25
     needs:
       - do_include_e2e
       - build
-    permissions:
-      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
-      id-token: write
-      contents: read
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
