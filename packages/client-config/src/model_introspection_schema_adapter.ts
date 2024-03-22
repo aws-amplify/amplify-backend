@@ -1,4 +1,6 @@
-import { getModelIntrospectionSchemaFromS3Uri } from '@aws-amplify/model-generator';
+import {
+  createGraphqlModelsGenerator,
+} from '@aws-amplify/model-generator';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
 /**
@@ -18,9 +20,28 @@ export class ModelIntrospectionSchemaAdapter {
   getModelIntrospectionSchemaFromS3Uri = async (
     modelSchemaS3Uri: string | undefined
   ): Promise<unknown | undefined> => {
-    return getModelIntrospectionSchemaFromS3Uri({
-      credentialProvider: this.awsCredentialProvider,
-      modelSchemaS3Uri,
-    });
+    if (!modelSchemaS3Uri) {
+      return;
+    }
+    const generatedModels = await (
+      await createGraphqlModelsGenerator({
+        modelSchemaS3Uri,
+        credentialProvider: this.awsCredentialProvider,
+      }).generateModels({ target: 'introspection' })
+    ).getResults();
+    const generatedModelFiles = Object.values(generatedModels);
+    if (generatedModelFiles.length !== 1) {
+      throw new Error(
+        `A single model introspection schema is expected, received ${generatedModelFiles.length} values.`
+      );
+    }
+
+    try {
+      return JSON.parse(generatedModelFiles[0]);
+    } catch (_) {
+      throw new Error(
+        'Caught exception while converting introspection schema to JSON representation'
+      );
+    }
   };
 }

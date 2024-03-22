@@ -1,6 +1,5 @@
 import assert from 'assert';
 import { beforeEach, describe, it } from 'node:test';
-import { getModelIntrospectionSchemaFromS3Uri } from './generate_model_introspection_from_schema_uri.js';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { mockClient } from 'aws-sdk-client-mock';
@@ -8,8 +7,9 @@ import { mockClient } from 'aws-sdk-client-mock';
 import { sdkStreamMixin } from '@aws-sdk/util-stream-node';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Readable } from 'node:stream';
+import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
 
-void describe('getModelIntrospectionSchemaFromS3Uri', () => {
+void describe('ModelIntrospectionSchemaAdapter', () => {
   const s3Mock = mockClient(S3Client);
 
   void beforeEach(() => {
@@ -17,21 +17,17 @@ void describe('getModelIntrospectionSchemaFromS3Uri', () => {
   });
 
   void it('returns undefined on undefined schema uri', async () => {
-    const modelIntrospectionSchema = await getModelIntrospectionSchemaFromS3Uri(
-      {
-        modelSchemaS3Uri: undefined,
-        credentialProvider: fromNodeProviderChain(),
-      }
-    );
+    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter(
+      fromNodeProviderChain()
+    ).getModelIntrospectionSchemaFromS3Uri(undefined);
     assert.deepEqual(modelIntrospectionSchema, undefined);
   });
 
   void it('throws on invalid s3 location', async () => {
     await assert.rejects(() =>
-      getModelIntrospectionSchemaFromS3Uri({
-        modelSchemaS3Uri: 's3://im_a_fake_bucket/i_swear',
-        credentialProvider: fromNodeProviderChain(),
-      })
+      new ModelIntrospectionSchemaAdapter(
+        fromNodeProviderChain()
+      ).getModelIntrospectionSchemaFromS3Uri('s3://im_a_fake_bucket/i_swear')
     );
   });
 
@@ -56,12 +52,9 @@ void describe('getModelIntrospectionSchemaFromS3Uri', () => {
         Body: sdkStream,
       });
 
-    const modelIntrospectionSchema = await getModelIntrospectionSchemaFromS3Uri(
-      {
-        modelSchemaS3Uri: 's3://im_a_real_bucket/i_swear',
-        credentialProvider: fromNodeProviderChain(),
-      }
-    );
+    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter(
+      fromNodeProviderChain()
+    ).getModelIntrospectionSchemaFromS3Uri('s3://im_a_real_bucket/i_swear');
     assert.deepEqual(modelIntrospectionSchema, {
       version: 1,
       models: {
