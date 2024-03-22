@@ -58,7 +58,7 @@ export type EmailLoginSettings =
  * If true, email login will be enabled with default settings.
  * If settings are provided, email login will be enabled with the specified settings.
  */
-export type EmailLogin = true | EmailLoginSettings | Record<string, never>;
+export type EmailLogin = true | EmailLoginSettings;
 /**
  * Phone number login options.
  *
