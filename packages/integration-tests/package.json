@@ -25,6 +25,7 @@
     "glob": "^10.2.7",
     "node-fetch": "^3.3.2",
     "semver": "^7.5.4",
+    "ssh2": "^1.15.0",
     "uuid": "^9.0.1"
   },
   "license": "Apache-2.0"
