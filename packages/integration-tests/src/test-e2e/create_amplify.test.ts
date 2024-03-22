@@ -105,10 +105,14 @@ void describe(
             );
           }
 
-          await execa('npm', ['create', amplifyAtTag, '--yes'], {
-            cwd: tempDir,
-            stdio: 'inherit',
-          });
+          await execa(
+            'npm',
+            ['create', amplifyAtTag, '--yes', '--', '--debug'],
+            {
+              cwd: tempDir,
+              stdio: 'inherit',
+            }
+          );
 
           // Override CDK installation with baseline version
           await execa(
