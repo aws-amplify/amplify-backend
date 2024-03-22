@@ -49,7 +49,7 @@ export const getResponse = async () => {
     s3TestContent: await s3RoundTrip(),
     testSecret: env.TEST_SECRET,
     testSharedSecret: env.TEST_SHARED_SECRET,
-    testNodeAddon: generateKeyPairSync('ed25519') as string,
+    testNodeAddon: `${generateKeyPairSync('ed25519')}`,
   };
 };
 
