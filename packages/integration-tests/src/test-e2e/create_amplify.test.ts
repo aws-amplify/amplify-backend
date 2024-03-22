@@ -12,14 +12,11 @@ import { amplifyAtTag } from '../constants.js';
 
 void describe(
   'create-amplify script',
-  {
-    concurrency: testConcurrencyLevel,
-  },
+  { concurrency: testConcurrencyLevel },
   () => {
     let baselineCdkVersion: string;
 
     before(async () => {
-      await execa('git', ['fetch', '--depth=100']);
       // start a local npm proxy and publish the current codebase to the proxy
       await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
       await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
