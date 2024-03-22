@@ -126,15 +126,6 @@ export type GenerationResult = {
     getResults: () => Promise<Record<string, string>>;
 };
 
-// @public
-export const getModelIntrospectionSchemaFromS3Uri: ({ modelSchemaS3Uri, credentialProvider, }: GetModelIntrospectionSchemaParams) => Promise<unknown | undefined>;
-
-// @public (undocumented)
-export type GetModelIntrospectionSchemaParams = {
-    modelSchemaS3Uri?: string;
-    credentialProvider: AwsCredentialIdentityProvider;
-};
-
 // @public (undocumented)
 export type GraphqlDocumentGenerator = {
     generateModels: (params: DocumentGenerationParameters) => Promise<GenerationResult>;
