@@ -126,7 +126,7 @@ jobs:
             echo setting run_e2e to false;
             echo "run_e2e=false" >> "$GITHUB_OUTPUT";
           fi
-  run_e2e_tests:
+  e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
       # will finish running other test matrices even if one fails
@@ -158,9 +158,32 @@ jobs:
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
-      - name: Run E2E tests
-        run: npm run e2e
-  run_package_manager_e2e_tests:
+      - name: Run e2e deployment tests
+        run: npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js
+  e2e_create_amplify:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    strategy:
+      # will finish running other test matrices even if one fails
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest-xl, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
+    needs:
+      - do_include_e2e
+      - build
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - run: cd packages/cli && npm link
+      - name: Run e2e create-amplify tests
+        run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
+  e2e_package_manager:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
       # will finish running other test matrices even if one fails
@@ -298,9 +321,10 @@ jobs:
   update_or_publish_versions:
     if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
     needs:
-      - run_package_manager_e2e_tests
       - test_with_coverage
-      - run_e2e_tests
+      - e2e_package_manager
+      - e2e_deployment
+      - e2e_create_amplify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
