@@ -25,17 +25,6 @@ export class Printer {
   ) {}
 
   /**
-   * Prints an array of objects/records to output stream.
-   */
-  printRecords = <T extends Record<string | number, RecordValue>>(
-    ...objects: T[]
-  ): void => {
-    for (const obj of objects) {
-      this.printRecord(obj);
-    }
-  };
-
-  /**
    * Prints a given message (with optional color) to output stream.
    */
   print = (message: string) => {
@@ -87,20 +76,6 @@ export class Printer {
       this.stopAnimatingSpinner();
     }
   }
-
-  /**
-   * Print an object/record to output stream.
-   */
-  private printRecord = <T extends Record<string | number, RecordValue>>(
-    object: T
-  ): void => {
-    let message = '';
-    const entries = Object.entries(object);
-    entries.forEach(([key, val]) => {
-      message = message.concat(` ${key}: ${val as string}${EOL}`);
-    });
-    this.stdout.write(message);
-  };
 
   /**
    * Writes escape sequence to stdout

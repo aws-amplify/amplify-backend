@@ -7,17 +7,21 @@ This package contains two kind of tests:
 
 # In memory integration tests
 
-To run these tests execute `npm run test` from repository root (they run together with unit tests)
+To run these tests execute `npm run test` from the repository root (they run together with unit tests)
 or `npm run test:dir packages/integration-tests/lib/test-in-memory` (to run them in isolation).
-
-CDK assembly snapshot comparison can be disabled by setting environment variable
-`AMPLIFY_BACKEND_TESTS_DISABLE_INTEGRATION_SNAPSHOTS_COMPARISON` to `true`.
-This is useful in case dependency version updates are part of testing scenario (e.g. canary tests).
 
 # End-to-end tests
 
-To run these tests a credential to AWS account is required. Our components leverage
-[credential provider chain](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html)
-therefore any strategy to set credentials that is compatible should work (e.g. setting environment variables or default profile).
+## create-amplify tests
 
-When credentials are set up run `npm run e2e` from repository root to run end-to-end tests.
+The create-amplify e2e suite tests the first-time installation and setup of a new amplify backend project. To run this suite, run
+`npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js`
+
+## deployment tests
+
+To run end-to-end deployment tests, credentials to an AWS account must be available on the machine. Any credentials that will be picked up by the
+[default node credential provider](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/setting-credentials-node.html) should work.
+This include setting environment variables for a default profile.
+
+To run this suite, run
+`npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js`
