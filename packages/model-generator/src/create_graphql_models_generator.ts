@@ -27,21 +27,23 @@ export const createGraphqlModelsGenerator = (
   params: GraphqlModelsGeneratorFactoryParams
 ): GraphqlModelsGenerator => {
   if ('backendIdentifier' in params) {
-    return createGraphqlModelsGeneratorFromBackendIdentifier(
-      params.backendIdentifier,
-      params.credentialProvider
-    );
+    return createGraphqlModelsGeneratorFromBackendIdentifier(params);
   }
   return createGraphqlModelsFromS3UriGenerator(params);
+};
+
+export type GraphqlModelsFromBackendIdentifierParams = {
+  backendIdentifier: DeployedBackendIdentifier;
+  credentialProvider: AwsCredentialIdentityProvider;
 };
 
 /**
  * Factory function to compose a model generator from a backend identifier.
  */
-const createGraphqlModelsGeneratorFromBackendIdentifier = (
-  backendIdentifier: DeployedBackendIdentifier,
-  credentialProvider: AwsCredentialIdentityProvider
-): GraphqlModelsGenerator => {
+const createGraphqlModelsGeneratorFromBackendIdentifier = ({
+  backendIdentifier,
+  credentialProvider,
+}: GraphqlModelsFromBackendIdentifierParams): GraphqlModelsGenerator => {
   if (!backendIdentifier) {
     throw new Error('`backendIdentifier` must be defined');
   }
