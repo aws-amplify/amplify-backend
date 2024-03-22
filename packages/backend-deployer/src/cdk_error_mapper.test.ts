@@ -110,18 +110,20 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: `[esbuild Error]: Expected identifier but found ")"\n      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
   },
   {
+    errorMessage: `some rubbish before
+Error: some cdk synth error
+    at lookup (/some_random/path.js:1:3005)
+    at lookup2 (/some_random/path2.js:2:3005)`,
+    expectedTopLevelErrorMessage:
+      'Unable to build the Amplify backend definition.',
+    errorName: 'BackendSynthError',
+    expectedDownstreamErrorMessage: `Error: some cdk synth error
+    at lookup (/some_random/path.js:1:3005)`,
+  },
+  {
     errorMessage: `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts
       at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)
-      at new NodeError (node:internal/errors:405:5)
-      at finalizeResolution (node:internal/modules/esm/resolve:327:11)
-      at moduleResolve (node:internal/modules/esm/resolve:980:10)
-      at defaultResolve (node:internal/modules/esm/resolve:1193:11)
-      at nextResolve (node:internal/modules/esm/hooks:864:28)
-      at d (file:///Users/user/work-space/amplify-app/node_modules/tsx/dist/esm/index.mjs:5:34)
-      at O (file:///Users/user/work-space/amplify-app/node_modules/tsx/dist/esm/index.mjs:5:1162)
-      at async nextResolve (node:internal/modules/esm/hooks:864:22)
-      at async Hooks.resolve (node:internal/modules/esm/hooks:302:24)
-      at async handleMessage (node:internal/modules/esm/worker:196:18) {
+      at new NodeError (node:internal/errors:405:5) {
     url: 'file:///Users/user/work-space/shared_secret.js',
     code: 'ERR_MODULE_NOT_FOUND'
   }

@@ -117,7 +117,18 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      // "Catch all" the backend entry point file is referenced in the stack indicating a problem in customer code
+      // Error: .* is printed to stderr during cdk synth
+      // Also extracts the first line in the stack where the error happened
+      errorRegex: /^Error: (.*\n.*at.*)/m,
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'BackendSynthError',
+      classification: 'ERROR',
+    },
+    {
+      // "Catch all": the backend entry point file is referenced in the stack indicating a problem in customer code
       errorRegex: /amplify\/backend/,
       humanReadableErrorMessage: 'Unable to build Amplify backend.',
       resolutionMessage:
@@ -182,6 +193,7 @@ export class CdkErrorMapper {
 export type CDKDeploymentError =
   | 'AccessDeniedError'
   | 'BackendBuildError'
+  | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
   | 'CFNUpdateNotSupportedError'
   | 'CloudFormationDeploymentError'
