@@ -1,5 +1,13 @@
 # @aws-amplify/client-config
 
+## 0.9.0-beta.8
+
+### Patch Changes
+
+- 8d73779: refactor model generation from schema uri
+- Updated dependencies [8d73779]
+  - @aws-amplify/model-generator@0.5.0-beta.5
+
 ## 0.9.0-beta.7
 
 ### Patch Changes

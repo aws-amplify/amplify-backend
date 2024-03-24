@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 0.8.0-beta.7
+
+### Minor Changes
+
+- 0d1b00e: Update generated env package location and use the $ symbol
+
 ## 0.8.0-beta.6
 
 ### Patch Changes

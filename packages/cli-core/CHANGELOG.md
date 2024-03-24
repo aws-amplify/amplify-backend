@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.6
+
+### Minor Changes
+
+- 0d1b00e: Update generated env package location and use the $ symbol
+
 ## 0.5.0-beta.5
 
 ### Minor Changes
