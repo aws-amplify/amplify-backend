@@ -192,7 +192,9 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             testProject.projectDirPath
           )
             .do(
-              new PredicatedActionBuilder().waitForLineIncludes('ESBuildError')
+              new PredicatedActionBuilder().waitForLineIncludes(
+                'TypeScript validation check failed'
+              )
             )
             .do(interruptSandbox())
             .do(rejectCleanupSandbox())
@@ -216,7 +218,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             )
               .do(
                 new PredicatedActionBuilder().waitForLineIncludes(
-                  'ESBuildError'
+                  'TypeScript validation check failed'
                 )
               )
               .run()
