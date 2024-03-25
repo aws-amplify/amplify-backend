@@ -56,13 +56,19 @@ export abstract class AmplifyError<T extends string = string> extends Error {
   }
 
   static fromStderr = (_stderr: string): AmplifyError | undefined => {
-    const extractionRegex = /["']?serializedError["']?:[ ]?["'](.*)["']/;
+    const extractionRegex =
+      /["']?serializedError["']?:[ ]?'(.+?)'|["']?serializedError["']?:[ ]?"((?:\\"|[^"])*?)"/;
     const serialized = _stderr.match(extractionRegex);
-    if (serialized && serialized.length == 2) {
+    if (serialized && serialized.length == 3) {
       try {
-        const { name, classification, options, cause } = JSON.parse(
-          serialized[1]
-        );
+        const serializedString =
+          serialized[1] && serialized[1].length > 0
+            ? serialized[1].replaceAll('\\"', '"')
+            : serialized[2].replaceAll('\\"', '"');
+
+        const { name, classification, options, cause } =
+          JSON.parse(serializedString);
+
         return classification === 'ERROR'
           ? new AmplifyUserError(name, options, cause)
           : new AmplifyFault(name, options, cause);
