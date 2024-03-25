@@ -81,7 +81,7 @@ export class StorageAccessPolicyFactory {
           effect,
           actions: actionMap[action],
           resources: Array.from(s3Prefixes).map(
-            (s3Prefix) => `${this.bucket.bucketArn}${s3Prefix}`
+            (s3Prefix) => `${this.bucket.bucketArn}/${s3Prefix}`
           ),
         });
       case 'list':
@@ -107,11 +107,10 @@ const actionMap: Record<InternalStorageAction, string[]> = {
 };
 
 /**
- * Converts a prefix like /foo/bar/* into [foo/bar/, foo/bar/*]
+ * Converts a prefix like foo/bar/* into [foo/bar/, foo/bar/*]
  * This is necessary to grant the ability to list all objects directly in "foo/bar" and all objects under "foo/bar"
  */
 const toConditionPrefix = (prefix: StoragePath) => {
-  const noLeadingSlash = prefix.slice(1);
-  const noTrailingWildcard = noLeadingSlash.slice(0, -1);
-  return [noLeadingSlash, noTrailingWildcard];
+  const noTrailingWildcard = prefix.slice(0, -1);
+  return [prefix, noTrailingWildcard];
 };
