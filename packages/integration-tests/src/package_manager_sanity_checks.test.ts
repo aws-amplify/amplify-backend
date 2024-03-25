@@ -34,6 +34,15 @@ void describe('getting started happy path', async () => {
   let packageManager: PackageManager;
 
   before(async () => {
+    // changeset version has a bug where it gets stuck in an infinite loop if git fetch --deepen fails
+    // https://github.com/changesets/changesets/issues/571
+
+    // taking inspiration from https://github.com/changesets/changesets/pull/1045/files
+    // to prefetch this and point to the head of origin only (as opposed to fetching all refs)
+    await execa('git', ['fetch', '--deepen=50', 'origin', 'HEAD'], {
+      stdio: 'inherit',
+    });
+
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
