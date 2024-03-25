@@ -222,8 +222,8 @@ void describe('Sandbox using local project name resolver', () => {
       'existsSync',
       (p: string) =>
         p === 'testDir' ||
-        p == './amplify' ||
-        p == path.dirname(fileURLToPath(new URL(import.meta.url)))
+        p === './amplify' ||
+        p === path.dirname(fileURLToPath(new URL(import.meta.url)))
     );
   });
 
