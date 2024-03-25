@@ -177,7 +177,6 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: cd packages/cli && npm link
-      - run: git fetch origin
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
@@ -209,7 +208,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Restore Build Cache
         uses: ./.github/actions/restore_build_cache
-      - run: git fetch origin
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
