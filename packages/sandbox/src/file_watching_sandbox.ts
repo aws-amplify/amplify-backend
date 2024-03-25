@@ -93,7 +93,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       : path.join(process.cwd(), options.dir ?? './amplify');
     if (!fs.existsSync(watchDir)) {
       this.printer.log(
-        `${watchDir} does not exist. please try running this command from your project root`,
+        `${watchDir} does not exist. Make sure you are running this command from your project root directory.`,
         LogLevel.ERROR
       );
       return;
