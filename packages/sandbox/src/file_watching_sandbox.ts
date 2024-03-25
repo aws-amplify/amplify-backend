@@ -88,9 +88,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   start = async (options: SandboxOptions) => {
     const watchDir = options.dir ?? './amplify';
-    options.dir && path.isAbsolute(options.dir)
-      ? options.dir
-      : path.join(process.cwd(), options.dir ?? './amplify');
     if (!fs.existsSync(watchDir)) {
       this.printer.log(
         `${watchDir} does not exist. Make sure you are running this command from your project root directory.`,
