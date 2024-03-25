@@ -21,8 +21,9 @@ void describe(
       // https://github.com/changesets/changesets/issues/571
 
       // taking inspiration from https://github.com/changesets/changesets/pull/1045/files
-      // to prefetch this and point to the head of origin only (as opposed to fetching all refs)
-      await execa('git', ['fetch', '--deepen=50', 'origin', 'HEAD'], {
+      // we fetch all refs so that changesets doesn't go into the shallow clone codepath
+      // eslint-disable-next-line spellcheck/spell-checker
+      await execa('git', ['fetch', '--unshallow', '--no-tags'], {
         stdio: 'inherit',
       });
 
