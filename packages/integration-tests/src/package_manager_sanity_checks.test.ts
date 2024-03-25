@@ -34,16 +34,6 @@ void describe('getting started happy path', async () => {
   let packageManager: PackageManager;
 
   before(async () => {
-    // changeset version has a bug where it gets stuck in an infinite loop if git fetch --deepen fails
-    // https://github.com/changesets/changesets/issues/571
-
-    // taking inspiration from https://github.com/changesets/changesets/pull/1045/files
-    // we fetch all refs so that changesets doesn't go into the shallow clone codepath
-    // eslint-disable-next-line spellcheck/spell-checker
-    await execa('git', ['fetch', '--unshallow', '--no-tags'], {
-      stdio: 'inherit',
-    });
-
     // start a local npm proxy and publish the current codebase to the proxy
     await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
