@@ -54,7 +54,7 @@ export class CdkErrorMapper {
       errorRegex: /\[ERR_MODULE_NOT_FOUND\]:(.*)\n/,
       humanReadableErrorMessage: 'Cannot find module',
       resolutionMessage:
-        'Check your backend definition in the `amplify` folder for missing file or package imports. Try running npm or yarn install.',
+        'Check your backend definition in the `amplify` folder for missing file or package imports. Try installing them with your package manager.',
       errorName: 'ModuleNotFoundError',
       classification: 'ERROR',
     },
