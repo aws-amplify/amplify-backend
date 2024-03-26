@@ -84,8 +84,8 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           JSON.parse(serializedString);
 
         let serializedCause = cause;
-        if (cause && ErrorSerDe.isSerializedErrorType(cause)) {
-          serializedCause = ErrorSerDe.deserialize(cause);
+        if (cause && ErrorSerializerDeserializer.isSerializedErrorType(cause)) {
+          serializedCause = ErrorSerializerDeserializer.deserialize(cause);
         }
         return classification === 'ERROR'
           ? new AmplifyUserError(name, options, serializedCause)
@@ -142,11 +142,11 @@ export type AmplifyUserErrorOptions = Omit<
 
 const errorSerializer = (_: unknown, value: unknown) => {
   if (value instanceof Error && value?.constructor.name === 'Error') {
-    return ErrorSerDe.serialize(value);
+    return ErrorSerializerDeserializer.serialize(value);
   }
   return value;
 };
-class ErrorSerDe {
+class ErrorSerializerDeserializer {
   static serialize = (error: Error) => {
     const serializedError: SerializedErrorType = {
       name: 'Error',
