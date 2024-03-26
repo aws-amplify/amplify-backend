@@ -1,5 +1,14 @@
 import * as os from 'node:os';
-import { blue, bold, cyan, green, grey, red, underline } from 'kleur/colors';
+import {
+  blue,
+  bold,
+  cyan,
+  dim,
+  green,
+  grey,
+  red,
+  underline,
+} from 'kleur/colors';
 
 /**
  * Formats various inputs into single string.
@@ -20,6 +29,7 @@ export const format = {
   success: (message: string) => green(message),
   sectionHeader: (header: string) => bold(blue(header)),
   bold: (message: string) => bold(message),
+  dim: (message: string) => dim(message),
   link: (link: string) => underline(blue(link)),
   list: (lines: string[]) =>
     lines.map((line: string) => ` - ${line}`).join(os.EOL),

@@ -29,10 +29,7 @@ import {
   FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
-import {
-  AmplifyError,
-  BackendIdentifierConversions,
-} from '@aws-amplify/platform-core';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -358,14 +355,17 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
   private printSandboxNameInfo = async (optionalName?: string) => {
     const sandboxBackendId = await this.backendIdSandboxResolver(optionalName);
-    const sandboxName =
-      BackendIdentifierConversions.toStackName(sandboxBackendId);
+    // The namespace is the packageJson#name which can be overridden with --name
     this.printer.log(
-      format.bold(`Starting sandbox for ${format.highlight(sandboxName)}`)
+      format.bold(
+        `Starting sandbox for ${format.highlight(sandboxBackendId.name)}`
+      )
     );
     if (!optionalName) {
       this.printer.log(
-        `To specify a different name, use ${format.bold('--name')}`
+        `${format.dim('To specify a different name, use ')}${format.bold(
+          '--name'
+        )}`
       );
     }
   };
