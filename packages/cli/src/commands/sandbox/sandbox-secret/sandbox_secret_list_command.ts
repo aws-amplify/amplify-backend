@@ -1,12 +1,17 @@
-import { CommandModule } from 'yargs';
+import { ArgumentsCamelCase, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { format, printer } from '@aws-amplify/cli-core';
+import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { SandboxCommandGlobalOptions } from '../option_types.js';
 
 /**
  * Command to list sandbox secrets.
  */
-export class SandboxSecretListCommand implements CommandModule<object> {
+export class SandboxSecretListCommand
+  implements
+    CommandModule<object, ArgumentsKebabCase<SandboxCommandGlobalOptions>>
+{
   /**
    * @inheritDoc
    */
@@ -31,8 +36,12 @@ export class SandboxSecretListCommand implements CommandModule<object> {
   /**
    * @inheritDoc
    */
-  handler = async (): Promise<void> => {
-    const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve();
+  handler = async (
+    args: ArgumentsCamelCase<SandboxCommandGlobalOptions>
+  ): Promise<void> => {
+    const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
+      args.name
+    );
     const secrets = await this.secretClient.listSecrets(
       sandboxBackendIdentifier
     );
