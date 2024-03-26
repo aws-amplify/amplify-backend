@@ -149,6 +149,7 @@
   "unauth",
   "unix",
   "unlink",
+  "unshallow",
   "unvalidated",
   "urls",
   "userpool",
