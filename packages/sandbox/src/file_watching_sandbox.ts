@@ -324,12 +324,12 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       message = error.message;
 
       // Add the downstream exception
-      if (error.cause && error.cause instanceof Error) {
-        message = `${message}\nCaused By: ${
-          error.cause instanceof Error
-            ? error.cause.message
-            : String(error.cause)
-        }`;
+      if (error.cause && error.cause instanceof Error && error.cause.message) {
+        message = `${message}\nCaused By: ${error.cause.message}\n`;
+      }
+
+      if (error instanceof AmplifyError && error.resolution) {
+        message = `${message}\nResolution: ${error.resolution}\n`;
       }
     } else message = String(error);
     return message;

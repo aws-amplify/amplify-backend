@@ -11,6 +11,7 @@
     { "path": "../form-generator" },
     { "path": "../model-generator" },
     { "path": "../platform-core" },
-    { "path": "../sandbox" }
+    { "path": "../sandbox" },
+    { "path": "../schema-generator" }
   ]
 }

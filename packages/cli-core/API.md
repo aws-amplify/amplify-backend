@@ -36,6 +36,7 @@ export const format: {
     link: (link: string) => string;
     list: (lines: string[]) => string;
     indent: (message: string) => string;
+    record: (record: Record<string, string | number | Date>) => string;
 };
 
 // @public (undocumented)
@@ -61,7 +62,6 @@ export class Printer {
     log(message: string, level?: LogLevel, eol?: boolean): void;
     print: (message: string) => void;
     printNewLine: () => void;
-    printRecords: <T extends Record<string | number, RecordValue>>(...objects: T[]) => void;
 }
 
 // @public (undocumented)

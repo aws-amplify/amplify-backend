@@ -58,9 +58,24 @@ void describe(
       await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
     });
 
-    const initialStates = ['empty', 'module', 'commonjs'] as const;
+    const startDelayIntervalMS = 1000 * 20; // start tests 20 seconds apart to avoid file hot spots
 
-    initialStates.forEach((initialState) => {
+    const testCases = [
+      {
+        initialState: 'empty',
+        startDelayMS: startDelayIntervalMS * 0,
+      },
+      {
+        initialState: 'module',
+        startDelayMS: startDelayIntervalMS * 1,
+      },
+      {
+        initialState: 'commonjs',
+        startDelayMS: startDelayIntervalMS * 2,
+      },
+    ];
+
+    testCases.forEach(({ initialState, startDelayMS }) => {
       void describe('installs expected packages and scaffolds expected files', () => {
         let tempDir: string;
         beforeEach(async () => {
@@ -74,6 +89,7 @@ void describe(
         });
 
         void it(`starting from ${initialState} project`, async () => {
+          await new Promise((resolve) => setTimeout(resolve, startDelayMS));
           if (initialState != 'empty') {
             await fs.writeFile(
               path.join(tempDir, 'package.json'),
@@ -89,10 +105,14 @@ void describe(
             );
           }
 
-          await execa('npm', ['create', amplifyAtTag, '--yes'], {
-            cwd: tempDir,
-            stdio: 'inherit',
-          });
+          await execa(
+            'npm',
+            ['create', amplifyAtTag, '--yes', '--', '--debug'],
+            {
+              cwd: tempDir,
+              stdio: 'inherit',
+            }
+          );
 
           // Override CDK installation with baseline version
           await execa(
@@ -170,7 +190,7 @@ void describe(
           assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
           assert.deepStrictEqual(tsConfigObject.compilerOptions.paths, {
             // The path here is coupled with backend-function's generated typedef file path
-            '@env/*': ['../.amplify/function-env/*'],
+            '$amplify/*': ['../.amplify/generated/*'],
           });
 
           const pathPrefix = path.join(tempDir, 'amplify');

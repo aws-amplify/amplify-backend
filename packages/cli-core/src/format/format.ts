@@ -33,4 +33,8 @@ export const format = {
       .map((line) => `${spaces}${line}`)
       .join(os.EOL);
   },
+  record: (record: Record<string, string | number | Date>) =>
+    Object.entries(record)
+      .map(([key, value]) => `${key}: ${String(value)}`)
+      .join(os.EOL),
 };

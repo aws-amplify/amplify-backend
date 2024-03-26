@@ -9,9 +9,9 @@ import {
   getSecretClient,
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
-import { printer } from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 
-const printRecordsMock = mock.method(printer, 'printRecords');
+const printMock = mock.method(printer, 'print');
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
@@ -34,10 +34,10 @@ void describe('sandbox secret get command', () => {
   );
 
   const sandboxIdResolver: SandboxBackendIdResolver = {
-    resolve: () =>
+    resolve: (nameOverride?: string) =>
       Promise.resolve({
         namespace: testBackendId,
-        name: testSandboxName,
+        name: nameOverride || testSandboxName,
         type: 'sandbox',
       }),
   } as SandboxBackendIdResolver;
@@ -55,7 +55,7 @@ void describe('sandbox secret get command', () => {
 
   beforeEach(async () => {
     secretGetMock.mock.resetCalls();
-    printRecordsMock.mock.resetCalls();
+    printMock.mock.resetCalls();
   });
 
   void it('gets a secret', async () => {
@@ -71,10 +71,30 @@ void describe('sandbox secret get command', () => {
       testSecretIdentifier,
     ]);
 
-    assert.equal(printRecordsMock.mock.callCount(), 1);
+    assert.equal(printMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      printRecordsMock.mock.calls[0].arguments[0],
-      testSecret
+      printMock.mock.calls[0].arguments[0],
+      format.record(testSecret)
+    );
+  });
+
+  void it('gets secret for named sandbox', async () => {
+    await commandRunner.runCommand(`get ${testSecretName} --name anotherName`);
+
+    assert.equal(secretGetMock.mock.callCount(), 1);
+    assert.deepStrictEqual(secretGetMock.mock.calls[0].arguments, [
+      {
+        namespace: testBackendId,
+        name: 'anotherName',
+        type: 'sandbox',
+      },
+      testSecretIdentifier,
+    ]);
+
+    assert.equal(printMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      printMock.mock.calls[0].arguments[0],
+      format.record(testSecret)
     );
   });
 

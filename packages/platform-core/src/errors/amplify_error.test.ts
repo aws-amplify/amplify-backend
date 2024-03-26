@@ -30,4 +30,49 @@ and some after the error message
     assert.deepStrictEqual(actual?.cause?.name, testError.cause?.name);
     assert.deepStrictEqual(actual?.cause?.message, testError.cause?.message);
   });
+
+  void it('deserialize when string is encoded with single quote and has double quotes in it', () => {
+    const sampleStderr = `some random stderr
+    ${util.inspect({
+      serializedError:
+        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}',
+    })}
+and some after the error message
+    `;
+    const actual = AmplifyError.fromStderr(sampleStderr);
+    assert.deepStrictEqual(actual?.name, 'SyntaxError');
+    assert.deepStrictEqual(actual?.classification, 'ERROR');
+    assert.deepStrictEqual(actual?.message, 'test error message');
+    assert.deepStrictEqual(actual?.resolution, 'test resolution');
+  });
+
+  void it('deserialize when string is encoded with single quote and has double quotes escaped in between', () => {
+    const sampleStderr = `some random stderr
+    ${util.inspect({
+      serializedError:
+        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"paths must start with \\"/\\" and end with \\"/*","resolution":"test resolution"}}',
+    })}
+and some after the error message
+    `;
+    const actual = AmplifyError.fromStderr(sampleStderr);
+    assert.deepStrictEqual(actual?.name, 'SyntaxError');
+    assert.deepStrictEqual(actual?.classification, 'ERROR');
+    assert.deepStrictEqual(
+      actual?.message,
+      'paths must start with "/" and end with "/*'
+    );
+    assert.deepStrictEqual(actual?.resolution, 'test resolution');
+  });
+
+  void it('deserialize when string is encoded with double quote and has double quotes string in it', () => {
+    const sampleStderr = `some random stderr
+    serializedError: "{\\"name\\":\\"SyntaxError\\",\\"classification\\":\\"ERROR\\",\\"options\\":{\\"message\\":\\"test error message\\",\\"resolution\\":\\"test resolution\\"}}"
+and some after the error message
+    `;
+    const actual = AmplifyError.fromStderr(sampleStderr);
+    assert.deepStrictEqual(actual?.name, 'SyntaxError');
+    assert.deepStrictEqual(actual?.classification, 'ERROR');
+    assert.deepStrictEqual(actual?.message, 'test error message');
+    assert.deepStrictEqual(actual?.resolution, 'test resolution');
+  });
 });
