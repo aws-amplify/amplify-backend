@@ -29,8 +29,11 @@ export const format: {
     error: (message: string) => string;
     note: (message: string) => string;
     command: (command: string) => string;
+    highlight: (command: string) => string;
     success: (message: string) => string;
     sectionHeader: (header: string) => string;
+    bold: (message: string) => string;
+    dim: (message: string) => string;
     link: (link: string) => string;
     list: (lines: string[]) => string;
     indent: (message: string) => string;

@@ -105,7 +105,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
 
-    this.printer.log(`[Sandbox] Initializing...`, LogLevel.DEBUG);
+    await this.printSandboxNameInfo(options.name);
+
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
     // introduce a concurrency latch that tracks the state.
     // This way, if file change events arrive when a 'cdk deploy' is still executing,
@@ -350,5 +351,21 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       await this.reset(options);
     }
     // else let the sandbox continue so customers can revert their changes
+  };
+
+  private printSandboxNameInfo = async (optionalName?: string) => {
+    const sandboxBackendId = await this.backendIdSandboxResolver(optionalName);
+    this.printer.log(
+      format.bold(
+        `Starting sandbox for ${format.highlight(sandboxBackendId.name)}`
+      )
+    );
+    if (!optionalName) {
+      this.printer.log(
+        `${format.dim('To specify a different name, use ')}${format.bold(
+          '--name'
+        )}`
+      );
+    }
   };
 }
