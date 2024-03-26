@@ -62,7 +62,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     /**
      * `["']?serializedError["']?:[ ]?` captures the start of the serialized error. The quotes depend on which OS is being used
      * `(?:`(.+?)`|'(.+?)'|"((?:\\"|[^"])*?)")` captures the rest of the serialized string enclosed in either single quote,
-     * double quotes or backticks.
+     * double quotes or back-ticks.
      */
     const extractionRegex =
       /["']?serializedError["']?:[ ]?(?:`(.+?)`|'(.+?)'|"((?:\\"|[^"])*?)")/;
