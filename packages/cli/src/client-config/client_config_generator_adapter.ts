@@ -43,13 +43,14 @@ export class ClientConfigGeneratorAdapter {
     outDir?: string,
     format?: ClientConfigFormat
   ): Promise<void> => {
-    await generateClientConfigToFile(
+    const fileWrittenMessage = await generateClientConfigToFile(
       this.awsCredentialProvider,
       backendIdentifier,
       version,
       outDir,
-      format,
-      (message) => printer.log(message)
+      format
     );
+
+    printer.log(fileWrittenMessage);
   };
 }

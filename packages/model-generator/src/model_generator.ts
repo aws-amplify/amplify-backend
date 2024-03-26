@@ -11,11 +11,7 @@ export type DocumentGenerationParameters = {
   relativeTypesPath?: string;
 };
 export type GenerationResult = {
-  writeToDirectory: (
-    directoryPath: string,
-    // TODO: update this type when Printer interface gets defined in platform-core.
-    log?: (message: string) => void
-  ) => Promise<void>;
+  writeToDirectory: (directoryPath: string) => Promise<string[]>;
   getResults: () => Promise<Record<string, string>>;
 };
 

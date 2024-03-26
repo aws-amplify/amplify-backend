@@ -7,7 +7,6 @@ import assert from 'assert';
 void describe('AppsyncGraphqlDocumentGenerationResult', () => {
   void it('writes a map of files to disk', async () => {
     const writeFileMock = mock.method(fs, 'writeFile');
-    const logMock = mock.fn();
     mock.method(fs, 'mkdir').mock.mockImplementation(async () => null);
     writeFileMock.mock.mockImplementation(async () => null);
     const filePathWithDir = path.join('a-third', 'fake-file', '.type');
@@ -20,24 +19,19 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
     const result = new AppsyncGraphqlGenerationResult(files);
     const directory = './fake-dir';
 
-    await result.writeToDirectory(directory, (message) => logMock(message));
+    const fileWrittenMessages = await result.writeToDirectory(directory);
 
     Object.entries(files).forEach(([fileName, content]) => {
       const resolvedName = path.resolve(path.join(directory, fileName));
       const writeFileCall = writeFileMock.mock.calls.find(
         ({ arguments: [f] }) => resolvedName === f
       );
-      const logCall = logMock.mock.calls.find(({ arguments: [message] }) =>
-        message.includes(path.join(directory, fileName))
-      );
       assert.deepEqual(writeFileCall?.arguments, [resolvedName, content]);
-      assert.strictEqual(
-        logCall?.arguments[0],
-        `File written: ${path.relative(
-          '.',
-          path.resolve(path.join(directory, fileName))
-        )}`
-      );
     });
+    assert.deepEqual(fileWrittenMessages, [
+      'File written: fake-dir/fake-file',
+      'File written: fake-dir/a-second-fake-file',
+      'File written: fake-dir/a-third/fake-file/.type',
+    ]);
   });
 });

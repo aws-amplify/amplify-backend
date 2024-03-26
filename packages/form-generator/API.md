@@ -19,7 +19,7 @@ export type GraphqlFormGenerator = {
 
 // @public (undocumented)
 export type GraphqlGenerationResult = {
-    writeToDirectory: (directoryPath: string, log?: (message: string) => void) => Promise<void>;
+    writeToDirectory: (directoryPath: string) => Promise<string[]>;
 };
 
 // @public (undocumented)

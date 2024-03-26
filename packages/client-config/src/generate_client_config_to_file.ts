@@ -23,10 +23,8 @@ export const generateClientConfigToFile = async (
   backendIdentifier: DeployedBackendIdentifier,
   version: ClientConfigVersion,
   outDir?: string,
-  format?: ClientConfigFormat,
-  // TODO: update this type when Printer interface gets defined in platform-core.
-  log?: (message: string) => void
-): Promise<void> => {
+  format?: ClientConfigFormat
+): Promise<string> => {
   const packageJson = await readPackageJson();
 
   const isLegacyConfig = version === ClientConfigVersionOption.V0;
@@ -47,12 +45,12 @@ export const generateClientConfigToFile = async (
     version
   );
 
-  await clientConfigWriter.writeClientConfig(
+  // returns 'File written: ...' message
+  return await clientConfigWriter.writeClientConfig(
     clientConfig,
     version,
     outDir,
-    format,
-    log
+    format
   );
 };
 

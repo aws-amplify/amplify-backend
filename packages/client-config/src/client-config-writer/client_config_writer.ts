@@ -38,10 +38,8 @@ export class ClientConfigWriter {
     clientConfig: ClientConfig,
     version: ClientConfigVersion,
     outDir?: string,
-    format: ClientConfigFormat = ClientConfigFormat.JSON,
-    // TODO: update this type when Printer interface gets defined in platform-core.
-    log?: (message: string) => void
-  ): Promise<void> => {
+    format: ClientConfigFormat = ClientConfigFormat.JSON
+  ): Promise<string> => {
     const targetPath = await this.pathResolver(
       this.nameResolver(version),
       outDir,
@@ -49,6 +47,7 @@ export class ClientConfigWriter {
     );
     const fileContent = this.formatter.format(clientConfig, format);
     await this.fsp.writeFile(targetPath, fileContent);
-    log?.(`File written: ${path.relative(process.cwd(), targetPath)}`);
+
+    return `File written: ${path.relative(process.cwd(), targetPath)}`;
   };
 }

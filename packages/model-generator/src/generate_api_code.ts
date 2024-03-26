@@ -175,11 +175,15 @@ export class ApiCodeGenerator {
       });
 
       return {
-        writeToDirectory: async (directoryPath: string) => {
-          await Promise.all([
-            documents.writeToDirectory(directoryPath),
-            types.writeToDirectory(directoryPath),
-          ]);
+        writeToDirectory: async (directoryPath: string): Promise<string[]> => {
+          const documentsFileWrittenMessages = await documents.writeToDirectory(
+            directoryPath
+          );
+          const typesFileWrittenMessages = await types.writeToDirectory(
+            directoryPath
+          );
+
+          return [...documentsFileWrittenMessages, ...typesFileWrittenMessages];
         },
         getResults: async () => ({
           ...(await documents.getResults()),
