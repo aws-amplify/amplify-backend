@@ -9,6 +9,8 @@ export {
   OidcProviderProps,
   SamlProviderProps,
   ExternalProviderOptions,
+  VerificationEmailWithCode,
+  VerificationEmailWithLink,
   MFA,
   MFASettings,
   PhoneNumberLogin,
