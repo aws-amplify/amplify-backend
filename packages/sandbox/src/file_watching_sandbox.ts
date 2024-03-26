@@ -355,7 +355,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
   private printSandboxNameInfo = async (optionalName?: string) => {
     const sandboxBackendId = await this.backendIdSandboxResolver(optionalName);
-    // The namespace is the packageJson#name which can be overridden with --name
     this.printer.log(
       format.bold(
         `Starting sandbox for ${format.highlight(sandboxBackendId.name)}`
