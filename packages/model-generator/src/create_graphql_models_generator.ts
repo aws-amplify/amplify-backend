@@ -10,7 +10,29 @@ import { StackMetadataGraphqlModelsGenerator } from './graphql_models_generator.
 import { GraphqlModelsGenerator } from './model_generator.js';
 import { S3StringObjectFetcher } from './s3_string_object_fetcher.js';
 
-export type GraphqlModelsGeneratorFactoryParams = {
+export type GraphqlModelsGeneratorFactoryParams =
+  | {
+      backendIdentifier: DeployedBackendIdentifier;
+      credentialProvider: AwsCredentialIdentityProvider;
+    }
+  | {
+      modelSchemaS3Uri: string;
+      credentialProvider: AwsCredentialIdentityProvider;
+    };
+
+/**
+ * Factory function to compose a model generator.
+ */
+export const createGraphqlModelsGenerator = (
+  params: GraphqlModelsGeneratorFactoryParams
+): GraphqlModelsGenerator => {
+  if ('backendIdentifier' in params) {
+    return createGraphqlModelsGeneratorFromBackendIdentifier(params);
+  }
+  return createGraphqlModelsFromS3UriGenerator(params);
+};
+
+export type GraphqlModelsFromBackendIdentifierParams = {
   backendIdentifier: DeployedBackendIdentifier;
   credentialProvider: AwsCredentialIdentityProvider;
 };
@@ -18,10 +40,10 @@ export type GraphqlModelsGeneratorFactoryParams = {
 /**
  * Factory function to compose a model generator from a backend identifier.
  */
-export const createGraphqlModelsGenerator = ({
+const createGraphqlModelsGeneratorFromBackendIdentifier = ({
   backendIdentifier,
   credentialProvider,
-}: GraphqlModelsGeneratorFactoryParams): GraphqlModelsGenerator => {
+}: GraphqlModelsFromBackendIdentifierParams): GraphqlModelsGenerator => {
   if (!backendIdentifier) {
     throw new Error('`backendIdentifier` must be defined');
   }

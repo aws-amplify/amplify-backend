@@ -28,6 +28,7 @@ import {
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import {
   AmplifyError,
+  AmplifyFault,
   AmplifyUserError,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
@@ -190,23 +191,33 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       ...propsFunctions,
       ...lambdaFunctions,
     });
-    const amplifyApi = new AmplifyData(scope, this.defaultName, {
-      apiName: this.props.name,
-      definition: amplifyGraphqlDefinition,
-      authorizationModes,
-      outputStorageStrategy: this.outputStorageStrategy,
-      functionNameMap,
-      translationBehavior: {
-        sandboxModeEnabled,
-        /**
-         * The destructive updates should be always allowed in backend definition and not to be controlled on the IaC
-         * The CI/CD check should take the responsibility to validate if any tables are being replaced and determine whether to execute the changeset
-         */
-        allowDestructiveGraphqlSchemaUpdates: true,
-      },
-    });
+    let amplifyApi = undefined;
 
-    /**
+    try {
+      amplifyApi = new AmplifyData(scope, this.defaultName, {
+        apiName: this.props.name,
+        definition: amplifyGraphqlDefinition,
+        authorizationModes,
+        outputStorageStrategy: this.outputStorageStrategy,
+        functionNameMap,
+        translationBehavior: {
+          sandboxModeEnabled,
+          /**
+           * The destructive updates should be always allowed in backend definition and not to be controlled on the IaC
+           * The CI/CD check should take the responsibility to validate if any tables are being replaced and determine whether to execute the changeset
+           */
+          allowDestructiveGraphqlSchemaUpdates: true,
+        },
+      });
+    } catch (error) {
+      throw new AmplifyFault(
+        'AmplifyDataConstructFault',
+        { message: 'Failed to instantiate data construct' },
+        error as Error
+      );
+    }
+
+    /**;
      * Enable the table replacement upon GSI update
      * This is allowed in sandbox mode ONLY
      */

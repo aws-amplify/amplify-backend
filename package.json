@@ -15,7 +15,6 @@
     "clean:npm-proxy": "npm run stop:npm-proxy && rimraf verdaccio-cache verdaccio-logs.txt",
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
-    "e2e": "npm run test:dir packages/integration-tests/lib/test-e2e",
     "e2e:cleanup-resources": "tsx scripts/cleanup_e2e_resources.ts",
     "lint": "eslint --max-warnings 0 . && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
