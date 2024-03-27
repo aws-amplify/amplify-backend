@@ -101,7 +101,7 @@ void describe('client config writer', () => {
      */
     assert.match(
       fileWrittenMessage,
-      /^(File written: )(..\/)*(foo\/bar\/baz)$/
+      /^(File written: )(..(\/|\\\\))*(foo\/bar\/baz)$/
     );
   });
 
