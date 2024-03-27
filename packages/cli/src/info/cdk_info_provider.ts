@@ -15,7 +15,13 @@ export class CdkInfoProvider {
    * @returns The cdk doctor output.
    */
   async getCdkInfo(): Promise<string> {
-    const cdkDoctorArgs: string[] = ['cdk', 'doctor', '--', ' --no-color'];
+    const cdkDoctorArgs: string[] = [
+      'cdk',
+      'doctor',
+      '--no-notices',
+      '--',
+      ' --no-color',
+    ];
 
     const output = await this.execa('npx', cdkDoctorArgs, {
       all: true,

@@ -47,25 +47,49 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     if (cause && cause instanceof AmplifyError) {
       cause.serializedError = undefined;
     }
-    this.serializedError = JSON.stringify({
-      name,
-      classification,
-      options,
-      cause,
-    });
+    this.serializedError = JSON.stringify(
+      {
+        name,
+        classification,
+        options,
+        cause,
+      },
+      errorSerializer
+    );
   }
 
   static fromStderr = (_stderr: string): AmplifyError | undefined => {
-    const extractionRegex = /["']?serializedError["']?:[ ]?["'](.*)["']/;
+    /**
+     * `["']?serializedError["']?:[ ]?` captures the start of the serialized error. The quotes depend on which OS is being used
+     * `(?:`(.+?)`|'(.+?)'|"((?:\\"|[^"])*?)")` captures the rest of the serialized string enclosed in either single quote,
+     * double quotes or back-ticks.
+     */
+    const extractionRegex =
+      /["']?serializedError["']?:[ ]?(?:`(.+?)`|'(.+?)'|"((?:\\"|[^"])*?)")/;
     const serialized = _stderr.match(extractionRegex);
-    if (serialized && serialized.length == 2) {
+    if (serialized && serialized.length === 4) {
+      // 4 because 1 match and 3 capturing groups
       try {
-        const { name, classification, options, cause } = JSON.parse(
-          serialized[1]
-        );
+        const serializedString = serialized
+          .slice(1)
+          .find((item) => item && item.length > 0)
+          ?.replaceAll('\\"', '"')
+          .replaceAll("\\'", "'");
+
+        if (!serializedString) {
+          return undefined;
+        }
+
+        const { name, classification, options, cause } =
+          JSON.parse(serializedString);
+
+        let serializedCause = cause;
+        if (cause && ErrorSerializerDeserializer.isSerializedErrorType(cause)) {
+          serializedCause = ErrorSerializerDeserializer.deserialize(cause);
+        }
         return classification === 'ERROR'
-          ? new AmplifyUserError(name, options, cause)
-          : new AmplifyFault(name, options, cause);
+          ? new AmplifyUserError(name, options, serializedCause)
+          : new AmplifyFault(name, options, serializedCause);
       } catch (error) {
         // cannot deserialize
         return undefined;
@@ -115,3 +139,37 @@ export type AmplifyUserErrorOptions = Omit<
   AmplifyErrorOptions,
   'resolution'
 > & { resolution: string };
+
+const errorSerializer = (_: unknown, value: unknown) => {
+  if (value instanceof Error && value?.constructor.name === 'Error') {
+    return ErrorSerializerDeserializer.serialize(value);
+  }
+  return value;
+};
+class ErrorSerializerDeserializer {
+  static serialize = (error: Error) => {
+    const serializedError: SerializedErrorType = {
+      name: 'Error',
+      message: error.message,
+    };
+    return serializedError;
+  };
+
+  static deserialize = (deserialized: SerializedErrorType) => {
+    return new Error(deserialized.message);
+  };
+
+  static isSerializedErrorType = (obj: unknown): obj is SerializedErrorType => {
+    if (
+      obj &&
+      (obj as SerializedErrorType).name &&
+      (obj as SerializedErrorType).name === 'Error'
+    )
+      return true;
+    return false;
+  };
+}
+type SerializedErrorType = {
+  name: string;
+  message: string;
+};

@@ -1,10 +1,15 @@
 import { Amplify } from 'aws-amplify';
 import { downloadData, uploadData } from 'aws-amplify/storage';
+// This is needed to test dependencies that require .node files
+const {
+  utils: { generateKeyPairSync },
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+} = require('ssh2');
 /**
  * This import is for tests to use the generated type generation file.
  * Currently we only use defaultNodeFunction because node16Function has the same environment variables at runtime.
  */
-import { env } from '@env/defaultNodeFunction.js';
+import { env } from '$amplify/env/defaultNodeFunction.js';
 
 // Configure the Amplify client with the storage and auth loaded from the lambda execution role
 Amplify.configure(
@@ -44,6 +49,7 @@ export const getResponse = async () => {
     s3TestContent: await s3RoundTrip(),
     testSecret: env.TEST_SECRET,
     testSharedSecret: env.TEST_SHARED_SECRET,
+    testNodeAddon: `${generateKeyPairSync('ed25519')}`,
   };
 };
 

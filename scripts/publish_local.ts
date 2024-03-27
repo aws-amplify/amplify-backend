@@ -1,6 +1,7 @@
 import { execa } from 'execa';
 import { runPublish } from './publish_runner.js';
 import * as path from 'path';
+import { runVersion } from './version_runner.js';
 
 const runArgs = process.argv.slice(2);
 
@@ -21,9 +22,7 @@ if (!keepGitDiff) {
 
 // this command will write staged changesets into changelog files and update versions
 // this is reverted at the end of this script
-await execa('changeset', ['version'], {
-  stdio: 'inherit',
-});
+await runVersion();
 
 await runPublish({
   includeGitTags: false,

@@ -1,5 +1,39 @@
 # @aws-amplify/client-config
 
+## 0.9.0-beta.8
+
+### Patch Changes
+
+- 8d73779: refactor model generation from schema uri
+- Updated dependencies [8d73779]
+  - @aws-amplify/model-generator@0.5.0-beta.5
+
+## 0.9.0-beta.7
+
+### Patch Changes
+
+- d95ab02: dir options create the target dir if it does not exist
+
+## 0.9.0-beta.6
+
+### Patch Changes
+
+- 4cd282e: fix: populate top level region in the client config
+
+## 0.9.0-beta.5
+
+### Minor Changes
+
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+
+### Patch Changes
+
+- Updated dependencies [b0112e3]
+- Updated dependencies [5e12247]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.4
+  - @aws-amplify/platform-core@0.5.0-beta.3
+  - @aws-amplify/model-generator@0.5.0-beta.4
+
 ## 0.9.0-beta.4
 
 ### Patch Changes
