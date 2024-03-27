@@ -28,13 +28,11 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
       );
       assert.deepEqual(writeFileCall?.arguments, [resolvedName, content]);
       assert(
-        filesWritten.some((message) =>
-          new RegExp(
-            `File written: ${path.relative(
-              '.',
-              path.resolve(path.join(directory, fileName))
-            )}`
-          ).test(message)
+        filesWritten.includes(
+          `File written: ${path.relative(
+            '.',
+            path.resolve(path.join(directory, fileName))
+          )}`
         )
       );
     });
