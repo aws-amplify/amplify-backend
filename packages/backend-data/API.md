@@ -7,7 +7,7 @@
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import { DerivedModelSchema, DerivedModelSchemas } from '@aws-amplify/data-schema-types';
 
 // @public
 export type ApiKeyAuthorizationModeProps = {
@@ -32,7 +32,7 @@ export type DataProps = {
 };
 
 // @public
-export type DataSchema = string | DerivedModelSchema;
+export type DataSchema = string | DerivedModelSchema | DerivedModelSchemas;
 
 // @public
 export type DefaultAuthorizationMode = 'iam' | 'userPool' | 'oidc' | 'apiKey' | 'lambda';

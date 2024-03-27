@@ -1,4 +1,7 @@
-import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import {
+  DerivedCombinedSchema,
+  DerivedModelSchema,
+} from '@aws-amplify/data-schema-types';
 import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
 
 /**
@@ -100,6 +103,14 @@ export type AuthorizationModes = {
 };
 
 /**
+ * Schemas type definition, can be either a raw Graphql string, or a typed model schema, or a collection of combined Schemas.
+ */
+export type DataSchemasCollection =
+  | string
+  | DerivedModelSchema
+  | DerivedCombinedSchema;
+
+/**
  * Schema type definition, can be either a raw Graphql string, or a typed model schema.
  */
 export type DataSchema = string | DerivedModelSchema;
@@ -111,7 +122,7 @@ export type DataProps = {
   /**
    * Graphql Schema as a string to be passed into the CDK construct.
    */
-  schema: DataSchema;
+  schema: DataSchemasCollection;
 
   /**
    * Optional name for the generated Api.

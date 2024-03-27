@@ -1,9 +1,14 @@
-import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import {
+  DataSourceConfiguration,
+  DerivedCombinedSchema,
+  DerivedModelSchema,
+} from '@aws-amplify/data-schema-types';
 import {
   AmplifyDataDefinition,
   IAmplifyDataDefinition,
+  ModelDataSourceStrategy,
 } from '@aws-amplify/data-construct';
-import { DataSchema } from './types.js';
+import { DataSchema, DataSchemasCollection } from './types.js';
 
 /**
  * Determine if the input schema is a derived model schema, and perform type narrowing.
@@ -16,7 +21,22 @@ export const isModelSchema = (
   return (
     schema !== null &&
     typeof schema === 'object' &&
-    typeof schema.transform === 'function'
+    Object.hasOwn(schema, 'transform')
+  );
+};
+
+/**
+ * Determine if the input schema is a collection of model schemas, and perform type narrowing.
+ * @param schema the schema that might be a collection of model schemas
+ * @returns a boolean indicating whether the schema is a collection of derived model schema, with type narrowing
+ */
+export const isCombinedSchema = (
+  schema: DataSchemasCollection
+): schema is DerivedCombinedSchema => {
+  return (
+    schema !== null &&
+    typeof schema === 'object' &&
+    Object.hasOwn(schema, 'schemas')
   );
 };
 
@@ -44,10 +64,9 @@ export const convertSchemaToCDK = (
 
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
       transformedSchema,
-      {
-        dbType,
-        provisionStrategy,
-      }
+      convertDatabaseConfigurationToDataSourceStrategy(
+        schema.data.configuration.database
+      )
     ).dataSourceStrategies;
     return {
       schema: transformedSchema,
@@ -60,4 +79,55 @@ export const convertSchemaToCDK = (
     dbType,
     provisionStrategy,
   });
+};
+
+/**
+ * Given an input list of CDK Graphql Def interface schemas, produce the relevant CDK Graphql Def interface
+ * @param schemas the cdk graphql definition interfaces to combine
+ * @returns the cdk graphql definition interface
+ */
+export const combineCDKSchemas = (
+  schemas: IAmplifyDataDefinition[]
+): IAmplifyDataDefinition => {
+  return AmplifyDataDefinition.combine(schemas);
+};
+
+/**
+ * Given the generated rds builder database configuration, convert it into the DataSource strategy
+ * @param configuration the database configuration from `data-schema`
+ * @returns the data strategy needed to configure the data source
+ */
+const convertDatabaseConfigurationToDataSourceStrategy = (
+  configuration: DataSourceConfiguration
+): ModelDataSourceStrategy => {
+  // DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
+  const defaultDbType = 'DYNAMODB';
+  const defaultProvisionStrategy = 'AMPLIFY_TABLE';
+
+  const dbEngine = configuration.engine;
+
+  if (dbEngine === 'dynamodb') {
+    return {
+      dbType: defaultDbType,
+      provisionStrategy: defaultProvisionStrategy,
+    };
+  }
+
+  const dbType = <Uppercase<typeof configuration.engine>>dbEngine.toUpperCase();
+
+  return {
+    dbType,
+    name: '',
+    dbConnectionConfig: {
+      // These are all about to be replaced
+      databaseNameSsmPath: '',
+      hostnameSsmPath: '',
+      passwordSsmPath: '',
+      portSsmPath: '',
+      usernameSsmPath: '',
+      // Replacement mapping
+      // connectionUriSsmPath: configuration.connectionUri
+    },
+    vpcConfiguration: configuration.vpcConfig,
+  };
 };
