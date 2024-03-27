@@ -7,7 +7,12 @@ import {
   PackageManagerControllerFactory,
   Printer,
 } from '@aws-amplify/cli-core';
-import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
+import {
+  SecretError,
+  SecretListItem,
+  getSecretClient,
+} from '@aws-amplify/backend-secret';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const logMock = mock.fn();
 const mockedPrinter = {
@@ -84,6 +89,32 @@ void describe('Sandbox executor', () => {
     // Assert debounce worked as expected
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     assert.strictEqual(validateAppSourcesProvider.mock.callCount(), 1);
+  });
+
+  void it('throws AmplifyError if listSecrets fails', async () => {
+    const secretError = new SecretError('some secret error');
+    listSecretMock.mock.mockImplementationOnce(() => {
+      throw secretError;
+    });
+    await assert.rejects(
+      () =>
+        sandboxExecutor.deploy(
+          {
+            namespace: 'testSandboxId',
+            name: 'testSandboxName',
+            type: 'sandbox',
+          },
+          validateAppSourcesProvider
+        ),
+      new AmplifyUserError(
+        'ListSecretsFailedError',
+        {
+          message: 'Fetching the list of secrets failed',
+          resolution: 'Check the message in downstream exception',
+        },
+        secretError
+      )
+    );
   });
 
   [true, false].forEach((shouldValidateSources) => {

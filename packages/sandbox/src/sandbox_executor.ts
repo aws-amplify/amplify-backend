@@ -7,6 +7,7 @@ import {
 } from '@aws-amplify/backend-deployer';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { LogLevel, Printer } from '@aws-amplify/cli-core';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Execute CDK commands.
@@ -64,7 +65,19 @@ export class AmplifySandboxExecutor {
   private getSecretLastUpdated = async (
     backendId: BackendIdentifier
   ): Promise<Date | undefined> => {
-    const secrets = await this.secretClient.listSecrets(backendId);
+    let secrets = undefined;
+    try {
+      secrets = await this.secretClient.listSecrets(backendId);
+    } catch (err) {
+      throw new AmplifyUserError(
+        'ListSecretsFailedError',
+        {
+          message: 'Fetching the list of secrets failed',
+          resolution: 'Check the message in downstream exception',
+        },
+        err as Error
+      );
+    }
     let latestTimestamp = -1;
     let secretLastUpdate: Date | undefined;
 

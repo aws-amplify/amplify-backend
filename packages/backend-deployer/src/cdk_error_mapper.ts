@@ -51,7 +51,25 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex: /\[ERR_MODULE_NOT_FOUND\]:(.*)\n/,
+      errorRegex: /Unable to resolve AWS account to use/,
+      humanReadableErrorMessage:
+        'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
+      resolutionMessage:
+        'You can retry your last request as this is most likely a transient issue: https://github.com/aws/aws-cdk/issues/24744',
+      errorName: 'CDKResolveAWSAccountError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex: /EACCES(.*)/,
+      humanReadableErrorMessage: 'File permissions error',
+      resolutionMessage:
+        'Check that you have the right access permissions to the mentioned file',
+      errorName: 'FilePermissionsError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /\[ERR_MODULE_NOT_FOUND\]:(.*)\n|Error: Cannot find module (.*)/,
       humanReadableErrorMessage: 'Cannot find module',
       resolutionMessage:
         'Check your backend definition in the `amplify` folder for missing file or package imports. Try installing them with your package manager.',
@@ -195,8 +213,10 @@ export type CDKDeploymentError =
   | 'BackendBuildError'
   | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
+  | 'CDKResolveAWSAccountError'
   | 'CFNUpdateNotSupportedError'
   | 'CloudFormationDeploymentError'
+  | 'FilePermissionsError'
   | 'MultipleSandboxInstancesError'
   | 'ESBuildError'
   | 'ExpiredTokenError'
