@@ -55,7 +55,7 @@ export class CdkErrorMapper {
       humanReadableErrorMessage:
         'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
       resolutionMessage:
-        'You can retry your last request as this is most likely a transient issue: https://github.com/aws/aws-cdk/issues/24744',
+        'You can retry your last request as this is most likely a transient issue: https://github.com/aws/aws-cdk/issues/24744. If the error persists ensure your local AWS credentials are valid.',
       errorName: 'CDKResolveAWSAccountError',
       classification: 'ERROR',
     },

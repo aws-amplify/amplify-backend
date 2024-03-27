@@ -12,7 +12,8 @@ import {
   SecretListItem,
   getSecretClient,
 } from '@aws-amplify/backend-secret';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
+import { SSMServiceException } from '@aws-sdk/client-ssm';
 
 const logMock = mock.fn();
 const mockedPrinter = {
@@ -91,7 +92,38 @@ void describe('Sandbox executor', () => {
     assert.strictEqual(validateAppSourcesProvider.mock.callCount(), 1);
   });
 
-  void it('throws AmplifyError if listSecrets fails', async () => {
+  void it('throws AmplifyUserError if listSecrets fails due to expired credentials', async () => {
+    const ssmError = new SSMServiceException({
+      name: 'ExpiredTokenException',
+      $fault: 'client',
+      $metadata: {},
+    });
+    const secretsError = SecretError.createInstance(ssmError);
+    listSecretMock.mock.mockImplementationOnce(() => {
+      throw secretsError;
+    });
+    await assert.rejects(
+      () =>
+        sandboxExecutor.deploy(
+          {
+            namespace: 'testSandboxId',
+            name: 'testSandboxName',
+            type: 'sandbox',
+          },
+          validateAppSourcesProvider
+        ),
+      new AmplifyUserError(
+        'SecretsExpiredTokenError',
+        {
+          message: 'Fetching the list of secrets failed due to expired tokens',
+          resolution: 'Please refresh your credentials and try again',
+        },
+        secretsError
+      )
+    );
+  });
+
+  void it('throws AmplifyFault if listSecrets fails due to exception other than expired credentials', async () => {
     const secretError = new SecretError('some secret error');
     listSecretMock.mock.mockImplementationOnce(() => {
       throw secretError;
@@ -106,11 +138,10 @@ void describe('Sandbox executor', () => {
           },
           validateAppSourcesProvider
         ),
-      new AmplifyUserError(
-        'ListSecretsFailedError',
+      new AmplifyFault(
+        'ListSecretsFailedFault',
         {
           message: 'Fetching the list of secrets failed',
-          resolution: 'Check the message in downstream exception',
         },
         secretError
       )
