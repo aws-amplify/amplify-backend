@@ -16,7 +16,7 @@ export class CodegenGraphqlFormGeneratorResult
    * writes the components to a given directory
    */
   writeToDirectory = async (directoryPath: string) => {
-    const fileWrittenMessages: string[] = [];
+    const filesWritten: string[] = [];
 
     try {
       await fs.stat(directoryPath);
@@ -31,7 +31,7 @@ export class CodegenGraphqlFormGeneratorResult
         const fd = await fs.open(filePath, 'w+');
         try {
           await fd.writeFile(content);
-          fileWrittenMessages.push(
+          filesWritten.push(
             `File written: ${path.relative(process.cwd(), filePath)}`
           );
         } finally {
@@ -40,6 +40,6 @@ export class CodegenGraphqlFormGeneratorResult
       }
     }
 
-    return fileWrittenMessages;
+    return { filesWritten };
   };
 }

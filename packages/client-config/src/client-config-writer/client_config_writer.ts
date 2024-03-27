@@ -7,6 +7,7 @@ import {
   ClientConfigVersion,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatter } from './client_config_formatter.js';
+import { FilesWrittenResult } from '@aws-amplify/plugin-types';
 
 export type ClientConfigPathResolver = (
   fileName: ClientConfigFileBaseName,
@@ -39,7 +40,7 @@ export class ClientConfigWriter {
     version: ClientConfigVersion,
     outDir?: string,
     format: ClientConfigFormat = ClientConfigFormat.JSON
-  ): Promise<string> => {
+  ): Promise<FilesWrittenResult> => {
     const targetPath = await this.pathResolver(
       this.nameResolver(version),
       outDir,
@@ -48,6 +49,10 @@ export class ClientConfigWriter {
     const fileContent = this.formatter.format(clientConfig, format);
     await this.fsp.writeFile(targetPath, fileContent);
 
-    return `File written: ${path.relative(process.cwd(), targetPath)}`;
+    return {
+      filesWritten: [
+        `File written: ${path.relative(process.cwd(), targetPath)}`,
+      ],
+    };
   };
 }

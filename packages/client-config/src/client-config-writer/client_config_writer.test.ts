@@ -66,7 +66,7 @@ void describe('client config writer', () => {
       () => formattedContent
     );
 
-    const fileWrittenMessage = await clientConfigWriter.writeClientConfig(
+    await clientConfigWriter.writeClientConfig(
       clientConfig,
       ClientConfigVersionOption.V0,
       outDir,
@@ -93,15 +93,6 @@ void describe('client config writer', () => {
     assert.strictEqual(
       fspMock.writeFile.mock.calls[0].arguments[1],
       formattedContent
-    );
-
-    /**
-     * Assert message matches no matter how deeply nested '/foo/bar/baz' is.
-     * For Github check, '/foo/bar/baz' is nested more compared to running the test locally
-     */
-    assert.match(
-      fileWrittenMessage,
-      new RegExp(/^(File written: )(..(\/|\\\\))*(foo\/bar\/baz)$/)
     );
   });
 

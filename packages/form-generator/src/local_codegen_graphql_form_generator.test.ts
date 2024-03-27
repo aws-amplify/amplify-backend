@@ -66,7 +66,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         stat: async () => ({}),
         close: async () => undefined,
       }));
-      const fileWrittenMessages = await output.writeToDirectory('./');
+      const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
       const writeFileArgs = writeFileMock.mock.calls.flatMap(
         (c) => c.arguments[0]
@@ -88,7 +88,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
 
       utilFSWriteArgs.forEach((fileName) => {
         assert(
-          fileWrittenMessages.some((message) =>
+          filesWritten.some((message) =>
             new RegExp(`^File written: ${fileName as string}$`).test(message)
           )
         );
@@ -113,12 +113,12 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         stat: async () => ({}),
         close: async () => undefined,
       }));
-      const fileWrittenMessages = await output.writeToDirectory('./');
+      const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
       assert(writeArgs.includes('index.js'));
 
       assert(
-        fileWrittenMessages.some((message) =>
+        filesWritten.some((message) =>
           new RegExp('^File written: index.js$').test(message)
         )
       );
@@ -157,14 +157,14 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         stat: async () => ({}),
         close: async () => undefined,
       }));
-      const fileWrittenMessages = await output.writeToDirectory('./');
+      const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
       assert(
         models.every((m) => {
           const didWriteFile = writeArgs.some((arg) =>
             new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString())
           );
-          const didLogMessage = fileWrittenMessages.some((logMessage) =>
+          const didLogMessage = filesWritten.some((logMessage) =>
             new RegExp(`^File written: ${m}(Update|Create)Form.d.ts$`).test(
               logMessage.toString()
             )

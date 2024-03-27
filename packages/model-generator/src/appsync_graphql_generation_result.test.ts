@@ -19,7 +19,7 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
     const result = new AppsyncGraphqlGenerationResult(files);
     const directory = './fake-dir';
 
-    const fileWrittenMessages = await result.writeToDirectory(directory);
+    const { filesWritten } = await result.writeToDirectory(directory);
 
     Object.entries(files).forEach(([fileName, content]) => {
       const resolvedName = path.resolve(path.join(directory, fileName));
@@ -27,11 +27,16 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
         ({ arguments: [f] }) => resolvedName === f
       );
       assert.deepEqual(writeFileCall?.arguments, [resolvedName, content]);
+      assert(
+        filesWritten.some((message) =>
+          new RegExp(
+            `File written: ${path.relative(
+              '.',
+              path.resolve(path.join(directory, fileName))
+            )}`
+          ).test(message)
+        )
+      );
     });
-    assert.deepEqual(fileWrittenMessages, [
-      'File written: fake-dir/fake-file',
-      'File written: fake-dir/a-second-fake-file',
-      'File written: fake-dir/a-third/fake-file/.type',
-    ]);
   });
 });

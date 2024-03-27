@@ -33,10 +33,9 @@ export class FormGenerationHandler {
     const modelsResult = await graphqlClientGenerator.generateModels({
       targetFormat: 'typescript',
     });
-    const modelsFileWrittenMessages = await modelsResult.writeToDirectory(
-      modelsOutDir
-    );
-    this.logMessages(modelsFileWrittenMessages);
+    const { filesWritten: modelsFilesWritten } =
+      await modelsResult.writeToDirectory(modelsOutDir);
+    this.logMessages(modelsFilesWritten);
 
     const localFormGenerator = createLocalGraphqlFormGenerator({
       introspectionSchemaUrl: apiUrl,
@@ -45,8 +44,10 @@ export class FormGenerationHandler {
     const result = await localFormGenerator.generateForms({
       models: modelsFilter,
     });
-    const uiFileWrittenMessages = await result.writeToDirectory(uiOutDir);
-    this.logMessages(uiFileWrittenMessages);
+    const { filesWritten: uiFilesWritten } = await result.writeToDirectory(
+      uiOutDir
+    );
+    this.logMessages(uiFilesWritten);
   };
 
   private logMessages = (messages: string[]) => {

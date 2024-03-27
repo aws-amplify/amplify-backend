@@ -3,6 +3,7 @@ import {
   StatementsTarget,
   TypesTarget,
 } from '@aws-amplify/graphql-generator';
+import { FilesWrittenResult } from '@aws-amplify/plugin-types';
 
 export type DocumentGenerationParameters = {
   targetFormat: StatementsTarget;
@@ -11,7 +12,7 @@ export type DocumentGenerationParameters = {
   relativeTypesPath?: string;
 };
 export type GenerationResult = {
-  writeToDirectory: (directoryPath: string) => Promise<string[]>;
+  writeToDirectory: (directoryPath: string) => Promise<FilesWrittenResult>;
   getResults: () => Promise<Record<string, string>>;
 };
 

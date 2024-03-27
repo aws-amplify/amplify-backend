@@ -6,6 +6,7 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { FilesWrittenResult } from '@aws-amplify/plugin-types';
 import { ModelsTarget } from '@aws-amplify/graphql-generator';
 import { StatementsTarget } from '@aws-amplify/graphql-generator';
 import { TypesTarget } from '@aws-amplify/graphql-generator';
@@ -122,7 +123,7 @@ export type GenerateOptions = GenerateGraphqlCodegenOptions | GenerateModelsOpti
 
 // @public (undocumented)
 export type GenerationResult = {
-    writeToDirectory: (directoryPath: string) => Promise<string[]>;
+    writeToDirectory: (directoryPath: string) => Promise<FilesWrittenResult>;
     getResults: () => Promise<Record<string, string>>;
 };
 

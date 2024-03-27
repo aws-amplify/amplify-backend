@@ -13,6 +13,7 @@ import { createGraphqlDocumentGenerator } from './create_graphql_document_genera
 import { getOutputFileName } from '@aws-amplify/graphql-types-generator';
 import path from 'path';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { FilesWrittenResult } from '@aws-amplify/plugin-types';
 
 export enum GenerateApiCodeFormat {
   MODELGEN = 'modelgen',
@@ -175,15 +176,19 @@ export class ApiCodeGenerator {
       });
 
       return {
-        writeToDirectory: async (directoryPath: string): Promise<string[]> => {
-          const documentsFileWrittenMessages = await documents.writeToDirectory(
-            directoryPath
-          );
-          const typesFileWrittenMessages = await types.writeToDirectory(
-            directoryPath
-          );
+        writeToDirectory: async (
+          directoryPath: string
+        ): Promise<FilesWrittenResult> => {
+          const filesWritten: string[] = [];
+          const { filesWritten: documentsFilesWritten } =
+            await documents.writeToDirectory(directoryPath);
+          const { filesWritten: typesFilesWritten } =
+            await types.writeToDirectory(directoryPath);
+          filesWritten.push(...documentsFilesWritten, ...typesFilesWritten);
 
-          return [...documentsFileWrittenMessages, ...typesFileWrittenMessages];
+          return {
+            filesWritten,
+          };
         },
         getResults: async () => ({
           ...(await documents.getResults()),

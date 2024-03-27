@@ -15,12 +15,12 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
   constructor(private operations: ClientOperations) {}
 
   writeToDirectory = async (directoryPath: string) => {
-    const fileWrittenMessages: string[] = [];
+    const filesWritten: string[] = [];
     await Promise.all(
       Object.entries(this.operations).map(async ([fileName, content]) => {
         await this.writeSchemaToFile(directoryPath, fileName, content).then(
           (filePath: string) => {
-            fileWrittenMessages.push(
+            filesWritten.push(
               `File written: ${path.relative(process.cwd(), filePath)}`
             );
             return;
@@ -29,7 +29,7 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
       })
     );
 
-    return fileWrittenMessages;
+    return { filesWritten };
   };
 
   getResults = async (): Promise<Record<string, string>> => {
