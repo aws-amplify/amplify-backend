@@ -94,9 +94,14 @@ void describe('client config writer', () => {
       fspMock.writeFile.mock.calls[0].arguments[1],
       formattedContent
     );
-    assert.strictEqual(
+
+    /**
+     * Assert message matches no matter how deeply nested '/foo/bar/baz' is.
+     * For Github check, '/foo/bar/baz' is nested more compared to running the test locally
+     */
+    assert.match(
       fileWrittenMessage,
-      'File written: ../../../../foo/bar/baz'
+      /^(File written: )(..\/)*(foo\/bar\/baz)$/
     );
   });
 
