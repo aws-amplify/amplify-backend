@@ -5,7 +5,7 @@ import {
 import { parse } from 'graphql';
 import * as graphqlCodegen from '@graphql-codegen/core';
 import * as appsync from '@aws-amplify/appsync-modelgen-plugin';
-import { directives } from './aws_graphql_directives.js';
+import { DefaultDirectives, Directive } from '@aws-amplify/graphql-directives';
 
 /**
  * Transforms an AppSync introspection schema for use in form generation
@@ -17,7 +17,9 @@ export const transformIntrospectionSchema = async (
     baseOutputDir: './',
     schema: parse(modelIntrospectionSchema),
     config: {
-      directives,
+      directives: DefaultDirectives.map(
+        (directive: Directive) => directive.definition
+      ).join('\n'),
       isTimestampFieldsAdded: true,
       emitAuthProvider: true,
       generateIndexRules: true,
