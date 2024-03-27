@@ -20,6 +20,8 @@ export class CommandMiddleware {
   >(
     argv: ArgumentsCamelCase<T>
   ) => {
+    this.normalizeEnvironmentVariables();
+
     if (argv.profile) {
       process.env.AWS_PROFILE = argv.profile;
     }
@@ -64,4 +66,19 @@ export class CommandMiddleware {
       throw new InvalidCredentialError(errMsg, { cause: err });
     }
   };
+
+  /**
+   * The AWS CDK respects older CLI v1 variable names that are no longer supported in the
+   * latest AWS SDK. Developers that use the older variables and interoperate between Amplify
+   * and CDK will experience region mismatch failures when using Amplify tools. Variable names
+   * known to cause such failures are normalized here for a better developer experience.
+   */
+  private normalizeEnvironmentVariables(): void {
+    if (process.env.AWS_DEFAULT_PROFILE && !process.env.AWS_PROFILE) {
+      process.env.AWS_PROFILE = process.env.AWS_DEFAULT_PROFILE;
+    }
+    if (process.env.AWS_DEFAULT_REGION && !process.env.AWS_REGION) {
+      process.env.AWS_REGION = process.env.AWS_DEFAULT_REGION;
+    }
+  }
 }

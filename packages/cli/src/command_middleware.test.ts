@@ -28,11 +28,13 @@ void describe('commandMiddleware', () => {
     let configFilePath: string;
 
     const currentProfile = process.env.AWS_PROFILE;
+    const currentDefaultProfile = process.env.AWS_DEFAULT_PROFILE;
     const currentConfigFile = process.env.AWS_CONFIG_FILE;
     const currentCredentialFile = process.env.AWS_SHARED_CREDENTIALS_FILE;
     const currentAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
     const currentSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
     const currentRegion = process.env.AWS_REGION;
+    const currentDefaultRegion = process.env.AWS_DEFAULT_REGION;
 
     before(async () => {
       testDir = await fs.mkdtemp('profile_middleware_test');
@@ -45,11 +47,13 @@ void describe('commandMiddleware', () => {
     after(async () => {
       await fs.rm(testDir, { recursive: true, force: true });
       restoreEnv(currentProfile, 'AWS_PROFILE');
+      restoreEnv(currentDefaultProfile, 'AWS_DEFAULT_PROFILE');
       restoreEnv(currentConfigFile, 'AWS_CONFIG_FILE');
       restoreEnv(currentCredentialFile, 'AWS_SHARED_CREDENTIALS_FILE');
       restoreEnv(currentAccessKeyId, 'AWS_ACCESS_KEY_ID');
       restoreEnv(currentSecretAccessKey, 'AWS_SECRET_ACCESS_KEY');
       restoreEnv(currentRegion, 'AWS_REGION');
+      restoreEnv(currentDefaultRegion, 'AWS_DEFAULT_REGION');
     });
 
     void describe('from environment variables', () => {
@@ -68,8 +72,29 @@ void describe('commandMiddleware', () => {
         );
       });
 
-      void it('throws error if absent region environment variable', async () => {
+      void it('normalizes AWS_DEFAULT_REGION to AWS_REGION', async () => {
         delete process.env.AWS_REGION;
+        process.env.AWS_DEFAULT_REGION = testRegion;
+        await assert.doesNotReject(() =>
+          commandMiddleware.ensureAwsCredentialAndRegion(
+            {} as ArgumentsCamelCase<{ profile: string | undefined }>
+          )
+        );
+      });
+
+      void it('prefers AWS_REGION to AWS_DEFAULT_REGION', async () => {
+        process.env.AWS_DEFAULT_REGION = 'testDefaultRegion';
+        await assert.doesNotReject(() =>
+          commandMiddleware.ensureAwsCredentialAndRegion(
+            {} as ArgumentsCamelCase<{ profile: string | undefined }>
+          )
+        );
+        assert.equal(process.env.AWS_REGION, testRegion);
+      });
+
+      void it('throws error if absent region environment variables', async () => {
+        delete process.env.AWS_REGION;
+        delete process.env.AWS_DEFAULT_REGION;
         try {
           await commandMiddleware.ensureAwsCredentialAndRegion(
             {} as ArgumentsCamelCase<{ profile: string | undefined }>
@@ -207,6 +232,32 @@ void describe('commandMiddleware', () => {
             profile: testProfile,
           } as ArgumentsCamelCase<{ profile: string | undefined }>)
         );
+      });
+
+      void it('normalizes AWS_DEFAULT_PROFILE to AWS_PROFILE', async () => {
+        process.env.AWS_DEFAULT_PROFILE = testProfile;
+        await writeProfileRegion(testProfile);
+        await writeProfileCredential(testProfile);
+
+        await assert.doesNotReject(() =>
+          commandMiddleware.ensureAwsCredentialAndRegion(
+            {} as ArgumentsCamelCase<{ profile: string | undefined }>
+          )
+        );
+      });
+
+      void it('prefers AWS_PROFILE over AWS_DEFAULT_PROFILE', async () => {
+        process.env.AWS_DEFAULT_PROFILE = 'testDefaultProfile';
+        process.env.AWS_PROFILE = testProfile;
+        await writeProfileRegion(testProfile);
+        await writeProfileCredential(testProfile);
+
+        await assert.doesNotReject(() =>
+          commandMiddleware.ensureAwsCredentialAndRegion(
+            {} as ArgumentsCamelCase<{ profile: string | undefined }>
+          )
+        );
+        assert.equal(process.env.AWS_PROFILE, testProfile);
       });
     });
   });
