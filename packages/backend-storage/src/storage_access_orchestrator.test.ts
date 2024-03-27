@@ -28,7 +28,7 @@ void describe('StorageAccessOrchestrator', () => {
       const acceptResourceAccessMock = mock.fn();
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/test/prefix/*': [
+          'test/prefix/*': [
             {
               actions: ['get', 'write'],
               getResourceAccessAcceptor: () => ({
@@ -57,7 +57,7 @@ void describe('StorageAccessOrchestrator', () => {
       const acceptResourceAccessMock = mock.fn();
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/test/prefix/*': [
+          'test/prefix/*': [
             {
               actions: ['get', 'write'],
               getResourceAccessAcceptor: () => ({
@@ -107,14 +107,14 @@ void describe('StorageAccessOrchestrator', () => {
       });
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/test/prefix/*': [
+          'test/prefix/*': [
             {
               actions: ['get', 'write', 'delete'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub,
               idSubstitution: '*',
             },
           ],
-          '/another/prefix/*': [
+          'another/prefix/*': [
             {
               actions: ['get'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub,
@@ -174,7 +174,7 @@ void describe('StorageAccessOrchestrator', () => {
       });
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/test/prefix/*': [
+          'test/prefix/*': [
             {
               actions: ['get', 'write', 'delete'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
@@ -186,7 +186,7 @@ void describe('StorageAccessOrchestrator', () => {
               idSubstitution: '*',
             },
           ],
-          '/another/prefix/*': [
+          'another/prefix/*': [
             {
               actions: ['get', 'delete'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
@@ -260,7 +260,7 @@ void describe('StorageAccessOrchestrator', () => {
       const acceptResourceAccessMock = mock.fn();
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          [`/test/${entityIdPathToken}/*`]: [
+          [`test/${entityIdPathToken}/*`]: [
             {
               actions: ['get', 'write'],
               getResourceAccessAcceptor: () => ({
@@ -307,7 +307,7 @@ void describe('StorageAccessOrchestrator', () => {
       const acceptResourceAccessMock2 = mock.fn();
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/foo/*': [
+          'foo/*': [
             {
               actions: ['get', 'write'],
               getResourceAccessAcceptor: () => ({
@@ -317,7 +317,7 @@ void describe('StorageAccessOrchestrator', () => {
               idSubstitution: '*',
             },
           ],
-          '/foo/bar/*': [
+          'foo/bar/*': [
             {
               actions: ['get'],
               getResourceAccessAcceptor: () => ({
@@ -393,7 +393,7 @@ void describe('StorageAccessOrchestrator', () => {
 
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/foo/{entity_id}/*': [
+          'foo/{entity_id}/*': [
             {
               actions: ['write', 'delete'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
@@ -458,7 +458,7 @@ void describe('StorageAccessOrchestrator', () => {
         () => ({
           // acceptor1 should have read write on this path
           // acceptor2 should not have any rules for this path
-          '/foo/*': [
+          'foo/*': [
             {
               actions: ['get', 'write'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
@@ -467,7 +467,7 @@ void describe('StorageAccessOrchestrator', () => {
           ],
           // acceptor1 should be denied read and write on this path
           // acceptor2 should have only read on this path
-          '/foo/bar/*': [
+          'foo/bar/*': [
             {
               actions: ['get'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
@@ -476,7 +476,7 @@ void describe('StorageAccessOrchestrator', () => {
           ],
           // acceptor1 should be denied write on this path (read from parent path covers read on this path)
           // acceptor2 should not have any rules for this path
-          '/foo/baz/*': [
+          'foo/baz/*': [
             {
               actions: ['get'],
               idSubstitution: '*',
@@ -485,7 +485,7 @@ void describe('StorageAccessOrchestrator', () => {
           ],
           // acceptor 1 is denied write on this path (read still allowed)
           // acceptor 2 has read/write/delete on path with ownerSub
-          '/other/{entity_id}/*': [
+          'other/{entity_id}/*': [
             {
               actions: ['get', 'write', 'delete'],
               getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
@@ -582,7 +582,7 @@ void describe('StorageAccessOrchestrator', () => {
 
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/foo/*': [
+          'foo/*': [
             {
               actions: ['get'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
@@ -645,7 +645,7 @@ void describe('StorageAccessOrchestrator', () => {
 
       const storageAccessOrchestrator = new StorageAccessOrchestrator(
         () => ({
-          '/foo/bar/*': [
+          'foo/bar/*': [
             {
               actions: ['read', 'get', 'list'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
@@ -657,7 +657,7 @@ void describe('StorageAccessOrchestrator', () => {
               idSubstitution: '*',
             },
           ],
-          '/other/baz/*': [
+          'other/baz/*': [
             {
               actions: ['read'],
               getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,

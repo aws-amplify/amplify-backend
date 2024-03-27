@@ -51,6 +51,34 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /\[ERR_MODULE_NOT_FOUND\]:(.*)\n/,
+      humanReadableErrorMessage: 'Cannot find module',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for missing file or package imports. Try installing them with your package manager.',
+      errorName: 'ModuleNotFoundError',
+      classification: 'ERROR',
+    },
+    {
+      // Truncate the cdk error message's second line (Invoke the CLI in sequence, or use '--output' to synth into different directories.)
+      errorRegex:
+        /Another CLI (.*) is currently(.*)\. |Other CLIs (.*) are currently reading from(.*)\. /,
+      humanReadableErrorMessage: 'Multiple sandbox instances detected.',
+      resolutionMessage:
+        'Make sure only one instance of sandbox is running for this project',
+      errorName: 'MultipleSandboxInstancesError',
+      classification: 'ERROR',
+    },
+    {
+      // Also extracts the first line in the stack where the error happened
+      errorRegex: /\[esbuild Error\]: ((?:.|\n)*?at .*)/,
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'ESBuildError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: /Amplify Backend not found in/,
       humanReadableErrorMessage:
         'Backend definition could not be found in amplify directory.',
@@ -64,15 +92,6 @@ export class CdkErrorMapper {
         'File name or path for backend definition are incorrect.',
       resolutionMessage: 'Ensure that the amplify/backend.(ts|js) file exists',
       errorName: 'FileConventionError',
-      classification: 'ERROR',
-    },
-    {
-      // the backend entry point file is referenced in the stack indicating a problem in customer code
-      errorRegex: /amplify\/backend/,
-      humanReadableErrorMessage: 'Unable to build Amplify backend.',
-      resolutionMessage:
-        'Check your backend definition in the `amplify` folder for syntax and type errors.',
-      errorName: 'BackendBuildError',
       classification: 'ERROR',
     },
     {
@@ -95,6 +114,26 @@ export class CdkErrorMapper {
       resolutionMessage:
         'To change these attributes, remove `defineAuth` from your backend, deploy, then add it back. Note that removing `defineAuth` and deploying will delete any users stored in your UserPool.',
       errorName: 'CFNUpdateNotSupportedError',
+      classification: 'ERROR',
+    },
+    {
+      // Error: .* is printed to stderr during cdk synth
+      // Also extracts the first line in the stack where the error happened
+      errorRegex: /^Error: (.*\n.*at.*)/m,
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'BackendSynthError',
+      classification: 'ERROR',
+    },
+    {
+      // "Catch all": the backend entry point file is referenced in the stack indicating a problem in customer code
+      errorRegex: /amplify\/backend/,
+      humanReadableErrorMessage: 'Unable to build Amplify backend.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'BackendBuildError',
       classification: 'ERROR',
     },
     {
@@ -152,13 +191,16 @@ export class CdkErrorMapper {
 }
 
 export type CDKDeploymentError =
-  | 'ExpiredTokenError'
   | 'AccessDeniedError'
-  | 'BootstrapNotDetectedError'
-  | 'SyntaxError'
-  | 'FileConventionError'
-  | 'FileConventionError'
   | 'BackendBuildError'
+  | 'BackendSynthError'
+  | 'BootstrapNotDetectedError'
   | 'CFNUpdateNotSupportedError'
-  | 'CFNUpdateNotSupportedError'
-  | 'CloudFormationDeploymentError';
+  | 'CloudFormationDeploymentError'
+  | 'MultipleSandboxInstancesError'
+  | 'ESBuildError'
+  | 'ExpiredTokenError'
+  | 'FileConventionError'
+  | 'FileConventionError'
+  | 'ModuleNotFoundError'
+  | 'SyntaxError';

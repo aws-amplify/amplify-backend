@@ -3,6 +3,7 @@ import { GenerateConfigCommand } from './config/generate_config_command.js';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { CommandMiddleware } from '../../command_middleware.js';
+import { GenerateSchemaCommand } from './schema-from-database/generate_schema_command.js';
 
 /**
  * An entry point for generate command.
@@ -25,6 +26,7 @@ export class GenerateCommand implements CommandModule {
     private readonly generateConfigCommand: GenerateConfigCommand,
     private readonly generateFormsCommand: GenerateFormsCommand,
     private readonly generateGraphqlClientCodeCommand: GenerateGraphqlClientCodeCommand,
+    private readonly generateSchemaCommand: GenerateSchemaCommand,
     private readonly commandMiddleware: CommandMiddleware
   ) {
     this.command = 'generate';
@@ -51,6 +53,7 @@ export class GenerateCommand implements CommandModule {
         .command(
           this.generateGraphqlClientCodeCommand as unknown as CommandModule
         )
+        .command(this.generateSchemaCommand as unknown as CommandModule)
         .demandCommand()
         .strictCommands()
         .recommendCommands()

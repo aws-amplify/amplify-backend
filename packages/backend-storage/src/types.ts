@@ -88,6 +88,6 @@ export type StorageAccessDefinition = {
 export type StorageAction = 'read' | 'get' | 'list' | 'write' | 'delete';
 
 /**
- * Storage access paths must start with / and end with /*
+ * Storage access paths must end with /*
  */
-export type StoragePath = `/${string}/*`;
+export type StoragePath = `${string}/*`;

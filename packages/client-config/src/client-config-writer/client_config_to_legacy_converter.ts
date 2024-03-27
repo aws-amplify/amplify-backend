@@ -31,6 +31,15 @@ export class ClientConfigLegacyConverter {
 
     let legacyConfig: ClientConfigLegacy = {};
 
+    // Gen2 backend constructs use the Stack's region and is identical. We use these to
+    // populate the root level aws_project_region in legacy config.
+    if (clientConfig.auth || clientConfig.data || clientConfig.storage) {
+      legacyConfig.aws_project_region =
+        clientConfig.auth?.aws_region ??
+        clientConfig.data?.aws_region ??
+        clientConfig.storage?.aws_region;
+    }
+
     // Auth
     if (clientConfig.auth) {
       const authClientConfig: AuthClientConfig = {

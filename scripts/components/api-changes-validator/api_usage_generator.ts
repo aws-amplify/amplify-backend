@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { EOL } from 'os';
-import { UsageStatements } from './types.js';
+import { NamespaceDefinitions, UsageStatements } from './types.js';
 import {
   ClassUsageStatementsGenerator,
   EnumUsageStatementsGenerator,
@@ -13,13 +13,17 @@ import {
  * Generates API usage using API.md definition.
  */
 export class ApiUsageGenerator {
+  private readonly namespaceDefinitions: NamespaceDefinitions;
+
   /**
    * Creates generator.
    */
   constructor(
     private readonly packageName: string,
     private readonly apiReportAST: ts.SourceFile
-  ) {}
+  ) {
+    this.namespaceDefinitions = this.getNamespaceDefinitions();
+  }
 
   generate = (): string => {
     const importStatements: Array<string> = [];
@@ -38,6 +42,12 @@ export class ApiUsageGenerator {
       }
     }
 
+    for (const namespaceName of this.namespaceDefinitions.namespaceNames) {
+      importStatements.push(
+        `import { ${namespaceName} } from '${this.packageName}';`
+      );
+    }
+
     return `${importStatements.join(EOL)}${EOL}${EOL}${usageStatements.join(
       EOL
     )}${EOL}`;
@@ -54,7 +64,8 @@ export class ApiUsageGenerator {
       case ts.SyntaxKind.TypeAliasDeclaration:
         return new TypeUsageStatementsGenerator(
           node as ts.TypeAliasDeclaration,
-          this.packageName
+          this.packageName,
+          this.namespaceDefinitions
         ).generate();
       case ts.SyntaxKind.EnumDeclaration:
         return new EnumUsageStatementsGenerator(
@@ -78,5 +89,47 @@ export class ApiUsageGenerator {
 
         return undefined;
     }
+  };
+
+  /**
+   * This method scans top level AST statements to find namespaces and symbols exported via namespace.
+   */
+  private getNamespaceDefinitions = (): NamespaceDefinitions => {
+    const namespaceDefinitions: NamespaceDefinitions = {
+      namespaceBySymbol: new Map<string, string>(),
+      namespaceNames: [],
+    };
+    for (const statement of this.apiReportAST.statements) {
+      if (statement.kind === ts.SyntaxKind.ModuleDeclaration) {
+        const moduleDeclaration = statement as ts.ModuleDeclaration;
+        const namespaceName = moduleDeclaration.name.getText();
+        namespaceDefinitions.namespaceNames.push(namespaceName);
+        if (moduleDeclaration.body?.kind === ts.SyntaxKind.ModuleBlock) {
+          const moduleBody = moduleDeclaration.body as ts.ModuleBlock;
+          for (const moduleBodyStatement of moduleBody.statements) {
+            if (moduleBodyStatement.kind === ts.SyntaxKind.ExportDeclaration) {
+              const exportDeclaration =
+                moduleBodyStatement as ts.ExportDeclaration;
+              if (
+                exportDeclaration.exportClause?.kind ===
+                ts.SyntaxKind.NamedExports
+              ) {
+                const namedExports =
+                  exportDeclaration.exportClause as ts.NamedExports;
+                for (const namedExport of namedExports.elements) {
+                  const symbolName = namedExport.name.getText();
+                  namespaceDefinitions.namespaceBySymbol.set(
+                    symbolName,
+                    namespaceName
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return namespaceDefinitions;
   };
 }

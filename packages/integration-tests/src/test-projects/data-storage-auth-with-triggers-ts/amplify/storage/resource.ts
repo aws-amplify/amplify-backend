@@ -13,7 +13,7 @@ export const storage = defineStorage({
     onUpload,
   },
   access: (allow) => ({
-    '/public/*': [
+    'public/*': [
       allow.resource(defaultNodeFunc).to(['read', 'write']),
       allow.resource(node16Func).to(['read', 'write']),
     ],

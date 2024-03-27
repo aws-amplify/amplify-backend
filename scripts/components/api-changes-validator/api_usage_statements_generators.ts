@@ -1,4 +1,8 @@
-import { UsageStatements, UsageStatementsGenerator } from './types.js';
+import {
+  NamespaceDefinitions,
+  UsageStatements,
+  UsageStatementsGenerator,
+} from './types.js';
 import ts from 'typescript';
 import { EOL } from 'os';
 
@@ -119,7 +123,8 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
    */
   constructor(
     private readonly typeAliasDeclaration: ts.TypeAliasDeclaration,
-    private readonly packageName: string
+    private readonly packageName: string,
+    private readonly namespaceDefinitions: NamespaceDefinitions
   ) {}
   generate = (): UsageStatements => {
     const typeName = this.typeAliasDeclaration.name.getText();
@@ -134,17 +139,27 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
       ).generate().usageStatement ?? '';
     const baselineTypeName = `${typeName}Baseline`;
     const functionParameterName = `${constName}FunctionParameter`;
+    let importStatement: string | undefined;
+    let typeNameWithNamespace: string;
+    if (this.namespaceDefinitions.namespaceBySymbol.has(typeName)) {
+      typeNameWithNamespace = `${this.namespaceDefinitions.namespaceBySymbol.get(
+        typeName
+      )}.${typeName}`;
+    } else {
+      importStatement = `import { ${typeName} } from '${this.packageName}';`;
+      typeNameWithNamespace = typeName;
+    }
     // declare type with same content under different name.
     let usageStatement = `type ${baselineTypeName}${genericTypeParametersDeclaration} = ${this.typeAliasDeclaration.type.getText()}${EOL}`;
     // add statement that checks if old type can be assigned to new type.
-    const assignmentStatement = `const ${constName}: ${typeName}${genericTypeParameters} = ${functionParameterName};`;
+    const assignmentStatement = `const ${constName}: ${typeNameWithNamespace}${genericTypeParameters} = ${functionParameterName};`;
     usageStatement += `const ${toLowerCamelCase(
       typeName
     )}UsageFunction = ${genericTypeParametersDeclaration}(${functionParameterName}: ${baselineTypeName}${genericTypeParameters}) => {${EOL}`;
     usageStatement += `${indent(assignmentStatement)}${EOL}`;
     usageStatement += `}${EOL}`;
     return {
-      importStatement: `import { ${typeName} } from '${this.packageName}';`,
+      importStatement,
       usageStatement: usageStatement,
     };
   };

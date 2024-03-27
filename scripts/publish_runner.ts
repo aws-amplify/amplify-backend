@@ -1,4 +1,5 @@
 import { Options, execa } from 'execa';
+import { runVersion } from './version_runner.js';
 
 export type PublishOptions = {
   /**
@@ -45,11 +46,7 @@ export const runPublish = async (props?: PublishOptions) => {
     // Snapshot releases are not allowed in pre mode.
     // Exit pre mode. This is no-op if not in pre mode.
     await execa('changeset', ['pre', 'exit'], execaOptions);
-    await execa(
-      'changeset',
-      ['version', '--snapshot', snapshotTag],
-      execaOptions
-    );
+    await runVersion(['--snapshot', snapshotTag]);
   }
 
   const changesetArgs = ['publish'];

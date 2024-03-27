@@ -1,5 +1,18 @@
 # @aws-amplify/model-generator
 
+## 0.5.0-beta.5
+
+### Minor Changes
+
+- 8d73779: refactor model generation from schema uri
+
+## 0.5.0-beta.4
+
+### Patch Changes
+
+- Updated dependencies [b0112e3]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.4
+
 ## 0.5.0-beta.3
 
 ### Minor Changes

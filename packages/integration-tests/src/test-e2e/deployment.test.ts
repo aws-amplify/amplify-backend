@@ -192,7 +192,9 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             testProject.projectDirPath
           )
             .do(
-              new PredicatedActionBuilder().waitForLineIncludes('esbuild Error')
+              new PredicatedActionBuilder().waitForLineIncludes(
+                'TypeScript validation check failed'
+              )
             )
             .do(interruptSandbox())
             .do(rejectCleanupSandbox())
@@ -214,10 +216,9 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
                 env: { CI: 'true' },
               }
             )
-              .do(new PredicatedActionBuilder().waitForLineIncludes('error TS'))
               .do(
                 new PredicatedActionBuilder().waitForLineIncludes(
-                  'Unexpected keyword or identifier'
+                  'TypeScript validation check failed'
                 )
               )
               .run()

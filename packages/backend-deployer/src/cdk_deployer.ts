@@ -56,19 +56,31 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
-    // first synth with the backend definition
+    // first synth with the backend definition but suppress any errors.
+    // We want to show errors from the TS compiler rather than the ESBuild as
+    // TS errors are more relevant (Library validations are type reliant).
     const startTime = Date.now();
-    await this.tryInvokeCdk(
-      InvokableCommand.SYNTH,
-      backendId,
-      this.getAppCommand(),
-      cdkCommandArgs.concat('--quiet') // don't print the CFN template to stdout
-    );
+    let synthError = undefined;
+    try {
+      await this.tryInvokeCdk(
+        InvokableCommand.SYNTH,
+        backendId,
+        this.getAppCommand(),
+        cdkCommandArgs.concat('--quiet') // don't print the CFN template to stdout
+      );
+    } catch (e) {
+      synthError = e;
+    }
     // CDK prints synth time in seconds rounded to 2 decimal places. Here we duplicate that behavior.
     const synthTimeSeconds = Math.floor((Date.now() - startTime) / 10) / 100;
 
     // then run type checks
     await this.invokeTsc(deployProps);
+
+    // If somehow TSC was successful but synth wasn't, we now throw to surface the synth error
+    if (synthError) {
+      throw synthError;
+    }
 
     // then deploy with the cloud assembly that was generated during synth
     const deployResult = await this.tryInvokeCdk(

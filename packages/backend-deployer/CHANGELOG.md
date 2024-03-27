@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 0.5.1-beta.4
+
+### Patch Changes
+
+- Updated dependencies [5e12247]
+  - @aws-amplify/platform-core@0.5.0-beta.3
+  - @aws-amplify/plugin-types@0.9.0-beta.1
+
 ## 0.5.1-beta.3
 
 ### Patch Changes

@@ -13,6 +13,9 @@ import { TypesTarget } from '@aws-amplify/graphql-generator';
 // @public
 export const createGraphqlDocumentGenerator: ({ backendIdentifier, credentialProvider, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
 
+// @public
+export const createGraphqlModelsGenerator: (params: GraphqlModelsGeneratorFactoryParams) => GraphqlModelsGenerator;
+
 // @public (undocumented)
 export type DocumentGenerationParameters = {
     targetFormat: StatementsTarget;
@@ -123,15 +126,6 @@ export type GenerationResult = {
     getResults: () => Promise<Record<string, string>>;
 };
 
-// @public
-export const getModelIntrospectionSchemaFromS3Uri: ({ modelSchemaS3Uri, credentialProvider, }: GetModelIntrospectionSchemaParams) => Promise<unknown | undefined>;
-
-// @public (undocumented)
-export type GetModelIntrospectionSchemaParams = {
-    modelSchemaS3Uri?: string;
-    credentialProvider: AwsCredentialIdentityProvider;
-};
-
 // @public (undocumented)
 export type GraphqlDocumentGenerator = {
     generateModels: (params: DocumentGenerationParameters) => Promise<GenerationResult>;
@@ -146,6 +140,15 @@ export type GraphqlDocumentGeneratorFactoryParams = {
 // @public (undocumented)
 export type GraphqlModelsGenerator = {
     generateModels: (params: ModelsGenerationParameters) => Promise<GenerationResult>;
+};
+
+// @public (undocumented)
+export type GraphqlModelsGeneratorFactoryParams = {
+    backendIdentifier: DeployedBackendIdentifier;
+    credentialProvider: AwsCredentialIdentityProvider;
+} | {
+    modelSchemaS3Uri: string;
+    credentialProvider: AwsCredentialIdentityProvider;
 };
 
 // @public (undocumented)

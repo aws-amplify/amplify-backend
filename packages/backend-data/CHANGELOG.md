@@ -1,5 +1,19 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.7
+
+### Patch Changes
+
+- 4e6287e: chore: bump @aws-amplify/data-schema version to 0.14.0
+
+## 0.10.0-beta.6
+
+### Patch Changes
+
+- Updated dependencies [5e12247]
+  - @aws-amplify/plugin-types@0.9.0-beta.1
+  - @aws-amplify/backend-output-storage@0.4.0-beta.3
+
 ## 0.10.0-beta.5
 
 ### Minor Changes

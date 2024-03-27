@@ -1,6 +1,9 @@
 import { CommandModule } from 'yargs';
 import { fileURLToPath } from 'url';
-import { SandboxCommand, SandboxCommandOptions } from './sandbox_command.js';
+import {
+  SandboxCommand,
+  SandboxCommandOptionsKebabCase,
+} from './sandbox_command.js';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
@@ -21,31 +24,15 @@ import { printer } from '@aws-amplify/cli-core';
  */
 export const createSandboxCommand = (): CommandModule<
   object,
-  SandboxCommandOptions
+  SandboxCommandOptionsKebabCase
 > => {
   const credentialProvider = fromNodeProviderChain();
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader())
   );
 
-  /**
-   * This callback allows sandbox to resolve the backend id using the name specified by the --name arg if present
-   * Otherwise, the default sandboxBackendIdPartsResolver.resolve() value is used
-   * @param sandboxName A customer specified name to use as part of the sandbox identifier (the --name arg to sandbox)
-   */
-  const sandboxBackendIdentifierResolver = async (sandboxName?: string) => {
-    const sandboxBackendIdParts = await sandboxBackendIdPartsResolver.resolve();
-    if (!sandboxName) {
-      return sandboxBackendIdParts;
-    }
-    return {
-      ...sandboxBackendIdParts,
-      name: sandboxName,
-    };
-  };
-
   const sandboxFactory = new SandboxSingletonFactory(
-    sandboxBackendIdentifierResolver,
+    sandboxBackendIdPartsResolver.resolve,
     printer
   );
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
@@ -58,7 +45,7 @@ export const createSandboxCommand = (): CommandModule<
     ).version ?? '';
 
   const eventHandlerFactory = new SandboxEventHandlerFactory(
-    sandboxBackendIdentifierResolver,
+    sandboxBackendIdPartsResolver.resolve,
     async () => await new UsageDataEmitterFactory().getInstance(libraryVersion)
   );
 

@@ -9,3 +9,8 @@ export type UsageStatementsGenerator = {
    */
   generate: () => UsageStatements;
 };
+
+export type NamespaceDefinitions = {
+  namespaceNames: Array<string>;
+  namespaceBySymbol: Map<string, string>;
+};

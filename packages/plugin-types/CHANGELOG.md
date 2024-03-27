@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.9.0-beta.1
+
+### Patch Changes
+
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+
 ## 0.9.0-beta.0
 
 ### Minor Changes

@@ -1,5 +1,24 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.6
+
+### Minor Changes
+
+- 0d1b00e: Update generated env package location and use the $ symbol
+
+## 0.5.0-beta.5
+
+### Minor Changes
+
+- 7537216: Move record formatting from printer to formatter
+
+## 0.5.0-beta.4
+
+### Patch Changes
+
+- Updated dependencies [5e12247]
+  - @aws-amplify/platform-core@0.5.0-beta.3
+
 ## 0.5.0-beta.3
 
 ### Patch Changes

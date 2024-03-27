@@ -295,6 +295,30 @@ const someClassInheritanceUsageFunction = <T1, T2, T3, T4>(someClassInheritanceU
 }
     `,
   },
+  {
+    description: 'generates type usage',
+    apiReportCode: `
+export type SomeTypeUnderNamespace = {
+  someProperty: string;
+}
+
+declare namespace someNamespace {
+  export {
+    SomeTypeUnderNamespace
+  }
+}
+    `,
+    expectedApiUsage: `
+import { someNamespace } from 'samplePackageName';
+
+type SomeTypeUnderNamespaceBaseline = {
+  someProperty: string;
+}
+const someTypeUnderNamespaceUsageFunction = (someTypeUnderNamespaceFunctionParameter: SomeTypeUnderNamespaceBaseline) => {
+  const someTypeUnderNamespace: someNamespace.SomeTypeUnderNamespace = someTypeUnderNamespaceFunctionParameter;
+}
+    `,
+  },
 ];
 
 const nestInMarkdownCodeBlock = (apiReportCode: string) => {

@@ -16,9 +16,15 @@ const validateStoragePath = (
   index: number,
   allPaths: string[]
 ) => {
-  if (!(path.startsWith('/') && path.endsWith('/*'))) {
+  if (path.startsWith('/')) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
-      message: `All storage access paths must start with "/" and end with "/*. Found [${path}].`,
+      message: `Storage access paths must not start with "/". Found [${path}].`,
+      resolution: 'Update all paths to match the format requirements.',
+    });
+  }
+  if (!path.endsWith('/*')) {
+    throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
+      message: `Storage access paths must end with "/*". Found [${path}].`,
       resolution: 'Update all paths to match the format requirements.',
     });
   }
@@ -93,21 +99,21 @@ const validateOwnerTokenRules = (path: string, otherPrefixes: string[]) => {
   if (substringAfterOwnerToken !== '/*') {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `The ${entityIdPathToken} token must be the path part right before the ending wildcard. Found [${path}].`,
-      resolution: `Update the path such that the owner token is the last path part before the ending wildcard. For example: "/foo/bar/${entityIdPathToken}/*.`,
+      resolution: `Update the path such that the owner token is the last path part before the ending wildcard. For example: "foo/bar/${entityIdPathToken}/*.`,
     });
   }
 
-  if (substringBeforeOwnerToken === '/') {
+  if (substringBeforeOwnerToken === '') {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `The ${entityIdPathToken} token must not be the first path part. Found [${path}].`,
-      resolution: `Add an additional prefix to the path. For example: "/foo/${entityIdPathToken}/*.`,
+      resolution: `Add an additional prefix to the path. For example: "foo/${entityIdPathToken}/*.`,
     });
   }
 
   if (!substringBeforeOwnerToken.endsWith('/')) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `A path part that includes the ${entityIdPathToken} token cannot include any other characters. Found [${path}].`,
-      resolution: `Remove all other characters from the path part with the ${entityIdPathToken} token. For example: "/foo/${entityIdPathToken}/*"`,
+      resolution: `Remove all other characters from the path part with the ${entityIdPathToken} token. For example: "foo/${entityIdPathToken}/*"`,
     });
   }
 };
