@@ -51,6 +51,6 @@ export class ClientConfigGeneratorAdapter {
       format
     );
 
-    filesWritten.forEach((message) => printer.log(message));
+    filesWritten.forEach((file) => printer.log(`File written: ${file}`));
   };
 }

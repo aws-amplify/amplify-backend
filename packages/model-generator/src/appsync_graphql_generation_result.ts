@@ -20,9 +20,7 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
       Object.entries(this.operations).map(async ([fileName, content]) => {
         await this.writeSchemaToFile(directoryPath, fileName, content).then(
           (filePath: string) => {
-            filesWritten.push(
-              `File written: ${path.relative(process.cwd(), filePath)}`
-            );
+            filesWritten.push(path.relative(process.cwd(), filePath));
             return;
           }
         );

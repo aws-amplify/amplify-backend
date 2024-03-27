@@ -50,9 +50,9 @@ export class FormGenerationHandler {
     this.logMessages(uiFilesWritten);
   };
 
-  private logMessages = (messages: string[]) => {
-    messages.forEach((message) => {
-      printer.log(message);
+  private logMessages = (filesWritten: string[]) => {
+    filesWritten.forEach((file) => {
+      printer.log(`File written: ${file}`);
     });
   };
 }

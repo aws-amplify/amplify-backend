@@ -5,6 +5,7 @@ import {
   ClientConfigFormat,
   ClientConfigVersion,
   ClientConfigVersionOption,
+  GenerateClientConfigToFileResult,
 } from './client-config-types/client_config.js';
 import { getClientConfigPath } from './paths/index.js';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
@@ -14,7 +15,6 @@ import * as fsp from 'fs/promises';
 import { ClientConfigFormatterLegacy } from './client-config-writer/client_config_formatter_legacy.js';
 import { ClientConfigFormatterDefault } from './client-config-writer/client_config_formatter_default.js';
 import { getClientConfigFileName } from './paths/get_client_config_name.js';
-import { FilesWrittenResult } from '@aws-amplify/plugin-types';
 
 /**
  * Main entry point for generating client config and writing to a file
@@ -25,7 +25,7 @@ export const generateClientConfigToFile = async (
   version: ClientConfigVersion,
   outDir?: string,
   format?: ClientConfigFormat
-): Promise<FilesWrittenResult> => {
+): Promise<GenerateClientConfigToFileResult> => {
   const packageJson = await readPackageJson();
 
   const isLegacyConfig = version === ClientConfigVersionOption.V0;

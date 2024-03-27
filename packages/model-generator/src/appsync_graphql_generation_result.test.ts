@@ -29,10 +29,7 @@ void describe('AppsyncGraphqlDocumentGenerationResult', () => {
       assert.deepEqual(writeFileCall?.arguments, [resolvedName, content]);
       assert(
         filesWritten.includes(
-          `File written: ${path.relative(
-            '.',
-            path.resolve(path.join(directory, fileName))
-          )}`
+          `${path.relative('.', path.resolve(path.join(directory, fileName)))}`
         )
       );
     });

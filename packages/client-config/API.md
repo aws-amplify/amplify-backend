@@ -6,7 +6,6 @@
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { FilesWrittenResult } from '@aws-amplify/plugin-types';
 
 // @public
 interface AmazonCognitoStandardAttributesConfig {
@@ -209,7 +208,12 @@ export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 export const generateClientConfig: <T extends "1" | "0">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat) => Promise<FilesWrittenResult>;
+export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat) => Promise<GenerateClientConfigToFileResult>;
+
+// @public (undocumented)
+export type GenerateClientConfigToFileResult = {
+    filesWritten: string[];
+};
 
 // @public (undocumented)
 export type GeoClientConfig = {

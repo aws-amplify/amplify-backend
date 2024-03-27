@@ -31,9 +31,7 @@ export class CodegenGraphqlFormGeneratorResult
         const fd = await fs.open(filePath, 'w+');
         try {
           await fd.writeFile(content);
-          filesWritten.push(
-            `File written: ${path.relative(process.cwd(), filePath)}`
-          );
+          filesWritten.push(path.relative(process.cwd(), filePath));
         } finally {
           await fd.close();
         }

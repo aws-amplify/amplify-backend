@@ -2,6 +2,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
   DocumentGenerationParameters,
+  GenerateGraphqlCodegenToFileResult,
   GenerationResult,
   GraphqlDocumentGenerator,
   GraphqlModelsGenerator,
@@ -13,7 +14,6 @@ import { createGraphqlDocumentGenerator } from './create_graphql_document_genera
 import { getOutputFileName } from '@aws-amplify/graphql-types-generator';
 import path from 'path';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { FilesWrittenResult } from '@aws-amplify/plugin-types';
 
 export enum GenerateApiCodeFormat {
   MODELGEN = 'modelgen',
@@ -178,7 +178,7 @@ export class ApiCodeGenerator {
       return {
         writeToDirectory: async (
           directoryPath: string
-        ): Promise<FilesWrittenResult> => {
+        ): Promise<GenerateGraphqlCodegenToFileResult> => {
           const filesWritten: string[] = [];
           const { filesWritten: documentsFilesWritten } =
             await documents.writeToDirectory(directoryPath);

@@ -73,3 +73,7 @@ export enum ClientConfigFileBaseName {
   LEGACY = 'amplifyconfiguration',
   DEFAULT = 'amplify-outputs',
 }
+
+export type GenerateClientConfigToFileResult = {
+  filesWritten: string[];
+};

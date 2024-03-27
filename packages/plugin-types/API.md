@@ -134,11 +134,6 @@ export type DeepPartial<T> = {
 // @public
 export type DeploymentType = 'branch' | 'sandbox';
 
-// @public
-export type FilesWrittenResult = {
-    filesWritten: string[];
-};
-
 // @public (undocumented)
 export type FunctionResources = {
     lambda: IFunction;

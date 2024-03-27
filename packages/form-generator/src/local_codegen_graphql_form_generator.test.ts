@@ -88,8 +88,8 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
 
       utilFSWriteArgs.forEach((fileName) => {
         assert(
-          filesWritten.some((message) =>
-            new RegExp(`^File written: ${fileName as string}$`).test(message)
+          filesWritten.some((file) =>
+            new RegExp(`${fileName as string}`).test(file)
           )
         );
       });
@@ -117,11 +117,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
       assert(writeArgs.includes('index.js'));
 
-      assert(
-        filesWritten.some((message) =>
-          new RegExp('^File written: index.js$').test(message)
-        )
-      );
+      assert(filesWritten.some((file) => new RegExp('^index.js$').test(file)));
     });
   });
   void describe('filtering', () => {
@@ -164,10 +160,8 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
           const didWriteFile = writeArgs.some((arg) =>
             new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString())
           );
-          const didLogMessage = filesWritten.some((logMessage) =>
-            new RegExp(`^File written: ${m}(Update|Create)Form.d.ts$`).test(
-              logMessage.toString()
-            )
+          const didLogMessage = filesWritten.some((file) =>
+            new RegExp(`^${m}(Update|Create)Form.d.ts$`).test(file.toString())
           );
           return didWriteFile && didLogMessage;
         })

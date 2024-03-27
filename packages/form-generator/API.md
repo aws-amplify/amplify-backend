@@ -4,8 +4,6 @@
 
 ```ts
 
-import { FilesWrittenResult } from '@aws-amplify/plugin-types';
-
 // @public
 export const createLocalGraphqlFormGenerator: (generationParams: LocalGraphqlFormGeneratorParams) => GraphqlFormGenerator;
 
@@ -15,13 +13,18 @@ export type FormGenerationOptions = {
 };
 
 // @public (undocumented)
+export type GenerateGraphqlToFileResult = {
+    filesWritten: string[];
+};
+
+// @public (undocumented)
 export type GraphqlFormGenerator = {
     generateForms: (options?: FormGenerationOptions) => Promise<GraphqlGenerationResult>;
 };
 
 // @public (undocumented)
 export type GraphqlGenerationResult = {
-    writeToDirectory: (directoryPath: string) => Promise<FilesWrittenResult>;
+    writeToDirectory: (directoryPath: string) => Promise<GenerateGraphqlToFileResult>;
 };
 
 // @public (undocumented)
