@@ -4,7 +4,6 @@ import { PlatformClientConfig } from './platform_client_config.js';
 import { StorageClientConfig } from './storage_client_config.js';
 import { CustomClientConfig } from './custom_client_config.js';
 import { GeoClientConfig } from './geo_client_config.js';
-import { RestApiClientConfig } from './rest_api_client_config.js';
 import { AnalyticsClientConfig } from './analytics_client_config.js';
 import { NotificationsClientConfig } from './notifications_client_config.js';
 
@@ -20,7 +19,6 @@ export type ClientConfigLegacy = Partial<
     GeoClientConfig &
     GraphqlClientConfig &
     NotificationsClientConfig &
-    RestApiClientConfig &
     StorageClientConfig &
     PlatformClientConfig &
     CustomClientConfig

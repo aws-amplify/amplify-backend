@@ -19,62 +19,21 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "aws_region": {
-          "description": "AWS Region of Amazon Pinpoint resources",
-          "$ref": "#/$defs/aws_region"
-        },
-        "pinpoint_app_id": {
-          "description": "Amazon Pinpoint App ID",
-          "type": "string"
-        }
-      },
-      "required": ["aws_region", "pinpoint_app_id"]
-    },
-    "api": {
-      "description": "Outputs manually specified by developers for use with frontend library",
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "endpoints": {
-          "type": "array",
-          "items": {
-            "description": "API Gateway, HTTP API, or Function URLs",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "name": {
-                "description": "API resource name",
-                "type": "string"
-              },
-              "url": {
-                "description": "Invoke endpoint of the API resource",
-                "type": "string"
-              },
-              "aws_region": {
-                "description": "AWS Region of the API resource",
-                "$ref": "#/$defs/aws_region"
-              },
-              "authorization_types": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/amazon_api_gateway_authorization_type"
-                }
-              },
-              "default_authorization_type": {
-                "$ref": "#/$defs/amazon_api_gateway_authorization_type"
-              }
+        "amazon_pinpoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "aws_region": {
+              "description": "AWS Region of Amazon Pinpoint resources",
+              "$ref": "#/$defs/aws_region"
             },
-            "required": [
-              "name",
-              "url",
-              "aws_region",
-              "authorization_types",
-              "default_authorization_type"
-            ]
-          }
+            "app_id": {
+              "type": "string"
+            }
+          },
+          "required": ["aws_region", "app_id"]
         }
-      },
-      "required": ["endpoints"]
+      }
     },
     "auth": {
       "description": "Outputs generated from defineAuth",
@@ -84,6 +43,12 @@
         "aws_region": {
           "description": "AWS Region of Amazon Cognito resources",
           "$ref": "#/$defs/aws_region"
+        },
+        "authentication_flow_type": {
+          "description": "Authentication flow types",
+          "type": "string",
+          "enum": ["USER_SRP_AUTH", "CUSTOM_AUTH"],
+          "default": "USER_SRP_AUTH"
         },
         "user_pool_id": {
           "description": "Cognito User Pool ID",
@@ -103,7 +68,7 @@
           "additionalProperties": false,
           "properties": {
             "min_length": {
-              "type": "number",
+              "type": "integer",
               "minimum": 6,
               "maximum": 99
             },
@@ -121,71 +86,93 @@
             }
           }
         },
-        "identity_providers": {
-          "description": "Identity providers set on Cognito User Pool",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 0,
-          "uniqueItems": true
-        },
-        "oauth_domain": {
-          "description": "Cognito Domain used for identity providers",
-          "type": "string"
-        },
-        "oauth_scope": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 0,
-          "uniqueItems": true
-        },
-        "oauth_redirect_sign_in": {
-          "description": "URIs used to redirect after signing in using an identity provider",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "oauth_redirect_sign_out": {
-          "description": "URIs used to redirect after signing out",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "oauth_response_type": {
-          "type": "string",
-          "enum": ["code", "token"]
-        },
-        "standard_attributes": {
-          "description": "Cognito User Pool standard attributes",
+        "oauth": {
           "type": "object",
           "additionalProperties": false,
-          "propertyNames": {
+          "properties": {
+            "identity_providers": {
+              "description": "Identity providers set on Cognito User Pool",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "GOOGLE",
+                  "FACEBOOK",
+                  "LOGIN_WITH_AMAZON",
+                  "SIGN_IN_WITH_APPLE"
+                ]
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "domain": {
+              "description": "Cognito Domain used for identity providers",
+              "type": "string"
+            },
+            "scopes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 0,
+              "uniqueItems": true
+            },
+            "redirect_sign_in_uri": {
+              "description": "URIs used to redirect after signing in using an identity provider",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "redirect_sign_out_uri": {
+              "description": "URIs used to redirect after signing out",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "response_type": {
+              "type": "string",
+              "enum": ["code", "token"]
+            }
+          },
+          "required": [
+            "identity_providers",
+            "domain",
+            "scopes",
+            "redirect_sign_in_uri",
+            "redirect_sign_out_uri",
+            "response_type"
+          ]
+        },
+        "standard_required_attributes": {
+          "description": "Cognito User Pool standard attributes required for signup",
+          "type": "array",
+          "items": {
             "$ref": "#/$defs/amazon_cognito_standard_attributes"
           },
-          "patternProperties": {
-            ".*": {
-              "$ref": "#/$defs/amazon_cognito_standard_attributes_config"
-            }
-          }
+          "minItems": 0,
+          "uniqueItems": true
         },
         "username_attributes": {
           "description": "Cognito User Pool username attributes",
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["EMAIL", "PHONE"]
-          }
+            "enum": ["email", "phone_number", "username"]
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
-        "user_verification_mechanisms": {
+        "user_verification_types": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["EMAIL", "PHONE"]
+            "enum": ["email", "phone_number"]
           }
         },
         "unauthenticated_identities_enabled": {
@@ -203,12 +190,7 @@
           }
         }
       },
-      "required": [
-        "aws_region",
-        "user_pool_id",
-        "user_pool_client_id",
-        "identity_pool_id"
-      ]
+      "required": ["aws_region", "user_pool_id", "user_pool_client_id"]
     },
     "data": {
       "description": "Outputs generated from defineData",
@@ -237,10 +219,6 @@
           "items": {
             "$ref": "#/$defs/aws_appsync_authorization_type"
           }
-        },
-        "conflict_resolution_mode": {
-          "type": "string",
-          "enum": ["AUTO_MERGE", "OPTIMISTIC_CONCURRENCY", "LAMBDA"]
         }
       },
       "required": [
@@ -265,9 +243,16 @@
           "additionalProperties": false,
           "properties": {
             "items": {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/amazon_location_service_config"
+              "type": "object",
+              "additionalProperties": false,
+              "propertyNames": {
+                "description": "Amazon Location Service Map name",
+                "type": "string"
+              },
+              "patternProperties": {
+                ".*": {
+                  "$ref": "#/$defs/amazon_location_service_config"
+                }
               }
             },
             "default": {
@@ -283,7 +268,10 @@
           "properties": {
             "items": {
               "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
               "items": {
+                "description": "Actual search name",
                 "type": "string"
               }
             },
@@ -300,7 +288,10 @@
           "properties": {
             "items": {
               "type": "array",
+              "uniqueItems": true,
+              "minItems": 1,
               "items": {
+                "description": "Geofence name",
                 "type": "string"
               }
             },
@@ -312,6 +303,28 @@
         }
       },
       "required": ["aws_region"]
+    },
+    "notifications": {
+      "type": "object",
+      "description": "Outputs manually specified by developers for use with frontend library",
+      "additionalProperties": false,
+      "properties": {
+        "aws_region": {
+          "$ref": "#/$defs/aws_region"
+        },
+        "amazon_pinpoint_app_id": {
+          "type": "string"
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/amazon_pinpoint_channels"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": ["aws_region", "amazon_pinpoint_app_id", "channels"]
     },
     "storage": {
       "type": "object",
@@ -361,16 +374,8 @@
         "zoneinfo"
       ]
     },
-    "amazon_cognito_standard_attributes_config": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "required": {
-          "type": "boolean"
-        }
-      }
-    },
     "aws_appsync_authorization_type": {
+      "description": "List of supported auth types for AWS AppSync",
       "type": "string",
       "enum": [
         "AMAZON_COGNITO_USER_POOLS",
@@ -380,22 +385,20 @@
         "OPENID_CONNECT"
       ]
     },
-    "amazon_api_gateway_authorization_type": {
-      "$ref": "#/$defs/aws_appsync_authorization_type"
-    },
     "amazon_location_service_config": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": {
-          "description": "Map resource name",
-          "type": "string"
-        },
         "style": {
           "description": "Map style",
           "type": "string"
         }
       }
+    },
+    "amazon_pinpoint_channels": {
+      "description": "supported channels for Amazon Pinpoint",
+      "type": "string",
+      "enum": ["IN_APP_MESSAGING", "FCM", "APNS", "EMAIL", "SMS"]
     }
   }
 }

@@ -5,13 +5,47 @@
  * and run json-schema-to-typescript to regenerate this file.
  */
 
+/**
+ * Amazon Cognito standard attributes for users -- https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
+ */
+export type AmazonCognitoStandardAttributes =
+  | 'address'
+  | 'birthdate'
+  | 'email'
+  | 'family_name'
+  | 'gender'
+  | 'given_name'
+  | 'locale'
+  | 'middle_name'
+  | 'name'
+  | 'nickname'
+  | 'phone_number'
+  | 'picture'
+  | 'preferred_username'
+  | 'profile'
+  | 'sub'
+  | 'updated_at'
+  | 'website'
+  | 'zoneinfo';
+export type AwsRegion = string;
+/**
+ * List of supported auth types for AWS AppSync
+ */
 export type AwsAppsyncAuthorizationType =
   | 'AMAZON_COGNITO_USER_POOLS'
   | 'API_KEY'
   | 'AWS_IAM'
   | 'AWS_LAMBDA'
   | 'OPENID_CONNECT';
-export type AwsRegion = string;
+/**
+ * supported channels for Amazon Pinpoint
+ */
+export type AmazonPinpointChannels =
+  | 'IN_APP_MESSAGING'
+  | 'FCM'
+  | 'APNS'
+  | 'EMAIL'
+  | 'SMS';
 
 /**
  * Config format for Amplify Gen 2 client libraries to communicate with backend services.
@@ -25,35 +59,13 @@ export interface AWSAmplifyBackendOutputs {
    * Outputs manually specified by developers for use with frontend library
    */
   analytics?: {
-    /**
-     * AWS Region of Amazon Pinpoint resources
-     */
-    aws_region: AwsRegion;
-    /**
-     * Amazon Pinpoint App ID
-     */
-    pinpoint_app_id: string;
-  };
-  /**
-   * Outputs manually specified by developers for use with frontend library
-   */
-  api?: {
-    endpoints: {
+    amazon_pinpoint?: {
       /**
-       * API resource name
-       */
-      name: string;
-      /**
-       * Invoke endpoint of the API resource
-       */
-      url: string;
-      /**
-       * AWS Region of the API resource
+       * AWS Region of Amazon Pinpoint resources
        */
       aws_region: AwsRegion;
-      authorization_types: AwsAppsyncAuthorizationType[];
-      default_authorization_type: AwsAppsyncAuthorizationType;
-    }[];
+      app_id: string;
+    };
   };
   /**
    * Outputs generated from defineAuth
@@ -63,6 +75,10 @@ export interface AWSAmplifyBackendOutputs {
      * AWS Region of Amazon Cognito resources
      */
     aws_region: AwsRegion;
+    /**
+     * Authentication flow types
+     */
+    authentication_flow_type?: 'USER_SRP_AUTH' | 'CUSTOM_AUTH';
     /**
      * Cognito User Pool ID
      */
@@ -74,7 +90,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * Cognito Identity Pool ID
      */
-    identity_pool_id: string;
+    identity_pool_id?: string;
     /**
      * Cognito User Pool password policy
      */
@@ -85,40 +101,53 @@ export interface AWSAmplifyBackendOutputs {
       require_uppercase?: boolean;
       require_symbols?: boolean;
     };
+    oauth?: {
+      /**
+       * Identity providers set on Cognito User Pool
+       *
+       * @minItems 0
+       */
+      identity_providers: (
+        | 'GOOGLE'
+        | 'FACEBOOK'
+        | 'LOGIN_WITH_AMAZON'
+        | 'SIGN_IN_WITH_APPLE'
+      )[];
+      /**
+       * Cognito Domain used for identity providers
+       */
+      domain: string;
+      /**
+       * @minItems 0
+       */
+      scopes: string[];
+      /**
+       * URIs used to redirect after signing in using an identity provider
+       *
+       * @minItems 1
+       */
+      redirect_sign_in_uri: string[];
+      /**
+       * URIs used to redirect after signing out
+       *
+       * @minItems 1
+       */
+      redirect_sign_out_uri: string[];
+      response_type: 'code' | 'token';
+    };
     /**
-     * Identity providers set on Cognito User Pool
+     * Cognito User Pool standard attributes required for signup
      *
      * @minItems 0
      */
-    identity_providers?: string[];
-    /**
-     * Cognito Domain used for identity providers
-     */
-    oauth_domain?: string;
-    /**
-     * @minItems 0
-     */
-    oauth_scope?: string[];
-    /**
-     * URIs used to redirect after signing in using an identity provider
-     */
-    oauth_redirect_sign_in?: string[];
-    /**
-     * URIs used to redirect after signing out
-     */
-    oauth_redirect_sign_out?: string[];
-    oauth_response_type?: 'code' | 'token';
-    /**
-     * Cognito User Pool standard attributes
-     */
-    standard_attributes?: {
-      [k: string]: AmazonCognitoStandardAttributesConfig;
-    };
+    standard_required_attributes?: AmazonCognitoStandardAttributes[];
     /**
      * Cognito User Pool username attributes
+     *
+     * @minItems 1
      */
-    username_attributes?: ('EMAIL' | 'PHONE')[];
-    user_verification_mechanisms?: ('EMAIL' | 'PHONE')[];
+    username_attributes?: ('email' | 'phone_number' | 'username')[];
+    user_verification_types?: ('email' | 'phone_number')[];
     unauthenticated_identities_enabled?: boolean;
     mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
     mfa_methods?: ('SMS' | 'TOTP')[];
@@ -141,10 +170,6 @@ export interface AWSAmplifyBackendOutputs {
     api_key?: string;
     default_authorization_type: AwsAppsyncAuthorizationType;
     authorization_types: AwsAppsyncAuthorizationType[];
-    conflict_resolution_mode?:
-      | 'AUTO_MERGE'
-      | 'OPTIMISTIC_CONCURRENCY'
-      | 'LAMBDA';
   };
   /**
    * Outputs manually specified by developers for use with frontend library
@@ -158,7 +183,9 @@ export interface AWSAmplifyBackendOutputs {
      * Maps from Amazon Location Service
      */
     maps?: {
-      items: AmazonLocationServiceConfig[];
+      items: {
+        [k: string]: AmazonLocationServiceConfig;
+      };
       default: string;
     };
     /**
@@ -175,6 +202,17 @@ export interface AWSAmplifyBackendOutputs {
       items: string[];
       default: string;
     };
+  };
+  /**
+   * Outputs manually specified by developers for use with frontend library
+   */
+  notifications?: {
+    aws_region: AwsRegion;
+    amazon_pinpoint_app_id: string;
+    /**
+     * @minItems 1
+     */
+    channels: AmazonPinpointChannels[];
   };
   /**
    * Outputs generated from defineStorage
@@ -194,9 +232,6 @@ export interface AWSAmplifyBackendOutputs {
  * This interface was referenced by `undefined`'s JSON-Schema definition
  * via the `patternProperty` ".*".
  */
-export interface AmazonCognitoStandardAttributesConfig {
-  required?: boolean;
-}
 export interface AmazonLocationServiceConfig {
   /**
    * Map resource name
