@@ -142,7 +142,6 @@
           },
           "required": [
             "identity_providers",
-            "domain",
             "scopes",
             "redirect_sign_in_uri",
             "redirect_sign_out_uri",

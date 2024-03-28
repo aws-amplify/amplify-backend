@@ -155,13 +155,16 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       }
       authClientConfig.auth.oauth = {
         identity_providers: JSON.parse(authOutput.payload.socialProviders),
-        domain: authOutput.payload.oauthDomain,
         redirect_sign_in_uri: authOutput.payload.oauthRedirectSignIn.split(','),
         redirect_sign_out_uri:
           authOutput.payload.oauthRedirectSignOut.split(','),
         response_type: authOutput.payload.oauthResponseType as 'code' | 'token',
         scopes: JSON.parse(authOutput.payload.oauthScope),
       };
+
+      if (authOutput.payload.oauthDomain) {
+        authClientConfig.auth.oauth.domain = authOutput.payload.oauthDomain;
+      }
     }
 
     if (authOutput.payload.allowUnauthenticatedIdentities) {

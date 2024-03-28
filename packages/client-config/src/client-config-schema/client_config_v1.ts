@@ -116,7 +116,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * Cognito Domain used for identity providers
        */
-      domain: string;
+      domain?: string;
       /**
        * @minItems 0
        */
