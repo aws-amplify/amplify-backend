@@ -33,6 +33,7 @@ import {
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import {
+  AmplifyError,
   AmplifyFault,
   AmplifyUserError,
   CDKContextKey,
@@ -171,10 +172,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       authorizationModes = convertAuthorizationModesToCDK(
         this.getInstanceProps,
         this.providedAuthConfig,
-        this.props.authorizationModes,
-        functionSchemaAccessRoles
+        this.props.authorizationModes
       );
     } catch (error) {
+      if (error instanceof AmplifyError) {
+        throw error;
+      }
       throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaAuthError',
         {
