@@ -7,6 +7,7 @@
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { DerivedCombinedSchema } from '@aws-amplify/data-schema-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 
 // @public
@@ -25,7 +26,7 @@ export type AuthorizationModes = {
 
 // @public
 export type DataProps = {
-    schema: DataSchema;
+    schema: DataSchemaInput;
     name?: string;
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
@@ -54,6 +55,10 @@ export type OIDCAuthorizationModeProps = {
     tokenExpiryFromAuthInSeconds: number;
     tokenExpireFromIssueInSeconds: number;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:125:3 - (ae-forgotten-export) The symbol "DataSchemaInput" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

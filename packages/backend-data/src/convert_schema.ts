@@ -2,15 +2,18 @@ import {
   DataSourceConfiguration,
   DerivedCombinedSchema,
   DerivedModelSchema,
+  SqlStatementFolderEntry,
 } from '@aws-amplify/data-schema-types';
 import {
   AmplifyDataDefinition,
   IAmplifyDataDefinition,
   ModelDataSourceStrategy,
 } from '@aws-amplify/data-construct';
-import { DataSchema, DataSchemasCollection } from './types.js';
+import { DataSchema, DataSchemaInput } from './types.js';
 import fs from 'fs';
 import * as path from 'path';
+import { FilePathExtractor } from '@aws-amplify/platform-core';
+import { dirname, join } from 'path';
 
 /**
  * Determine if the input schema is a derived model schema, and perform type narrowing.
@@ -34,7 +37,7 @@ export const isModelSchema = (
  * @returns a boolean indicating whether the schema is a collection of derived model schema, with type narrowing
  */
 export const isCombinedSchema = (
-  schema: DataSchemasCollection
+  schema: DataSchemaInput
 ): schema is DerivedCombinedSchema => {
   return (
     schema !== null &&
@@ -49,6 +52,34 @@ const DYNAMO_DATA_SOURCE_STRATEGY = {
   dbType: 'DYNAMODB',
   provisionStrategy: 'AMPLIFY_TABLE',
 } as const;
+
+// Translate the external engine types to the config values
+const RDS_DB_TYPES = {
+  mysql: 'MYSQL',
+  postgres: 'POSTGRES',
+} as const;
+
+/**
+ * Resolve JS resolver function entry to absolute path
+ *
+ * TODO - This should be de-duplicated with the implementation in convert_js_resolvers.ts
+ */
+const resolveEntryPath = (entry: SqlStatementFolderEntry): string => {
+  const unresolvedImportLocationError = new Error(
+    'Could not determine import path to construct absolute code path from relative path. Consider using an absolute path instead.'
+  );
+
+  if (typeof entry === 'string') {
+    return entry;
+  }
+
+  const filePath = new FilePathExtractor(entry.importLine).extract();
+  if (filePath) {
+    return join(dirname(filePath), entry.relativePath);
+  }
+
+  throw unresolvedImportLocationError;
+};
 
 /**
  * Given an input schema type, produce the relevant CDK Graphql Def interface
@@ -77,7 +108,7 @@ export const convertSchemaToCDK = (
       convertDatabaseConfigurationToDataSourceStrategy(
         schema.data.configuration.database,
         sqlStatementFolderPath
-          ? loadCustomSqlStatements(sqlStatementFolderPath)
+          ? loadCustomSqlStatements(resolveEntryPath(sqlStatementFolderPath))
           : {}
       )
     ).dataSourceStrategies;
@@ -117,7 +148,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
     return DYNAMO_DATA_SOURCE_STRATEGY;
   }
 
-  const dbType = <Uppercase<typeof configuration.engine>>dbEngine.toUpperCase();
+  const dbType = RDS_DB_TYPES[dbEngine];
 
   return {
     dbType,

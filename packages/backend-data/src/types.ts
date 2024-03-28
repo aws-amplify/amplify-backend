@@ -105,7 +105,7 @@ export type AuthorizationModes = {
 /**
  * Schemas type definition, can be either a raw Graphql string, or a typed model schema, or a collection of combined Schemas.
  */
-export type DataSchemasCollection =
+export type DataSchemaInput =
   | string
   | DerivedModelSchema
   | DerivedCombinedSchema;
@@ -122,7 +122,7 @@ export type DataProps = {
   /**
    * Graphql Schema as a string to be passed into the CDK construct.
    */
-  schema: DataSchemasCollection;
+  schema: DataSchemaInput;
 
   /**
    * Optional name for the generated Api.
