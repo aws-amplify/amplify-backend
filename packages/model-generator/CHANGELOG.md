@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 0.5.0-beta.6
+
+### Patch Changes
+
+- @aws-amplify/deployed-backend-client@0.4.0-beta.5
+
 ## 0.5.0-beta.5
 
 ### Minor Changes
