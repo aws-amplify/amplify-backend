@@ -21,7 +21,8 @@ export const isModelSchema = (
   return (
     schema !== null &&
     typeof schema === 'object' &&
-    Object.hasOwn(schema, 'transform')
+    'transform' in schema &&
+    typeof schema.transform === 'function'
   );
 };
 
@@ -36,7 +37,8 @@ export const isCombinedSchema = (
   return (
     schema !== null &&
     typeof schema === 'object' &&
-    Object.hasOwn(schema, 'schemas')
+    'schemas' in schema &&
+    Array.isArray(schema.schemas)
   );
 };
 
