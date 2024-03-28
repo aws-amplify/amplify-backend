@@ -182,13 +182,10 @@ export class ClientConfigLegacyConverter {
 
       if (clientConfig.geo.maps) {
         const mapsLegacyConfig: Record<string, { style: string }> = {};
-        for (const mapItem in clientConfig.geo.maps.items) {
-          if (
-            clientConfig.geo.maps.items[mapItem].name &&
-            clientConfig.geo.maps.items[mapItem].style
-          ) {
-            mapsLegacyConfig[clientConfig.geo.maps.items[mapItem].name!] = {
-              style: clientConfig.geo.maps.items[mapItem].style!,
+        for (const mapName in clientConfig.geo.maps.items) {
+          if (clientConfig.geo.maps.items[mapName].style) {
+            mapsLegacyConfig[mapName] = {
+              style: clientConfig.geo.maps.items[mapName].style!,
             };
           }
         }

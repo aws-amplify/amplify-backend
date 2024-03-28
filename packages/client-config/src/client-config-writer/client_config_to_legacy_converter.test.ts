@@ -331,8 +331,8 @@ void describe('ClientConfigLegacyConverter', () => {
         maps: {
           default: 'map1',
           items: {
-            map1: { name: 'map1', style: 'style1' },
-            map2: { name: 'map2', style: 'style2' },
+            map1: { style: 'style1' },
+            map2: { style: 'style2' },
           },
         },
         search_indices: {
