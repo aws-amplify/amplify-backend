@@ -69,9 +69,9 @@ export class CommandMiddleware {
 
   /**
    * The AWS CDK respects older CLI v1 variable names that are no longer supported in the
-   * latest AWS SDK. Developers that use the older variables and interoperate between Amplify
-   * and CDK will experience region mismatch failures when using Amplify tools. Variable names
-   * known to cause such failures are normalized here for a better developer experience.
+   * latest AWS SDK. Developers that use the older variables and switch between Amplify
+   * and CDK tools will experience region mismatch failures when using Amplify tools. Variable
+   * names known to cause such failures are normalized here for a better developer experience.
    */
   private normalizeEnvironmentVariables(): void {
     if (process.env.AWS_DEFAULT_PROFILE && !process.env.AWS_PROFILE) {
