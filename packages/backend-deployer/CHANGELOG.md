@@ -1,5 +1,15 @@
 # @aws-amplify/backend-deployer
 
+## 0.5.1-beta.5
+
+### Patch Changes
+
+- aec89f9: chore: correctly handle quotes in the error messages
+- cff84c0: chore: add more cdk errors in the error mapper
+- Updated dependencies [aec89f9]
+- Updated dependencies [2a69684]
+  - @aws-amplify/platform-core@0.5.0-beta.4
+
 ## 0.5.1-beta.4
 
 ### Patch Changes
