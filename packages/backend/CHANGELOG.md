@@ -1,5 +1,16 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.13
+
+### Patch Changes
+
+- Updated dependencies [915bf98]
+- Updated dependencies [394b72e]
+- Updated dependencies [592bd4f]
+  - @aws-amplify/backend-data@0.10.0-beta.9
+  - @aws-amplify/client-config@0.9.0-beta.10
+  - @aws-amplify/backend-auth@0.5.0-beta.8
+
 ## 0.13.0-beta.12
 
 ### Patch Changes
