@@ -29,7 +29,7 @@ import {
   FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
-import { AmplifyError } from '@aws-amplify/platform-core';
+import { AmplifyError, AmplifyUserError } from '@aws-amplify/platform-core';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -87,9 +87,16 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    this.filesChangesTracker = await createFilesChangesTracker(
-      options.dir ?? './amplify'
-    );
+    const watchDir = options.dir ?? './amplify';
+    if (!fs.existsSync(watchDir)) {
+      throw new AmplifyUserError('DirectoryToWatchNotFoundError', {
+        message: `${watchDir} does not exist.`,
+        resolution:
+          'Make sure you are running this command from your project root directory.',
+      });
+    }
+
+    this.filesChangesTracker = await createFilesChangesTracker(watchDir);
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
       this.printer.log(
@@ -141,7 +148,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
-      options.dir ?? './amplify',
+      watchDir,
       async (_, events) => {
         // Log and track file changes.
         await Promise.all(
