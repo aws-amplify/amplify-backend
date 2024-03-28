@@ -577,9 +577,9 @@ void describe('Auth construct', () => {
               DEFAULTS.PASSWORD_POLICY.minLength.toString(),
             passwordPolicyRequirements:
               defaultPasswordPolicyCharacterRequirements,
-            signupAttributes: '["EMAIL"]',
-            verificationMechanisms: '["EMAIL"]',
-            usernameAttributes: '["EMAIL"]',
+            signupAttributes: '["email"]',
+            verificationMechanisms: '["email"]',
+            usernameAttributes: '["email"]',
             allowUnauthenticatedIdentities: 'true',
           },
         },
@@ -654,9 +654,9 @@ void describe('Auth construct', () => {
                 DEFAULTS.PASSWORD_POLICY.minLength.toString(),
               passwordPolicyRequirements:
                 defaultPasswordPolicyCharacterRequirements,
-              signupAttributes: '["EMAIL"]',
-              verificationMechanisms: '["EMAIL"]',
-              usernameAttributes: '["EMAIL"]',
+              signupAttributes: '["email"]',
+              verificationMechanisms: '["email"]',
+              usernameAttributes: '["email"]',
               googleClientId: 'googleClientId',
               oauthClientId: expectedWebClientId, // same thing
               oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
@@ -706,7 +706,7 @@ void describe('Auth construct', () => {
 
       assert.equal(
         payload.signupAttributes,
-        '["EMAIL","PHONE_NUMBER","ADDRESS"]'
+        '["email","phone_number","address"]'
       );
     });
 
@@ -720,8 +720,8 @@ void describe('Auth construct', () => {
       });
       const { payload } = storeOutputMock.mock.calls[0].arguments[1];
 
-      assert.equal(payload.usernameAttributes, '["EMAIL","PHONE_NUMBER"]');
-      assert.equal(payload.verificationMechanisms, '["EMAIL","PHONE"]');
+      assert.equal(payload.usernameAttributes, '["email","phone_number"]');
+      assert.equal(payload.verificationMechanisms, '["email","phone_number"]');
     });
 
     void it('stores output when no storage strategy is injected', () => {
