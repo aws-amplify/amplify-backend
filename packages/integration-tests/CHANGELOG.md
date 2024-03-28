@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.5.0-beta.6
+
+### Minor Changes
+
+- 62dab44: add support for function dependencies that require .node files
+
 ## 0.5.0-beta.5
 
 ### Minor Changes
