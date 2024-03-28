@@ -7,7 +7,7 @@ void describe('types generator', () => {
     const generator = new AppSyncGraphqlTypesGenerator(
       async () => null as unknown as string,
       () => ({
-        writeToDirectory: () => Promise.resolve(),
+        writeToDirectory: () => Promise.resolve({ filesWritten: [] }),
         getResults: async () => ({}),
       })
     );
@@ -42,7 +42,7 @@ void describe('types generator', () => {
       `;
 
     const mockResultBuilder = mock.fn(() => ({
-      writeToDirectory: () => Promise.resolve(),
+      writeToDirectory: () => Promise.resolve({ filesWritten: [] }),
       getResults: () => Promise.resolve({}),
     }));
     const generator = new AppSyncGraphqlTypesGenerator(

@@ -15,11 +15,9 @@ export class CodegenGraphqlFormGeneratorResult
   /**
    * writes the components to a given directory
    */
-  writeToDirectory = async (
-    directoryPath: string,
-    // TODO: update this type when Printer interface gets defined in platform-core.
-    log?: (message: string) => void
-  ) => {
+  writeToDirectory = async (directoryPath: string) => {
+    const filesWritten: string[] = [];
+
     try {
       await fs.stat(directoryPath);
     } catch (e) {
@@ -33,11 +31,13 @@ export class CodegenGraphqlFormGeneratorResult
         const fd = await fs.open(filePath, 'w+');
         try {
           await fd.writeFile(content);
-          log?.(`File written: ${path.relative(process.cwd(), filePath)}`);
+          filesWritten.push(path.relative(process.cwd(), filePath));
         } finally {
           await fd.close();
         }
       }
     }
+
+    return { filesWritten };
   };
 }
