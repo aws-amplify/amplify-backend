@@ -85,6 +85,84 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage:
       'CFN error happened: Invalid AttributeDataType input, consider using the provided AttributeDataType enum',
   },
+  {
+    errorMessage:
+      "Another CLI (PID=22981) is currently synthing to .amplify/artifacts/cdk.out. Invoke the CLI in sequence, or use '--output' to synth into different directories.",
+    expectedTopLevelErrorMessage: 'Multiple sandbox instances detected.',
+    errorName: 'MultipleSandboxInstancesError',
+    expectedDownstreamErrorMessage:
+      'Another CLI (PID=22981) is currently synthing to .amplify/artifacts/cdk.out. ',
+  },
+  {
+    errorMessage:
+      "Some random cdk log Other CLIs (PID=68436) are currently reading from .amplify/artifacts/cdk.out. Invoke the CLI in sequence, or use '--output' to synth into different directories.Some random cdk log",
+    expectedTopLevelErrorMessage: 'Multiple sandbox instances detected.',
+    errorName: 'MultipleSandboxInstancesError',
+    expectedDownstreamErrorMessage:
+      'Other CLIs (PID=68436) are currently reading from .amplify/artifacts/cdk.out. ',
+  },
+  {
+    errorMessage: `[esbuild Error]: Expected identifier but found ")"
+      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
+    expectedTopLevelErrorMessage:
+      'Unable to build the Amplify backend definition.',
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: `[esbuild Error]: Expected identifier but found ")"\n      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
+  },
+  {
+    errorMessage: `some rubbish before
+Error: some cdk synth error
+    at lookup (/some_random/path.js:1:3005)
+    at lookup2 (/some_random/path2.js:2:3005)`,
+    expectedTopLevelErrorMessage:
+      'Unable to build the Amplify backend definition.',
+    errorName: 'BackendSynthError',
+    expectedDownstreamErrorMessage: `Error: some cdk synth error
+    at lookup (/some_random/path.js:1:3005)`,
+  },
+  {
+    errorMessage: `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts
+      at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)
+      at new NodeError (node:internal/errors:405:5) {
+    url: 'file:///Users/user/work-space/shared_secret.js',
+    code: 'ERR_MODULE_NOT_FOUND'
+  }
+  
+  Node.js v18.19.0`,
+    expectedTopLevelErrorMessage: 'Cannot find module',
+    errorName: 'ModuleNotFoundError',
+    expectedDownstreamErrorMessage: `[ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts\n`,
+  },
+  {
+    errorMessage: `Error: node:internal/modules/cjs/loader:1098
+    const err = new Error('Cannot find module ');
+                ^
+  
+  Error: Cannot find module '/Users/user/work-space/amplify/resources/module.ts'
+      at createEsmNotFoundErr (node:internal/modules/cjs/loader:1098:15)
+    code: 'MODULE_NOT_FOUND',
+  }
+  
+  Node.js v18.17.1`,
+    expectedTopLevelErrorMessage: 'Cannot find module',
+    errorName: 'ModuleNotFoundError',
+    expectedDownstreamErrorMessage: `Error: Cannot find module '/Users/user/work-space/amplify/resources/module.ts'`,
+  },
+  {
+    errorMessage:
+      'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
+    expectedTopLevelErrorMessage:
+      'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
+    errorName: 'CDKResolveAWSAccountError',
+    expectedDownstreamErrorMessage:
+      'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
+  },
+  {
+    errorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
+    expectedTopLevelErrorMessage: 'File permissions error',
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {

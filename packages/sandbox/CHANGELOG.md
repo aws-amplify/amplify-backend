@@ -1,5 +1,21 @@
 # @aws-amplify/sandbox
 
+## 0.5.2-beta.11
+
+### Patch Changes
+
+- aec89f9: chore: correctly handle quotes in the error messages
+- cff84c0: chore: add more cdk errors in the error mapper
+- Updated dependencies [aec89f9]
+- Updated dependencies [cff84c0]
+- Updated dependencies [2a69684]
+  - @aws-amplify/platform-core@0.5.0-beta.4
+  - @aws-amplify/backend-deployer@0.5.1-beta.5
+  - @aws-amplify/backend-secret@0.4.5-beta.4
+  - @aws-amplify/cli-core@0.5.0-beta.7
+  - @aws-amplify/client-config@0.9.0-beta.9
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.5
+
 ## 0.5.2-beta.10
 
 ### Patch Changes
