@@ -9,6 +9,8 @@ import {
   ModelDataSourceStrategy,
 } from '@aws-amplify/data-construct';
 import { DataSchema, DataSchemasCollection } from './types.js';
+import fs from 'fs';
+import * as path from 'path';
 
 /**
  * Determine if the input schema is a derived model schema, and perform type narrowing.
@@ -42,6 +44,12 @@ export const isCombinedSchema = (
   );
 };
 
+// DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
+const DYNAMO_DATA_SOURCE_STRATEGY = {
+  dbType: 'DYNAMODB',
+  provisionStrategy: 'AMPLIFY_TABLE',
+} as const;
+
 /**
  * Given an input schema type, produce the relevant CDK Graphql Def interface
  * @param schema the input schema type
@@ -50,10 +58,6 @@ export const isCombinedSchema = (
 export const convertSchemaToCDK = (
   schema: DataSchema
 ): IAmplifyDataDefinition => {
-  // DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
-  const dbType = 'DYNAMODB';
-  const provisionStrategy = 'AMPLIFY_TABLE';
-
   if (isModelSchema(schema)) {
     /**
      * This is not super obvious, but the IAmplifyDataDefinition interface requires a record of each model type to a
@@ -62,12 +66,19 @@ export const convertSchemaToCDK = (
      * to generate that argument for us (so it's consistent with a customer using normal Graphql strings), then
      * apply that value back into the final IAmplifyDataDefinition output for data-schema users.
      */
-    const { schema: transformedSchema, functionSlots } = schema.transform();
+    const {
+      schema: transformedSchema,
+      functionSlots,
+      sqlStatementFolderPath,
+    } = schema.transform();
 
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
       transformedSchema,
       convertDatabaseConfigurationToDataSourceStrategy(
-        schema.data.configuration.database
+        schema.data.configuration.database,
+        sqlStatementFolderPath
+          ? loadCustomSqlStatements(sqlStatementFolderPath)
+          : {}
       )
     ).dataSourceStrategies;
     return {
@@ -77,10 +88,7 @@ export const convertSchemaToCDK = (
     };
   }
 
-  return AmplifyDataDefinition.fromString(schema, {
-    dbType,
-    provisionStrategy,
-  });
+  return AmplifyDataDefinition.fromString(schema, DYNAMO_DATA_SOURCE_STRATEGY);
 };
 
 /**
@@ -100,19 +108,13 @@ export const combineCDKSchemas = (
  * @returns the data strategy needed to configure the data source
  */
 const convertDatabaseConfigurationToDataSourceStrategy = (
-  configuration: DataSourceConfiguration
+  configuration: DataSourceConfiguration,
+  customSqlStatements: Record<string, string>
 ): ModelDataSourceStrategy => {
-  // DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
-  const defaultDbType = 'DYNAMODB';
-  const defaultProvisionStrategy = 'AMPLIFY_TABLE';
-
   const dbEngine = configuration.engine;
 
   if (dbEngine === 'dynamodb') {
-    return {
-      dbType: defaultDbType,
-      provisionStrategy: defaultProvisionStrategy,
-    };
+    return DYNAMO_DATA_SOURCE_STRATEGY;
   }
 
   const dbType = <Uppercase<typeof configuration.engine>>dbEngine.toUpperCase();
@@ -131,5 +133,29 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
       // connectionUriSsmPath: configuration.connectionUri
     },
     vpcConfiguration: configuration.vpcConfig,
+    customSqlStatements,
   };
+};
+
+/**
+ * Given a directory of files containing sql queries, create a statement reference dictionary
+ * @param sqlStatementsPath the location of the folder containing sql queries
+ * @returns an object mapping the file basename to the query
+ */
+const loadCustomSqlStatements = (
+  sqlStatementsPath: string
+): Record<string, string> => {
+  const sqlFiles = fs
+    .readdirSync(sqlStatementsPath)
+    .map((file) => path.join(sqlStatementsPath, file));
+
+  const customSqlStatements = sqlFiles.reduce(
+    (acc, filePath): Record<string, string> => {
+      const basename = path.parse(filePath).name;
+      acc[basename] = fs.readFileSync(filePath, 'utf8');
+      return acc;
+    },
+    {} as Record<string, string>
+  );
+  return customSqlStatements;
 };
