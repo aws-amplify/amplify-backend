@@ -5,8 +5,10 @@ import {
   DeployResult,
   DestroyResult,
 } from '@aws-amplify/backend-deployer';
-import { SecretClient } from '@aws-amplify/backend-secret';
+import { SecretClient, SecretError } from '@aws-amplify/backend-secret';
 import { LogLevel, Printer } from '@aws-amplify/cli-core';
+import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
+import { SSMServiceException } from '@aws-sdk/client-ssm';
 
 /**
  * Execute CDK commands.
@@ -64,7 +66,35 @@ export class AmplifySandboxExecutor {
   private getSecretLastUpdated = async (
     backendId: BackendIdentifier
   ): Promise<Date | undefined> => {
-    const secrets = await this.secretClient.listSecrets(backendId);
+    let secrets = undefined;
+    try {
+      secrets = await this.secretClient.listSecrets(backendId);
+    } catch (err) {
+      if (
+        err instanceof SecretError &&
+        err.cause &&
+        err.cause instanceof SSMServiceException
+      ) {
+        if (err.cause.name === 'ExpiredTokenException') {
+          throw new AmplifyUserError(
+            'SecretsExpiredTokenError',
+            {
+              message:
+                'Fetching the list of secrets failed due to expired tokens',
+              resolution: 'Please refresh your credentials and try again',
+            },
+            err
+          );
+        }
+      }
+      throw new AmplifyFault(
+        'ListSecretsFailedFault',
+        {
+          message: 'Fetching the list of secrets failed',
+        },
+        err as Error
+      );
+    }
     let latestTimestamp = -1;
     let secretLastUpdate: Date | undefined;
 

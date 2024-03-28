@@ -133,6 +133,36 @@ Error: some cdk synth error
     errorName: 'ModuleNotFoundError',
     expectedDownstreamErrorMessage: `[ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts\n`,
   },
+  {
+    errorMessage: `Error: node:internal/modules/cjs/loader:1098
+    const err = new Error('Cannot find module ');
+                ^
+  
+  Error: Cannot find module '/Users/user/work-space/amplify/resources/module.ts'
+      at createEsmNotFoundErr (node:internal/modules/cjs/loader:1098:15)
+    code: 'MODULE_NOT_FOUND',
+  }
+  
+  Node.js v18.17.1`,
+    expectedTopLevelErrorMessage: 'Cannot find module',
+    errorName: 'ModuleNotFoundError',
+    expectedDownstreamErrorMessage: `Error: Cannot find module '/Users/user/work-space/amplify/resources/module.ts'`,
+  },
+  {
+    errorMessage:
+      'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
+    expectedTopLevelErrorMessage:
+      'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
+    errorName: 'CDKResolveAWSAccountError',
+    expectedDownstreamErrorMessage:
+      'Unable to resolve AWS account to use. It must be either configured when you define your CDK Stack, or through the environment',
+  },
+  {
+    errorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
+    expectedTopLevelErrorMessage: 'File permissions error',
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {

@@ -4,12 +4,13 @@ import { IRole } from 'aws-cdk-lib/aws-iam';
 import {
   ApiKeyAuthorizationConfig as CDKApiKeyAuthorizationConfig,
   AuthorizationModes as CDKAuthorizationModes,
-  IAMAuthorizationConfig as CDKIAMAuthorizationConfig,
+  IdentityPoolAuthorizationConfig as CDKIdentityPoolAuthorizationConfig,
   LambdaAuthorizationConfig as CDKLambdaAuthorizationConfig,
   OIDCAuthorizationConfig as CDKOIDCAuthorizationConfig,
   UserPoolAuthorizationConfig as CDKUserPoolAuthorizationConfig,
 } from '@aws-amplify/data-construct';
 import {
+  AmplifyDataError,
   ApiKeyAuthorizationModeProps,
   AuthorizationModes,
   DefaultAuthorizationMode,
@@ -21,6 +22,7 @@ import {
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const DEFAULT_API_KEY_EXPIRATION_DAYS = 7;
 const DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS = 60;
@@ -95,14 +97,38 @@ const convertOIDCAuthConfigToCDK = ({
 
 /**
  * Compute default auth mode based on availability of auth resources.
- * Will specify userPool if both user pool is specified, and no auth resources are specified, else rely on override value if needed.
+ *
+ * Will default to userPool if userPool is provided and auth resources are not provided.
+ *
+ * If no auth resources are provided and there's only one mode we'll use that as we implicitly always add iam auth.
  */
 const computeDefaultAuthorizationMode = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): DefaultAuthorizationMode | undefined => {
-  if (providedAuthConfig && !authModes) return 'userPool';
-  return;
+  if (isUsingDefaultApiKeyAuth(providedAuthConfig, authModes)) {
+    return 'apiKey';
+  } else if (providedAuthConfig && !authModes) {
+    return 'userPool';
+  } else if (
+    !providedAuthConfig &&
+    authModes &&
+    Object.keys(authModes).length === 1
+  ) {
+    if (authModes.oidcAuthorizationMode) {
+      return 'oidc';
+    } else if (authModes.lambdaAuthorizationMode) {
+      return 'lambda';
+    } else if (authModes.apiKeyAuthorizationMode) {
+      return 'apiKey';
+    }
+  }
+  throw new AmplifyUserError<AmplifyDataError>('DefineDataConfigurationError', {
+    message:
+      'A defaultAuthorizationMode is required if multiple authorization modes are configured',
+    resolution:
+      "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'",
+  });
 };
 
 /**
@@ -119,20 +145,17 @@ const computeUserPoolAuthFromResource = (
 };
 
 /**
- * Compute iam auth config from auth resource provider.
+ * Compute identity pool auth config from auth resource provider.
  * @returns an iam auth config, if relevant
  */
-const computeIAMAuthFromResource = (
-  providedAuthConfig: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined,
-  additionalRoles: IRole[] = []
-): CDKIAMAuthorizationConfig | undefined => {
+const computeIdentityPoolAuthFromResource = (
+  providedAuthConfig: ProvidedAuthConfig | undefined
+): CDKIdentityPoolAuthorizationConfig | undefined => {
   if (providedAuthConfig) {
     return {
       authenticatedUserRole: providedAuthConfig.authenticatedUserRole,
       unauthenticatedUserRole: providedAuthConfig.unauthenticatedUserRole,
       identityPoolId: providedAuthConfig.identityPoolId,
-      allowListedRoles: additionalRoles,
     };
   }
   return;
@@ -146,12 +169,12 @@ const computeApiKeyAuthFromResource = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): CDKApiKeyAuthorizationConfig | undefined => {
-  if (providedAuthConfig || authModes) {
-    return;
+  if (isUsingDefaultApiKeyAuth(providedAuthConfig, authModes)) {
+    return {
+      expires: Duration.days(DEFAULT_API_KEY_EXPIRATION_DAYS),
+    };
   }
-  return {
-    expires: Duration.days(DEFAULT_API_KEY_EXPIRATION_DAYS),
-  };
+  return;
 };
 
 const authorizationModeMapping = {
@@ -174,8 +197,7 @@ const convertAuthorizationModeToCDK = (mode?: DefaultAuthorizationMode) => {
 export const convertAuthorizationModesToCDK = (
   getInstanceProps: ConstructFactoryGetInstanceProps,
   authResources: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined,
-  additionalRoles: IRole[] = []
+  authModes: AuthorizationModes | undefined
 ): CDKAuthorizationModes => {
   const defaultAuthorizationMode =
     authModes?.defaultAuthorizationMode ??
@@ -187,11 +209,7 @@ export const convertAuthorizationModesToCDK = (
     ? convertApiKeyAuthConfigToCDK(authModes.apiKeyAuthorizationMode)
     : computeApiKeyAuthFromResource(authResources, authModes);
   const userPoolConfig = computeUserPoolAuthFromResource(authResources);
-  const iamConfig = computeIAMAuthFromResource(
-    authResources,
-    authModes,
-    additionalRoles
-  );
+  const identityPoolConfig = computeIdentityPoolAuthFromResource(authResources);
   const lambdaConfig = authModes?.lambdaAuthorizationMode
     ? convertLambdaAuthorizationConfigToCDK(
         getInstanceProps,
@@ -208,9 +226,12 @@ export const convertAuthorizationModesToCDK = (
       : undefined),
     ...(apiKeyConfig ? { apiKeyConfig } : undefined),
     ...(userPoolConfig ? { userPoolConfig } : undefined),
-    ...(iamConfig ? { iamConfig } : undefined),
+    ...(identityPoolConfig ? { identityPoolConfig } : undefined),
     ...(lambdaConfig ? { lambdaConfig } : undefined),
     ...(oidcConfig ? { oidcConfig } : undefined),
+    iamConfig: {
+      enableIamAuthorizationMode: true,
+    },
   };
 };
 
@@ -224,8 +245,5 @@ export const isUsingDefaultApiKeyAuth = (
   authResources: ProvidedAuthConfig | undefined,
   authModes: AuthorizationModes | undefined
 ): boolean => {
-  return (
-    authModes === undefined &&
-    computeApiKeyAuthFromResource(authResources, authModes) !== undefined
-  );
+  return authModes === undefined && authResources === undefined;
 };

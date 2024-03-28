@@ -1,5 +1,26 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.14
+
+### Minor Changes
+
+- 54de5f7: Support --name option in `sandbox secret` commands
+
+### Patch Changes
+
+- Updated dependencies [aec89f9]
+- Updated dependencies [cff84c0]
+- Updated dependencies [2a69684]
+  - @aws-amplify/platform-core@0.5.0-beta.4
+  - @aws-amplify/backend-deployer@0.5.1-beta.5
+  - @aws-amplify/sandbox@0.5.2-beta.11
+  - @aws-amplify/backend-secret@0.4.5-beta.4
+  - @aws-amplify/cli-core@0.5.0-beta.7
+  - @aws-amplify/client-config@0.9.0-beta.9
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.5
+  - @aws-amplify/schema-generator@0.1.0-beta.3
+  - @aws-amplify/model-generator@0.5.0-beta.6
+
 ## 0.12.0-beta.13
 
 ### Patch Changes

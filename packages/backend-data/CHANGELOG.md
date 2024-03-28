@@ -1,5 +1,15 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.8
+
+### Minor Changes
+
+- f6489a8: enable iam auth in defineData
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.4.0-beta.4
+
 ## 0.10.0-beta.7
 
 ### Patch Changes

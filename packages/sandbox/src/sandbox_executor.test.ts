@@ -7,7 +7,13 @@ import {
   PackageManagerControllerFactory,
   Printer,
 } from '@aws-amplify/cli-core';
-import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
+import {
+  SecretError,
+  SecretListItem,
+  getSecretClient,
+} from '@aws-amplify/backend-secret';
+import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
+import { SSMServiceException } from '@aws-sdk/client-ssm';
 
 const logMock = mock.fn();
 const mockedPrinter = {
@@ -84,6 +90,62 @@ void describe('Sandbox executor', () => {
     // Assert debounce worked as expected
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     assert.strictEqual(validateAppSourcesProvider.mock.callCount(), 1);
+  });
+
+  void it('throws AmplifyUserError if listSecrets fails due to expired credentials', async () => {
+    const ssmError = new SSMServiceException({
+      name: 'ExpiredTokenException',
+      $fault: 'client',
+      $metadata: {},
+    });
+    const secretsError = SecretError.createInstance(ssmError);
+    listSecretMock.mock.mockImplementationOnce(() => {
+      throw secretsError;
+    });
+    await assert.rejects(
+      () =>
+        sandboxExecutor.deploy(
+          {
+            namespace: 'testSandboxId',
+            name: 'testSandboxName',
+            type: 'sandbox',
+          },
+          validateAppSourcesProvider
+        ),
+      new AmplifyUserError(
+        'SecretsExpiredTokenError',
+        {
+          message: 'Fetching the list of secrets failed due to expired tokens',
+          resolution: 'Please refresh your credentials and try again',
+        },
+        secretsError
+      )
+    );
+  });
+
+  void it('throws AmplifyFault if listSecrets fails due to exception other than expired credentials', async () => {
+    const secretError = new SecretError('some secret error');
+    listSecretMock.mock.mockImplementationOnce(() => {
+      throw secretError;
+    });
+    await assert.rejects(
+      () =>
+        sandboxExecutor.deploy(
+          {
+            namespace: 'testSandboxId',
+            name: 'testSandboxName',
+            type: 'sandbox',
+          },
+          validateAppSourcesProvider
+        ),
+      new AmplifyFault(
+        'ListSecretsFailedFault',
+        {
+          message: 'Fetching the list of secrets failed',
+        },
+        secretError
+      )
+    );
   });
 
   [true, false].forEach((shouldValidateSources) => {
