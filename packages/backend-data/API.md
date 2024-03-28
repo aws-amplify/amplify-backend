@@ -36,6 +36,9 @@ export type DataProps = {
 export type DataSchema = string | DerivedModelSchema;
 
 // @public
+export type DataSchemaInput = string | DerivedModelSchema | DerivedCombinedSchema;
+
+// @public
 export type DefaultAuthorizationMode = 'iam' | 'userPool' | 'oidc' | 'apiKey' | 'lambda';
 
 // @public
@@ -55,10 +58,6 @@ export type OIDCAuthorizationModeProps = {
     tokenExpiryFromAuthInSeconds: number;
     tokenExpireFromIssueInSeconds: number;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:125:3 - (ae-forgotten-export) The symbol "DataSchemaInput" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

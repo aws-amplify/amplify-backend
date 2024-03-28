@@ -5,6 +5,7 @@ export {
   OIDCAuthorizationModeProps,
   DefaultAuthorizationMode,
   AuthorizationModes,
+  DataSchemaInput,
   DataSchema,
   DataProps,
 } from './types.js';
