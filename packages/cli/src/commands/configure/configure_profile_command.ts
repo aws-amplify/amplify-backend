@@ -1,4 +1,4 @@
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import { EOL } from 'os';
@@ -38,7 +38,9 @@ export class ConfigureProfileCommand
   /**
    * @inheritDoc
    */
-  handler = async (args: ConfigureProfileCommandOptions): Promise<void> => {
+  handler = async (
+    args: ArgumentsCamelCase<ConfigureProfileCommandOptions>
+  ): Promise<void> => {
     const profileName = args.name;
     const profileExists = await this.profileController.profileExists(
       profileName

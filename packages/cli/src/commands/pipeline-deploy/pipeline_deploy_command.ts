@@ -1,5 +1,5 @@
 import _isCI from 'is-ci';
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendDeployer } from '@aws-amplify/backend-deployer';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
@@ -52,7 +52,9 @@ export class PipelineDeployCommand
   /**
    * @inheritDoc
    */
-  handler = async (args: PipelineDeployCommandOptions): Promise<void> => {
+  handler = async (
+    args: ArgumentsCamelCase<PipelineDeployCommandOptions>
+  ): Promise<void> => {
     if (!this.isCiEnvironment) {
       throw new Error(
         'It looks like this command is being run outside of a CI/CD workflow. To deploy locally use `amplify sandbox` instead.'
@@ -60,7 +62,7 @@ export class PipelineDeployCommand
     }
 
     const backendId: BackendIdentifier = {
-      namespace: args['app-id'],
+      namespace: args.appId,
       name: args.branch,
       type: 'branch',
     };
@@ -69,8 +71,8 @@ export class PipelineDeployCommand
     });
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendId,
-      args['config-version'] as ClientConfigVersion,
-      args['config-out-dir']
+      args.configVersion as ClientConfigVersion,
+      args.configOutDir
     );
   };
 
