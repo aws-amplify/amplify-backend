@@ -140,7 +140,6 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
     if (authOutput.payload.socialProviders) {
       if (
         !(
-          authOutput.payload.oauthDomain &&
           authOutput.payload.oauthRedirectSignIn &&
           authOutput.payload.oauthRedirectSignOut &&
           authOutput.payload.oauthResponseType &&
