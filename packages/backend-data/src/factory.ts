@@ -27,6 +27,7 @@ import {
 } from './convert_authorization_modes.js';
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import {
+  AmplifyError,
   AmplifyFault,
   AmplifyUserError,
   CDKContextKey,
@@ -137,24 +138,16 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     }
 
     let authorizationModes;
-
-    /**
-     * TODO - remove this after the data construct does work to remove the need for allow-listed IAM roles
-     */
-    const functionSchemaAccessRoles = functionSchemaAccess.map(
-      (accessEntry) =>
-        accessEntry.resourceProvider.getInstance(this.getInstanceProps)
-          .resources.lambda.role!
-    );
-
     try {
       authorizationModes = convertAuthorizationModesToCDK(
         this.getInstanceProps,
         this.providedAuthConfig,
-        this.props.authorizationModes,
-        functionSchemaAccessRoles
+        this.props.authorizationModes
       );
     } catch (error) {
+      if (error instanceof AmplifyError) {
+        throw error;
+      }
       throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaAuthError',
         {
