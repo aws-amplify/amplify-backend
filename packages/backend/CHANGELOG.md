@@ -1,5 +1,16 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.14
+
+### Minor Changes
+
+- f76e983: Use updated metadata fields in form and model generation
+
+### Patch Changes
+
+- Updated dependencies [f76e983]
+  - @aws-amplify/backend-data@0.10.0-beta.10
+
 ## 0.13.0-beta.13
 
 ### Patch Changes
