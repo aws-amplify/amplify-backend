@@ -93,10 +93,10 @@ const handleError = (
       printer.print(`Cause: ${error.cause.message}`);
     }
   } else {
-    // normal NodeJS Error object
+    // non-Amplify Error object
     printer.print(format.error(message || String(error)));
     if (errorHasCauseMessage(error)) {
-      printer.print(format.error(error.cause.message));
+      printer.print(`Cause: ${error.cause.message}`);
     }
   }
 
