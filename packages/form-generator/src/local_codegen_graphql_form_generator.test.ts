@@ -10,12 +10,18 @@ import {
 
 type MockDataType = 'String' | 'ID' | 'AWSDateTime';
 
-const createMockField = (dataType: MockDataType, required = false) => {
+type MockFieldOptions = { required?: boolean; readOnly?: boolean };
+
+const createMockField = (
+  dataType: MockDataType,
+  options?: MockFieldOptions
+) => {
+  const { required = false, readOnly = false } = options ?? {};
   return {
     dataType: dataType,
     dataTypeValue: dataType,
+    readOnly,
     required,
-    readOnly: false,
     isArray: false,
   };
 };
@@ -27,11 +33,17 @@ const createMockSchema = (fields: string[]): GenericDataSchema => {
       [name]: {
         primaryKeys: ['id'],
         fields: {
-          id: createMockField('ID'),
+          id: createMockField('ID', { required: true }),
           title: createMockField('String'),
           content: createMockField('String'),
-          createdAt: createMockField('AWSDateTime'),
-          updatedAt: createMockField('AWSDateTime'),
+          updatedAt: createMockField('AWSDateTime', {
+            readOnly: true,
+            required: false,
+          }),
+          createdAt: createMockField('AWSDateTime', {
+            readOnly: true,
+            required: false,
+          }),
         },
       },
     }),
@@ -293,6 +305,29 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
     ['graphql', './graphql'],
     ['gql/graphql', './gql/graphql'],
   ];
+  void it(`id fields with type ID and required option are automatically removed from the generated form`, async () => {
+    const schema = createMockSchema(['Post']);
+    assert('id' in schema.models.Post.fields);
+    const resultGenerationSpy = mock.fn<ResultBuilder>();
+    resultGenerationSpy.mock.mockImplementation(() => ({
+      writeToDirectory: async () => undefined,
+    }));
+    const l = new LocalGraphqlFormGenerator(
+      async () => schema as unknown as GenericDataSchema,
+      {
+        graphqlDir: './ui-components',
+      },
+      resultGenerationSpy
+    );
+
+    await l.generateForms();
+
+    assert.equal(resultGenerationSpy.mock.callCount(), 1);
+    const componentMap = resultGenerationSpy.mock.calls[0].arguments[0];
+
+    const component = componentMap['PostCreateForm.jsx'];
+    assert.equal(component.includes(`label="Id"`), false);
+  });
   void it(`createdAt and updatedAt fields are removed from the generated form`, async () => {
     const schema = createMockSchema(['Post']);
     assert('createdAt' in schema.models.Post.fields);
