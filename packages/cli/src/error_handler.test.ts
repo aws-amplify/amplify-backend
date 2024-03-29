@@ -6,7 +6,7 @@ import {
 import { Argv } from 'yargs';
 import { printer } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
-import { InvalidCredentialError } from './error/credential_error.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const mockPrint = mock.method(printer, 'print');
 
@@ -59,20 +59,6 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockPrint.mock.callCount(), 0);
   });
 
-  void it('handles a profile error', () => {
-    const errMsg = 'some profile error';
-    generateCommandFailureHandler(parser)(
-      '',
-      new InvalidCredentialError(errMsg)
-    );
-    assert.equal(mockExit.mock.callCount(), 1);
-    assert.equal(mockPrint.mock.callCount(), 1);
-    assert.match(
-      mockPrint.mock.calls[0].arguments[0] as string,
-      new RegExp(errMsg)
-    );
-  });
-
   void it('prints error cause message, if any', () => {
     const errorMessage = 'this is the upstream cause';
     generateCommandFailureHandler(parser)(
@@ -84,6 +70,23 @@ void describe('generateCommandFailureHandler', () => {
     assert.match(
       mockPrint.mock.calls[1].arguments[0] as string,
       new RegExp(errorMessage)
+    );
+  });
+
+  void it('prints AmplifyUserErrors', () => {
+    generateCommandFailureHandler(parser)(
+      '',
+      new AmplifyUserError('TestName', {
+        message: 'test error message',
+        resolution: 'test resolution',
+      })
+    );
+
+    assert.equal(mockExit.mock.callCount(), 1);
+    assert.equal(mockPrint.mock.callCount(), 2);
+    assert.match(
+      mockPrint.mock.calls[1].arguments[0] as string,
+      new RegExp('test error message')
     );
   });
 });
