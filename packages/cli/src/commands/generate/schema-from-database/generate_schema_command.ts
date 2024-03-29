@@ -74,6 +74,7 @@ export class GenerateSchemaCommand
     );
 
     await this.schemaGenerator.generate({
+      secretName,
       connectionUri: connectionUriSecret.value,
       out: outputFile,
     });

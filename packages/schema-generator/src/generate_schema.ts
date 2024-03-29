@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type SchemaGeneratorConfig = {
+  secretName: string;
   connectionUri: string;
   out: string;
 };
@@ -19,7 +20,10 @@ export class SchemaGenerator {
     const dbConfig = parseDatabaseUrl(props.connectionUri);
 
     try {
-      const schema = await TypescriptDataSchemaGenerator.generate(dbConfig);
+      const schema = await TypescriptDataSchemaGenerator.generate({
+        ...dbConfig,
+        connectionUriSecretName: props.secretName,
+      });
       await fs.writeFile(props.out, schema);
     } catch (err) {
       const databaseError = err as DatabaseConnectError;

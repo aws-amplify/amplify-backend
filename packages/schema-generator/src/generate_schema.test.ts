@@ -22,6 +22,7 @@ void describe('SchemaGenerator', () => {
     await schemaGenerator.generate({
       connectionUri: 'mysql://user:password@hostname:3306/db',
       out: 'schema.ts',
+      secretName: 'FAKE_SECRET_NAME',
     });
     assert.strictEqual(mockGenerateMethod.mock.calls.length, 1);
     assert.strictEqual(mockFsWriteFileSync.mock.calls.length, 1);
