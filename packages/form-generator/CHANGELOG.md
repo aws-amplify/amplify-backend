@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.8.0-beta.3
+
+### Minor Changes
+
+- f76e983: Use updated metadata fields in form and model generation
+
 ## 0.8.0-beta.2
 
 ### Patch Changes

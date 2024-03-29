@@ -1,5 +1,15 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.16
+
+### Patch Changes
+
+- Updated dependencies [f76e983]
+- Updated dependencies [4d47f63]
+  - @aws-amplify/form-generator@0.8.0-beta.3
+  - @aws-amplify/cli-core@0.5.0-beta.8
+  - @aws-amplify/sandbox@0.5.2-beta.13
+
 ## 0.12.0-beta.15
 
 ### Patch Changes
