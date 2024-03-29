@@ -89,7 +89,7 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockPrint.mock.callCount(), 3);
     assert.match(
       mockPrint.mock.calls[0].arguments[0],
-      /TestName: test error message/ // have to use match here because the ANSI colors messes up an equality comparison
+      /TestName: test error message/
     );
     assert.equal(
       mockPrint.mock.calls[1].arguments[0],
