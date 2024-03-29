@@ -51,10 +51,14 @@ export class CommandMiddleware {
       const errorMessage = argv.profile
         ? `Failed to load AWS region for profile '${argv.profile}'`
         : 'Failed to load default AWS region';
-      throw new AmplifyUserError('InvalidCredentialError', {
-        message: errorMessage,
-        resolution: profileSetupInstruction,
-      });
+      throw new AmplifyUserError(
+        'InvalidCredentialError',
+        {
+          message: errorMessage,
+          resolution: profileSetupInstruction,
+        },
+        err as Error
+      );
     }
   };
 }
