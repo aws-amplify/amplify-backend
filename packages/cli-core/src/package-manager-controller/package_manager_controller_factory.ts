@@ -57,9 +57,10 @@ export class PackageManagerControllerFactory {
   private getPackageManagerName() {
     const userAgent = process.env.npm_config_user_agent;
     if (userAgent === undefined) {
-      throw new Error(
-        `npm_config_user_agent is undefined\n\nThis is usually caused by attempting to run \`amplify\` directly. Try running \`npx amplify\``
-      );
+      throw new AmplifyUserError('NoPackageManagerError', {
+        resolution: `This is usually caused by attempting to run \`amplify\` directly. Try running \`npx amplify\``,
+        message: `npm_config_user_agent is undefined`,
+      });
     }
     const packageManagerAndVersion = userAgent.split(' ')[0];
     const [packageManagerName, packageManagerVersion] =
