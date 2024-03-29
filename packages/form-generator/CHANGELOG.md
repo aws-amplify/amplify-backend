@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.8.0-beta.2
+
+### Patch Changes
+
+- 592bd4f: refactor log abstraction in `client-config`, `form-generator`, and `model-generator` packages
+
 ## 0.8.0-beta.1
 
 ### Patch Changes

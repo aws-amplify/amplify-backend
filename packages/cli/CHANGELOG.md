@@ -1,5 +1,18 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.15
+
+### Patch Changes
+
+- a7ce946: cleanup instances where we use kebab case in yargs handler methods
+- 592bd4f: refactor log abstraction in `client-config`, `form-generator`, and `model-generator` packages
+- Updated dependencies [394b72e]
+- Updated dependencies [592bd4f]
+  - @aws-amplify/client-config@0.9.0-beta.10
+  - @aws-amplify/model-generator@0.5.0-beta.7
+  - @aws-amplify/form-generator@0.8.0-beta.2
+  - @aws-amplify/sandbox@0.5.2-beta.12
+
 ## 0.12.0-beta.14
 
 ### Minor Changes
