@@ -12,6 +12,7 @@ export class SchemaGenerator {
 
 // @public (undocumented)
 export type SchemaGeneratorConfig = {
+    secretName: string;
     connectionUri: string;
     out: string;
 };
