@@ -89,6 +89,7 @@ void describe('generate graphql-client-code command', () => {
     assert.deepEqual(schemaGeneratorGenerateMethod.mock.calls[0].arguments[0], {
       connectionUri: 'FAKE_CONN_STRING_VALUE',
       out: 'schema.rds.ts',
+      secretName: 'CONN_STRING',
     });
   });
 
@@ -101,6 +102,7 @@ void describe('generate graphql-client-code command', () => {
     assert.deepEqual(schemaGeneratorGenerateMethod.mock.calls[0].arguments[0], {
       connectionUri: 'FAKE_CONN_STRING_VALUE',
       out: 'schema.rds.ts',
+      secretName: 'CONN_STRING',
     });
   });
 
