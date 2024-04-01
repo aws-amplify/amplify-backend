@@ -33,9 +33,10 @@ export class FormGenerationHandler {
     const modelsResult = await graphqlClientGenerator.generateModels({
       targetFormat: 'typescript',
     });
-    await modelsResult.writeToDirectory(modelsOutDir, (message) =>
-      printer.log(message)
-    );
+    const { filesWritten: modelsFilesWritten } =
+      await modelsResult.writeToDirectory(modelsOutDir);
+    this.logMessages(modelsFilesWritten);
+
     const localFormGenerator = createLocalGraphqlFormGenerator({
       introspectionSchemaUrl: apiUrl,
       graphqlModelDirectoryPath: './graphql',
@@ -43,6 +44,15 @@ export class FormGenerationHandler {
     const result = await localFormGenerator.generateForms({
       models: modelsFilter,
     });
-    await result.writeToDirectory(uiOutDir, (message) => printer.log(message));
+    const { filesWritten: uiFilesWritten } = await result.writeToDirectory(
+      uiOutDir
+    );
+    this.logMessages(uiFilesWritten);
+  };
+
+  private logMessages = (filesWritten: string[]) => {
+    filesWritten.forEach((file) => {
+      printer.log(`File written: ${file}`);
+    });
   };
 }

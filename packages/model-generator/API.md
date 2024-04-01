@@ -99,6 +99,11 @@ export type GenerateGraphqlCodegenOptions = {
 };
 
 // @public (undocumented)
+export type GenerateGraphqlCodegenToFileResult = {
+    filesWritten: string[];
+};
+
+// @public (undocumented)
 export type GenerateIntrospectionOptions = {
     format: GenerateApiCodeFormat.INTROSPECTION;
 };
@@ -122,7 +127,7 @@ export type GenerateOptions = GenerateGraphqlCodegenOptions | GenerateModelsOpti
 
 // @public (undocumented)
 export type GenerationResult = {
-    writeToDirectory: (directoryPath: string, log?: (message: string) => void) => Promise<void>;
+    writeToDirectory: (directoryPath: string) => Promise<GenerateGraphqlCodegenToFileResult>;
     getResults: () => Promise<Record<string, string>>;
 };
 

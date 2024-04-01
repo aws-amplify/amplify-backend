@@ -7,7 +7,7 @@ void describe('client generator', () => {
     const generator = new AppSyncGraphqlDocumentGenerator(
       async () => null as unknown as string,
       () => ({
-        writeToDirectory: () => Promise.resolve(),
+        writeToDirectory: () => Promise.resolve({ filesWritten: [] }),
         getResults: async () => ({}),
       })
     );

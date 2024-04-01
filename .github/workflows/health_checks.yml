@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - feature/**
   workflow_dispatch:
 
 jobs:
@@ -168,7 +169,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest-xl, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
       - do_include_e2e
       - build

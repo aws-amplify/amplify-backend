@@ -1,4 +1,4 @@
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import {
   ClientConfigFormat,
   ClientConfigVersion,
@@ -51,7 +51,9 @@ export class GenerateConfigCommand
   /**
    * @inheritDoc
    */
-  handler = async (args: GenerateConfigCommandOptions): Promise<void> => {
+  handler = async (
+    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
+  ): Promise<void> => {
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
@@ -62,8 +64,8 @@ export class GenerateConfigCommand
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
-      args['config-version'] as ClientConfigVersion,
-      args['out-dir'],
+      args.configVersion as ClientConfigVersion,
+      args.outDir,
       args.format
     );
   };

@@ -31,10 +31,10 @@ void describe('sandbox secret list command', () => {
     listSecretsResponseMock
   );
   const sandboxIdResolver: SandboxBackendIdResolver = {
-    resolve: () =>
+    resolve: (nameOverride?: string) =>
       Promise.resolve({
         namespace: testBackendId,
-        name: testSandboxName,
+        name: nameOverride || testSandboxName,
         type: 'sandbox',
       }),
   } as SandboxBackendIdResolver;
@@ -53,7 +53,7 @@ void describe('sandbox secret list command', () => {
   });
 
   void it('list secrets', async () => {
-    await commandRunner.runCommand(`list`);
+    await commandRunner.runCommand('list');
     assert.equal(secretListMock.mock.callCount(), 1);
 
     assert.deepStrictEqual(secretListMock.mock.calls[0].arguments[0], {
@@ -69,9 +69,26 @@ void describe('sandbox secret list command', () => {
     );
   });
 
+  void it('lists secrets for named sandbox', async () => {
+    await commandRunner.runCommand('list --name anotherName');
+    assert.equal(secretListMock.mock.callCount(), 1);
+
+    assert.deepStrictEqual(secretListMock.mock.calls[0].arguments[0], {
+      namespace: testBackendId,
+      name: 'anotherName',
+      type: 'sandbox',
+    });
+
+    assert.equal(printMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      printMock.mock.calls[0].arguments[0],
+      format.list(testSecrets.map((s) => s.name))
+    );
+  });
+
   void it('prints no secrets message if no secrets found', async () => {
     listSecretsResponseMock.mock.mockImplementationOnce(async () => []);
-    await commandRunner.runCommand(`list`);
+    await commandRunner.runCommand('list');
     assert.equal(secretListMock.mock.callCount(), 1);
 
     assert.deepStrictEqual(secretListMock.mock.calls[0].arguments[0], {

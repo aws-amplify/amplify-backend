@@ -9,8 +9,8 @@ import {
   CustomClientConfig,
   GeoClientConfig,
   GraphqlClientConfig,
+  NotificationsClientConfig,
   PlatformClientConfig,
-  RestApiClientConfig,
   StorageClientConfig,
 } from '../index.js';
 import { AmplifyFault } from '@aws-amplify/platform-core';
@@ -49,16 +49,18 @@ void describe('ClientConfigLegacyConverter', () => {
         },
         mfa_methods: ['SMS', 'TOTP'],
         mfa_configuration: 'OPTIONAL',
-        user_verification_mechanisms: ['EMAIL', 'PHONE'],
-        username_attributes: ['EMAIL'],
-        standard_attributes: { EMAIL: { required: true } },
+        user_verification_types: ['email', 'phone_number'],
+        username_attributes: ['email'],
+        standard_required_attributes: ['email'],
         unauthenticated_identities_enabled: true,
-        oauth_domain: 'testDomain',
-        oauth_scope: ['email', 'profile'],
-        oauth_redirect_sign_in: ['http://callback.com', 'http://callback2.com'],
-        oauth_redirect_sign_out: ['http://logout.com', 'http://logout2.com'],
-        oauth_response_type: 'code',
-        identity_providers: ['provider1', 'provider2'],
+        oauth: {
+          domain: 'testDomain',
+          scopes: ['email', 'profile'],
+          redirect_sign_in_uri: ['http://callback.com', 'http://callback2.com'],
+          redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
+          response_type: 'code',
+          identity_providers: ['GOOGLE', 'FACEBOOK'],
+        },
       },
     };
 
@@ -80,7 +82,7 @@ void describe('ClientConfigLegacyConverter', () => {
       },
       aws_cognito_signup_attributes: ['EMAIL'],
       aws_cognito_username_attributes: ['EMAIL'],
-      aws_cognito_verification_mechanisms: ['EMAIL', 'PHONE'],
+      aws_cognito_verification_mechanisms: ['EMAIL', 'PHONE_NUMBER'],
       allowUnauthenticatedIdentities: 'true',
       oauth: {
         domain: 'testDomain',
@@ -89,7 +91,7 @@ void describe('ClientConfigLegacyConverter', () => {
         redirectSignOut: 'http://logout.com,http://logout2.com',
         responseType: 'code',
       },
-      aws_cognito_social_providers: ['provider1', 'provider2'],
+      aws_cognito_social_providers: ['GOOGLE', 'FACEBOOK'],
     };
 
     assert.deepStrictEqual(
@@ -298,8 +300,10 @@ void describe('ClientConfigLegacyConverter', () => {
     const v1Config: ClientConfig = {
       version: ClientConfigVersionOption.V1,
       analytics: {
-        aws_region: 'testRegion',
-        pinpoint_app_id: 'testAppId',
+        amazon_pinpoint: {
+          aws_region: 'testRegion',
+          app_id: 'testAppId',
+        },
       },
     };
 
@@ -317,47 +321,6 @@ void describe('ClientConfigLegacyConverter', () => {
     );
   });
 
-  void it('returns translated legacy config for api', () => {
-    const converter = new ClientConfigLegacyConverter();
-
-    const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1,
-      api: {
-        endpoints: [
-          {
-            aws_region: 'region1',
-            name: 'name1',
-            url: 'endPoint1',
-            authorization_types: ['AMAZON_COGNITO_USER_POOLS'],
-            default_authorization_type: 'AMAZON_COGNITO_USER_POOLS',
-          },
-          {
-            aws_region: 'region2',
-            name: 'name2',
-            url: 'endPoint2',
-            authorization_types: ['AMAZON_COGNITO_USER_POOLS'],
-            default_authorization_type: 'AMAZON_COGNITO_USER_POOLS',
-          },
-        ],
-      },
-    };
-
-    const expectedLegacyConfig: RestApiClientConfig = {
-      aws_cloud_logic_custom: [
-        { endpoint: 'endPoint1', name: 'name1', region: 'region1' },
-        {
-          endpoint: 'endPoint2',
-          name: 'name2',
-          region: 'region2',
-        },
-      ],
-    };
-    assert.deepStrictEqual(
-      converter.convertToLegacyConfig(v1Config),
-      expectedLegacyConfig
-    );
-  });
-
   void it('returns translated legacy config for geo', () => {
     const converter = new ClientConfigLegacyConverter();
 
@@ -367,10 +330,10 @@ void describe('ClientConfigLegacyConverter', () => {
         aws_region: 'testRegion',
         maps: {
           default: 'map1',
-          items: [
-            { name: 'map1', style: 'style1' },
-            { name: 'map2', style: 'style2' },
-          ],
+          items: {
+            map1: { style: 'style1' },
+            map2: { style: 'style2' },
+          },
         },
         search_indices: {
           default: 'index1',
@@ -401,6 +364,58 @@ void describe('ClientConfigLegacyConverter', () => {
           geofenceCollections: {
             default: 'geofence1',
             items: ['geofence1', 'geofence2'],
+          },
+        },
+      },
+    };
+    assert.deepStrictEqual(
+      converter.convertToLegacyConfig(v1Config),
+      expectedLegacyConfig
+    );
+  });
+
+  void it('returns translated legacy config for notifications', () => {
+    const converter = new ClientConfigLegacyConverter();
+
+    const v1Config: ClientConfig = {
+      version: ClientConfigVersionOption.V1,
+      notifications: {
+        amazon_pinpoint_app_id: 'testAppId',
+        aws_region: 'testRegion',
+        channels: ['APNS', 'EMAIL', 'FCM', 'IN_APP_MESSAGING', 'SMS'],
+      },
+    };
+
+    const expectedLegacyConfig: NotificationsClientConfig = {
+      Notifications: {
+        InAppMessaging: {
+          AWSPinpoint: {
+            appId: 'testAppId',
+            region: 'testRegion',
+          },
+        },
+        APNS: {
+          AWSPinpoint: {
+            appId: 'testAppId',
+            region: 'testRegion',
+          },
+        },
+        EMAIL: {
+          AWSPinpoint: {
+            appId: 'testAppId',
+            region: 'testRegion',
+          },
+        },
+        FCM: {
+          AWSPinpoint: {
+            appId: 'testAppId',
+            region: 'testRegion',
+          },
+        },
+        SMS: {
+          AWSPinpoint: {
+            appId: 'testAppId',
+            region: 'testRegion',
           },
         },
       },

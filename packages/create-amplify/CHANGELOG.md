@@ -1,5 +1,22 @@
 # create-amplify
 
+## 0.7.0-beta.10
+
+### Patch Changes
+
+- Updated dependencies [4d47f63]
+  - @aws-amplify/cli-core@0.5.0-beta.8
+
+## 0.7.0-beta.9
+
+### Patch Changes
+
+- 11031fd: updated the client sample to have `await`
+- Updated dependencies [aec89f9]
+- Updated dependencies [2a69684]
+  - @aws-amplify/platform-core@0.5.0-beta.4
+  - @aws-amplify/cli-core@0.5.0-beta.7
+
 ## 0.7.0-beta.8
 
 ### Patch Changes

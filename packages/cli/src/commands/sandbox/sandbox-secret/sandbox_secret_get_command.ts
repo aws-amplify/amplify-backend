@@ -1,14 +1,15 @@
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { format, printer } from '@aws-amplify/cli-core';
+import { SandboxCommandGlobalOptions } from '../option_types.js';
 
 /**
  * Command to get sandbox secret.
  */
 export class SandboxSecretGetCommand
-  implements CommandModule<object, SecretGetCommandOptions>
+  implements CommandModule<object, SecretGetCommandOptionsKebabCase>
 {
   /**
    * @inheritDoc
@@ -34,10 +35,14 @@ export class SandboxSecretGetCommand
   /**
    * @inheritDoc
    */
-  handler = async (args: SecretGetCommandOptions): Promise<void> => {
-    const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve();
+  handler = async (
+    args: ArgumentsCamelCase<SecretGetCommandOptionsKebabCase>
+  ): Promise<void> => {
+    const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
+      args.name
+    );
     const secret = await this.secretClient.getSecret(sandboxBackendIdentifier, {
-      name: args['secret-name'],
+      name: args.secretName,
     });
     printer.print(format.record(secret));
   };
@@ -45,7 +50,7 @@ export class SandboxSecretGetCommand
   /**
    * @inheritDoc
    */
-  builder = (yargs: Argv): Argv<SecretGetCommandOptions> => {
+  builder = (yargs: Argv): Argv<SecretGetCommandOptionsKebabCase> => {
     return yargs
       .positional('secret-name', {
         describe: 'Name of the secret to get',
@@ -56,9 +61,8 @@ export class SandboxSecretGetCommand
   };
 }
 
-type SecretGetCommandOptions =
-  ArgumentsKebabCase<SecretGetCommandOptionsCamelCase>;
-
-type SecretGetCommandOptionsCamelCase = {
-  secretName: string;
-};
+type SecretGetCommandOptionsKebabCase = ArgumentsKebabCase<
+  {
+    secretName: string;
+  } & SandboxCommandGlobalOptions
+>;

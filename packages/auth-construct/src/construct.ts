@@ -816,7 +816,7 @@ export class AmplifyAuth
           if (treatedAttributeName) {
             return [
               ...acc,
-              treatedAttributeName.userpoolAttributeName.toUpperCase(),
+              treatedAttributeName.userpoolAttributeName.toLowerCase(),
             ];
           }
         }
@@ -828,16 +828,16 @@ export class AmplifyAuth
     if (this.computedUserPoolProps.signInAliases) {
       const usernameAttributes = [];
       if (this.computedUserPoolProps.signInAliases.email) {
-        usernameAttributes.push('EMAIL');
+        usernameAttributes.push('email');
       }
       if (this.computedUserPoolProps.signInAliases.phone) {
-        usernameAttributes.push('PHONE_NUMBER');
+        usernameAttributes.push('phone_number');
       }
       if (
         this.computedUserPoolProps.signInAliases.preferredUsername ||
         this.computedUserPoolProps.signInAliases.username
       ) {
-        usernameAttributes.push('PREFERRED_USERNAME');
+        usernameAttributes.push('preferred_username');
       }
       if (usernameAttributes.length > 0) {
         output.usernameAttributes = JSON.stringify(usernameAttributes);
@@ -847,10 +847,10 @@ export class AmplifyAuth
     if (this.computedUserPoolProps.autoVerify) {
       const verificationMechanisms = [];
       if (this.computedUserPoolProps.autoVerify.email) {
-        verificationMechanisms.push('EMAIL');
+        verificationMechanisms.push('email');
       }
       if (this.computedUserPoolProps.autoVerify.phone) {
-        verificationMechanisms.push('PHONE');
+        verificationMechanisms.push('phone_number');
       }
       if (verificationMechanisms.length > 0) {
         output.verificationMechanisms = JSON.stringify(verificationMechanisms);

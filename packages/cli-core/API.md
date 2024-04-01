@@ -57,7 +57,7 @@ export class PackageManagerControllerFactory {
 export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream, stderr?: NodeJS.WriteStream, refreshRate?: number);
     indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
-    log(message: string, level?: LogLevel, eol?: boolean): void;
+    log(message: string, level?: LogLevel): void;
     print: (message: string) => void;
     printNewLine: () => void;
 }
