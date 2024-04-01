@@ -25,10 +25,11 @@ export class Printer {
   ) {}
 
   /**
-   * Prints a given message (with optional color) to output stream.
+   * Prints a given message to output stream followed by a newline.
    */
   print = (message: string) => {
     this.stdout.write(message);
+    this.printNewLine();
   };
 
   /**
@@ -39,9 +40,9 @@ export class Printer {
   };
 
   /**
-   * Logs a message to the output stream.
+   * Logs a message to the output stream at the given log level followed by a newline
    */
-  log(message: string, level: LogLevel = LogLevel.INFO, eol = true) {
+  log(message: string, level: LogLevel = LogLevel.INFO) {
     const doLogMessage = level <= this.minimumLogLevel;
 
     if (!doLogMessage) {
@@ -59,9 +60,7 @@ export class Printer {
       this.stdout.write(logMessage);
     }
 
-    if (eol) {
-      this.printNewLine();
-    }
+    this.printNewLine();
   }
 
   /**

@@ -1,13 +1,14 @@
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { SandboxCommandGlobalOptions } from '../option_types.js';
 
 /**
  * Command to remove sandbox secret.
  */
 export class SandboxSecretRemoveCommand
-  implements CommandModule<object, SecretRemoveCommandOptions>
+  implements CommandModule<object, SecretRemoveCommandOptionsKebabCase>
 {
   /**
    * @inheritDoc
@@ -33,18 +34,22 @@ export class SandboxSecretRemoveCommand
   /**
    * @inheritDoc
    */
-  handler = async (args: SecretRemoveCommandOptions): Promise<void> => {
-    const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve();
+  handler = async (
+    args: ArgumentsCamelCase<SecretRemoveCommandOptionsKebabCase>
+  ): Promise<void> => {
+    const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
+      args.name
+    );
     await this.secretClient.removeSecret(
       sandboxBackendIdentifier,
-      args['secret-name']
+      args.secretName
     );
   };
 
   /**
    * @inheritDoc
    */
-  builder = (yargs: Argv): Argv<SecretRemoveCommandOptions> => {
+  builder = (yargs: Argv): Argv<SecretRemoveCommandOptionsKebabCase> => {
     return yargs.positional('secret-name', {
       describe: 'Name of the secret to remove',
       type: 'string',
@@ -53,9 +58,8 @@ export class SandboxSecretRemoveCommand
   };
 }
 
-type SecretRemoveCommandOptions =
-  ArgumentsKebabCase<SecretRemoveCommandOptionsCamelCase>;
-
-type SecretRemoveCommandOptionsCamelCase = {
-  secretName: string;
-};
+type SecretRemoveCommandOptionsKebabCase = ArgumentsKebabCase<
+  {
+    secretName: string;
+  } & SandboxCommandGlobalOptions
+>;

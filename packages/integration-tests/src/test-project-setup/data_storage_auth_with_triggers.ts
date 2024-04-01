@@ -201,6 +201,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       s3TestContent: 'this is some test content',
       testSecret: 'amazonSecret-e2eTestValue',
       testSharedSecret: `${this.amplifySharedSecret}-e2eTestSharedValue`,
+      testNodeAddon: '[object Object]', // just need to test dependency returns key pair object
     };
 
     await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);

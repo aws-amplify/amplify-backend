@@ -5,6 +5,7 @@ import { NpmPackageManagerController } from './npm_package_manager_controller.js
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
+import { format } from '../format/format.js';
 
 /**
  * PackageManagerControllerFactory is a factory for an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -57,7 +58,12 @@ export class PackageManagerControllerFactory {
   private getPackageManagerName() {
     const userAgent = process.env.npm_config_user_agent;
     if (userAgent === undefined) {
-      throw new Error('npm_config_user_agent is undefined');
+      throw new AmplifyUserError('NoPackageManagerError', {
+        resolution: `This is usually caused by attempting to run ${format.command(
+          'amplify'
+        )} directly. Try running ${format.command('npx amplify')}`,
+        message: `npm_config_user_agent is undefined`,
+      });
     }
     const packageManagerAndVersion = userAgent.split(' ')[0];
     const [packageManagerName, packageManagerVersion] =

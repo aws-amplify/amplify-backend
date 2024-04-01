@@ -1,5 +1,32 @@
 # @aws-amplify/client-config
 
+## 0.9.0-beta.10
+
+### Patch Changes
+
+- 394b72e: chore: updates to client config schema and config generation
+- 592bd4f: refactor log abstraction in `client-config`, `form-generator`, and `model-generator` packages
+- Updated dependencies [592bd4f]
+  - @aws-amplify/model-generator@0.5.0-beta.7
+
+## 0.9.0-beta.9
+
+### Patch Changes
+
+- Updated dependencies [aec89f9]
+- Updated dependencies [2a69684]
+  - @aws-amplify/platform-core@0.5.0-beta.4
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.5
+  - @aws-amplify/model-generator@0.5.0-beta.6
+
+## 0.9.0-beta.8
+
+### Patch Changes
+
+- 8d73779: refactor model generation from schema uri
+- Updated dependencies [8d73779]
+  - @aws-amplify/model-generator@0.5.0-beta.5
+
 ## 0.9.0-beta.7
 
 ### Patch Changes

@@ -1,5 +1,23 @@
 # @aws-amplify/integration-tests
 
+## 0.5.0-beta.7
+
+### Minor Changes
+
+- f76e983: Use updated metadata fields in form and model generation
+
+## 0.5.0-beta.6
+
+### Minor Changes
+
+- 62dab44: add support for function dependencies that require .node files
+
+## 0.5.0-beta.5
+
+### Minor Changes
+
+- 0d1b00e: Update generated env package location and use the $ symbol
+
 ## 0.5.0-beta.4
 
 ### Patch Changes

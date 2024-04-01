@@ -1,5 +1,22 @@
 # @aws-amplify/backend-function
 
+## 0.8.0-beta.8
+
+### Minor Changes
+
+- 62dab44: add support for function dependencies that require .node files
+
+### Patch Changes
+
+- aec89f9: chore: correctly handle quotes in the error messages
+  - @aws-amplify/backend-output-storage@0.4.0-beta.4
+
+## 0.8.0-beta.7
+
+### Minor Changes
+
+- 0d1b00e: Update generated env package location and use the $ symbol
+
 ## 0.8.0-beta.6
 
 ### Patch Changes

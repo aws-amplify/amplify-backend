@@ -298,6 +298,9 @@ class AmplifyFunction
         format: OutputFormat.ESM,
         banner: bannerCode,
         inject: shims,
+        loader: {
+          '.node': 'file',
+        },
       },
     });
 
