@@ -439,14 +439,12 @@ export class AmplifyAuth
       emailSettings.verificationEmailStyle === 'LINK'
     ) {
       let linkText: string = '';
-      emailBody = emailSettings.verificationEmailBody(
-        (customLinkText?: string) => {
-          linkText = customLinkText
-            ? `{##${customLinkText}##}`
-            : VERIFICATION_EMAIL_PLACEHOLDERS.LINK;
-          return linkText;
-        }
-      );
+      emailBody = emailSettings.verificationEmailBody((text?: string) => {
+        linkText = text
+          ? `{##${text}##}`
+          : VERIFICATION_EMAIL_PLACEHOLDERS.LINK;
+        return linkText;
+      });
       if (linkText === '' || !emailBody.includes(linkText)) {
         throw Error(
           "Invalid email settings. Property 'verificationEmailBody' must utilize the 'link' parameter at least once as a placeholder for the verification link."

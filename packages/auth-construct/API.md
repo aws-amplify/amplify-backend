@@ -115,7 +115,7 @@ export type VerificationEmailWithCode = {
 // @public (undocumented)
 export type VerificationEmailWithLink = {
     verificationEmailStyle?: 'LINK';
-    verificationEmailBody?: (link: (customLinkText?: string) => string) => string;
+    verificationEmailBody?: (link: (text?: string) => string) => string;
     verificationEmailSubject?: string;
 };
 

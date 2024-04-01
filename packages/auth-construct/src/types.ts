@@ -22,7 +22,7 @@ export type VerificationEmailWithLink = {
    * To customize the link text, you can provide custom link text to the .
    * verificationEmailBody: (link) => `Your custom verification link is ${link('custom link text')}.`
    */
-  verificationEmailBody?: (link: (customLinkText?: string) => string) => string;
+  verificationEmailBody?: (link: (text?: string) => string) => string;
   /**
    * The verification email subject.
    */
