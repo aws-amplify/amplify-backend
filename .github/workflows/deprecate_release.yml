@@ -32,4 +32,4 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - name: Deprecate release versions
-        run: npx tsx scripts deprecate_release.ts --commit-hash ${{ inputs.commitHash }} --deprecation-message ${{ inputs.deprecationMessage }}
+        run: npx tsx scripts/deprecate_release.ts --commit-hash ${{ inputs.commitHash }} --deprecation-message ${{ inputs.deprecationMessage }}
