@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import * as childProcess from 'child_process';
+import { parseArgs } from 'util';
 
 /*
  * This retry script is intentionally written in pure JavaScript and
@@ -24,22 +25,24 @@ class RetryOptions {
 }
 
 const parseInput = () => {
-  if (process.argv.length < 3) {
+  try {
+    const parsedResults = parseArgs({
+      allowPositionals: true,
+      options: {
+        maxAttempts: {
+          type: 'string',
+          default: '2',
+        },
+      },
+    });
+    const maxAttempts = parseInt(parsedResults.values.maxAttempts);
+    const command = parsedResults.positionals.join(' ');
+    return new RetryOptions(maxAttempts, command);
+  } catch (error) {
+    console.log(error);
     console.log(usage);
     process.exit(1);
   }
-  let commandStart = 2;
-  let maxAttempts = 2;
-  if (process.argv[commandStart] === '--maxAttempts') {
-    maxAttempts = parseInt(process.argv[commandStart + 1]);
-    if (!(maxAttempts > 0)) {
-      console.log(usage);
-      process.exit(1);
-    }
-    commandStart += 2;
-  }
-  const command = process.argv.slice(commandStart).join(' ');
-  return new RetryOptions(maxAttempts, command);
 };
 
 const retryOptions = parseInput();
