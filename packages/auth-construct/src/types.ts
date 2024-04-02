@@ -6,31 +6,52 @@ import {
   StandardAttributes,
   UserPoolIdentityProviderSamlMetadata,
 } from 'aws-cdk-lib/aws-cognito';
-
-/**
- * Email login settings object
- */
-export type EmailLoginSettings = {
+export type VerificationEmailWithLink = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
    */
-  verificationEmailStyle?: 'CODE' | 'LINK';
+  verificationEmailStyle?: 'LINK';
   /**
    * Customize your verification emails.
-   * Use the code or link parameter to inject verification codes or links into the user verification email.
-   * @example
-   * verificationEmailStyle: "CODE",
-   * verificationEmailBody: (code: string) => `Your verification code is ${code}.`
+   * Use the link parameter to inject verification links into the user verification email.
+   * You can customize the link text by providing a string, as shown in the example below.
    * @example
    * verificationEmailStyle: "LINK",
-   * verificationEmailBody: (link: string) => `Your verification link is ${link}.`
+   * verificationEmailBody: (link) => `Your verification link is ${link()}.`
+   * @example
+   * To customize the link text, you can provide custom link text to the .
+   * verificationEmailBody: (link) => `Your custom verification link is ${link('custom link text')}.`
    */
-  verificationEmailBody?: (codeOrLink: string) => string;
+  verificationEmailBody?: (link: (text?: string) => string) => string;
   /**
    * The verification email subject.
    */
   verificationEmailSubject?: string;
 };
+export type VerificationEmailWithCode = {
+  /**
+   * The type of verification. Must be one of "CODE" or "LINK".
+   */
+  verificationEmailStyle?: 'CODE';
+  /**
+   * Customize your verification emails.
+   * Use the code parameter to inject verification codes into the user verification email.
+   * @example
+   * verificationEmailStyle: "CODE",
+   * verificationEmailBody: (code) => `Your verification code is ${code()}.`
+   */
+  verificationEmailBody?: (code: () => string) => string;
+  /**
+   * The verification email subject.
+   */
+  verificationEmailSubject?: string;
+};
+/**
+ * Email login settings object.
+ */
+export type EmailLoginSettings =
+  | VerificationEmailWithLink
+  | VerificationEmailWithCode;
 /**
  * Email login options.
  *
