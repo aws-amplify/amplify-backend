@@ -9,9 +9,15 @@ on:
       commitHash:
         required: true
         type: string
+        description: The release commit hash that should be deprecated
+        # TODO remove this before merging - testing only
+        default: e81b212ab
       deprecationMessage:
         required: true
         type: string
+        description: The deprecation message to apply to the affected package versions
+        # TODO remove this before merging - testing only
+        default: test deprecation message
 
 jobs:
   install:
