@@ -35,4 +35,4 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
       - name: Deprecate release versions
         # TODO remove defaults before merging -- for testing only
-        run: npx tsx scripts/deprecate_release.ts --commit-hash ${{ inputs.commitHash || 'e81b212ab' }} --deprecation-message ${{ inputs.deprecationMessage || 'test deprecation message' }}
+        run: npx tsx scripts/deprecate_release.ts --commit-hash ${{ inputs.commitHash || 'e81b212ab' }} --deprecation-message "${{ inputs.deprecationMessage || 'test deprecation message' }}"
