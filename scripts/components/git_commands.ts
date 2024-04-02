@@ -30,6 +30,7 @@ export const commitAllChanges = async (message: string) => {
 export const push = async (
   { force }: { force: boolean } = { force: false }
 ) => {
+  await $`git config push.autoSetupRemote true`;
   await $`git push ${force ? '--force' : ''}`;
 };
 
