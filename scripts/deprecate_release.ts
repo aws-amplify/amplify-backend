@@ -146,8 +146,10 @@ await configure();
 await switchToBranch(prBranch);
 
 // using checkout instead of restore because we want to restore this directory but not remove files that have been added since
-await $`git checkout ${previousReleaseCommitHash} -- .changeset`;
-await $`git status`;
+await $({
+  stdio: 'inherit',
+})`git checkout ${previousReleaseCommitHash} -- .changeset`;
+await $({ stdio: 'inherit' })`git status`;
 await commitAllChanges(
   `Restoring .changeset directory to ${previousReleaseCommitHash}`
 );
