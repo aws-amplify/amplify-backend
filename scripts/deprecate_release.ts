@@ -15,11 +15,11 @@ import * as fsp from 'fs/promises';
  * This script deprecates a set of package versions that were released by a single release commit.
  *
  * The steps that it takes are
- * 1. Verify that the input commit-hash is a valid release commit
- * 2. Find the git tags associated with that commit. These are the package versions that need to be deprecated
- * 3. Find the release commit _before_ the input commit-hash
- * 4. Find the git tags associated with the previous release commit. These are the package versions that need to be marked as "latest" (or whatever the dist-tag for the release was)
- * 5. Create a rollback PR that resets the .changeset directory to its state at the previous release
+ * 1. Verifies that the input commit-hash is a valid release commit
+ * 2. Finds the git tags associated with that commit. These are the package versions that need to be deprecated
+ * 3. Finds the release commit _before_ the input commit-hash
+ * 4. Finds the git tags associated with the previous release commit. These are the package versions that need to be marked as "latest" (or whatever the dist-tag for the release is)
+ * 5. Creates a rollback PR that resets the .changeset directory to its state at the previous release
  * 6. Marks the previous package versions as latest
  * 7. Marks the current package versions as deprecated
  */
@@ -203,14 +203,16 @@ for (const packageVersion of packageVersionsToRestore) {
   console.log(
     `Restoring dist tag "${distTag}" to package version ${packageVersion}`
   );
-  await $({ stdio: 'inherit' })`npm dist-tag add ${packageVersion} ${distTag}`;
+  // TODO uncomment but testing in "dry-run" mode for now
+  // await $({ stdio: 'inherit' })`npm dist-tag add ${packageVersion} ${distTag}`;
   console.log(`Done!${EOL}`);
 }
 
 for (const packageVersion of packageVersionsToDeprecate) {
   console.log(`Deprecating package version ${packageVersion}`);
-  await $({
-    stdio: 'inherit',
-  })`npm deprecate ${packageVersion} "${deprecationMessage}"`;
+  // TODO uncomment but testing in "dry-run" mode for now
+  // await $({
+  //   stdio: 'inherit',
+  // })`npm deprecate ${packageVersion} "${deprecationMessage}"`;
   console.log(`Done!${EOL}`);
 }
