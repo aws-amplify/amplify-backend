@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import * as child_process from 'child_process';
+import * as childProcess from 'child_process';
 
 /*
  * This retry script is intentionally written in pure JavaScript and
@@ -53,7 +53,7 @@ for (
     console.log(
       `Attempting '${retryOptions.command}', attempt number ${attemptNumber}.`
     );
-    child_process.execSync(retryOptions.command, {
+    childProcess.execSync(retryOptions.command, {
       stdio: 'inherit',
     });
     console.log(
