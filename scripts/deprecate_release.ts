@@ -3,6 +3,7 @@ import { EOL } from 'os';
 import { parseArgs } from 'util';
 import {
   commitAllChanges,
+  configure,
   getTagsAtCommit,
   isCleanWorkingTree,
   push,
@@ -139,6 +140,8 @@ const distTag = distTagMatch?.groups?.distTag ?? 'latest';
 // this PR restores the changeset files that were part of the release but does NOT revert the package.json and changelog changes
 
 const prBranch = `restore_release/${previousReleaseCommitHash}`;
+
+await configure();
 
 await switchToBranch(prBranch);
 

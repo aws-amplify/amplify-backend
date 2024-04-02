@@ -40,3 +40,12 @@ export const getTagsAtCommit = async (commitHash: string) => {
   const { stdout: tagsString } = await $`git tag --points-at ${commitHash}`;
   return tagsString.split(EOL).filter((line) => line.trim().length > 0);
 };
+
+/**
+ * Configure the git user email and name
+ */
+export const configure = async () => {
+  // eslint-disable-next-line spellcheck/spell-checker
+  await $`git config user.email "github-actions[bot]@users.noreply.github.com"`;
+  await $`git config user.name "github-actions[bot]"`;
+};
