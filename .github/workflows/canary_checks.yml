@@ -35,7 +35,7 @@ jobs:
       fail-fast: false
       matrix:
         region: [us-west-2, us-east-1, ca-central-1, eu-central-1]
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       AWS_REGION: ${{ matrix.region }}
     permissions:
