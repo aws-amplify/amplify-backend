@@ -1,6 +1,9 @@
 name: deprecate_release
 
 on:
+  push:
+    branches:
+      - rollback
   workflow_dispatch:
     inputs:
       commitHash:
