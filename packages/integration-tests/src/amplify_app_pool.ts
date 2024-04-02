@@ -176,6 +176,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
   };
 }
 
+console.log(JSON.stringify(e2eToolingClientConfig, null, 2));
 export const amplifyAppPool: AmplifyAppPool = new DefaultAmplifyAppPool(
   new AmplifyClient({
     ...e2eToolingClientConfig,
