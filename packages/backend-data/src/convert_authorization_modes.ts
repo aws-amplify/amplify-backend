@@ -4,7 +4,7 @@ import { IRole } from 'aws-cdk-lib/aws-iam';
 import {
   ApiKeyAuthorizationConfig as CDKApiKeyAuthorizationConfig,
   AuthorizationModes as CDKAuthorizationModes,
-  IdentityPoolAuthorizationConfig as CDKIdentityPoolAuthorizationConfig,
+  // IdentityPoolAuthorizationConfig as CDKIdentityPoolAuthorizationConfig,
   LambdaAuthorizationConfig as CDKLambdaAuthorizationConfig,
   OIDCAuthorizationConfig as CDKOIDCAuthorizationConfig,
   UserPoolAuthorizationConfig as CDKUserPoolAuthorizationConfig,
@@ -150,7 +150,7 @@ const computeUserPoolAuthFromResource = (
  */
 const computeIdentityPoolAuthFromResource = (
   providedAuthConfig: ProvidedAuthConfig | undefined
-): CDKIdentityPoolAuthorizationConfig | undefined => {
+): any | undefined => {
   if (providedAuthConfig) {
     return {
       authenticatedUserRole: providedAuthConfig.authenticatedUserRole,
@@ -229,9 +229,9 @@ export const convertAuthorizationModesToCDK = (
     ...(identityPoolConfig ? { identityPoolConfig } : undefined),
     ...(lambdaConfig ? { lambdaConfig } : undefined),
     ...(oidcConfig ? { oidcConfig } : undefined),
-    iamConfig: {
-      enableIamAuthorizationMode: true,
-    },
+    // iamConfig: {
+    //   enableIamAuthorizationMode: true,
+    // },
   };
 };
 
