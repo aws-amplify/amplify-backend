@@ -32,7 +32,7 @@ const parseInput = () => {
   let maxAttempts = 2;
   if (process.argv[commandStart] === '--maxAttempts') {
     maxAttempts = parseInt(process.argv[commandStart + 1]);
-    if (!maxAttempts > 0) {
+    if (!(maxAttempts > 0)) {
       console.log(usage);
       process.exit(1);
     }
