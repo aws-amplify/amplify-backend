@@ -7,7 +7,7 @@ void describe('models generator', () => {
     const generator = new StackMetadataGraphqlModelsGenerator(
       async () => null as unknown as string,
       () => ({
-        writeToDirectory: () => Promise.resolve(),
+        writeToDirectory: () => Promise.resolve({ filesWritten: [] }),
         getResults: async () => ({}),
       })
     );

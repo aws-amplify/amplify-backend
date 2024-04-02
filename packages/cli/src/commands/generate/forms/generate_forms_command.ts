@@ -1,5 +1,5 @@
 import path from 'path';
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
@@ -53,7 +53,9 @@ export class GenerateFormsCommand
   /**
    * @inheritDoc
    */
-  handler = async (args: GenerateFormsCommandOptions): Promise<void> => {
+  handler = async (
+    args: ArgumentsCamelCase<GenerateFormsCommandOptions>
+  ): Promise<void> => {
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
@@ -72,11 +74,11 @@ export class GenerateFormsCommand
 
     const apiUrl = output[graphqlOutputKey].payload.amplifyApiModelSchemaS3Uri;
 
-    if (!args['out-dir']) {
+    if (!args.outDir) {
       throw new Error('out-dir must be defined');
     }
 
-    const outDir = args['out-dir'];
+    const outDir = args.outDir;
 
     await this.formGenerationHandler.generate({
       modelsOutDir: path.join(outDir, 'graphql'),

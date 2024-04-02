@@ -12,10 +12,8 @@ export type DocumentGenerationParameters = {
 };
 export type GenerationResult = {
   writeToDirectory: (
-    directoryPath: string,
-    // TODO: update this type when Printer interface gets defined in platform-core.
-    log?: (message: string) => void
-  ) => Promise<void>;
+    directoryPath: string
+  ) => Promise<GenerateGraphqlCodegenToFileResult>;
   getResults: () => Promise<Record<string, string>>;
 };
 
@@ -50,4 +48,7 @@ export type GraphqlModelsGenerator = {
   generateModels: (
     params: ModelsGenerationParameters
   ) => Promise<GenerationResult>;
+};
+export type GenerateGraphqlCodegenToFileResult = {
+  filesWritten: string[];
 };

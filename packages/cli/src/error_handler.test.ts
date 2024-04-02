@@ -4,11 +4,12 @@ import {
   generateCommandFailureHandler,
 } from './error_handler.js';
 import { Argv } from 'yargs';
-import { printer } from '@aws-amplify/cli-core';
+import { LogLevel, printer } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
-import { InvalidCredentialError } from './error/credential_error.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const mockPrint = mock.method(printer, 'print');
+const mockLog = mock.method(printer, 'log');
 
 void describe('generateCommandFailureHandler', () => {
   const mockShowHelp = mock.fn();
@@ -21,6 +22,7 @@ void describe('generateCommandFailureHandler', () => {
 
   beforeEach(() => {
     mockPrint.mock.resetCalls();
+    mockLog.mock.resetCalls();
     mockShowHelp.mock.resetCalls();
     mockExit.mock.resetCalls();
   });
@@ -59,20 +61,6 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockPrint.mock.callCount(), 0);
   });
 
-  void it('handles a profile error', () => {
-    const errMsg = 'some profile error';
-    generateCommandFailureHandler(parser)(
-      '',
-      new InvalidCredentialError(errMsg)
-    );
-    assert.equal(mockExit.mock.callCount(), 1);
-    assert.equal(mockPrint.mock.callCount(), 1);
-    assert.match(
-      mockPrint.mock.calls[0].arguments[0] as string,
-      new RegExp(errMsg)
-    );
-  });
-
   void it('prints error cause message, if any', () => {
     const errorMessage = 'this is the upstream cause';
     generateCommandFailureHandler(parser)(
@@ -85,6 +73,53 @@ void describe('generateCommandFailureHandler', () => {
       mockPrint.mock.calls[1].arguments[0] as string,
       new RegExp(errorMessage)
     );
+  });
+
+  void it('prints AmplifyErrors', () => {
+    generateCommandFailureHandler(parser)(
+      '',
+      new AmplifyUserError('TestName', {
+        message: 'test error message',
+        resolution: 'test resolution',
+        details: 'test details',
+      })
+    );
+
+    assert.equal(mockExit.mock.callCount(), 1);
+    assert.equal(mockPrint.mock.callCount(), 3);
+    assert.match(
+      mockPrint.mock.calls[0].arguments[0],
+      /TestName: test error message/
+    );
+    assert.equal(
+      mockPrint.mock.calls[1].arguments[0],
+      'Resolution: test resolution'
+    );
+    assert.equal(mockPrint.mock.calls[2].arguments[0], 'Details: test details');
+  });
+
+  void it('prints debug stack traces', () => {
+    const causeError = new Error('test underlying cause error');
+    const amplifyError = new AmplifyUserError(
+      'TestName',
+      {
+        message: 'test error message',
+        resolution: 'test resolution',
+        details: 'test details',
+      },
+      causeError
+    );
+    generateCommandFailureHandler(parser)('', amplifyError);
+    assert.equal(mockExit.mock.callCount(), 1);
+    assert.equal(mockLog.mock.callCount(), 2);
+    assert.deepStrictEqual(mockLog.mock.calls[0].arguments, [
+      amplifyError.stack,
+      LogLevel.DEBUG,
+    ]);
+    assert.deepStrictEqual(mockLog.mock.calls[1].arguments, [
+      causeError.stack,
+      LogLevel.DEBUG,
+    ]);
   });
 });
 

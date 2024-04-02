@@ -1,5 +1,40 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.17
+
+### Patch Changes
+
+- 77079c6: Improve formatting of AmplifyErrors in the top-level error handler
+- b14b87e: Include secret name in the generated typescript data schema file
+- Updated dependencies [77079c6]
+- Updated dependencies [b14b87e]
+  - @aws-amplify/cli-core@0.5.0-beta.9
+  - @aws-amplify/schema-generator@0.1.0-beta.4
+  - @aws-amplify/sandbox@0.5.2-beta.14
+
+## 0.12.0-beta.16
+
+### Patch Changes
+
+- Updated dependencies [f76e983]
+- Updated dependencies [4d47f63]
+  - @aws-amplify/form-generator@0.8.0-beta.3
+  - @aws-amplify/cli-core@0.5.0-beta.8
+  - @aws-amplify/sandbox@0.5.2-beta.13
+
+## 0.12.0-beta.15
+
+### Patch Changes
+
+- a7ce946: cleanup instances where we use kebab case in yargs handler methods
+- 592bd4f: refactor log abstraction in `client-config`, `form-generator`, and `model-generator` packages
+- Updated dependencies [394b72e]
+- Updated dependencies [592bd4f]
+  - @aws-amplify/client-config@0.9.0-beta.10
+  - @aws-amplify/model-generator@0.5.0-beta.7
+  - @aws-amplify/form-generator@0.8.0-beta.2
+  - @aws-amplify/sandbox@0.5.2-beta.12
+
 ## 0.12.0-beta.14
 
 ### Minor Changes

@@ -12,7 +12,10 @@ export class SchemaGenerator {
 
 // @public (undocumented)
 export type SchemaGeneratorConfig = {
-    connectionUri: string;
+    connectionUri: {
+        secretName: string;
+        value: string;
+    };
     out: string;
 };
 

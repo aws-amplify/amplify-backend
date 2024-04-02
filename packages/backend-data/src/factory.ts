@@ -158,16 +158,6 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     }
 
     let authorizationModes;
-
-    /**
-     * TODO - remove this after the data construct does work to remove the need for allow-listed IAM roles
-     */
-    const functionSchemaAccessRoles = schemasFunctionSchemaAccess.map(
-      (accessEntry) =>
-        accessEntry.resourceProvider.getInstance(this.getInstanceProps)
-          .resources.lambda.role!
-    );
-
     try {
       authorizationModes = convertAuthorizationModesToCDK(
         this.getInstanceProps,

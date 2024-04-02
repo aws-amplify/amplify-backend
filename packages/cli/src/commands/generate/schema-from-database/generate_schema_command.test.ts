@@ -87,7 +87,10 @@ void describe('generate graphql-client-code command', () => {
     assert.equal(secretClientGetSecret.mock.callCount(), 1);
     assert.equal(schemaGeneratorGenerateMethod.mock.callCount(), 1);
     assert.deepEqual(schemaGeneratorGenerateMethod.mock.calls[0].arguments[0], {
-      connectionUri: 'FAKE_CONN_STRING_VALUE',
+      connectionUri: {
+        secretName: 'CONN_STRING',
+        value: 'FAKE_CONN_STRING_VALUE',
+      },
       out: 'schema.rds.ts',
     });
   });
@@ -99,7 +102,10 @@ void describe('generate graphql-client-code command', () => {
     assert.equal(secretClientGetSecret.mock.callCount(), 1);
     assert.equal(schemaGeneratorGenerateMethod.mock.callCount(), 1);
     assert.deepEqual(schemaGeneratorGenerateMethod.mock.calls[0].arguments[0], {
-      connectionUri: 'FAKE_CONN_STRING_VALUE',
+      connectionUri: {
+        secretName: 'CONN_STRING',
+        value: 'FAKE_CONN_STRING_VALUE',
+      },
       out: 'schema.rds.ts',
     });
   });
