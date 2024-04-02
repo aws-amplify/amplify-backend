@@ -15,7 +15,7 @@ jobs:
         shell: bash
         run: |
           rm package-lock.json
-          npm install
+          ./scripts/retry.js npm install
           npm run build
       - name: Check dependencies
         shell: bash
@@ -53,4 +53,4 @@ jobs:
       - name: Run live dependency health checks
         shell: bash
         run: |
-          npm run live-dependency-health-checks
+          ./scripts/retry.js npm run live-dependency-health-checks
