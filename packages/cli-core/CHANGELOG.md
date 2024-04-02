@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.9
+
+### Minor Changes
+
+- 77079c6: Improve formatting of AmplifyErrors in the top-level error handler
+
 ## 0.5.0-beta.8
 
 ### Patch Changes

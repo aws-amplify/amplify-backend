@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.6.0-beta.9
+
+### Patch Changes
+
+- fe59a49: This change adds support for customizing the email verification link text.
+
 ## 0.6.0-beta.8
 
 ### Patch Changes

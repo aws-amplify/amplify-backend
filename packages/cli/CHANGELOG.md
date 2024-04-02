@@ -1,5 +1,17 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.17
+
+### Patch Changes
+
+- 77079c6: Improve formatting of AmplifyErrors in the top-level error handler
+- b14b87e: Include secret name in the generated typescript data schema file
+- Updated dependencies [77079c6]
+- Updated dependencies [b14b87e]
+  - @aws-amplify/cli-core@0.5.0-beta.9
+  - @aws-amplify/schema-generator@0.1.0-beta.4
+  - @aws-amplify/sandbox@0.5.2-beta.14
+
 ## 0.12.0-beta.16
 
 ### Patch Changes
