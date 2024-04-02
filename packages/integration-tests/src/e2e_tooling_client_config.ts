@@ -7,10 +7,6 @@ const E2E_TOOLING_REGION = process.env.CI
   ? (await loadSharedConfigFiles()).configFile?.[E2E_TOOLING_PROFILE]?.region
   : undefined;
 
-console.log(
-  JSON.stringify((await loadSharedConfigFiles()).configFile, null, 2)
-);
-
 // When running in CI/CD, load the e2e tooling credentials from the 'e2e-tooling' profile
 // When running locally, load credentials using the default credential provider
 // We load credentials for e2e-tooling from a separate profile so that we can isolate permissions required to run Gen2 commands

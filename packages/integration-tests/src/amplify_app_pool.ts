@@ -37,7 +37,6 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
   private readonly branchesCreated: Array<TestBranch> = [];
 
   constructor(private readonly amplifyClient: AmplifyClient) {
-    console.log(JSON.stringify(amplifyClient.config, null, 2));
     // Register a callback that fires at the end of the current process lifetime
     // and attempts to clean up branches created in this session.
     process.once(
@@ -176,7 +175,6 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
   };
 }
 
-console.log(JSON.stringify(e2eToolingClientConfig, null, 2));
 export const amplifyAppPool: AmplifyAppPool = new DefaultAmplifyAppPool(
   new AmplifyClient({
     ...e2eToolingClientConfig,
