@@ -177,17 +177,19 @@ const prResult = await ghClient.pulls.create({
   base: baseBranch,
   head: prBranch,
   title: `Deprecate release ${commitHash}`,
-  body: `Restores the contents of the .changeset directory to the previous release commit state ${previousReleaseCommitHash}.`,
+  body: `Restores the contents of the \`.changeset\` directory to the previous release commit state ${previousReleaseCommitHash}.`,
   ...ghContext.repo,
 });
 
-console.log(`Created rollback PR at ${prResult.data.url}`);
+console.log(`Created rollback PR at ${prResult.data.html_url}`);
 
 // setup the .npmrc file using NPM_TOKEN
 await fsp.writeFile(
   '.npmrc',
   // eslint-disable-next-line spellcheck/spell-checker
-  `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}${EOL}`
+  // `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}${EOL}`
+  // eslint-disable-next-line spellcheck/spell-checker
+  `//registry.npmjs.org/:_authToken=garbage${EOL}`
 );
 
 console.log(
@@ -209,14 +211,12 @@ for (const packageVersion of packageVersionsToRestore) {
   console.log(
     `Restoring dist tag "${distTag}" to package version ${packageVersion}`
   );
-  // TODO uncomment but testing in "dry-run" mode for now
-  // await $(inheritIO)`npm dist-tag add ${packageVersion} ${distTag}`;
+  await $(inheritIO)`npm dist-tag add ${packageVersion} ${distTag}`;
   console.log(`Done!${EOL}`);
 }
 
 for (const packageVersion of packageVersionsToDeprecate) {
   console.log(`Deprecating package version ${packageVersion}`);
-  // TODO uncomment but testing in "dry-run" mode for now
-  // await $(inheritIO)`npm deprecate ${packageVersion} "${deprecationMessage}"`;
+  await $(inheritIO)`npm deprecate ${packageVersion} "${deprecationMessage}"`;
   console.log(`Done!${EOL}`);
 }
