@@ -1,5 +1,13 @@
 # create-amplify
 
+## 0.7.0-beta.11
+
+### Patch Changes
+
+- 73d8da4: Updated `data/resource.ts` template based on user study
+- Updated dependencies [77079c6]
+  - @aws-amplify/cli-core@0.5.0-beta.9
+
 ## 0.7.0-beta.10
 
 ### Patch Changes
