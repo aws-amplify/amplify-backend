@@ -187,9 +187,7 @@ console.log(`Created rollback PR at ${prResult.data.html_url}`);
 await fsp.writeFile(
   '.npmrc',
   // eslint-disable-next-line spellcheck/spell-checker
-  // `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}${EOL}`
-  // eslint-disable-next-line spellcheck/spell-checker
-  `//registry.npmjs.org/:_authToken=garbage${EOL}`
+  `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}${EOL}`
 );
 
 console.log(
