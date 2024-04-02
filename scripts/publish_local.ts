@@ -2,18 +2,14 @@ import { execa } from 'execa';
 import { runPublish } from './publish_runner.js';
 import * as path from 'path';
 import { runVersion } from './version_runner.js';
+import { isCleanWorkingTree } from './components/git_commands.js';
 
 const runArgs = process.argv.slice(2);
 
 const keepGitDiff = runArgs.find((arg) => arg === '--keepGitDiff');
 
 if (!keepGitDiff) {
-  const isCleanWorkingTree = async (): Promise<boolean> => {
-    const buffer = await execa('git', ['status', '--porcelain']);
-    return !buffer.stdout.trim();
-  };
-  const isCleanTree = await isCleanWorkingTree();
-  if (!isCleanTree) {
+  if (!(await isCleanWorkingTree())) {
     throw new Error(
       `Detected a dirty working tree. Commit or stash changes before publishing a snapshot`
     );

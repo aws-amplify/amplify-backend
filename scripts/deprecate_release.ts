@@ -1,6 +1,15 @@
 import { $ } from 'execa';
 import { EOL } from 'os';
 import { parseArgs } from 'util';
+import {
+  commitAllChanges,
+  getTagsAtCommit,
+  isCleanWorkingTree,
+  push,
+  switchToBranch,
+} from './components/git_commands.js';
+import { getOctokit, context as ghContext } from '@actions/github';
+import * as fsp from 'fs/promises';
 
 /**
  * This script deprecates a set of package versions that were released by a single release commit.
@@ -10,21 +19,10 @@ import { parseArgs } from 'util';
  * 2. Find the git tags associated with that commit. These are the package versions that need to be deprecated
  * 3. Find the release commit _before_ the input commit-hash
  * 4. Find the git tags associated with the previous release commit. These are the package versions that need to be marked as "latest" (or whatever the dist-tag for the release was)
- * 5. Mark the previous package versions as latest
- * 6. Mark the current package versions as deprecated
+ * 5. Create a rollback PR that resets the .changeset directory to its state at the previous release
+ * 6. Marks the previous package versions as latest
+ * 7. Marks the current package versions as deprecated
  */
-
-/* ====== Utility functions ====== */
-
-/**
- * Returns a list of tags that point to the given commit
- */
-const getTagsAtCommit = async (commitHash: string) => {
-  const { stdout: tagsString } = await $`git tag --points-at ${commitHash}`;
-  return tagsString.split(EOL).filter((line) => line.trim().length > 0);
-};
-
-/* ====== Start of script ====== */
 
 const args = parseArgs({
   options: {
@@ -37,7 +35,7 @@ const args = parseArgs({
   },
 });
 
-// input validation
+/* ====== Validation ====== */
 
 // verify that args are specified
 if (!args.values['commit-hash'] || !args.values['deprecation-message']) {
@@ -117,6 +115,13 @@ if (packageVersionsToRestore.length === 0) {
   `);
 }
 
+if (!(await isCleanWorkingTree())) {
+  throw new Error(`
+    Dirty working tree detected.
+    The release deprecation workflow requires a clean working tree to create the rollback PR.
+  `);
+}
+
 // now we need to grab this dist tag from the previous release tag
 // given a string like '@aws-amplify/auth-construct-alpha@0.6.0-beta.8', this regex will grab 'beta' from the string
 // for a non-pre release tag like @aws-amplify/backend-cli@0.10.0, this regex will not match and we default to the 'latest' tag
@@ -128,16 +133,71 @@ const distTagMatch = previousReleaseTag.match(
 
 const distTag = distTagMatch?.groups?.distTag ?? 'latest';
 
-// now we are ready to actually do stuff
+/* ====== Execution ====== */
 
 // first create the changeset revert PR
 // this PR restores the changeset files that were part of the release but does NOT revert the package.json and changelog changes
+
+const prBranch = `restore_release/${previousReleaseCommitHash}`;
+
+await switchToBranch(prBranch);
+
+// using checkout instead of restore because we want to restore this directory but not remove files that have been added since
+await $`git checkout ${previousReleaseCommitHash} -- .changeset`;
+await $`git status`;
+await commitAllChanges(
+  `Restoring .changeset directory to ${previousReleaseCommitHash}`
+);
+await push({ force: true });
+
+const ghToken = process.env.GITHUB_TOKEN;
+if (!ghToken) {
+  throw new Error(`
+    The GitHub access token must be set in the GITHUB_TOKEN environment variable.
+  `);
+}
+
+const npmToken = process.env.NPM_TOKEN;
+if (!npmToken) {
+  throw new Error(`
+    The NPM access token must be set in the NPM_TOKEN environment variable.
+  `);
+}
+
+const baseBranch = ghContext.ref.replace('refs/heads/', '');
+
+const { rest: ghClient } = getOctokit(ghToken);
+const prResult = await ghClient.pulls.create({
+  base: baseBranch,
+  head: prBranch,
+  title: `Deprecate release ${commitHash}`,
+  body: `Restores the contents of the .changeset directory to the previous release commit state ${previousReleaseCommitHash}.`,
+  ...ghContext.repo,
+});
+
+console.log(`Created rollback PR at ${prResult.data.url}`);
+
+// setup the .npmrc file using NPM_TOKEN
+await fsp.writeFile(
+  '.npmrc',
+  // eslint-disable-next-line spellcheck/spell-checker
+  `//registry.npmjs.org/:_authToken=${process.env.NPM_TOKEN}${EOL}`
+);
 
 console.log(
   `Restoring dist tag "${distTag}" to package versions:${EOL}${packageVersionsToRestore.join(
     EOL
   )}${EOL}`
 );
+
+console.log(
+  `Deprecating package versions:${EOL}${packageVersionsToDeprecate.join(
+    EOL
+  )}${EOL}`
+);
+
+// if anything fails before this point, we haven't actually modified anything on NPM yet.
+// now we actually update the npm dist tags and mark the packages as deprecated
 
 for (const packageVersion of packageVersionsToRestore) {
   console.log(
@@ -146,12 +206,6 @@ for (const packageVersion of packageVersionsToRestore) {
   await $({ stdio: 'inherit' })`npm dist-tag add ${packageVersion} ${distTag}`;
   console.log(`Done!${EOL}`);
 }
-
-console.log(
-  `Deprecating package versions:${EOL}${packageVersionsToDeprecate.join(
-    EOL
-  )}${EOL}`
-);
 
 for (const packageVersion of packageVersionsToDeprecate) {
   console.log(`Deprecating package version ${packageVersion}`);
