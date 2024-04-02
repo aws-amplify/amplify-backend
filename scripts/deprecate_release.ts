@@ -25,6 +25,9 @@ import * as fsp from 'fs/promises';
  * 7. Marks the current package versions as deprecated
  */
 
+// convenience config for execa;
+const inheritIO = { stdio: 'inherit' } as const;
+
 const args = parseArgs({
   options: {
     'commit-hash': {
@@ -146,10 +149,8 @@ await configure();
 await switchToBranch(prBranch);
 
 // using checkout instead of restore because we want to restore this directory but not remove files that have been added since
-await $({
-  stdio: 'inherit',
-})`git checkout ${previousReleaseCommitHash} -- .changeset`;
-await $({ stdio: 'inherit' })`git status`;
+await $(inheritIO)`git checkout ${previousReleaseCommitHash} -- .changeset`;
+await $(inheritIO)`git status`;
 await commitAllChanges(
   `Restoring .changeset directory to ${previousReleaseCommitHash}`
 );
@@ -209,15 +210,13 @@ for (const packageVersion of packageVersionsToRestore) {
     `Restoring dist tag "${distTag}" to package version ${packageVersion}`
   );
   // TODO uncomment but testing in "dry-run" mode for now
-  // await $({ stdio: 'inherit' })`npm dist-tag add ${packageVersion} ${distTag}`;
+  // await $(inheritIO)`npm dist-tag add ${packageVersion} ${distTag}`;
   console.log(`Done!${EOL}`);
 }
 
 for (const packageVersion of packageVersionsToDeprecate) {
   console.log(`Deprecating package version ${packageVersion}`);
   // TODO uncomment but testing in "dry-run" mode for now
-  // await $({
-  //   stdio: 'inherit',
-  // })`npm deprecate ${packageVersion} "${deprecationMessage}"`;
+  // await $(inheritIO)`npm deprecate ${packageVersion} "${deprecationMessage}"`;
   console.log(`Done!${EOL}`);
 }
