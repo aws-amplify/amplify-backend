@@ -106,6 +106,7 @@
   "pathname",
   "pipelined",
   "pnpm",
+  "positionals",
   "posix",
   "postgresql",
   "readdir",

@@ -1,5 +1,11 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.15
+
+### Patch Changes
+
+- @aws-amplify/backend-auth@0.5.0-beta.9
+
 ## 0.13.0-beta.14
 
 ### Minor Changes
