@@ -13,6 +13,13 @@ on:
 jobs:
   cleanup_e2e_resources:
     runs-on: ubuntu-latest
+    strategy:
+      # will finish running other clen up matrices even if one fails
+      fail-fast: false
+      matrix:
+        region: [us-west-2, us-east-1, ca-central-1, eu-central-1]
+    env:
+      AWS_REGION: ${{ matrix.region }}
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
@@ -21,6 +28,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
           role-to-assume: ${{ secrets.E2E_RESOURCE_CLEANUP_ROLE_ARN }}
-          aws-region: us-west-2
+          aws-region: ${{ matrix.region }}
       - name: Run E2E resource cleanup
         run: npm run e2e:cleanup-resources
