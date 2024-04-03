@@ -10,19 +10,33 @@ import { execa } from 'execa';
  * This script deprecates a set of package versions that were released by a single release commit.
  *
  * The steps that it takes are
- * 1. Verifies that the input commit-hash is a valid release commit
+ * 1. Given a starting commit (or HEAD by default), find the most recent release commit
  * 2. Finds the git tags associated with that commit. These are the package versions that need to be deprecated
- * 3. Finds the release commit _before_ the input commit-hash
- * 4. Finds the git tags associated with the previous release commit. These are the package versions that need to be marked as "latest" (or whatever the dist-tag for the release is)
- * 5. Creates a rollback PR that resets the .changeset directory to its state at the previous release
- * 6. Marks the previous package versions as latest
+ * 3. Find the git tags associated with the previous versions of the packages that were released. These are the package versions that need to be marked as "latest" (or whatever the dist-tag for the release is)
+ * 5. Creates a rollback PR that resets the .changeset directory to its state before the release
+ * 6. Resets the dist-tags to the previous package versions
  * 7. Marks the current package versions as deprecated
  */
 
+// getInput() is a function vended by GitHub for looking up workflow input
+// to supply inputs when testing locally, define environment variables using the name `INPUT_<INPUTNAME>`
+// for example, the input below would look for an environment variable named `INPUT_DEPRECATIONMESSAGE`
 const deprecationMessage = getInput('deprecationMessage', { required: true });
 const searchForReleaseStartingFrom = getInput('searchForReleaseStartingFrom');
 const registryTarget =
-  getInput('dryRun') === 'false' ? 'npm-registry' : 'local-proxy';
+  getInput('useNpmRegistry') === 'true' ? 'npm-registry' : 'local-proxy';
+
+switch (registryTarget) {
+  case 'npm-registry':
+    console.log(
+      'useNpmRegistry is TRUE. This run will update package metadata on the public npm package registry.'
+    );
+    break;
+  case 'local-proxy':
+    console.log(
+      'useNpmRegistry is FALSE. This run will update package metadata on a local npm proxy. No public changes will be made.'
+    );
+}
 
 const searchStartCommit =
   searchForReleaseStartingFrom.length === 0

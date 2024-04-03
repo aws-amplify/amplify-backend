@@ -17,7 +17,19 @@ import { execa } from 'execa';
 
 const searchForReleaseStartingFrom = getInput('searchForReleaseStartingFrom');
 const registryTarget =
-  getInput('dryRun') === 'false' ? 'npm-registry' : 'local-proxy';
+  getInput('useNpmRegistry') === 'true' ? 'npm-registry' : 'local-proxy';
+
+switch (registryTarget) {
+  case 'npm-registry':
+    console.log(
+      'useNpmRegistry is TRUE. This run will update package metadata on the public npm package registry.'
+    );
+    break;
+  case 'local-proxy':
+    console.log(
+      'useNpmRegistry is FALSE. This run will update package metadata on a local npm proxy. No public changes will be made.'
+    );
+}
 
 const searchStartCommit =
   searchForReleaseStartingFrom.length === 0
