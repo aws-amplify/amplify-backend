@@ -32,6 +32,7 @@
   "declarator",
   "deployer",
   "deprecations",
+  "deprecator",
   "deserializer",
   "disambiguator",
   "downlevel",

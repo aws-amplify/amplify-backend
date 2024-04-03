@@ -10,7 +10,7 @@ on:
         required: true
         type: string
         description: The deprecation message to apply to the affected package versions.
-      dryRun:
+      useNpmRegistry:
         required: false
         type: boolean
         default: false
