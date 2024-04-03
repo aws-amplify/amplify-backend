@@ -206,24 +206,36 @@ class GitClient {
     if (this.isConfigured) {
       return;
     }
-    const { stdout: originalEmail } = await $`git config user.email`;
-    const { stdout: originalName } = await $`git config user.name`;
-    const { stdout: originalAutoSetupRemote } =
-      await $`git config push.autoSetupRemote`;
+
+    const userEmailKey = 'user.email';
+    const userNameKey = 'user.name';
+    const autoSetupRemoteKey = 'push.autoSetupRemote';
+
+    const originalEmail = await this.getConfigSafe(userEmailKey);
+    const originalName = await this.getConfigSafe(userNameKey);
+    const originalAutoSetupRemote = await this.getConfigSafe(
+      autoSetupRemoteKey
+    );
 
     // eslint-disable-next-line spellcheck/spell-checker
-    await $`git config user.email "github-actions[bot]@users.noreply.github.com"`;
-    await $`git config user.name "github-actions[bot]"`;
+    await $`git config ${userEmailKey} "github-actions[bot]@users.noreply.github.com"`;
+    await $`git config ${userNameKey} "github-actions[bot]"`;
 
-    await $`git config --unset-all push.autoSetupRemote`;
-    await $`git config push.autoSetupRemote true`;
+    await $`git config --unset-all ${autoSetupRemoteKey}`;
+    await $`git config ${autoSetupRemoteKey} true`;
 
     this.registerCleanup(async () => {
       // reset config on exit
-      await $`git config user.email ${originalEmail}`;
-      await $`git config user.name ${originalName}`;
-      await $`git config --unset-all push.autoSetupRemote`;
-      await $`git config push.autoSetupRemote ${originalAutoSetupRemote}`;
+      if (originalEmail) {
+        await $`git config user.email ${originalEmail}`;
+      }
+      if (originalName) {
+        await $`git config ${userNameKey} ${originalName}`;
+      }
+      if (originalAutoSetupRemote) {
+        await $`git config --unset-all ${autoSetupRemoteKey}`;
+        await $`git config ${autoSetupRemoteKey} ${originalAutoSetupRemote}`;
+      }
     });
     this.isConfigured = true;
   };
@@ -237,6 +249,15 @@ class GitClient {
     process.once('SIGTERM', cleanupCallbackTypeAssertion);
     process.once('uncaughtException', cleanupCallbackTypeAssertion);
     process.once('unhandledRejection', cleanupCallbackTypeAssertion);
+  };
+
+  private getConfigSafe = async (configKey: string) => {
+    try {
+      const { stdout } = await $`git config ${configKey}`;
+      return stdout;
+    } catch {
+      return undefined;
+    }
   };
 }
 
