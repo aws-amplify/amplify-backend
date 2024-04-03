@@ -1,4 +1,4 @@
-import { afterEach, before, beforeEach, describe, it } from 'node:test';
+import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
@@ -6,7 +6,6 @@ import { execa } from 'execa';
 import { amplifyCli } from '../process-controller/process_controller.js';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import assert from 'node:assert';
-import { existsSync } from 'fs';
 import {
   CloudFormationClient,
   DeleteStackCommand,
@@ -20,6 +19,7 @@ import {
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { amplifyAtTag } from '../constants.js';
+import { NpmRegistryController } from '../npm_registry_controller.js';
 
 const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
 
@@ -31,23 +31,12 @@ const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
  * These tests intentionally do not use local npm registry (verdaccio).
  */
 void describe('Live dependency health checks', { concurrency: true }, () => {
+  const npmRegistryController = new NpmRegistryController(false);
   before(async () => {
-    // Nuke the npx cache to ensure we are installing latest versions of packages from the npm.
-    const { stdout } = await execa('npm', ['config', 'get', 'cache']);
-    const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
-
-    if (existsSync(npxCacheLocation)) {
-      await fs.rm(npxCacheLocation, { recursive: true });
-    }
-
-    // Force 'create-amplify' installation in npx cache by executing help command
-    // before tests run. Otherwise, installing 'create-amplify' concurrently
-    // may lead to race conditions and corrupted npx cache.
-    await execa('npm', ['create', amplifyAtTag, '--yes', '--', '--help'], {
-      // Command must run outside of 'amplify-backend' workspace.
-      cwd: os.homedir(),
-      stdio: 'inherit',
-    });
+    await npmRegistryController.setUp();
+  });
+  after(async () => {
+    await npmRegistryController.tearDown();
   });
 
   void describe('pipeline deployment', () => {
