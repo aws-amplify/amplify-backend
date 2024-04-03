@@ -4,6 +4,7 @@ import { githubClient } from './components/github_client.js';
 import { EOL } from 'os';
 import { npmClient } from './components/npm_client.js';
 import { getDistTagFromReleaseTag } from './components/get_dist_tag_from_release_tag.js';
+import { execa } from 'execa';
 
 /**
  * This script is the "undo" button for the `deprecate_release.ts` script.
@@ -81,6 +82,10 @@ console.log(
 
 // if anything fails before this point, we haven't actually modified anything on NPM yet.
 // now we actually update the npm dist tags and mark the packages as un-deprecated
+
+if (registryTarget === 'local-proxy') {
+  await execa('npm', ['run', 'start:npm-proxy'], { stdio: 'inherit' });
+}
 
 await npmClient.configureNpmRc({ target: registryTarget });
 
