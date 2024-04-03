@@ -17,7 +17,7 @@ import { execa } from 'execa';
 
 const searchForReleaseStartingFrom = getInput('searchForReleaseStartingFrom');
 const registryTarget =
-  getInput('dryRun') === 'true' ? 'local-proxy' : 'npm-registry';
+  getInput('dryRun') === 'false' ? 'npm-registry' : 'local-proxy';
 
 const searchStartCommit =
   searchForReleaseStartingFrom.length === 0
