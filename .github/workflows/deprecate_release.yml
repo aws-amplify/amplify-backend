@@ -6,14 +6,24 @@ on:
       - rollback
   workflow_dispatch:
     inputs:
-      commitHash:
-        required: true
-        type: string
-        description: The release commit hash that should be deprecated
       deprecationMessage:
         required: true
         type: string
-        description: The deprecation message to apply to the affected package versions
+        description: The deprecation message to apply to the affected package versions.
+      dryRun:
+        required: false
+        type: boolean
+        default: false
+        description: |
+          Whether to run the workflow against the live npm registry or not.
+          Defaults to false. Must be explicitly set to true to run against the npm registry.
+      searchForReleaseStartingFrom:
+        required: false
+        type: string
+        default: HEAD
+        description: |
+          By default, the most recent release from HEAD (inclusive) of the target branch will be deprecated.
+          To deprecate a different release, specify the release commit to deprecate here.
 
 jobs:
   install:
@@ -36,5 +46,4 @@ jobs:
       # TODO remove proxy before merging -- for testing only
       - run: npm run start:npm-proxy
       - name: Deprecate release versions
-        # TODO remove defaults before merging -- for testing only
-        run: npx tsx scripts/deprecate_release.ts --commit-hash ${{ inputs.commitHash || 'e81b212ab' }} --deprecation-message "${{ inputs.deprecationMessage || 'test deprecation message' }}"
+        run: npx tsx scripts/deprecate_release.ts

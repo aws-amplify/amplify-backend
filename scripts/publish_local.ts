@@ -2,14 +2,14 @@ import { execa } from 'execa';
 import { runPublish } from './publish_runner.js';
 import * as path from 'path';
 import { runVersion } from './version_runner.js';
-import { isCleanWorkingTree } from './components/git_commands.js';
+import { gitClient } from './components/git_client.js';
 
 const runArgs = process.argv.slice(2);
 
 const keepGitDiff = runArgs.find((arg) => arg === '--keepGitDiff');
 
 if (!keepGitDiff) {
-  if (!(await isCleanWorkingTree())) {
+  if (!(await gitClient.isWorkingTreeClean())) {
     throw new Error(
       `Detected a dirty working tree. Commit or stash changes before publishing a snapshot`
     );

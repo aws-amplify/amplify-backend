@@ -1,5 +1,6 @@
 import { Options, execa } from 'execa';
 import { runVersion } from './version_runner.js';
+import { npmClient } from './components/npm_client.js';
 
 export type PublishOptions = {
   /**
@@ -26,6 +27,8 @@ const publishDefaults: PublishOptions = {
   snapshotRelease: false,
 };
 
+const snapshotTag = 'test';
+
 /**
  * Wrapper around `changeset publish` that exposes a few config options
  * To keep behavior consistent, this wrapper should be the ONLY path by which we execute `changeset publish`
@@ -40,7 +43,11 @@ export const runPublish = async (props?: PublishOptions) => {
     stdio: 'inherit',
   };
 
-  const snapshotTag = 'test';
+  // if we are publishing to npm, we assume that the npmrc has already been configured properly by upstream code
+  // (ie the changeset gh action automatically configures this)
+  if (options.useLocalRegistry) {
+    await npmClient.configureNpmRc({ target: 'local-proxy' });
+  }
 
   if (options.snapshotRelease) {
     // Snapshot releases are not allowed in pre mode.
