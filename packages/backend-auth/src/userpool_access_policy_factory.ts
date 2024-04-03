@@ -80,6 +80,13 @@ const iamActionMap: IamActionMap = {
     'cognito-idp:AdminAddUserToGroup',
     'cognito-idp:AdminRemoveUserFromGroup',
   ],
+  manageGroups: [
+    'cognito-idp:GetGroup',
+    'cognito-idp:ListGroups',
+    'cognito-idp:CreateGroup',
+    'cognito-idp:DeleteGroup',
+    'cognito-idp:UpdateGroup',
+  ],
   manageUserDevices: [
     'cognito-idp:AdminForgetDevice',
     'cognito-idp:AdminGetDevice',
