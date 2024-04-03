@@ -11,9 +11,11 @@ import {
 } from '@aws-amplify/data-construct';
 import { DataSchema, DataSchemaInput } from './types.js';
 import fs from 'fs';
-import * as path from 'path';
 import { FilePathExtractor } from '@aws-amplify/platform-core';
-import { dirname, join } from 'path';
+import { dirname, join, parse } from 'path';
+import {
+  BackendSecretResolver,
+} from '@aws-amplify/plugin-types';
 
 /**
  * Determine if the input schema is a derived model schema, and perform type narrowing.
@@ -56,7 +58,7 @@ const DYNAMO_DATA_SOURCE_STRATEGY = {
 // Translate the external engine types to the config values
 const RDS_DB_TYPES = {
   mysql: 'MYSQL',
-  postgres: 'POSTGRES',
+  postgresql: 'POSTGRES',
 } as const;
 
 /**
@@ -87,7 +89,8 @@ const resolveEntryPath = (entry: SqlStatementFolderEntry): string => {
  * @returns the cdk graphql definition interface
  */
 export const convertSchemaToCDK = (
-  schema: DataSchema
+  schema: DataSchema,
+  backendSecretResolver: BackendSecretResolver
 ): IAmplifyDataDefinition => {
   if (isModelSchema(schema)) {
     /**
@@ -109,7 +112,8 @@ export const convertSchemaToCDK = (
         schema.data.configuration.database,
         sqlStatementFolderPath
           ? loadCustomSqlStatements(resolveEntryPath(sqlStatementFolderPath))
-          : {}
+          : {},
+          backendSecretResolver
       )
     ).dataSourceStrategies;
     return {
@@ -133,6 +137,9 @@ export const combineCDKSchemas = (
   return AmplifyDataDefinition.combine(schemas);
 };
 
+// TODO: needs to be unique per API / SQL strategy
+const STRATEGY_NAME = 'SqlDBStrategy';
+
 /**
  * Given the generated rds builder database configuration, convert it into the DataSource strategy
  * @param configuration the database configuration from `data-schema`
@@ -140,7 +147,8 @@ export const combineCDKSchemas = (
  */
 const convertDatabaseConfigurationToDataSourceStrategy = (
   configuration: DataSourceConfiguration,
-  customSqlStatements: Record<string, string>
+  customSqlStatements: Record<string, string>,
+  backendSecretResolver: BackendSecretResolver
 ): ModelDataSourceStrategy => {
   const dbEngine = configuration.engine;
 
@@ -152,16 +160,9 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
 
   return {
     dbType,
-    name: '',
+    name: STRATEGY_NAME,
     dbConnectionConfig: {
-      // These are all about to be replaced
-      databaseNameSsmPath: '',
-      hostnameSsmPath: '',
-      passwordSsmPath: '',
-      portSsmPath: '',
-      usernameSsmPath: '',
-      // Replacement mapping
-      // connectionUriSsmPath: configuration.connectionUri
+      connectionUriSsmPath: backendSecretResolver.resolvePath(configuration.connectionUri).branchSecretPath
     },
     vpcConfiguration: configuration.vpcConfig,
     customSqlStatements,
@@ -178,11 +179,11 @@ const loadCustomSqlStatements = (
 ): Record<string, string> => {
   const sqlFiles = fs
     .readdirSync(sqlStatementsPath)
-    .map((file) => path.join(sqlStatementsPath, file));
+    .map((file) => join(sqlStatementsPath, file));
 
   const customSqlStatements = sqlFiles.reduce(
     (acc, filePath): Record<string, string> => {
-      const basename = path.parse(filePath).name;
+      const basename = parse(filePath).name;
       acc[basename] = fs.readFileSync(filePath, 'utf8');
       return acc;
     },

@@ -117,6 +117,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   generateContainerEntry = ({
     scope,
     ssmEnvironmentEntriesGenerator,
+    backendSecretResolver
   }: GenerateContainerEntryProps) => {
     const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
     const schemasJsFunctions: JsResolver[] = [];
@@ -129,6 +130,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       const schemas = isCombinedSchema(this.props.schema)
         ? this.props.schema.schemas
         : [this.props.schema];
+
       schemas.forEach((schema) => {
         if (isModelSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
@@ -140,7 +142,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
             ...lambdaFunctions,
           };
         }
-        amplifyGraphqlDefinitions.push(convertSchemaToCDK(schema));
+
+        amplifyGraphqlDefinitions.push(convertSchemaToCDK(schema, backendSecretResolver));
       });
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
