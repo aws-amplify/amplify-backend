@@ -11,4 +11,9 @@ const releaseLifecycleManager = new ReleaseLifecycleManager(
   useNpmRegistry === 'true'
 );
 
-await releaseLifecycleManager.restoreRelease();
+try {
+  await releaseLifecycleManager.restoreRelease();
+} catch (err) {
+  console.error(err);
+  process.exitCode = 1;
+}

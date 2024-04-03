@@ -14,4 +14,9 @@ const releaseLifecycleManager = new ReleaseLifecycleManager(
   useNpmRegistry === 'true'
 );
 
-await releaseLifecycleManager.deprecateRelease(deprecationMessage);
+try {
+  await releaseLifecycleManager.deprecateRelease(deprecationMessage);
+} catch (err) {
+  console.error(err);
+  process.exitCode = 1;
+}
