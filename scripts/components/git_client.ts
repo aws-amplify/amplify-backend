@@ -28,11 +28,9 @@ class GitClient {
   switchToBranch = async (branchName: string) => {
     if (!this.originalBranch) {
       this.originalBranch = await this.getCurrentBranch();
-      const cleanUpCallback = async () => {
+      this.registerCleanup(async () => {
         await $`git switch ${this.originalBranch}`;
-      };
-      // this type assertion is necessary because the node types for `beforeExit` listener apparently don't know that this listener can be async
-      process.once('beforeExit', cleanUpCallback as () => void);
+      });
     }
     await $`git switch -C ${branchName}`;
   };
@@ -214,18 +212,29 @@ class GitClient {
     // eslint-disable-next-line spellcheck/spell-checker
     await $`git config user.email "github-actions[bot]@users.noreply.github.com"`;
     await $`git config user.name "github-actions[bot]"`;
+
+    await $`git config --unset-all push.autoSetupRemote`;
     await $`git config push.autoSetupRemote true`;
 
-    const cleanUpCallback = async () => {
-      // reset email and name on exit
+    this.registerCleanup(async () => {
+      // reset config on exit
       await $`git config user.email ${originalEmail}`;
       await $`git config user.name ${originalName}`;
+      await $`git config --unset-all push.autoSetupRemote`;
       await $`git config push.autoSetupRemote ${originalAutoSetupRemote}`;
-    };
-
-    // this type assertion is necessary because the node types for `beforeExit` listener apparently don't know that this listener can be async
-    process.once('beforeExit', cleanUpCallback as () => void);
+    });
     this.isConfigured = true;
+  };
+
+  private registerCleanup = (cleanupCallback: () => void | Promise<void>) => {
+    // register the cleanup callback to common exit events
+    // the type assertion is necessary because the types for this method don't accept async callbacks even though the event handlers can execute them
+    const cleanupCallbackTypeAssertion = cleanupCallback as () => void;
+    process.once('SIGINT', cleanupCallbackTypeAssertion);
+    process.once('beforeExit', cleanupCallbackTypeAssertion);
+    process.once('SIGTERM', cleanupCallbackTypeAssertion);
+    process.once('uncaughtException', cleanupCallbackTypeAssertion);
+    process.once('unhandledRejection', cleanupCallbackTypeAssertion);
   };
 }
 

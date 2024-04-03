@@ -31,6 +31,7 @@ class GithubClient {
     body: string;
   }) => {
     // use the branch that this workflow is running on as the base branch of the PR
+    // note that this will not work in local testing. It must be mocked in a unit test.
     const baseBranch = ghContext.ref.replace('refs/heads/', '');
 
     const prResult = await this.ghClient.pulls.create({
