@@ -3,6 +3,7 @@ import { EOL } from 'os';
 
 class GitClient {
   private isConfigured = false;
+  private originalBranch: string;
   // convenience config for execa;
   private readonly inheritIO = { stdio: 'inherit' } as const;
 
@@ -14,10 +15,25 @@ class GitClient {
     return !stdout.trim();
   };
 
+  getCurrentBranch = async () => {
+    const { stdout: currentBranch } = await $`git branch --show-current`;
+    return currentBranch;
+  };
+
   /**
-   * Switches to branchName. Creates the branch if it does not exist
+   * Switches to branchName. Creates the branch if it does not exist.
+   *
+   * Resets the branch to the original one at the end of the process
    */
   switchToBranch = async (branchName: string) => {
+    if (!this.originalBranch) {
+      this.originalBranch = await this.getCurrentBranch();
+      const cleanUpCallback = async () => {
+        await $`git switch ${this.originalBranch}`;
+      };
+      // this type assertion is necessary because the node types for `beforeExit` listener apparently don't know that this listener can be async
+      process.once('beforeExit', cleanUpCallback as () => void);
+    }
     await $`git switch -C ${branchName}`;
   };
 
