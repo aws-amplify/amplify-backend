@@ -199,15 +199,17 @@ class GitClient {
   };
 
   /**
-   * Configure the git user email and name
+   * Modify local git config to work in github actions.
+   * A best effort is made to restore the config to its original state (to reduce annoyance when testing locally)
    */
   private configure = async () => {
     if (this.isConfigured) {
       return;
     }
-    const originalEmail = await $`git config user.email`;
-    const originalName = await $`git config user.name`;
-    const originalAutoSetupRemote = await $`git config push.autoSetupRemote`;
+    const { stdout: originalEmail } = await $`git config user.email`;
+    const { stdout: originalName } = await $`git config user.name`;
+    const { stdout: originalAutoSetupRemote } =
+      await $`git config push.autoSetupRemote`;
 
     // eslint-disable-next-line spellcheck/spell-checker
     await $`git config user.email "github-actions[bot]@users.noreply.github.com"`;
