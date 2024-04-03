@@ -87,9 +87,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       apiKeyConfig: {
         expires: Duration.days(7),
       },
-      // iamConfig: {
-      //   enableIamAuthorizationMode: true,
-      // },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
     };
 
     assert.deepStrictEqual(
@@ -106,14 +106,14 @@ void describe('convertAuthorizationModesToCDK', () => {
     const expectedOutput: CDKAuthorizationModes = {
       defaultAuthorizationMode: 'AMAZON_COGNITO_USER_POOLS',
       userPoolConfig: { userPool },
-      // identityPoolConfig: {
-      //   identityPoolId,
-      //   authenticatedUserRole,
-      //   unauthenticatedUserRole,
-      // },
-      // iamConfig: {
-      //   enableIamAuthorizationMode: true,
-      // },
+      identityPoolConfig: {
+        identityPoolId,
+        authenticatedUserRole,
+        unauthenticatedUserRole,
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
     };
 
     assert.deepStrictEqual(
@@ -147,9 +147,9 @@ void describe('convertAuthorizationModesToCDK', () => {
         tokenExpiryFromIssue: Duration.seconds(60),
         tokenExpiryFromAuth: Duration.seconds(90),
       },
-      // iamConfig: {
-      //   enableIamAuthorizationMode: true,
-      // },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
     };
 
     assert.deepStrictEqual(
@@ -182,9 +182,9 @@ void describe('convertAuthorizationModesToCDK', () => {
         tokenExpiryFromIssue: Duration.seconds(60),
         tokenExpiryFromAuth: Duration.seconds(90),
       },
-      // iamConfig: {
-      //   enableIamAuthorizationMode: true,
-      // },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
     };
 
     assert.deepStrictEqual(
@@ -212,9 +212,9 @@ void describe('convertAuthorizationModesToCDK', () => {
         description: 'MyApiKey',
         expires: Duration.days(30),
       },
-      // iamConfig: {
-      //   enableIamAuthorizationMode: true,
-      // },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
     };
 
     assert.deepStrictEqual(
@@ -241,9 +241,9 @@ void describe('convertAuthorizationModesToCDK', () => {
         description: 'MyApiKey',
         expires: Duration.days(30),
       },
-      // iamConfig: {
-      //   enableIamAuthorizationMode: true,
-      // },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
     };
 
     assert.deepStrictEqual(
@@ -286,9 +286,9 @@ void describe('convertAuthorizationModesToCDK', () => {
         function: authFn,
         ttl: Duration.seconds(30),
       },
-      // iamConfig: {
-      //   enableIamAuthorizationMode: true,
-      // },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
     };
 
     assert.deepStrictEqual(
@@ -330,9 +330,9 @@ void describe('convertAuthorizationModesToCDK', () => {
         function: authFn,
         ttl: Duration.seconds(30),
       },
-      // iamConfig: {
-      //   enableIamAuthorizationMode: true,
-      // },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
     };
 
     assert.deepStrictEqual(
