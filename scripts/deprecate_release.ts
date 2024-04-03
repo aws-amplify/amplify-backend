@@ -1,10 +1,10 @@
 import { EOL } from 'os';
 import { gitClient } from './components/git_client.js';
 import { getInput } from '@actions/core';
-import { githubClient } from './components/github_client.js';
 import { npmClient } from './components/npm_client.js';
 import { getDistTagFromReleaseTag } from './components/get_dist_tag_from_release_tag.js';
 import { execa } from 'execa';
+import { githubClient } from './components/github_client.js';
 
 /**
  * This script deprecates a set of package versions that were released by a single release commit.
@@ -79,13 +79,21 @@ await gitClient.commitAllChanges(
 );
 await gitClient.push({ force: true });
 
-const { prUrl } = await githubClient.createPr({
-  head: prBranch,
-  title: `Deprecate release ${releaseCommitHashToDeprecate}`,
-  body: `Reverting updates to the .changeset directory made by release commit ${releaseCommitHashToDeprecate}`,
-});
+// using this flag to determine whether or not to create a PR is overloading it a bit
+// but seems like a decent trade-off to avoid introducing another flag
+if (registryTarget === 'local-proxy') {
+  console.log(
+    'Skipping PR creation since deprecation script is running against the local proxy'
+  );
+} else {
+  const { prUrl } = await githubClient.createPr({
+    head: prBranch,
+    title: `Deprecate release ${releaseCommitHashToDeprecate}`,
+    body: `Reverting updates to the .changeset directory made by release commit ${releaseCommitHashToDeprecate}`,
+  });
 
-console.log(`Created deprecation PR at ${prUrl}`);
+  console.log(`Created deprecation PR at ${prUrl}`);
+}
 
 if (releaseTagsToRestoreDistTagPointers.length > 0) {
   console.log(
