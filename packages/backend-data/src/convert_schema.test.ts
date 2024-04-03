@@ -2,6 +2,33 @@ import { describe, it } from 'node:test';
 import { convertSchemaToCDK } from './convert_schema.js';
 import assert from 'node:assert';
 import { a } from '@aws-amplify/data-schema';
+import { Construct } from 'constructs';
+import {
+  BackendIdentifier,
+  BackendSecret,
+  BackendSecretResolver,
+  ResolvePathResult,
+} from '@aws-amplify/plugin-types';
+import { SecretValue } from 'aws-cdk-lib';
+
+const testStack = {} as Construct;
+
+const testBackendIdentifier: BackendIdentifier = {
+  namespace: 'testBackendId',
+  name: 'testBranchName',
+  type: 'branch',
+};
+
+class TestBackendSecretResolver implements BackendSecretResolver {
+  resolveSecret = (backendSecret: BackendSecret): SecretValue => {
+    return backendSecret.resolve(testStack, testBackendIdentifier);
+  };
+  resolvePath = (backendSecret: BackendSecret): ResolvePathResult => {
+    return backendSecret.resolvePath(testBackendIdentifier);
+  };
+}
+
+const secretResolver = new TestBackendSecretResolver();
 
 const removeWhiteSpaceForComparison = (content: string): string =>
   content.replaceAll(/ |\n/g, '');
@@ -16,7 +43,10 @@ void describe('convertSchemaToCDK', () => {
         echo(message: String!): String!
       }
     `;
-    const convertedDefinition = convertSchemaToCDK(graphqlSchema);
+    const convertedDefinition = convertSchemaToCDK(
+      graphqlSchema,
+      secretResolver
+    );
     assert.deepEqual(convertedDefinition.schema, graphqlSchema);
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
@@ -39,7 +69,7 @@ void describe('convertSchemaToCDK', () => {
         }),
       })
       .authorization([a.allow.public()]);
-    const convertedDefinition = convertSchemaToCDK(typedSchema);
+    const convertedDefinition = convertSchemaToCDK(typedSchema, secretResolver);
     assert.deepEqual(
       removeWhiteSpaceForComparison(convertedDefinition.schema),
       removeWhiteSpaceForComparison(expectedGraphqlSchema)
@@ -63,7 +93,7 @@ void describe('convertSchemaToCDK', () => {
         }),
       })
       .authorization([a.allow.public()]);
-    const convertedDefinition = convertSchemaToCDK(typedSchema);
+    const convertedDefinition = convertSchemaToCDK(typedSchema, secretResolver);
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
         dbType: 'DYNAMODB',
@@ -76,9 +106,10 @@ void describe('convertSchemaToCDK', () => {
     });
   });
 
-  void it('uses the only appropriate dbType and provisioningStrategy', () => {
+  void it('uses the only appropriate dbType and provisiozningStrategy', () => {
     const convertedDefinition = convertSchemaToCDK(
-      'type Todo @model @auth(rules: { allow: public }) { id: ID! }'
+      'type Todo @model @auth(rules: { allow: public }) { id: ID! }',
+      secretResolver
     );
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,

@@ -13,9 +13,7 @@ import { DataSchema, DataSchemaInput } from './types.js';
 import fs from 'fs';
 import { FilePathExtractor } from '@aws-amplify/platform-core';
 import { dirname, join, parse } from 'path';
-import {
-  BackendSecretResolver,
-} from '@aws-amplify/plugin-types';
+import { BackendSecretResolver } from '@aws-amplify/plugin-types';
 
 /**
  * Determine if the input schema is a derived model schema, and perform type narrowing.
@@ -113,7 +111,7 @@ export const convertSchemaToCDK = (
         sqlStatementFolderPath
           ? loadCustomSqlStatements(resolveEntryPath(sqlStatementFolderPath))
           : {},
-          backendSecretResolver
+        backendSecretResolver
       )
     ).dataSourceStrategies;
     return {
@@ -150,19 +148,22 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
   customSqlStatements: Record<string, string>,
   backendSecretResolver: BackendSecretResolver
 ): ModelDataSourceStrategy => {
-  const dbEngine = configuration.engine;
+  // todo remove assertion after merging data-schema PR
+  // const dbEngine = configuration.engine as 'dynamodb' | 'mysql' | 'postgresql';
 
-  if (dbEngine === 'dynamodb') {
+  if (configuration.engine === 'dynamodb') {
     return DYNAMO_DATA_SOURCE_STRATEGY;
   }
 
-  const dbType = RDS_DB_TYPES[dbEngine];
+  const dbType = RDS_DB_TYPES[configuration.engine as 'mysql' | 'postgresql'];
 
   return {
     dbType,
     name: STRATEGY_NAME,
     dbConnectionConfig: {
-      connectionUriSsmPath: backendSecretResolver.resolvePath(configuration.connectionUri).branchSecretPath
+      connectionUriSsmPath: backendSecretResolver.resolvePath(
+        configuration.connectionUri
+      ).branchSecretPath,
     },
     vpcConfiguration: configuration.vpcConfig,
     customSqlStatements,
