@@ -1,4 +1,4 @@
-import { $ } from 'execa';
+import { $, execa } from 'execa';
 import { EOL } from 'os';
 
 class GitClient {
@@ -42,11 +42,9 @@ class GitClient {
     await $(this.inheritIO)`git fetch --tags`;
   };
 
-  checkout = async (ref: string, paths?: string[]) => {
-    const pathsString = paths
-      ? `-- ${paths.map((p) => `"${p}"`).join(' ')}`
-      : '';
-    await $(this.inheritIO)`git checkout ${ref} ${pathsString}`;
+  checkout = async (ref: string, paths: string[] = []) => {
+    const additionalArgs = paths.length > 0 ? ['--', ...paths] : [];
+    await execa('git', ['checkout', ref, ...additionalArgs]);
   };
 
   status = async () => {
