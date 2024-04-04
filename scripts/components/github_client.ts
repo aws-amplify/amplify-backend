@@ -1,15 +1,17 @@
 import { getOctokit, context as ghContext } from '@actions/github';
 
-class GithubClient {
+/**
+ *
+ */
+export class GithubClient {
   private readonly ghClient;
-  constructor() {
-    const ghToken = process.env.GITHUB_TOKEN;
-    if (!ghToken) {
-      throw new Error(`
-        The GitHub access token must be set in the GITHUB_TOKEN environment variable.
-      `);
-    }
-    this.ghClient = getOctokit(ghToken).rest;
+
+  /**
+   * Initialize the client.
+   * If no githubToken is specified, try to load on from the GITHUB_TOKEN environment variable
+   */
+  constructor(githubToken: string = loadGithubTokenFromEnvVar()) {
+    this.ghClient = getOctokit(githubToken).rest;
   }
 
   /**
@@ -50,6 +52,15 @@ class GithubClient {
 }
 
 /**
- * Client for interacting with the GitHub API
+ * Loads the github token from the GITHUB_TOKEN environment variable.
+ * If not present, an error is thrown
  */
-export const githubClient = new GithubClient();
+const loadGithubTokenFromEnvVar = () => {
+  const ghToken = process.env.GITHUB_TOKEN;
+  if (!ghToken) {
+    throw new Error(`
+      The GitHub access token must be set in the GITHUB_TOKEN environment variable.
+    `);
+  }
+  return ghToken;
+};

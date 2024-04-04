@@ -1,6 +1,6 @@
 import { Options, execa } from 'execa';
 import { runVersion } from './version_runner.js';
-import { npmClient } from './components/npm_client.js';
+import { NpmClient } from './components/npm_client.js';
 
 export type PublishOptions = {
   /**
@@ -46,7 +46,8 @@ export const runPublish = async (props?: PublishOptions) => {
   // if we are publishing to npm, we assume that the npmrc has already been configured properly by upstream code
   // (ie the changeset gh action automatically configures this)
   if (options.useLocalRegistry) {
-    await npmClient.configureNpmRc({ target: 'local-proxy' });
+    const npmClient = new NpmClient(null);
+    await npmClient.configureNpmRc();
   }
 
   if (options.snapshotRelease) {

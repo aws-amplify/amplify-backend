@@ -1,22 +1,44 @@
-import { $, execa } from 'execa';
+import { $ as chainableExeca, execa } from 'execa';
 import { EOL } from 'os';
 
-class GitClient {
+/**
+ *
+ */
+export class GitClient {
   private isConfigured = false;
-  private originalBranch: string;
-  // convenience config for execa;
-  private readonly inheritIO = { stdio: 'inherit' } as const;
+
+  /**
+   * execaCommand that allows us to capture stdout
+   */
+  private readonly exec;
+
+  /**
+   * execaCommand that pipes buffers to process buffers
+   */
+  private readonly execWithIO;
+
+  /**
+   * Initialize with an optional directory to operate in.
+   * Defaults to the process cwd.
+   */
+  constructor(cwd?: string) {
+    this.exec = chainableExeca({ cwd });
+    this.execWithIO = this.exec({ stdio: 'inherit' });
+  }
+
+  init = async () => {};
 
   /**
    * Returns true if the git tree is clean and false if it is dirty
    */
   isWorkingTreeClean = async () => {
-    const { stdout } = await $`git status --porcelain`;
+    const { stdout } = await this.exec`git status --porcelain`;
     return !stdout.trim();
   };
 
   getCurrentBranch = async () => {
-    const { stdout: currentBranch } = await $`git branch --show-current`;
+    const { stdout: currentBranch } = await this
+      .exec`git branch --show-current`;
     return currentBranch;
   };
 
@@ -26,13 +48,7 @@ class GitClient {
    * Resets the branch to the original one at the end of the process
    */
   switchToBranch = async (branchName: string) => {
-    if (!this.originalBranch) {
-      this.originalBranch = await this.getCurrentBranch();
-      this.registerCleanup(async () => {
-        await $`git switch ${this.originalBranch}`;
-      });
-    }
-    await $`git switch -C ${branchName}`;
+    await this.exec`git switch -C ${branchName}`;
   };
 
   /**
@@ -40,8 +56,8 @@ class GitClient {
    */
   commitAllChanges = async (message: string) => {
     await this.configure();
-    await $(this.inheritIO)`git add .`;
-    await $(this.inheritIO)`git commit --message '${message}'`;
+    await this.execWithIO`git add .`;
+    await this.execWithIO`git commit --message '${message}'`;
   };
 
   /**
@@ -49,11 +65,11 @@ class GitClient {
    */
   push = async ({ force }: { force: boolean } = { force: false }) => {
     await this.configure();
-    await $(this.inheritIO)`git push ${force ? '--force' : ''}`;
+    await this.execWithIO`git push ${force ? '--force' : ''}`;
   };
 
   fetchTags = async () => {
-    await $(this.inheritIO)`git fetch --tags`;
+    await this.execWithIO`git fetch --tags`;
   };
 
   checkout = async (ref: string, paths: string[] = []) => {
@@ -62,14 +78,15 @@ class GitClient {
   };
 
   status = async () => {
-    await $(this.inheritIO)`git status`;
+    await this.execWithIO`git status`;
   };
 
   /**
    * Returns a list of tags that point to the given commit
    */
   getTagsAtCommit = async (commitHash: string) => {
-    const { stdout: tagsString } = await $`git tag --points-at ${commitHash}`;
+    const { stdout: tagsString } = await this
+      .exec`git tag --points-at ${commitHash}`;
     return tagsString.split(EOL).filter((line) => line.trim().length > 0);
   };
 
@@ -84,13 +101,12 @@ class GitClient {
     { inclusive }: { inclusive: boolean } = { inclusive: true }
   ) => {
     // get the most recent tag before (or at if inclusive=false) the current release tag
-    const { stdout: previousReleaseTag } = await $`git describe ${commitHash}${
-      inclusive ? '' : '^'
-    } --abbrev=0`;
+    const { stdout: previousReleaseTag } = await this
+      .exec`git describe ${commitHash}${inclusive ? '' : '^'} --abbrev=0`;
 
     // get the commit hash associated with the previous release tag
-    const { stdout: previousReleaseCommitHash } =
-      await $`git log -1 ${previousReleaseTag} --pretty=%H`;
+    const { stdout: previousReleaseCommitHash } = await this
+      .exec`git log -1 ${previousReleaseTag} --pretty=%H`;
 
     // run some sanity checks on the release commit
     await this.validateReleaseCommitHash(previousReleaseCommitHash);
@@ -158,7 +174,8 @@ class GitClient {
 
   private validateReleaseCommitHash = async (releaseCommitHash: string) => {
     // check that the hash points to a valid commit
-    const { stdout: hashType } = await $`git cat-file -t ${releaseCommitHash}`;
+    const { stdout: hashType } = await this
+      .exec`git cat-file -t ${releaseCommitHash}`;
     if (hashType !== 'commit') {
       throw new Error(
         `Hash ${releaseCommitHash} does not point to a commit in the git tree`
@@ -166,8 +183,8 @@ class GitClient {
     }
 
     // check that the commit hash points to a release commit
-    const { stdout: commitMessage } =
-      await $`git log -1 --pretty="%s" ${releaseCommitHash}`;
+    const { stdout: commitMessage } = await this
+      .exec`git log -1 --pretty="%s" ${releaseCommitHash}`;
     if (!commitMessage.includes('Version Packages')) {
       throw new Error(`
         Expected release commit message to include "Version Packages".
@@ -177,8 +194,8 @@ class GitClient {
     }
 
     // check that this commit was made by the github-actions bot
-    const { stdout: commitAuthor } =
-      await $`git log -1 --pretty="%an" ${releaseCommitHash}`;
+    const { stdout: commitAuthor } = await this
+      .exec`git log -1 --pretty="%an" ${releaseCommitHash}`;
     if (!commitAuthor.includes('github-actions[bot]')) {
       throw new Error(`
         Expected release commit commit to be authored by github-actions[bot].
@@ -217,21 +234,25 @@ class GitClient {
       autoSetupRemoteKey
     );
 
-    // eslint-disable-next-line spellcheck/spell-checker
-    await $`git config --replace-all ${userEmailKey} "github-actions[bot]@users.noreply.github.com"`;
-    await $`git config --replace-all ${userNameKey} "github-actions[bot]"`;
-    await $`git config --replace-all ${autoSetupRemoteKey} true`;
+    await this
+      .exec`git config --replace-all ${userEmailKey} "github-actions[bot]@users.noreply.github.com"`;
+    await this
+      .exec`git config --replace-all ${userNameKey} "github-actions[bot]"`;
+    await this.exec`git config --replace-all ${autoSetupRemoteKey} true`;
 
     this.registerCleanup(async () => {
       // reset config on exit
       if (originalEmail) {
-        await $`git config --replace-all ${userEmailKey} ${originalEmail}`;
+        await this
+          .exec`git config --replace-all ${userEmailKey} ${originalEmail}`;
       }
       if (originalName) {
-        await $`git config --replace-all ${userNameKey} ${originalName}`;
+        await this
+          .exec`git config --replace-all ${userNameKey} ${originalName}`;
       }
       if (originalAutoSetupRemote) {
-        await $`git config --replace-all ${autoSetupRemoteKey} ${originalAutoSetupRemote}`;
+        await this
+          .exec`git config --replace-all ${autoSetupRemoteKey} ${originalAutoSetupRemote}`;
       }
     });
     this.isConfigured = true;
@@ -250,15 +271,10 @@ class GitClient {
 
   private getConfigSafe = async (configKey: string) => {
     try {
-      const { stdout } = await $`git config ${configKey}`;
+      const { stdout } = await this.exec`git config ${configKey}`;
       return stdout;
     } catch {
       return undefined;
     }
   };
 }
-
-/**
- * Client for interacting with the local git CLI
- */
-export const gitClient = new GitClient();

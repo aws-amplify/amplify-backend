@@ -1,37 +1,22 @@
 import { EOL } from 'os';
-import { gitClient as _gitClient } from './git_client.js';
-import { npmClient as _npmClient } from './npm_client.js';
+import { GitClient } from './git_client.js';
+import { NpmClient } from './npm_client.js';
 import { getDistTagFromReleaseTag } from './get_dist_tag_from_release_tag.js';
-import { githubClient as _githubClient } from './github_client.js';
+import { GithubClient } from './github_client.js';
 
 /**
  *
  */
 export class ReleaseLifecycleManager {
-  private readonly registryTarget: 'npm-registry' | 'local-proxy';
   /**
    * Initialize with deprecation config and necessary clients
    */
   constructor(
     private readonly gitRefToStartReleaseSearchFrom: string,
-    private readonly useNpmRegistry: boolean,
-    private readonly gitClient: typeof _gitClient = _gitClient,
-    private readonly npmClient: typeof _npmClient = _npmClient,
-    private readonly githubClient: typeof _githubClient = _githubClient
-  ) {
-    this.registryTarget = this.useNpmRegistry ? 'npm-registry' : 'local-proxy';
-    switch (this.registryTarget) {
-      case 'npm-registry':
-        console.log(
-          'useNpmRegistry is TRUE. This run will update package metadata on the public npm package registry.'
-        );
-        break;
-      case 'local-proxy':
-        console.log(
-          'useNpmRegistry is FALSE. This run will update package metadata on a local npm proxy. No public changes will be made.'
-        );
-    }
-  }
+    private readonly githubClient: GithubClient,
+    private readonly gitClient: GitClient,
+    private readonly npmClient: NpmClient
+  ) {}
 
   /**
    * This method deprecates a set of package versions that were released by a single release commit.
@@ -212,6 +197,6 @@ export class ReleaseLifecycleManager {
         The release deprecation workflow requires a clean working tree to create the rollback PR.
       `);
     }
-    await this.npmClient.configureNpmRc({ target: this.registryTarget });
+    await this.npmClient.configureNpmRc();
   };
 }

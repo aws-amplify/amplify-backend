@@ -94,6 +94,7 @@
   "nodejs",
   "nodenext",
   "nodir",
+  "noreply",
   "npmrc",
   "npx",
   "nullability",

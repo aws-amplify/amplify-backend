@@ -2,11 +2,13 @@ import { execa } from 'execa';
 import { runPublish } from './publish_runner.js';
 import * as path from 'path';
 import { runVersion } from './version_runner.js';
-import { gitClient } from './components/git_client.js';
+import { GitClient } from './components/git_client.js';
 
 const runArgs = process.argv.slice(2);
 
 const keepGitDiff = runArgs.find((arg) => arg === '--keepGitDiff');
+
+const gitClient = new GitClient();
 
 if (!keepGitDiff) {
   if (!(await gitClient.isWorkingTreeClean())) {
