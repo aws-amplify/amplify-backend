@@ -2,7 +2,6 @@ import { EOL } from 'os';
 import { gitClient as _gitClient } from './git_client.js';
 import { npmClient as _npmClient } from './npm_client.js';
 import { getDistTagFromReleaseTag } from './get_dist_tag_from_release_tag.js';
-import { execa } from 'execa';
 import { githubClient as _githubClient } from './github_client.js';
 
 /**
@@ -107,12 +106,6 @@ export class ReleaseLifecycleManager {
     // if anything fails before this point, we haven't actually modified anything on NPM yet.
     // now we actually update the npm dist tags and mark the packages as deprecated
 
-    if (this.registryTarget === 'local-proxy') {
-      await execa('npm', ['run', 'start:npm-proxy'], { stdio: 'inherit' });
-    }
-
-    await this.npmClient.configureNpmRc({ target: this.registryTarget });
-
     for (const releaseTag of releaseTagsToRestoreDistTagPointers) {
       const distTag = getDistTagFromReleaseTag(releaseTag);
       console.log(
@@ -196,12 +189,6 @@ export class ReleaseLifecycleManager {
     // if anything fails before this point, we haven't actually modified anything on NPM yet.
     // now we actually update the npm dist tags and mark the packages as un-deprecated
 
-    if (this.registryTarget === 'local-proxy') {
-      await execa('npm', ['run', 'start:npm-proxy'], { stdio: 'inherit' });
-    }
-
-    await this.npmClient.configureNpmRc({ target: this.registryTarget });
-
     for (const releaseTag of releaseTagsToRestoreDistTagPointers) {
       const distTag = getDistTagFromReleaseTag(releaseTag);
       console.log(
@@ -225,6 +212,6 @@ export class ReleaseLifecycleManager {
         The release deprecation workflow requires a clean working tree to create the rollback PR.
       `);
     }
-    await this.gitClient.fetchTags();
+    await this.npmClient.configureNpmRc({ target: this.registryTarget });
   };
 }

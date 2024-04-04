@@ -218,23 +218,20 @@ class GitClient {
     );
 
     // eslint-disable-next-line spellcheck/spell-checker
-    await $`git config ${userEmailKey} "github-actions[bot]@users.noreply.github.com"`;
-    await $`git config ${userNameKey} "github-actions[bot]"`;
-
-    await $`git config --unset-all ${autoSetupRemoteKey}`;
-    await $`git config ${autoSetupRemoteKey} true`;
+    await $`git config --replace-all ${userEmailKey} "github-actions[bot]@users.noreply.github.com"`;
+    await $`git config --replace-all ${userNameKey} "github-actions[bot]"`;
+    await $`git config --replace-all ${autoSetupRemoteKey} true`;
 
     this.registerCleanup(async () => {
       // reset config on exit
       if (originalEmail) {
-        await $`git config user.email ${originalEmail}`;
+        await $`git config --replace-all ${userEmailKey} ${originalEmail}`;
       }
       if (originalName) {
-        await $`git config ${userNameKey} ${originalName}`;
+        await $`git config --replace-all ${userNameKey} ${originalName}`;
       }
       if (originalAutoSetupRemote) {
-        await $`git config --unset-all ${autoSetupRemoteKey}`;
-        await $`git config ${autoSetupRemoteKey} ${originalAutoSetupRemote}`;
+        await $`git config --replace-all ${autoSetupRemoteKey} ${originalAutoSetupRemote}`;
       }
     });
     this.isConfigured = true;
