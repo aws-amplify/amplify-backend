@@ -28,6 +28,7 @@ import {
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
+  AttributeMapping,
   AuthProps,
   EmailLoginSettings,
   ExternalProviderOptions,
@@ -605,7 +606,9 @@ export class AmplifyAuth
                   email: ProviderAttribute.GOOGLE_EMAIL,
                 }
               : undefined),
-            ...googleProps.attributeMapping,
+            ...this.convertToCognitoAttributeMapping(
+              googleProps.attributeMapping
+            ),
           },
           scopes: googleProps.scopes,
         }
@@ -626,7 +629,9 @@ export class AmplifyAuth
                   email: ProviderAttribute.FACEBOOK_EMAIL,
                 }
               : undefined),
-            ...external.facebook.attributeMapping,
+            ...this.convertToCognitoAttributeMapping(
+              external.facebook.attributeMapping
+            ),
           },
         }
       );
@@ -647,7 +652,9 @@ export class AmplifyAuth
                   email: ProviderAttribute.AMAZON_EMAIL,
                 }
               : undefined),
-            ...external.loginWithAmazon.attributeMapping,
+            ...this.convertToCognitoAttributeMapping(
+              external.loginWithAmazon.attributeMapping
+            ),
           },
         }
       );
@@ -668,7 +675,9 @@ export class AmplifyAuth
                   email: ProviderAttribute.APPLE_EMAIL,
                 }
               : undefined),
-            ...external.signInWithApple.attributeMapping,
+            ...this.convertToCognitoAttributeMapping(
+              external.signInWithApple.attributeMapping
+            ),
           },
         }
       );
@@ -707,7 +716,9 @@ export class AmplifyAuth
                     },
                   }
                 : undefined),
-              ...provider.attributeMapping,
+              ...this.convertToCognitoAttributeMapping(
+                provider.attributeMapping
+              ),
             },
           }
         );
@@ -722,7 +733,9 @@ export class AmplifyAuth
         `${this.name}SamlIDP`,
         {
           userPool,
-          attributeMapping: saml.attributeMapping,
+          attributeMapping: this.convertToCognitoAttributeMapping(
+            saml.attributeMapping
+          ),
           identifiers: saml.identifiers,
           idpSignout: saml.idpSignout,
           metadata: {
@@ -764,6 +777,43 @@ export class AmplifyAuth
     return result;
   };
 
+  /**
+   * Converts the simplified mapping type to cognito.AttributeMapping.
+   * @param mapping the AttributeMapping to convert to a cognito.AttributeMapping
+   * @returns cognito.AttributeMapping
+   */
+  private convertToCognitoAttributeMapping = (
+    mapping?: AttributeMapping
+  ): cognito.AttributeMapping | undefined => {
+    if (!mapping) {
+      return undefined;
+    }
+    const result: Record<
+      string,
+      | ProviderAttribute
+      | {
+          [key: string]: ProviderAttribute;
+        }
+    > = {};
+    for (const [attrName, value] of Object.entries(mapping)) {
+      if (typeof value === 'string') {
+        result[attrName] = {
+          attributeName: value,
+        };
+      }
+      if (typeof value === 'object' && attrName === 'custom') {
+        // dealing with custom attributes
+        const customAttributes: Record<string, ProviderAttribute> = {};
+        for (const [customKey, attrName] of Object.entries(value)) {
+          customAttributes[customKey] = {
+            attributeName: attrName,
+          };
+        }
+        result[attrName] = customAttributes;
+      }
+    }
+    return result;
+  };
   /**
    * Convert scopes from string list to OAuthScopes.
    * @param scopes - scope list
