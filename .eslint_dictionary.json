@@ -106,6 +106,7 @@
   "pnpm",
   "positionals",
   "posix",
+  "postgres",
   "postgresql",
   "readdir",
   "readline",
