@@ -237,7 +237,7 @@ void describe('Sandbox using local project name resolver', () => {
     printer.print.mock.resetCalls();
   });
 
-  void it('correctly displays the sandbox name at the startup and helper message when --name is not provided', async () => {
+  void it('correctly displays the sandbox name at the startup and helper message when --identifier is not provided', async () => {
     ({ sandboxInstance } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
@@ -245,17 +245,17 @@ void describe('Sandbox using local project name resolver', () => {
       },
       false
     ));
-    assert.strictEqual(printer.log.mock.callCount(), 5);
+    assert.strictEqual(printer.log.mock.callCount(), 7);
 
     assert.strictEqual(
-      printer.log.mock.calls[0].arguments[0],
-      format.bold(`Starting sandbox for ${format.highlight('testSandboxName')}`)
+      printer.log.mock.calls[1].arguments[0],
+      format.indent(`${format.bold('Identifier:')} \ttestSandboxName`)
     );
     assert.strictEqual(
-      printer.log.mock.calls[1].arguments[0],
-      `${format.dim('To specify a different name, use ')}${format.bold(
-        '--name'
-      )}`
+      printer.log.mock.calls[3].arguments[0],
+      `${format.indent(
+        format.dim('To specify a different sandbox identifier, use ')
+      )}${format.bold('--identifier')}`
     );
   });
 
@@ -696,7 +696,7 @@ void describe('Sandbox using local project name resolver', () => {
       cfnClient: cfnClientMock,
       name: 'customSandboxName',
     }));
-    await sandboxInstance.delete({ name: 'customSandboxName' });
+    await sandboxInstance.delete({ identifier: 'customSandboxName' });
 
     // BackendDeployer should be called once
     assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
@@ -849,7 +849,7 @@ const setupAndStartSandbox = async (
   await sandboxInstance.start({
     dir: testData.dir,
     exclude: testData.exclude,
-    name: testData.name,
+    identifier: testData.name,
     format: testData.format,
     profile: testData.profile,
   });

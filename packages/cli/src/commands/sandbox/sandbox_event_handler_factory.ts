@@ -13,20 +13,20 @@ export class SandboxEventHandlerFactory {
    */
   constructor(
     private readonly getBackendIdentifier: (
-      sandboxName?: string
+      sandboxIdentifier?: string
     ) => Promise<BackendIdentifier>,
     private readonly getUsageDataEmitter: () => Promise<UsageDataEmitter>
   ) {}
 
   getSandboxEventHandlers: SandboxEventHandlerCreator = ({
-    sandboxName,
+    sandboxIdentifier: sandboxIdentifier,
     clientConfigLifecycleHandler,
   }) => {
     return {
       successfulDeployment: [
         async (...args: unknown[]) => {
           const backendIdentifier = await this.getBackendIdentifier(
-            sandboxName
+            sandboxIdentifier
           );
           const usageDataEmitter = await this.getUsageDataEmitter();
           try {

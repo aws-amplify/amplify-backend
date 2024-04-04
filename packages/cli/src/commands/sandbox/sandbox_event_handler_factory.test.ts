@@ -58,7 +58,7 @@ void describe('sandbox_event_handler_factory', () => {
     await Promise.all(
       eventFactory
         .getSandboxEventHandlers({
-          sandboxName: 'my-app',
+          sandboxIdentifier: 'my-app',
           clientConfigLifecycleHandler,
         })
         .successfulDeployment.map((e) =>
@@ -96,7 +96,7 @@ void describe('sandbox_event_handler_factory', () => {
     await Promise.all(
       eventFactory
         .getSandboxEventHandlers({
-          sandboxName: 'my-app',
+          sandboxIdentifier: 'my-app',
           clientConfigLifecycleHandler,
         })
         .failedDeployment.map((e) => e(testError))
@@ -119,7 +119,7 @@ void describe('sandbox_event_handler_factory', () => {
     await Promise.all(
       eventFactory
         .getSandboxEventHandlers({
-          sandboxName: 'my-app',
+          sandboxIdentifier: 'my-app',
           clientConfigLifecycleHandler,
         })
         .failedDeployment.map((e) => e(testError))
@@ -165,7 +165,7 @@ void describe('sandbox_event_handler_factory', () => {
     await Promise.all(
       eventFactory
         .getSandboxEventHandlers({
-          sandboxName: 'my-app',
+          sandboxIdentifier: 'my-app',
           clientConfigLifecycleHandler,
         })
         .successfulDeployment.map((e) => e())
@@ -207,7 +207,7 @@ void describe('sandbox_event_handler_factory', () => {
     await Promise.all(
       eventFactory
         .getSandboxEventHandlers({
-          sandboxName: 'my-app',
+          sandboxIdentifier: 'my-app',
           clientConfigLifecycleHandler,
         })
         .successfulDeletion.map((e) => e())

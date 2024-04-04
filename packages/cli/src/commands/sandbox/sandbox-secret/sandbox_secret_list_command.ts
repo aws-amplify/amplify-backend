@@ -40,7 +40,7 @@ export class SandboxSecretListCommand
     args: ArgumentsCamelCase<SandboxCommandGlobalOptions>
   ): Promise<void> => {
     const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
-      args.name
+      args.identifier
     );
     const secrets = await this.secretClient.listSecrets(
       sandboxBackendIdentifier
