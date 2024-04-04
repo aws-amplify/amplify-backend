@@ -42,7 +42,7 @@ export class SandboxSecretGetCommand
       args.name
     );
     const secret = await this.secretClient.getSecret(sandboxBackendIdentifier, {
-      name: args['secret-name'],
+      name: args.secretName,
     });
     printer.print(format.record(secret));
   };

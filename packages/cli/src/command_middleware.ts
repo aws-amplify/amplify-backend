@@ -1,9 +1,8 @@
 import { ArgumentsCamelCase } from 'yargs';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { EOL } from 'os';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS } from '@aws-sdk/region-config-resolver';
-import { InvalidCredentialError } from './error/credential_error.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export const profileSetupInstruction = `To configure a new Amplify profile, use "npx amplify configure profile".`;
 
@@ -30,18 +29,17 @@ export class CommandMiddleware {
         ignoreCache: true,
       })();
     } catch (err) {
-      let errMsg: string;
-      if (argv.profile) {
-        errMsg = `Failed to load aws credentials for profile '${
-          argv.profile
-        }': ${(err as Error).message}.${EOL}`;
-      } else {
-        errMsg = `Failed to load default aws credentials: ${
-          (err as Error).message
-        }.${EOL}`;
-      }
-      errMsg += profileSetupInstruction;
-      throw new InvalidCredentialError(errMsg, { cause: err });
+      const errorMessage = argv.profile
+        ? `Failed to load AWS credentials for profile '${argv.profile}'`
+        : 'Failed to load default AWS credentials';
+      throw new AmplifyUserError(
+        'InvalidCredentialError',
+        {
+          message: errorMessage,
+          resolution: profileSetupInstruction,
+        },
+        err as Error
+      );
     }
 
     // Check region.
@@ -50,18 +48,17 @@ export class CommandMiddleware {
         ignoreCache: true,
       })();
     } catch (err) {
-      let errMsg: string;
-      if (argv.profile) {
-        errMsg = `Failed to load aws region for profile '${argv.profile}': ${
-          (err as Error).message
-        }.${EOL}`;
-      } else {
-        errMsg = `Failed to load default aws region: ${
-          (err as Error).message
-        }.${EOL}`;
-      }
-      errMsg += profileSetupInstruction;
-      throw new InvalidCredentialError(errMsg, { cause: err });
+      const errorMessage = argv.profile
+        ? `Failed to load AWS region for profile '${argv.profile}'`
+        : 'Failed to load default AWS region';
+      throw new AmplifyUserError(
+        'InvalidCredentialError',
+        {
+          message: errorMessage,
+          resolution: profileSetupInstruction,
+        },
+        err as Error
+      );
     }
   };
 }

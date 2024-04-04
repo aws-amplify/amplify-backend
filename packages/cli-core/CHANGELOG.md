@@ -1,5 +1,25 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.9
+
+### Minor Changes
+
+- 77079c6: Improve formatting of AmplifyErrors in the top-level error handler
+
+## 0.5.0-beta.8
+
+### Patch Changes
+
+- 4d47f63: Improved error message when attempting to run amplify directly
+
+## 0.5.0-beta.7
+
+### Patch Changes
+
+- Updated dependencies [aec89f9]
+- Updated dependencies [2a69684]
+  - @aws-amplify/platform-core@0.5.0-beta.4
+
 ## 0.5.0-beta.6
 
 ### Minor Changes

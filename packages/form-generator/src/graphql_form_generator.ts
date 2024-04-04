@@ -1,9 +1,7 @@
 export type GraphqlGenerationResult = {
   writeToDirectory: (
-    directoryPath: string,
-    // TODO: update this type when Printer interface gets defined in platform-core.
-    log?: (message: string) => void
-  ) => Promise<void>;
+    directoryPath: string
+  ) => Promise<GenerateGraphqlToFileResult>;
 };
 export type FormGenerationOptions = {
   models?: string[];
@@ -12,4 +10,7 @@ export type GraphqlFormGenerator = {
   generateForms: (
     options?: FormGenerationOptions
   ) => Promise<GraphqlGenerationResult>;
+};
+export type GenerateGraphqlToFileResult = {
+  filesWritten: string[];
 };

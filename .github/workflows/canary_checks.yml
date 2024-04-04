@@ -15,7 +15,7 @@ jobs:
         shell: bash
         run: |
           rm package-lock.json
-          npm install
+          ./scripts/retry.js npm install
           npm run build
       - name: Check dependencies
         shell: bash
@@ -30,7 +30,14 @@ jobs:
           npm run test
   live_dependency_health_checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    strategy:
+      # will finish running other test matrices even if one fails
+      fail-fast: false
+      matrix:
+        region: [us-west-2, us-east-1, ca-central-1, eu-central-1]
+    timeout-minutes: 20
+    env:
+      AWS_REGION: ${{ matrix.region }}
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -43,14 +50,14 @@ jobs:
         uses: ./.github/actions/setup_profile
         with:
           role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
-          aws-region: us-west-2
+          aws-region: ${{ matrix.region }}
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
-          aws-region: us-west-2
+          aws-region: ${{ matrix.region }}
       - name: Run live dependency health checks
         shell: bash
         run: |
-          npm run live-dependency-health-checks
+          ./scripts/retry.js npm run live-dependency-health-checks

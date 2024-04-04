@@ -45,11 +45,7 @@ export type AuthProps = {
 export type EmailLogin = true | EmailLoginSettings;
 
 // @public
-export type EmailLoginSettings = {
-    verificationEmailStyle?: 'CODE' | 'LINK';
-    verificationEmailBody?: (codeOrLink: string) => string;
-    verificationEmailSubject?: string;
-};
+export type EmailLoginSettings = VerificationEmailWithLink | VerificationEmailWithCode;
 
 // @public
 export type ExternalProviderOptions = {
@@ -108,6 +104,20 @@ export type TriggerEvent = (typeof triggerEvents)[number];
 
 // @public
 export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
+
+// @public (undocumented)
+export type VerificationEmailWithCode = {
+    verificationEmailStyle?: 'CODE';
+    verificationEmailBody?: (code: () => string) => string;
+    verificationEmailSubject?: string;
+};
+
+// @public (undocumented)
+export type VerificationEmailWithLink = {
+    verificationEmailStyle?: 'LINK';
+    verificationEmailBody?: (link: (text?: string) => string) => string;
+    verificationEmailSubject?: string;
+};
 
 // (No @packageDocumentation comment for this package)
 

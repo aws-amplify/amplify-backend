@@ -426,7 +426,7 @@ export class AmplifyAuth
       emailSettings.verificationEmailStyle !== 'LINK'
     ) {
       emailBody = emailSettings.verificationEmailBody(
-        VERIFICATION_EMAIL_PLACEHOLDERS.CODE
+        () => VERIFICATION_EMAIL_PLACEHOLDERS.CODE
       );
       if (!emailBody.includes(VERIFICATION_EMAIL_PLACEHOLDERS.CODE)) {
         throw Error(
@@ -438,10 +438,14 @@ export class AmplifyAuth
       emailSettings.verificationEmailBody &&
       emailSettings.verificationEmailStyle === 'LINK'
     ) {
-      emailBody = emailSettings.verificationEmailBody(
-        VERIFICATION_EMAIL_PLACEHOLDERS.LINK
-      );
-      if (!emailBody.includes(VERIFICATION_EMAIL_PLACEHOLDERS.LINK)) {
+      let linkText: string = '';
+      emailBody = emailSettings.verificationEmailBody((text?: string) => {
+        linkText = text
+          ? `{##${text}##}`
+          : VERIFICATION_EMAIL_PLACEHOLDERS.LINK;
+        return linkText;
+      });
+      if (linkText === '' || !emailBody.includes(linkText)) {
         throw Error(
           "Invalid email settings. Property 'verificationEmailBody' must utilize the 'link' parameter at least once as a placeholder for the verification link."
         );
@@ -810,7 +814,7 @@ export class AmplifyAuth
           if (treatedAttributeName) {
             return [
               ...acc,
-              treatedAttributeName.userpoolAttributeName.toUpperCase(),
+              treatedAttributeName.userpoolAttributeName.toLowerCase(),
             ];
           }
         }
@@ -822,16 +826,16 @@ export class AmplifyAuth
     if (this.computedUserPoolProps.signInAliases) {
       const usernameAttributes = [];
       if (this.computedUserPoolProps.signInAliases.email) {
-        usernameAttributes.push('EMAIL');
+        usernameAttributes.push('email');
       }
       if (this.computedUserPoolProps.signInAliases.phone) {
-        usernameAttributes.push('PHONE_NUMBER');
+        usernameAttributes.push('phone_number');
       }
       if (
         this.computedUserPoolProps.signInAliases.preferredUsername ||
         this.computedUserPoolProps.signInAliases.username
       ) {
-        usernameAttributes.push('PREFERRED_USERNAME');
+        usernameAttributes.push('preferred_username');
       }
       if (usernameAttributes.length > 0) {
         output.usernameAttributes = JSON.stringify(usernameAttributes);
@@ -841,10 +845,10 @@ export class AmplifyAuth
     if (this.computedUserPoolProps.autoVerify) {
       const verificationMechanisms = [];
       if (this.computedUserPoolProps.autoVerify.email) {
-        verificationMechanisms.push('EMAIL');
+        verificationMechanisms.push('email');
       }
       if (this.computedUserPoolProps.autoVerify.phone) {
-        verificationMechanisms.push('PHONE');
+        verificationMechanisms.push('phone_number');
       }
       if (verificationMechanisms.length > 0) {
         output.verificationMechanisms = JSON.stringify(verificationMechanisms);

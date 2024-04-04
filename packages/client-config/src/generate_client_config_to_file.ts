@@ -5,6 +5,7 @@ import {
   ClientConfigFormat,
   ClientConfigVersion,
   ClientConfigVersionOption,
+  GenerateClientConfigToFileResult,
 } from './client-config-types/client_config.js';
 import { getClientConfigPath } from './paths/index.js';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
@@ -23,10 +24,8 @@ export const generateClientConfigToFile = async (
   backendIdentifier: DeployedBackendIdentifier,
   version: ClientConfigVersion,
   outDir?: string,
-  format?: ClientConfigFormat,
-  // TODO: update this type when Printer interface gets defined in platform-core.
-  log?: (message: string) => void
-): Promise<void> => {
+  format?: ClientConfigFormat
+): Promise<GenerateClientConfigToFileResult> => {
   const packageJson = await readPackageJson();
 
   const isLegacyConfig = version === ClientConfigVersionOption.V0;
@@ -47,12 +46,11 @@ export const generateClientConfigToFile = async (
     version
   );
 
-  await clientConfigWriter.writeClientConfig(
+  return await clientConfigWriter.writeClientConfig(
     clientConfig,
     version,
     outDir,
-    format,
-    log
+    format
   );
 };
 

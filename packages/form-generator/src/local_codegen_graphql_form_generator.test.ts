@@ -10,12 +10,18 @@ import {
 
 type MockDataType = 'String' | 'ID' | 'AWSDateTime';
 
-const createMockField = (dataType: MockDataType, required = false) => {
+type MockFieldOptions = { required?: boolean; readOnly?: boolean };
+
+const createMockField = (
+  dataType: MockDataType,
+  options?: MockFieldOptions
+) => {
+  const { required = false, readOnly = false } = options ?? {};
   return {
     dataType: dataType,
     dataTypeValue: dataType,
+    readOnly,
     required,
-    readOnly: false,
     isArray: false,
   };
 };
@@ -27,11 +33,17 @@ const createMockSchema = (fields: string[]): GenericDataSchema => {
       [name]: {
         primaryKeys: ['id'],
         fields: {
-          id: createMockField('ID'),
+          id: createMockField('ID', { required: true }),
           title: createMockField('String'),
           content: createMockField('String'),
-          createdAt: createMockField('AWSDateTime'),
-          updatedAt: createMockField('AWSDateTime'),
+          updatedAt: createMockField('AWSDateTime', {
+            readOnly: true,
+            required: false,
+          }),
+          createdAt: createMockField('AWSDateTime', {
+            readOnly: true,
+            required: false,
+          }),
         },
       },
     }),
@@ -66,8 +78,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         stat: async () => ({}),
         close: async () => undefined,
       }));
-      const mockLog = mock.fn();
-      await output.writeToDirectory('./', (message) => mockLog(message));
+      const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
       const writeFileArgs = writeFileMock.mock.calls.flatMap(
         (c) => c.arguments[0]
@@ -89,8 +100,8 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
 
       utilFSWriteArgs.forEach((fileName) => {
         assert(
-          mockLog.mock.calls.some(({ arguments: [logMessage] }) =>
-            new RegExp(`^File written: ${fileName as string}$`).test(logMessage)
+          filesWritten.some((file) =>
+            new RegExp(`${fileName as string}`).test(file)
           )
         );
       });
@@ -114,19 +125,11 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         stat: async () => ({}),
         close: async () => undefined,
       }));
-      const mockLog = mock.fn();
-      await output.writeToDirectory('./', (message) => mockLog(message));
+      const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
       assert(writeArgs.includes('index.js'));
 
-      const logArgs: string[] = mockLog.mock.calls.flatMap(
-        (c) => c.arguments[0]
-      );
-      assert(
-        logArgs.some((logMessage) =>
-          new RegExp('^File written: index.js$').test(logMessage)
-        )
-      );
+      assert(filesWritten.some((file) => new RegExp('^index.js$').test(file)));
     });
   });
   void describe('filtering', () => {
@@ -162,19 +165,15 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         stat: async () => ({}),
         close: async () => undefined,
       }));
-      const mockLog = mock.fn();
-      await output.writeToDirectory('./', (message) => mockLog(message));
+      const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
-      const logMessages = mockLog.mock.calls.flatMap((c) => c.arguments[0]);
       assert(
         models.every((m) => {
           const didWriteFile = writeArgs.some((arg) =>
             new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString())
           );
-          const didLogMessage = logMessages.some((logMessage) =>
-            new RegExp(`^File written: ${m}(Update|Create)Form.d.ts$`).test(
-              logMessage.toString()
-            )
+          const didLogMessage = filesWritten.some((file) =>
+            new RegExp(`^${m}(Update|Create)Form.d.ts$`).test(file.toString())
           );
           return didWriteFile && didLogMessage;
         })
@@ -306,6 +305,29 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
     ['graphql', './graphql'],
     ['gql/graphql', './gql/graphql'],
   ];
+  void it(`id fields with type ID and required option are automatically removed from the generated form`, async () => {
+    const schema = createMockSchema(['Post']);
+    assert('id' in schema.models.Post.fields);
+    const resultGenerationSpy = mock.fn<ResultBuilder>();
+    resultGenerationSpy.mock.mockImplementation(() => ({
+      writeToDirectory: async () => undefined,
+    }));
+    const l = new LocalGraphqlFormGenerator(
+      async () => schema as unknown as GenericDataSchema,
+      {
+        graphqlDir: './ui-components',
+      },
+      resultGenerationSpy
+    );
+
+    await l.generateForms();
+
+    assert.equal(resultGenerationSpy.mock.callCount(), 1);
+    const componentMap = resultGenerationSpy.mock.calls[0].arguments[0];
+
+    const component = componentMap['PostCreateForm.jsx'];
+    assert.equal(component.includes(`label="Id"`), false);
+  });
   void it(`createdAt and updatedAt fields are removed from the generated form`, async () => {
     const schema = createMockSchema(['Post']);
     assert('createdAt' in schema.models.Post.fields);
