@@ -48,8 +48,11 @@ void describe('ReleaseLifecycleManager', async () => {
     const runPublishInTestDir = () =>
       runPublish({ useLocalRegistry: true }, testWorkingDir);
 
-    const packageABaseName = `${testNameNormalized}-packageA-${shortId}`;
-    const packageBBaseName = `${testNameNormalized}-packageB-${shortId}`;
+    // converting to lowercase because npm init creates packages with all lowercase
+    const packageABaseName =
+      `${testNameNormalized}-package-a-${shortId}`.toLocaleLowerCase();
+    const packageBBaseName =
+      `${testNameNormalized}-package-b-${shortId}`.toLocaleLowerCase();
 
     await gitClient.init();
     await npmClient.init();
@@ -68,7 +71,6 @@ void describe('ReleaseLifecycleManager', async () => {
 
     await $`npx changeset init`;
     await gitClient.commitAllChanges('initial commit');
-    await runPublishInTestDir();
     await runPublishInTestDir();
 
     await commitVersionBumpChangeset(

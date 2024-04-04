@@ -12,10 +12,16 @@ export const runVersion = async (
 
   // taking inspiration from https://github.com/changesets/changesets/pull/1045/files
   // we fetch all refs so that changesets doesn't go into the shallow clone codepath
-  await execa('git', ['fetch', '--unshallow', '--no-tags'], {
-    stdio: 'inherit',
-    cwd,
-  });
+  try {
+    await execa('git', ['fetch', '--unshallow', '--no-tags'], {
+      stdio: 'inherit',
+      cwd,
+    });
+  } catch (err) {
+    console.log(
+      'git fetch --unshallow failed. This likely means we already have an un-shallow repo'
+    );
+  }
 
   const args = ['version', ...additionalArgs];
   await execa('changeset', args, {
