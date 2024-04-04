@@ -14,8 +14,6 @@ import { SecretValue } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 import { UserPoolIdentityProviderSamlMetadata } from 'aws-cdk-lib/aws-cognito';
 
-// Warning: (ae-forgotten-export) The symbol "IdentityProviderProps" needs to be exported by the entry point index.d.ts
-//
 // @public
 export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool' | 'attributeMapping'> & IdentityProviderProps;
 
@@ -72,6 +70,11 @@ export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogl
 } & IdentityProviderProps;
 
 // @public
+export type IdentityProviderProps = {
+    attributeMapping?: AttributeMapping;
+};
+
+// @public
 export type MFA = {
     mode: 'OFF' | 'OPTIONAL' | 'REQUIRED';
 } & MFASettings;
@@ -120,6 +123,10 @@ export type VerificationEmailWithLink = {
     verificationEmailBody?: (link: (text?: string) => string) => string;
     verificationEmailSubject?: string;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:126:3 - (ae-forgotten-export) The symbol "AttributeMapping" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
