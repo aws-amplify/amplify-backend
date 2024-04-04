@@ -1,5 +1,5 @@
 import { $ as chainableExeca } from 'execa';
-import { copyFile, writeFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { EOL } from 'os';
 
 /**
@@ -49,6 +49,23 @@ export class NpmClient {
     return JSON.parse(jsonString) as Record<string, unknown>;
   };
 
+  init = async () => {
+    await this.execWithIO`npm init --yes`;
+  };
+
+  initWorkspacePackage = async (packageName: string) => {
+    await this.execWithIO`npm init --workspace packages/${packageName} --yes`;
+  };
+
+  install = async (
+    packageSpecifiers: string[],
+    options: { dev: boolean } = { dev: false }
+  ) => {
+    await this.execWithIO`npm install ${
+      options.dev ? '-D' : ''
+    } ${packageSpecifiers.join(' ')}`;
+  };
+
   /**
    * Configure the .npmrc file with the provided npm token
    * If no token is specified, the .npmrc is configured for a local npm proxy
@@ -63,7 +80,7 @@ export class NpmClient {
     } else {
       // if there's no npm token, assume we are configuring for a local proxy
       // copy local config into .npmrc
-      await copyFile('.npmrc.local', '.npmrc');
+      await writeFile('.npmrc', npmrcLocalTemplate);
     }
   };
 }
@@ -81,3 +98,11 @@ export const loadNpmTokenFromEnvVar = () => {
   }
   return npmToken;
 };
+
+const npmrcLocalTemplate = `
+# this is a test config file used to publish locally
+//localhost:4873/:_authToken=garbage
+
+# this prevents the script-shell setting set by setup:local from being overwritten when copying the localhost config
+script-shell=bash
+`;

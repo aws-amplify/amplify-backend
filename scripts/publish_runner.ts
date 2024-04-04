@@ -33,7 +33,7 @@ const snapshotTag = 'test';
  * Wrapper around `changeset publish` that exposes a few config options
  * To keep behavior consistent, this wrapper should be the ONLY path by which we execute `changeset publish`
  */
-export const runPublish = async (props?: PublishOptions) => {
+export const runPublish = async (props?: PublishOptions, cwd?: string) => {
   const options = {
     ...publishDefaults,
     ...props,
@@ -41,6 +41,7 @@ export const runPublish = async (props?: PublishOptions) => {
 
   const execaOptions: Options = {
     stdio: 'inherit',
+    cwd,
   };
 
   // if we are publishing to npm, we assume that the npmrc has already been configured properly by upstream code
@@ -54,7 +55,7 @@ export const runPublish = async (props?: PublishOptions) => {
     // Snapshot releases are not allowed in pre mode.
     // Exit pre mode. This is no-op if not in pre mode.
     await execa('changeset', ['pre', 'exit'], execaOptions);
-    await runVersion(['--snapshot', snapshotTag]);
+    await runVersion(['--snapshot', snapshotTag], cwd);
   }
 
   const changesetArgs = ['publish'];
@@ -66,7 +67,7 @@ export const runPublish = async (props?: PublishOptions) => {
   }
 
   const execaPublishOptions: Options = {
-    stdio: 'inherit',
+    ...execaOptions,
     ...(options.useLocalRegistry
       ? { env: { npm_config_registry: 'http://localhost:4873/' } }
       : {}),

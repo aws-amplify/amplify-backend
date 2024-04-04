@@ -3,7 +3,10 @@ import { execa } from 'execa';
 /**
  * Execute changeset version with optional args
  */
-export const runVersion = async (additionalArgs: string[] = []) => {
+export const runVersion = async (
+  additionalArgs: string[] = [],
+  cwd?: string
+) => {
   // changeset version has a bug where it gets stuck in an infinite loop if git fetch --deepen fails
   // https://github.com/changesets/changesets/issues/571
 
@@ -11,10 +14,12 @@ export const runVersion = async (additionalArgs: string[] = []) => {
   // we fetch all refs so that changesets doesn't go into the shallow clone codepath
   await execa('git', ['fetch', '--unshallow', '--no-tags'], {
     stdio: 'inherit',
+    cwd,
   });
 
   const args = ['version', ...additionalArgs];
   await execa('changeset', args, {
     stdio: 'inherit',
+    cwd,
   });
 };

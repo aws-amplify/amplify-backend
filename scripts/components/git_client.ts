@@ -1,11 +1,14 @@
 import { $ as chainableExeca, execa } from 'execa';
+import { writeFile } from 'fs/promises';
 import { EOL } from 'os';
+import * as path from 'path';
 
 /**
  *
  */
 export class GitClient {
   private isConfigured = false;
+  private readonly gitignorePath: string;
 
   /**
    * execaCommand that allows us to capture stdout
@@ -24,9 +27,13 @@ export class GitClient {
   constructor(cwd?: string) {
     this.exec = chainableExeca({ cwd });
     this.execWithIO = this.exec({ stdio: 'inherit' });
+    this.gitignorePath = cwd ? path.join(cwd, '.gitignore') : '.gitignore';
   }
 
-  init = async () => {};
+  init = async () => {
+    await this.exec`git init`;
+    await writeFile(this.gitignorePath, `node_modules${EOL}`);
+  };
 
   /**
    * Returns true if the git tree is clean and false if it is dirty

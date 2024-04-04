@@ -1,8 +1,17 @@
 import { beforeEach, describe, it } from 'node:test';
-import { mkdir } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
-import { tmpdir } from 'os';
+import { EOL, tmpdir } from 'os';
 import * as path from 'path';
+import { GitClient } from './git_client.js';
+import { NpmClient } from './npm_client.js';
+import { $ as chainableExeca } from 'execa';
+import {
+  readPackageJson,
+  writePackageJson,
+} from './package-json/package_json.js';
+import { runVersion } from '../version_runner.js';
+import { runPublish } from '../publish_runner.js';
 
 /**
  * This test suite is more of an integration test than a unit test.
@@ -20,107 +29,118 @@ void describe('ReleaseLifecycleManager', async () => {
   //   await import('../stop_npm_proxy.js');
   // });
 
-  beforeEach(async ({ name }) => {
+  beforeEach(async ({ name: testName }) => {
     // create temp dir
     const shortId = randomUUID().split('-')[0];
-    const nameNoSpace = name.replaceAll(/\s/, '');
-    const testWorkingDir = path.join(tmpdir(), `${nameNoSpace}-${shortId}`);
+    const testNameNormalized = testName.slice(0, 15).replaceAll(/\s/g, '');
+    const testWorkingDir = path.join(
+      tmpdir(),
+      `${testNameNormalized}-${shortId}`
+    );
     await mkdir(testWorkingDir);
     console.log(testWorkingDir);
-    // initialize git repo
-    // initialize mono repo packages
-    // initialize changesets
-    // run version and deploy
-    // switch to a test branch based off of the original branch
 
-    // publish a minor bump of @aws-amplify/backend and backend-cli
-    // this should be version 999.1.0
-    // await writeFile(
-    //   `.changeset/${randomUUID()}.md`,
-    //   amplifyBackendAndBackendCliMinorBumpChangeset
-    // );
-    // await runVersion();
-    // await runPublish({ useLocalRegistry: true });
+    const gitClient = new GitClient(testWorkingDir);
+    const npmClient = new NpmClient(null, testWorkingDir);
 
-    // // publish another release with another minor bump of @aws-amplify/backend
-    // // this should be version 999.2.0
-    // await writeFile(
-    //   `.changeset/${randomUUID()}.md`,
-    //   amplifyBackendMinorBumpChangeset
-    // );
-    // await runVersion();
-    // await runPublish({ useLocalRegistry: true });
+    const $ = chainableExeca({ stdio: 'inherit', cwd: testWorkingDir });
+    const runVersionInTestDir = () => runVersion([], testWorkingDir);
+    const runPublishInTestDir = () =>
+      runPublish({ useLocalRegistry: true }, testWorkingDir);
+
+    const packageABaseName = `${testNameNormalized}-packageA-${shortId}`;
+    const packageBBaseName = `${testNameNormalized}-packageB-${shortId}`;
+
+    await gitClient.init();
+    await npmClient.init();
+
+    await npmClient.initWorkspacePackage(packageABaseName);
+    await setPackageToPublic(
+      path.join(testWorkingDir, 'packages', packageABaseName)
+    );
+
+    await npmClient.initWorkspacePackage(packageBBaseName);
+    await setPackageToPublic(
+      path.join(testWorkingDir, 'packages', packageBBaseName)
+    );
+
+    await npmClient.install(['@changesets/cli']);
+
+    await $`npx changeset init`;
+    await gitClient.commitAllChanges('initial commit');
+    await runPublishInTestDir();
+    await runPublishInTestDir();
+
+    await commitVersionBumpChangeset(
+      testWorkingDir,
+      gitClient,
+      [packageABaseName, packageBBaseName],
+      'minor'
+    );
+    await runVersionInTestDir();
+    await runPublishInTestDir();
+
+    await commitVersionBumpChangeset(
+      testWorkingDir,
+      gitClient,
+      [packageABaseName, packageBBaseName],
+      'minor'
+    );
+    await runVersionInTestDir();
+    await runPublishInTestDir();
+
+    await commitVersionBumpChangeset(
+      testWorkingDir,
+      gitClient,
+      [packageABaseName],
+      'minor'
+    );
+    await runVersionInTestDir();
+    await runPublishInTestDir();
   });
 
   void it('dummy test', () => {});
-
-  /*
-  void describe('deprecateRelease', () => {
-    void it('deprecates expected versions and updates dist-tags', async () => {
-      const releaseLifecycleManager = new ReleaseLifecycleManager(
-        'HEAD',
-        false
-      );
-      // deprecating the most recent release should:
-      // 1. deprecate @aws-amplify/backend@999.2.0
-      // 2. mark @aws-amplify/backend@999.1.0 as latest
-      // 3. @aws-amplify/backend-cli should not be touched (ie latest still points to 999.1.0)
-      await releaseLifecycleManager.deprecateRelease(
-        'test deprecation message'
-      );
-
-      // check that the most recent release of backend has been deprecated and latest is pointed back to the previous release
-      assert.equal(
-        (await npmClient.getPackageVersionInfo('@aws-amplify/backend@999.2.0'))
-          .deprecated,
-        'test deprecation message'
-      );
-
-      assert.equal(
-        (await npmClient.getPackageVersionInfo('@aws-amplify/backend@latest'))
-          .version,
-        '999.1.0'
-      );
-
-      // check that backend-cli is unchanged
-      assert.equal(
-        (
-          await npmClient.getPackageVersionInfo(
-            '@aws-amplify/backend-cli@999.1.0'
-          )
-        ).deprecated,
-        undefined
-      );
-
-      assert.equal(
-        (await npmClient.getPackageVersionInfo('@aws-amplify/backend@latest'))
-          .version,
-        '999.1.0'
-      );
-
-      // do another deprecation starting at HEAD^ to test that multiple rollbacks works as expected
-    });
-  });
-  void describe('restoreRelease', () => {
-    void it('un-deprecates expected versions and updates dist-tags', async () => {});
-  });
-
-  */
 });
 
-// const amplifyBackendMinorBumpChangeset = `
-// ---
-// '@aws-amplify/backend': minor
-// ---
+const setPackageToPublic = async (packagePath: string) => {
+  const packageJson = await readPackageJson(packagePath);
+  packageJson.publishConfig = {
+    access: 'public',
+  };
+  await writePackageJson(packagePath, packageJson);
+};
 
-// test update to amplify backend package
-// `;
+const commitVersionBumpChangeset = async (
+  projectPath: string,
+  gitClient: GitClient,
+  packageNames: string[],
+  bump: VersionBump
+) => {
+  const message = `${bump} version bump for packages ${packageNames.join(
+    ', '
+  )}`;
+  await writeFile(
+    path.join(projectPath, '.changeset', `${randomUUID()}.md`),
+    getChangesetContent(packageNames, bump, message)
+  );
+  await gitClient.commitAllChanges(message);
+};
 
-// const amplifyBackendAndBackendCliMinorBumpChangeset = `
-// ---
-// '@aws-amplify/backend': minor
-// '@aws-amplify/backend-cli': minor
-// ---
+const getChangesetContent = (
+  packageNames: string[],
+  bump: VersionBump,
+  message: string
+) => {
+  const packageBumpsString = packageNames
+    .map((packageName) => `'${packageName}': ${bump}`)
+    .join(EOL);
+  const template = `---
+${packageBumpsString}
+---
 
-// test update to amplify backend and backend-cli packages
-// `;
+${message}
+`;
+  return template;
+};
+
+type VersionBump = 'major' | 'minor' | 'patch';

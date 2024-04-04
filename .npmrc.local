@@ -1,5 +1,0 @@
-# this is a test config file used to publish locally
-//localhost:4873/:_authToken=garbage
-
-# this prevents the script-shell setting set by setup:local from being overwritten when copying the localhost config
-script-shell=bash
