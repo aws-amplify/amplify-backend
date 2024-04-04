@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { mkdir, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { EOL, tmpdir } from 'os';
@@ -12,6 +12,8 @@ import {
 } from './package-json/package_json.js';
 import { runVersion } from '../version_runner.js';
 import { runPublish } from '../publish_runner.js';
+import { ReleaseLifecycleManager } from './release_lifecycle_manager.js';
+import { GithubClient } from './github_client.js';
 
 /**
  * This test suite is more of an integration test than a unit test.
@@ -21,6 +23,11 @@ import { runPublish } from '../publish_runner.js';
  * Since all of these tests are sharing the same git tree, we're running in serial to avoid conflicts (mostly around duplicate tag names)
  */
 void describe('ReleaseLifecycleManager', async () => {
+  let gitClient: GitClient;
+  let npmClient: NpmClient;
+
+  let cantaloupePackageName: string;
+  let platypusPackageName: string;
   // before(async () => {
   //   await import('../start_npm_proxy.js');
   // });
@@ -29,6 +36,20 @@ void describe('ReleaseLifecycleManager', async () => {
   //   await import('../stop_npm_proxy.js');
   // });
 
+  /**
+   * This setup initializes a "sandbox" git repo that has a js mono repo with 2 packages, cantaloupe and platypus
+   * It seeds the local npm proxy with a few releases of these packages.
+   * When its done, the state of the git refs npm dist-tags should be as follows:
+   *
+   * minor bump of cantaloupe only          ● <- HEAD, cantaloupe@1.3.0, cantaloupe@latest
+   *                                        |
+   * minor bump of cantaloupe and platypus  ● <- cantaloupe@1.2.0, platypus@1.2.0, platypus@latest
+   *                                        |
+   * minor bump of cantaloupe and platypus  ● <- cantaloupe@1.1.0, platypus@1.1.0
+   *                                        |
+   * initial commit                         ● <- cantaloupe@1.0.0, platypus@1.0.0
+   *
+   */
   beforeEach(async ({ name: testName }) => {
     // create temp dir
     const shortId = randomUUID().split('-')[0];
@@ -40,8 +61,8 @@ void describe('ReleaseLifecycleManager', async () => {
     await mkdir(testWorkingDir);
     console.log(testWorkingDir);
 
-    const gitClient = new GitClient(testWorkingDir);
-    const npmClient = new NpmClient(null, testWorkingDir);
+    gitClient = new GitClient(testWorkingDir);
+    npmClient = new NpmClient(null, testWorkingDir);
 
     const $ = chainableExeca({ stdio: 'inherit', cwd: testWorkingDir });
     const runVersionInTestDir = () => runVersion([], testWorkingDir);
@@ -49,22 +70,22 @@ void describe('ReleaseLifecycleManager', async () => {
       runPublish({ useLocalRegistry: true }, testWorkingDir);
 
     // converting to lowercase because npm init creates packages with all lowercase
-    const packageABaseName =
-      `${testNameNormalized}-package-a-${shortId}`.toLocaleLowerCase();
-    const packageBBaseName =
-      `${testNameNormalized}-package-b-${shortId}`.toLocaleLowerCase();
+    cantaloupePackageName =
+      `${testNameNormalized}-cantaloupe-${shortId}`.toLocaleLowerCase();
+    platypusPackageName =
+      `${testNameNormalized}-platypus-${shortId}`.toLocaleLowerCase();
 
     await gitClient.init();
     await npmClient.init();
 
-    await npmClient.initWorkspacePackage(packageABaseName);
+    await npmClient.initWorkspacePackage(cantaloupePackageName);
     await setPackageToPublic(
-      path.join(testWorkingDir, 'packages', packageABaseName)
+      path.join(testWorkingDir, 'packages', cantaloupePackageName)
     );
 
-    await npmClient.initWorkspacePackage(packageBBaseName);
+    await npmClient.initWorkspacePackage(platypusPackageName);
     await setPackageToPublic(
-      path.join(testWorkingDir, 'packages', packageBBaseName)
+      path.join(testWorkingDir, 'packages', platypusPackageName)
     );
 
     await npmClient.install(['@changesets/cli']);
@@ -76,32 +97,50 @@ void describe('ReleaseLifecycleManager', async () => {
     await commitVersionBumpChangeset(
       testWorkingDir,
       gitClient,
-      [packageABaseName, packageBBaseName],
+      [cantaloupePackageName, platypusPackageName],
       'minor'
     );
     await runVersionInTestDir();
+    await gitClient.commitAllChanges('Version Packages (first release)');
     await runPublishInTestDir();
 
     await commitVersionBumpChangeset(
       testWorkingDir,
       gitClient,
-      [packageABaseName, packageBBaseName],
+      [cantaloupePackageName, platypusPackageName],
       'minor'
     );
     await runVersionInTestDir();
+    await gitClient.commitAllChanges('Version Packages (second release)');
     await runPublishInTestDir();
 
     await commitVersionBumpChangeset(
       testWorkingDir,
       gitClient,
-      [packageABaseName],
+      [cantaloupePackageName],
       'minor'
     );
     await runVersionInTestDir();
+    await gitClient.commitAllChanges('Version Packages (third release)');
     await runPublishInTestDir();
   });
 
-  void it('dummy test', () => {});
+  void it('dummy test', async () => {
+    const githubClient = new GithubClient('garbage');
+    mock.method(githubClient, 'createPr', async () => ({ prUrl: 'testPrUrl' }));
+    mock.method(gitClient, 'push', async () => {});
+    const releaseLifecycleManager = new ReleaseLifecycleManager(
+      'HEAD',
+      githubClient,
+      gitClient,
+      npmClient
+    );
+    await releaseLifecycleManager.deprecateRelease('cantaloupe is rotten');
+
+    // expect latest of cantaloupe to point back to 1.2.0 and 1.3.0 to be marked deprecated
+    // platypus should not be modified
+    // const await npmClient.getPackageInfo(cantaloupePackageName);
+  });
 });
 
 const setPackageToPublic = async (packagePath: string) => {
@@ -118,9 +157,7 @@ const commitVersionBumpChangeset = async (
   packageNames: string[],
   bump: VersionBump
 ) => {
-  const message = `${bump} version bump for packages ${packageNames.join(
-    ', '
-  )}`;
+  const message = `${bump} bump for ${packageNames.join(', ')}`;
   await writeFile(
     path.join(projectPath, '.changeset', `${randomUUID()}.md`),
     getChangesetContent(packageNames, bump, message)

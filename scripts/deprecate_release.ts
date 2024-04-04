@@ -10,7 +10,8 @@ const deprecationMessage = getInput('deprecationMessage', {
 const searchForReleaseStartingFrom = getInput('searchForReleaseStartingFrom', {
   required: true,
 });
-const useNpmRegistry = getInput('useNpmRegistry', { required: true });
+const useNpmRegistry =
+  getInput('useNpmRegistry', { required: true }) === 'true';
 
 if (useNpmRegistry) {
   console.log(
@@ -22,11 +23,17 @@ if (useNpmRegistry) {
   );
 }
 
+const npmClient = new NpmClient(
+  useNpmRegistry ? loadNpmTokenFromEnvVar() : null
+);
+
+await npmClient.configureNpmRc();
+
 const releaseLifecycleManager = new ReleaseLifecycleManager(
   searchForReleaseStartingFrom,
   new GithubClient(),
   new GitClient(),
-  new NpmClient(useNpmRegistry ? loadNpmTokenFromEnvVar() : null)
+  npmClient
 );
 
 try {

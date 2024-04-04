@@ -3,6 +3,17 @@ import { writeFile } from 'fs/promises';
 import { EOL } from 'os';
 
 /**
+ * Type for the response of `npm show <package> --json`
+ * We can add to this as we need to access additional config in a type-safe way
+ */
+export type PackageInfo = {
+  // we have to match the output payload of npm show
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  'dist-tags': Record<string, string>;
+  deprecated?: string;
+};
+
+/**
  *
  */
 export class NpmClient {
@@ -43,10 +54,10 @@ export class NpmClient {
       .execWithIO`npm dist-tag add ${packageVersionSpecifier} ${distTag}`;
   };
 
-  getPackageVersionInfo = async (packageVersionSpecifier: string) => {
+  getPackageInfo = async (packageVersionSpecifier: string) => {
     const { stdout: jsonString } = await this
       .exec`npm show ${packageVersionSpecifier} --json`;
-    return JSON.parse(jsonString) as Record<string, unknown>;
+    return JSON.parse(jsonString) as PackageInfo;
   };
 
   init = async () => {

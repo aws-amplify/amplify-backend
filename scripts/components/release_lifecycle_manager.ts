@@ -3,6 +3,13 @@ import { GitClient } from './git_client.js';
 import { NpmClient } from './npm_client.js';
 import { getDistTagFromReleaseTag } from './get_dist_tag_from_release_tag.js';
 import { GithubClient } from './github_client.js';
+import { releaseTagToNameAndVersion } from './release_tag_to_name_and_version.js';
+
+type DeprecationAction = {
+  releaseTagToDeprecate: string;
+  previousReleaseTag: string;
+  distTagsToMove: string[];
+};
 
 /**
  *
@@ -43,12 +50,36 @@ export class ReleaseLifecycleManager {
 
     // if this deprecation is starting from HEAD, we are deprecating the most recent release and need to point dist-tags back to their previous state
     // if we are deprecating a past release, then the dist-tags have moved on to newer versions and we do not need to reset them
-    const releaseTagsToRestoreDistTagPointers =
+    const previousReleaseTags =
       this.gitRefToStartReleaseSearchFrom === 'HEAD'
         ? await this.gitClient.getPreviousReleaseTags(
             releaseCommitHashToDeprecate
           )
         : [];
+
+    const deprecationActions: DeprecationAction[] = [];
+
+    for (const releaseTag of releaseTagsToDeprecate) {
+      const { version: versionBeingDeprecated, packageName } =
+        releaseTagToNameAndVersion(releaseTag);
+      const deprecationAction: DeprecationAction = {
+        releaseTagToDeprecate: releaseTag,
+        previousReleaseTag: previousReleaseTags.find((prevTag) =>
+          prevTag.includes(packageName)
+        )!, // this is safe because gitClient.getPreviousReleaseTags already ensures that we have found a previous version for all packages
+        distTagsToMove: [],
+      };
+      const { ['dist-tags']: distTags } = await this.npmClient.getPackageInfo(
+        releaseTag
+      );
+      Object.entries(distTags).forEach(([tagName, versionAtTag]) => {
+        // if this tag points to the version being deprecated, add that tag to the list of tags to move to the previous version
+        if (versionAtTag === versionBeingDeprecated) {
+          deprecationAction.distTagsToMove.push(tagName);
+        }
+      });
+      deprecationActions.push(deprecationAction);
+    }
 
     // first create the changeset revert PR
     // this PR restores the changeset files that were part of the release but does NOT revert the package.json and changelog changes
@@ -74,35 +105,28 @@ export class ReleaseLifecycleManager {
 
     console.log(`Created deprecation PR at ${prUrl}`);
 
-    if (releaseTagsToRestoreDistTagPointers.length > 0) {
-      console.log(
-        `Pointing dist-tags back to previous versions:${EOL}${releaseTagsToRestoreDistTagPointers.join(
-          EOL
-        )}${EOL}`
-      );
-    }
-
-    console.log(
-      `Deprecating package versions:${EOL}${releaseTagsToDeprecate.join(
-        EOL
-      )}${EOL}`
-    );
+    console.log(JSON.stringify(deprecationActions, null, 2));
 
     // if anything fails before this point, we haven't actually modified anything on NPM yet.
     // now we actually update the npm dist tags and mark the packages as deprecated
 
-    for (const releaseTag of releaseTagsToRestoreDistTagPointers) {
-      const distTag = getDistTagFromReleaseTag(releaseTag);
-      console.log(
-        `Restoring dist tag "${distTag}" to package version ${releaseTag}`
+    for (const {
+      distTagsToMove,
+      previousReleaseTag,
+      releaseTagToDeprecate,
+    } of deprecationActions) {
+      for (const distTagToMove of distTagsToMove) {
+        console.log(
+          `Restoring dist tag "${distTagToMove}" to package version ${previousReleaseTag}`
+        );
+        await this.npmClient.setDistTag(previousReleaseTag, distTagToMove);
+        console.log(`Done!${EOL}`);
+      }
+      console.log(`Deprecating package version ${releaseTagToDeprecate}`);
+      await this.npmClient.deprecatePackage(
+        releaseTagToDeprecate,
+        deprecationMessage
       );
-      await this.npmClient.setDistTag(releaseTag, distTag);
-      console.log(`Done!${EOL}`);
-    }
-
-    for (const releaseTag of releaseTagsToDeprecate) {
-      console.log(`Deprecating package version ${releaseTag}`);
-      await this.npmClient.deprecatePackage(releaseTag, deprecationMessage);
       console.log(`Done!${EOL}`);
     }
   };
@@ -197,6 +221,5 @@ export class ReleaseLifecycleManager {
         The release deprecation workflow requires a clean working tree to create the rollback PR.
       `);
     }
-    await this.npmClient.configureNpmRc();
   };
 }

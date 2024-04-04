@@ -19,11 +19,17 @@ if (useNpmRegistry) {
   );
 }
 
+const npmClient = new NpmClient(
+  useNpmRegistry ? loadNpmTokenFromEnvVar() : null
+);
+
+await npmClient.configureNpmRc();
+
 const releaseLifecycleManager = new ReleaseLifecycleManager(
   searchForReleaseStartingFrom,
   new GithubClient(),
   new GitClient(),
-  new NpmClient(useNpmRegistry ? loadNpmTokenFromEnvVar() : null)
+  npmClient
 );
 
 try {

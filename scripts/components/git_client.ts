@@ -1,7 +1,8 @@
-import { $ as chainableExeca, execa } from 'execa';
+import { $ as chainableExeca } from 'execa';
 import { writeFile } from 'fs/promises';
 import { EOL } from 'os';
 import * as path from 'path';
+import { releaseTagToNameAndVersion } from './release_tag_to_name_and_version.js';
 
 /**
  *
@@ -64,7 +65,7 @@ export class GitClient {
   commitAllChanges = async (message: string) => {
     await this.configure();
     await this.execWithIO`git add .`;
-    await this.execWithIO`git commit --message '${message}'`;
+    await this.execWithIO`git commit --message ${message}`;
   };
 
   /**
@@ -81,7 +82,7 @@ export class GitClient {
 
   checkout = async (ref: string, paths: string[] = []) => {
     const additionalArgs = paths.length > 0 ? ['--', ...paths] : [];
-    await execa('git', ['checkout', ref, ...additionalArgs]);
+    await this.execWithIO`git checkout ${ref} ${additionalArgs}`;
   };
 
   status = async () => {
@@ -134,16 +135,11 @@ export class GitClient {
     await this.validateReleaseCommitHash(releaseCommitHash);
     const releaseTags = await this.getTagsAtCommit(releaseCommitHash);
 
-    /**
-     * Local function to convert a release tag string to just the package name
-     * Release tags are formatted as <packageName>@<version>. For example: @aws-amplify/auth-construct-alpha@0.6.0-beta.8
-     */
-    const releaseTagToPackageName = (releaseTag: string) =>
-      releaseTag.slice(0, releaseTag.lastIndexOf('@'));
-
     // create a set of just the package names (strip off the version suffix) associated with this release commit
     const packageNamesRemaining = new Set(
-      releaseTags.map(releaseTagToPackageName)
+      releaseTags
+        .map(releaseTagToNameAndVersion)
+        .map((nameAndVersion) => nameAndVersion.packageName)
     );
 
     // initialize the release commit cursor to the commit of the release before the input releaseCommitHash
@@ -162,7 +158,7 @@ export class GitClient {
         releaseCommitCursor
       );
       releaseTagsAtCursor.forEach((releaseTag) => {
-        const packageName = releaseTagToPackageName(releaseTag);
+        const { packageName } = releaseTagToNameAndVersion(releaseTag);
         if (packageNamesRemaining.has(packageName)) {
           // this means we've found the previous version of "packageNameRemaining" that was released in releaseCommitHash
           // so we add it to the return list and remove it from the search set
