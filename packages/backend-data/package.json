@@ -31,6 +31,6 @@
     "@aws-amplify/backend-output-schemas": "^0.7.0-beta.0",
     "@aws-amplify/data-construct": "1.8.0-sql-gen2-1.0",
     "@aws-amplify/plugin-types": "^0.9.0-beta.1",
-    "@aws-amplify/data-schema-types": "^0.7.15"
+    "@aws-amplify/data-schema-types": "^0.7.14"
   }
 }

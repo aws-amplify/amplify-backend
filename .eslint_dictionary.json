@@ -133,6 +133,8 @@
   "subcommand",
   "subcommands",
   "submodule",
+  "subnetAvailabilityZoneConfig",
+  "subnetAvailabilityZones",
   "subpath",
   "syncable",
   "synthing",

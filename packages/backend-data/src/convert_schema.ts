@@ -1,4 +1,5 @@
 import {
+  CustomSqlDataSourceStrategy,
   DataSourceConfiguration,
   DerivedCombinedSchema,
   DerivedModelSchema,
@@ -8,6 +9,7 @@ import {
   AmplifyDataDefinition,
   IAmplifyDataDefinition,
   ModelDataSourceStrategy,
+  VpcConfig,
 } from '@aws-amplify/data-construct';
 import { DataSchema, DataSchemaInput } from './types.js';
 import fs from 'fs';
@@ -63,6 +65,7 @@ const RDS_DB_TYPES = {
  * Resolve JS resolver function entry to absolute path
  *
  * TODO - This should be de-duplicated with the implementation in convert_js_resolvers.ts
+ *
  */
 const resolveEntryPath = (entry: SqlStatementFolderEntry): string => {
   const unresolvedImportLocationError = new Error(
@@ -102,22 +105,39 @@ export const convertSchemaToCDK = (
       schema: transformedSchema,
       functionSlots,
       sqlStatementFolderPath,
+      customSqlDataSourceStrategies,
     } = schema.transform();
+
+    const dbStrategy = convertDatabaseConfigurationToDataSourceStrategy(
+      schema.data.configuration.database,
+      sqlStatementFolderPath
+        ? loadCustomSqlStatements(resolveEntryPath(sqlStatementFolderPath))
+        : {},
+      backendSecretResolver
+    );
 
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
       transformedSchema,
-      convertDatabaseConfigurationToDataSourceStrategy(
-        schema.data.configuration.database,
-        sqlStatementFolderPath
-          ? loadCustomSqlStatements(resolveEntryPath(sqlStatementFolderPath))
-          : {},
-        backendSecretResolver
-      )
+      dbStrategy
     ).dataSourceStrategies;
+
+    if (dbStrategy.dbType === 'DYNAMODB') {
+      return {
+        schema: transformedSchema,
+        functionSlots,
+        dataSourceStrategies: generatedModelDataSourceStrategies,
+      };
+    }
+
     return {
       schema: transformedSchema,
       functionSlots,
       dataSourceStrategies: generatedModelDataSourceStrategies,
+      customSqlDataSourceStrategies:
+        customSqlDataSourceStrategies?.map((existing) => ({
+          ...existing,
+          strategy: dbStrategy,
+        })) || [],
     };
   }
 
@@ -148,14 +168,21 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
   customSqlStatements: Record<string, string>,
   backendSecretResolver: BackendSecretResolver
 ): ModelDataSourceStrategy => {
-  // todo remove assertion after merging data-schema PR
-  // const dbEngine = configuration.engine as 'dynamodb' | 'mysql' | 'postgresql';
-
   if (configuration.engine === 'dynamodb') {
     return DYNAMO_DATA_SOURCE_STRATEGY;
   }
 
-  const dbType = RDS_DB_TYPES[configuration.engine as 'mysql' | 'postgresql'];
+  const dbType = RDS_DB_TYPES[configuration.engine];
+  let vpcConfiguration: VpcConfig | undefined = undefined;
+
+  if (configuration.vpcConfig !== undefined) {
+    vpcConfiguration = {
+      vpcId: configuration.vpcConfig.vpcId,
+      securityGroupIds: configuration.vpcConfig.securityGroupIds,
+      subnetAvailabilityZoneConfig:
+        configuration.vpcConfig.subnetAvailabilityZones,
+    };
+  }
 
   return {
     dbType,
@@ -165,7 +192,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
         configuration.connectionUri
       ).branchSecretPath,
     },
-    vpcConfiguration: configuration.vpcConfig,
+    vpcConfiguration,
     customSqlStatements,
   };
 };
