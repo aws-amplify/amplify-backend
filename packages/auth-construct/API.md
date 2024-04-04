@@ -27,6 +27,15 @@ export class AmplifyAuth extends Construct implements ResourceProvider<AuthResou
 export type AppleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAppleProps, 'userPool' | 'attributeMapping'> & IdentityProviderProps;
 
 // @public
+export type AttributeMapping = {
+    [K in keyof Omit<aws_cognito.AttributeMapping, 'custom'>]: string;
+} & {
+    custom?: {
+        [key: string]: string;
+    };
+};
+
+// @public
 export type AuthProps = {
     name?: string;
     loginWith: {
@@ -123,10 +132,6 @@ export type VerificationEmailWithLink = {
     verificationEmailBody?: (link: (text?: string) => string) => string;
     verificationEmailSubject?: string;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:126:3 - (ae-forgotten-export) The symbol "AttributeMapping" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
