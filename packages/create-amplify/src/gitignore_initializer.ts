@@ -29,6 +29,7 @@ export class GitIgnoreInitializer {
       'node_modules',
       '.amplify',
       'amplifyconfiguration*',
+      'amplify_outputs*',
     ];
     const gitIgnoreContent = await this.getGitIgnoreContent();
 
