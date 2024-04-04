@@ -117,7 +117,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   generateContainerEntry = ({
     scope,
     ssmEnvironmentEntriesGenerator,
-    backendSecretResolver
+    backendSecretResolver,
   }: GenerateContainerEntryProps) => {
     const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
     const schemasJsFunctions: JsResolver[] = [];
@@ -131,7 +131,15 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         ? this.props.schema.schemas
         : [this.props.schema];
 
-      schemas.forEach((schema) => {
+      // SQL provision strategy requires a unique name per backend
+      // that is consistent between deployments
+      const provisionStrategyName = `${scope.node.getContext(
+        CDKContextKey.DEPLOYMENT_TYPE
+      )}${scope.node.getContext(
+        CDKContextKey.BACKEND_NAME
+      )}${scope.node.getContext(CDKContextKey.BACKEND_NAME)}`;
+
+      schemas.forEach((schema, idx) => {
         if (isModelSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
             schema.transform();
@@ -143,7 +151,13 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           };
         }
 
-        amplifyGraphqlDefinitions.push(convertSchemaToCDK(schema, backendSecretResolver));
+        amplifyGraphqlDefinitions.push(
+          convertSchemaToCDK(
+            schema,
+            backendSecretResolver,
+            provisionStrategyName + idx
+          )
+        );
       });
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(

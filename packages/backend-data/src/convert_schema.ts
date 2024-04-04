@@ -91,7 +91,8 @@ const resolveEntryPath = (entry: SqlStatementFolderEntry): string => {
  */
 export const convertSchemaToCDK = (
   schema: DataSchema,
-  backendSecretResolver: BackendSecretResolver
+  backendSecretResolver: BackendSecretResolver,
+  provisionStrategyName: string
 ): IAmplifyDataDefinition => {
   if (isModelSchema(schema)) {
     /**
@@ -113,7 +114,8 @@ export const convertSchemaToCDK = (
       sqlStatementFolderPath
         ? loadCustomSqlStatements(resolveEntryPath(sqlStatementFolderPath))
         : {},
-      backendSecretResolver
+      backendSecretResolver,
+      provisionStrategyName
     );
 
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
@@ -134,10 +136,12 @@ export const convertSchemaToCDK = (
       functionSlots,
       dataSourceStrategies: generatedModelDataSourceStrategies,
       customSqlDataSourceStrategies:
-        customSqlDataSourceStrategies?.map((existing) => ({
-          ...existing,
-          strategy: dbStrategy,
-        })) || [],
+        customSqlDataSourceStrategies?.map(
+          (existing: CustomSqlDataSourceStrategy) => ({
+            ...existing,
+            strategy: dbStrategy,
+          })
+        ) || [],
     };
   }
 
@@ -155,9 +159,6 @@ export const combineCDKSchemas = (
   return AmplifyDataDefinition.combine(schemas);
 };
 
-// TODO: needs to be unique per API / SQL strategy
-const STRATEGY_NAME = 'SqlDBStrategy';
-
 /**
  * Given the generated rds builder database configuration, convert it into the DataSource strategy
  * @param configuration the database configuration from `data-schema`
@@ -166,7 +167,8 @@ const STRATEGY_NAME = 'SqlDBStrategy';
 const convertDatabaseConfigurationToDataSourceStrategy = (
   configuration: DataSourceConfiguration,
   customSqlStatements: Record<string, string>,
-  backendSecretResolver: BackendSecretResolver
+  backendSecretResolver: BackendSecretResolver,
+  provisionStrategyName: string
 ): ModelDataSourceStrategy => {
   if (configuration.engine === 'dynamodb') {
     return DYNAMO_DATA_SOURCE_STRATEGY;
@@ -186,7 +188,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
 
   return {
     dbType,
-    name: STRATEGY_NAME,
+    name: provisionStrategyName,
     dbConnectionConfig: {
       connectionUriSsmPath: backendSecretResolver.resolvePath(
         configuration.connectionUri

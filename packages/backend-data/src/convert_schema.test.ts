@@ -29,6 +29,7 @@ class TestBackendSecretResolver implements BackendSecretResolver {
 }
 
 const secretResolver = new TestBackendSecretResolver();
+const provisionStrategyName = 'testProvisionStrategy';
 
 const removeWhiteSpaceForComparison = (content: string): string =>
   content.replaceAll(/ |\n/g, '');
@@ -45,7 +46,8 @@ void describe('convertSchemaToCDK', () => {
     `;
     const convertedDefinition = convertSchemaToCDK(
       graphqlSchema,
-      secretResolver
+      secretResolver,
+      provisionStrategyName
     );
     assert.deepEqual(convertedDefinition.schema, graphqlSchema);
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
@@ -69,7 +71,11 @@ void describe('convertSchemaToCDK', () => {
         }),
       })
       .authorization([a.allow.public()]);
-    const convertedDefinition = convertSchemaToCDK(typedSchema, secretResolver);
+    const convertedDefinition = convertSchemaToCDK(
+      typedSchema,
+      secretResolver,
+      provisionStrategyName
+    );
     assert.deepEqual(
       removeWhiteSpaceForComparison(convertedDefinition.schema),
       removeWhiteSpaceForComparison(expectedGraphqlSchema)
@@ -93,7 +99,11 @@ void describe('convertSchemaToCDK', () => {
         }),
       })
       .authorization([a.allow.public()]);
-    const convertedDefinition = convertSchemaToCDK(typedSchema, secretResolver);
+    const convertedDefinition = convertSchemaToCDK(
+      typedSchema,
+      secretResolver,
+      provisionStrategyName
+    );
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
         dbType: 'DYNAMODB',
@@ -109,7 +119,8 @@ void describe('convertSchemaToCDK', () => {
   void it('uses the only appropriate dbType and provisiozningStrategy', () => {
     const convertedDefinition = convertSchemaToCDK(
       'type Todo @model @auth(rules: { allow: public }) { id: ID! }',
-      secretResolver
+      secretResolver,
+      provisionStrategyName
     );
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
