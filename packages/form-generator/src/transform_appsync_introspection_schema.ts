@@ -1,3 +1,4 @@
+import os from 'os';
 import {
   GenericDataSchema,
   getGenericFromDataStore,
@@ -19,7 +20,7 @@ export const transformIntrospectionSchema = async (
     config: {
       directives: DefaultDirectives.map(
         (directive: Directive) => directive.definition
-      ).join('\n'),
+      ).join(os.EOL),
       isTimestampFieldsAdded: true,
       emitAuthProvider: true,
       generateIndexRules: true,
