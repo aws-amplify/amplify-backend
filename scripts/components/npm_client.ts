@@ -42,7 +42,7 @@ export class NpmClient {
     deprecationMessage: string
   ) => {
     await this
-      .execWithIO`npm deprecate ${packageVersionSpecifier} "${deprecationMessage}"`;
+      .execWithIO`npm deprecate ${packageVersionSpecifier} ${deprecationMessage}`;
   };
 
   unDeprecatePackage = async (packageVersionSpecifier: string) => {

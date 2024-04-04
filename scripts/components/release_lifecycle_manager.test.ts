@@ -14,6 +14,7 @@ import { runVersion } from '../version_runner.js';
 import { runPublish } from '../publish_runner.js';
 import { ReleaseLifecycleManager } from './release_lifecycle_manager.js';
 import { GithubClient } from './github_client.js';
+import assert from 'node:assert';
 
 /**
  * This test suite is more of an integration test than a unit test.
@@ -41,11 +42,17 @@ void describe('ReleaseLifecycleManager', async () => {
    * It seeds the local npm proxy with a few releases of these packages.
    * When its done, the state of the git refs npm dist-tags should be as follows:
    *
-   * minor bump of cantaloupe only          ● <- HEAD, cantaloupe@1.3.0, cantaloupe@latest
+   * third release commit                   ● <- HEAD, cantaloupe@1.3.0, cantaloupe@latest
    *                                        |
-   * minor bump of cantaloupe and platypus  ● <- cantaloupe@1.2.0, platypus@1.2.0, platypus@latest
+   * minor bump of cantaloupe only          ●
    *                                        |
-   * minor bump of cantaloupe and platypus  ● <- cantaloupe@1.1.0, platypus@1.1.0
+   * second release commit                  ● <- cantaloupe@1.2.0, platypus@1.2.0, platypus@latest
+   *                                        |
+   * minor bump of cantaloupe and platypus  ●
+   *                                        |
+   * first release commit                   ● <- cantaloupe@1.1.0, platypus@1.1.0
+   *                                        |
+   * minor bump of cantaloupe and platypus  ●
    *                                        |
    * initial commit                         ● <- cantaloupe@1.0.0, platypus@1.0.0
    *
@@ -136,10 +143,15 @@ void describe('ReleaseLifecycleManager', async () => {
       npmClient
     );
     await releaseLifecycleManager.deprecateRelease('cantaloupe is rotten');
+    // switch back to the original branch
+    await gitClient.switchToBranch('main');
 
     // expect latest of cantaloupe to point back to 1.2.0 and 1.3.0 to be marked deprecated
-    // platypus should not be modified
-    // const await npmClient.getPackageInfo(cantaloupePackageName);
+
+    const { 'dist-tags': distTags, deprecated } =
+      await npmClient.getPackageInfo(`${cantaloupePackageName}@1.3.0`);
+    assert.equal(distTags.latest, '1.2.0');
+    assert.equal(deprecated, 'cantaloupe is rotten');
   });
 });
 

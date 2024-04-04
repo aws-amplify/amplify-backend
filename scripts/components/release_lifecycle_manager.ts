@@ -69,7 +69,7 @@ export class ReleaseLifecycleManager {
         )!, // this is safe because gitClient.getPreviousReleaseTags already ensures that we have found a previous version for all packages
         distTagsToMove: [],
       };
-      const { ['dist-tags']: distTags } = await this.npmClient.getPackageInfo(
+      const { 'dist-tags': distTags } = await this.npmClient.getPackageInfo(
         releaseTag
       );
       Object.entries(distTags).forEach(([tagName, versionAtTag]) => {
