@@ -67,7 +67,7 @@ export type StorageActionBuilder = {
 };
 
 // @public
-export type StoragePath = `/${string}/*`;
+export type StoragePath = `${string}/*`;
 
 // @public (undocumented)
 export type StorageResources = {
