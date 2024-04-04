@@ -254,7 +254,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(
       printer.log.mock.calls[3].arguments[0],
       `${format.indent(
-        format.dim('To specify a different sandbox identifier, use ')
+        format.dim('\nTo specify a different sandbox identifier, use ')
       )}${format.bold('--identifier')}`
     );
   });

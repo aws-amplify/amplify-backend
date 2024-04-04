@@ -368,16 +368,11 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.printer.log(
       format.indent(`${format.bold('Identifier:')} \t${sandboxBackendId.name}`)
     );
-    this.printer.log(
-      format.indent(
-        `${format.bold('Stack:')} \t${stackName}
-        \n`
-      )
-    );
+    this.printer.log(format.indent(`${format.bold('Stack:')} \t${stackName}`));
     if (!sandboxIdentifier) {
       this.printer.log(
         `${format.indent(
-          format.dim('To specify a different sandbox identifier, use ')
+          format.dim('\nTo specify a different sandbox identifier, use ')
         )}${format.bold('--identifier')}`
       );
     }
