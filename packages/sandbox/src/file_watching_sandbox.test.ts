@@ -22,6 +22,7 @@ import {
   LogLevel,
   PackageManagerControllerFactory,
   Printer,
+  format,
 } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -145,6 +146,10 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     backendDeployerDestroyMock.mock.resetCalls();
     backendDeployerDeployMock.mock.resetCalls();
     await sandboxInstance.stop();
+
+    // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
+    printer.log.mock.resetCalls();
+    printer.print.mock.resetCalls();
   });
 
   void it('when region has not bootstrapped, then opens console to initiate bootstrap', async () => {
@@ -226,6 +231,32 @@ void describe('Sandbox using local project name resolver', () => {
     subscribeMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
+
+    // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
+    printer.log.mock.resetCalls();
+    printer.print.mock.resetCalls();
+  });
+
+  void it('correctly displays the sandbox name at the startup and helper message when --identifier is not provided', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      false
+    ));
+    assert.strictEqual(printer.log.mock.callCount(), 7);
+
+    assert.strictEqual(
+      printer.log.mock.calls[1].arguments[0],
+      format.indent(`${format.bold('Identifier:')} \ttestSandboxName`)
+    );
+    assert.strictEqual(
+      printer.log.mock.calls[3].arguments[0],
+      `${format.indent(
+        format.dim('\nTo specify a different sandbox identifier, use ')
+      )}${format.bold('--identifier')}`
+    );
   });
 
   void it('makes initial deployment without type checking at start if no typescript file is present', async () => {
@@ -665,7 +696,7 @@ void describe('Sandbox using local project name resolver', () => {
       cfnClient: cfnClientMock,
       name: 'customSandboxName',
     }));
-    await sandboxInstance.delete({ name: 'customSandboxName' });
+    await sandboxInstance.delete({ identifier: 'customSandboxName' });
 
     // BackendDeployer should be called once
     assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
@@ -818,7 +849,7 @@ const setupAndStartSandbox = async (
   await sandboxInstance.start({
     dir: testData.dir,
     exclude: testData.exclude,
-    name: testData.name,
+    identifier: testData.name,
     format: testData.format,
     profile: testData.profile,
   });

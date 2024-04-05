@@ -26,6 +26,7 @@ void describe('GitIgnoreInitializer', () => {
       `# amplify${os.EOL}`,
       `node_modules${os.EOL}`,
       `.amplify${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
@@ -55,6 +56,7 @@ void describe('GitIgnoreInitializer', () => {
       os.EOL + os.EOL,
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
@@ -80,6 +82,7 @@ void describe('GitIgnoreInitializer', () => {
       os.EOL,
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
@@ -105,6 +108,7 @@ void describe('GitIgnoreInitializer', () => {
       `${os.EOL}${os.EOL}`,
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
@@ -130,6 +134,7 @@ void describe('GitIgnoreInitializer', () => {
       `${os.EOL}${os.EOL}`,
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
@@ -155,6 +160,7 @@ void describe('GitIgnoreInitializer', () => {
       `${os.EOL}${os.EOL}`,
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
@@ -189,6 +195,7 @@ void describe('GitIgnoreInitializer', () => {
       `# amplify${os.EOL}`,
       `node_modules${os.EOL}`,
       `.amplify${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();

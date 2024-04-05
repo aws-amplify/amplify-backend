@@ -17,9 +17,9 @@ export class SandboxBackendIdResolver {
   /**
    * Returns a concatenation of the resolved appName and the current username
    */
-  resolve = async (nameOverride?: string): Promise<BackendIdentifier> => {
+  resolve = async (identifier?: string): Promise<BackendIdentifier> => {
     const namespace = await this.namespaceResolver.resolve();
-    const name = nameOverride || this.userInfo().username;
+    const name = identifier || this.userInfo().username;
 
     return {
       namespace,

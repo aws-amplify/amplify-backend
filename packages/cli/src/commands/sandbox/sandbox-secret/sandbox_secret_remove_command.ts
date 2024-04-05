@@ -38,7 +38,7 @@ export class SandboxSecretRemoveCommand
     args: ArgumentsCamelCase<SecretRemoveCommandOptionsKebabCase>
   ): Promise<void> => {
     const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
-      args.name
+      args.identifier
     );
     await this.secretClient.removeSecret(
       sandboxBackendIdentifier,

@@ -37,7 +37,7 @@ void describe('sandbox command', () => {
     generateClientConfigToFile: clientConfigGenerationMock,
   } as unknown as ClientConfigGeneratorAdapter;
 
-  const commandMiddleware = new CommandMiddleware();
+  const commandMiddleware = new CommandMiddleware(printer);
   const mockHandleProfile = mock.method(
     commandMiddleware,
     'ensureAwsCredentialAndRegion',
@@ -94,21 +94,21 @@ void describe('sandbox command', () => {
   void it('starts sandbox without any additional flags', async () => {
     await commandRunner.runCommand('sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.ok(!sandboxStartMock.mock.calls[0].arguments[0].name);
+    assert.ok(!sandboxStartMock.mock.calls[0].arguments[0].identifier);
   });
 
-  void it('starts sandbox with user provided app name', async () => {
-    await commandRunner.runCommand('sandbox --name user-app-name');
+  void it('starts sandbox with user provided sandbox identifier', async () => {
+    await commandRunner.runCommand('sandbox --identifier user-app-name');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].name,
+      sandboxStartMock.mock.calls[0].arguments[0].identifier,
       'user-app-name'
     );
   });
 
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox --help');
-    assert.match(output, /--name/);
+    assert.match(output, /--identifier/);
     assert.match(output, /--dir-to-watch/);
     assert.match(output, /--exclude/);
     assert.match(output, /--config-format/);
