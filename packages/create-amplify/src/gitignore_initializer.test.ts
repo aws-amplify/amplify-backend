@@ -27,6 +27,7 @@ void describe('GitIgnoreInitializer', () => {
       `node_modules${os.EOL}`,
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.equal(
@@ -56,6 +57,7 @@ void describe('GitIgnoreInitializer', () => {
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
@@ -81,6 +83,7 @@ void describe('GitIgnoreInitializer', () => {
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
@@ -106,6 +109,7 @@ void describe('GitIgnoreInitializer', () => {
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
@@ -131,6 +135,7 @@ void describe('GitIgnoreInitializer', () => {
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
@@ -156,6 +161,7 @@ void describe('GitIgnoreInitializer', () => {
       `# amplify${os.EOL}`,
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
@@ -190,6 +196,7 @@ void describe('GitIgnoreInitializer', () => {
       `node_modules${os.EOL}`,
       `.amplify${os.EOL}`,
       `amplifyconfiguration*${os.EOL}`,
+      `amplify_outputs*${os.EOL}`,
     ];
     await gitIgnoreInitializer.ensureInitialized();
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [

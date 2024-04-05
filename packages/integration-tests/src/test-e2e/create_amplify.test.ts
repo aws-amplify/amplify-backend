@@ -170,6 +170,7 @@ void describe(
             '# amplify',
             '.amplify',
             'amplifyconfiguration*',
+            'amplify_outputs*',
             'node_modules',
           ]);
 
