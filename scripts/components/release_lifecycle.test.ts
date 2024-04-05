@@ -150,7 +150,9 @@ void describe('release lifecycle', async () => {
 
   void it('can deprecate and restore packages using npm metadata', async () => {
     const githubClient = new GithubClient('garbage');
-    mock.method(githubClient, 'createPr', async () => ({ prUrl: 'testPrUrl' }));
+    mock.method(githubClient, 'createPullRequest', async () => ({
+      prUrl: 'testPrUrl',
+    }));
     mock.method(gitClient, 'push', async () => {});
     const distTagMover = new DistTagMover(npmClient);
     const releaseDeprecator1 = new ReleaseDeprecator(

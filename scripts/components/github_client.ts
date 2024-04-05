@@ -45,8 +45,8 @@ export class GithubClient {
     });
 
     return {
-      prUrl: prResult.data.html_url,
-      prNumber: prResult.data.number,
+      pullRequestUrl: prResult.data.html_url,
+      pullRequestNumber: prResult.data.number,
     };
   };
 }
