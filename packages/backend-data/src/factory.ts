@@ -136,10 +136,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       const provisionStrategyName = `${scope.node.getContext(
         CDKContextKey.DEPLOYMENT_TYPE
       )}${scope.node.getContext(
-        CDKContextKey.BACKEND_NAME
+        CDKContextKey.BACKEND_NAMESPACE
       )}${scope.node.getContext(CDKContextKey.BACKEND_NAME)}`;
 
-      schemas.forEach((schema, idx) => {
+      schemas.forEach((schema) => {
         if (isModelSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
             schema.transform();
@@ -155,7 +155,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           convertSchemaToCDK(
             schema,
             backendSecretResolver,
-            provisionStrategyName + idx
+            provisionStrategyName
           )
         );
       });

@@ -3,7 +3,7 @@ import {
   DataSourceConfiguration,
   DerivedCombinedSchema,
   DerivedModelSchema,
-  SqlStatementFolderEntry,
+  JsResolverEntry,
 } from '@aws-amplify/data-schema-types';
 import {
   AmplifyDataDefinition,
@@ -12,10 +12,10 @@ import {
   VpcConfig,
 } from '@aws-amplify/data-construct';
 import { DataSchema, DataSchemaInput } from './types.js';
-import fs from 'fs';
 import { FilePathExtractor } from '@aws-amplify/platform-core';
-import { dirname, join, parse } from 'path';
 import { BackendSecretResolver } from '@aws-amplify/plugin-types';
+import { readFileSync } from 'fs';
+import { dirname, join } from 'path';
 
 /**
  * Determine if the input schema is a derived model schema, and perform type narrowing.
@@ -67,7 +67,7 @@ const RDS_DB_TYPES = {
  * TODO - This should be de-duplicated with the implementation in convert_js_resolvers.ts
  *
  */
-const resolveEntryPath = (entry: SqlStatementFolderEntry): string => {
+const resolveEntryPath = (entry: JsResolverEntry): string => {
   const unresolvedImportLocationError = new Error(
     'Could not determine import path to construct absolute code path from relative path. Consider using an absolute path instead.'
   );
@@ -105,15 +105,12 @@ export const convertSchemaToCDK = (
     const {
       schema: transformedSchema,
       functionSlots,
-      sqlStatementFolderPath,
       customSqlDataSourceStrategies,
     } = schema.transform();
 
     const dbStrategy = convertDatabaseConfigurationToDataSourceStrategy(
       schema.data.configuration.database,
-      sqlStatementFolderPath
-        ? loadCustomSqlStatements(resolveEntryPath(sqlStatementFolderPath))
-        : {},
+      customSqlDataSourceStrategies,
       backendSecretResolver,
       provisionStrategyName
     );
@@ -166,7 +163,7 @@ export const combineCDKSchemas = (
  */
 const convertDatabaseConfigurationToDataSourceStrategy = (
   configuration: DataSourceConfiguration,
-  customSqlStatements: Record<string, string>,
+  customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[] = [],
   backendSecretResolver: BackendSecretResolver,
   provisionStrategyName: string
 ): ModelDataSourceStrategy => {
@@ -186,9 +183,13 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
     };
   }
 
+  const customSqlStatements = customSqlStatementsFromStrategies(
+    customSqlDataSourceStrategies
+  );
+
   return {
     dbType,
-    name: provisionStrategyName,
+    name: provisionStrategyName + configuration.engine,
     dbConnectionConfig: {
       connectionUriSsmPath: backendSecretResolver.resolvePath(
         configuration.connectionUri
@@ -200,24 +201,23 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
 };
 
 /**
- * Given a directory of files containing sql queries, create a statement reference dictionary
- * @param sqlStatementsPath the location of the folder containing sql queries
- * @returns an object mapping the file basename to the query
+ * Create a custom sql statement reference dictionary
+ * @param customSqlDataSourceStrategies metadata describing custom sql handlers defined in the schema
+ * @returns an object mapping the file path to the sql statement
  */
-const loadCustomSqlStatements = (
-  sqlStatementsPath: string
+const customSqlStatementsFromStrategies = (
+  customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[]
 ): Record<string, string> => {
-  const sqlFiles = fs
-    .readdirSync(sqlStatementsPath)
-    .map((file) => join(sqlStatementsPath, file));
+  const customSqlStatements = customSqlDataSourceStrategies
+    .filter((sqlStrategy) => sqlStrategy.entry !== undefined)
+    .reduce((acc, sqlStrategy) => {
+      const entry = sqlStrategy.entry as JsResolverEntry; // undefined is filtered out above
+      const reference = typeof entry === 'string' ? entry : entry.relativePath;
+      const resolvedPath = resolveEntryPath(entry);
 
-  const customSqlStatements = sqlFiles.reduce(
-    (acc, filePath): Record<string, string> => {
-      const basename = parse(filePath).name;
-      acc[basename] = fs.readFileSync(filePath, 'utf8');
+      acc[reference] = readFileSync(resolvedPath, 'utf8');
       return acc;
-    },
-    {} as Record<string, string>
-  );
+    }, {} as Record<string, string>);
+
   return customSqlStatements;
 };
