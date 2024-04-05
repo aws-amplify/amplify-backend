@@ -83,6 +83,17 @@ export class AccessTestingProjectTestProjectCreator
   };
 }
 
+type SimpleAuthCognitoUser = {
+  username: string;
+  password: string;
+  openIdToken: string;
+};
+
+type AmplifyAuthRoles = {
+  authRoleArn: string;
+  unAuthRoleArn: string;
+};
+
 /**
  * The access testing project.
  */
@@ -120,7 +131,103 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     backendId: BackendIdentifier
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
+    await this.assertDifferentCognitoInstanceCannotAssumeAmplifyRoles(
+      backendId
+    );
+  }
 
+  private assertDifferentCognitoInstanceCannotAssumeAmplifyRoles = async (
+    backendId: BackendIdentifier
+  ): Promise<void> => {
+    const simpleAuthUser = await this.createAuthenticatedSimpleAuthCognitoUser(
+      backendId
+    );
+    const amplifyAuthRoles = await this.getAmplifyAuthRoles(backendId);
+
+    await assert.rejects(
+      () =>
+        this.stsClient.send(
+          new AssumeRoleWithWebIdentityCommand({
+            RoleArn: amplifyAuthRoles.authRoleArn,
+            RoleSessionName: shortUuid(),
+            WebIdentityToken: simpleAuthUser.openIdToken,
+          })
+        ),
+      (err: Error) => {
+        assert.strictEqual(
+          err.message,
+          'Not authorized to perform sts:AssumeRoleWithWebIdentity'
+        );
+        return true;
+      }
+    );
+
+    await assert.rejects(
+      () =>
+        this.stsClient.send(
+          new AssumeRoleWithWebIdentityCommand({
+            RoleArn: amplifyAuthRoles.unAuthRoleArn,
+            RoleSessionName: shortUuid(),
+            WebIdentityToken: simpleAuthUser.openIdToken,
+          })
+        ),
+      (err: Error) => {
+        assert.strictEqual(
+          err.message,
+          'Not authorized to perform sts:AssumeRoleWithWebIdentity'
+        );
+        return true;
+      }
+    );
+  };
+
+  private getAmplifyAuthRoles = async (
+    backendId: BackendIdentifier
+  ): Promise<AmplifyAuthRoles> => {
+    const [authRoleName] = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::IAM::Role',
+      undefined,
+      (name) => name.includes('amplifyAuthauthenticatedUserRole')
+    );
+
+    const getAuthRoleResponse: GetRoleCommandOutput = await this.iamClient.send(
+      new GetRoleCommand({
+        RoleName: authRoleName,
+      })
+    );
+
+    if (!getAuthRoleResponse.Role?.Arn) {
+      throw new Error('Missing auth role arn');
+    }
+
+    const [unAuthRoleName] = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::IAM::Role',
+      undefined,
+      (name) => name.includes('amplifyAuthunauthenticatedUserRole')
+    );
+
+    const getUnAuthRoleResponse: GetRoleCommandOutput =
+      await this.iamClient.send(
+        new GetRoleCommand({
+          RoleName: unAuthRoleName,
+        })
+      );
+
+    if (!getUnAuthRoleResponse.Role?.Arn) {
+      throw new Error('Missing un auth role arn');
+    }
+
+    return {
+      authRoleArn: getAuthRoleResponse.Role.Arn,
+      unAuthRoleArn: getUnAuthRoleResponse.Role.Arn,
+    };
+  };
+
+  private createAuthenticatedSimpleAuthCognitoUser = async (
+    backendId: BackendIdentifier
+  ): Promise<SimpleAuthCognitoUser> => {
     const [simpleAuthUserPoolId] =
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
@@ -167,7 +274,6 @@ class AccessTestingProjectTestProject extends TestProjectBase {
           },
         })
       );
-    console.log(initiateAuthResponse);
 
     const respondToAuthChallengeResponse: RespondToAuthChallengeCommandOutput =
       await this.cognitoIdentityProviderClient.send(
@@ -182,8 +288,6 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         })
       );
 
-    console.log(respondToAuthChallengeResponse);
-
     const logins: Record<string, string | undefined> = {};
     logins[
       `cognito-idp.${await this.cognitoIdentityClient.config.region()}.amazonaws.com/${simpleAuthUserPoolId}`
@@ -196,8 +300,6 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         })
       );
 
-    console.log(getIdResponse);
-
     const getOpenIdTokenResponse: GetOpenIdTokenCommandOutput =
       await this.cognitoIdentityClient.send(
         new GetOpenIdTokenCommand({
@@ -206,77 +308,14 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         })
       );
 
-    console.log(getOpenIdTokenResponse);
+    if (!getOpenIdTokenResponse.Token) {
+      throw new Error('Missing OpenId Token');
+    }
 
-    const [authRoleName] = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::IAM::Role',
-      undefined,
-      (name) => name.includes('amplifyAuthauthenticatedUserRole')
-    );
-
-    console.log(authRoleName);
-
-    const getAuthRoleResponse: GetRoleCommandOutput = await this.iamClient.send(
-      new GetRoleCommand({
-        RoleName: authRoleName,
-      })
-    );
-
-    console.log(getAuthRoleResponse);
-
-    const [unAuthRoleName] = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::IAM::Role',
-      undefined,
-      (name) => name.includes('amplifyAuthunauthenticatedUserRole')
-    );
-
-    console.log(unAuthRoleName);
-
-    const getUnAuthRoleResponse: GetRoleCommandOutput =
-      await this.iamClient.send(
-        new GetRoleCommand({
-          RoleName: unAuthRoleName,
-        })
-      );
-
-    console.log(getUnAuthRoleResponse);
-
-    await assert.rejects(
-      () =>
-        this.stsClient.send(
-          new AssumeRoleWithWebIdentityCommand({
-            RoleArn: getAuthRoleResponse.Role?.Arn,
-            RoleSessionName: shortUuid(),
-            WebIdentityToken: getOpenIdTokenResponse.Token,
-          })
-        ),
-      (err: Error) => {
-        assert.strictEqual(
-          err.message,
-          'Not authorized to perform sts:AssumeRoleWithWebIdentity'
-        );
-        return true;
-      }
-    );
-
-    await assert.rejects(
-      () =>
-        this.stsClient.send(
-          new AssumeRoleWithWebIdentityCommand({
-            RoleArn: getUnAuthRoleResponse.Role?.Arn,
-            RoleSessionName: shortUuid(),
-            WebIdentityToken: getOpenIdTokenResponse.Token,
-          })
-        ),
-      (err: Error) => {
-        assert.strictEqual(
-          err.message,
-          'Not authorized to perform sts:AssumeRoleWithWebIdentity'
-        );
-        return true;
-      }
-    );
-  }
+    return {
+      username,
+      password,
+      openIdToken: getOpenIdTokenResponse.Token,
+    };
+  };
 }
