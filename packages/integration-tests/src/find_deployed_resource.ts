@@ -22,17 +22,20 @@ export class DeployedResourcesFinder {
    * @param backendId Used to determine which CFN stack to look in
    * @param resourceType The CFN resource type to look for. Eg "AWS::Lambda::Function" or "AWS::IAM::Role"
    * @param physicalNamePredicate Optional predicate to filter physical names of resources matching resourceType
+   * @param logicalNamePredicate Optional predicate to filter logical names of resources matching resourceType
    */
   findByBackendIdentifier = async (
     backendId: BackendIdentifier,
     resourceType: string,
-    physicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
+    physicalNamePredicate: StringPredicate = () => true, // match all resources of "resourceType" by default
+    logicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
   ): Promise<string[]> => {
     const stackName = BackendIdentifierConversions.toStackName(backendId);
     return await this.findByStackName(
       stackName,
       resourceType,
-      physicalNamePredicate
+      physicalNamePredicate,
+      logicalNamePredicate
     );
   };
 
@@ -42,11 +45,13 @@ export class DeployedResourcesFinder {
    * @param stackName The CFN stack name
    * @param resourceType The CFN resource type to look for. Eg "AWS::Lambda::Function" or "AWS::IAM::Role"
    * @param physicalNamePredicate Optional predicate to filter physical names of resources matching resourceType
+   * @param logicalNamePredicate Optional predicate to filter logical names of resources matching resourceType
    */
   findByStackName = async (
     stackName: string,
     resourceType: string,
-    physicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
+    physicalNamePredicate: StringPredicate = () => true, // match all resources of "resourceType" by default
+    logicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
   ): Promise<string[]> => {
     const queue = [stackName];
 
@@ -67,7 +72,8 @@ export class DeployedResourcesFinder {
         } else if (
           resource.ResourceType === resourceType &&
           resource.PhysicalResourceId &&
-          physicalNamePredicate(resource.PhysicalResourceId)
+          physicalNamePredicate(resource.PhysicalResourceId) &&
+          logicalNamePredicate(resource.LogicalResourceId)
         ) {
           resourcePhysicalIds.push(resource.PhysicalResourceId);
         }

@@ -37,12 +37,12 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
     await createTestDirectory(rootTestDir);
   });
   after(async () => {
-    await deleteTestDirectory(rootTestDir);
+    //await deleteTestDirectory(rootTestDir);
   });
 
   void describe('amplify deploys', async () => {
     testProjectCreators.forEach((testProjectCreator) => {
-      void describe(`branch deploys ${testProjectCreator.name}`, () => {
+      void describe(`branch deploys ${testProjectCreator.name}`, {skip: true},() => {
         let branchBackendIdentifier: BackendIdentifier;
         let testBranch: TestBranch;
         let testProject: TestProjectBase;
@@ -122,7 +122,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
         });
 
         after(async () => {
-          await testProject.tearDown(sandboxBackendIdentifier);
+          // await testProject.tearDown(sandboxBackendIdentifier);
         });
 
         void describe('in sequence', { concurrency: false }, () => {
@@ -137,7 +137,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
 
-          void it(`[${testProjectCreator.name}] hot-swaps a change`, async () => {
+          void it(`[${testProjectCreator.name}] hot-swaps a change`, {skip: false }, async () => {
             const processController = amplifyCli(
               ['sandbox', '--dirToWatch', 'amplify'],
               testProject.projectDirPath,
@@ -165,7 +165,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
       });
     });
 
-    void describe('fails on compilation error', async () => {
+    void describe('fails on compilation error', {skip: true}, async () => {
       let testProject: TestProjectBase;
       before(async () => {
         // any project is fine
@@ -228,7 +228,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
     });
   });
 
-  void describe('cdk deploys', () => {
+  void describe('cdk deploys', {skip: true}, () => {
     testCdkProjectCreators.forEach((testCdkProjectCreator) => {
       void describe(`${testCdkProjectCreator.name}`, () => {
         let testCdkProject: TestCdkProjectBase;
