@@ -57,7 +57,7 @@ export class ReleaseRestorer {
     );
     await this.gitClient.push({ force: true });
 
-    const { prUrl } = await this.githubClient.createPr({
+    const { prUrl } = await this.githubClient.createPullRequest({
       head: prBranch,
       title: `Restore release ${releaseCommitHashToRestore}`,
       body: `Restoring updates to the .changeset directory made by release commit ${releaseCommitHashToRestore}`,

@@ -63,7 +63,7 @@ export class ReleaseDeprecator {
 
     console.log(EOL);
 
-    const { prUrl } = await this.githubClient.createPr({
+    const { prUrl } = await this.githubClient.createPullRequest({
       head: prBranch,
       title: `Deprecate release ${releaseCommitHashToDeprecate}`,
       body: `Reverting updates to the .changeset directory made by release commit ${releaseCommitHashToDeprecate}`,

@@ -23,7 +23,7 @@ export class GithubClient {
    *
    * returns the link to the PR and the PR number
    */
-  createPr = async ({
+  createPullRequest = async ({
     head,
     title,
     body,
