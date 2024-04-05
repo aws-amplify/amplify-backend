@@ -12,16 +12,15 @@ import {
 } from './package-json/package_json.js';
 import { runVersion } from '../version_runner.js';
 import { runPublish } from '../publish_runner.js';
-import { ReleaseLifecycleManager } from './release_lifecycle_manager.js';
 import { GithubClient } from './github_client.js';
 import assert from 'node:assert';
+import { ReleaseDeprecator } from './release_deprecator.js';
+import { DistTagMover } from './dist_tag_mover.js';
 
 /**
  * This test suite is more of an integration test than a unit test.
  * It uses the real file system and git repo but mocks the GitHub API client
  * It spins up verdaccio to test updating package metadata locally
- *
- * Since all of these tests are sharing the same git tree, we're running in serial to avoid conflicts (mostly around duplicate tag names)
  */
 void describe('ReleaseLifecycleManager', async () => {
   let gitClient: GitClient;
@@ -29,6 +28,8 @@ void describe('ReleaseLifecycleManager', async () => {
 
   let cantaloupePackageName: string;
   let platypusPackageName: string;
+
+  // TODO uncomment before merging
   // before(async () => {
   //   await import('../start_npm_proxy.js');
   // });
@@ -136,13 +137,15 @@ void describe('ReleaseLifecycleManager', async () => {
     const githubClient = new GithubClient('garbage');
     mock.method(githubClient, 'createPr', async () => ({ prUrl: 'testPrUrl' }));
     mock.method(gitClient, 'push', async () => {});
-    const releaseLifecycleManager = new ReleaseLifecycleManager(
+    const releaseDeprecator = new ReleaseDeprecator(
       'HEAD',
+      'the cantaloupe is rotten',
       githubClient,
       gitClient,
-      npmClient
+      npmClient,
+      new DistTagMover(npmClient)
     );
-    await releaseLifecycleManager.deprecateRelease('cantaloupe is rotten');
+    await releaseDeprecator.deprecateRelease();
     // switch back to the original branch
     await gitClient.switchToBranch('main');
 
@@ -151,7 +154,7 @@ void describe('ReleaseLifecycleManager', async () => {
     const { 'dist-tags': distTags, deprecated } =
       await npmClient.getPackageInfo(`${cantaloupePackageName}@1.3.0`);
     assert.equal(distTags.latest, '1.2.0');
-    assert.equal(deprecated, 'cantaloupe is rotten');
+    assert.equal(deprecated, 'the cantaloupe is rotten');
   });
 });
 

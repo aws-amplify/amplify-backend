@@ -37,11 +37,16 @@ export class GitClient {
   };
 
   /**
-   * Returns true if the git tree is clean and false if it is dirty
+   * Throws if there are uncommitted changes in the repo
    */
-  isWorkingTreeClean = async () => {
+  ensureWorkingTreeIsClean = async () => {
     const { stdout } = await this.exec`git status --porcelain`;
-    return !stdout.trim();
+    const isDirty = stdout.trim();
+    if (isDirty) {
+      throw new Error(
+        'Dirty working tree detected. Commit or stash changes to continue.'
+      );
+    }
   };
 
   getCurrentBranch = async () => {

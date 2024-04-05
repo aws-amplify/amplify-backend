@@ -11,11 +11,7 @@ const keepGitDiff = runArgs.find((arg) => arg === '--keepGitDiff');
 const gitClient = new GitClient();
 
 if (!keepGitDiff) {
-  if (!(await gitClient.isWorkingTreeClean())) {
-    throw new Error(
-      `Detected a dirty working tree. Commit or stash changes before publishing a snapshot`
-    );
-  }
+  await gitClient.ensureWorkingTreeIsClean();
 }
 
 // this command will write staged changesets into changelog files and update versions

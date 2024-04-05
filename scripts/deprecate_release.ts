@@ -1,8 +1,9 @@
 import { getInput } from '@actions/core';
-import { ReleaseLifecycleManager } from './components/release_lifecycle_manager.js';
 import { GithubClient } from './components/github_client.js';
 import { GitClient } from './components/git_client.js';
 import { NpmClient, loadNpmTokenFromEnvVar } from './components/npm_client.js';
+import { ReleaseDeprecator } from './components/release_deprecator.js';
+import { DistTagMover } from './components/dist_tag_mover.js';
 
 const deprecationMessage = getInput('deprecationMessage', {
   required: true,
@@ -29,15 +30,17 @@ const npmClient = new NpmClient(
 
 await npmClient.configureNpmRc();
 
-const releaseLifecycleManager = new ReleaseLifecycleManager(
+const releaseDeprecator = new ReleaseDeprecator(
   searchForReleaseStartingFrom,
+  deprecationMessage,
   new GithubClient(),
   new GitClient(),
-  npmClient
+  npmClient,
+  new DistTagMover(npmClient)
 );
 
 try {
-  await releaseLifecycleManager.deprecateRelease(deprecationMessage);
+  await releaseDeprecator.deprecateRelease();
 } catch (err) {
   console.error(err);
   process.exitCode = 1;

@@ -1,8 +1,9 @@
 import { getInput } from '@actions/core';
-import { ReleaseLifecycleManager } from './components/release_lifecycle_manager.js';
+import { ReleaseRestorer } from './components/release_restorer.js';
 import { GitClient } from './components/git_client.js';
 import { GithubClient } from './components/github_client.js';
 import { NpmClient, loadNpmTokenFromEnvVar } from './components/npm_client.js';
+import { DistTagMover } from './components/dist_tag_mover.js';
 
 const searchForReleaseStartingFrom = getInput('searchForReleaseStartingFrom', {
   required: true,
@@ -25,15 +26,16 @@ const npmClient = new NpmClient(
 
 await npmClient.configureNpmRc();
 
-const releaseLifecycleManager = new ReleaseLifecycleManager(
+const releaseRestorer = new ReleaseRestorer(
   searchForReleaseStartingFrom,
   new GithubClient(),
   new GitClient(),
-  npmClient
+  npmClient,
+  new DistTagMover(npmClient)
 );
 
 try {
-  await releaseLifecycleManager.restoreRelease();
+  await releaseRestorer.restoreRelease();
 } catch (err) {
   console.error(err);
   process.exitCode = 1;
