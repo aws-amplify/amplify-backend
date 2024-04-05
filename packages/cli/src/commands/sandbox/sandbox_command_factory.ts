@@ -49,7 +49,7 @@ export const createSandboxCommand = (): CommandModule<
     async () => await new UsageDataEmitterFactory().getInstance(libraryVersion)
   );
 
-  const commandMiddleWare = new CommandMiddleware();
+  const commandMiddleWare = new CommandMiddleware(printer);
   return new SandboxCommand(
     sandboxFactory,
     [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],

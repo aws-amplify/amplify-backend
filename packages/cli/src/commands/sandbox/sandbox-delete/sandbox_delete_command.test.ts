@@ -14,7 +14,7 @@ void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
   let sandboxDeleteMock = mock.fn();
 
-  const commandMiddleware = new CommandMiddleware();
+  const commandMiddleware = new CommandMiddleware(printer);
   const mockHandleProfile = mock.method(
     commandMiddleware,
     'ensureAwsCredentialAndRegion',

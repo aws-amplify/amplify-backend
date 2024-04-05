@@ -3,7 +3,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS } from '@aws-sdk/region-config-resolver';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { printer } from '@aws-amplify/cli-core';
+import { Printer } from '@aws-amplify/cli-core';
 
 export const profileSetupInstruction = `To configure a new Amplify profile, use "npx amplify configure profile".`;
 
@@ -11,6 +11,11 @@ export const profileSetupInstruction = `To configure a new Amplify profile, use 
  * Contains middleware functions.
  */
 export class CommandMiddleware {
+  /**
+   * Inject the printer instance so that it can be tested
+   */
+  constructor(private readonly printer: Printer) {}
+
   /**
    * Ensure AWS credentials and region of the input profile (or 'default' if undefined) are available in the provider chain.
    * If the input profile is defined, the environment variable AWS_PROFILE will be set accordingly.
@@ -83,12 +88,12 @@ export class CommandMiddleware {
       return;
     }
     if (process.env[preferredName]) {
-      printer.log(
-        `Both the legacy '${legacyName}' and preferred '${preferredName}' environment variables detected. Using ${preferredName}`
+      this.printer.log(
+        `Both the legacy '${legacyName}' and preferred '${preferredName}' environment variables detected. Using '${preferredName}'`
       );
       return;
     }
-    printer.log(
+    this.printer.log(
       `Legacy environment variable '${legacyName}' detected. Mapping to '${preferredName}'`
     );
     process.env[preferredName] = process.env[legacyName];

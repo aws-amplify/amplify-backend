@@ -37,7 +37,7 @@ void describe('sandbox command', () => {
     generateClientConfigToFile: clientConfigGenerationMock,
   } as unknown as ClientConfigGeneratorAdapter;
 
-  const commandMiddleware = new CommandMiddleware();
+  const commandMiddleware = new CommandMiddleware(printer);
   const mockHandleProfile = mock.method(
     commandMiddleware,
     'ensureAwsCredentialAndRegion',

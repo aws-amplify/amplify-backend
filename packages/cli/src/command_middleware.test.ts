@@ -1,11 +1,12 @@
 import assert from 'node:assert';
-import { after, before, beforeEach, describe, it } from 'node:test';
+import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import { CommandMiddleware } from './command_middleware.js';
 import { EOL } from 'node:os';
 import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import fs from 'fs/promises';
 import path from 'path';
 import { ArgumentsCamelCase } from 'yargs';
+import { Printer } from '@aws-amplify/cli-core';
 
 const restoreEnv = (restoreVal: string | undefined, envVar: string) => {
   if (restoreVal) {
@@ -17,7 +18,10 @@ const restoreEnv = (restoreVal: string | undefined, envVar: string) => {
 
 void describe('commandMiddleware', () => {
   void describe('ensureAwsCredentialAndRegion', () => {
-    const commandMiddleware = new CommandMiddleware();
+    const printerMock = { log: mock.fn() };
+    const commandMiddleware = new CommandMiddleware(
+      printerMock as unknown as Printer
+    );
     const testAccessKeyId = '124';
     const testSecretAccessKey = '667';
     const testProfile = 'profileA';
@@ -62,6 +66,7 @@ void describe('commandMiddleware', () => {
         process.env.AWS_SECRET_ACCESS_KEY = testSecretAccessKey;
         process.env.AWS_REGION = testRegion;
         delete process.env.AWS_PROFILE;
+        printerMock.log.mock.resetCalls();
       });
 
       void it('loads credentials', async () => {
@@ -81,6 +86,10 @@ void describe('commandMiddleware', () => {
           )
         );
         assert.equal(process.env.AWS_REGION, testRegion);
+        assert.match(
+          printerMock.log.mock.calls[0].arguments[0],
+          /Legacy environment variable/
+        );
       });
 
       void it('prefers AWS_REGION to AWS_DEFAULT_REGION', async () => {
@@ -91,6 +100,10 @@ void describe('commandMiddleware', () => {
           )
         );
         assert.equal(process.env.AWS_REGION, testRegion);
+        assert.match(
+          printerMock.log.mock.calls[0].arguments[0],
+          /Using 'AWS_REGION'/
+        );
       });
 
       void it('throws error if absent region environment variables', async () => {
@@ -136,6 +149,7 @@ void describe('commandMiddleware', () => {
         await fs.writeFile(credFilePath, '', 'utf-8');
         await fs.writeFile(configFilePath, '', 'utf-8');
         delete process.env.AWS_PROFILE;
+        printerMock.log.mock.resetCalls();
       });
 
       const writeProfileCredential = async (
@@ -246,6 +260,10 @@ void describe('commandMiddleware', () => {
           )
         );
         assert.equal(process.env.AWS_PROFILE, testProfile);
+        assert.match(
+          printerMock.log.mock.calls[0].arguments[0],
+          /Legacy environment variable/
+        );
       });
 
       void it('prefers AWS_PROFILE over AWS_DEFAULT_PROFILE', async () => {
@@ -260,6 +278,10 @@ void describe('commandMiddleware', () => {
           )
         );
         assert.equal(process.env.AWS_PROFILE, testProfile);
+        assert.match(
+          printerMock.log.mock.calls[0].arguments[0],
+          /Using 'AWS_PROFILE'/
+        );
       });
     });
   });
