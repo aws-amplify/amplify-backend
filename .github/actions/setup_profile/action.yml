@@ -26,4 +26,4 @@ runs:
         aws configure set aws_access_key_id ${{ steps.credentials.outputs.aws-access-key-id }} --profile ${{ inputs.profile-name }}
         aws configure set aws_secret_access_key ${{ steps.credentials.outputs.aws-secret-access-key }} --profile ${{ inputs.profile-name }}
         aws configure set aws_session_token ${{ steps.credentials.outputs.aws-session-token }} --profile ${{ inputs.profile-name }}
-        aws configure set region us-west-2 --profile ${{ inputs.profile-name }}
+        aws configure set region ${{ inputs.aws-region }} --profile ${{ inputs.profile-name }}

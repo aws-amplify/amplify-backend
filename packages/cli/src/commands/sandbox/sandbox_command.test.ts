@@ -17,6 +17,8 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { CommandMiddleware } from '../../command_middleware.js';
 import path from 'path';
 
+mock.method(fsp, 'mkdir', () => Promise.resolve());
+
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
     assert.ok(createSandboxCommand() instanceof SandboxCommand);

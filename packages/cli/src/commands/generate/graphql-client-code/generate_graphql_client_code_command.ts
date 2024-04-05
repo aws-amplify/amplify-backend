@@ -1,4 +1,4 @@
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { isAbsolute, resolve } from 'path';
 import {
@@ -87,7 +87,7 @@ export class GenerateGraphqlClientCodeCommand
    * @inheritDoc
    */
   handler = async (
-    args: GenerateGraphqlClientCodeCommandOptions
+    args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
   ): Promise<void> => {
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args

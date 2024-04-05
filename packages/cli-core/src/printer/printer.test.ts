@@ -30,15 +30,6 @@ void describe('Printer', () => {
     assert.match(mockedWrite.mock.calls[1].arguments[0].toString(), /\n/);
   });
 
-  void it('log should print message without new line', () => {
-    new Printer(LogLevel.INFO).log('hello world', LogLevel.INFO, false);
-    assert.strictEqual(mockedWrite.mock.callCount(), 1);
-    assert.match(
-      mockedWrite.mock.calls[0].arguments[0].toString(),
-      /hello world/
-    );
-  });
-
   void it('log should not print debug logs by default', () => {
     new Printer(LogLevel.INFO).log('hello world', LogLevel.DEBUG);
     assert.strictEqual(mockedWrite.mock.callCount(), 0);

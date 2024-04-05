@@ -111,16 +111,7 @@ export class LocalGraphqlFormGenerator implements GraphqlFormGenerator {
     dataSchema.models = Object.entries(dataSchema.models).reduce<
       (typeof dataSchema)['models']
     >((prev, [key, value]) => {
-      // Discard createdAt and updatedAt fields
-      /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-      const { createdAt, updatedAt, ...fields } = value.fields;
-
-      const valueExcludingTimestampFields = {
-        ...value,
-        fields,
-      };
-
-      prev[key] = valueExcludingTimestampFields;
+      prev[key] = value;
 
       return prev;
     }, {});

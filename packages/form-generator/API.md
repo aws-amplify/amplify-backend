@@ -13,13 +13,18 @@ export type FormGenerationOptions = {
 };
 
 // @public (undocumented)
+export type GenerateGraphqlToFileResult = {
+    filesWritten: string[];
+};
+
+// @public (undocumented)
 export type GraphqlFormGenerator = {
     generateForms: (options?: FormGenerationOptions) => Promise<GraphqlGenerationResult>;
 };
 
 // @public (undocumented)
 export type GraphqlGenerationResult = {
-    writeToDirectory: (directoryPath: string, log?: (message: string) => void) => Promise<void>;
+    writeToDirectory: (directoryPath: string) => Promise<GenerateGraphqlToFileResult>;
 };
 
 // @public (undocumented)
