@@ -33,14 +33,14 @@ export type SandboxEvents =
 export type SandboxOptions = {
   dir?: string;
   exclude?: string[];
-  name?: string;
+  identifier?: string;
   format?: ClientConfigFormat;
   profile?: string;
 };
 
 export type SandboxDeleteOptions = {
-  name?: string;
+  identifier?: string;
 };
 export type BackendIdSandboxResolver = (
-  sandboxName?: string
+  identifier?: string
 ) => Promise<BackendIdentifier>;
