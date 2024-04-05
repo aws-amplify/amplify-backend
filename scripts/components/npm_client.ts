@@ -1,6 +1,7 @@
 import { $ as chainableExeca } from 'execa';
 import { writeFile } from 'fs/promises';
 import { EOL } from 'os';
+import * as path from 'path';
 
 /**
  * Type for the response of `npm show <package> --json`
@@ -32,7 +33,10 @@ export class NpmClient {
    *
    * By default the client operates in the process cwd
    */
-  constructor(private readonly npmToken: string | null, cwd?: string) {
+  constructor(
+    private readonly npmToken: string | null,
+    private readonly cwd: string = process.cwd()
+  ) {
     this.exec = chainableExeca({ cwd });
     this.execWithIO = this.exec({ stdio: 'inherit' });
   }
@@ -84,14 +88,14 @@ export class NpmClient {
   configureNpmRc = async () => {
     if (this.npmToken) {
       await writeFile(
-        '.npmrc',
+        path.join(this.cwd, '.npmrc'),
         // eslint-disable-next-line spellcheck/spell-checker
         `//registry.npmjs.org/:_authToken=${this.npmToken}${EOL}`
       );
     } else {
       // if there's no npm token, assume we are configuring for a local proxy
       // copy local config into .npmrc
-      await writeFile('.npmrc', npmrcLocalTemplate);
+      await writeFile(path.join(this.cwd, '.npmrc'), npmrcLocalTemplate);
     }
   };
 }
