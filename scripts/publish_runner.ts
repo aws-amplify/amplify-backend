@@ -47,7 +47,7 @@ export const runPublish = async (props?: PublishOptions, cwd?: string) => {
   // if we are publishing to npm, we assume that the npmrc has already been configured properly by upstream code
   // (ie the changeset gh action automatically configures this)
   if (options.useLocalRegistry) {
-    const npmClient = new NpmClient(null);
+    const npmClient = new NpmClient(null, cwd);
     await npmClient.configureNpmRc();
   }
 
