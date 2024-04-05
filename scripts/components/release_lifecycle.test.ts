@@ -70,7 +70,6 @@ void describe('ReleaseLifecycleManager', async () => {
     console.log(testWorkingDir);
 
     gitClient = new GitClient(testWorkingDir);
-    await gitClient.switchToBranch('main');
     npmClient = new NpmClient(null, testWorkingDir);
 
     const $ = chainableExeca({ stdio: 'inherit', cwd: testWorkingDir });
@@ -85,6 +84,7 @@ void describe('ReleaseLifecycleManager', async () => {
       `${testNameNormalized}-platypus-${shortId}`.toLocaleLowerCase();
 
     await gitClient.init();
+    await gitClient.switchToBranch('main');
     await npmClient.init();
 
     await npmClient.initWorkspacePackage(cantaloupePackageName);
