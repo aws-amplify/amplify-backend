@@ -22,6 +22,7 @@ if (useNpmRegistry) {
   console.log(
     'useNpmRegistry is FALSE. This run will update package metadata on a local npm proxy. No public changes will be made.'
   );
+  await import('./start_npm_proxy.js');
 }
 
 const npmClient = new NpmClient(
