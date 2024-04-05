@@ -70,6 +70,7 @@ void describe('ReleaseLifecycleManager', async () => {
     console.log(testWorkingDir);
 
     gitClient = new GitClient(testWorkingDir);
+    await gitClient.switchToBranch('main');
     npmClient = new NpmClient(null, testWorkingDir);
 
     const $ = chainableExeca({ stdio: 'inherit', cwd: testWorkingDir });
