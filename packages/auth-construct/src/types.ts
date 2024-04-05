@@ -115,13 +115,37 @@ export type MFA = {
    */
   mode: 'OFF' | 'OPTIONAL' | 'REQUIRED';
 } & MFASettings;
-
+/**
+ * Properties which all identity providers have
+ */
+export type IdentityProviderProps = {
+  /**
+   * Mapping attributes from the identity provider to standard and custom attributes of the user pool.
+   * @default - no attribute mapping
+   */
+  attributeMapping?: AttributeMapping;
+};
+/**
+ * A wrapper for cognito.AttributeMapping that simplifies the way attribute mappings are declared by
+ * using strings for attribute name instead of objects with an attributeName property.
+ */
+export type AttributeMapping = {
+  [K in keyof Omit<cognito.AttributeMapping, 'custom'>]: string;
+} & {
+  /**
+   * Specify custom attribute mapping here and mapping for any standard attributes not supported yet.
+   * @default - no custom attribute mapping
+   */
+  custom?: {
+    [key: string]: string;
+  };
+};
 /**
  * Google provider.
  */
 export type GoogleProviderProps = Omit<
   cognito.UserPoolIdentityProviderGoogleProps,
-  'userPool' | 'clientSecretValue' | 'clientSecret'
+  'userPool' | 'clientSecretValue' | 'clientSecret' | 'attributeMapping'
 > & {
   /**
    * The client secret to be accompanied with clientId for Google APIs to authenticate the client as SecretValue
@@ -129,38 +153,41 @@ export type GoogleProviderProps = Omit<
    * @default none
    */
   clientSecret?: SecretValue;
-};
+} & IdentityProviderProps;
 
 /**
  * Apple provider.
  */
 export type AppleProviderProps = Omit<
   cognito.UserPoolIdentityProviderAppleProps,
-  'userPool'
->;
+  'userPool' | 'attributeMapping'
+> &
+  IdentityProviderProps;
 
 /**
  * Amazon provider.
  */
 export type AmazonProviderProps = Omit<
   cognito.UserPoolIdentityProviderAmazonProps,
-  'userPool'
->;
+  'userPool' | 'attributeMapping'
+> &
+  IdentityProviderProps;
 
 /**
  * Facebook provider.
  */
 export type FacebookProviderProps = Omit<
   cognito.UserPoolIdentityProviderFacebookProps,
-  'userPool'
->;
+  'userPool' | 'attributeMapping'
+> &
+  IdentityProviderProps;
 
 /**
  * OIDC provider.
  */
 export type OidcProviderProps = Omit<
   cognito.UserPoolIdentityProviderOidcProps,
-  'userPool' | 'attributeRequestMethod'
+  'userPool' | 'attributeRequestMethod' | 'attributeMapping'
 > & {
   /**
    * The method to use to request attributes
@@ -172,14 +199,14 @@ export type OidcProviderProps = Omit<
    * 'POST' - use POST
    */
   readonly attributeRequestMethod?: 'GET' | 'POST';
-};
+} & IdentityProviderProps;
 
 /**
  * SAML provider.
  */
 export type SamlProviderProps = Omit<
   cognito.UserPoolIdentityProviderSamlProps,
-  'userPool' | 'metadata'
+  'userPool' | 'metadata' | 'attributeMapping'
 > & {
   /**
    * The SAML metadata.
@@ -196,7 +223,7 @@ export type SamlProviderProps = Omit<
      */
     metadataType: 'URL' | 'FILE';
   };
-};
+} & IdentityProviderProps;
 
 /**
  * External provider options.

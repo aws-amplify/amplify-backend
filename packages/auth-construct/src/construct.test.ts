@@ -1388,9 +1388,7 @@ void describe('Auth construct', () => {
                 issuerUrl: oidcIssuerUrl,
                 name: oidcProviderName,
                 attributeMapping: {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: 'email',
                 },
                 attributeRequestMethod: attributeRequestMethod,
                 endpoints: {
@@ -1453,9 +1451,7 @@ void describe('Auth construct', () => {
                 issuerUrl: oidcIssuerUrl,
                 name: oidcProviderName,
                 attributeMapping: {
-                  email: {
-                    attributeName: 'email',
-                  },
+                  email: 'email',
                 },
                 endpoints: {
                   authorization: authorizationURL,
@@ -2041,14 +2037,14 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
               attributeMapping: {
-                fullname: ProviderAttribute.GOOGLE_NAME,
+                fullname: ProviderAttribute.GOOGLE_NAME.attributeName,
               },
             },
             facebook: {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
               attributeMapping: {
-                fullname: ProviderAttribute.FACEBOOK_NAME,
+                fullname: ProviderAttribute.FACEBOOK_NAME.attributeName,
               },
             },
             signInWithApple: {
@@ -2057,14 +2053,14 @@ void describe('Auth construct', () => {
               privateKey: applePrivateKey,
               teamId: appleTeamId,
               attributeMapping: {
-                fullname: ProviderAttribute.APPLE_NAME,
+                fullname: ProviderAttribute.APPLE_NAME.attributeName,
               },
             },
             loginWithAmazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
               attributeMapping: {
-                fullname: ProviderAttribute.AMAZON_NAME,
+                fullname: ProviderAttribute.AMAZON_NAME.attributeName,
               },
             },
             oidc: [
@@ -2074,9 +2070,7 @@ void describe('Auth construct', () => {
                 issuerUrl: oidcIssuerUrl,
                 name: oidcProviderName,
                 attributeMapping: {
-                  fullname: {
-                    attributeName: 'name',
-                  },
+                  fullname: 'name',
                 },
               },
             ],
@@ -2162,20 +2156,16 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
               attributeMapping: {
-                email: {
-                  attributeName: customEmailMapping,
-                },
-                fullname: ProviderAttribute.GOOGLE_NAME,
+                email: customEmailMapping,
+                fullname: ProviderAttribute.GOOGLE_NAME.attributeName,
               },
             },
             facebook: {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
               attributeMapping: {
-                email: {
-                  attributeName: customEmailMapping,
-                },
-                fullname: ProviderAttribute.FACEBOOK_NAME,
+                email: customEmailMapping,
+                fullname: ProviderAttribute.FACEBOOK_NAME.attributeName,
               },
             },
             signInWithApple: {
@@ -2184,20 +2174,16 @@ void describe('Auth construct', () => {
               privateKey: applePrivateKey,
               teamId: appleTeamId,
               attributeMapping: {
-                email: {
-                  attributeName: customEmailMapping,
-                },
-                fullname: ProviderAttribute.APPLE_NAME,
+                email: customEmailMapping,
+                fullname: ProviderAttribute.APPLE_NAME.attributeName,
               },
             },
             loginWithAmazon: {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
               attributeMapping: {
-                email: {
-                  attributeName: customEmailMapping,
-                },
-                fullname: ProviderAttribute.AMAZON_NAME,
+                email: customEmailMapping,
+                fullname: ProviderAttribute.AMAZON_NAME.attributeName,
               },
             },
             oidc: [
@@ -2207,12 +2193,8 @@ void describe('Auth construct', () => {
                 issuerUrl: oidcIssuerUrl,
                 name: oidcProviderName,
                 attributeMapping: {
-                  email: {
-                    attributeName: customEmailMapping,
-                  },
-                  fullname: {
-                    attributeName: 'name',
-                  },
+                  email: customEmailMapping,
+                  fullname: 'name',
                 },
               },
             ],
