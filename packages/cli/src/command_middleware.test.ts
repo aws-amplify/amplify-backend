@@ -72,7 +72,7 @@ void describe('commandMiddleware', () => {
         );
       });
 
-      void it('normalizes AWS_DEFAULT_REGION to AWS_REGION', async () => {
+      void it('maps AWS_DEFAULT_REGION to AWS_REGION', async () => {
         delete process.env.AWS_REGION;
         process.env.AWS_DEFAULT_REGION = testRegion;
         await assert.doesNotReject(() =>
@@ -80,6 +80,7 @@ void describe('commandMiddleware', () => {
             {} as ArgumentsCamelCase<{ profile: string | undefined }>
           )
         );
+        assert.equal(process.env.AWS_REGION, testRegion);
       });
 
       void it('prefers AWS_REGION to AWS_DEFAULT_REGION', async () => {
@@ -234,7 +235,7 @@ void describe('commandMiddleware', () => {
         );
       });
 
-      void it('normalizes AWS_DEFAULT_PROFILE to AWS_PROFILE', async () => {
+      void it('maps AWS_DEFAULT_PROFILE to AWS_PROFILE', async () => {
         process.env.AWS_DEFAULT_PROFILE = testProfile;
         await writeProfileRegion(testProfile);
         await writeProfileCredential(testProfile);
@@ -244,6 +245,7 @@ void describe('commandMiddleware', () => {
             {} as ArgumentsCamelCase<{ profile: string | undefined }>
           )
         );
+        assert.equal(process.env.AWS_PROFILE, testProfile);
       });
 
       void it('prefers AWS_PROFILE over AWS_DEFAULT_PROFILE', async () => {
