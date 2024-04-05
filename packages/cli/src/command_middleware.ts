@@ -12,7 +12,7 @@ export const profileSetupInstruction = `To configure a new Amplify profile, use 
  */
 export class CommandMiddleware {
   /**
-   * Inject the printer instance so that it can be tested
+   * Creates command middleware.
    */
   constructor(private readonly printer: Printer) {}
 
