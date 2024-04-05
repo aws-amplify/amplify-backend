@@ -1,10 +1,6 @@
 name: deprecate_release
 
 on:
-  # TODO remove push trigger before merging
-  push:
-    branches:
-      - rollback
   workflow_dispatch:
     inputs:
       deprecationMessage:
@@ -40,10 +36,6 @@ jobs:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # TODO remove test inputs before merging
-      INPUT_DEPRECATIONMESSAGE: test deprecation message
-      INPUT_USENPMREGISTRY: false
-      INPUT_SEARCHFORRELEASESTARTINGFROM: HEAD
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
         with:
