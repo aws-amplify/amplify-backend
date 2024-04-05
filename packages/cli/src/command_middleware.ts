@@ -75,13 +75,22 @@ export class CommandMiddleware {
   /**
    * Maps one environment variable name to the other
    */
-  private mapEnvironmentVariables(fromName: string, toName: string): void {
-    if (!process.env[fromName] || process.env[toName]) {
+  private mapEnvironmentVariables(
+    legacyName: string,
+    preferredName: string
+  ): void {
+    if (!process.env[legacyName]) {
+      return;
+    }
+    if (process.env[preferredName]) {
+      printer.log(
+        `Both the legacy '${legacyName}' and preferred '${preferredName}' environment variables detected. Using ${preferredName}`
+      );
       return;
     }
     printer.log(
-      `Legacy environment variable '${fromName}' detected. Mapping to '${toName}'`
+      `Legacy environment variable '${legacyName}' detected. Mapping to '${preferredName}'`
     );
-    process.env[toName] = process.env[fromName];
+    process.env[preferredName] = process.env[legacyName];
   }
 }
