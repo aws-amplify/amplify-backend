@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, mock } from 'node:test';
+import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import { mkdir, writeFile } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { EOL, tmpdir } from 'os';
@@ -30,13 +30,13 @@ void describe('ReleaseLifecycleManager', async () => {
   let platypusPackageName: string;
 
   // TODO uncomment before merging
-  // before(async () => {
-  //   await import('../start_npm_proxy.js');
-  // });
+  before(async () => {
+    await import('../start_npm_proxy.js');
+  });
 
-  // after(async () => {
-  //   await import('../stop_npm_proxy.js');
-  // });
+  after(async () => {
+    await import('../stop_npm_proxy.js');
+  });
 
   /**
    * This setup initializes a "sandbox" git repo that has a js mono repo with 2 packages, cantaloupe and platypus
