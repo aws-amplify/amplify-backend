@@ -57,11 +57,16 @@ export class GitClient {
 
   /**
    * Switches to branchName. Creates the branch if it does not exist.
-   *
-   * Resets the branch to the original one at the end of the process
    */
   switchToBranch = async (branchName: string) => {
-    await this.exec`git switch -C ${branchName}`;
+    const { stdout: branchResult } = await this
+      .exec`git branch -l ${branchName}`;
+    const branchExists = branchResult.trim().length > 0;
+    if (branchExists) {
+      await this.execWithIO`git switch ${branchName}`;
+    } else {
+      await this.execWithIO`git switch -c ${branchName}`;
+    }
   };
 
   /**
@@ -70,7 +75,7 @@ export class GitClient {
   commitAllChanges = async (message: string) => {
     await this.configure();
     await this.execWithIO`git add .`;
-    await this.execWithIO`git commit --message ${message}`;
+    await this.execWithIO`git commit --message ${message} --allow-empty`;
   };
 
   /**
@@ -147,18 +152,16 @@ export class GitClient {
         .map((nameAndVersion) => nameAndVersion.packageName)
     );
 
-    // initialize the release commit cursor to the commit of the release before the input releaseCommitHash
-    let releaseCommitCursor = await this.getNearestReleaseCommit(
-      releaseCommitHash,
-      {
-        inclusive: false,
-      }
-    );
+    let releaseCommitCursor = releaseCommitHash;
 
     // the method return value that we will append release tags to in the loop
     const previousReleaseTags: string[] = [];
 
     while (packageNamesRemaining.size > 0) {
+      releaseCommitCursor = await this.getNearestReleaseCommit(
+        releaseCommitCursor,
+        { inclusive: false }
+      );
       const releaseTagsAtCursor = await this.getTagsAtCommit(
         releaseCommitCursor
       );
@@ -171,10 +174,6 @@ export class GitClient {
           packageNamesRemaining.delete(packageName);
         }
       });
-      releaseCommitCursor = await this.getNearestReleaseCommit(
-        releaseCommitCursor,
-        { inclusive: false }
-      );
     }
 
     return previousReleaseTags;

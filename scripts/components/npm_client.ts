@@ -15,7 +15,9 @@ export type PackageInfo = {
 };
 
 /**
+ * Client for programmatically interacting with the local npm cli.
  *
+ * Note that this class is not guaranteed to be a singleton so it should not store any mutable internal state
  */
 export class NpmClient {
   /**
@@ -50,7 +52,9 @@ export class NpmClient {
   };
 
   unDeprecatePackage = async (packageVersionSpecifier: string) => {
-    await this.execWithIO`npm deprecate ${packageVersionSpecifier} ""`;
+    // explicitly specifying an empty deprecation message is the official way to "un-deprecate" a package
+    // see https://docs.npmjs.com/cli/v8/commands/npm-deprecate
+    await this.execWithIO`npm deprecate ${packageVersionSpecifier} ${''}`;
   };
 
   setDistTag = async (packageVersionSpecifier: string, distTag: string) => {
