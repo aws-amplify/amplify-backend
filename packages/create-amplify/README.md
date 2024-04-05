@@ -13,3 +13,6 @@ In a frontend project folder or empty folder, run `npm create amplify`.
 
 2. Does Amplify support [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp)?
    No. Please run `yarn config set nodeLinker node-modules` to use `node_modules` instead.
+
+3. Why do I see `npm_config_user_agent is undefined`?
+   Please make sure 1> to not install or use `amplify` globally. 2> to use the same Package Manager in one project.

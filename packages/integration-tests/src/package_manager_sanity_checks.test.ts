@@ -137,7 +137,7 @@ void describe('getting started happy path', async () => {
     assert.ok(clientConfigStats.isFile());
   });
 
-  void it('creates new project and deploy them without an error', async () => {
+  void it('throw error on win32 using pnpm', async () => {
     if (packageManager === 'pnpm' && process.platform === 'win32') {
       await assert.rejects(
         execa('pnpm', ['create', 'amplify@beta', '--yes'], {
