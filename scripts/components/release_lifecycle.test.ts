@@ -23,7 +23,7 @@ import { ReleaseRestorer } from './release_restorer.js';
  * It uses the real file system and git repo but mocks the GitHub API client
  * It spins up verdaccio to test updating package metadata locally
  */
-void describe('ReleaseLifecycleManager', async () => {
+void describe('release lifecycle', async () => {
   let gitClient: GitClient;
   let npmClient: NpmClient;
 

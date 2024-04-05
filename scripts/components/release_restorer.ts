@@ -67,15 +67,15 @@ export class ReleaseRestorer {
     // if anything fails before this point, we haven't actually modified anything on NPM yet.
     // now we actually update the npm dist tags and mark the packages as un-deprecated
 
-    await this.distTagMover.moveDistTags(
-      previousReleaseTags,
-      releaseTagsToRestore
-    );
-
     for (const releaseTag of releaseTagsToRestore) {
       console.log(`Un-deprecating package version ${releaseTag}`);
       await this.npmClient.unDeprecatePackage(releaseTag);
       console.log(`Done!${EOL}`);
     }
+
+    await this.distTagMover.moveDistTags(
+      previousReleaseTags,
+      releaseTagsToRestore
+    );
   };
 }
