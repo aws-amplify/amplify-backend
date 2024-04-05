@@ -5,7 +5,8 @@ import { GithubClient } from './github_client.js';
 import { DistTagMover } from './dist_tag_mover.js';
 
 /**
- *
+ * Orchestrates the process of "un-deprecating" packages associated with a release.
+ * Also moves any npm dist-tags associated with the previous package versions to the now un-deprecated versions
  */
 export class ReleaseRestorer {
   /**

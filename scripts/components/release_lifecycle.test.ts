@@ -41,7 +41,7 @@ void describe('release lifecycle', async () => {
   /**
    * This setup initializes a "sandbox" git repo that has a js mono repo with 2 packages, cantaloupe and platypus
    * It seeds the local npm proxy with a few releases of these packages.
-   * When its done, the state of the git refs npm dist-tags should be as follows:
+   * When its done, the state of the git refs and npm dist-tags should be as follows:
    *
    * third release commit                   ● <- HEAD, cantaloupe@1.2.0, cantaloupe@latest
    *                                        |
@@ -49,7 +49,7 @@ void describe('release lifecycle', async () => {
    *                                        |
    * second release commit                  ● <- platypus@1.2.0, platypus@latest
    *                                        |
-   * minor bump of cantaloupe and platypus  ●
+   * minor bump of platypus only            ●
    *                                        |
    * first release commit                   ● <- cantaloupe@1.1.0, platypus@1.1.0
    *                                        |

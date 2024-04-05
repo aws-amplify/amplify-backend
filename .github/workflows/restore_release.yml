@@ -15,8 +15,8 @@ on:
         type: string
         default: HEAD
         description: |
-          By default, the most recent release from HEAD (inclusive) of the target branch will be deprecated.
-          To deprecate a different release, specify the release commit to deprecate here.
+          By default, the most recent release from HEAD (inclusive) of the target branch will be restored.
+          To restore a different release, specify the release commit to restore here.
 
 jobs:
   install:

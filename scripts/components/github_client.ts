@@ -1,7 +1,7 @@
 import { getOctokit, context as ghContext } from '@actions/github';
 
 /**
- *
+ * Client for interacting with the GitHub REST API. By default it scopes API requests to the repo it is running in.
  */
 export class GithubClient {
   private readonly ghClient;

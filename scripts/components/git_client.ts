@@ -5,7 +5,7 @@ import * as path from 'path';
 import { releaseTagToNameAndVersion } from './release_tag_to_name_and_version.js';
 
 /**
- *
+ * Client for programmatically  interacting with the local git cli
  */
 export class GitClient {
   private isConfigured = false;
