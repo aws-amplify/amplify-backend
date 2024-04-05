@@ -169,8 +169,8 @@ void describe(
           assert.deepStrictEqual(gitIgnoreContent.sort(), [
             '# amplify',
             '.amplify',
-            'amplifyconfiguration*',
             'amplify_outputs*',
+            'amplifyconfiguration*',
             'node_modules',
           ]);
 
