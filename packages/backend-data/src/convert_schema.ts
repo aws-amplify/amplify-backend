@@ -12,10 +12,9 @@ import {
   VpcConfig,
 } from '@aws-amplify/data-construct';
 import { DataSchema, DataSchemaInput } from './types.js';
-import { FilePathExtractor } from '@aws-amplify/platform-core';
 import { BackendSecretResolver } from '@aws-amplify/plugin-types';
 import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { resolveEntryPath } from './resolve_entry_path.js';
 
 /**
  * Determine if the input schema is a derived model schema, and perform type narrowing.
@@ -60,29 +59,6 @@ const RDS_DB_TYPES = {
   mysql: 'MYSQL',
   postgresql: 'POSTGRES',
 } as const;
-
-/**
- * Resolve JS resolver function entry to absolute path
- *
- * TODO - This should be de-duplicated with the implementation in convert_js_resolvers.ts
- *
- */
-const resolveEntryPath = (entry: JsResolverEntry): string => {
-  const unresolvedImportLocationError = new Error(
-    'Could not determine import path to construct absolute code path from relative path. Consider using an absolute path instead.'
-  );
-
-  if (typeof entry === 'string') {
-    return entry;
-  }
-
-  const filePath = new FilePathExtractor(entry.importLine).extract();
-  if (filePath) {
-    return join(dirname(filePath), entry.relativePath);
-  }
-
-  throw unresolvedImportLocationError;
-};
 
 /**
  * Given an input schema type, produce the relevant CDK Graphql Def interface
@@ -202,7 +178,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
 
 /**
  * Create a custom sql statement reference dictionary
- * @param customSqlDataSourceStrategies metadata describing custom sql handlers defined in the schema
+ * @param customSqlDataSourceStrategies custom sql handler defined in the schema
  * @returns an object mapping the file path to the sql statement
  */
 const customSqlStatementsFromStrategies = (

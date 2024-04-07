@@ -157,7 +157,7 @@ void describe('convertSchemaToCDK', () => {
     );
   });
 
-  void it('produces expected definition for sql schema', () => {
+  void it('produces expected definition for sql schema with custom query reference', () => {
     const postgresSchema = configure({
       database: {
         engine: 'postgresql',
@@ -173,8 +173,18 @@ void describe('convertSchemaToCDK', () => {
         .authorization([a.allow.public()]),
     });
 
+    const modified = postgresSchema.addQueries({
+      oddList: a
+        .query()
+        .handler(
+          a.handler.sqlReference('../test-assets/test-sql-handler/oddList.sql')
+        )
+        .returns(a.ref('post'))
+        .authorization([a.allow.public()]),
+    });
+
     const convertedDefinition = convertSchemaToCDK(
-      postgresSchema,
+      modified,
       secretResolver,
       provisionStrategyName
     );
@@ -187,12 +197,21 @@ void describe('convertSchemaToCDK', () => {
       Object.values(convertedDefinition.dataSourceStrategies)[0],
       {
         dbType: 'POSTGRES',
-        provisionStrategy: provisionStrategyName + 'postgresql',
+        name: provisionStrategyName + 'postgresql',
+        dbConnectionConfig: {
+          connectionUriSsmPath:
+            '/amplify/testBackendId/testBranchName-branch-e482a1c36f/POSTGRES_CONNECTION_STRING',
+        },
+        customSqlStatements: {
+          '../test-assets/test-sql-handler/oddList.sql':
+            'SELECT * from post where id % 2 = 1;',
+        },
+        vpcConfiguration: undefined,
       }
     );
   });
 
-  void it('produces expected definition for combined sql + ddb schema', () => {
+  void it('produces expected definition for sql schema with inline custom query reference', () => {
     const postgresSchema = configure({
       database: {
         engine: 'postgresql',
@@ -208,14 +227,16 @@ void describe('convertSchemaToCDK', () => {
         .authorization([a.allow.public()]),
     });
 
-    const ddbSchema = a.schema({
-      comment: a.model({ id: a.integer().required() }),
+    const modified = postgresSchema.addQueries({
+      oddList: a
+        .query()
+        .handler(a.handler.inlineSql('SELECT * from post where id % 2 = 1;'))
+        .returns(a.ref('post'))
+        .authorization([a.allow.public()]),
     });
 
-    // const combined = a.combine([postgresSchema, ddbSchema])
-
     const convertedDefinition = convertSchemaToCDK(
-      ddbSchema,
+      modified,
       secretResolver,
       provisionStrategyName
     );
@@ -228,7 +249,13 @@ void describe('convertSchemaToCDK', () => {
       Object.values(convertedDefinition.dataSourceStrategies)[0],
       {
         dbType: 'POSTGRES',
-        provisionStrategy: provisionStrategyName + 'postgresql',
+        name: provisionStrategyName + 'postgresql',
+        dbConnectionConfig: {
+          connectionUriSsmPath:
+            '/amplify/testBackendId/testBranchName-branch-e482a1c36f/POSTGRES_CONNECTION_STRING',
+        },
+        customSqlStatements: {},
+        vpcConfiguration: undefined,
       }
     );
   });

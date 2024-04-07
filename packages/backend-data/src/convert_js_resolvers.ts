@@ -1,36 +1,16 @@
 import { Construct } from 'constructs';
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { CfnFunctionConfiguration, CfnResolver } from 'aws-cdk-lib/aws-appsync';
-import { FilePathExtractor } from '@aws-amplify/platform-core';
-import { JsResolver, JsResolverEntry } from '@aws-amplify/data-schema-types';
-import { dirname, join, resolve } from 'path';
+import { JsResolver } from '@aws-amplify/data-schema-types';
+import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { Asset } from 'aws-cdk-lib/aws-s3-assets';
+import { resolveEntryPath } from './resolve_entry_path.js';
 
 const APPSYNC_PIPELINE_RESOLVER = 'PIPELINE';
 const APPSYNC_JS_RUNTIME_NAME = 'APPSYNC_JS';
 const APPSYNC_JS_RUNTIME_VERSION = '1.0.0';
 const JS_PIPELINE_RESOLVER_HANDLER = './assets/js_resolver_handler.js';
-
-/**
- * Resolve JS resolver function entry to absolute path
- */
-const resolveEntryPath = (entry: JsResolverEntry): string => {
-  const unresolvedImportLocationError = new Error(
-    'Could not determine import path to construct absolute code path from relative path. Consider using an absolute path instead.'
-  );
-
-  if (typeof entry === 'string') {
-    return entry;
-  }
-
-  const filePath = new FilePathExtractor(entry.importLine).extract();
-  if (filePath) {
-    return join(dirname(filePath), entry.relativePath);
-  }
-
-  throw unresolvedImportLocationError;
-};
 
 /**
  *
