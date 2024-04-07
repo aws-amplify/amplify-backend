@@ -13,3 +13,9 @@ In a frontend project folder or empty folder, run `npm create amplify`.
 
 2. Does Amplify support [Yarn Plug'n'Play](https://yarnpkg.com/features/pnp)?
    No. Please run `yarn config set nodeLinker node-modules` to use `node_modules` instead.
+
+3. Why do I see `npm_config_user_agent is undefined`?
+   The CLI uses this environment variable to determine which package manager to use when spawning processes. To resolve this:
+   a. Do not install or use `amplify` globally
+   b. Use the same package manager for all commands in a given project
+   c. When running E2E tests locally without a package manager, set `npm_config_user_agent` to `npm`.

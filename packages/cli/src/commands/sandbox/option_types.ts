@@ -7,7 +7,7 @@ export type SandboxCommandGlobalOptions = {
    */
   profile?: string;
   /**
-   * Optional name to use to distinguish multiple sandboxes
+   * Optional identifier to use to distinguish multiple sandboxes.
    */
-  name?: string;
+  identifier?: string;
 };

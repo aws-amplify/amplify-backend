@@ -17,6 +17,7 @@ import { AppBackendIdentifierResolver } from '../../backend-identifier/backend_i
 import { GenerateSchemaCommand } from './schema-from-database/generate_schema_command.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
+import { printer } from '@aws-amplify/cli-core';
 
 /**
  * Creates wired generate command.
@@ -63,7 +64,7 @@ export const createGenerateCommand = (): CommandModule => {
     new SchemaGenerator()
   );
 
-  const commandMiddleware = new CommandMiddleware();
+  const commandMiddleware = new CommandMiddleware(printer);
 
   return new GenerateCommand(
     generateConfigCommand,
