@@ -13,8 +13,10 @@ import {
 } from '@aws-amplify/data-construct';
 import { DataSchema, DataSchemaInput } from './types.js';
 import { BackendSecretResolver } from '@aws-amplify/plugin-types';
-import { readFileSync } from 'fs';
+import { CDKContextKey } from '@aws-amplify/platform-core';
+import { Construct } from 'constructs';
 import { resolveEntryPath } from './resolve_entry_path.js';
+import { readFileSync } from 'fs';
 
 /**
  * Determine if the input schema is a derived model schema, and perform type narrowing.
@@ -48,6 +50,18 @@ export const isCombinedSchema = (
   );
 };
 
+/**
+ * SQL provision strategy requires a unique name per backend that is consistent between deployments
+ * @param scope construct scope
+ * @returns string provision strategy name
+ */
+const sqlProvisionStrategyName = (scope: Construct): string =>
+  `${scope.node.getContext(
+    CDKContextKey.DEPLOYMENT_TYPE
+  )}${scope.node.getContext(
+    CDKContextKey.BACKEND_NAMESPACE
+  )}${scope.node.getContext(CDKContextKey.BACKEND_NAME)}`;
+
 // DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
 const DYNAMO_DATA_SOURCE_STRATEGY = {
   dbType: 'DYNAMODB',
@@ -62,13 +76,15 @@ const RDS_DB_TYPES = {
 
 /**
  * Given an input schema type, produce the relevant CDK Graphql Def interface
- * @param schema the input schema type
+ * @param scope the input schema type
+ * @param schema TS schema builder definition or string GraphQL schema
+ * @param backendSecretResolver secret resolver
  * @returns the cdk graphql definition interface
  */
 export const convertSchemaToCDK = (
+  scope: Construct,
   schema: DataSchema,
-  backendSecretResolver: BackendSecretResolver,
-  provisionStrategyName: string
+  backendSecretResolver: BackendSecretResolver
 ): IAmplifyDataDefinition => {
   if (isModelSchema(schema)) {
     /**
@@ -83,6 +99,8 @@ export const convertSchemaToCDK = (
       functionSlots,
       customSqlDataSourceStrategies,
     } = schema.transform();
+
+    const provisionStrategyName = sqlProvisionStrategyName(scope);
 
     const dbStrategy = convertDatabaseConfigurationToDataSourceStrategy(
       schema.data.configuration.database,

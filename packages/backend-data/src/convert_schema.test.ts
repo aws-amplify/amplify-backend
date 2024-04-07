@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import { convertSchemaToCDK } from './convert_schema.js';
 import assert from 'node:assert';
 import { a } from '@aws-amplify/data-schema';
@@ -10,7 +10,7 @@ import {
   BackendSecretResolver,
   ResolvePathResult,
 } from '@aws-amplify/plugin-types';
-import { SecretValue } from 'aws-cdk-lib';
+import { App, SecretValue, Stack } from 'aws-cdk-lib';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
 
 const testStack = {} as Construct;
@@ -19,6 +19,18 @@ const testBackendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
   name: 'testBranchName',
   type: 'branch',
+};
+
+const createStackAndSetContext = (): Stack => {
+  const app = new App();
+  app.node.setContext('amplify-backend-name', testBackendIdentifier.name);
+  app.node.setContext(
+    'amplify-backend-namespace',
+    testBackendIdentifier.namespace
+  );
+  app.node.setContext('amplify-backend-type', testBackendIdentifier.type);
+  const stack = new Stack(app);
+  return stack;
 };
 
 class TestBackendSecretResolver implements BackendSecretResolver {
@@ -49,13 +61,17 @@ class TestBackendSecret implements BackendSecret {
   };
 }
 
-const secretResolver = new TestBackendSecretResolver();
-const provisionStrategyName = 'testProvisionStrategy';
-
 const removeWhiteSpaceForComparison = (content: string): string =>
   content.replaceAll(/ |\n/g, '');
 
 void describe('convertSchemaToCDK', () => {
+  let stack: Stack;
+  const secretResolver = new TestBackendSecretResolver();
+
+  void beforeEach(() => {
+    stack = createStackAndSetContext();
+  });
+
   void it('generates for a graphql schema', () => {
     const graphqlSchema = /* GraphQL */ `
       type Todo @model @auth(rules: { allow: owner }) {
@@ -66,9 +82,9 @@ void describe('convertSchemaToCDK', () => {
       }
     `;
     const convertedDefinition = convertSchemaToCDK(
+      stack,
       graphqlSchema,
-      secretResolver,
-      provisionStrategyName
+      secretResolver
     );
     assert.deepEqual(convertedDefinition.schema, graphqlSchema);
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
@@ -93,9 +109,9 @@ void describe('convertSchemaToCDK', () => {
       })
       .authorization([a.allow.public()]);
     const convertedDefinition = convertSchemaToCDK(
+      stack,
       typedSchema,
-      secretResolver,
-      provisionStrategyName
+      secretResolver
     );
     assert.deepEqual(
       removeWhiteSpaceForComparison(convertedDefinition.schema),
@@ -121,9 +137,9 @@ void describe('convertSchemaToCDK', () => {
       })
       .authorization([a.allow.public()]);
     const convertedDefinition = convertSchemaToCDK(
+      stack,
       typedSchema,
-      secretResolver,
-      provisionStrategyName
+      secretResolver
     );
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
@@ -139,9 +155,9 @@ void describe('convertSchemaToCDK', () => {
 
   void it('uses the only appropriate dbType and provisioningStrategy', () => {
     const convertedDefinition = convertSchemaToCDK(
+      stack,
       'type Todo @model @auth(rules: { allow: public }) { id: ID! }',
-      secretResolver,
-      provisionStrategyName
+      secretResolver
     );
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
@@ -157,7 +173,7 @@ void describe('convertSchemaToCDK', () => {
     );
   });
 
-  void it('produces expected definition for sql schema with custom query reference', () => {
+  void it('produces expected definition for Postgresql schema with custom query reference', () => {
     const postgresSchema = configure({
       database: {
         engine: 'postgresql',
@@ -184,9 +200,9 @@ void describe('convertSchemaToCDK', () => {
     });
 
     const convertedDefinition = convertSchemaToCDK(
+      stack,
       modified,
-      secretResolver,
-      provisionStrategyName
+      secretResolver
     );
 
     assert.equal(
@@ -197,7 +213,7 @@ void describe('convertSchemaToCDK', () => {
       Object.values(convertedDefinition.dataSourceStrategies)[0],
       {
         dbType: 'POSTGRES',
-        name: provisionStrategyName + 'postgresql',
+        name: 'branchtestBackendIdtestBranchNamepostgresql',
         dbConnectionConfig: {
           connectionUriSsmPath:
             '/amplify/testBackendId/testBranchName-branch-e482a1c36f/POSTGRES_CONNECTION_STRING',
@@ -211,7 +227,7 @@ void describe('convertSchemaToCDK', () => {
     );
   });
 
-  void it('produces expected definition for sql schema with inline custom query reference', () => {
+  void it('produces expected definition for Postgresql schema with inline custom query reference', () => {
     const postgresSchema = configure({
       database: {
         engine: 'postgresql',
@@ -236,9 +252,9 @@ void describe('convertSchemaToCDK', () => {
     });
 
     const convertedDefinition = convertSchemaToCDK(
+      stack,
       modified,
-      secretResolver,
-      provisionStrategyName
+      secretResolver
     );
 
     assert.equal(
@@ -249,13 +265,121 @@ void describe('convertSchemaToCDK', () => {
       Object.values(convertedDefinition.dataSourceStrategies)[0],
       {
         dbType: 'POSTGRES',
-        name: provisionStrategyName + 'postgresql',
+        name: 'branchtestBackendIdtestBranchNamepostgresql',
         dbConnectionConfig: {
           connectionUriSsmPath:
             '/amplify/testBackendId/testBranchName-branch-e482a1c36f/POSTGRES_CONNECTION_STRING',
         },
         customSqlStatements: {},
         vpcConfiguration: undefined,
+      }
+    );
+  });
+
+  void it('produces expected definition for MySQL schema with vpc config', () => {
+    const postgresSchema = configure({
+      database: {
+        engine: 'mysql',
+        connectionUri: new TestBackendSecret('MYSQL_CONNECTION_STRING'),
+        vpcConfig: {
+          vpcId: 'vpc-a1aa11a1',
+          securityGroupIds: ['sg-11111a11'],
+          subnetAvailabilityZones: [
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1d',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1c',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1f',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1e',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1a',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1b',
+            },
+          ],
+        },
+      },
+    }).schema({
+      post: a
+        .model({
+          id: a.integer().required(),
+          title: a.string(),
+        })
+        .identifier(['id'])
+        .authorization([a.allow.public()]),
+    });
+
+    const modified = postgresSchema.addQueries({
+      oddList: a
+        .query()
+        .handler(a.handler.inlineSql('SELECT * from post where id % 2 = 1;'))
+        .returns(a.ref('post'))
+        .authorization([a.allow.public()]),
+    });
+
+    const convertedDefinition = convertSchemaToCDK(
+      stack,
+      modified,
+      secretResolver
+    );
+
+    assert.equal(
+      Object.values(convertedDefinition.dataSourceStrategies).length,
+      1
+    );
+    assert.deepEqual(
+      Object.values(convertedDefinition.dataSourceStrategies)[0],
+      {
+        dbType: 'MYSQL',
+        name: 'branchtestBackendIdtestBranchNamemysql',
+        dbConnectionConfig: {
+          connectionUriSsmPath:
+            '/amplify/testBackendId/testBranchName-branch-e482a1c36f/MYSQL_CONNECTION_STRING',
+        },
+        customSqlStatements: {},
+        vpcConfiguration: {
+          vpcId: 'vpc-a1aa11a1',
+          securityGroupIds: ['sg-11111a11'],
+          subnetAvailabilityZoneConfig: [
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1d',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1c',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1f',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1e',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1a',
+            },
+            {
+              subnetId: 'subnet-1aa1aa11',
+              availabilityZone: 'us-east-1b',
+            },
+          ],
+        },
       }
     );
   });

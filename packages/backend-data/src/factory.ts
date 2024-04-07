@@ -131,14 +131,6 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         ? this.props.schema.schemas
         : [this.props.schema];
 
-      // SQL provision strategy requires a unique name per backend
-      // that is consistent between deployments
-      const provisionStrategyName = `${scope.node.getContext(
-        CDKContextKey.DEPLOYMENT_TYPE
-      )}${scope.node.getContext(
-        CDKContextKey.BACKEND_NAMESPACE
-      )}${scope.node.getContext(CDKContextKey.BACKEND_NAME)}`;
-
       schemas.forEach((schema) => {
         if (isModelSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
@@ -152,11 +144,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         }
 
         amplifyGraphqlDefinitions.push(
-          convertSchemaToCDK(
-            schema,
-            backendSecretResolver,
-            provisionStrategyName
-          )
+          convertSchemaToCDK(scope, schema, backendSecretResolver)
         );
       });
     } catch (error) {
