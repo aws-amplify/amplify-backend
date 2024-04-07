@@ -50,26 +50,43 @@ void describe('AmplifyProjectCreator', () => {
       logSpy.mock.calls[1].arguments[0],
       bold(blue(`Installing devDependencies:`))
     );
-
-    assert.equal(logSpy.mock.calls[6].arguments[0], `Installing dependencies`);
     assert.equal(
-      logSpy.mock.calls[8].arguments[0],
+      logSpy.mock.calls[3].arguments[0],
+      bold(blue(`Installing dependencies:`))
+    );
+    assert.equal(
+      logSpy.mock.calls[5].arguments[0],
+      `Installing devDependencies`
+    );
+    assert.equal(
+      logSpy.mock.calls[6].arguments[0],
+      `✔ DevDependencies installed`
+    );
+    assert.equal(logSpy.mock.calls[7].arguments[0], `Installing dependencies`);
+    assert.equal(logSpy.mock.calls[8].arguments[0], `✔ Dependencies installed`);
+    assert.equal(logSpy.mock.calls[9].arguments[0], `Creating template files`);
+    assert.equal(
+      logSpy.mock.calls[10].arguments[0],
+      `✔ Template files created`
+    );
+    assert.equal(
+      logSpy.mock.calls[11].arguments[0],
       green('Successfully created a new project!')
     );
     assert.equal(
-      logSpy.mock.calls[9].arguments[0],
+      logSpy.mock.calls[12].arguments[0],
       bold(blue('Welcome to AWS Amplify!'))
     );
 
     assert.equal(
-      logSpy.mock.calls[10].arguments[0],
+      logSpy.mock.calls[13].arguments[0],
       `Navigate to your project directory using ${cyan(
         'cd .testProjectRoot'
       )} and then:`
     );
 
     assert.equal(
-      logSpy.mock.calls[11].arguments[0],
+      logSpy.mock.calls[14].arguments[0],
       grey(
         `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
           'npx amplify configure telemetry disable'
@@ -104,14 +121,14 @@ void describe('AmplifyProjectCreator', () => {
     await amplifyProjectCreator.create();
 
     assert.equal(
-      logSpy.mock.calls[10].arguments[0],
+      logSpy.mock.calls[13].arguments[0],
       `Navigate to your project directory using ${cyan(
         'cd .testProjectRoot'
       )} and then:`
     );
 
     assert.equal(
-      logSpy.mock.calls[11].arguments[0],
+      logSpy.mock.calls[14].arguments[0],
       grey(
         `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
           'npx amplify configure telemetry disable'
