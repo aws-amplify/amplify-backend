@@ -41,7 +41,7 @@ export class SandboxSecretSetCommand
   ): Promise<void> => {
     const secretVal = await AmplifyPrompter.secretValue();
     await this.secretClient.setSecret(
-      await this.sandboxIdResolver.resolve(args.name),
+      await this.sandboxIdResolver.resolve(args.identifier),
       args.secretName,
       secretVal
     );

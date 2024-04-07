@@ -39,7 +39,7 @@ export class SandboxSecretGetCommand
     args: ArgumentsCamelCase<SecretGetCommandOptionsKebabCase>
   ): Promise<void> => {
     const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
-      args.name
+      args.identifier
     );
     const secret = await this.secretClient.getSecret(sandboxBackendIdentifier, {
       name: args.secretName,

@@ -31,10 +31,10 @@ void describe('sandbox secret list command', () => {
     listSecretsResponseMock
   );
   const sandboxIdResolver: SandboxBackendIdResolver = {
-    resolve: (nameOverride?: string) =>
+    resolve: (identifier?: string) =>
       Promise.resolve({
         namespace: testBackendId,
-        name: nameOverride || testSandboxName,
+        name: identifier || testSandboxName,
         type: 'sandbox',
       }),
   } as SandboxBackendIdResolver;
@@ -70,7 +70,7 @@ void describe('sandbox secret list command', () => {
   });
 
   void it('lists secrets for named sandbox', async () => {
-    await commandRunner.runCommand('list --name anotherName');
+    await commandRunner.runCommand('list --identifier anotherName');
     assert.equal(secretListMock.mock.callCount(), 1);
 
     assert.deepStrictEqual(secretListMock.mock.calls[0].arguments[0], {
