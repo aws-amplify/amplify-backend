@@ -149,7 +149,7 @@ export type ClientConfig = clientConfigTypesV1.AWSAmplifyBackendOutputs;
 // @public (undocumented)
 export enum ClientConfigFileBaseName {
     // (undocumented)
-    DEFAULT = "amplify_outputs",
+    DEFAULT = "amplify-outputs",
     // (undocumented)
     LEGACY = "amplifyconfiguration"
 }

@@ -15,7 +15,7 @@ import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 import { UserPoolIdentityProviderSamlMetadata } from 'aws-cdk-lib/aws-cognito';
 
 // @public
-export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool' | 'attributeMapping'> & IdentityProviderProps;
+export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool'>;
 
 // @public
 export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
@@ -24,16 +24,7 @@ export class AmplifyAuth extends Construct implements ResourceProvider<AuthResou
 }
 
 // @public
-export type AppleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAppleProps, 'userPool' | 'attributeMapping'> & IdentityProviderProps;
-
-// @public
-export type AttributeMapping = {
-    [K in keyof Omit<aws_cognito.AttributeMapping, 'custom'>]: string;
-} & {
-    custom?: {
-        [key: string]: string;
-    };
-};
+export type AppleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAppleProps, 'userPool'>;
 
 // @public
 export type AuthProps = {
@@ -71,16 +62,11 @@ export type ExternalProviderOptions = {
 };
 
 // @public
-export type FacebookProviderProps = Omit<aws_cognito.UserPoolIdentityProviderFacebookProps, 'userPool' | 'attributeMapping'> & IdentityProviderProps;
+export type FacebookProviderProps = Omit<aws_cognito.UserPoolIdentityProviderFacebookProps, 'userPool'>;
 
 // @public
-export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool' | 'clientSecretValue' | 'clientSecret' | 'attributeMapping'> & {
+export type GoogleProviderProps = Omit<aws_cognito.UserPoolIdentityProviderGoogleProps, 'userPool' | 'clientSecretValue' | 'clientSecret'> & {
     clientSecret?: SecretValue;
-} & IdentityProviderProps;
-
-// @public
-export type IdentityProviderProps = {
-    attributeMapping?: AttributeMapping;
 };
 
 // @public
@@ -97,9 +83,9 @@ export type MFASettings = {
 };
 
 // @public
-export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool' | 'attributeRequestMethod' | 'attributeMapping'> & {
+export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool' | 'attributeRequestMethod'> & {
     readonly attributeRequestMethod?: 'GET' | 'POST';
-} & IdentityProviderProps;
+};
 
 // @public
 export type PhoneNumberLogin = true | {
@@ -107,11 +93,11 @@ export type PhoneNumberLogin = true | {
 };
 
 // @public
-export type SamlProviderProps = Omit<aws_cognito.UserPoolIdentityProviderSamlProps, 'userPool' | 'metadata' | 'attributeMapping'> & {
+export type SamlProviderProps = Omit<aws_cognito.UserPoolIdentityProviderSamlProps, 'userPool' | 'metadata'> & {
     metadata: Omit<UserPoolIdentityProviderSamlMetadata, 'metadataType'> & {
         metadataType: 'URL' | 'FILE';
     };
-} & IdentityProviderProps;
+};
 
 // @public
 export type TriggerEvent = (typeof triggerEvents)[number];
