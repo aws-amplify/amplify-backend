@@ -219,7 +219,7 @@ export class CdkErrorMapper {
         /Failed to retrieve backend secret (.*) for.*ParameterNotFound/,
       humanReadableErrorMessage: `The secret ${this.placeHolder} specified in the backend does not exist.`,
       resolutionMessage:
-        'Please create the secret using `npx amplify sandbox secret set`. For more information, see https://docs.amplify.aws/gen2/deploy-and-host/sandbox-environments/features/#set-secrets',
+        'Create secrets using the command `npx amplify sandbox secret set`. For more information, see https://docs.amplify.aws/gen2/deploy-and-host/sandbox-environments/features/#set-secrets',
       errorName: 'SecretNotSetError',
       classification: 'ERROR',
     },
