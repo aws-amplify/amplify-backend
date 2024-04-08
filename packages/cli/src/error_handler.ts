@@ -1,7 +1,6 @@
-import { format, printer } from '@aws-amplify/cli-core';
-import { InvalidCredentialError } from './error/credential_error.js';
-import { EOL } from 'os';
+import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { Argv } from 'yargs';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 let hasAttachUnhandledExceptionListenersBeenCalled = false;
 
@@ -79,21 +78,50 @@ const handleError = (
   if (isUserForceClosePromptError(error)) {
     return;
   }
-  if (error instanceof InvalidCredentialError) {
-    printer.print(format.error(`${error.message}${EOL}`));
-    return;
-  }
 
   printMessagePreamble?.();
-  printer.print(format.error(message || String(error)));
-  if (errorHasCauseMessage(error)) {
-    printer.print(format.error(error.cause.message));
+
+  if (error instanceof AmplifyError) {
+    printer.print(format.error(`${error.name}: ${error.message}`));
+    if (error.resolution) {
+      printer.print(`Resolution: ${error.resolution}`);
+    }
+    if (error.details) {
+      printer.print(`Details: ${error.details}`);
+    }
+    if (errorHasCauseMessage(error)) {
+      printer.print(`Cause: ${error.cause.message}`);
+    }
+  } else {
+    // non-Amplify Error object
+    printer.print(format.error(message || String(error)));
+    if (errorHasCauseMessage(error)) {
+      printer.print(`Cause: ${error.cause.message}`);
+    }
   }
-  printer.printNewLine();
+
+  // additional debug logging for the stack traces
+  if (error?.stack) {
+    printer.log(error.stack, LogLevel.DEBUG);
+  }
+  if (errorHasCauseStackTrace(error)) {
+    printer.log(error.cause.stack, LogLevel.DEBUG);
+  }
 };
 
 const isUserForceClosePromptError = (err?: Error): boolean => {
   return !!err && err?.message.includes('User force closed the prompt');
+};
+
+const errorHasCauseStackTrace = (
+  error?: Error
+): error is Error & { cause: { stack: string } } => {
+  return (
+    typeof error?.cause === 'object' &&
+    !!error.cause &&
+    'stack' in error.cause &&
+    typeof error.cause.stack === 'string'
+  );
 };
 
 const errorHasCauseMessage = (

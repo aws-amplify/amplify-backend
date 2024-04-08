@@ -29,7 +29,11 @@ import {
   FilesChangesTracker,
   createFilesChangesTracker,
 } from './files_changes_tracker.js';
-import { AmplifyError, AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  AmplifyError,
+  AmplifyUserError,
+  BackendIdentifierConversions
+} from '@aws-amplify/platform-core';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
@@ -112,7 +116,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     this.outputFilesExcludedFromWatch =
       this.outputFilesExcludedFromWatch.concat(...ignoredPaths);
 
-    this.printer.log(`[Sandbox] Initializing...`, LogLevel.DEBUG);
+    await this.printSandboxNameInfo(options.identifier);
+
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
     // introduce a concurrency latch that tracks the state.
     // This way, if file change events arrive when a 'cdk deploy' is still executing,
@@ -198,7 +203,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       '[Sandbox] Deleting all the resources in the sandbox environment...'
     );
     await this.executor.destroy(
-      await this.backendIdSandboxResolver(options.name)
+      await this.backendIdSandboxResolver(options.identifier)
     );
     this.emit('successfulDeletion');
     this.printer.log('[Sandbox] Finished deleting.');
@@ -219,7 +224,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   private deploy = async (options: SandboxOptions) => {
     try {
       const deployResult = await this.executor.deploy(
-        await this.backendIdSandboxResolver(options.name),
+        await this.backendIdSandboxResolver(options.identifier),
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
         this.shouldValidateAppSources
@@ -245,7 +250,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   private reset = async (options: SandboxOptions) => {
-    await this.delete({ name: options.name });
+    await this.delete({ identifier: options.identifier });
     await this.start(options);
   };
 
@@ -357,5 +362,27 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       await this.reset(options);
     }
     // else let the sandbox continue so customers can revert their changes
+  };
+
+  private printSandboxNameInfo = async (sandboxIdentifier?: string) => {
+    const sandboxBackendId = await this.backendIdSandboxResolver(
+      sandboxIdentifier
+    );
+    const stackName =
+      BackendIdentifierConversions.toStackName(sandboxBackendId);
+    this.printer.log(
+      format.indent(format.highlight(format.bold('\nAmplify Sandbox\n')))
+    );
+    this.printer.log(
+      format.indent(`${format.bold('Identifier:')} \t${sandboxBackendId.name}`)
+    );
+    this.printer.log(format.indent(`${format.bold('Stack:')} \t${stackName}`));
+    if (!sandboxIdentifier) {
+      this.printer.log(
+        `${format.indent(
+          format.dim('\nTo specify a different sandbox identifier, use ')
+        )}${format.bold('--identifier')}`
+      );
+    }
   };
 }

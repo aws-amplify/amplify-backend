@@ -1,4 +1,4 @@
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
@@ -35,14 +35,14 @@ export class SandboxSecretRemoveCommand
    * @inheritDoc
    */
   handler = async (
-    args: SecretRemoveCommandOptionsKebabCase
+    args: ArgumentsCamelCase<SecretRemoveCommandOptionsKebabCase>
   ): Promise<void> => {
     const sandboxBackendIdentifier = await this.sandboxIdResolver.resolve(
-      args.name
+      args.identifier
     );
     await this.secretClient.removeSecret(
       sandboxBackendIdentifier,
-      args['secret-name']
+      args.secretName
     );
   };
 

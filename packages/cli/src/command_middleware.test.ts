@@ -1,11 +1,12 @@
 import assert from 'node:assert';
-import { after, before, beforeEach, describe, it } from 'node:test';
+import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import { CommandMiddleware } from './command_middleware.js';
 import { EOL } from 'node:os';
 import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import fs from 'fs/promises';
 import path from 'path';
 import { ArgumentsCamelCase } from 'yargs';
+import { Printer } from '@aws-amplify/cli-core';
 
 const restoreEnv = (restoreVal: string | undefined, envVar: string) => {
   if (restoreVal) {
@@ -17,7 +18,10 @@ const restoreEnv = (restoreVal: string | undefined, envVar: string) => {
 
 void describe('commandMiddleware', () => {
   void describe('ensureAwsCredentialAndRegion', () => {
-    const commandMiddleware = new CommandMiddleware();
+    const printerMock = { log: mock.fn() };
+    const commandMiddleware = new CommandMiddleware(
+      printerMock as unknown as Printer
+    );
     const testAccessKeyId = '124';
     const testSecretAccessKey = '667';
     const testProfile = 'profileA';
@@ -28,11 +32,13 @@ void describe('commandMiddleware', () => {
     let configFilePath: string;
 
     const currentProfile = process.env.AWS_PROFILE;
+    const currentDefaultProfile = process.env.AWS_DEFAULT_PROFILE;
     const currentConfigFile = process.env.AWS_CONFIG_FILE;
     const currentCredentialFile = process.env.AWS_SHARED_CREDENTIALS_FILE;
     const currentAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
     const currentSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
     const currentRegion = process.env.AWS_REGION;
+    const currentDefaultRegion = process.env.AWS_DEFAULT_REGION;
 
     before(async () => {
       testDir = await fs.mkdtemp('profile_middleware_test');
@@ -45,11 +51,13 @@ void describe('commandMiddleware', () => {
     after(async () => {
       await fs.rm(testDir, { recursive: true, force: true });
       restoreEnv(currentProfile, 'AWS_PROFILE');
+      restoreEnv(currentDefaultProfile, 'AWS_DEFAULT_PROFILE');
       restoreEnv(currentConfigFile, 'AWS_CONFIG_FILE');
       restoreEnv(currentCredentialFile, 'AWS_SHARED_CREDENTIALS_FILE');
       restoreEnv(currentAccessKeyId, 'AWS_ACCESS_KEY_ID');
       restoreEnv(currentSecretAccessKey, 'AWS_SECRET_ACCESS_KEY');
       restoreEnv(currentRegion, 'AWS_REGION');
+      restoreEnv(currentDefaultRegion, 'AWS_DEFAULT_REGION');
     });
 
     void describe('from environment variables', () => {
@@ -58,6 +66,7 @@ void describe('commandMiddleware', () => {
         process.env.AWS_SECRET_ACCESS_KEY = testSecretAccessKey;
         process.env.AWS_REGION = testRegion;
         delete process.env.AWS_PROFILE;
+        printerMock.log.mock.resetCalls();
       });
 
       void it('loads credentials', async () => {
@@ -68,8 +77,38 @@ void describe('commandMiddleware', () => {
         );
       });
 
-      void it('throws error if absent region environment variable', async () => {
+      void it('maps AWS_DEFAULT_REGION to AWS_REGION', async () => {
         delete process.env.AWS_REGION;
+        process.env.AWS_DEFAULT_REGION = testRegion;
+        await assert.doesNotReject(() =>
+          commandMiddleware.ensureAwsCredentialAndRegion(
+            {} as ArgumentsCamelCase<{ profile: string | undefined }>
+          )
+        );
+        assert.equal(process.env.AWS_REGION, testRegion);
+        assert.match(
+          printerMock.log.mock.calls[0].arguments[0],
+          /Legacy environment variable/
+        );
+      });
+
+      void it('prefers AWS_REGION to AWS_DEFAULT_REGION', async () => {
+        process.env.AWS_DEFAULT_REGION = 'testDefaultRegion';
+        await assert.doesNotReject(() =>
+          commandMiddleware.ensureAwsCredentialAndRegion(
+            {} as ArgumentsCamelCase<{ profile: string | undefined }>
+          )
+        );
+        assert.equal(process.env.AWS_REGION, testRegion);
+        assert.match(
+          printerMock.log.mock.calls[0].arguments[0],
+          /Using 'AWS_REGION'/
+        );
+      });
+
+      void it('throws error if absent region environment variables', async () => {
+        delete process.env.AWS_REGION;
+        delete process.env.AWS_DEFAULT_REGION;
         try {
           await commandMiddleware.ensureAwsCredentialAndRegion(
             {} as ArgumentsCamelCase<{ profile: string | undefined }>
@@ -78,7 +117,7 @@ void describe('commandMiddleware', () => {
         } catch (err) {
           assert.match(
             (err as Error).message,
-            /Failed to load default aws region/
+            /Failed to load default AWS region/
           );
         }
       });
@@ -92,7 +131,7 @@ void describe('commandMiddleware', () => {
         } catch (err) {
           assert.match(
             (err as Error).message,
-            /Failed to load aws credentials for profile/
+            /Failed to load AWS credentials for profile/
           );
         }
       });
@@ -110,6 +149,7 @@ void describe('commandMiddleware', () => {
         await fs.writeFile(credFilePath, '', 'utf-8');
         await fs.writeFile(configFilePath, '', 'utf-8');
         delete process.env.AWS_PROFILE;
+        printerMock.log.mock.resetCalls();
       });
 
       const writeProfileCredential = async (
@@ -136,7 +176,7 @@ void describe('commandMiddleware', () => {
         } catch (err) {
           assert.match(
             (err as Error).message,
-            /Failed to load default aws credentials/
+            /Failed to load default AWS credentials/
           );
         }
       });
@@ -152,7 +192,7 @@ void describe('commandMiddleware', () => {
         } catch (err) {
           assert.match(
             (err as Error).message,
-            /Failed to load default aws region/
+            /Failed to load default AWS region/
           );
         }
       });
@@ -177,7 +217,7 @@ void describe('commandMiddleware', () => {
         } catch (err) {
           assert.match(
             (err as Error).message,
-            /Failed to load aws credentials for profile/
+            /Failed to load AWS credentials for profile/
           );
         }
       });
@@ -193,7 +233,7 @@ void describe('commandMiddleware', () => {
         } catch (err) {
           assert.match(
             (err as Error).message,
-            /Failed to load aws region for profile/
+            /Failed to load AWS region for profile/
           );
         }
       });
@@ -206,6 +246,41 @@ void describe('commandMiddleware', () => {
           commandMiddleware.ensureAwsCredentialAndRegion({
             profile: testProfile,
           } as ArgumentsCamelCase<{ profile: string | undefined }>)
+        );
+      });
+
+      void it('maps AWS_DEFAULT_PROFILE to AWS_PROFILE', async () => {
+        process.env.AWS_DEFAULT_PROFILE = testProfile;
+        await writeProfileRegion(testProfile);
+        await writeProfileCredential(testProfile);
+
+        await assert.doesNotReject(() =>
+          commandMiddleware.ensureAwsCredentialAndRegion(
+            {} as ArgumentsCamelCase<{ profile: string | undefined }>
+          )
+        );
+        assert.equal(process.env.AWS_PROFILE, testProfile);
+        assert.match(
+          printerMock.log.mock.calls[0].arguments[0],
+          /Legacy environment variable/
+        );
+      });
+
+      void it('prefers AWS_PROFILE over AWS_DEFAULT_PROFILE', async () => {
+        process.env.AWS_DEFAULT_PROFILE = 'testDefaultProfile';
+        process.env.AWS_PROFILE = testProfile;
+        await writeProfileRegion(testProfile);
+        await writeProfileCredential(testProfile);
+
+        await assert.doesNotReject(() =>
+          commandMiddleware.ensureAwsCredentialAndRegion(
+            {} as ArgumentsCamelCase<{ profile: string | undefined }>
+          )
+        );
+        assert.equal(process.env.AWS_PROFILE, testProfile);
+        assert.match(
+          printerMock.log.mock.calls[0].arguments[0],
+          /Using 'AWS_PROFILE'/
         );
       });
     });

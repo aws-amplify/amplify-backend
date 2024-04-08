@@ -1,5 +1,17 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.10
+
+### Minor Changes
+
+- f76e983: Use updated metadata fields in form and model generation
+
+## 0.10.0-beta.9
+
+### Patch Changes
+
+- 915bf98: upgrade @aws-amplify/data-construct dependency
+
 ## 0.10.0-beta.8
 
 ### Minor Changes

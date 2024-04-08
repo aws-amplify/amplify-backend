@@ -12,7 +12,7 @@ import EventEmitter from 'events';
 import { Printer } from '@aws-amplify/cli-core';
 
 // @public (undocumented)
-export type BackendIdSandboxResolver = (sandboxName?: string) => Promise<BackendIdentifier>;
+export type BackendIdSandboxResolver = (identifier?: string) => Promise<BackendIdentifier>;
 
 // @public
 export type Sandbox = {
@@ -23,7 +23,7 @@ export type Sandbox = {
 
 // @public (undocumented)
 export type SandboxDeleteOptions = {
-    name?: string;
+    identifier?: string;
 };
 
 // @public (undocumented)
@@ -33,7 +33,7 @@ export type SandboxEvents = 'successfulDeployment' | 'failedDeployment' | 'succe
 export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
-    name?: string;
+    identifier?: string;
     format?: ClientConfigFormat;
     profile?: string;
 };

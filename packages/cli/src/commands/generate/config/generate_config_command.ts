@@ -1,4 +1,4 @@
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import {
   ClientConfigFormat,
   ClientConfigVersion,
@@ -51,7 +51,9 @@ export class GenerateConfigCommand
   /**
    * @inheritDoc
    */
-  handler = async (args: GenerateConfigCommandOptions): Promise<void> => {
+  handler = async (
+    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
+  ): Promise<void> => {
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
@@ -62,8 +64,8 @@ export class GenerateConfigCommand
 
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendIdentifier,
-      args['config-version'] as ClientConfigVersion,
-      args['out-dir'],
+      args.configVersion as ClientConfigVersion,
+      args.outDir,
       args.format
     );
   };
@@ -109,7 +111,7 @@ export class GenerateConfigCommand
       })
       .option('config-version', {
         describe:
-          'Version of the client config. Version 0 represents classic amplify-cli client config amplify-configuration (Default) and 1 represents new unified client config amplify-outputs',
+          'Version of the client config. Version 0 represents classic amplify-cli client config amplify-configuration (Default) and 1 represents new unified client config amplify_outputs',
         type: 'string',
         array: false,
         choices: Object.values(ClientConfigVersionOption),

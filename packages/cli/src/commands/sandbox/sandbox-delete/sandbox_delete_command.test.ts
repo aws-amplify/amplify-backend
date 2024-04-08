@@ -14,7 +14,7 @@ void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
   let sandboxDeleteMock = mock.fn();
 
-  const commandMiddleware = new CommandMiddleware();
+  const commandMiddleware = new CommandMiddleware(printer);
   const mockHandleProfile = mock.method(
     commandMiddleware,
     'ensureAwsCredentialAndRegion',
@@ -60,7 +60,7 @@ void describe('sandbox delete command', () => {
 
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
-      name: undefined,
+      identifier: undefined,
     });
     assert.equal(mockHandleProfile.mock.callCount(), 1);
     assert.equal(
@@ -69,15 +69,15 @@ void describe('sandbox delete command', () => {
     );
   });
 
-  void it('deletes sandbox with user provided name', async (contextual) => {
+  void it('deletes sandbox with user provided identifier', async (contextual) => {
     contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
       Promise.resolve(true)
     );
-    await commandRunner.runCommand('sandbox delete --name test-App-Name');
+    await commandRunner.runCommand('sandbox delete --identifier test-App-Name');
 
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
-      name: 'test-App-Name',
+      identifier: 'test-App-Name',
     });
   });
 
@@ -98,7 +98,7 @@ void describe('sandbox delete command', () => {
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox delete --help');
     assert.match(output, /--yes/);
-    assert.match(output, /--name/);
+    assert.match(output, /--identifier/);
     assert.doesNotMatch(output, /--exclude/);
     assert.doesNotMatch(output, /--dir-to-watch/);
     assert.equal(mockHandleProfile.mock.callCount(), 0);

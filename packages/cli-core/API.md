@@ -29,8 +29,11 @@ export const format: {
     error: (message: string) => string;
     note: (message: string) => string;
     command: (command: string) => string;
+    highlight: (command: string) => string;
     success: (message: string) => string;
     sectionHeader: (header: string) => string;
+    bold: (message: string) => string;
+    dim: (message: string) => string;
     link: (link: string) => string;
     list: (lines: string[]) => string;
     indent: (message: string) => string;
@@ -57,7 +60,7 @@ export class PackageManagerControllerFactory {
 export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream, stderr?: NodeJS.WriteStream, refreshRate?: number);
     indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
-    log(message: string, level?: LogLevel, eol?: boolean): void;
+    log(message: string, level?: LogLevel): void;
     print: (message: string) => void;
     printNewLine: () => void;
 }

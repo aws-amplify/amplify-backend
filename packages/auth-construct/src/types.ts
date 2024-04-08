@@ -6,31 +6,52 @@ import {
   StandardAttributes,
   UserPoolIdentityProviderSamlMetadata,
 } from 'aws-cdk-lib/aws-cognito';
-
-/**
- * Email login settings object
- */
-export type EmailLoginSettings = {
+export type VerificationEmailWithLink = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
    */
-  verificationEmailStyle?: 'CODE' | 'LINK';
+  verificationEmailStyle?: 'LINK';
   /**
    * Customize your verification emails.
-   * Use the code or link parameter to inject verification codes or links into the user verification email.
-   * @example
-   * verificationEmailStyle: "CODE",
-   * verificationEmailBody: (code: string) => `Your verification code is ${code}.`
+   * Use the link parameter to inject verification links into the user verification email.
+   * You can customize the link text by providing a string, as shown in the example below.
    * @example
    * verificationEmailStyle: "LINK",
-   * verificationEmailBody: (link: string) => `Your verification link is ${link}.`
+   * verificationEmailBody: (link) => `Your verification link is ${link()}.`
+   * @example
+   * To customize the link text, you can provide custom link text to the .
+   * verificationEmailBody: (link) => `Your custom verification link is ${link('custom link text')}.`
    */
-  verificationEmailBody?: (codeOrLink: string) => string;
+  verificationEmailBody?: (link: (text?: string) => string) => string;
   /**
    * The verification email subject.
    */
   verificationEmailSubject?: string;
 };
+export type VerificationEmailWithCode = {
+  /**
+   * The type of verification. Must be one of "CODE" or "LINK".
+   */
+  verificationEmailStyle?: 'CODE';
+  /**
+   * Customize your verification emails.
+   * Use the code parameter to inject verification codes into the user verification email.
+   * @example
+   * verificationEmailStyle: "CODE",
+   * verificationEmailBody: (code) => `Your verification code is ${code()}.`
+   */
+  verificationEmailBody?: (code: () => string) => string;
+  /**
+   * The verification email subject.
+   */
+  verificationEmailSubject?: string;
+};
+/**
+ * Email login settings object.
+ */
+export type EmailLoginSettings =
+  | VerificationEmailWithLink
+  | VerificationEmailWithCode;
 /**
  * Email login options.
  *
@@ -94,13 +115,37 @@ export type MFA = {
    */
   mode: 'OFF' | 'OPTIONAL' | 'REQUIRED';
 } & MFASettings;
-
+/**
+ * Properties which all identity providers have
+ */
+export type IdentityProviderProps = {
+  /**
+   * Mapping attributes from the identity provider to standard and custom attributes of the user pool.
+   * @default - no attribute mapping
+   */
+  attributeMapping?: AttributeMapping;
+};
+/**
+ * A wrapper for cognito.AttributeMapping that simplifies the way attribute mappings are declared by
+ * using strings for attribute name instead of objects with an attributeName property.
+ */
+export type AttributeMapping = {
+  [K in keyof Omit<cognito.AttributeMapping, 'custom'>]: string;
+} & {
+  /**
+   * Specify custom attribute mapping here and mapping for any standard attributes not supported yet.
+   * @default - no custom attribute mapping
+   */
+  custom?: {
+    [key: string]: string;
+  };
+};
 /**
  * Google provider.
  */
 export type GoogleProviderProps = Omit<
   cognito.UserPoolIdentityProviderGoogleProps,
-  'userPool' | 'clientSecretValue' | 'clientSecret'
+  'userPool' | 'clientSecretValue' | 'clientSecret' | 'attributeMapping'
 > & {
   /**
    * The client secret to be accompanied with clientId for Google APIs to authenticate the client as SecretValue
@@ -108,38 +153,41 @@ export type GoogleProviderProps = Omit<
    * @default none
    */
   clientSecret?: SecretValue;
-};
+} & IdentityProviderProps;
 
 /**
  * Apple provider.
  */
 export type AppleProviderProps = Omit<
   cognito.UserPoolIdentityProviderAppleProps,
-  'userPool'
->;
+  'userPool' | 'attributeMapping'
+> &
+  IdentityProviderProps;
 
 /**
  * Amazon provider.
  */
 export type AmazonProviderProps = Omit<
   cognito.UserPoolIdentityProviderAmazonProps,
-  'userPool'
->;
+  'userPool' | 'attributeMapping'
+> &
+  IdentityProviderProps;
 
 /**
  * Facebook provider.
  */
 export type FacebookProviderProps = Omit<
   cognito.UserPoolIdentityProviderFacebookProps,
-  'userPool'
->;
+  'userPool' | 'attributeMapping'
+> &
+  IdentityProviderProps;
 
 /**
  * OIDC provider.
  */
 export type OidcProviderProps = Omit<
   cognito.UserPoolIdentityProviderOidcProps,
-  'userPool' | 'attributeRequestMethod'
+  'userPool' | 'attributeRequestMethod' | 'attributeMapping'
 > & {
   /**
    * The method to use to request attributes
@@ -151,14 +199,14 @@ export type OidcProviderProps = Omit<
    * 'POST' - use POST
    */
   readonly attributeRequestMethod?: 'GET' | 'POST';
-};
+} & IdentityProviderProps;
 
 /**
  * SAML provider.
  */
 export type SamlProviderProps = Omit<
   cognito.UserPoolIdentityProviderSamlProps,
-  'userPool' | 'metadata'
+  'userPool' | 'metadata' | 'attributeMapping'
 > & {
   /**
    * The SAML metadata.
@@ -175,7 +223,7 @@ export type SamlProviderProps = Omit<
      */
     metadataType: 'URL' | 'FILE';
   };
-};
+} & IdentityProviderProps;
 
 /**
  * External provider options.

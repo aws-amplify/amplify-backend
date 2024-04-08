@@ -10,9 +10,9 @@ import {
   AuthClientConfig,
   GeoClientConfig,
   GraphqlClientConfig,
+  NotificationsClientConfig,
   StorageClientConfig,
 } from '../index.js';
-import { RestApiClientConfig } from '../client-config-types/rest_api_client_config.js';
 
 /**
  * Converts unified client config to the legacy format.
@@ -56,23 +56,33 @@ export class ClientConfigLegacyConverter {
           : 'false';
       }
 
-      authClientConfig.aws_cognito_mfa_types = clientConfig.auth.mfa_methods;
-
-      if (clientConfig.auth.standard_attributes) {
-        authClientConfig.aws_cognito_signup_attributes = Object.keys(
-          clientConfig.auth.standard_attributes
-        );
+      if (clientConfig.auth.mfa_methods) {
+        authClientConfig.aws_cognito_mfa_types = clientConfig.auth.mfa_methods;
       }
-
-      authClientConfig.aws_cognito_username_attributes =
-        clientConfig.auth.username_attributes;
-      authClientConfig.aws_cognito_verification_mechanisms =
-        clientConfig.auth.user_verification_mechanisms;
 
       if (clientConfig.auth.mfa_configuration) {
         authClientConfig.aws_cognito_mfa_configuration =
           clientConfig.auth.mfa_configuration;
       }
+
+      if (clientConfig.auth.standard_required_attributes) {
+        authClientConfig.aws_cognito_signup_attributes =
+          clientConfig.auth.standard_required_attributes?.map((attribute) =>
+            attribute.toUpperCase()
+          );
+      }
+
+      if (clientConfig.auth.username_attributes) {
+        authClientConfig.aws_cognito_username_attributes =
+          clientConfig.auth.username_attributes?.map((attribute) =>
+            attribute.toUpperCase()
+          );
+      }
+
+      authClientConfig.aws_cognito_verification_mechanisms =
+        clientConfig.auth.user_verification_types?.map((attribute) =>
+          attribute.toUpperCase()
+        );
 
       if (clientConfig.auth.password_policy) {
         authClientConfig.aws_cognito_password_protection_settings = {};
@@ -99,35 +109,20 @@ export class ClientConfigLegacyConverter {
           requirements;
       }
 
-      if (clientConfig.auth.identity_providers) {
+      if (clientConfig.auth.oauth) {
+        authClientConfig.oauth = {};
         authClientConfig.aws_cognito_social_providers =
-          clientConfig.auth.identity_providers;
-      }
-
-      // TBD OAuthClientId aka authClientConfig.oauth?.clientId
-      authClientConfig.oauth = {};
-      if (clientConfig.auth.oauth_domain) {
-        authClientConfig.oauth.domain = clientConfig.auth.oauth_domain;
-      }
-      if (clientConfig.auth.oauth_scope) {
-        authClientConfig.oauth.scope = clientConfig.auth.oauth_scope;
-      }
-
-      if (clientConfig.auth.oauth_redirect_sign_in) {
+          clientConfig.auth.oauth.identity_providers;
+        authClientConfig.oauth.domain = clientConfig.auth.oauth.domain;
+        authClientConfig.oauth.scope = clientConfig.auth.oauth.scopes;
         authClientConfig.oauth.redirectSignIn =
-          clientConfig.auth.oauth_redirect_sign_in.join(',');
-      }
-      if (clientConfig.auth.oauth_redirect_sign_out) {
+          clientConfig.auth.oauth.redirect_sign_in_uri.join(',');
         authClientConfig.oauth.redirectSignOut =
-          clientConfig.auth.oauth_redirect_sign_out.join(',');
-      }
-      if (clientConfig.auth.oauth_response_type) {
+          clientConfig.auth.oauth.redirect_sign_out_uri.join(',');
         authClientConfig.oauth.responseType =
-          clientConfig.auth.oauth_response_type;
+          clientConfig.auth.oauth.response_type;
       }
-      if (Object.keys(authClientConfig.oauth).length === 0) {
-        delete authClientConfig.oauth;
-      }
+
       legacyConfig = { ...legacyConfig, ...authClientConfig };
     }
 
@@ -150,11 +145,6 @@ export class ClientConfigLegacyConverter {
           clientConfig.data.authorization_types.join(',');
       }
 
-      if (clientConfig.data.conflict_resolution_mode) {
-        dataConfig.aws_appsync_conflictResolutionMode =
-          clientConfig.data.conflict_resolution_mode;
-      }
-
       legacyConfig = { ...legacyConfig, ...dataConfig };
     }
 
@@ -168,12 +158,12 @@ export class ClientConfigLegacyConverter {
     }
 
     // Analytics category
-    if (clientConfig.analytics) {
+    if (clientConfig.analytics && clientConfig.analytics.amazon_pinpoint) {
       const analyticsConfig: AnalyticsClientConfig = {
         Analytics: {
           Pinpoint: {
-            appId: clientConfig.analytics.pinpoint_app_id,
-            region: clientConfig.analytics.aws_region,
+            appId: clientConfig.analytics.amazon_pinpoint.app_id,
+            region: clientConfig.analytics.amazon_pinpoint.aws_region,
           },
         },
       };
@@ -192,9 +182,11 @@ export class ClientConfigLegacyConverter {
 
       if (clientConfig.geo.maps) {
         const mapsLegacyConfig: Record<string, { style: string }> = {};
-        for (const mapItem of clientConfig.geo.maps.items) {
-          if (mapItem.name && mapItem.style) {
-            mapsLegacyConfig[mapItem.name] = { style: mapItem.style };
+        for (const mapName in clientConfig.geo.maps.items) {
+          if (clientConfig.geo.maps.items[mapName].style) {
+            mapsLegacyConfig[mapName] = {
+              style: clientConfig.geo.maps.items[mapName].style!,
+            };
           }
         }
         geoConfig.geo!.amazon_location_service.maps = {
@@ -216,18 +208,37 @@ export class ClientConfigLegacyConverter {
       legacyConfig = { ...legacyConfig, ...geoConfig };
     }
 
-    // Rest API
-    if (clientConfig.api && clientConfig.api.endpoints) {
-      const restAPIConfig: RestApiClientConfig = { aws_cloud_logic_custom: [] };
-      for (const apiEndpoint of clientConfig.api.endpoints) {
-        restAPIConfig.aws_cloud_logic_custom.push({
-          endpoint: apiEndpoint.url,
-          name: apiEndpoint.name,
-          region: apiEndpoint.aws_region,
-        });
+    // Notifications
+    if (clientConfig.notifications) {
+      const pinPointConfig = {
+        AWSPinpoint: {
+          appId: clientConfig.notifications.amazon_pinpoint_app_id,
+          region: clientConfig.notifications.aws_region,
+        },
+      };
+      const notificationConfig: NotificationsClientConfig = {};
+      notificationConfig.Notifications = {};
+      for (const notificationChannel of clientConfig.notifications.channels) {
+        switch (notificationChannel) {
+          case 'IN_APP_MESSAGING':
+            notificationConfig.Notifications.InAppMessaging = pinPointConfig;
+            break;
+          case 'FCM':
+            notificationConfig.Notifications.FCM = pinPointConfig;
+            break;
+          case 'APNS':
+            notificationConfig.Notifications.APNS = pinPointConfig;
+            break;
+          case 'EMAIL':
+            notificationConfig.Notifications.EMAIL = pinPointConfig;
+            break;
+          case 'SMS':
+            notificationConfig.Notifications.SMS = pinPointConfig;
+            break;
+        }
       }
 
-      legacyConfig = { ...legacyConfig, ...restAPIConfig };
+      legacyConfig = { ...legacyConfig, ...notificationConfig };
     }
 
     // Custom

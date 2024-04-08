@@ -2,6 +2,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
   DocumentGenerationParameters,
+  GenerateGraphqlCodegenToFileResult,
   GenerationResult,
   GraphqlDocumentGenerator,
   GraphqlModelsGenerator,
@@ -175,11 +176,19 @@ export class ApiCodeGenerator {
       });
 
       return {
-        writeToDirectory: async (directoryPath: string) => {
-          await Promise.all([
-            documents.writeToDirectory(directoryPath),
-            types.writeToDirectory(directoryPath),
-          ]);
+        writeToDirectory: async (
+          directoryPath: string
+        ): Promise<GenerateGraphqlCodegenToFileResult> => {
+          const filesWritten: string[] = [];
+          const { filesWritten: documentsFilesWritten } =
+            await documents.writeToDirectory(directoryPath);
+          const { filesWritten: typesFilesWritten } =
+            await types.writeToDirectory(directoryPath);
+          filesWritten.push(...documentsFilesWritten, ...typesFilesWritten);
+
+          return {
+            filesWritten,
+          };
         },
         getResults: async () => ({
           ...(await documents.getResults()),

@@ -1,6 +1,6 @@
 import { execa, execaCommand } from 'execa';
 import { existsSync } from 'fs';
-import { copyFile, readFile, unlink } from 'fs/promises';
+import { readFile, unlink } from 'fs/promises';
 
 const EXPECTED_URL = 'http://localhost:4873';
 const LOG_FILE = 'verdaccio-logs.txt';
@@ -43,6 +43,3 @@ console.log(`Local npm proxy running at ${EXPECTED_URL}.`);
 
 await execa('npm', ['config', 'set', 'registry', EXPECTED_URL]);
 console.log(`Set npm registry to ${EXPECTED_URL}`);
-
-// copy local config into .npmrc
-await copyFile('.npmrc.local', '.npmrc');

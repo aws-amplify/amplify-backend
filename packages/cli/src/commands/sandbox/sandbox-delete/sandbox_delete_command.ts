@@ -45,7 +45,7 @@ export class SandboxDeleteCommand
     if (isConfirmed) {
       await (
         await this.sandboxFactory.getInstance()
-      ).delete({ name: args.name });
+      ).delete({ identifier: args.identifier });
     }
   };
 

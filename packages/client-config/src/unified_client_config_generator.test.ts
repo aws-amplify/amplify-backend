@@ -37,9 +37,9 @@ void describe('UnifiedClientConfigGenerator', () => {
               '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
             mfaTypes: '["SMS","TOTP"]',
             mfaConfiguration: 'OPTIONAL',
-            verificationMechanisms: '["EMAIL","PHONE"]',
-            usernameAttributes: '["EMAIL"]',
-            signupAttributes: '["EMAIL"]',
+            verificationMechanisms: '["email","phone_number"]',
+            usernameAttributes: '["email"]',
+            signupAttributes: '["email"]',
             allowUnauthenticatedIdentities: 'true',
           },
         },
@@ -82,9 +82,9 @@ void describe('UnifiedClientConfigGenerator', () => {
           user_pool_client_id: 'testWebClientId',
           identity_pool_id: 'testIdentityPoolId',
           mfa_methods: ['SMS', 'TOTP'],
-          standard_attributes: { EMAIL: { required: true } },
-          username_attributes: ['EMAIL'],
-          user_verification_mechanisms: ['EMAIL', 'PHONE'],
+          standard_required_attributes: ['email'],
+          username_attributes: ['email'],
+          user_verification_types: ['email', 'phone_number'],
           mfa_configuration: 'OPTIONAL',
 
           password_policy: {
@@ -102,7 +102,6 @@ void describe('UnifiedClientConfigGenerator', () => {
           api_key: 'testApiKey',
           default_authorization_type: 'API_KEY',
           authorization_types: ['API_KEY'],
-          conflict_resolution_mode: 'AUTO_MERGE',
         },
         version: '1',
       };

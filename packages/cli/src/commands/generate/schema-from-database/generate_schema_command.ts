@@ -1,4 +1,4 @@
-import { Argv, CommandModule } from 'yargs';
+import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SecretClient } from '@aws-amplify/backend-secret';
@@ -50,7 +50,9 @@ export class GenerateSchemaCommand
   /**
    * @inheritDoc
    */
-  handler = async (args: GenerateSchemaCommandOptions): Promise<void> => {
+  handler = async (
+    args: ArgumentsCamelCase<GenerateSchemaCommandOptions>
+  ): Promise<void> => {
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
@@ -61,8 +63,8 @@ export class GenerateSchemaCommand
       });
     }
 
-    const secretName = args['connection-uri-secret'] as string;
-    const outputFile = args['out'] as string;
+    const secretName = args.connectionUriSecret as string;
+    const outputFile = args.out as string;
 
     const connectionUriSecret = await this.secretClient.getSecret(
       backendIdentifier as BackendIdentifier,
@@ -72,7 +74,10 @@ export class GenerateSchemaCommand
     );
 
     await this.schemaGenerator.generate({
-      connectionUri: connectionUriSecret.value,
+      connectionUri: {
+        secretName,
+        value: connectionUriSecret.value,
+      },
       out: outputFile,
     });
   };

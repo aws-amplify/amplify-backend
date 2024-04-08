@@ -13,6 +13,7 @@ import {
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.js';
+import { AmplifyFault } from '@aws-amplify/platform-core';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
@@ -61,45 +62,40 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       user_pool_id: authOutput.payload.userPoolId,
       aws_region: authOutput.payload.authRegion,
       user_pool_client_id: authOutput.payload.webClientId,
-      identity_pool_id: authOutput.payload.identityPoolId,
     };
 
-    if (authOutput.payload.mfaTypes) {
-      authClientConfig.auth.mfa_methods = JSON.parse(
-        authOutput.payload.mfaTypes
-      );
-      parseAndAssignObject(
-        authClientConfig.auth,
-        'mfa_methods',
-        authOutput.payload.mfaTypes
-      );
+    if (authOutput.payload.identityPoolId) {
+      authClientConfig.auth.identity_pool_id =
+        authOutput.payload.identityPoolId;
     }
+
     parseAndAssignObject(
       authClientConfig.auth,
       'mfa_methods',
       authOutput.payload.mfaTypes
     );
 
-    if (authOutput.payload.signupAttributes) {
-      authClientConfig.auth.standard_attributes = {};
-      const attributes = JSON.parse(
-        authOutput.payload.signupAttributes
-      ) as string[];
-      for (const attribute of attributes) {
-        authClientConfig.auth.standard_attributes[attribute] = {
-          required: true,
-        };
-      }
-    }
+    parseAndAssignObject(
+      authClientConfig.auth,
+      'mfa_methods',
+      authOutput.payload.mfaTypes
+    );
+
+    parseAndAssignObject(
+      authClientConfig.auth,
+      'standard_required_attributes',
+      authOutput.payload.signupAttributes
+    );
 
     parseAndAssignObject(
       authClientConfig.auth,
       'username_attributes',
       authOutput.payload.usernameAttributes
     );
+
     parseAndAssignObject(
       authClientConfig.auth,
-      'user_verification_mechanisms',
+      'user_verification_types',
       authOutput.payload.verificationMechanisms
     );
 
@@ -142,28 +138,32 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
     }
 
     if (authOutput.payload.socialProviders) {
-      parseAndAssignObject(
-        authClientConfig.auth,
-        'identity_providers',
-        authOutput.payload.socialProviders
-      );
-    }
-
-    if (authOutput.payload.oauthClientId) {
-      if (authOutput.payload.oauthDomain) {
-        authClientConfig.auth.oauth_domain = authOutput.payload.oauthDomain;
+      if (
+        !(
+          authOutput.payload.oauthRedirectSignIn &&
+          authOutput.payload.oauthRedirectSignOut &&
+          authOutput.payload.oauthResponseType &&
+          authOutput.payload.oauthScope
+        )
+      ) {
+        throw new AmplifyFault('InvalidBackendOutputFault', {
+          message: `Received invalid oauth output: ${JSON.stringify(
+            authOutput.payload
+          )}`,
+        });
       }
-      parseAndAssignObject(
-        authClientConfig.auth,
-        'oauth_scope',
-        authOutput.payload.oauthScope
-      );
-      authClientConfig.auth.oauth_redirect_sign_in =
-        authOutput.payload.oauthRedirectSignIn?.split(',');
-      authClientConfig.auth.oauth_redirect_sign_out =
-        authOutput.payload.oauthRedirectSignOut?.split(',');
-      authClientConfig.auth.oauth_response_type = authOutput.payload
-        .oauthResponseType as 'code' | 'token';
+      authClientConfig.auth.oauth = {
+        identity_providers: JSON.parse(authOutput.payload.socialProviders),
+        redirect_sign_in_uri: authOutput.payload.oauthRedirectSignIn.split(','),
+        redirect_sign_out_uri:
+          authOutput.payload.oauthRedirectSignOut.split(','),
+        response_type: authOutput.payload.oauthResponseType as 'code' | 'token',
+        scopes: JSON.parse(authOutput.payload.oauthScope),
+      };
+
+      if (authOutput.payload.oauthDomain) {
+        authClientConfig.auth.oauth.domain = authOutput.payload.oauthDomain;
+      }
     }
 
     if (authOutput.payload.allowUnauthenticatedIdentities) {
@@ -221,11 +221,6 @@ export class DataClientConfigContributor implements ClientConfigContributor {
       config.data.model_introspection = modelIntrospection as {
         [k: string]: unknown;
       };
-    }
-
-    if (graphqlOutput.payload.awsAppsyncConflictResolutionMode) {
-      config.data.conflict_resolution_mode = graphqlOutput.payload
-        .awsAppsyncConflictResolutionMode as typeof config.data.conflict_resolution_mode;
     }
 
     return config;

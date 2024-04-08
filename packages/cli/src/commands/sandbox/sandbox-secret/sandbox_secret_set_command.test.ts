@@ -26,10 +26,10 @@ void describe('sandbox secret set command', () => {
   );
 
   const sandboxIdResolver: SandboxBackendIdResolver = {
-    resolve: (nameOverride?: string) =>
+    resolve: (identifier?: string) =>
       Promise.resolve({
         namespace: testBackendId,
-        name: nameOverride || testSandboxName,
+        name: identifier || testSandboxName,
         type: 'sandbox',
       }),
   } as SandboxBackendIdResolver;
@@ -78,7 +78,9 @@ void describe('sandbox secret set command', () => {
       () => Promise.resolve(testSecretValue)
     );
 
-    await commandRunner.runCommand(`set ${testSecretName} --name anotherName`);
+    await commandRunner.runCommand(
+      `set ${testSecretName} --identifier anotherName`
+    );
     assert.equal(mockSecretValue.mock.callCount(), 1);
     assert.equal(secretSetMock.mock.callCount(), 1);
 
