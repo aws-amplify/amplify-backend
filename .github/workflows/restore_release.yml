@@ -1,0 +1,43 @@
+name: restore_release
+
+on:
+  workflow_dispatch:
+    inputs:
+      useNpmRegistry:
+        required: false
+        type: boolean
+        default: false
+        description: |
+          Whether to run the workflow against the live npm registry or not.
+          Defaults to false. Must be explicitly set to true to run against the npm registry.
+      searchForReleaseStartingFrom:
+        required: false
+        type: string
+        default: HEAD
+        description: |
+          By default, the most recent release from HEAD (inclusive) of the target branch will be restored.
+          To restore a different release, specify the release commit to restore here.
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/install_with_cache
+  restore_release:
+    needs:
+      - install
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+        with:
+          # fetch full history so that we can properly lookup past releases
+          fetch-depth: 0
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_install_cache
+      - name: Restore release versions
+        run: npx tsx scripts/restore_release.ts
