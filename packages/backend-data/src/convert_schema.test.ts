@@ -213,6 +213,7 @@ void describe('convertSchemaToCDK', () => {
       Object.values(convertedDefinition.dataSourceStrategies)[0],
       {
         dbType: 'POSTGRES',
+        // eslint-disable-next-line spellcheck/spell-checker
         name: 'branchtestBackendIdtestBranchNamepostgresql',
         dbConnectionConfig: {
           connectionUriSsmPath:
@@ -265,6 +266,7 @@ void describe('convertSchemaToCDK', () => {
       Object.values(convertedDefinition.dataSourceStrategies)[0],
       {
         dbType: 'POSTGRES',
+        // eslint-disable-next-line spellcheck/spell-checker
         name: 'branchtestBackendIdtestBranchNamepostgresql',
         dbConnectionConfig: {
           connectionUriSsmPath:
@@ -281,6 +283,7 @@ void describe('convertSchemaToCDK', () => {
       database: {
         engine: 'mysql',
         connectionUri: new TestBackendSecret('MYSQL_CONNECTION_STRING'),
+        /* eslint-disable spellcheck/spell-checker */
         vpcConfig: {
           vpcId: 'vpc-a1aa11a1',
           securityGroupIds: ['sg-11111a11'],
@@ -310,6 +313,7 @@ void describe('convertSchemaToCDK', () => {
               availabilityZone: 'us-east-1b',
             },
           ],
+          /* eslint-enable spellcheck/spell-checker */
         },
       },
     }).schema({
@@ -344,6 +348,7 @@ void describe('convertSchemaToCDK', () => {
       Object.values(convertedDefinition.dataSourceStrategies)[0],
       {
         dbType: 'MYSQL',
+        /* eslint-disable spellcheck/spell-checker */
         name: 'branchtestBackendIdtestBranchNamemysql',
         dbConnectionConfig: {
           connectionUriSsmPath:
@@ -380,6 +385,7 @@ void describe('convertSchemaToCDK', () => {
             },
           ],
         },
+        /* eslint-enable spellcheck/spell-checker */
       }
     );
   });
