@@ -3,11 +3,13 @@ import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { SSM } from '@aws-sdk/client-ssm';
 import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
 
+export type SecretName = {
+  name: string;
+}
 /**
  * The unique identifier of the secret.
  */
-export type SecretIdentifier = {
-  name: string;
+export type SecretIdentifier = SecretName & {
   version?: number;
 };
 

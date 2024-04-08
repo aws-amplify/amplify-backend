@@ -5,10 +5,15 @@ import {
   DeployResult,
   DestroyResult,
 } from '@aws-amplify/backend-deployer';
-import { SecretClient, SecretError } from '@aws-amplify/backend-secret';
+import {
+  SecretClient,
+  SecretError,
+  SecretListItem,
+} from '@aws-amplify/backend-secret';
 import { LogLevel, Printer } from '@aws-amplify/cli-core';
 import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
 import { SSMServiceException } from '@aws-sdk/client-ssm';
+import { SecretNamesGenerator } from './secret_names_generator.js';
 
 /**
  * Execute CDK commands.
@@ -42,7 +47,11 @@ export class AmplifySandboxExecutor {
     validateAppSourcesProvider: () => boolean
   ): Promise<DeployResult> => {
     this.printer.log('[Sandbox] Executing command `deploy`', LogLevel.DEBUG);
-    const secretLastUpdated = await this.getSecretLastUpdated(backendId);
+    const secrets = await this.getSecretsList(backendId);
+    new SecretNamesGenerator().generateTypeForSecretNames(
+      secrets.map((secret) => secret.name)
+    );
+    const secretLastUpdated = await this.getSecretLastUpdated(secrets);
 
     return this.invoke(() => {
       // it's important to get information here so that information
@@ -64,11 +73,28 @@ export class AmplifySandboxExecutor {
   };
 
   private getSecretLastUpdated = async (
-    backendId: BackendIdentifier
+    secrets: SecretListItem[]
   ): Promise<Date | undefined> => {
-    let secrets = undefined;
+    let latestTimestamp = -1;
+    let secretLastUpdate: Date | undefined;
+
+    secrets.forEach((secret) => {
+      if (!secret.lastUpdated) {
+        return;
+      }
+      const curTimeStamp = secret.lastUpdated.getTime();
+      if (curTimeStamp > 0 && curTimeStamp > latestTimestamp) {
+        latestTimestamp = curTimeStamp;
+        secretLastUpdate = secret.lastUpdated;
+      }
+    });
+
+    return secretLastUpdate;
+  };
+
+  private getSecretsList = async (backendId: BackendIdentifier) => {
     try {
-      secrets = await this.secretClient.listSecrets(backendId);
+      return this.secretClient.listSecrets(backendId);
     } catch (err) {
       if (
         err instanceof SecretError &&
@@ -95,20 +121,5 @@ export class AmplifySandboxExecutor {
         err as Error
       );
     }
-    let latestTimestamp = -1;
-    let secretLastUpdate: Date | undefined;
-
-    secrets.forEach((secret) => {
-      if (!secret.lastUpdated) {
-        return;
-      }
-      const curTimeStamp = secret.lastUpdated.getTime();
-      if (curTimeStamp > 0 && curTimeStamp > latestTimestamp) {
-        latestTimestamp = curTimeStamp;
-        secretLastUpdate = secret.lastUpdated;
-      }
-    });
-
-    return secretLastUpdate;
   };
 }

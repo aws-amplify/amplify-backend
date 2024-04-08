@@ -2,6 +2,7 @@ import { BackendSecret } from '@aws-amplify/plugin-types';
 import { CfnTokenBackendSecret } from './engine/backend-secret/backend_secret.js';
 import { BackendSecretFetcherProviderFactory } from './engine/backend-secret/backend_secret_fetcher_provider_factory.js';
 import { BackendSecretFetcherFactory } from './engine/backend-secret/backend_secret_fetcher_factory.js';
+import { SecretName } from '@aws-amplify/backend-secret';
 
 /**
  * Use a secret from AWS Systems Manager (SSM) Parameter Store
@@ -26,7 +27,7 @@ import { BackendSecretFetcherFactory } from './engine/backend-secret/backend_sec
  *           })
  *          ```
  */
-export const secret = (name: string): BackendSecret => {
+export const secret = (name: SecretName['name']): BackendSecret => {
   const secretProviderFactory = new BackendSecretFetcherProviderFactory();
   const secretResourceFactory = new BackendSecretFetcherFactory(
     secretProviderFactory
