@@ -16,7 +16,7 @@ import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration, Stack } from 'aws-cdk-lib';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { Policy } from 'aws-cdk-lib/aws-iam';
@@ -313,6 +313,9 @@ class AmplifyFunction
 
     this.resources = {
       lambda: functionLambda,
+      cfnResources: {
+        cfnFunction: functionLambda.node.findChild('Resource') as CfnFunction,
+      },
     };
 
     this.storeOutput(outputStorageStrategy);

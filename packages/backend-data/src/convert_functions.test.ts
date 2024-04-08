@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { Stack } from 'aws-cdk-lib';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { CfnFunction, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import {
   AmplifyFunction,
   ConstructFactory,
@@ -35,6 +35,9 @@ void describe('convertFunctionNameMapToCDK', () => {
       getInstance: () => ({
         resources: {
           lambda: echoFn,
+          cfnResources: {
+            cfnFunction: echoFn.node.findChild('Resource') as CfnFunction,
+          },
         },
       }),
     };
@@ -49,6 +52,9 @@ void describe('convertFunctionNameMapToCDK', () => {
       getInstance: () => ({
         resources: {
           lambda: updateFn,
+          cfnResources: {
+            cfnFunction: echoFn.node.findChild('Resource') as CfnFunction,
+          },
         },
       }),
     };

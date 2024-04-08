@@ -26,7 +26,7 @@ import {
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { CfnFunction, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
@@ -239,17 +239,21 @@ void describe('DataFactory', () => {
   });
 
   void it('does not throw if no auth resources are registered and only lambda is provided', () => {
+    const myEchoFn = new Function(stack, 'MyEchoFn', {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromInline(
+        'module.handler = async () => console.log("Hello");'
+      ),
+      handler: 'index.handler',
+    });
     resetFactoryCount();
     const echo: ConstructFactory<AmplifyFunction> = {
       getInstance: () => ({
         resources: {
-          lambda: new Function(stack, 'MyEchoFn', {
-            runtime: Runtime.NODEJS_18_X,
-            code: Code.fromInline(
-              'module.handler = async () => console.log("Hello");'
-            ),
-            handler: 'index.handler',
-          }),
+          lambda: myEchoFn,
+          cfnResources: {
+            cfnFunction: myEchoFn.node.findChild('Resource') as CfnFunction,
+          },
         },
       }),
     };
@@ -357,16 +361,20 @@ void describe('DataFactory', () => {
 
   void it('accepts functions as inputs to the defineData call', () => {
     resetFactoryCount();
+    const myEchoFn = new Function(stack, 'MyEchoFn', {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromInline(
+        'module.handler = async () => console.log("Hello");'
+      ),
+      handler: 'index.handler',
+    });
     const echo: ConstructFactory<AmplifyFunction> = {
       getInstance: () => ({
         resources: {
-          lambda: new Function(stack, 'MyEchoFn', {
-            runtime: Runtime.NODEJS_18_X,
-            code: Code.fromInline(
-              'module.handler = async () => console.log("Hello");'
-            ),
-            handler: 'index.handler',
-          }),
+          lambda: myEchoFn,
+          cfnResources: {
+            cfnFunction: myEchoFn.node.findChild('Resource') as CfnFunction,
+          },
         },
       }),
     };
@@ -433,6 +441,9 @@ void describe('DataFactory', () => {
         getInstance: () => ({
           resources: {
             lambda,
+            cfnResources: {
+              cfnFunction: lambda.node.findChild('Resource') as CfnFunction,
+            },
           },
           getResourceAccessAcceptor: () => ({
             identifier: 'testId',
@@ -584,6 +595,9 @@ void describe('DataFactory', () => {
         getInstance: () => ({
           resources: {
             lambda: lambda1,
+            cfnResources: {
+              cfnFunction: lambda1.node.findChild('Resource') as CfnFunction,
+            },
           },
           getResourceAccessAcceptor: () => ({
             identifier: 'testId1',
@@ -609,6 +623,9 @@ void describe('DataFactory', () => {
         getInstance: () => ({
           resources: {
             lambda: lambda2,
+            cfnResources: {
+              cfnFunction: lambda2.node.findChild('Resource') as CfnFunction,
+            },
           },
           getResourceAccessAcceptor: () => ({
             identifier: 'testId2',
