@@ -53,6 +53,8 @@
   },
   "homepage": "https://github.com/aws-amplify/amplify-backend#readme",
   "devDependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
     "@aws-sdk/client-amplify": "^3.465.0",
     "@aws-sdk/client-cloudformation": "^3.465.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.465.0",
