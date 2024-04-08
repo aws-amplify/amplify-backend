@@ -68,6 +68,12 @@ const testErrorMappings = [
       '❌ Deployment failed: something bad happened\n',
   },
   {
+    errorMessage: `Received response status [FAILED] from custom resource. Message returned: Failed to retrieve backend secret 'non-existent-secret' for 'project-name'. Reason: {"cause":{"name":"ParameterNotFound","$fault":"client"},"__type":"ParameterNotFound","message":"UnknownError"},"httpStatusCode":400,"name":"SecretError"}`,
+    expectedTopLevelErrorMessage: `The secret 'non-existent-secret' specified in the backend does not exist.`,
+    errorName: 'SecretNotSetError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     errorMessage:
       'CFN error happened: Updates are not allowed for property: some property',
     expectedTopLevelErrorMessage:

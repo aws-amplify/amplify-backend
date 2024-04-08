@@ -8,13 +8,72 @@ import {
  * Transforms CDK error messages to human readable ones
  */
 export class CdkErrorMapper {
-  private knownErrors: Array<{
+  private placeHolder = 'PLACEHOLDER';
+
+  getAmplifyError = (
+    error: Error
+  ): AmplifyError<CDKDeploymentError | string> => {
+    let underlyingError: Error | undefined = error;
+
+    // Check if there was an Amplify error thrown during child process execution
+    const amplifyError = AmplifyError.fromStderr(error.message);
+    if (amplifyError) {
+      return amplifyError;
+    }
+
+    const matchingError = this.getKnownErrors().find((knownError) =>
+      knownError.errorRegex.test(error.message)
+    );
+
+    if (matchingError) {
+      // Extract meaningful contextual information if available
+      const matchGroups = error.message.match(matchingError.errorRegex);
+
+      if (matchGroups && matchGroups.length > 1) {
+        // If the contextual information can be used in the error message use it, else consider it as a downstream cause
+        if (
+          matchingError.humanReadableErrorMessage.includes(this.placeHolder)
+        ) {
+          matchingError.humanReadableErrorMessage =
+            matchingError.humanReadableErrorMessage.replace(
+              this.placeHolder,
+              matchGroups[1] // matching group instead of the matching string
+            );
+          // reset the stderr dump in the underlying error
+          underlyingError = undefined;
+        } else {
+          underlyingError.message = matchGroups[0];
+        }
+      }
+
+      return matchingError.classification === 'ERROR'
+        ? new AmplifyUserError(
+            matchingError.errorName,
+            {
+              message: matchingError.humanReadableErrorMessage,
+              resolution: matchingError.resolutionMessage,
+            },
+            underlyingError
+          )
+        : new AmplifyFault(
+            matchingError.errorName,
+            {
+              message: matchingError.humanReadableErrorMessage,
+              resolution: matchingError.resolutionMessage,
+            },
+            underlyingError
+          );
+    }
+    return AmplifyError.fromError(error);
+  };
+
+  private getKnownErrors = (): Array<{
     errorRegex: RegExp;
     humanReadableErrorMessage: string;
     resolutionMessage: string;
     errorName: CDKDeploymentError;
     classification: AmplifyErrorClassification;
-  }> = [
+  }> => [
     {
       errorRegex: /ExpiredToken/,
       humanReadableErrorMessage:
@@ -155,6 +214,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // We capture the parameter name to show relevant error message
+      errorRegex:
+        /Failed to retrieve backend secret (.*) for.*ParameterNotFound/,
+      humanReadableErrorMessage: `The secret ${this.placeHolder} specified in the backend does not exist.`,
+      resolutionMessage:
+        'Please create the secret using `npx amplify sandbox secret set`',
+      errorName: 'SecretNotSetError',
+      classification: 'ERROR',
+    },
+    {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: /❌ Deployment failed: (.*)\n/,
       humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
@@ -164,48 +233,6 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
   ];
-
-  getAmplifyError = (
-    error: Error
-  ): AmplifyError<CDKDeploymentError | string> => {
-    // Check if there was an Amplify error thrown during child process execution
-    const amplifyError = AmplifyError.fromStderr(error.message);
-    if (amplifyError) {
-      return amplifyError;
-    }
-
-    const matchingError = this.knownErrors.find((knownError) =>
-      knownError.errorRegex.test(error.message)
-    );
-
-    if (matchingError) {
-      // Extract meaningful contextual information if available
-      const underlyingMessage = error.message.match(matchingError.errorRegex);
-      error.message =
-        underlyingMessage && underlyingMessage.length > 1
-          ? underlyingMessage[0]
-          : error.message;
-
-      return matchingError.classification === 'ERROR'
-        ? new AmplifyUserError(
-            matchingError.errorName,
-            {
-              message: matchingError.humanReadableErrorMessage,
-              resolution: matchingError.resolutionMessage,
-            },
-            error
-          )
-        : new AmplifyFault(
-            matchingError.errorName,
-            {
-              message: matchingError.humanReadableErrorMessage,
-              resolution: matchingError.resolutionMessage,
-            },
-            error
-          );
-    }
-    return AmplifyError.fromError(error);
-  };
 }
 
 export type CDKDeploymentError =
@@ -223,4 +250,5 @@ export type CDKDeploymentError =
   | 'FileConventionError'
   | 'FileConventionError'
   | 'ModuleNotFoundError'
+  | 'SecretNotSetError'
   | 'SyntaxError';
