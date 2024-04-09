@@ -3,7 +3,6 @@ import {
   DataSourceConfiguration,
   DerivedCombinedSchema,
   DerivedModelSchema,
-  JsResolverEntry,
 } from '@aws-amplify/data-schema-types';
 import {
   AmplifyDataDefinition,
@@ -12,9 +11,10 @@ import {
   VpcConfig,
 } from '@aws-amplify/data-construct';
 import { DataSchema, DataSchemaInput } from './types.js';
-import { BackendSecretResolver } from '@aws-amplify/plugin-types';
-import { CDKContextKey } from '@aws-amplify/platform-core';
-import { Construct } from 'constructs';
+import {
+  BackendSecretResolver,
+  StableBackendHashGetter,
+} from '@aws-amplify/plugin-types';
 import { resolveEntryPath } from './resolve_entry_path.js';
 import { readFileSync } from 'fs';
 
@@ -50,18 +50,6 @@ export const isCombinedSchema = (
   );
 };
 
-/**
- * SQL provision strategy requires a unique name per backend that is consistent between deployments
- * @param scope construct scope
- * @returns string provision strategy name
- */
-const sqlProvisionStrategyName = (scope: Construct): string =>
-  `${scope.node.getContext(
-    CDKContextKey.DEPLOYMENT_TYPE
-  )}${scope.node.getContext(
-    CDKContextKey.BACKEND_NAMESPACE
-  )}${scope.node.getContext(CDKContextKey.BACKEND_NAME)}`;
-
 // DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
 const DYNAMO_DATA_SOURCE_STRATEGY = {
   dbType: 'DYNAMODB',
@@ -76,15 +64,15 @@ const RDS_DB_TYPES = {
 
 /**
  * Given an input schema type, produce the relevant CDK Graphql Def interface
- * @param scope the input schema type
  * @param schema TS schema builder definition or string GraphQL schema
  * @param backendSecretResolver secret resolver
+ * @param backendHashGetter has getter
  * @returns the cdk graphql definition interface
  */
 export const convertSchemaToCDK = (
-  scope: Construct,
   schema: DataSchema,
-  backendSecretResolver: BackendSecretResolver
+  backendSecretResolver: BackendSecretResolver,
+  backendHashGetter: StableBackendHashGetter
 ): IAmplifyDataDefinition => {
   if (isModelSchema(schema)) {
     /**
@@ -100,7 +88,7 @@ export const convertSchemaToCDK = (
       customSqlDataSourceStrategies,
     } = schema.transform();
 
-    const provisionStrategyName = sqlProvisionStrategyName(scope);
+    const provisionStrategyName = backendHashGetter.getStableBackendHash();
 
     const dbStrategy = convertDatabaseConfigurationToDataSourceStrategy(
       schema.data.configuration.database,
@@ -183,7 +171,9 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
 
   return {
     dbType,
-    name: provisionStrategyName + configuration.engine,
+    name:
+      provisionStrategyName +
+      (configuration.identifier ?? configuration.engine),
     dbConnectionConfig: {
       connectionUriSsmPath: backendSecretResolver.resolvePath(
         configuration.connectionUri
@@ -205,7 +195,7 @@ const customSqlStatementsFromStrategies = (
   const customSqlStatements = customSqlDataSourceStrategies
     .filter((sqlStrategy) => sqlStrategy.entry !== undefined)
     .reduce((acc, sqlStrategy) => {
-      const entry = sqlStrategy.entry as JsResolverEntry; // undefined is filtered out above
+      const entry = sqlStrategy.entry!;
       const reference = typeof entry === 'string' ? entry : entry.relativePath;
       const resolvedPath = resolveEntryPath(entry);
 

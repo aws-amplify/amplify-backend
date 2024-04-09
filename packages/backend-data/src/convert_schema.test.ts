@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { describe, it } from 'node:test';
 import { convertSchemaToCDK } from './convert_schema.js';
 import assert from 'node:assert';
 import { a } from '@aws-amplify/data-schema';
@@ -9,9 +9,11 @@ import {
   BackendSecret,
   BackendSecretResolver,
   ResolvePathResult,
+  StableBackendHashGetter,
 } from '@aws-amplify/plugin-types';
-import { App, SecretValue, Stack } from 'aws-cdk-lib';
+import { SecretValue } from 'aws-cdk-lib';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
+import { createHash } from 'crypto';
 
 const testStack = {} as Construct;
 
@@ -19,18 +21,6 @@ const testBackendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
   name: 'testBranchName',
   type: 'branch',
-};
-
-const createStackAndSetContext = (): Stack => {
-  const app = new App();
-  app.node.setContext('amplify-backend-name', testBackendIdentifier.name);
-  app.node.setContext(
-    'amplify-backend-namespace',
-    testBackendIdentifier.namespace
-  );
-  app.node.setContext('amplify-backend-type', testBackendIdentifier.type);
-  const stack = new Stack(app);
-  return stack;
 };
 
 class TestBackendSecretResolver implements BackendSecretResolver {
@@ -61,16 +51,22 @@ class TestBackendSecret implements BackendSecret {
   };
 }
 
+class TestStableBackendHashGetter implements StableBackendHashGetter {
+  getStableBackendHash = (): string =>
+    createHash('sha512')
+      .update(testBackendIdentifier.type)
+      .update(testBackendIdentifier.namespace)
+      .update(testBackendIdentifier.name)
+      .digest('hex')
+      .slice(0, 20);
+}
+
 const removeWhiteSpaceForComparison = (content: string): string =>
   content.replaceAll(/ |\n/g, '');
 
 void describe('convertSchemaToCDK', () => {
-  let stack: Stack;
   const secretResolver = new TestBackendSecretResolver();
-
-  void beforeEach(() => {
-    stack = createStackAndSetContext();
-  });
+  const backendHashGetter = new TestStableBackendHashGetter();
 
   void it('generates for a graphql schema', () => {
     const graphqlSchema = /* GraphQL */ `
@@ -82,9 +78,9 @@ void describe('convertSchemaToCDK', () => {
       }
     `;
     const convertedDefinition = convertSchemaToCDK(
-      stack,
       graphqlSchema,
-      secretResolver
+      secretResolver,
+      backendHashGetter
     );
     assert.deepEqual(convertedDefinition.schema, graphqlSchema);
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
@@ -109,9 +105,9 @@ void describe('convertSchemaToCDK', () => {
       })
       .authorization([a.allow.public()]);
     const convertedDefinition = convertSchemaToCDK(
-      stack,
       typedSchema,
-      secretResolver
+      secretResolver,
+      backendHashGetter
     );
     assert.deepEqual(
       removeWhiteSpaceForComparison(convertedDefinition.schema),
@@ -137,9 +133,9 @@ void describe('convertSchemaToCDK', () => {
       })
       .authorization([a.allow.public()]);
     const convertedDefinition = convertSchemaToCDK(
-      stack,
       typedSchema,
-      secretResolver
+      secretResolver,
+      backendHashGetter
     );
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
@@ -155,9 +151,9 @@ void describe('convertSchemaToCDK', () => {
 
   void it('uses the only appropriate dbType and provisioningStrategy', () => {
     const convertedDefinition = convertSchemaToCDK(
-      stack,
       'type Todo @model @auth(rules: { allow: public }) { id: ID! }',
-      secretResolver
+      secretResolver,
+      backendHashGetter
     );
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
@@ -200,9 +196,9 @@ void describe('convertSchemaToCDK', () => {
     });
 
     const convertedDefinition = convertSchemaToCDK(
-      stack,
       modified,
-      secretResolver
+      secretResolver,
+      backendHashGetter
     );
 
     assert.equal(
@@ -214,7 +210,7 @@ void describe('convertSchemaToCDK', () => {
       {
         dbType: 'POSTGRES',
         // eslint-disable-next-line spellcheck/spell-checker
-        name: 'branchtestBackendIdtestBranchNamepostgresql',
+        name: '00034dcf3444861c3ca5postgresql',
         dbConnectionConfig: {
           connectionUriSsmPath:
             '/amplify/testBackendId/testBranchName-branch-e482a1c36f/POSTGRES_CONNECTION_STRING',
@@ -253,9 +249,9 @@ void describe('convertSchemaToCDK', () => {
     });
 
     const convertedDefinition = convertSchemaToCDK(
-      stack,
       modified,
-      secretResolver
+      secretResolver,
+      backendHashGetter
     );
 
     assert.equal(
@@ -267,7 +263,7 @@ void describe('convertSchemaToCDK', () => {
       {
         dbType: 'POSTGRES',
         // eslint-disable-next-line spellcheck/spell-checker
-        name: 'branchtestBackendIdtestBranchNamepostgresql',
+        name: '00034dcf3444861c3ca5postgresql',
         dbConnectionConfig: {
           connectionUriSsmPath:
             '/amplify/testBackendId/testBranchName-branch-e482a1c36f/POSTGRES_CONNECTION_STRING',
@@ -335,9 +331,9 @@ void describe('convertSchemaToCDK', () => {
     });
 
     const convertedDefinition = convertSchemaToCDK(
-      stack,
       modified,
-      secretResolver
+      secretResolver,
+      backendHashGetter
     );
 
     assert.equal(
@@ -349,7 +345,7 @@ void describe('convertSchemaToCDK', () => {
       {
         dbType: 'MYSQL',
         /* eslint-disable spellcheck/spell-checker */
-        name: 'branchtestBackendIdtestBranchNamemysql',
+        name: '00034dcf3444861c3ca5mysql',
         dbConnectionConfig: {
           connectionUriSsmPath:
             '/amplify/testBackendId/testBranchName-branch-e482a1c36f/MYSQL_CONNECTION_STRING',
