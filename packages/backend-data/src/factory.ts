@@ -195,7 +195,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     let amplifyApi = undefined;
 
     try {
-      amplifyApi = new AmplifyData(scope, apiName, {
+      amplifyApi = new AmplifyData(scope, this.defaultName, {
+        apiName,
         definition: amplifyGraphqlDefinition,
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
