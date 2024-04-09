@@ -32,7 +32,7 @@ import {
 import {
   AmplifyError,
   AmplifyUserError,
-  BackendIdentifierConversions
+  BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
 
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
