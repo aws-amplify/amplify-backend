@@ -199,3 +199,9 @@ Under the hood, the backend deployer executes a command like `npx cdk synth --ap
 29. The BackendFactory composes all of the constructs into the Backend object
 30. The BackendFactory returns the Backend object to the caller (the `amplify/backend.ts` file)
 31. This is the object that customers can then interact with to add overrides and custom resources to their project. From this point, the `backend.ts` file is essentially a "normal" CDK app. L1 and L2 resources can be accessed on the backend object and stacks can be created using `backend.createStack()`.
+
+# Package Manager Support
+
+- We use `npm_config_user_agent` to decide which package manager the user is using.
+- Yarn only supports NodeJS 20 because of the NodeJS [loader bug](https://github.com/nodejs/node/pull/43772) causing yarn [chain loader error](https://github.com/yarnpkg/berry/issues/4694).
+- Yarn PnP is not supported, run `yarn config set nodeLinker node-modules` to use "node-modules".
