@@ -179,6 +179,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         error instanceof Error ? error : undefined
       );
     }
+    const apiName = this.props.name ?? this.defaultName;
 
     const sandboxModeEnabled = isUsingDefaultApiKeyAuth(
       this.providedAuthConfig,
@@ -194,8 +195,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     let amplifyApi = undefined;
 
     try {
-      amplifyApi = new AmplifyData(scope, this.defaultName, {
-        apiName: this.props.name,
+      amplifyApi = new AmplifyData(scope, apiName, {
         definition: amplifyGraphqlDefinition,
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
@@ -231,7 +231,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${this.props.name}_GRAPHQL_ENDPOINT`]:
+        [`${apiName}_GRAPHQL_ENDPOINT`]:
           amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
       });
 

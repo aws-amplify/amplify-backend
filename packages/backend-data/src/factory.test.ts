@@ -216,6 +216,22 @@ void describe('DataFactory', () => {
     });
   });
 
+  void it('sets the api name to default name if a name property is not specified', () => {
+    resetFactoryCount();
+    dataFactory = defineData({
+      schema: testSchema,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(
+      Stack.of(dataConstruct.resources.graphqlApi)
+    );
+    template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
+    template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
+      Name: 'amplifyData',
+    });
+  });
+
   void it('does not throw if no auth resources are registered and only api key is provided', () => {
     resetFactoryCount();
     dataFactory = defineData({
