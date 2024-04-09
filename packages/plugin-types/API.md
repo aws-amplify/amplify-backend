@@ -144,6 +144,7 @@ export type GenerateContainerEntryProps = {
     scope: Construct;
     backendSecretResolver: BackendSecretResolver;
     ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
+    backendHashGetter: StableBackendHashGetter;
 };
 
 // @public
@@ -208,6 +209,11 @@ export type SsmEnvironmentEntriesGenerator = {
 export type SsmEnvironmentEntry = {
     name: string;
     path: string;
+};
+
+// @public (undocumented)
+export type StableBackendHashGetter = {
+    getStableBackendHash: () => string;
 };
 
 // (No @packageDocumentation comment for this package)
