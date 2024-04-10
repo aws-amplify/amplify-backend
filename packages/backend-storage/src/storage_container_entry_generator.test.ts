@@ -19,7 +19,12 @@ import { App, Stack } from 'aws-cdk-lib';
 import { StorageAccessOrchestratorFactory } from './storage_access_orchestrator.js';
 import { AmplifyStorage } from './construct.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { Function, InlineCode, Runtime } from 'aws-cdk-lib/aws-lambda';
+import {
+  CfnFunction,
+  Function,
+  InlineCode,
+  Runtime,
+} from 'aws-cdk-lib/aws-lambda';
 import { Template } from 'aws-cdk-lib/assertions';
 import { StorageAccessGenerator } from './types.js';
 
@@ -108,15 +113,24 @@ void describe('StorageGenerator', () => {
       const stubFunctionFactory: ConstructFactory<
         ResourceProvider<FunctionResources>
       > = {
-        getInstance: () => ({
-          resources: {
-            lambda: new Function(stack, `testFunction${counter++}`, {
-              code: new InlineCode('testCode'),
-              handler: 'test.handler',
-              runtime: Runtime.NODEJS_LATEST,
-            }),
-          },
-        }),
+        getInstance: () => {
+          const testFunction = new Function(stack, `testFunction${counter++}`, {
+            code: new InlineCode('testCode'),
+            handler: 'test.handler',
+            runtime: Runtime.NODEJS_LATEST,
+          });
+
+          return {
+            resources: {
+              lambda: testFunction,
+              cfnResources: {
+                cfnFunction: testFunction.node.tryFindChild(
+                  'Resource'
+                ) as CfnFunction,
+              },
+            },
+          };
+        },
       };
 
       const storageGenerator = new StorageContainerEntryGenerator(
