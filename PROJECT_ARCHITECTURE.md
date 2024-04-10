@@ -199,3 +199,7 @@ Under the hood, the backend deployer executes a command like `npx cdk synth --ap
 29. The BackendFactory composes all of the constructs into the Backend object
 30. The BackendFactory returns the Backend object to the caller (the `amplify/backend.ts` file)
 31. This is the object that customers can then interact with to add overrides and custom resources to their project. From this point, the `backend.ts` file is essentially a "normal" CDK app. L1 and L2 resources can be accessed on the backend object and stacks can be created using `backend.createStack()`.
+
+# Package Manager Support
+
+The library uses `npm_config_user_agent` environment variable to decide which package manager the customer is using.
