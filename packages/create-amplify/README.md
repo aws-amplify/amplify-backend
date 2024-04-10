@@ -22,7 +22,7 @@ In a frontend project folder or empty folder, run `npm create amplify`.
 
 # Manual Alternative
 
-If you don't want to use [create-amplify](https://www.npmjs.com/package/create-amplify) package, you can alternatively use the following steps.
+You can alternatively use the following steps to scaffold an Amplify project instead of using [create-amplify](https://www.npmjs.com/package/create-amplify) package
 
 | Step                                                                                                                                                                                                       | NPM                                                                             | Yarn Classic                                        | Yarn Modern                                                               | PNPM                                               |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
