@@ -31,6 +31,7 @@ import {
 } from './files_changes_tracker.js';
 import {
   AmplifyError,
+  AmplifyUserError,
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
 
@@ -90,9 +91,16 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * @inheritdoc
    */
   start = async (options: SandboxOptions) => {
-    this.filesChangesTracker = await createFilesChangesTracker(
-      options.dir ?? './amplify'
-    );
+    const watchDir = options.dir ?? './amplify';
+    if (!fs.existsSync(watchDir)) {
+      throw new AmplifyUserError('PathNotFoundError', {
+        message: `${watchDir} does not exist.`,
+        resolution:
+          'Make sure you are running this command from your project root directory.',
+      });
+    }
+
+    this.filesChangesTracker = await createFilesChangesTracker(watchDir);
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
       this.printer.log(
@@ -145,7 +153,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     });
 
     this.watcherSubscription = await parcelWatcher.subscribe(
-      options.dir ?? './amplify',
+      watchDir,
       async (_, events) => {
         // Log and track file changes.
         await Promise.all(

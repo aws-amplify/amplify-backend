@@ -125,7 +125,11 @@ void describe('Sandbox to check if region is bootstrapped', () => {
 
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
+    mock.method(
+      fs,
+      'existsSync',
+      (p: string) => path.basename(p) !== '.gitignore'
+    );
     sandboxInstance = new FileWatchingSandbox(
       async () => testSandboxBackendId,
       sandboxExecutor,
@@ -222,7 +226,11 @@ void describe('Sandbox using local project name resolver', () => {
    */
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
+    mock.method(
+      fs,
+      'existsSync',
+      (p: string) => path.basename(p) !== '.gitignore'
+    );
   });
 
   afterEach(async () => {
