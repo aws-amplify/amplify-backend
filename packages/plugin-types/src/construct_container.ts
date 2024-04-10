@@ -3,7 +3,7 @@ import { ConstructFactory } from './construct_factory.js';
 import { BackendSecretResolver } from './backend_secret_resolver.js';
 import { ResourceProvider } from './resource_provider.js';
 import { SsmEnvironmentEntriesGenerator } from './ssm_environment_entries_generator.js';
-import { StableBackendHashGetter } from './stable_backend_hash_getter.js';
+import { StableBackendIdentifiers } from './stable_backend_identifiers.js';
 /**
  * Initializes a CDK Construct in a given scope
  */
@@ -26,7 +26,7 @@ export type GenerateContainerEntryProps = {
   scope: Construct;
   backendSecretResolver: BackendSecretResolver;
   ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
-  backendHashGetter: StableBackendHashGetter;
+  stableBackendIdentifiers: StableBackendIdentifiers;
 };
 
 /**

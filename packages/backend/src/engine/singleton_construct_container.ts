@@ -8,7 +8,7 @@ import {
 import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
 import { BackendIdScopedSsmEnvironmentEntriesGenerator } from './backend_id_scoped_ssm_environment_entries_generator.js';
-import { BackendIdStableBackendHashGetter } from '../backend_id_scoped_stable_backend_hash_getter.js';
+import { BackendIdScopedStableBackendIdentifiers } from '../backend_id_scoped_stable_backend_identifiers.js';
 
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs
@@ -44,14 +44,15 @@ export class SingletonConstructContainer implements ConstructContainer {
         scope,
         backendId
       );
-      const backendHashGetter = new BackendIdStableBackendHashGetter(backendId);
+      const stableBackendIdentifiers =
+        new BackendIdScopedStableBackendIdentifiers(backendId);
       this.providerCache.set(
         generator,
         generator.generateContainerEntry({
           scope,
           backendSecretResolver,
           ssmEnvironmentEntriesGenerator,
-          backendHashGetter,
+          stableBackendIdentifiers,
         })
       );
     }

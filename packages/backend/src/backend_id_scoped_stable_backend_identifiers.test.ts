@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { BackendIdStableBackendHashGetter } from './backend_id_scoped_stable_backend_hash_getter.js';
+import { BackendIdScopedStableBackendIdentifiers } from './backend_id_scoped_stable_backend_identifiers.js';
 
 const testBackendIdentifier: BackendIdentifier = {
   namespace: 'testBackendId',
@@ -9,7 +9,7 @@ const testBackendIdentifier: BackendIdentifier = {
   type: 'branch',
 };
 
-const backendHashGetter = new BackendIdStableBackendHashGetter(
+const backendHashGetter = new BackendIdScopedStableBackendIdentifiers(
   testBackendIdentifier
 );
 

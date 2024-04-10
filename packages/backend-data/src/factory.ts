@@ -118,7 +118,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     scope,
     ssmEnvironmentEntriesGenerator,
     backendSecretResolver,
-    backendHashGetter,
+    stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
     const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
     const schemasJsFunctions: JsResolver[] = [];
@@ -145,7 +145,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         }
 
         amplifyGraphqlDefinitions.push(
-          convertSchemaToCDK(schema, backendSecretResolver, backendHashGetter)
+          convertSchemaToCDK(
+            schema,
+            backendSecretResolver,
+            stableBackendIdentifiers
+          )
         );
       });
     } catch (error) {

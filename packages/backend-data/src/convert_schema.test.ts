@@ -9,7 +9,7 @@ import {
   BackendSecret,
   BackendSecretResolver,
   ResolvePathResult,
-  StableBackendHashGetter,
+  StableBackendIdentifiers,
 } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
@@ -51,14 +51,17 @@ class TestBackendSecret implements BackendSecret {
   };
 }
 
-class TestStableBackendHashGetter implements StableBackendHashGetter {
-  getStableBackendHash = (): string =>
-    createHash('sha512')
+class TestStableBackendIdentifiers implements StableBackendIdentifiers {
+  private hash: string;
+  constructor() {
+    this.hash = createHash('sha512')
       .update(testBackendIdentifier.type)
       .update(testBackendIdentifier.namespace)
       .update(testBackendIdentifier.name)
       .digest('hex')
       .slice(0, 20);
+  }
+  getStableBackendHash = (): string => this.hash;
 }
 
 const removeWhiteSpaceForComparison = (content: string): string =>
@@ -66,7 +69,7 @@ const removeWhiteSpaceForComparison = (content: string): string =>
 
 void describe('convertSchemaToCDK', () => {
   const secretResolver = new TestBackendSecretResolver();
-  const backendHashGetter = new TestStableBackendHashGetter();
+  const stableBackendIdentifiers = new TestStableBackendIdentifiers();
 
   void it('generates for a graphql schema', () => {
     const graphqlSchema = /* GraphQL */ `
@@ -80,7 +83,7 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       graphqlSchema,
       secretResolver,
-      backendHashGetter
+      stableBackendIdentifiers
     );
     assert.deepEqual(convertedDefinition.schema, graphqlSchema);
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
@@ -107,7 +110,7 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       typedSchema,
       secretResolver,
-      backendHashGetter
+      stableBackendIdentifiers
     );
     assert.deepEqual(
       removeWhiteSpaceForComparison(convertedDefinition.schema),
@@ -135,7 +138,7 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       typedSchema,
       secretResolver,
-      backendHashGetter
+      stableBackendIdentifiers
     );
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
@@ -153,7 +156,7 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       'type Todo @model @auth(rules: { allow: public }) { id: ID! }',
       secretResolver,
-      backendHashGetter
+      stableBackendIdentifiers
     );
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
@@ -198,7 +201,7 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       modified,
       secretResolver,
-      backendHashGetter
+      stableBackendIdentifiers
     );
 
     assert.equal(
@@ -251,7 +254,7 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       modified,
       secretResolver,
-      backendHashGetter
+      stableBackendIdentifiers
     );
 
     assert.equal(
@@ -333,7 +336,7 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       modified,
       secretResolver,
-      backendHashGetter
+      stableBackendIdentifiers
     );
 
     assert.equal(

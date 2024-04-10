@@ -1,6 +1,6 @@
 import {
   BackendIdentifier,
-  StableBackendHashGetter,
+  StableBackendIdentifiers,
 } from '@aws-amplify/plugin-types';
 import { createHash } from 'crypto';
 
@@ -9,15 +9,18 @@ const HASH_LENGTH = 20;
 /**
  * Gets a stable hash value derived from BackendIdentifier
  */
-export class BackendIdStableBackendHashGetterStub
-  implements StableBackendHashGetter
+export class BackendIdScopedStableBackendIdentifiers
+  implements StableBackendIdentifiers
 {
+  private hash: string;
   /**
    * Creates a StableBackendHashGetter instance.
    */
-  constructor(private readonly backendId: BackendIdentifier) {}
+  constructor(private readonly backendId: BackendIdentifier) {
+    this.hash = this.hashFromBackendId();
+  }
 
-  getStableBackendHash = (): string => this.hashFromBackendId();
+  getStableBackendHash = (): string => this.hash;
 
   private hashFromBackendId = (): string =>
     createHash('sha512')

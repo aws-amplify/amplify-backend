@@ -13,7 +13,7 @@ import {
 import { DataSchema, DataSchemaInput } from './types.js';
 import {
   BackendSecretResolver,
-  StableBackendHashGetter,
+  StableBackendIdentifiers,
 } from '@aws-amplify/plugin-types';
 import { resolveEntryPath } from './resolve_entry_path.js';
 import { readFileSync } from 'fs';
@@ -66,13 +66,13 @@ const RDS_DB_TYPES = {
  * Given an input schema type, produce the relevant CDK Graphql Def interface
  * @param schema TS schema builder definition or string GraphQL schema
  * @param backendSecretResolver secret resolver
- * @param backendHashGetter has getter
+ * @param stableBackendIdentifiers backend identifiers
  * @returns the cdk graphql definition interface
  */
 export const convertSchemaToCDK = (
   schema: DataSchema,
   backendSecretResolver: BackendSecretResolver,
-  backendHashGetter: StableBackendHashGetter
+  stableBackendIdentifiers: StableBackendIdentifiers
 ): IAmplifyDataDefinition => {
   if (isModelSchema(schema)) {
     /**
@@ -88,7 +88,8 @@ export const convertSchemaToCDK = (
       customSqlDataSourceStrategies,
     } = schema.transform();
 
-    const provisionStrategyName = backendHashGetter.getStableBackendHash();
+    const provisionStrategyName =
+      stableBackendIdentifiers.getStableBackendHash();
 
     const dbStrategy = convertDatabaseConfigurationToDataSourceStrategy(
       schema.data.configuration.database,

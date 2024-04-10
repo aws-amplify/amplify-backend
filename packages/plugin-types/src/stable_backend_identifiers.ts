@@ -1,3 +1,3 @@
-export type StableBackendHashGetter = {
+export type StableBackendIdentifiers = {
   getStableBackendHash: () => string;
 };
