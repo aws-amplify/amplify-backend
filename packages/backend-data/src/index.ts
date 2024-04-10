@@ -6,6 +6,5 @@ export {
   DefaultAuthorizationMode,
   AuthorizationModes,
   DataSchemaInput,
-  DataSchema,
   DataProps,
 } from './types.js';
