@@ -33,9 +33,6 @@ export type DataProps = {
 };
 
 // @public
-export type DataSchema = string | DerivedModelSchema;
-
-// @public
 export type DataSchemaInput = string | DerivedModelSchema | DerivedCombinedSchema;
 
 // @public
