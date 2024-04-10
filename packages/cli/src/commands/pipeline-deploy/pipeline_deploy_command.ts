@@ -34,7 +34,7 @@ export class PipelineDeployCommand
   /**
    * @inheritDoc
    */
-  readonly describe: false;
+  readonly describe: string;
 
   /**
    * Creates top level entry point for deploy command.
@@ -45,8 +45,8 @@ export class PipelineDeployCommand
     private readonly isCiEnvironment: typeof _isCI = _isCI
   ) {
     this.command = 'pipeline-deploy';
-    // use false for a hidden command
-    this.describe = false;
+    this.describe =
+      'Command to deploy backends in a custom CI/CD pipeline. This command is not intended to be used locally.';
   }
 
   /**

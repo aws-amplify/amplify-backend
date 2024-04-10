@@ -51,6 +51,15 @@ void describe('deploy command', () => {
     generateClientConfigMock.mock.resetCalls();
   });
 
+  void it('shows the command description with --help', async () => {
+    const output = await getCommandRunner().runCommand('--help');
+    assert.match(output, /Commands:/);
+    assert.match(
+      output,
+      /Command to deploy backends in a custom CI\/CD pipeline/
+    );
+  });
+
   void it('fails if required arguments are not supplied', async () => {
     const output = await getCommandRunner().runCommand('pipeline-deploy');
     assert.match(output, /Missing required arguments/);
