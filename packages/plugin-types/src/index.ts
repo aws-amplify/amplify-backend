@@ -17,3 +17,4 @@ export * from './resource_access_acceptor.js';
 export * from './ssm_environment_entries_generator.js';
 export * from './package_manager_controller.js';
 export * from './deep_partial.js';
+export * from './stable_backend_identifiers.js';

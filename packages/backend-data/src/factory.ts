@@ -12,12 +12,18 @@ import {
 import {
   AmplifyData,
   AmplifyDynamoDbTableWrapper,
+  IAmplifyDataDefinition,
   TranslationBehavior,
 } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
-import { convertSchemaToCDK, isModelSchema } from './convert_schema.js';
+import {
+  combineCDKSchemas,
+  convertSchemaToCDK,
+  isCombinedSchema,
+  isModelSchema,
+} from './convert_schema.js';
 import { convertFunctionNameMapToCDK } from './convert_functions.js';
 import {
   ProvidedAuthConfig,
@@ -111,17 +117,41 @@ class DataGenerator implements ConstructContainerEntryGenerator {
   generateContainerEntry = ({
     scope,
     ssmEnvironmentEntriesGenerator,
+    backendSecretResolver,
+    stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
-    let amplifyGraphqlDefinition;
-    let jsFunctions: JsResolver[] = [];
-    let functionSchemaAccess: FunctionSchemaAccess[] = [];
-    let lambdaFunctions: Record<string, ConstructFactory<AmplifyFunction>> = {};
+    const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
+    const schemasJsFunctions: JsResolver[] = [];
+    const schemasFunctionSchemaAccess: FunctionSchemaAccess[] = [];
+    let schemasLambdaFunctions: Record<
+      string,
+      ConstructFactory<AmplifyFunction>
+    > = {};
     try {
-      if (isModelSchema(this.props.schema)) {
-        ({ jsFunctions, functionSchemaAccess, lambdaFunctions } =
-          this.props.schema.transform());
-      }
-      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
+      const schemas = isCombinedSchema(this.props.schema)
+        ? this.props.schema.schemas
+        : [this.props.schema];
+
+      schemas.forEach((schema) => {
+        if (isModelSchema(schema)) {
+          const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
+            schema.transform();
+          schemasJsFunctions.push(...jsFunctions);
+          schemasFunctionSchemaAccess.push(...functionSchemaAccess);
+          schemasLambdaFunctions = {
+            ...schemasLambdaFunctions,
+            ...lambdaFunctions,
+          };
+        }
+
+        amplifyGraphqlDefinitions.push(
+          convertSchemaToCDK(
+            schema,
+            backendSecretResolver,
+            stableBackendIdentifiers
+          )
+        );
+      });
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaError',
@@ -190,14 +220,14 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     const functionNameMap = convertFunctionNameMapToCDK(this.getInstanceProps, {
       ...propsFunctions,
-      ...lambdaFunctions,
+      ...schemasLambdaFunctions,
     });
     let amplifyApi = undefined;
 
     try {
       amplifyApi = new AmplifyData(scope, this.defaultName, {
         apiName,
-        definition: amplifyGraphqlDefinition,
+        definition: combineCDKSchemas(amplifyGraphqlDefinitions),
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
         functionNameMap,
@@ -228,7 +258,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       Aspects.of(amplifyApi).add(new ReplaceTableUponGsiUpdateOverrideAspect());
     }
 
-    convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
+    convertJsResolverDefinition(scope, amplifyApi, schemasJsFunctions);
 
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
@@ -240,7 +270,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       amplifyApi.resources.graphqlApi
     );
 
-    functionSchemaAccess.forEach((accessDefinition) => {
+    schemasFunctionSchemaAccess.forEach((accessDefinition) => {
       const policy = policyGenerator.generateGraphqlAccessPolicy(
         accessDefinition.actions
       );
