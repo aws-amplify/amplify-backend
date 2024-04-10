@@ -11,7 +11,7 @@ import {
   convertAuthorizationModesToCDK,
   isUsingDefaultApiKeyAuth,
 } from './convert_authorization_modes.js';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { CfnFunction, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import {
   AmplifyFunction,
   AuthResources,
@@ -268,6 +268,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       getInstance: () => ({
         resources: {
           lambda: authFn,
+          cfnResources: {
+            cfnFunction: authFn.node.findChild('Resource') as CfnFunction,
+          },
         },
       }),
     };
@@ -313,6 +316,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       getInstance: () => ({
         resources: {
           lambda: authFn,
+          cfnResources: {
+            cfnFunction: authFn.node.findChild('Resource') as CfnFunction,
+          },
         },
       }),
     };

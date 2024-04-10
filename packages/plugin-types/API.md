@@ -4,6 +4,7 @@
 
 ```ts
 
+import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPool } from 'aws-cdk-lib/aws-cognito';
@@ -137,6 +138,9 @@ export type DeploymentType = 'branch' | 'sandbox';
 // @public (undocumented)
 export type FunctionResources = {
     lambda: IFunction;
+    cfnResources: {
+        cfnFunction: CfnFunction;
+    };
 };
 
 // @public (undocumented)

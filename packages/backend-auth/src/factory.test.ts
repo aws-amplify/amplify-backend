@@ -23,6 +23,7 @@ import {
 } from '@aws-amplify/backend-platform-test-stubs';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -178,15 +179,19 @@ void describe('AmplifyAuthFactory', () => {
 
   triggerEvents.forEach((event) => {
     void it(`resolves ${event} trigger and attaches handler to auth construct`, () => {
+      const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+        code: aws_lambda.Code.fromInline('test placeholder'),
+        runtime: aws_lambda.Runtime.NODEJS_18_X,
+        handler: 'index.handler',
+      });
       const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
         getInstance: () => {
           return {
             resources: {
-              lambda: new aws_lambda.Function(stack, 'testFunc', {
-                code: aws_lambda.Code.fromInline('test placeholder'),
-                runtime: aws_lambda.Runtime.NODEJS_18_X,
-                handler: 'index.handler',
-              }),
+              lambda: testFunc,
+              cfnResources: {
+                cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+              },
             },
           };
         },
