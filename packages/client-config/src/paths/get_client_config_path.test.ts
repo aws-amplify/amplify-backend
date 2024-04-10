@@ -119,6 +119,29 @@ void describe('getClientConfigPath', () => {
     );
   });
 
+  void it('returns correct path if path starts with ~', async () => {
+    const originalProcessEnv = process.env;
+    const homeDir = '/test/home/';
+    process.env.HOME = homeDir;
+    process.env.USERPROFILE = homeDir;
+
+    const configPath = await getClientConfigPath(
+      ClientConfigFileBaseName.DEFAULT,
+      `~/${testPath}`
+    );
+    assert.equal(
+      configPath,
+      path.join(
+        homeDir,
+        testPath,
+        `${ClientConfigFileBaseName.DEFAULT}.${ClientConfigFormat.JSON}`
+      )
+    );
+
+    // reset process.env back
+    process.env = originalProcessEnv;
+  });
+
   const expectedFileExtensions = [
     {
       format: ClientConfigFormat.MJS,

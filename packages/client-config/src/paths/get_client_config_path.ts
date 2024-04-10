@@ -1,6 +1,7 @@
 import fsp from 'fs/promises';
 import path from 'path';
 import { ClientConfigFileBaseName, ClientConfigFormat } from '../index.js';
+import { homedir } from 'os';
 
 /**
  * Get path to config file
@@ -23,16 +24,18 @@ export const getClientConfigPath = async (
   let targetPath = defaultArgs.out;
 
   if (outDir) {
-    targetPath = path.isAbsolute(outDir)
-      ? outDir
-      : path.resolve(process.cwd(), outDir);
+    // if outDir starts with "~/" or "~$" or "~\" replace tilde with home directory
+    const outDirNoTilde = outDir.replace(/^~(?=$|\/|\\)/, homedir());
+    targetPath = path.isAbsolute(outDirNoTilde)
+      ? outDirNoTilde
+      : path.resolve(process.cwd(), outDirNoTilde);
 
     try {
-      await fsp.access(outDir);
+      await fsp.access(outDirNoTilde);
     } catch (error) {
       // outDir does not exist, so create dir
       if (error instanceof Error && error.message.includes('ENOENT')) {
-        await fsp.mkdir(outDir, { recursive: true });
+        await fsp.mkdir(outDirNoTilde, { recursive: true });
       } else {
         throw error;
       }
