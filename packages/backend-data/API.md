@@ -7,6 +7,7 @@
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { DerivedCombinedSchema } from '@aws-amplify/data-schema-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
 
 // @public
@@ -25,7 +26,7 @@ export type AuthorizationModes = {
 
 // @public
 export type DataProps = {
-    schema: DataSchema;
+    schema: DataSchemaInput;
     name?: string;
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
@@ -33,6 +34,9 @@ export type DataProps = {
 
 // @public
 export type DataSchema = string | DerivedModelSchema;
+
+// @public
+export type DataSchemaInput = string | DerivedModelSchema | DerivedCombinedSchema;
 
 // @public
 export type DefaultAuthorizationMode = 'iam' | 'userPool' | 'oidc' | 'apiKey' | 'lambda';
