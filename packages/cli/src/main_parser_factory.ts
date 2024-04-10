@@ -24,6 +24,7 @@ export const createMainParser = (): Argv => {
       default: false,
       description: 'Print debug logs to the console',
     })
+    .strict()
     .command(createGenerateCommand())
     .command(createSandboxCommand())
     .command(createPipelineDeployCommand())
