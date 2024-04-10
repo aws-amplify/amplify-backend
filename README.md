@@ -12,6 +12,7 @@ npm create amplify@latest
 
 ## Package Manager Support
 
+- NPM, Yarn, PNPM are officially supported.
 - NodeJS 20 or later version is required for Yarn because of the NodeJS [loader bug](https://github.com/nodejs/node/pull/43772) causing yarn [chain loader error](https://github.com/yarnpkg/berry/issues/4694).
 - Yarn PnP is not supported. Run `yarn config set nodeLinker node-modules` to use "node-modules".
 
