@@ -24,4 +24,12 @@ void describe('main parser', { concurrency: false }, () => {
     assert.match(output, /Commands:/);
     assert.match(output, /Not enough non-option arguments:/);
   });
+
+  void it('errors and prints help if invalid option is given', async () => {
+    const output = await commandRunner.runCommand(
+      'sandbox --non-existing-option 1'
+    );
+    assert.match(output, /Commands:/);
+    assert.match(output, /Unknown arguments: non-existing-option/);
+  });
 });
