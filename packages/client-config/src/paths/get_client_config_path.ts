@@ -24,7 +24,7 @@ export const getClientConfigPath = async (
   let targetPath = defaultArgs.out;
 
   if (outDir) {
-    // if outDir starts with "~/" or "~$" or "~\" replace tilde with home directory
+    // if outDir starts with "~/" or "~\" or outDir is "~", replace tilde with home directory
     const outDirNoTilde = outDir.replace(/^~(?=$|\/|\\)/, homedir());
     targetPath = path.isAbsolute(outDirNoTilde)
       ? outDirNoTilde
