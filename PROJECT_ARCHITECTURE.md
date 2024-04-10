@@ -202,6 +202,6 @@ Under the hood, the backend deployer executes a command like `npx cdk synth --ap
 
 # Package Manager Support
 
-- We use `npm_config_user_agent` to decide which package manager the user is using.
+- The library uses `npm_config_user_agent` environment variable to decide which package manager the customer is using.
 - Yarn only supports NodeJS 20 because of the NodeJS [loader bug](https://github.com/nodejs/node/pull/43772) causing yarn [chain loader error](https://github.com/yarnpkg/berry/issues/4694).
 - Yarn PnP is not supported, run `yarn config set nodeLinker node-modules` to use "node-modules".
