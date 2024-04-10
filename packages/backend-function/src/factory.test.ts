@@ -348,6 +348,26 @@ void describe('AmplifyFunctionFactory', () => {
     });
   });
 
+  void describe('function overrides', () => {
+    void it('can override function properties', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        name: 'myCoolLambda',
+        memoryMB: 512,
+      }).getInstance(getInstanceProps);
+      lambda.resources.cfnResources.cfnFunction.addPropertyOverride(
+        'MemorySize',
+        256
+      );
+      const template = Template.fromStack(
+        Stack.of(lambda.resources.cfnResources.cfnFunction)
+      );
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        MemorySize: 256,
+      });
+    });
+  });
+
   void it('stores single attribution data value in stack with multiple functions', () => {
     const functionFactory = defineFunction({
       entry: './test-assets/default-lambda/handler.ts',
