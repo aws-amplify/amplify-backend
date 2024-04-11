@@ -1,6 +1,6 @@
 import { createGraphqlModelsGenerator } from '@aws-amplify/model-generator';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { AmplifyFault } from '@aws-amplify/platform-core';
+import { ClientConfigGeneratorFactoryOptions } from './index.js';
 
 /**
  * Adapts static getModelIntrospectionSchemaFromS3Uri from @aws-amplify/model-generator call to make it injectable and testable.
@@ -9,9 +9,7 @@ export class ModelIntrospectionSchemaAdapter {
   /**
    * Creates new adapter for getModelIntrospectionSchemaFromS3Uri from @aws-amplify/model-generator.
    */
-  constructor(
-    private readonly awsCredentialProvider: AwsCredentialIdentityProvider
-  ) {}
+  constructor(private readonly options: ClientConfigGeneratorFactoryOptions) {}
 
   /**
    * Generates the client configuration for a given backend
@@ -25,7 +23,7 @@ export class ModelIntrospectionSchemaAdapter {
     const generatedModels = await (
       await createGraphqlModelsGenerator({
         modelSchemaS3Uri,
-        credentialProvider: this.awsCredentialProvider,
+        options: this.options,
       }).generateModels({ target: 'introspection' })
     ).getResults();
     const generatedModelFiles = Object.values(generatedModels);

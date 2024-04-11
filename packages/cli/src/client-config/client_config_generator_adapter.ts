@@ -27,7 +27,7 @@ export class ClientConfigGeneratorAdapter {
     version: ClientConfigVersion
   ): Promise<ClientConfig> => {
     return generateClientConfig(
-      this.awsCredentialProvider,
+      { credentials: this.awsCredentialProvider },
       backendIdentifier,
       version
     );

@@ -1,4 +1,3 @@
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
 import {
   ClientConfigVersion,
@@ -8,6 +7,9 @@ import {
   BackendOutputClientFactory,
   DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
+import { GraphqlModelsFetchOptions } from '@aws-amplify/model-generator';
+
+export type ClientConfigGeneratorFactoryOptions = GraphqlModelsFetchOptions;
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file
@@ -20,16 +22,14 @@ import {
  * Main entry point for generating client config
  */
 export const generateClientConfig = async <T extends ClientConfigVersion>(
-  credentialProvider: AwsCredentialIdentityProvider,
+  options: ClientConfigGeneratorFactoryOptions,
   backendIdentifier: DeployedBackendIdentifier,
   version: T
 ): Promise<ClientConfigVersionTemplateType<T>> => {
-  const backendOutputClient = BackendOutputClientFactory.getInstance({
-    credentials: credentialProvider,
-  });
+  const backendOutputClient = BackendOutputClientFactory.getInstance(options);
   return new ClientConfigGeneratorFactory(() =>
     backendOutputClient.getOutput(backendIdentifier)
   )
-    .getInstance(credentialProvider, version)
+    .getInstance(options, version)
     .generateClientConfig() as Promise<ClientConfigVersionTemplateType<T>>;
 };

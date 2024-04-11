@@ -94,7 +94,10 @@ export const generateApiCode = async (
   return new ApiCodeGenerator(
     createGraphqlDocumentGenerator({ backendIdentifier, credentialProvider }),
     createGraphqlTypesGenerator({ backendIdentifier, credentialProvider }),
-    createGraphqlModelsGenerator({ backendIdentifier, credentialProvider })
+    createGraphqlModelsGenerator({
+      backendIdentifier,
+      options: { credentials: credentialProvider },
+    })
   ).generate(props);
 };
 

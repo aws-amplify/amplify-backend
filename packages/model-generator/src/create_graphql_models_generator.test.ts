@@ -13,7 +13,9 @@ void describe('models generator factory', () => {
       assert.throws(() =>
         createGraphqlModelsGenerator({
           backendIdentifier: null as unknown as DeployedBackendIdentifier,
-          credentialProvider: null as unknown as AwsCredentialIdentityProvider,
+          options: {
+            credentials: null as unknown as AwsCredentialIdentityProvider,
+          },
         })
       );
     });
@@ -22,7 +24,9 @@ void describe('models generator factory', () => {
       assert.throws(() =>
         createGraphqlModelsGenerator({
           backendIdentifier: { stackName: 'foo' },
-          credentialProvider: null as unknown as AwsCredentialIdentityProvider,
+          options: {
+            credentials: null as unknown as AwsCredentialIdentityProvider,
+          },
         })
       );
     });
@@ -33,7 +37,9 @@ void describe('models generator factory', () => {
       assert.throws(() =>
         createGraphqlModelsFromS3UriGenerator({
           modelSchemaS3Uri: null as unknown as string,
-          credentialProvider: null as unknown as AwsCredentialIdentityProvider,
+          options: {
+            credentials: null as unknown as AwsCredentialIdentityProvider,
+          },
         })
       );
     });
@@ -42,7 +48,9 @@ void describe('models generator factory', () => {
       assert.throws(() =>
         createGraphqlModelsFromS3UriGenerator({
           modelSchemaS3Uri: 's3://some_bucket/some_value.graphql',
-          credentialProvider: null as unknown as AwsCredentialIdentityProvider,
+          options: {
+            credentials: null as unknown as AwsCredentialIdentityProvider,
+          },
         })
       );
     });

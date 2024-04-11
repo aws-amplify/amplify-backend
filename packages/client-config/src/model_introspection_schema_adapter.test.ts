@@ -15,17 +15,17 @@ void describe('ModelIntrospectionSchemaAdapter', () => {
   });
 
   void it('returns undefined on undefined schema uri', async () => {
-    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter(
-      fromNodeProviderChain()
-    ).getModelIntrospectionSchemaFromS3Uri(undefined);
+    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter({
+      credentials: fromNodeProviderChain(),
+    }).getModelIntrospectionSchemaFromS3Uri(undefined);
     assert.deepEqual(modelIntrospectionSchema, undefined);
   });
 
   void it('throws on invalid s3 location', async () => {
     await assert.rejects(() =>
-      new ModelIntrospectionSchemaAdapter(
-        fromNodeProviderChain()
-      ).getModelIntrospectionSchemaFromS3Uri('s3://im_a_fake_bucket/i_swear')
+      new ModelIntrospectionSchemaAdapter({
+        credentials: fromNodeProviderChain(),
+      }).getModelIntrospectionSchemaFromS3Uri('s3://im_a_fake_bucket/i_swear')
     );
   });
 
@@ -50,9 +50,9 @@ void describe('ModelIntrospectionSchemaAdapter', () => {
         Body: sdkStream,
       });
 
-    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter(
-      fromNodeProviderChain()
-    ).getModelIntrospectionSchemaFromS3Uri('s3://im_a_real_bucket/i_swear');
+    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter({
+      credentials: fromNodeProviderChain(),
+    }).getModelIntrospectionSchemaFromS3Uri('s3://im_a_real_bucket/i_swear');
     assert.deepEqual(modelIntrospectionSchema, {
       version: 1,
       models: {

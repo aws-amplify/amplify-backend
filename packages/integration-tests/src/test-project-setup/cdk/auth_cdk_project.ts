@@ -64,7 +64,7 @@ class AuthTestCdkProject extends TestCdkProjectBase {
 
     // assert that we can generate client config
     const clientConfig = await generateClientConfig(
-      fromNodeProviderChain(),
+      { credentials: fromNodeProviderChain() },
       {
         stackName: this.stackName,
       },

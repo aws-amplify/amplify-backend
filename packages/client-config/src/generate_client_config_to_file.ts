@@ -41,7 +41,7 @@ export const generateClientConfigToFile = async (
   );
 
   const clientConfig = await generateClientConfig(
-    credentialProvider,
+    { credentials: credentialProvider },
     backendIdentifier,
     version
   );

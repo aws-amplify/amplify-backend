@@ -58,9 +58,9 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
-      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        fromNodeProviderChain()
-      );
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
+        credentials: fromNodeProviderChain(),
+      });
 
       mock.method(
         modelSchemaAdapter,
@@ -131,9 +131,9 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
-      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        fromNodeProviderChain()
-      );
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
+        credentials: fromNodeProviderChain(),
+      });
 
       mock.method(
         modelSchemaAdapter,
