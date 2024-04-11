@@ -131,7 +131,19 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
 
-    const authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
+    let authConstruct: AmplifyAuth;
+    try {
+      authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
+    } catch (error) {
+      throw new AmplifyUserError(
+        'AmplifyAuthConstructInitializationError',
+        {
+          message: 'Failed to instantiate auth construct',
+          resolution: 'See the underlying error message for more details.',
+        },
+        error as Error
+      );
+    }
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
         (authConstruct.resources.userPool as UserPool).addTrigger(

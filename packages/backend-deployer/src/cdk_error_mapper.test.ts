@@ -24,11 +24,22 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: 'Access Denied',
   },
   {
-    errorMessage: 'ReferenceError: var is not defined\n',
+    errorMessage: `ReferenceError: var is not defined
+    at lookup(/some_random/path.js: 1: 3005)`,
     expectedTopLevelErrorMessage:
       'Unable to build the Amplify backend definition.',
     errorName: 'SyntaxError',
-    expectedDownstreamErrorMessage: 'ReferenceError: var is not defined\n',
+    expectedDownstreamErrorMessage: `ReferenceError: var is not defined
+    at lookup(/some_random/path.js: 1: 3005)`,
+  },
+  {
+    errorMessage: `TypeError: Cannot read properties of undefined (reading 'post')
+    at lookup(/some_random/path.js: 1: 3005)`,
+    expectedTopLevelErrorMessage:
+      'Unable to build the Amplify backend definition.',
+    errorName: 'SyntaxError',
+    expectedDownstreamErrorMessage: `TypeError: Cannot read properties of undefined (reading 'post')
+    at lookup(/some_random/path.js: 1: 3005)`,
   },
   {
     errorMessage: 'Has the environment been bootstrapped',

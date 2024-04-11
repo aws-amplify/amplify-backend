@@ -34,7 +34,6 @@ import {
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import {
   AmplifyError,
-  AmplifyFault,
   AmplifyUserError,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
@@ -241,9 +240,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         },
       });
     } catch (error) {
-      throw new AmplifyFault(
-        'AmplifyDataConstructFault',
-        { message: 'Failed to instantiate data construct' },
+      throw new AmplifyUserError(
+        'AmplifyDataConstructInitializationError',
+        {
+          message: 'Failed to instantiate data construct',
+          resolution: 'See the underlying error message for more details.',
+        },
         error as Error
       );
     }

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { AmplifyUserError } from './errors';
 
 /**
  * Find the backend definition file in the customer app that represents a CDK app.
@@ -25,8 +26,10 @@ export class BackendLocator {
       }
     }
 
-    throw new Error(
-      `Amplify Backend not found in ${this.rootDir}. Amplify Backend must be defined in amplify/backend.(ts|js|cjs|mjs)`
-    );
+    throw new AmplifyUserError('FileConventionError', {
+      message: `Amplify Backend not found in ${this.rootDir}.`,
+      resolution:
+        'Amplify Backend must be defined in amplify/backend.(ts|js|cjs|mjs)',
+    });
   };
 }
