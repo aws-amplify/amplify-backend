@@ -1,5 +1,13 @@
 # @aws-amplify/schema-generator
 
+## 0.1.0-beta.5
+
+### Patch Changes
+
+- aa90ba1: Assign default port if it is not provided in the connection uri.
+- Updated dependencies [6c6af9b]
+  - @aws-amplify/platform-core@0.5.0-beta.5
+
 ## 0.1.0-beta.4
 
 ### Patch Changes

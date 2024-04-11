@@ -1,5 +1,14 @@
 # @aws-amplify/backend-storage
 
+## 0.6.0-beta.7
+
+### Patch Changes
+
+- 48ff3bd: Add cfnFunction to function resources
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.5
+
 ## 0.6.0-beta.6
 
 ### Minor Changes

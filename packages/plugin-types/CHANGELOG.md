@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.9.0-beta.2
+
+### Patch Changes
+
+- 48ff3bd: Add cfnFunction to function resources
+
 ## 0.9.0-beta.1
 
 ### Patch Changes

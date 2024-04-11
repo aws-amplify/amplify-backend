@@ -1,5 +1,32 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.18
+
+### Patch Changes
+
+- 54c69c4: chore: rename the new client config file name
+- 3092906: chore: make all cli commands strict
+- ffb358e: Added normalization logic for AWS environment variables
+- e16b97f: chore: Surface pipeline-deploy command in CLI command help
+- 1c52df1: chore: Adds a log message to inform the name of the sandbox being created/initialized
+- Updated dependencies [6c6af9b]
+- Updated dependencies [54c69c4]
+- Updated dependencies [1375e5b]
+- Updated dependencies [a494aca]
+- Updated dependencies [aa90ba1]
+- Updated dependencies [e3a537f]
+- Updated dependencies [1c52df1]
+  - @aws-amplify/backend-deployer@0.5.1-beta.6
+  - @aws-amplify/platform-core@0.5.0-beta.5
+  - @aws-amplify/client-config@0.9.0-beta.11
+  - @aws-amplify/sandbox@0.5.2-beta.15
+  - @aws-amplify/model-generator@0.5.0-beta.8
+  - @aws-amplify/form-generator@0.8.0-beta.4
+  - @aws-amplify/schema-generator@0.1.0-beta.5
+  - @aws-amplify/cli-core@0.5.0-beta.10
+  - @aws-amplify/backend-secret@0.4.5-beta.5
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.6
+
 ## 0.12.0-beta.17
 
 ### Patch Changes

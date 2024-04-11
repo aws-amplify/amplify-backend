@@ -1,5 +1,22 @@
 # @aws-amplify/sandbox
 
+## 0.5.2-beta.15
+
+### Patch Changes
+
+- 1375e5b: improve to notify us that the amplify dir does not exist at the path when run amplify sandox
+- 1c52df1: chore: Adds a log message to inform the name of the sandbox being created/initialized
+- Updated dependencies [6c6af9b]
+- Updated dependencies [54c69c4]
+- Updated dependencies [e3a537f]
+- Updated dependencies [1c52df1]
+  - @aws-amplify/backend-deployer@0.5.1-beta.6
+  - @aws-amplify/platform-core@0.5.0-beta.5
+  - @aws-amplify/client-config@0.9.0-beta.11
+  - @aws-amplify/cli-core@0.5.0-beta.10
+  - @aws-amplify/backend-secret@0.4.5-beta.5
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.6
+
 ## 0.5.2-beta.14
 
 ### Patch Changes

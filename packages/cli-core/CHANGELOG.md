@@ -1,5 +1,13 @@
 # @aws-amplify/cli-core
 
+## 0.5.0-beta.10
+
+### Patch Changes
+
+- 1c52df1: chore: Adds a log message to inform the name of the sandbox being created/initialized
+- Updated dependencies [6c6af9b]
+  - @aws-amplify/platform-core@0.5.0-beta.5
+
 ## 0.5.0-beta.9
 
 ### Minor Changes

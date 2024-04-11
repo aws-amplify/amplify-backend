@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.8.0-beta.4
+
+### Minor Changes
+
+- a494aca: refactor: use default directives
+
 ## 0.8.0-beta.3
 
 ### Minor Changes
