@@ -101,7 +101,7 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex: /(SyntaxError|ReferenceError):(.*)\n/,
+      errorRegex: /(SyntaxError|ReferenceError|TypeError):((?:.|\n)*?at .*)/,
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
       resolutionMessage:

@@ -1,5 +1,6 @@
 import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendIdentifierConversions } from './backend_identifier_conversions.js';
+import { AmplifyFault } from './errors';
 
 const SHARED_SECRET = 'shared';
 const RESOURCE_REFERENCE = 'resource_reference';
@@ -64,9 +65,9 @@ const getBackendIdentifierPathPart = (parts: BackendIdentifier): string => {
   );
   if (!sanitizedBackendId || !sanitizedBackendId.hash) {
     // this *should* never happen
-    throw new Error(
-      `Could not sanitize the backendId to construct the parameter path`
-    );
+    throw new AmplifyFault('BackendIdConversionFault', {
+      message: `Could not sanitize the backendId to construct the parameter path`,
+    });
   }
   return `${sanitizedBackendId.namespace}/${sanitizedBackendId.name}-${sanitizedBackendId.type}-${sanitizedBackendId.hash}`;
 };
