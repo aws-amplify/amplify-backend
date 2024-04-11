@@ -125,10 +125,14 @@ void describe('getClientConfigPath', () => {
     process.env.HOME = homeDir;
     process.env.USERPROFILE = homeDir;
 
-    const configPath = await getClientConfigPath(
+    let configPath = await getClientConfigPath(
       ClientConfigFileBaseName.DEFAULT,
       `~/${testPath}`
     );
+
+    // strip out drive letter for windows tests
+    configPath = configPath.replace('^[a-zA-Z]:', '');
+
     assert.equal(
       configPath,
       path.join(
