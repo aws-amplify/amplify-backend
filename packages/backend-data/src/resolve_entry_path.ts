@@ -1,6 +1,10 @@
-import { FilePathExtractor } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  FilePathExtractor,
+} from '@aws-amplify/platform-core';
 import { dirname, join } from 'path';
 import type { JsResolverEntry } from '@aws-amplify/data-schema-types';
+import { AmplifyDataError } from './types.js';
 
 /**
  * Resolve JS Resolver Handler or Sql Reference Handler entry path to absolute path
@@ -8,8 +12,14 @@ import type { JsResolverEntry } from '@aws-amplify/data-schema-types';
  * @returns resolved absolute file path
  */
 export const resolveEntryPath = (entry: JsResolverEntry): string => {
-  const unresolvedImportLocationError = new Error(
-    'Could not determine import path to construct absolute code path from relative path. Consider using an absolute path instead.'
+  const unresolvedImportLocationError = new AmplifyUserError<AmplifyDataError>(
+    'UnresolvedEntryPath',
+    {
+      message:
+        'Could not determine import path to construct absolute code path from relative path: ' +
+        JSON.stringify(entry),
+      resolution: 'Consider using an absolute path instead.',
+    }
   );
 
   if (typeof entry === 'string') {

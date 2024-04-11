@@ -22,7 +22,7 @@ import {
   combineCDKSchemas,
   convertSchemaToCDK,
   isCombinedSchema,
-  isModelSchema,
+  isDataSchema,
 } from './convert_schema.js';
 import { convertFunctionNameMapToCDK } from './convert_functions.js';
 import {
@@ -132,7 +132,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         : [this.props.schema];
 
       schemas.forEach((schema) => {
-        if (isModelSchema(schema)) {
+        if (isDataSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
             schema.transform();
           schemasJsFunctions.push(...jsFunctions);

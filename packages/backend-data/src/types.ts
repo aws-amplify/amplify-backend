@@ -144,4 +144,5 @@ export type AmplifyDataError =
   | 'DefineDataConfigurationError'
   | 'InvalidSchemaAuthError'
   | 'InvalidSchemaError'
-  | 'MultipleSingletonResourcesError';
+  | 'MultipleSingletonResourcesError'
+  | 'UnresolvedEntryPath';

@@ -1,17 +1,17 @@
-import {
+import type {
   CustomSqlDataSourceStrategy,
   DataSourceConfiguration,
   DerivedCombinedSchema,
-  DerivedModelSchema,
+  DerivedModelSchema as DerivedDataSchema,
 } from '@aws-amplify/data-schema-types';
 import {
   AmplifyDataDefinition,
-  IAmplifyDataDefinition,
-  ModelDataSourceStrategy,
-  VpcConfig,
+  type IAmplifyDataDefinition,
+  type ModelDataSourceStrategy,
+  type VpcConfig,
 } from '@aws-amplify/data-construct';
-import { DataSchema, DataSchemaInput } from './types.js';
-import {
+import type { DataSchema, DataSchemaInput } from './types.js';
+import type {
   BackendSecretResolver,
   StableBackendIdentifiers,
 } from '@aws-amplify/plugin-types';
@@ -19,13 +19,13 @@ import { resolveEntryPath } from './resolve_entry_path.js';
 import { readFileSync } from 'fs';
 
 /**
- * Determine if the input schema is a derived model schema, and perform type narrowing.
+ * Determine if the input schema is a derived typed schema object (data-schema), and perform type narrowing.
  * @param schema the schema that might be a derived model schema
  * @returns a boolean indicating whether the schema is a derived model schema, with type narrowing
  */
-export const isModelSchema = (
+export const isDataSchema = (
   schema: DataSchema
-): schema is DerivedModelSchema => {
+): schema is DerivedDataSchema => {
   return (
     schema !== null &&
     typeof schema === 'object' &&
@@ -35,7 +35,7 @@ export const isModelSchema = (
 };
 
 /**
- * Determine if the input schema is a collection of model schemas, and perform type narrowing.
+ * Determine if the input schema is a collection of typed schemas, and perform type narrowing.
  * @param schema the schema that might be a collection of model schemas
  * @returns a boolean indicating whether the schema is a collection of derived model schema, with type narrowing
  */
@@ -51,13 +51,15 @@ export const isCombinedSchema = (
 };
 
 // DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
+// Conforms to this interface: https://github.com/aws-amplify/amplify-category-api/blob/274d1176d96e265d02817a975848c767d6d43c31/packages/amplify-graphql-api-construct/src/model-datasource-strategy-types.ts#L35-L41
 const DYNAMO_DATA_SOURCE_STRATEGY = {
   dbType: 'DYNAMODB',
   provisionStrategy: 'AMPLIFY_TABLE',
 } as const;
 
 // Translate the external engine types to the config values
-const RDS_DB_TYPES = {
+// Reference: https://github.com/aws-amplify/amplify-category-api/blob/fd7f6fbc17c199331c4b04debaff69ea0424cd74/packages/amplify-graphql-api-construct/src/model-datasource-strategy-types.ts#L25
+const SQL_DB_TYPES = {
   mysql: 'MYSQL',
   postgresql: 'POSTGRES',
 } as const;
@@ -74,7 +76,7 @@ export const convertSchemaToCDK = (
   backendSecretResolver: BackendSecretResolver,
   stableBackendIdentifiers: StableBackendIdentifiers
 ): IAmplifyDataDefinition => {
-  if (isModelSchema(schema)) {
+  if (isDataSchema(schema)) {
     /**
      * This is not super obvious, but the IAmplifyDataDefinition interface requires a record of each model type to a
      * data source strategy (how it should be deployed and managed). Normally this is handled for customers by static
@@ -154,7 +156,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
     return DYNAMO_DATA_SOURCE_STRATEGY;
   }
 
-  const dbType = RDS_DB_TYPES[configuration.engine];
+  const dbType = SQL_DB_TYPES[configuration.engine];
   let vpcConfiguration: VpcConfig | undefined = undefined;
 
   if (configuration.vpcConfig !== undefined) {
