@@ -131,7 +131,7 @@ void describe('getClientConfigPath', () => {
     );
 
     // strip out drive letter for windows tests
-    configPath = configPath.replace('^[a-zA-Z]:', '');
+    configPath = configPath.replace(/^[a-zA-Z]:/, '');
 
     assert.equal(
       configPath,
