@@ -168,6 +168,10 @@ export class ClientConfigLegacyConverter {
         },
       };
       legacyConfig = { ...legacyConfig, ...analyticsConfig };
+      legacyConfig.aws_mobile_analytics_app_id =
+        clientConfig.analytics.amazon_pinpoint.app_id;
+      legacyConfig.aws_mobile_analytics_app_region =
+        clientConfig.analytics.amazon_pinpoint.aws_region;
     }
 
     // Geo category
