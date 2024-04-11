@@ -1,5 +1,15 @@
 # @aws-amplify/backend-function
 
+## 0.8.0-beta.9
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- 48ff3bd: Add cfnFunction to function resources
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.5
+
 ## 0.8.0-beta.8
 
 ### Minor Changes
