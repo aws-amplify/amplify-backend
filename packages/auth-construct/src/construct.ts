@@ -40,7 +40,6 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { coreAttributeNameMap } from './string_maps.js';
-import { createHash } from 'crypto';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -103,14 +102,14 @@ export class AmplifyAuth
 
   private readonly name: string;
 
+  private readonly domainPrefix: string | undefined;
+
   private readonly groups: {
     [key: string]: {
       cfnUserGroup: CfnUserPoolGroup;
       role: Role;
     };
   } = {};
-
-  private domainPrefix: string | undefined;
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -124,6 +123,7 @@ export class AmplifyAuth
     super(scope, id);
 
     this.name = props.name ?? '';
+    this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
 
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
@@ -751,15 +751,16 @@ export class AmplifyAuth
       result.providersList.push('SAML');
     }
 
-    // Auto generate Cognito Domain if external providers are configured
     if (result.providersList.length > 0) {
-      this.domainPrefix = createHash('sha512')
-        .update(Stack.of(this).toString()) // This results in the stack name
-        .digest('hex')
-        .slice(0, 20);
-      this.userPool.addDomain(`${this.name}UserPoolDomain`, {
-        cognitoDomain: { domainPrefix: this.domainPrefix },
-      });
+      if (this.domainPrefix) {
+        this.userPool.addDomain(`${this.name}UserPoolDomain`, {
+          cognitoDomain: { domainPrefix: this.domainPrefix },
+        });
+      } else {
+        throw new Error(
+          'Cognito Domain Prefix is missing when external providers are configured.'
+        );
+      }
     }
 
     // oauth settings for the UserPool client

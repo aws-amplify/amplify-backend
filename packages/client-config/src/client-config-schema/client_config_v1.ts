@@ -114,7 +114,7 @@ export interface AWSAmplifyBackendOutputs {
         | 'SIGN_IN_WITH_APPLE'
       )[];
       /**
-       * Cognito Domain used for identity providers
+       * Auto generated cognito domain used for identity providers
        */
       cognito_domain: string;
       /**
