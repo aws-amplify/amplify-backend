@@ -650,7 +650,6 @@ void describe('Auth construct', () => {
             scopes: ['EMAIL', 'PROFILE'],
             callbackUrls: ['http://callback.com'],
             logoutUrls: ['http://logout.com'],
-            domainPrefix: 'test-prefix',
           },
         },
         outputStorageStrategy: stubBackendOutputStorageStrategy,
@@ -692,7 +691,8 @@ void describe('Auth construct', () => {
               usernameAttributes: '["email"]',
               googleClientId: 'googleClientId',
               oauthClientId: expectedWebClientId, // same thing
-              oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
+              // eslint-disable-next-line spellcheck/spell-checker
+              oauthCognitoDomain: `94abfc7b11f4311e8e27.auth.${expectedRegion}.amazoncognito.com`,
               oauthScope: '["email","profile"]',
               oauthRedirectSignIn: 'http://callback.com',
               oauthRedirectSignOut: 'http://logout.com',
@@ -1738,29 +1738,6 @@ void describe('Auth construct', () => {
         {
           message:
             'You must define logoutUrls when configuring external login providers.',
-        }
-      );
-    });
-
-    void it('throws an error if domainPrefix is configured without any external providers', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      assert.throws(
-        () =>
-          new AmplifyAuth(stack, 'test', {
-            loginWith: {
-              email: true,
-              externalProviders: {
-                scopes: ['EMAIL', 'PROFILE'],
-                callbackUrls: ['http://localhost'],
-                logoutUrls: ['http://localhost'],
-                domainPrefix: 'https://localhost',
-              },
-            },
-          }),
-        {
-          message:
-            'You cannot configure a domain prefix if there are no external providers configured.',
         }
       );
     });

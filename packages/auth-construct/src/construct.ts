@@ -40,6 +40,7 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import { coreAttributeNameMap } from './string_maps.js';
+import { createHash } from 'crypto';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -102,14 +103,14 @@ export class AmplifyAuth
 
   private readonly name: string;
 
-  private readonly domainPrefix: string | undefined;
-
   private readonly groups: {
     [key: string]: {
       cfnUserGroup: CfnUserPoolGroup;
       role: Role;
     };
   } = {};
+
+  private domainPrefix: string | undefined;
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -123,7 +124,6 @@ export class AmplifyAuth
     super(scope, id);
 
     this.name = props.name ?? '';
-    this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
 
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
@@ -581,12 +581,12 @@ export class AmplifyAuth
       return result;
     }
     // make sure logout/callback urls are not empty
-    if (external.logoutUrls.length === 0) {
+    if (external.logoutUrls && external.logoutUrls.length === 0) {
       throw Error(
         'You must define logoutUrls when configuring external login providers.'
       );
     }
-    if (external.callbackUrls.length === 0) {
+    if (external.callbackUrls && external.callbackUrls.length === 0) {
       throw Error(
         'You must define callbackUrls when configuring external login providers.'
       );
@@ -751,15 +751,15 @@ export class AmplifyAuth
       result.providersList.push('SAML');
     }
 
-    // UserPool Domain
-    if (this.domainPrefix && result.providersList.length > 0) {
+    // Auto generate Cognito Domain if external providers are configured
+    if (result.providersList.length > 0) {
+      this.domainPrefix = createHash('sha512')
+        .update(Stack.of(this).toString()) // This results in the stack name
+        .digest('hex')
+        .slice(0, 20);
       this.userPool.addDomain(`${this.name}UserPoolDomain`, {
         cognitoDomain: { domainPrefix: this.domainPrefix },
       });
-    } else if (this.domainPrefix && result.providersList.length === 0) {
-      throw new Error(
-        'You cannot configure a domain prefix if there are no external providers configured.'
-      );
     }
 
     // oauth settings for the UserPool client
@@ -964,7 +964,7 @@ export class AmplifyAuth
       const oAuthSettings = this.providerSetupResult.oAuthSettings;
       if (oAuthSettings) {
         if (this.domainPrefix) {
-          output.oauthDomain = `${this.domainPrefix}.auth.${
+          output.oauthCognitoDomain = `${this.domainPrefix}.auth.${
             Stack.of(this).region
           }.amazoncognito.com`;
         }

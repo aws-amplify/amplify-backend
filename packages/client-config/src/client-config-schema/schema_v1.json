@@ -105,8 +105,12 @@
               "minItems": 0,
               "uniqueItems": true
             },
-            "domain": {
+            "cognito_domain": {
               "description": "Cognito Domain used for identity providers",
+              "type": "string"
+            },
+            "custom_domain": {
+              "description": "Custom Domain used for identity providers",
               "type": "string"
             },
             "scopes": {

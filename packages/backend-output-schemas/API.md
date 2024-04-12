@@ -125,7 +125,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaTypes: z.ZodOptional<z.ZodString>;
             verificationMechanisms: z.ZodOptional<z.ZodString>;
             socialProviders: z.ZodOptional<z.ZodString>;
-            oauthDomain: z.ZodOptional<z.ZodString>;
+            oauthCognitoDomain: z.ZodOptional<z.ZodString>;
             oauthScope: z.ZodOptional<z.ZodString>;
             oauthRedirectSignIn: z.ZodOptional<z.ZodString>;
             oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
@@ -149,7 +149,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
             socialProviders?: string | undefined;
-            oauthDomain?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
             oauthScope?: string | undefined;
             oauthRedirectSignIn?: string | undefined;
             oauthRedirectSignOut?: string | undefined;
@@ -173,7 +173,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
             socialProviders?: string | undefined;
-            oauthDomain?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
             oauthScope?: string | undefined;
             oauthRedirectSignIn?: string | undefined;
             oauthRedirectSignOut?: string | undefined;
@@ -200,7 +200,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
             socialProviders?: string | undefined;
-            oauthDomain?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
             oauthScope?: string | undefined;
             oauthRedirectSignIn?: string | undefined;
             oauthRedirectSignOut?: string | undefined;
@@ -227,7 +227,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
             socialProviders?: string | undefined;
-            oauthDomain?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
             oauthScope?: string | undefined;
             oauthRedirectSignIn?: string | undefined;
             oauthRedirectSignOut?: string | undefined;
@@ -383,7 +383,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
             socialProviders?: string | undefined;
-            oauthDomain?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
             oauthScope?: string | undefined;
             oauthRedirectSignIn?: string | undefined;
             oauthRedirectSignOut?: string | undefined;
@@ -451,7 +451,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             mfaTypes?: string | undefined;
             verificationMechanisms?: string | undefined;
             socialProviders?: string | undefined;
-            oauthDomain?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
             oauthScope?: string | undefined;
             oauthRedirectSignIn?: string | undefined;
             oauthRedirectSignOut?: string | undefined;
@@ -514,7 +514,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaTypes: z.ZodOptional<z.ZodString>;
         verificationMechanisms: z.ZodOptional<z.ZodString>;
         socialProviders: z.ZodOptional<z.ZodString>;
-        oauthDomain: z.ZodOptional<z.ZodString>;
+        oauthCognitoDomain: z.ZodOptional<z.ZodString>;
         oauthScope: z.ZodOptional<z.ZodString>;
         oauthRedirectSignIn: z.ZodOptional<z.ZodString>;
         oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
@@ -538,7 +538,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaTypes?: string | undefined;
         verificationMechanisms?: string | undefined;
         socialProviders?: string | undefined;
-        oauthDomain?: string | undefined;
+        oauthCognitoDomain?: string | undefined;
         oauthScope?: string | undefined;
         oauthRedirectSignIn?: string | undefined;
         oauthRedirectSignOut?: string | undefined;
@@ -562,7 +562,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaTypes?: string | undefined;
         verificationMechanisms?: string | undefined;
         socialProviders?: string | undefined;
-        oauthDomain?: string | undefined;
+        oauthCognitoDomain?: string | undefined;
         oauthScope?: string | undefined;
         oauthRedirectSignIn?: string | undefined;
         oauthRedirectSignOut?: string | undefined;
@@ -589,7 +589,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaTypes?: string | undefined;
         verificationMechanisms?: string | undefined;
         socialProviders?: string | undefined;
-        oauthDomain?: string | undefined;
+        oauthCognitoDomain?: string | undefined;
         oauthScope?: string | undefined;
         oauthRedirectSignIn?: string | undefined;
         oauthRedirectSignOut?: string | undefined;
@@ -616,7 +616,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         mfaTypes?: string | undefined;
         verificationMechanisms?: string | undefined;
         socialProviders?: string | undefined;
-        oauthDomain?: string | undefined;
+        oauthCognitoDomain?: string | undefined;
         oauthScope?: string | undefined;
         oauthRedirectSignIn?: string | undefined;
         oauthRedirectSignOut?: string | undefined;

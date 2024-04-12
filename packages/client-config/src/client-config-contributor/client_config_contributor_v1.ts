@@ -161,8 +161,9 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
         scopes: JSON.parse(authOutput.payload.oauthScope),
       };
 
-      if (authOutput.payload.oauthDomain) {
-        authClientConfig.auth.oauth.domain = authOutput.payload.oauthDomain;
+      if (authOutput.payload.oauthCognitoDomain) {
+        authClientConfig.auth.oauth.cognito_domain =
+          authOutput.payload.oauthCognitoDomain;
       }
     }
 

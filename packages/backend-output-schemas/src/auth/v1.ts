@@ -25,7 +25,7 @@ export const authOutputSchema = z.object({
 
     socialProviders: z.string().optional(), // JSON array as string
 
-    oauthDomain: z.string().optional(),
+    oauthCognitoDomain: z.string().optional(),
     oauthScope: z.string().optional(), // JSON array as string
     oauthRedirectSignIn: z.string().optional(),
     oauthRedirectSignOut: z.string().optional(),

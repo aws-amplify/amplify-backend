@@ -66,7 +66,6 @@ export type ExternalProviderOptions = {
     saml?: SamlProviderProps;
     scopes?: ('PHONE' | 'EMAIL' | 'OPENID' | 'PROFILE' | 'COGNITO_ADMIN')[];
     callbackUrls: string[];
-    domainPrefix?: string;
     logoutUrls: string[];
 };
 
