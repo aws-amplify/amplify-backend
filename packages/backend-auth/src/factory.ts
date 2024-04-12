@@ -121,6 +121,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
     ssmEnvironmentEntriesGenerator,
+    stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
     const authProps: AuthProps = {
       ...this.props,
@@ -130,6 +131,10 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
+    if (authProps.loginWith.externalProviders) {
+      authProps.loginWith.externalProviders.domainPrefix =
+        stableBackendIdentifiers.getStableBackendHash();
+    }
 
     let authConstruct: AmplifyAuth;
     try {

@@ -581,12 +581,12 @@ export class AmplifyAuth
       return result;
     }
     // make sure logout/callback urls are not empty
-    if (external.logoutUrls.length === 0) {
+    if (external.logoutUrls && external.logoutUrls.length === 0) {
       throw Error(
         'You must define logoutUrls when configuring external login providers.'
       );
     }
-    if (external.callbackUrls.length === 0) {
+    if (external.callbackUrls && external.callbackUrls.length === 0) {
       throw Error(
         'You must define callbackUrls when configuring external login providers.'
       );
@@ -751,15 +751,16 @@ export class AmplifyAuth
       result.providersList.push('SAML');
     }
 
-    // UserPool Domain
-    if (this.domainPrefix && result.providersList.length > 0) {
-      this.userPool.addDomain(`${this.name}UserPoolDomain`, {
-        cognitoDomain: { domainPrefix: this.domainPrefix },
-      });
-    } else if (this.domainPrefix && result.providersList.length === 0) {
-      throw new Error(
-        'You cannot configure a domain prefix if there are no external providers configured.'
-      );
+    if (result.providersList.length > 0) {
+      if (this.domainPrefix) {
+        this.userPool.addDomain(`${this.name}UserPoolDomain`, {
+          cognitoDomain: { domainPrefix: this.domainPrefix },
+        });
+      } else {
+        throw new Error(
+          'Cognito Domain Prefix is missing when external providers are configured.'
+        );
+      }
     }
 
     // oauth settings for the UserPool client
@@ -964,7 +965,7 @@ export class AmplifyAuth
       const oAuthSettings = this.providerSetupResult.oAuthSettings;
       if (oAuthSettings) {
         if (this.domainPrefix) {
-          output.oauthDomain = `${this.domainPrefix}.auth.${
+          output.oauthCognitoDomain = `${this.domainPrefix}.auth.${
             Stack.of(this).region
           }.amazoncognito.com`;
         }

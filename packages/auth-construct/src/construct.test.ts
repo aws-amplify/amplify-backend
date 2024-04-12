@@ -647,10 +647,10 @@ void describe('Auth construct', () => {
                 issuerUrl: 'oidcIssuerUrl3',
               },
             ],
+            domainPrefix: 'test-prefix',
             scopes: ['EMAIL', 'PROFILE'],
             callbackUrls: ['http://callback.com'],
             logoutUrls: ['http://logout.com'],
-            domainPrefix: 'test-prefix',
           },
         },
         outputStorageStrategy: stubBackendOutputStorageStrategy,
@@ -692,7 +692,7 @@ void describe('Auth construct', () => {
               usernameAttributes: '["email"]',
               googleClientId: 'googleClientId',
               oauthClientId: expectedWebClientId, // same thing
-              oauthDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
+              oauthCognitoDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
               oauthScope: '["email","profile"]',
               oauthRedirectSignIn: 'http://callback.com',
               oauthRedirectSignOut: 'http://logout.com',
@@ -1126,6 +1126,7 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1157,6 +1158,7 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1188,6 +1190,7 @@ void describe('Auth construct', () => {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1219,6 +1222,7 @@ void describe('Auth construct', () => {
               clientId: facebookClientId,
               clientSecret: facebookClientSecret,
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1252,6 +1256,7 @@ void describe('Auth construct', () => {
               privateKey: applePrivateKey,
               teamId: appleTeamId,
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1285,6 +1290,7 @@ void describe('Auth construct', () => {
               privateKey: applePrivateKey,
               teamId: appleTeamId,
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1316,6 +1322,7 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1347,6 +1354,7 @@ void describe('Auth construct', () => {
               clientId: amazonClientId,
               clientSecret: amazonClientSecret,
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1401,6 +1409,7 @@ void describe('Auth construct', () => {
                 scopes: mockScopes,
               },
             ],
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1463,6 +1472,7 @@ void describe('Auth construct', () => {
                 scopes: mockScopes,
               },
             ],
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1508,6 +1518,7 @@ void describe('Auth construct', () => {
                 name: oidcProviderName,
               },
             ],
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1544,6 +1555,7 @@ void describe('Auth construct', () => {
                 name: oidcProviderName2,
               },
             ],
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1577,6 +1589,7 @@ void describe('Auth construct', () => {
                 metadataType: 'FILE',
               },
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1606,6 +1619,7 @@ void describe('Auth construct', () => {
                 metadataType: 'FILE',
               },
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1635,6 +1649,7 @@ void describe('Auth construct', () => {
                 metadataType: 'URL',
               },
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1662,6 +1677,7 @@ void describe('Auth construct', () => {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
             },
+            domainPrefix: 'test-prefix',
             scopes: ['EMAIL', 'PROFILE'],
             callbackUrls: ['http://localhost'],
             logoutUrls: ['http://localhost'],
@@ -1703,6 +1719,7 @@ void describe('Auth construct', () => {
                   clientId: googleClientId,
                   clientSecret: SecretValue.unsafePlainText(googleClientSecret),
                 },
+                domainPrefix: 'test-prefix',
                 scopes: ['EMAIL', 'PROFILE'],
                 callbackUrls: [],
                 logoutUrls: ['http://localhost'],
@@ -1712,6 +1729,32 @@ void describe('Auth construct', () => {
         {
           message:
             'You must define callbackUrls when configuring external login providers.',
+        }
+      );
+    });
+
+    void it('throws an error if domainPrefix is not specified with external login providers', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      assert.throws(
+        () =>
+          new AmplifyAuth(stack, 'test', {
+            loginWith: {
+              email: true,
+              externalProviders: {
+                google: {
+                  clientId: googleClientId,
+                  clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+                },
+                scopes: ['EMAIL', 'PROFILE'],
+                callbackUrls: ['http://redirect.com'],
+                logoutUrls: ['http://localhost'],
+              },
+            },
+          }),
+        {
+          message:
+            'Cognito Domain Prefix is missing when external providers are configured.',
         }
       );
     });
@@ -1729,6 +1772,7 @@ void describe('Auth construct', () => {
                   clientId: googleClientId,
                   clientSecret: SecretValue.unsafePlainText(googleClientSecret),
                 },
+                domainPrefix: 'test-prefix',
                 scopes: ['EMAIL', 'PROFILE'],
                 callbackUrls: ['http://redirect.com'],
                 logoutUrls: [],
@@ -1738,29 +1782,6 @@ void describe('Auth construct', () => {
         {
           message:
             'You must define logoutUrls when configuring external login providers.',
-        }
-      );
-    });
-
-    void it('throws an error if domainPrefix is configured without any external providers', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      assert.throws(
-        () =>
-          new AmplifyAuth(stack, 'test', {
-            loginWith: {
-              email: true,
-              externalProviders: {
-                scopes: ['EMAIL', 'PROFILE'],
-                callbackUrls: ['http://localhost'],
-                logoutUrls: ['http://localhost'],
-                domainPrefix: 'https://localhost',
-              },
-            },
-          }),
-        {
-          message:
-            'You cannot configure a domain prefix if there are no external providers configured.',
         }
       );
     });
@@ -1806,6 +1827,7 @@ void describe('Auth construct', () => {
                 metadataType: 'FILE',
               },
             },
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1883,6 +1905,7 @@ void describe('Auth construct', () => {
                 name: oidcProviderName,
               },
             ],
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -1964,6 +1987,7 @@ void describe('Auth construct', () => {
                 name: oidcProviderName,
               },
             ],
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -2074,6 +2098,7 @@ void describe('Auth construct', () => {
                 },
               },
             ],
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -2198,6 +2223,7 @@ void describe('Auth construct', () => {
                 },
               },
             ],
+            domainPrefix: 'test-prefix',
             callbackUrls: ['https://redirect.com'],
             logoutUrls: ['https://logout.com'],
           },
@@ -2312,6 +2338,7 @@ void describe('Auth construct', () => {
               metadataType: 'FILE',
             },
           },
+          domainPrefix: 'test-prefix',
           callbackUrls: ['https://redirect.com'],
           logoutUrls: ['https://logout.com'],
         },

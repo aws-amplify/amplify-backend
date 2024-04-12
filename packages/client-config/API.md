@@ -82,7 +82,8 @@ interface AWSAmplifyBackendOutputs {
         };
         oauth?: {
             identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
-            domain?: string;
+            cognito_domain: string;
+            custom_domain?: string;
             scopes: string[];
             redirect_sign_in_uri: string[];
             redirect_sign_out_uri: string[];
