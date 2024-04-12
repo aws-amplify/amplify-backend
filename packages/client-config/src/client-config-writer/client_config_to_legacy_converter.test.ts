@@ -308,6 +308,8 @@ void describe('ClientConfigLegacyConverter', () => {
     };
 
     const expectedLegacyConfig: AnalyticsClientConfig = {
+      aws_mobile_analytics_app_id: 'testAppId',
+      aws_mobile_analytics_app_region: 'testRegion',
       Analytics: {
         Pinpoint: {
           appId: 'testAppId',
