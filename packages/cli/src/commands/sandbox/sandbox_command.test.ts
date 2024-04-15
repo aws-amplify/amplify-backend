@@ -314,7 +314,7 @@ void describe('sandbox command', () => {
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.strictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].watchForChanges,
-      true
+      false
     );
   });
 });
