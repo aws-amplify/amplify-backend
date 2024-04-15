@@ -20,7 +20,11 @@ export class ArnGenerator {
     accountId: string | undefined
   ): string | undefined => {
     if (!accountId || !region) {
-      return;
+      return undefined;
+    }
+
+    if (!stackResourceSummary.PhysicalResourceId) {
+      return undefined;
     }
 
     // Supported keys from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
@@ -50,7 +54,7 @@ export class ArnGenerator {
         break;
     }
 
-    return;
+    return undefined;
   };
 
   private isArn = (potentialArn: string) => {
