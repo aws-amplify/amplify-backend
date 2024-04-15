@@ -308,4 +308,13 @@ void describe('sandbox command', () => {
       [path.join(process.cwd(), 'existentDir', 'amplifyconfiguration.ts')]
     );
   });
+
+  void it('starts sandbox with disableWatcher when --once flag is set', async () => {
+    await commandRunner.runCommand('sandbox --once');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.strictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].disableWatcher,
+      true
+    );
+  });
 });

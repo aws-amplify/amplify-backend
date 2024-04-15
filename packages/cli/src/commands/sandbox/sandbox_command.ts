@@ -23,6 +23,7 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
     configFormat: ClientConfigFormat | undefined;
     configOutDir: string | undefined;
     configVersion: string;
+    once: boolean | undefined;
   } & SandboxCommandGlobalOptions
 >;
 
@@ -115,6 +116,7 @@ export class SandboxCommand
       exclude: watchExclusions,
       identifier: args.identifier,
       profile: args.profile,
+      disableWatcher: args.once,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
@@ -175,6 +177,7 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
+        .boolean('once')
         .check(async (argv) => {
           if (argv['dir-to-watch']) {
             await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);

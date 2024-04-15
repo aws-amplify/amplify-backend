@@ -829,6 +829,19 @@ void describe('Sandbox using local project name resolver', () => {
 
     assert.equal(mockListener.mock.callCount(), 1);
   });
+
+  void it('should trigger single deployment without watcher if disableWatcher is true', async () => {
+    const mockListener = mock.fn();
+    sandboxInstance.on('successfulDeployment', mockListener);
+
+    await sandboxInstance.start({
+      dir: 'testDir',
+      disableWatcher: true,
+    });
+
+    assert.strictEqual(subscribeMock.mock.callCount(), 0);
+    assert.strictEqual(mockListener.mock.callCount(), 1);
+  });
 });
 
 /**
