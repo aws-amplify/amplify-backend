@@ -1,6 +1,6 @@
 import { createGraphqlModelsGenerator } from '@aws-amplify/model-generator';
 import { AmplifyFault } from '@aws-amplify/platform-core';
-import { ClientConfigGeneratorFactoryOptions } from './index.js';
+import { GenerateClientConfigOptions } from './index.js';
 
 /**
  * Adapts static getModelIntrospectionSchemaFromS3Uri from @aws-amplify/model-generator call to make it injectable and testable.
@@ -9,7 +9,7 @@ export class ModelIntrospectionSchemaAdapter {
   /**
    * Creates new adapter for getModelIntrospectionSchemaFromS3Uri from @aws-amplify/model-generator.
    */
-  constructor(private readonly options: ClientConfigGeneratorFactoryOptions) {}
+  constructor(private readonly options: GenerateClientConfigOptions) {}
 
   /**
    * Generates the client configuration for a given backend

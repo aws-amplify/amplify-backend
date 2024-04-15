@@ -8,8 +8,9 @@ import {
   DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
 import { GraphqlModelsFetchOptions } from '@aws-amplify/model-generator';
+import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
 
-export type ClientConfigGeneratorFactoryOptions = GraphqlModelsFetchOptions;
+export type GenerateClientConfigOptions = GraphqlModelsFetchOptions;
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file
@@ -22,14 +23,15 @@ export type ClientConfigGeneratorFactoryOptions = GraphqlModelsFetchOptions;
  * Main entry point for generating client config
  */
 export const generateClientConfig = async <T extends ClientConfigVersion>(
-  options: ClientConfigGeneratorFactoryOptions,
+  options: GenerateClientConfigOptions,
   backendIdentifier: DeployedBackendIdentifier,
   version: T
 ): Promise<ClientConfigVersionTemplateType<T>> => {
   const backendOutputClient = BackendOutputClientFactory.getInstance(options);
+  const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(options);
   return new ClientConfigGeneratorFactory(() =>
     backendOutputClient.getOutput(backendIdentifier)
   )
-    .getInstance(options, version)
+    .getInstance(modelSchemaAdapter, version)
     .generateClientConfig() as Promise<ClientConfigVersionTemplateType<T>>;
 };

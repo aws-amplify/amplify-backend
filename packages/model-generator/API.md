@@ -5,8 +5,10 @@
 ```ts
 
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { BackendOutputClientFactoryOptions } from '@aws-amplify/deployed-backend-client';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { ModelsTarget } from '@aws-amplify/graphql-generator';
+import { S3Client } from '@aws-sdk/client-s3';
 import { StatementsTarget } from '@aws-amplify/graphql-generator';
 import { TypesTarget } from '@aws-amplify/graphql-generator';
 
@@ -143,6 +145,19 @@ export type GraphqlDocumentGeneratorFactoryParams = {
 };
 
 // @public (undocumented)
+export type GraphqlModelsClientOptions = {
+    s3Client: S3Client;
+} & BackendOutputClientFactoryOptions;
+
+// @public (undocumented)
+export type GraphqlModelsCredentialsOptions = {
+    credentials: AwsCredentialIdentityProvider;
+};
+
+// @public (undocumented)
+export type GraphqlModelsFetchOptions = GraphqlModelsClientOptions | GraphqlModelsCredentialsOptions;
+
+// @public (undocumented)
 export type GraphqlModelsGenerator = {
     generateModels: (params: ModelsGenerationParameters) => Promise<GenerationResult>;
 };
@@ -150,10 +165,10 @@ export type GraphqlModelsGenerator = {
 // @public (undocumented)
 export type GraphqlModelsGeneratorFactoryParams = {
     backendIdentifier: DeployedBackendIdentifier;
-    credentialProvider: AwsCredentialIdentityProvider;
+    options: GraphqlModelsFetchOptions;
 } | {
     modelSchemaS3Uri: string;
-    credentialProvider: AwsCredentialIdentityProvider;
+    options: GraphqlModelsFetchOptions;
 };
 
 // @public (undocumented)
