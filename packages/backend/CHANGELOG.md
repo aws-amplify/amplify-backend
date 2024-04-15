@@ -1,5 +1,25 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.17
+
+### Minor Changes
+
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+
+### Patch Changes
+
+- Updated dependencies [1e93535]
+- Updated dependencies [ab739ea]
+- Updated dependencies [911c4c6]
+- Updated dependencies [bb5a446]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/client-config@0.9.0-beta.12
+  - @aws-amplify/backend-data@0.10.0-beta.12
+  - @aws-amplify/backend-function@0.8.0-beta.10
+  - @aws-amplify/backend-output-storage@0.4.0-beta.6
+  - @aws-amplify/backend-storage@0.6.0-beta.8
+  - @aws-amplify/backend-auth@0.5.0-beta.11
+
 ## 0.13.0-beta.16
 
 ### Patch Changes

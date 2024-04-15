@@ -1,5 +1,18 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.12
+
+### Minor Changes
+
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+
+### Patch Changes
+
+- ab739ea: backend-data sql PR naming cleanup
+- Updated dependencies [1e93535]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/backend-output-storage@0.4.0-beta.6
+
 ## 0.10.0-beta.11
 
 ### Patch Changes

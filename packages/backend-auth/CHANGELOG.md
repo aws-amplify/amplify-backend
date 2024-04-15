@@ -1,5 +1,13 @@
 # @aws-amplify/backend-auth
 
+## 0.5.0-beta.11
+
+### Patch Changes
+
+- Updated dependencies [1e93535]
+  - @aws-amplify/auth-construct-alpha@0.6.0-beta.11
+  - @aws-amplify/backend-output-storage@0.4.0-beta.6
+
 ## 0.5.0-beta.10
 
 ### Patch Changes
