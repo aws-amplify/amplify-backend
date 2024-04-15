@@ -7,10 +7,19 @@ import {
   BackendOutputClientFactory,
   DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
-import { GraphqlModelsFetchOptions } from '@aws-amplify/model-generator';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
+import { S3Client } from '@aws-sdk/client-s3';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 
-export type GenerateClientConfigOptions = GraphqlModelsFetchOptions;
+export type GenerateClientConfigOptions =
+  | {
+      s3Client: S3Client;
+      cloudFormationClient: CloudFormationClient;
+      amplifyClient: AmplifyClient;
+    }
+  | { credentials: AwsCredentialIdentityProvider };
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file
