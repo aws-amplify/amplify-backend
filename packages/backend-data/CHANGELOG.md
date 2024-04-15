@@ -1,5 +1,17 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.11
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- a6f35a8: feat: Allow defineData to process combined and RDS schemas
+- 48ff3bd: Add cfnFunction to function resources
+- 6b217e6: Fixes bug where apiName can resolve to undefined
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.5
+
 ## 0.10.0-beta.10
 
 ### Minor Changes

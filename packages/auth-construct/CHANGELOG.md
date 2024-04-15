@@ -1,5 +1,14 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.6.0-beta.10
+
+### Patch Changes
+
+- 1b8386b: Auth user attribute mappings have been simplified to use strings instead of objects with an attributeName property.
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.5
+
 ## 0.6.0-beta.9
 
 ### Patch Changes

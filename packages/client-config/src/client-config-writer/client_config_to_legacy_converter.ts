@@ -113,7 +113,7 @@ export class ClientConfigLegacyConverter {
         authClientConfig.oauth = {};
         authClientConfig.aws_cognito_social_providers =
           clientConfig.auth.oauth.identity_providers;
-        authClientConfig.oauth.domain = clientConfig.auth.oauth.domain;
+        authClientConfig.oauth.domain = clientConfig.auth.oauth.cognito_domain;
         authClientConfig.oauth.scope = clientConfig.auth.oauth.scopes;
         authClientConfig.oauth.redirectSignIn =
           clientConfig.auth.oauth.redirect_sign_in_uri.join(',');
@@ -168,6 +168,10 @@ export class ClientConfigLegacyConverter {
         },
       };
       legacyConfig = { ...legacyConfig, ...analyticsConfig };
+      legacyConfig.aws_mobile_analytics_app_id =
+        clientConfig.analytics.amazon_pinpoint.app_id;
+      legacyConfig.aws_mobile_analytics_app_region =
+        clientConfig.analytics.amazon_pinpoint.aws_region;
     }
 
     // Geo category

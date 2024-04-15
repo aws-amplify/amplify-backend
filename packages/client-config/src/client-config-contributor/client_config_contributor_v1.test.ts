@@ -116,7 +116,7 @@ void describe('auth client config contributor v1', () => {
             signupAttributes: '["email"]',
             allowUnauthenticatedIdentities: 'true',
             oauthClientId: 'testWebClientId', // same as webClientId
-            oauthDomain: 'testDomain',
+            oauthCognitoDomain: 'testDomain',
             oauthScope: '["email","profile"]',
             oauthRedirectSignIn: 'http://callback.com,http://callback2.com',
             oauthRedirectSignOut: 'http://logout.com,http://logout2.com',
@@ -145,7 +145,7 @@ void describe('auth client config contributor v1', () => {
           user_verification_types: ['email', 'phone_number'],
           oauth: {
             identity_providers: ['GOOGLE', 'FACEBOOK'],
-            domain: 'testDomain',
+            cognito_domain: 'testDomain',
             scopes: ['email', 'profile'],
             redirect_sign_in_uri: [
               'http://callback.com',

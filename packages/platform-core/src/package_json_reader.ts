@@ -9,9 +9,10 @@ import { AmplifyUserError } from './errors';
 export class PackageJsonReader {
   read = (absolutePackageJsonPath: string): PackageJson => {
     if (!fs.existsSync(absolutePackageJsonPath)) {
-      throw new Error(
-        `Could not find a package.json file at ${absolutePackageJsonPath}`
-      );
+      throw new AmplifyUserError('InvalidPackageJsonError', {
+        message: `Could not find a package.json file at ${absolutePackageJsonPath}`,
+        resolution: `Ensure that ${absolutePackageJsonPath} exists and is a valid JSON file`,
+      });
     }
     let jsonParsedValue: Record<string, unknown>;
     try {

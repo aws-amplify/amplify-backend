@@ -22,7 +22,7 @@ import {
   combineCDKSchemas,
   convertSchemaToCDK,
   isCombinedSchema,
-  isModelSchema,
+  isDataSchema,
 } from './convert_schema.js';
 import { convertFunctionNameMapToCDK } from './convert_functions.js';
 import {
@@ -34,7 +34,6 @@ import {
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import {
   AmplifyError,
-  AmplifyFault,
   AmplifyUserError,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
@@ -133,7 +132,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         : [this.props.schema];
 
       schemas.forEach((schema) => {
-        if (isModelSchema(schema)) {
+        if (isDataSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
             schema.transform();
           schemasJsFunctions.push(...jsFunctions);
@@ -241,9 +240,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         },
       });
     } catch (error) {
-      throw new AmplifyFault(
-        'AmplifyDataConstructFault',
-        { message: 'Failed to instantiate data construct' },
+      throw new AmplifyUserError(
+        'AmplifyDataConstructInitializationError',
+        {
+          message: 'Failed to instantiate data construct',
+          resolution: 'See the underlying error message for more details.',
+        },
         error as Error
       );
     }

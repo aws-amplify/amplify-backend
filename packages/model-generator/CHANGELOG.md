@@ -1,5 +1,15 @@
 # @aws-amplify/model-generator
 
+## 0.5.0-beta.8
+
+### Minor Changes
+
+- a494aca: refactor: use default directives
+
+### Patch Changes
+
+- @aws-amplify/deployed-backend-client@0.4.0-beta.6
+
 ## 0.5.0-beta.7
 
 ### Patch Changes

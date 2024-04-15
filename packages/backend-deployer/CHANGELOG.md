@@ -1,5 +1,16 @@
 # @aws-amplify/backend-deployer
 
+## 0.5.1-beta.6
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- e3a537f: chore: Translate secrets not set error to a more user friendly error message
+- Updated dependencies [6c6af9b]
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/platform-core@0.5.0-beta.5
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+
 ## 0.5.1-beta.5
 
 ### Patch Changes

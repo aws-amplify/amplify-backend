@@ -1,5 +1,13 @@
 # @aws-amplify/platform-core
 
+## 0.5.0-beta.5
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+
 ## 0.5.0-beta.4
 
 ### Patch Changes

@@ -143,7 +143,8 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
           authOutput.payload.oauthRedirectSignIn &&
           authOutput.payload.oauthRedirectSignOut &&
           authOutput.payload.oauthResponseType &&
-          authOutput.payload.oauthScope
+          authOutput.payload.oauthScope &&
+          authOutput.payload.oauthCognitoDomain
         )
       ) {
         throw new AmplifyFault('InvalidBackendOutputFault', {
@@ -159,11 +160,8 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
           authOutput.payload.oauthRedirectSignOut.split(','),
         response_type: authOutput.payload.oauthResponseType as 'code' | 'token',
         scopes: JSON.parse(authOutput.payload.oauthScope),
+        cognito_domain: authOutput.payload.oauthCognitoDomain,
       };
-
-      if (authOutput.payload.oauthDomain) {
-        authClientConfig.auth.oauth.domain = authOutput.payload.oauthDomain;
-      }
     }
 
     if (authOutput.payload.allowUnauthenticatedIdentities) {

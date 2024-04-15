@@ -1,5 +1,12 @@
 # @aws-amplify/integration-tests
 
+## 0.5.0-beta.8
+
+### Patch Changes
+
+- 54c69c4: chore: rename the new client config file name
+- 4123204: fix: order of array in test assert in gitignored tests
+
 ## 0.5.0-beta.7
 
 ### Minor Changes

@@ -121,6 +121,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
     ssmEnvironmentEntriesGenerator,
+    stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
     const authProps: AuthProps = {
       ...this.props,
@@ -130,8 +131,24 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
+    if (authProps.loginWith.externalProviders) {
+      authProps.loginWith.externalProviders.domainPrefix =
+        stableBackendIdentifiers.getStableBackendHash();
+    }
 
-    const authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
+    let authConstruct: AmplifyAuth;
+    try {
+      authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
+    } catch (error) {
+      throw new AmplifyUserError(
+        'AmplifyAuthConstructInitializationError',
+        {
+          message: 'Failed to instantiate auth construct',
+          resolution: 'See the underlying error message for more details.',
+        },
+        error as Error
+      );
+    }
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
         (authConstruct.resources.userPool as UserPool).addTrigger(

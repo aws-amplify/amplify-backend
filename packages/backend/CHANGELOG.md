@@ -1,5 +1,25 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.16
+
+### Patch Changes
+
+- Updated dependencies [6c6af9b]
+- Updated dependencies [54c69c4]
+- Updated dependencies [a6f35a8]
+- Updated dependencies [5ebc1d4]
+- Updated dependencies [48ff3bd]
+- Updated dependencies [6b217e6]
+  - @aws-amplify/backend-function@0.8.0-beta.9
+  - @aws-amplify/platform-core@0.5.0-beta.5
+  - @aws-amplify/backend-auth@0.5.0-beta.10
+  - @aws-amplify/backend-data@0.10.0-beta.11
+  - @aws-amplify/client-config@0.9.0-beta.11
+  - @aws-amplify/backend-storage@0.6.0-beta.7
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.5
+  - @aws-amplify/backend-secret@0.4.5-beta.5
+
 ## 0.13.0-beta.15
 
 ### Patch Changes
