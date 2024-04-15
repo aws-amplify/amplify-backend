@@ -36,7 +36,7 @@ export type SandboxOptions = {
     identifier?: string;
     format?: ClientConfigFormat;
     profile?: string;
-    disableWatcher?: boolean;
+    watchForChanges?: boolean;
 };
 
 // @public

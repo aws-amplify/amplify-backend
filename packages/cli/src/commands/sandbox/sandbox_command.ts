@@ -116,7 +116,7 @@ export class SandboxCommand
       exclude: watchExclusions,
       identifier: args.identifier,
       profile: args.profile,
-      disableWatcher: args.once,
+      watchForChanges: !args.once,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
@@ -177,7 +177,12 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
-        .boolean('once')
+        .option('once', {
+          describe: 'Deploys sandbox environment without file watcher',
+          boolean: true,
+          default: false,
+          global: false,
+        })
         .check(async (argv) => {
           if (argv['dir-to-watch']) {
             await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
