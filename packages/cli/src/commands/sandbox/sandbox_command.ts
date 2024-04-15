@@ -178,7 +178,7 @@ export class SandboxCommand
           array: false,
         })
         .option('once', {
-          describe: 'Deploys sandbox environment without file watcher',
+          describe: 'Execute a single sandbox deployment without watching for future file changes',
           boolean: true,
           default: false,
           global: false,
