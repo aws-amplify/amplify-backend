@@ -205,6 +205,17 @@ export class ClientConfigMobileConverter {
       }
     }
 
+    if (clientConfig.aws_user_files_s3_bucket) {
+      mobileConfig.storage = {
+        plugins: {
+          awsS3StoragePlugin: {
+            bucket: clientConfig.aws_user_files_s3_bucket,
+            region: clientConfig.aws_user_files_s3_bucket_region,
+          },
+        },
+      };
+    }
+
     return mobileConfig;
   };
 }
