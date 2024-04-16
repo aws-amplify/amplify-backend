@@ -31,9 +31,29 @@ const storageStackType = 'storage-S3';
 export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 export type AmplifyStorageProps = {
+  /**
+   * Friendly name that will be used to derive the S3 Bucket name
+   */
   name: string;
+  /**
+   * Whether to enable S3 object versioning on the bucket.
+   * @see https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html
+   * @default false
+   */
   versioned?: boolean;
   outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+  /**
+   * S3 event trigger configuration
+   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#configure-storage-triggers
+   * @example
+   * import { triggerHandler } from '../functions/trigger-handler/resource.ts'
+   *
+   * export const storage = defineStorage({
+   *   triggers: {
+   *     onUpload: triggerHandler
+   *   }
+   * })
+   */
   triggers?: Partial<
     Record<
       AmplifyStorageTriggerEvent,
