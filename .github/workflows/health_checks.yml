@@ -302,7 +302,7 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
       - name: Validate that PR has change set
         run: |
-          npx changeset status --since origin/${{ github.ref_name }}
+          npx changeset status --since origin/${{ github.event.pull_request.base.ref }}
       - name: Validate that change set has necessary dependency updates
         run: |
           npx changeset version
