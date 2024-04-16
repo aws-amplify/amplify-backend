@@ -45,8 +45,8 @@ void it('data storage auth with triggers', () => {
   ]);
 
   assertExpectedLogicalIds(templates.storage, 'AWS::Lambda::Permission', [
-    'testNameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononDeletelambda572CB9D7EA473960',
-    'testNameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononUploadlambda74F01BD6AFF08959',
+    'testnameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononDeletelambda572CB9D7AB18435C',
+    'testnameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononUploadlambda74F01BD6AEEF6C37',
   ]);
 
   assertExpectedLogicalIds(templates.defaultNodeFunc, 'AWS::Lambda::Function', [
