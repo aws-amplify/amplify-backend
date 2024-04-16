@@ -8,7 +8,8 @@ import { DistTagMover } from './components/dist_tag_mover.js';
 const searchForReleaseStartingFrom = getInput('searchForReleaseStartingFrom', {
   required: true,
 });
-const useNpmRegistry = getInput('useNpmRegistry', { required: true });
+const useNpmRegistry =
+  getInput('useNpmRegistry', { required: true }) === 'true';
 
 if (useNpmRegistry) {
   console.log(
