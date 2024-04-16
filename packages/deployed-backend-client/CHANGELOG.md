@@ -1,5 +1,13 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.4.0-beta.8
+
+### Patch Changes
+
+- edee8d7: throw for generate commands while deployment is still in progress
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0-beta.6
+
 ## 0.4.0-beta.7
 
 ### Patch Changes

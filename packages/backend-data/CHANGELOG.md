@@ -1,5 +1,12 @@
 # @aws-amplify/backend-data
 
+## 0.10.0-beta.13
+
+### Patch Changes
+
+- 10c9447: Fix dependent bot alert for mysql2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.7
+
 ## 0.10.0-beta.12
 
 ### Minor Changes

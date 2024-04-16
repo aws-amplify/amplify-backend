@@ -1,5 +1,12 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.6.0-beta.12
+
+### Patch Changes
+
+- 65b516d: fix: MFA types to not require sms settings if turned off
+  - @aws-amplify/backend-output-storage@0.4.0-beta.7
+
 ## 0.6.0-beta.11
 
 ### Patch Changes
