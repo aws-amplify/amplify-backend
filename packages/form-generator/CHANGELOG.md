@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.8.0-beta.5
+
+### Patch Changes
+
+- 73dcd6e: fix: update model introspection schema generation packages for references relationships
+
 ## 0.8.0-beta.4
 
 ### Minor Changes

@@ -1,5 +1,13 @@
 # @aws-amplify/schema-generator
 
+## 0.1.0-beta.6
+
+### Patch Changes
+
+- 10c9447: Fix dependent bot alert for mysql2
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0-beta.6
+
 ## 0.1.0-beta.5
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @aws-amplify/backend-secret
 
+## 0.4.5-beta.6
+
+### Patch Changes
+
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0-beta.6
+
 ## 0.4.5-beta.5
 
 ### Patch Changes
