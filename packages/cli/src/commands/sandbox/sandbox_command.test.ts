@@ -113,6 +113,7 @@ void describe('sandbox command', () => {
     assert.match(output, /--exclude/);
     assert.match(output, /--config-format/);
     assert.match(output, /--config-out-dir/);
+    assert.match(output, /--once/);
     assert.equal(mockHandleProfile.mock.callCount(), 0);
   });
 
@@ -315,6 +316,19 @@ void describe('sandbox command', () => {
     assert.strictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].watchForChanges,
       false
+    );
+  });
+
+  void it('--once flag is mutually exclusive with dir-to-watch & exclude', async () => {
+    assert.match(
+      await commandRunner.runCommand(
+        'sandbox --once --dir-to-watch nonExistentDir'
+      ),
+      /Arguments once and dir-to-watch are mutually exclusive/
+    );
+    assert.match(
+      await commandRunner.runCommand('sandbox --once --exclude test'),
+      /Arguments once and exclude are mutually exclusive/
     );
   });
 });

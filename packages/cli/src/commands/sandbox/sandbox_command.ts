@@ -178,9 +178,9 @@ export class SandboxCommand
           array: false,
         })
         .option('once', {
-          describe: 'Execute a single sandbox deployment without watching for future file changes',
+          describe:
+            'Execute a single sandbox deployment without watching for future file changes',
           boolean: true,
-          default: false,
           global: false,
         })
         .check(async (argv) => {
@@ -197,6 +197,7 @@ export class SandboxCommand
           }
           return true;
         })
+        .conflicts('once', ['exclude', 'dir-to-watch'])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );
   };
