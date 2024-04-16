@@ -35,7 +35,7 @@ jobs:
 
       # mapping the inputs to these environment variables allows the @actions/core toolkit to pick up the inputs
       INPUT_USENPMREGISTRY: ${{ inputs.useNpmRegistry }}
-      INPUT_SEARCHFORRELEASESTARTINGFRON: ${{ inputs.searchForReleaseStartingFrom }}
+      INPUT_SEARCHFORRELEASESTARTINGFROM: ${{ inputs.searchForReleaseStartingFrom }}
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
         with:
