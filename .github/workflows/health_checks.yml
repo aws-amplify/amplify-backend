@@ -328,12 +328,16 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Create release pull request or publish to npm
+        id: changeset_publish
         uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
         with:
           publish: npm run publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Update hotfix branch
+        if: ${{ steps.changeset_publish.outputs.published }}
+        run: git push origin ${{ github.ref_name }}:${{ github.ref_name}}/hotfix --force
   codeql:
     runs-on: ubuntu-latest
     permissions:
