@@ -41,7 +41,7 @@ void it('data storage auth with triggers', () => {
   ]);
 
   assertExpectedLogicalIds(templates.storage, 'Custom::S3BucketNotifications', [
-    'testNameBucketNotificationsB9BE9A01',
+    'testnameBucketNotifications61871662',
   ]);
 
   assertExpectedLogicalIds(templates.storage, 'AWS::Lambda::Permission', [
