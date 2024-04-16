@@ -1,4 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import fs from 'fs';
 import fsp from 'fs/promises';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
@@ -7,6 +8,7 @@ import {
   ClientConfigVersion,
   ClientConfigVersionOption,
   DEFAULT_CLIENT_CONFIG_VERSION,
+  generateEmptyClientConfigToFile,
   getClientConfigFileName,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
@@ -109,6 +111,15 @@ export class SandboxCommand
       args.configOutDir,
       args.configFormat
     );
+
+    if (!fs.existsSync(clientConfigWritePath)) {
+      await generateEmptyClientConfigToFile(
+        args.configVersion as ClientConfigVersion,
+        args.configOutDir,
+        args.configFormat
+      );
+    }
+
     watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
       dir: args.dirToWatch,
