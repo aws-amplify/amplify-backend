@@ -67,7 +67,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
         )?.Value ?? 'sandbox';
       throw new BackendOutputClientError(
         BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
-        `A ${deploymentType} deployment is in progress. Please re-run this command once the deployment completes`
+        `This ${deploymentType} deployment is in progress. Re-run this command once the deployment completes.`
       );
     }
     if (outputs === undefined) {
