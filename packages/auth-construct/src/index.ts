@@ -12,6 +12,8 @@ export {
   VerificationEmailWithCode,
   VerificationEmailWithLink,
   MFA,
+  MFASmsSettings,
+  MFATotpSettings,
   MFASettings,
   PhoneNumberLogin,
   TriggerEvent,
