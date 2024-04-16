@@ -277,7 +277,6 @@ void describe('Sandbox using local project name resolver', () => {
         // imaginary dir does not have any ts files
         dir: 'testDir',
         exclude: ['exclude1', 'exclude2'],
-        watchForChanges: true,
       },
       false
     ));
@@ -307,7 +306,6 @@ void describe('Sandbox using local project name resolver', () => {
       {
         dir: testDir,
         exclude: ['exclude1', 'exclude2'],
-        watchForChanges: true,
       },
       false
     ));
@@ -334,7 +332,6 @@ void describe('Sandbox using local project name resolver', () => {
       {
         dir: 'testDir',
         exclude: ['exclude1', 'exclude2'],
-        watchForChanges: true,
       }
     ));
     await fileChangeEventCallback(null, [
@@ -669,7 +666,6 @@ void describe('Sandbox using local project name resolver', () => {
       {
         dir: 'testDir',
         exclude: ['exclude1', 'exclude2'],
-        watchForChanges: true,
       }
     ));
     const contextualBackendDeployerMock = contextual.mock.method(
@@ -692,7 +688,7 @@ void describe('Sandbox using local project name resolver', () => {
         executor: sandboxExecutor,
         cfnClient: cfnClientMock,
       },
-      { identifier: 'customSandboxName', watchForChanges: true }
+      { identifier: 'customSandboxName' }
     ));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
@@ -722,7 +718,7 @@ void describe('Sandbox using local project name resolver', () => {
         executor: sandboxExecutor,
         cfnClient: cfnClientMock,
       },
-      { identifier: 'customSandboxName', watchForChanges: true }
+      { identifier: 'customSandboxName' }
     ));
     await sandboxInstance.delete({ identifier: 'customSandboxName' });
 
@@ -759,7 +755,6 @@ void describe('Sandbox using local project name resolver', () => {
       },
       {
         exclude: ['customer_exclude1', 'customer_exclude2'],
-        watchForChanges: true,
       }
     ));
     await fileChangeEventCallback(null, [
@@ -805,7 +800,6 @@ void describe('Sandbox using local project name resolver', () => {
       },
       {
         exclude: ['customer_exclude1', 'customer_exclude2'],
-        watchForChanges: true,
       }
     ));
     await fileChangeEventCallback(null, [
@@ -882,7 +876,7 @@ void describe('Sandbox using local project name resolver', () => {
  */
 const setupAndStartSandbox = async (
   testData: SandboxTestData,
-  sandboxOptions: SandboxOptions = { watchForChanges: true },
+  sandboxOptions: SandboxOptions = {},
   resetMocksAfterStart = true
 ) => {
   const sandboxInstance = new FileWatchingSandbox(
@@ -911,8 +905,15 @@ const setupAndStartSandbox = async (
     listSecretMock.mock.resetCalls();
   }
 
-  if (!sandboxOptions.watchForChanges) {
-    return { sandboxInstance, fileChangeEventCallback: () => null };
+  if (sandboxOptions.watchForChanges === false) {
+    return {
+      sandboxInstance,
+      fileChangeEventCallback: () => {
+        throw new Error(
+          'When not watching for changes, file change event callback is not available'
+        );
+      },
+    };
   }
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
