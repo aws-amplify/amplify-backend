@@ -126,7 +126,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
         message:
-          'A sandbox deployment is in progress. Please re-run this command once the deployment completes',
+          'This sandbox deployment is in progress. Re-run this command once the deployment completes.',
       });
     });
 
@@ -177,7 +177,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
         message:
-          'A branch deployment is in progress. Please re-run this command once the deployment completes',
+          'This branch deployment is in progress. Re-run this command once the deployment completes.',
       });
     });
 
@@ -218,7 +218,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
         message:
-          'A sandbox deployment is in progress. Please re-run this command once the deployment completes',
+          'This sandbox deployment is in progress. Re-run this command once the deployment completes.',
       });
     });
 
