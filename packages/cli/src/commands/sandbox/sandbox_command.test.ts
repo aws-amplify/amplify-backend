@@ -7,6 +7,7 @@ import {
 } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import fs from 'fs';
+import os from 'os';
 import fsp from 'fs/promises';
 import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
@@ -327,7 +328,7 @@ void describe('sandbox command', () => {
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[1],
-      `{\n  "version": "1"\n}`
+      `{${os.EOL}  "version": "1"${os.EOL}}`
     );
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],

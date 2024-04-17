@@ -1,4 +1,5 @@
 import fsp from 'fs/promises';
+import os from 'os';
 import { beforeEach, describe, it, mock } from 'node:test';
 import { generateEmptyClientConfigToFile } from './generate_empty_client_config_to_file.js';
 import {
@@ -22,7 +23,7 @@ void describe('generate empty client config to file', () => {
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[1],
-      'const amplifyConfig = {}\nexport default amplifyConfig;\n'
+      `const amplifyConfig = {}${os.EOL}export default amplifyConfig;${os.EOL}`
     );
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],
@@ -37,7 +38,7 @@ void describe('generate empty client config to file', () => {
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[1],
-      `{\n  "version": "1"\n}`
+      `{${os.EOL}  "version": "1"${os.EOL}}`
     );
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],
