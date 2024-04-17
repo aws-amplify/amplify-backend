@@ -8,11 +8,16 @@ import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_res
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 import { AppSyncGraphqlDocumentGenerator } from './graphql_document_generator.js';
 import { GraphqlDocumentGenerator } from './model_generator.js';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 export type GraphqlDocumentGeneratorFactoryParams = {
   backendIdentifier: DeployedBackendIdentifier;
-  awsClientProvider: AWSClientProvider;
+  awsClientProvider: AWSClientProvider<{
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>;
 };
 
 /**

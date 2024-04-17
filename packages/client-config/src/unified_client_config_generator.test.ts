@@ -10,11 +10,11 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
-import {
-  AWSClientProvider,
-  AmplifyUserError,
-} from '@aws-amplify/platform-core';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { ClientConfigContributorFactory } from './client-config-contributor/client_config_contributor_factory.js';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
@@ -60,9 +60,11 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
-      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        new AWSClientProvider()
-      );
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
+        getS3Client: () => new S3Client(),
+        getAmplifyClient: () => new AmplifyClient(),
+        getCloudFormationClient: () => new CloudFormationClient(),
+      });
 
       mock.method(
         modelSchemaAdapter,
@@ -133,9 +135,11 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
-      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        new AWSClientProvider()
-      );
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
+        getS3Client: () => new S3Client(),
+        getAmplifyClient: () => new AmplifyClient(),
+        getCloudFormationClient: () => new CloudFormationClient(),
+      });
 
       mock.method(
         modelSchemaAdapter,

@@ -17,12 +17,16 @@ import {
 } from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 void describe('deploy command', () => {
-  const clientConfigGenerator = new ClientConfigGeneratorAdapter(
-    new AWSClientProvider()
-  );
+  const clientConfigGenerator = new ClientConfigGeneratorAdapter({
+    getS3Client: () => new S3Client(),
+    getAmplifyClient: () => new AmplifyClient(),
+    getCloudFormationClient: () => new CloudFormationClient(),
+  });
   const generateClientConfigMock = mock.method(
     clientConfigGenerator,
     'generateClientConfigToFile',

@@ -4,9 +4,12 @@
 
 ```ts
 
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { ModelsTarget } from '@aws-amplify/graphql-generator';
+import { S3Client } from '@aws-sdk/client-s3';
 import { StatementsTarget } from '@aws-amplify/graphql-generator';
 import { TypesTarget } from '@aws-amplify/graphql-generator';
 
@@ -53,7 +56,11 @@ export enum GenerateApiCodeModelTarget {
 
 // @public (undocumented)
 export type GenerateApiCodeProps = GenerateOptions & DeployedBackendIdentifier & {
-    awsClientProvider: AWSClientProvider;
+    awsClientProvider: AWSClientProvider<{
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+        getS3Client: S3Client;
+    }>;
 };
 
 // @public (undocumented)
@@ -139,7 +146,10 @@ export type GraphqlDocumentGenerator = {
 // @public (undocumented)
 export type GraphqlDocumentGeneratorFactoryParams = {
     backendIdentifier: DeployedBackendIdentifier;
-    awsClientProvider: AWSClientProvider;
+    awsClientProvider: AWSClientProvider<{
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+    }>;
 };
 
 // @public (undocumented)
@@ -150,10 +160,18 @@ export type GraphqlModelsGenerator = {
 // @public (undocumented)
 export type GraphqlModelsGeneratorFactoryParams = {
     backendIdentifier: DeployedBackendIdentifier;
-    awsClientProvider: AWSClientProvider;
+    awsClientProvider: AWSClientProvider<{
+        getS3Client: S3Client;
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+    }>;
 } | {
     modelSchemaS3Uri: string;
-    awsClientProvider: AWSClientProvider;
+    awsClientProvider: AWSClientProvider<{
+        getS3Client: S3Client;
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+    }>;
 };
 
 // @public (undocumented)

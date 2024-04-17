@@ -1,11 +1,17 @@
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
-import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
+import {
+  AWSClientProvider,
+  BackendIdentifier,
+  DeploymentType,
+} from '@aws-amplify/plugin-types';
 import { BackendOutputClientFactory } from './backend_output_client_factory.js';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -114,7 +120,13 @@ export class DeployedBackendClientFactory {
   /**
    * Returns a single instance of DeploymentClient
    */
-  getInstance(awsClientProvider: AWSClientProvider): DeployedBackendClient {
+  getInstance(
+    awsClientProvider: AWSClientProvider<{
+      getS3Client: S3Client;
+      getAmplifyClient: AmplifyClient;
+      getCloudFormationClient: CloudFormationClient;
+    }>
+  ): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
     const arnGenerator = new ArnGenerator();
     const arnParser = new ArnParser();

@@ -9,7 +9,9 @@ import path from 'path';
 import { DeployedResourcesFinder } from '../../find_deployed_resource.js';
 import assert from 'node:assert';
 import { generateClientConfig } from '@aws-amplify/client-config';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 /**
  * Creates a CDK project with auth construct
@@ -64,7 +66,11 @@ class AuthTestCdkProject extends TestCdkProjectBase {
 
     // assert that we can generate client config
     const clientConfig = await generateClientConfig(
-      new AWSClientProvider(),
+      {
+        getS3Client: () => new S3Client(),
+        getAmplifyClient: () => new AmplifyClient(),
+        getCloudFormationClient: () => new CloudFormationClient(),
+      },
       {
         stackName: this.stackName,
       },

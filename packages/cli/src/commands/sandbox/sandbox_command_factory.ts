@@ -11,13 +11,15 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import {
-  AWSClientProvider,
   PackageJsonReader,
   UsageDataEmitterFactory,
 } from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { printer } from '@aws-amplify/cli-core';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 /**
  * Creates wired sandbox command.
@@ -34,9 +36,11 @@ export const createSandboxCommand = (): CommandModule<
     sandboxBackendIdPartsResolver.resolve,
     printer
   );
-  const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-    new AWSClientProvider()
-  );
+  const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter({
+    getS3Client: () => new S3Client(),
+    getAmplifyClient: () => new AmplifyClient(),
+    getCloudFormationClient: () => new CloudFormationClient(),
+  });
 
   const libraryVersion =
     new PackageJsonReader().read(

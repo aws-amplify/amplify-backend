@@ -2,7 +2,9 @@ import { createLocalGraphqlFormGenerator } from '@aws-amplify/form-generator';
 import { createGraphqlDocumentGenerator } from '@aws-amplify/model-generator';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { printer } from '@aws-amplify/cli-core';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 type FormGenerationParams = {
   modelsOutDir: string;
@@ -12,7 +14,10 @@ type FormGenerationParams = {
   modelsFilter?: string[];
 };
 type FormGenerationInstanceOptions = {
-  awsClientProvider: AWSClientProvider;
+  awsClientProvider: AWSClientProvider<{
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>;
 };
 /**
  * Creates a handler for FormGeneration

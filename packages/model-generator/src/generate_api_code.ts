@@ -12,7 +12,10 @@ import { createGraphqlDocumentGenerator } from './create_graphql_document_genera
 import { getOutputFileName } from '@aws-amplify/graphql-types-generator';
 import path from 'path';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { S3Client } from '@aws-sdk/client-s3';
 
 export enum GenerateApiCodeFormat {
   MODELGEN = 'modelgen',
@@ -79,7 +82,11 @@ export type GenerateOptions =
 
 export type GenerateApiCodeProps = GenerateOptions &
   DeployedBackendIdentifier & {
-    awsClientProvider: AWSClientProvider;
+    awsClientProvider: AWSClientProvider<{
+      getAmplifyClient: AmplifyClient;
+      getCloudFormationClient: CloudFormationClient;
+      getS3Client: S3Client;
+    }>;
   };
 
 /**

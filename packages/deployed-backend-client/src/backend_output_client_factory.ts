@@ -4,7 +4,7 @@ import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
 
 export enum BackendOutputClientErrorType {
   METADATA_RETRIEVAL_ERROR = 'MetadataRetrievalError',
@@ -57,7 +57,10 @@ export class BackendOutputClientFactory {
    * Returns a single instance of BackendOutputClient
    */
   static getInstance = (
-    awsClientProvider: AWSClientProvider
+    awsClientProvider: AWSClientProvider<{
+      getAmplifyClient: AmplifyClient;
+      getCloudFormationClient: CloudFormationClient;
+    }>
   ): BackendOutputClient => {
     return new DefaultBackendOutputClient(
       awsClientProvider.getCloudFormationClient(),

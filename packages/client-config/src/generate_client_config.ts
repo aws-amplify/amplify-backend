@@ -11,16 +11,13 @@ import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_ad
 import { S3Client } from '@aws-sdk/client-s3';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
 
-export type GenerateClientConfigOptions =
-  | {
-      s3Client: S3Client;
-      cloudFormationClient: CloudFormationClient;
-      amplifyClient: AmplifyClient;
-    }
-  | { credentials: AwsCredentialIdentityProvider };
+export type GenerateClientConfigOptions = AWSClientProvider<{
+  s3Client: S3Client;
+  cloudFormationClient: CloudFormationClient;
+  amplifyClient: AmplifyClient;
+}>;
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file
@@ -33,7 +30,11 @@ export type GenerateClientConfigOptions =
  * Main entry point for generating client config
  */
 export const generateClientConfig = async <T extends ClientConfigVersion>(
-  awsClientProvider: AWSClientProvider,
+  awsClientProvider: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>,
   backendIdentifier: DeployedBackendIdentifier,
   version: T
 ): Promise<ClientConfigVersionTemplateType<T>> => {

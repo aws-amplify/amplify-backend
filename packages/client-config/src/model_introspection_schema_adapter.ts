@@ -1,5 +1,9 @@
 import { createGraphqlModelsGenerator } from '@aws-amplify/model-generator';
-import { AWSClientProvider, AmplifyFault } from '@aws-amplify/platform-core';
+import { AmplifyFault } from '@aws-amplify/platform-core';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { S3Client } from '@aws-sdk/client-s3';
 
 /**
  * Adapts static getModelIntrospectionSchemaFromS3Uri from @aws-amplify/model-generator call to make it injectable and testable.
@@ -8,7 +12,13 @@ export class ModelIntrospectionSchemaAdapter {
   /**
    * Creates new adapter for getModelIntrospectionSchemaFromS3Uri from @aws-amplify/model-generator.
    */
-  constructor(private readonly awsClientProvider: AWSClientProvider) {}
+  constructor(
+    private readonly awsClientProvider: AWSClientProvider<{
+      getS3Client: S3Client;
+      getAmplifyClient: AmplifyClient;
+      getCloudFormationClient: CloudFormationClient;
+    }>
+  ) {}
 
   /**
    * Generates the client configuration for a given backend

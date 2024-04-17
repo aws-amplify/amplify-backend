@@ -5,8 +5,7 @@
 ```ts
 
 import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -211,19 +210,25 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "0">(awsClientProvider: AWSClientProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
+export const generateClientConfig: <T extends "0" | "1">(awsClientProvider: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+}>, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
 
 // @public (undocumented)
-export type GenerateClientConfigOptions = {
+export type GenerateClientConfigOptions = AWSClientProvider<{
     s3Client: S3Client;
     cloudFormationClient: CloudFormationClient;
     amplifyClient: AmplifyClient;
-} | {
-    credentials: AwsCredentialIdentityProvider;
-};
+}>;
 
 // @public
-export const generateClientConfigToFile: (awsClientProvider: AWSClientProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat) => Promise<GenerateClientConfigToFileResult>;
+export const generateClientConfigToFile: (awsClientProvider: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+}>, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat) => Promise<GenerateClientConfigToFileResult>;
 
 // @public (undocumented)
 export type GenerateClientConfigToFileResult = {

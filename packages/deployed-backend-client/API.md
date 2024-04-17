@@ -5,11 +5,12 @@
 ```ts
 
 import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { DeploymentType } from '@aws-amplify/plugin-types';
+import { S3Client } from '@aws-sdk/client-s3';
 import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
@@ -98,7 +99,10 @@ export enum BackendOutputClientErrorType {
 
 // @public
 export class BackendOutputClientFactory {
-    static getInstance: (awsClientProvider: AWSClientProvider) => BackendOutputClient;
+    static getInstance: (awsClientProvider: AWSClientProvider<{
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+    }>) => BackendOutputClient;
 }
 
 // @public (undocumented)
@@ -148,7 +152,11 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    getInstance(awsClientProvider: AWSClientProvider): DeployedBackendClient;
+    getInstance(awsClientProvider: AWSClientProvider<{
+        getS3Client: S3Client;
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+    }>): DeployedBackendClient;
 }
 
 // @public (undocumented)

@@ -5,7 +5,8 @@ import { sdkStreamMixin } from '@aws-sdk/util-stream-node';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Readable } from 'node:stream';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 void describe('ModelIntrospectionSchemaAdapter', () => {
   const s3Mock = mockClient(S3Client);
@@ -15,17 +16,21 @@ void describe('ModelIntrospectionSchemaAdapter', () => {
   });
 
   void it('returns undefined on undefined schema uri', async () => {
-    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter(
-      new AWSClientProvider()
-    ).getModelIntrospectionSchemaFromS3Uri(undefined);
+    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter({
+      getS3Client: () => new S3Client(),
+      getAmplifyClient: () => new AmplifyClient(),
+      getCloudFormationClient: () => new CloudFormationClient(),
+    }).getModelIntrospectionSchemaFromS3Uri(undefined);
     assert.deepEqual(modelIntrospectionSchema, undefined);
   });
 
   void it('throws on invalid s3 location', async () => {
     await assert.rejects(() =>
-      new ModelIntrospectionSchemaAdapter(
-        new AWSClientProvider()
-      ).getModelIntrospectionSchemaFromS3Uri('s3://im_a_fake_bucket/i_swear')
+      new ModelIntrospectionSchemaAdapter({
+        getS3Client: () => new S3Client(),
+        getAmplifyClient: () => new AmplifyClient(),
+        getCloudFormationClient: () => new CloudFormationClient(),
+      }).getModelIntrospectionSchemaFromS3Uri('s3://im_a_fake_bucket/i_swear')
     );
   });
 
@@ -50,9 +55,11 @@ void describe('ModelIntrospectionSchemaAdapter', () => {
         Body: sdkStream,
       });
 
-    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter(
-      new AWSClientProvider()
-    ).getModelIntrospectionSchemaFromS3Uri('s3://im_a_real_bucket/i_swear');
+    const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter({
+      getS3Client: () => new S3Client(),
+      getAmplifyClient: () => new AmplifyClient(),
+      getCloudFormationClient: () => new CloudFormationClient(),
+    }).getModelIntrospectionSchemaFromS3Uri('s3://im_a_real_bucket/i_swear');
     assert.deepEqual(modelIntrospectionSchema, {
       version: 1,
       models: {

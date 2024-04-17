@@ -8,16 +8,27 @@ import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_res
 import { StackMetadataGraphqlModelsGenerator } from './graphql_models_generator.js';
 import { GraphqlModelsGenerator } from './model_generator.js';
 import { S3StringObjectFetcher } from './s3_string_object_fetcher.js';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 export type GraphqlModelsGeneratorFactoryParams =
   | {
       backendIdentifier: DeployedBackendIdentifier;
-      awsClientProvider: AWSClientProvider;
+      awsClientProvider: AWSClientProvider<{
+        getS3Client: S3Client;
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+      }>;
     }
   | {
       modelSchemaS3Uri: string;
-      awsClientProvider: AWSClientProvider;
+      awsClientProvider: AWSClientProvider<{
+        getS3Client: S3Client;
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+      }>;
     };
 
 /**
@@ -34,7 +45,11 @@ export const createGraphqlModelsGenerator = (
 
 export type GraphqlModelsFromBackendIdentifierParams = {
   backendIdentifier: DeployedBackendIdentifier;
-  awsClientProvider: AWSClientProvider;
+  awsClientProvider: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>;
 };
 
 /**
@@ -59,7 +74,11 @@ const createGraphqlModelsGeneratorFromBackendIdentifier = ({
 
 export type GraphqlModelsFromS3UriGeneratorFactoryParams = {
   modelSchemaS3Uri: string;
-  awsClientProvider: AWSClientProvider;
+  awsClientProvider: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>;
 };
 
 /**
@@ -84,7 +103,11 @@ export const createGraphqlModelsFromS3UriGenerator = ({
 
 const getModelSchema = async (
   backendIdentifier: DeployedBackendIdentifier,
-  awsClientProvider: AWSClientProvider
+  awsClientProvider: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>
 ): Promise<string> => {
   const backendOutputClient =
     BackendOutputClientFactory.getInstance(awsClientProvider);
@@ -100,7 +123,9 @@ const getModelSchema = async (
 
 const getModelSchemaFromS3Uri = async (
   modelSchemaS3Uri: string,
-  awsClientProvider: AWSClientProvider
+  awsClientProvider: AWSClientProvider<{
+    getS3Client: S3Client;
+  }>
 ): Promise<string> => {
   const schemaFetcher = new S3StringObjectFetcher(
     awsClientProvider.getS3Client()

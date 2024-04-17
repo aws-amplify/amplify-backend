@@ -19,7 +19,9 @@ import {
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 void describe('auth client config contributor v1', () => {
   void it('returns an empty object if output has no auth output', () => {
@@ -162,9 +164,11 @@ void describe('auth client config contributor v1', () => {
 
 void describe('data client config contributor v1', () => {
   void it('returns an empty object if output has no graphql output', async () => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      new AWSClientProvider()
-    );
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
+      getS3Client: () => new S3Client(),
+      getAmplifyClient: () => new AmplifyClient(),
+      getCloudFormationClient: () => new CloudFormationClient(),
+    });
 
     mock.method(
       modelSchemaAdapter,
@@ -188,9 +192,11 @@ void describe('data client config contributor v1', () => {
   });
 
   void it('returns translated config when output has graphql', async () => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      new AWSClientProvider()
-    );
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
+      getS3Client: () => new S3Client(),
+      getAmplifyClient: () => new AmplifyClient(),
+      getCloudFormationClient: () => new CloudFormationClient(),
+    });
 
     mock.method(
       modelSchemaAdapter,
@@ -225,9 +231,11 @@ void describe('data client config contributor v1', () => {
   });
 
   void it('returns translated config with model introspection when resolvable', async () => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      new AWSClientProvider()
-    );
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
+      getS3Client: () => new S3Client(),
+      getAmplifyClient: () => new AmplifyClient(),
+      getCloudFormationClient: () => new CloudFormationClient(),
+    });
 
     mock.method(
       modelSchemaAdapter,

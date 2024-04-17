@@ -14,13 +14,20 @@ import * as fsp from 'fs/promises';
 import { ClientConfigFormatterLegacy } from './client-config-writer/client_config_formatter_legacy.js';
 import { ClientConfigFormatterDefault } from './client-config-writer/client_config_formatter_default.js';
 import { getClientConfigFileName } from './paths/get_client_config_name.js';
-import { AWSClientProvider } from '@aws-amplify/platform-core';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { S3Client } from '@aws-sdk/client-s3';
 
 /**
  * Main entry point for generating client config and writing to a file
  */
 export const generateClientConfigToFile = async (
-  awsClientProvider: AWSClientProvider,
+  awsClientProvider: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>,
   backendIdentifier: DeployedBackendIdentifier,
   version: ClientConfigVersion,
   outDir?: string,
