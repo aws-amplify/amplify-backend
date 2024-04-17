@@ -10,6 +10,15 @@ export const roleAccessBuilder: StorageAccessBuilder = {
   authenticated: {
     to: (actions) => ({
       getResourceAccessAcceptors: [getAuthRoleResourceAccessAcceptor],
+      uniqueDefinitionIdValidations: [
+        {
+          uniqueDefinitionId: `authenticated`,
+          validationErrorOptions: {
+            message: `Entity access definition for authenticated users specified multiple times.`,
+            resolution: `Combine all access definitions for authenticated users on a single path into one access rule.`,
+          },
+        },
+      ],
       actions,
       idSubstitution: '*',
     }),
@@ -17,6 +26,15 @@ export const roleAccessBuilder: StorageAccessBuilder = {
   guest: {
     to: (actions) => ({
       getResourceAccessAcceptors: [getUnauthRoleResourceAccessAcceptor],
+      uniqueDefinitionIdValidations: [
+        {
+          uniqueDefinitionId: `guest`,
+          validationErrorOptions: {
+            message: `Entity access definition for guest users specified multiple times.`,
+            resolution: `Combine all access definitions for guest users on a single path into one access rule.`,
+          },
+        },
+      ],
       actions,
       idSubstitution: '*',
     }),
@@ -27,13 +45,29 @@ export const roleAccessBuilder: StorageAccessBuilder = {
         (groupName) => (getInstanceProps) =>
           getUserRoleResourceAccessAcceptor(getInstanceProps, groupName)
       ),
+      uniqueDefinitionIdValidations: groupNames.map((groupName) => ({
+        uniqueDefinitionId: `groups${groupName}`,
+        validationErrorOptions: {
+          message: `Group access definition for ${groupName} specified multiple times.`,
+          resolution: `Combine all access definitions for ${groupName} on a single path into one access rule.`,
+        },
+      })),
       actions,
       idSubstitution: '*',
     }),
   }),
-  entity: () => ({
+  entity: (entityId) => ({
     to: (actions) => ({
       getResourceAccessAcceptors: [getAuthRoleResourceAccessAcceptor],
+      uniqueDefinitionIdValidations: [
+        {
+          uniqueDefinitionId: `entity${entityId}`,
+          validationErrorOptions: {
+            message: `Entity access definition for ${entityId} specified multiple times.`,
+            resolution: `Combine all access definitions for ${entityId} on a single path into one access rule.`,
+          },
+        },
+      ],
       actions,
       idSubstitution: '${cognito-identity.amazonaws.com:sub}',
     }),
@@ -44,6 +78,7 @@ export const roleAccessBuilder: StorageAccessBuilder = {
         (getInstanceProps) =>
           other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
       ],
+      uniqueDefinitionIdValidations: [],
       actions,
       idSubstitution: '*',
     }),

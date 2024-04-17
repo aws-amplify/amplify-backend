@@ -6,6 +6,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AmplifyStorageProps } from './construct.js';
+import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 
 export type AmplifyStorageFactoryProps = Omit<
   AmplifyStorageProps,
@@ -99,6 +100,33 @@ export type StorageAccessDefinition = {
    * The value that will be substituted into the resource string in place of the {owner} token
    */
   idSubstitution: string;
+  /**
+   * Evaluation of the access definition will ensure that all uniqueDefinitionIds occur at most once for a given access path.
+   * This can be used to validate against definitions like
+   *
+   * {
+   *   'foo/*': [
+   *     allow.authenticated.to(['read']),
+   *     allow.authenticated.to(['write'])
+   *   ]
+   * }
+   *
+   * and instead require such a definition to be specified as
+   *
+   * {
+   *   'foo/*': [
+   *     allow.authenticated.to(['read', 'write']),
+   *   ]
+   * }
+   *
+   * The validationErrorMessage will be used to print an error message in case of validation failure
+   *
+   * An empty array means that no uniqueness will be enforced
+   */
+  uniqueDefinitionIdValidations: {
+    uniqueDefinitionId: string;
+    validationErrorOptions: AmplifyUserErrorOptions;
+  }[];
 };
 
 /**

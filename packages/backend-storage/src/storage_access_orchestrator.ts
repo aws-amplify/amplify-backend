@@ -12,7 +12,8 @@ import { entityIdPathToken } from './constants.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
-import { InternalStorageAction } from './private_types.js';
+import { InternalStorageAction, StorageError } from './private_types.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /* some types internal to this file to improve readability */
 
@@ -89,10 +90,23 @@ export class StorageAccessOrchestrator {
 
     // iterate over the access definition and group permissions by ResourceAccessAcceptor
     Object.entries(storageAccessDefinition).forEach(
-      // in the access definition, permissions are grouped by storage prefix
       ([s3Prefix, accessPermissions]) => {
+        const uniqueDefinitionIdSet = new Set<string>();
         // iterate over all of the access definitions for a given prefix
         accessPermissions.forEach((permission) => {
+          // iterate over all uniqueDefinitionIdValidations and ensure uniqueness within this path prefix
+          permission.uniqueDefinitionIdValidations.forEach(
+            ({ uniqueDefinitionId, validationErrorOptions }) => {
+              if (uniqueDefinitionIdSet.has(uniqueDefinitionId)) {
+                throw new AmplifyUserError<StorageError>(
+                  'InvalidStorageAccessDefinition',
+                  validationErrorOptions
+                );
+              } else {
+                uniqueDefinitionIdSet.add(uniqueDefinitionId);
+              }
+            }
+          );
           // make the owner placeholder substitution in the s3 prefix
           const prefix = s3Prefix.replaceAll(
             entityIdPathToken,
