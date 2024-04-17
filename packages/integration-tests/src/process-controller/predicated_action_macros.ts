@@ -19,7 +19,7 @@ export const waitForSandboxDeploymentToPrintTotalTime = () =>
  */
 export const waitForConfigUpdateAfterDeployment = () =>
   new PredicatedActionBuilder().waitForLineIncludes(
-    'File written: amplifyconfiguration.json'
+    'File written: amplifyconfiguration'
   );
 
 /**
