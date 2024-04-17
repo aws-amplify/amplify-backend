@@ -1,8 +1,5 @@
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { S3Client } from '@aws-sdk/client-s3';
 import {
   BackendOutputClientFactory,
-  BackendOutputClientFactoryOptions,
   DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
 
@@ -11,27 +8,16 @@ import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_res
 import { StackMetadataGraphqlModelsGenerator } from './graphql_models_generator.js';
 import { GraphqlModelsGenerator } from './model_generator.js';
 import { S3StringObjectFetcher } from './s3_string_object_fetcher.js';
-
-export type GraphqlModelsClientOptions = {
-  s3Client: S3Client;
-} & BackendOutputClientFactoryOptions;
-
-export type GraphqlModelsCredentialsOptions = {
-  credentials: AwsCredentialIdentityProvider;
-};
-
-export type GraphqlModelsFetchOptions =
-  | GraphqlModelsClientOptions
-  | GraphqlModelsCredentialsOptions;
+import { AWSClientProvider } from '../../platform-core/src/aws_client_provider.js';
 
 export type GraphqlModelsGeneratorFactoryParams =
   | {
       backendIdentifier: DeployedBackendIdentifier;
-      options: GraphqlModelsFetchOptions;
+      awsClientProvider: AWSClientProvider;
     }
   | {
       modelSchemaS3Uri: string;
-      options: GraphqlModelsFetchOptions;
+      awsClientProvider: AWSClientProvider;
     };
 
 /**
@@ -48,7 +34,7 @@ export const createGraphqlModelsGenerator = (
 
 export type GraphqlModelsFromBackendIdentifierParams = {
   backendIdentifier: DeployedBackendIdentifier;
-  options: GraphqlModelsFetchOptions;
+  awsClientProvider: AWSClientProvider;
 };
 
 /**
@@ -56,24 +42,24 @@ export type GraphqlModelsFromBackendIdentifierParams = {
  */
 const createGraphqlModelsGeneratorFromBackendIdentifier = ({
   backendIdentifier,
-  options,
+  awsClientProvider,
 }: GraphqlModelsFromBackendIdentifierParams): GraphqlModelsGenerator => {
   if (!backendIdentifier) {
     throw new Error('`backendIdentifier` must be defined');
   }
-  if (!options) {
-    throw new Error('`options` must be defined');
+  if (!awsClientProvider) {
+    throw new Error('`awsClientProvider` must be defined');
   }
 
   return new StackMetadataGraphqlModelsGenerator(
-    () => getModelSchema(backendIdentifier, options),
+    () => getModelSchema(backendIdentifier, awsClientProvider),
     (fileMap) => new AppsyncGraphqlGenerationResult(fileMap)
   );
 };
 
 export type GraphqlModelsFromS3UriGeneratorFactoryParams = {
   modelSchemaS3Uri: string;
-  options: GraphqlModelsFetchOptions;
+  awsClientProvider: AWSClientProvider;
 };
 
 /**
@@ -81,26 +67,27 @@ export type GraphqlModelsFromS3UriGeneratorFactoryParams = {
  */
 export const createGraphqlModelsFromS3UriGenerator = ({
   modelSchemaS3Uri,
-  options,
+  awsClientProvider,
 }: GraphqlModelsFromS3UriGeneratorFactoryParams): GraphqlModelsGenerator => {
   if (!modelSchemaS3Uri) {
     throw new Error('`modelSchemaS3Uri` must be defined');
   }
-  if (!options) {
-    throw new Error('`options` must be defined');
+  if (!awsClientProvider) {
+    throw new Error('`awsClientProvider` must be defined');
   }
 
   return new StackMetadataGraphqlModelsGenerator(
-    () => getModelSchemaFromS3Uri(modelSchemaS3Uri, options),
+    () => getModelSchemaFromS3Uri(modelSchemaS3Uri, awsClientProvider),
     (fileMap) => new AppsyncGraphqlGenerationResult(fileMap)
   );
 };
 
 const getModelSchema = async (
   backendIdentifier: DeployedBackendIdentifier,
-  options: GraphqlModelsFetchOptions
+  awsClientProvider: AWSClientProvider
 ): Promise<string> => {
-  const backendOutputClient = BackendOutputClientFactory.getInstance(options);
+  const backendOutputClient =
+    BackendOutputClientFactory.getInstance(awsClientProvider);
   const output = await backendOutputClient.getOutput(backendIdentifier);
   const modelSchemaS3Uri =
     output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
@@ -108,20 +95,15 @@ const getModelSchema = async (
     throw new Error(`Cannot find model schema at amplifyApiModelSchemaS3Uri`);
   }
 
-  return await getModelSchemaFromS3Uri(modelSchemaS3Uri, options);
+  return await getModelSchemaFromS3Uri(modelSchemaS3Uri, awsClientProvider);
 };
 
 const getModelSchemaFromS3Uri = async (
   modelSchemaS3Uri: string,
-  options: GraphqlModelsFetchOptions
+  awsClientProvider: AWSClientProvider
 ): Promise<string> => {
-  const s3Client =
-    's3Client' in options
-      ? options.s3Client
-      : new S3Client({
-          credentials: options.credentials,
-        });
-
-  const schemaFetcher = new S3StringObjectFetcher(s3Client);
+  const schemaFetcher = new S3StringObjectFetcher(
+    awsClientProvider.getS3Client()
+  );
   return await schemaFetcher.fetch(modelSchemaS3Uri);
 };

@@ -5,7 +5,7 @@ import {
   GenerationResult,
   generateApiCode,
 } from '@aws-amplify/model-generator';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 // For some reason using `omit` is causing type errors, so reconstructing without the credentialProvider.
 export type InvokeGenerateApiCodeProps = GenerateOptions &
@@ -18,9 +18,7 @@ export class GenerateApiCodeAdapter {
   /**
    * Creates graphql api code adapter.
    */
-  constructor(
-    private readonly credentialProvider: AwsCredentialIdentityProvider
-  ) {}
+  constructor(private readonly awsClientProvider: AWSClientProvider) {}
 
   /**
    * Invoke the generateApiCode method, using the constructor injected credentialProvider, and remaining props.
@@ -30,6 +28,6 @@ export class GenerateApiCodeAdapter {
   ): Promise<GenerationResult> =>
     generateApiCode({
       ...props,
-      credentialProvider: this.credentialProvider,
+      awsClientProvider: this.awsClientProvider,
     } as GenerateApiCodeProps);
 }

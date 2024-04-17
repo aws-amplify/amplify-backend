@@ -1,4 +1,3 @@
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { generateClientConfig } from './generate_client_config.js';
 import { ClientConfigWriter } from './client-config-writer/client_config_writer.js';
 import {
@@ -15,12 +14,13 @@ import * as fsp from 'fs/promises';
 import { ClientConfigFormatterLegacy } from './client-config-writer/client_config_formatter_legacy.js';
 import { ClientConfigFormatterDefault } from './client-config-writer/client_config_formatter_default.js';
 import { getClientConfigFileName } from './paths/get_client_config_name.js';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 /**
  * Main entry point for generating client config and writing to a file
  */
 export const generateClientConfigToFile = async (
-  credentialProvider: AwsCredentialIdentityProvider,
+  awsClientProvider: AWSClientProvider,
   backendIdentifier: DeployedBackendIdentifier,
   version: ClientConfigVersion,
   outDir?: string,
@@ -41,7 +41,7 @@ export const generateClientConfigToFile = async (
   );
 
   const clientConfig = await generateClientConfig(
-    { credentials: credentialProvider },
+    awsClientProvider,
     backendIdentifier,
     version
   );

@@ -1,8 +1,8 @@
 import { createLocalGraphqlFormGenerator } from '@aws-amplify/form-generator';
 import { createGraphqlDocumentGenerator } from '@aws-amplify/model-generator';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { printer } from '@aws-amplify/cli-core';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 type FormGenerationParams = {
   modelsOutDir: string;
@@ -12,7 +12,7 @@ type FormGenerationParams = {
   modelsFilter?: string[];
 };
 type FormGenerationInstanceOptions = {
-  credentialProvider: AwsCredentialIdentityProvider;
+  awsClientProvider: AWSClientProvider;
 };
 /**
  * Creates a handler for FormGeneration
@@ -25,10 +25,10 @@ export class FormGenerationHandler {
   generate = async (params: FormGenerationParams) => {
     const { backendIdentifier, modelsOutDir, uiOutDir, apiUrl, modelsFilter } =
       params;
-    const { credentialProvider } = this.formGenParams;
+    const { awsClientProvider } = this.formGenParams;
     const graphqlClientGenerator = createGraphqlDocumentGenerator({
       backendIdentifier,
-      credentialProvider,
+      awsClientProvider,
     });
     const modelsResult = await graphqlClientGenerator.generateModels({
       targetFormat: 'typescript',

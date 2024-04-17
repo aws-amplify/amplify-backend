@@ -1,9 +1,11 @@
 import { CommandModule } from 'yargs';
 import { GenerateCommand } from './generate_command.js';
 import { GenerateConfigCommand } from './config/generate_config_command.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
-import { PackageJsonReader } from '@aws-amplify/platform-core';
+import {
+  AWSClientProvider,
+  PackageJsonReader,
+} from '@aws-amplify/platform-core';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -23,11 +25,11 @@ import { printer } from '@aws-amplify/cli-core';
  * Creates wired generate command.
  */
 export const createGenerateCommand = (): CommandModule => {
-  const credentialProvider = fromNodeProviderChain();
+  const awsClientProvider = new AWSClientProvider();
   const secretClient = getSecretClient();
 
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
-    credentialProvider
+    awsClientProvider
   );
 
   const namespaceResolver = new LocalNamespaceResolver(new PackageJsonReader());
@@ -44,14 +46,11 @@ export const createGenerateCommand = (): CommandModule => {
 
   const generateFormsCommand = new GenerateFormsCommand(
     backendIdentifierResolver,
-    () =>
-      BackendOutputClientFactory.getInstance({
-        credentials: credentialProvider,
-      }),
-    new FormGenerationHandler({ credentialProvider })
+    () => BackendOutputClientFactory.getInstance(new AWSClientProvider()),
+    new FormGenerationHandler({ awsClientProvider })
   );
 
-  const generateApiCodeAdapter = new GenerateApiCodeAdapter(credentialProvider);
+  const generateApiCodeAdapter = new GenerateApiCodeAdapter(awsClientProvider);
 
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
     generateApiCodeAdapter,

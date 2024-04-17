@@ -3,9 +3,6 @@ export * from './create_graphql_document_generator.js';
 export {
   createGraphqlModelsGenerator,
   GraphqlModelsGeneratorFactoryParams,
-  GraphqlModelsFetchOptions,
-  GraphqlModelsCredentialsOptions,
-  GraphqlModelsClientOptions,
 } from './create_graphql_models_generator.js';
 export {
   GenerateApiCodeFormat,

@@ -4,9 +4,13 @@
 
 ```ts
 
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AppId } from '@aws-amplify/plugin-types';
+import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { DeepPartial } from '@aws-amplify/plugin-types';
+import { S3Client } from '@aws-sdk/client-s3';
 import z from 'zod';
 
 // @public
@@ -61,6 +65,29 @@ export class AmplifyUserError<T extends string = string> extends AmplifyError<T>
 // @public
 export type AmplifyUserErrorOptions = Omit<AmplifyErrorOptions, 'resolution'> & {
     resolution: string;
+};
+
+// @public
+export class AWSClientProvider {
+    constructor(awsClientOptions?: AWSClientsOptions);
+    getAmplifyClient(): AmplifyClient;
+    getCloudFormationClient(): CloudFormationClient;
+    getS3Client(): S3Client;
+}
+
+// @public (undocumented)
+export type AWSClientsCredentialsOptions = {
+    credentials: AwsCredentialIdentityProvider;
+};
+
+// @public (undocumented)
+export type AWSClientsOptions = AWSClientsOverrideClientOptions | AWSClientsCredentialsOptions;
+
+// @public (undocumented)
+export type AWSClientsOverrideClientOptions = {
+    s3Client: S3Client;
+    amplifyClient: AmplifyClient;
+    cloudformationClient: CloudFormationClient;
 };
 
 // @public

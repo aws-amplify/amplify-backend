@@ -4,8 +4,9 @@
 
 ```ts
 
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { BackendOutputClientFactoryOptions } from '@aws-amplify/deployed-backend-client';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { ModelsTarget } from '@aws-amplify/graphql-generator';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -13,7 +14,7 @@ import { StatementsTarget } from '@aws-amplify/graphql-generator';
 import { TypesTarget } from '@aws-amplify/graphql-generator';
 
 // @public
-export const createGraphqlDocumentGenerator: ({ backendIdentifier, credentialProvider, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
+export const createGraphqlDocumentGenerator: ({ backendIdentifier, awsClientProvider, }: GraphqlDocumentGeneratorFactoryParams) => GraphqlDocumentGenerator;
 
 // @public
 export const createGraphqlModelsGenerator: (params: GraphqlModelsGeneratorFactoryParams) => GraphqlModelsGenerator;
@@ -55,7 +56,7 @@ export enum GenerateApiCodeModelTarget {
 
 // @public (undocumented)
 export type GenerateApiCodeProps = GenerateOptions & DeployedBackendIdentifier & {
-    credentialProvider: AwsCredentialIdentityProvider;
+    awsClientProvider: AWSClientProvider;
 };
 
 // @public (undocumented)
@@ -141,21 +142,8 @@ export type GraphqlDocumentGenerator = {
 // @public (undocumented)
 export type GraphqlDocumentGeneratorFactoryParams = {
     backendIdentifier: DeployedBackendIdentifier;
-    credentialProvider: AwsCredentialIdentityProvider;
+    awsClientProvider: AWSClientProvider;
 };
-
-// @public (undocumented)
-export type GraphqlModelsClientOptions = {
-    s3Client: S3Client;
-} & BackendOutputClientFactoryOptions;
-
-// @public (undocumented)
-export type GraphqlModelsCredentialsOptions = {
-    credentials: AwsCredentialIdentityProvider;
-};
-
-// @public (undocumented)
-export type GraphqlModelsFetchOptions = GraphqlModelsClientOptions | GraphqlModelsCredentialsOptions;
 
 // @public (undocumented)
 export type GraphqlModelsGenerator = {
@@ -165,10 +153,10 @@ export type GraphqlModelsGenerator = {
 // @public (undocumented)
 export type GraphqlModelsGeneratorFactoryParams = {
     backendIdentifier: DeployedBackendIdentifier;
-    options: GraphqlModelsFetchOptions;
+    awsClientProvider: AWSClientProvider;
 } | {
     modelSchemaS3Uri: string;
-    options: GraphqlModelsFetchOptions;
+    awsClientProvider: AWSClientProvider;
 };
 
 // @public (undocumented)
@@ -194,6 +182,10 @@ export type TypesGenerationParameters = {
     target: TypesTarget;
     multipleSwiftFiles?: boolean;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/generate_api_code.ts:84:5 - (ae-forgotten-export) The symbol "AWSClientProvider" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -9,7 +9,7 @@ import path from 'path';
 import { DeployedResourcesFinder } from '../../find_deployed_resource.js';
 import assert from 'node:assert';
 import { generateClientConfig } from '@aws-amplify/client-config';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 /**
  * Creates a CDK project with auth construct
@@ -64,7 +64,7 @@ class AuthTestCdkProject extends TestCdkProjectBase {
 
     // assert that we can generate client config
     const clientConfig = await generateClientConfig(
-      { credentials: fromNodeProviderChain() },
+      new AWSClientProvider(),
       {
         stackName: this.stackName,
       },

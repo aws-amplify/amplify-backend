@@ -19,7 +19,7 @@ import {
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 void describe('auth client config contributor v1', () => {
   void it('returns an empty object if output has no auth output', () => {
@@ -162,9 +162,9 @@ void describe('auth client config contributor v1', () => {
 
 void describe('data client config contributor v1', () => {
   void it('returns an empty object if output has no graphql output', async () => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-      credentials: fromNodeProviderChain(),
-    });
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+      new AWSClientProvider()
+    );
 
     mock.method(
       modelSchemaAdapter,
@@ -188,9 +188,9 @@ void describe('data client config contributor v1', () => {
   });
 
   void it('returns translated config when output has graphql', async () => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-      credentials: fromNodeProviderChain(),
-    });
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+      new AWSClientProvider()
+    );
 
     mock.method(
       modelSchemaAdapter,
@@ -225,9 +225,9 @@ void describe('data client config contributor v1', () => {
   });
 
   void it('returns translated config with model introspection when resolvable', async () => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-      credentials: fromNodeProviderChain(),
-    });
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+      new AWSClientProvider()
+    );
 
     mock.method(
       modelSchemaAdapter,

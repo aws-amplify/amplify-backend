@@ -10,7 +10,6 @@ import {
   PipelineDeployCommandOptions,
 } from './pipeline_deploy_command.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import {
   LogLevel,
   PackageManagerControllerFactory,
@@ -18,11 +17,11 @@ import {
 } from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 void describe('deploy command', () => {
-  const credentialProvider = fromNodeProviderChain();
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
-    credentialProvider
+    new AWSClientProvider()
   );
   const generateClientConfigMock = mock.method(
     clientConfigGenerator,

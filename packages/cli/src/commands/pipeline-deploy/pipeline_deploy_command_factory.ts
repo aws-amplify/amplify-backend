@@ -9,8 +9,8 @@ import {
   PipelineDeployCommand,
   PipelineDeployCommandOptions,
 } from './pipeline_deploy_command.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 /**
  * Creates pipeline deploy command
@@ -19,9 +19,8 @@ export const createPipelineDeployCommand = (): CommandModule<
   object,
   PipelineDeployCommandOptions
 > => {
-  const credentialProvider = fromNodeProviderChain();
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
-    credentialProvider
+    new AWSClientProvider()
   );
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
     process.cwd(),

@@ -8,10 +8,10 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import {
+  AWSClientProvider,
   PackageJsonReader,
   UsageDataEmitterFactory,
 } from '@aws-amplify/platform-core';
@@ -26,7 +26,6 @@ export const createSandboxCommand = (): CommandModule<
   object,
   SandboxCommandOptionsKebabCase
 > => {
-  const credentialProvider = fromNodeProviderChain();
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader())
   );
@@ -36,7 +35,7 @@ export const createSandboxCommand = (): CommandModule<
     printer
   );
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-    credentialProvider
+    new AWSClientProvider()
   );
 
   const libraryVersion =

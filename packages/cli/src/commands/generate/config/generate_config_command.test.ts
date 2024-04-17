@@ -1,5 +1,4 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateConfigCommand } from './generate_config_command.js';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import yargs, { CommandModule } from 'yargs';
@@ -9,10 +8,11 @@ import { AppBackendIdentifierResolver } from '../../../backend-identifier/backen
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 void describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-    fromNodeProviderChain()
+    new AWSClientProvider()
   );
 
   const generateClientConfigMock = mock.method(

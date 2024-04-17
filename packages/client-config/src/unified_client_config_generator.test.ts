@@ -9,9 +9,11 @@ import {
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  AWSClientProvider,
+  AmplifyUserError,
+} from '@aws-amplify/platform-core';
 import { ClientConfigContributorFactory } from './client-config-contributor/client_config_contributor_factory.js';
 
 void describe('UnifiedClientConfigGenerator', () => {
@@ -58,9 +60,9 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
-      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-        credentials: fromNodeProviderChain(),
-      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        new AWSClientProvider()
+      );
 
       mock.method(
         modelSchemaAdapter,
@@ -131,9 +133,9 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
-      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-        credentials: fromNodeProviderChain(),
-      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        new AWSClientProvider()
+      );
 
       mock.method(
         modelSchemaAdapter,

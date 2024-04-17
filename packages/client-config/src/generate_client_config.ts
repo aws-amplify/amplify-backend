@@ -12,6 +12,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 export type GenerateClientConfigOptions =
   | {
@@ -32,12 +33,15 @@ export type GenerateClientConfigOptions =
  * Main entry point for generating client config
  */
 export const generateClientConfig = async <T extends ClientConfigVersion>(
-  options: GenerateClientConfigOptions,
+  awsClientProvider: AWSClientProvider,
   backendIdentifier: DeployedBackendIdentifier,
   version: T
 ): Promise<ClientConfigVersionTemplateType<T>> => {
-  const backendOutputClient = BackendOutputClientFactory.getInstance(options);
-  const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(options);
+  const backendOutputClient =
+    BackendOutputClientFactory.getInstance(awsClientProvider);
+  const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+    awsClientProvider
+  );
   return new ClientConfigGeneratorFactory(() =>
     backendOutputClient.getOutput(backendIdentifier)
   )

@@ -1,16 +1,11 @@
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import {
-  BackendOutputClient,
-  BackendOutputClientFactory,
-} from './backend_output_client_factory.js';
-import { S3Client } from '@aws-sdk/client-s3';
+import { BackendOutputClientFactory } from './backend_output_client_factory.js';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 export enum ConflictResolutionMode {
   LAMBDA = 'LAMBDA',
@@ -112,20 +107,6 @@ export type DeployedBackendClient = {
   ) => Promise<BackendMetadata>;
 };
 
-export type DeployedBackendClientOptions = {
-  s3Client: S3Client;
-  cloudFormationClient: CloudFormationClient;
-  backendOutputClient: BackendOutputClient;
-};
-
-export type DeployedBackendCredentialsOptions = {
-  credentials: AwsCredentialIdentityProvider;
-};
-
-export type DeployedBackendClientFactoryOptions =
-  | DeployedBackendCredentialsOptions
-  | DeployedBackendClientOptions;
-
 /**
  * Factory to create a DeploymentClient
  */
@@ -133,9 +114,7 @@ export class DeployedBackendClientFactory {
   /**
    * Returns a single instance of DeploymentClient
    */
-  getInstance(
-    options: DeployedBackendClientFactoryOptions
-  ): DeployedBackendClient {
+  getInstance(awsClientProvider: AWSClientProvider): DeployedBackendClient {
     const stackStatusMapper = new StackStatusMapper();
     const arnGenerator = new ArnGenerator();
     const arnParser = new ArnParser();
@@ -145,26 +124,10 @@ export class DeployedBackendClientFactory {
       arnParser
     );
 
-    if (
-      'backendOutputClient' in options &&
-      'cloudFormationClient' in options &&
-      's3Client' in options
-    ) {
-      return new DefaultDeployedBackendClient(
-        options.cloudFormationClient,
-        options.s3Client,
-        options.backendOutputClient,
-        deployedResourcesEnumerator,
-        stackStatusMapper,
-        arnParser
-      );
-    }
     return new DefaultDeployedBackendClient(
-      new CloudFormationClient(options.credentials),
-      new S3Client(options.credentials),
-      BackendOutputClientFactory.getInstance({
-        credentials: options.credentials,
-      }),
+      awsClientProvider.getCloudFormationClient(),
+      awsClientProvider.getS3Client(),
+      BackendOutputClientFactory.getInstance(awsClientProvider),
       deployedResourcesEnumerator,
       stackStatusMapper,
       arnParser
