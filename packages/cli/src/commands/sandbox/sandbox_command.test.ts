@@ -19,6 +19,9 @@ import path from 'path';
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
+// To check if client config already exists before creating an empty one.
+mock.method(fs, 'existsSync', () => true);
+
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
     assert.ok(createSandboxCommand() instanceof SandboxCommand);
@@ -291,12 +294,6 @@ void describe('sandbox command', () => {
   });
 
   void it('starts sandbox with provided client config options as watch exclusions', async (contextual) => {
-    mock.method(fs, 'lstatSync', () => {
-      return {
-        isFile: () => false,
-        isDir: () => true,
-      };
-    });
     contextual.mock.method(fsp, 'stat', () => ({
       isDirectory: () => true,
     }));
@@ -307,6 +304,35 @@ void describe('sandbox command', () => {
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].exclude,
       [path.join(process.cwd(), 'existentDir', 'amplifyconfiguration.ts')]
+    );
+  });
+
+  void it('sandbox creates an empty client config file if one does not already exist for version 0', async (contextual) => {
+    contextual.mock.method(fs, 'existsSync', () => false);
+    const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
+    await commandRunner.runCommand('sandbox --config-version 0');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.equal(writeFileMock.mock.callCount(), 1);
+    assert.deepStrictEqual(writeFileMock.mock.calls[0].arguments[1], '{}');
+    assert.deepStrictEqual(
+      writeFileMock.mock.calls[0].arguments[0],
+      path.join(process.cwd(), 'amplifyconfiguration.json')
+    );
+  });
+
+  void it('sandbox creates an empty client config file if one does not already exist for version 1', async (contextual) => {
+    contextual.mock.method(fs, 'existsSync', () => false);
+    const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
+    await commandRunner.runCommand('sandbox --config-version 1');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.equal(writeFileMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      writeFileMock.mock.calls[0].arguments[1],
+      `{\n  "version": "1"\n}`
+    );
+    assert.deepStrictEqual(
+      writeFileMock.mock.calls[0].arguments[0],
+      path.join(process.cwd(), 'amplify_outputs.json')
     );
   });
 

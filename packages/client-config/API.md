@@ -228,6 +228,9 @@ export type GenerateClientConfigToFileResult = {
     filesWritten: string[];
 };
 
+// @public
+export const generateEmptyClientConfigToFile: (version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat) => Promise<GenerateClientConfigToFileResult>;
+
 // @public (undocumented)
 export type GeoClientConfig = {
     geo?: {
