@@ -15,11 +15,11 @@ export const waitForSandboxDeploymentToPrintTotalTime = () =>
   new PredicatedActionBuilder().waitForLineIncludes('Total time');
 
 /**
- * Reusable predicates: Wait for sandbox to finish and emit "File written: amplifyconfiguration.json"
+ * Reusable predicates: Wait for sandbox to finish and emit "File written: amplifyconfiguration"
  */
 export const waitForConfigUpdateAfterDeployment = () =>
   new PredicatedActionBuilder().waitForLineIncludes(
-    'File written: amplifyconfiguration.json'
+    'File written: amplifyconfiguration'
   );
 
 /**
