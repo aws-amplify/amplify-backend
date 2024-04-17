@@ -36,6 +36,7 @@ export type SandboxOptions = {
   identifier?: string;
   format?: ClientConfigFormat;
   profile?: string;
+  watchForChanges?: boolean;
 };
 
 export type SandboxDeleteOptions = {

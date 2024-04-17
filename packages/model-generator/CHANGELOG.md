@@ -1,5 +1,21 @@
 # @aws-amplify/model-generator
 
+## 0.5.0-beta.10
+
+### Patch Changes
+
+- 73dcd6e: fix: update model introspection schema generation packages for references relationships
+- Updated dependencies [edee8d7]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.8
+
+## 0.5.0-beta.9
+
+### Patch Changes
+
+- Updated dependencies [1e93535]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.7
+
 ## 0.5.0-beta.8
 
 ### Minor Changes

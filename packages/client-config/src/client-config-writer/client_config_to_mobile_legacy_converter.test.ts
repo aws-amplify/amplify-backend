@@ -313,6 +313,30 @@ void describe('client config converter', () => {
     assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
   });
 
+  void it('converts storage config', () => {
+    const clientConfig: ClientConfigLegacy = {
+      aws_user_files_s3_bucket: 'testBucketName',
+      aws_user_files_s3_bucket_region: 'testBucketRegion',
+    };
+
+    const expectedMobileConfig: ClientConfigMobile = {
+      UserAgent: 'test_package_name/test_package_version;',
+      Version: '1.0',
+      storage: {
+        plugins: {
+          awsS3StoragePlugin: {
+            bucket: 'testBucketName',
+            region: 'testBucketRegion',
+          },
+        },
+      },
+    };
+
+    const actualMobileConfig = converter.convertToMobileConfig(clientConfig);
+
+    assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
+  });
+
   void it('converts full notifications config', () => {
     const clientConfig: ClientConfigLegacy = {
       Notifications: {

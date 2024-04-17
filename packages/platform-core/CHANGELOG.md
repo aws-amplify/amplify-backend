@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.5.0-beta.6
+
+### Patch Changes
+
+- b0b4dea: fix: serialize downstream errors when they are not generic Errors
+
 ## 0.5.0-beta.5
 
 ### Patch Changes

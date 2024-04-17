@@ -1,5 +1,28 @@
 # @aws-amplify/client-config
 
+## 0.9.0-beta.13
+
+### Patch Changes
+
+- e15e9be: chore: add legacy mobile storage config
+- Updated dependencies [edee8d7]
+- Updated dependencies [73dcd6e]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.8
+  - @aws-amplify/model-generator@0.5.0-beta.10
+  - @aws-amplify/platform-core@0.5.0-beta.6
+
+## 0.9.0-beta.12
+
+### Patch Changes
+
+- 1e93535: chore: auto-generate cognito domain when external providers are configured
+- bb5a446: fix: populate analytics legacy v5 config
+- Updated dependencies [1e93535]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.7
+  - @aws-amplify/model-generator@0.5.0-beta.9
+
 ## 0.9.0-beta.11
 
 ### Patch Changes

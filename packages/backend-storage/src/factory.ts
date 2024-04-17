@@ -61,7 +61,8 @@ class AmplifyStorageFactory
 }
 
 /**
- * Creates a factory that implements ConstructFactory<AmplifyStorage>
+ * Include storage in your Amplify backend.
+ * @see https://docs.amplify.aws/gen2/build-a-backend/storage/
  */
 export const defineStorage = (
   props: AmplifyStorageFactoryProps
