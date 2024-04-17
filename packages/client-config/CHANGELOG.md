@@ -1,5 +1,17 @@
 # @aws-amplify/client-config
 
+## 0.9.0-beta.13
+
+### Patch Changes
+
+- e15e9be: chore: add legacy mobile storage config
+- Updated dependencies [edee8d7]
+- Updated dependencies [73dcd6e]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.8
+  - @aws-amplify/model-generator@0.5.0-beta.10
+  - @aws-amplify/platform-core@0.5.0-beta.6
+
 ## 0.9.0-beta.12
 
 ### Patch Changes

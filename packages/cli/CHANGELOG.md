@@ -1,5 +1,25 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.20
+
+### Patch Changes
+
+- Updated dependencies [e15e9be]
+- Updated dependencies [edee8d7]
+- Updated dependencies [10c9447]
+- Updated dependencies [73dcd6e]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/client-config@0.9.0-beta.13
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.8
+  - @aws-amplify/schema-generator@0.1.0-beta.6
+  - @aws-amplify/model-generator@0.5.0-beta.10
+  - @aws-amplify/form-generator@0.8.0-beta.5
+  - @aws-amplify/platform-core@0.5.0-beta.6
+  - @aws-amplify/sandbox@0.5.2-beta.17
+  - @aws-amplify/backend-deployer@0.5.1-beta.7
+  - @aws-amplify/backend-secret@0.4.5-beta.6
+  - @aws-amplify/cli-core@0.5.0-beta.11
+
 ## 0.12.0-beta.19
 
 ### Patch Changes

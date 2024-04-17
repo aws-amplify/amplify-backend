@@ -1,5 +1,12 @@
 # @aws-amplify/backend-storage
 
+## 0.6.0-beta.9
+
+### Patch Changes
+
+- de311f8: Update defineStorage JSDocs to include prop descriptions
+  - @aws-amplify/backend-output-storage@0.4.0-beta.7
+
 ## 0.6.0-beta.8
 
 ### Patch Changes

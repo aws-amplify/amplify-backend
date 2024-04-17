@@ -25,6 +25,7 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
     configFormat: ClientConfigFormat | undefined;
     configOutDir: string | undefined;
     configVersion: string;
+    once: boolean | undefined;
   } & SandboxCommandGlobalOptions
 >;
 
@@ -126,6 +127,7 @@ export class SandboxCommand
       exclude: watchExclusions,
       identifier: args.identifier,
       profile: args.profile,
+      watchForChanges: !args.once,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
@@ -186,6 +188,12 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
+        .option('once', {
+          describe:
+            'Execute a single sandbox deployment without watching for future file changes',
+          boolean: true,
+          global: false,
+        })
         .check(async (argv) => {
           if (argv['dir-to-watch']) {
             await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
@@ -200,6 +208,7 @@ export class SandboxCommand
           }
           return true;
         })
+        .conflicts('once', ['exclude', 'dir-to-watch'])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );
   };

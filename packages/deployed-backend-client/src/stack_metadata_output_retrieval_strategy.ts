@@ -60,17 +60,17 @@ export class StackMetadataBackendOutputRetrievalStrategy
     );
 
     const outputs = stackDescription?.Stacks?.[0]?.Outputs;
+    if (stackDescription.Stacks?.[0].StackStatus?.endsWith('_IN_PROGRESS')) {
+      const deploymentType =
+        stackDescription.Stacks?.[0].Tags?.find(
+          (tag) => tag.Key === 'amplify:deployment-type'
+        )?.Value ?? 'sandbox';
+      throw new BackendOutputClientError(
+        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
+        `This ${deploymentType} deployment is in progress. Re-run this command once the deployment completes.`
+      );
+    }
     if (outputs === undefined) {
-      if (stackDescription.Stacks?.[0].StackStatus?.endsWith('_IN_PROGRESS')) {
-        throw new BackendOutputClientError(
-          BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
-          `${
-            stackDescription.Stacks?.[0].StackName ?? 'Stack'
-          } is currently in ${
-            stackDescription.Stacks?.[0].StackStatus
-          }. Metadata will be available after stack completes processing.`
-        );
-      }
       throw new BackendOutputClientError(
         BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
         'Stack outputs are undefined'

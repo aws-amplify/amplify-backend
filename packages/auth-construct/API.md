@@ -85,16 +85,27 @@ export type IdentityProviderProps = {
 
 // @public
 export type MFA = {
-    mode: 'OFF' | 'OPTIONAL' | 'REQUIRED';
-} & MFASettings;
+    mode: 'OFF';
+} | ({
+    mode: 'OPTIONAL' | 'REQUIRED';
+} & MFASettings);
 
 // @public
 export type MFASettings = {
-    totp?: boolean;
-    sms: boolean | {
-        smsMessage: (code: string) => string;
-    };
+    totp?: MFATotpSettings;
+    sms: MFASmsSettings;
+} | {
+    totp: MFATotpSettings;
+    sms?: MFASmsSettings;
 };
+
+// @public
+export type MFASmsSettings = boolean | {
+    smsMessage: (code: string) => string;
+};
+
+// @public
+export type MFATotpSettings = boolean;
 
 // @public
 export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcProps, 'userPool' | 'attributeRequestMethod' | 'attributeMapping'> & {

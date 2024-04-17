@@ -32,6 +32,10 @@ jobs:
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # mapping the inputs to these environment variables allows the @actions/core toolkit to pick up the inputs
+      INPUT_USENPMREGISTRY: ${{ inputs.useNpmRegistry }}
+      INPUT_SEARCHFORRELEASESTARTINGFROM: ${{ inputs.searchForReleaseStartingFrom }}
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
         with:
