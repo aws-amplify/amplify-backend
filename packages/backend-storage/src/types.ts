@@ -52,7 +52,7 @@ export type StorageAccessBuilder = {
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#user-group-access
    * @param groupName The User Pool group name to configure access for
    */
-  group: (groupName: string) => StorageActionBuilder;
+  groups: (groupNames: string[]) => StorageActionBuilder;
   /**
    * Configure owner-based access. Requires `defineAuth` in the backend definition.
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#owner-based-access
@@ -88,9 +88,9 @@ export type StorageAccessRecord = Record<
 >;
 
 export type StorageAccessDefinition = {
-  getResourceAccessAcceptor: (
+  getResourceAccessAcceptors: ((
     getInstanceProps: ConstructFactoryGetInstanceProps
-  ) => ResourceAccessAcceptor;
+  ) => ResourceAccessAcceptor)[];
   /**
    * Actions to grant to this role on a specific prefix
    */

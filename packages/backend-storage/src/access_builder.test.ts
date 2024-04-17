@@ -55,9 +55,12 @@ void describe('storageAccessBuilder', () => {
       'delete',
     ]);
     assert.equal(accessDefinition.idSubstitution, '*');
-    assert.equal(
-      accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
-      resourceAccessAcceptorMock
+    assert.deepStrictEqual(
+      accessDefinition.getResourceAccessAcceptors.map(
+        (getResourceAccessAcceptor) =>
+          getResourceAccessAcceptor(stubGetInstanceProps)
+      ),
+      [resourceAccessAcceptorMock]
     );
     assert.equal(
       getConstructFactoryMock.mock.calls[0].arguments[0],
@@ -80,9 +83,12 @@ void describe('storageAccessBuilder', () => {
       'delete',
     ]);
     assert.equal(accessDefinition.idSubstitution, '*');
-    assert.equal(
-      accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
-      resourceAccessAcceptorMock
+    assert.deepStrictEqual(
+      accessDefinition.getResourceAccessAcceptors.map(
+        (getResourceAccessAcceptor) =>
+          getResourceAccessAcceptor(stubGetInstanceProps)
+      ),
+      [resourceAccessAcceptorMock]
     );
     assert.equal(
       getConstructFactoryMock.mock.calls[0].arguments[0],
@@ -106,9 +112,12 @@ void describe('storageAccessBuilder', () => {
       accessDefinition.idSubstitution,
       '${cognito-identity.amazonaws.com:sub}'
     );
-    assert.equal(
-      accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
-      resourceAccessAcceptorMock
+    assert.deepStrictEqual(
+      accessDefinition.getResourceAccessAcceptors.map(
+        (getResourceAccessAcceptor) =>
+          getResourceAccessAcceptor(stubGetInstanceProps)
+      ),
+      [resourceAccessAcceptorMock]
     );
     assert.equal(
       getConstructFactoryMock.mock.calls[0].arguments[0],
@@ -136,22 +145,28 @@ void describe('storageAccessBuilder', () => {
       'delete',
     ]);
     assert.equal(accessDefinition.idSubstitution, '*');
-    assert.equal(
-      accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
-      resourceAccessAcceptorMock
+    assert.deepStrictEqual(
+      accessDefinition.getResourceAccessAcceptors.map(
+        (getResourceAccessAcceptor) =>
+          getResourceAccessAcceptor(stubGetInstanceProps)
+      ),
+      [resourceAccessAcceptorMock]
     );
   });
 
   void it('builds storage access definition for user pool groups', () => {
     const accessDefinition = roleAccessBuilder
-      .group('testGroupName')
+      .groups(['testGroupName'])
       .to(['read', 'write']);
 
     assert.deepStrictEqual(accessDefinition.actions, ['read', 'write']);
     assert.equal(accessDefinition.idSubstitution, '*');
-    assert.equal(
-      accessDefinition.getResourceAccessAcceptor(stubGetInstanceProps),
-      groupAccessAcceptorMock
+    assert.deepStrictEqual(
+      accessDefinition.getResourceAccessAcceptors.map(
+        (getResourceAccessAcceptor) =>
+          getResourceAccessAcceptor(stubGetInstanceProps)
+      ),
+      [groupAccessAcceptorMock]
     );
   });
 });

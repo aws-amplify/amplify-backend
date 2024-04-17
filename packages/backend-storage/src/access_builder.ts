@@ -9,37 +9,41 @@ import { StorageAccessBuilder } from './types.js';
 export const roleAccessBuilder: StorageAccessBuilder = {
   authenticated: {
     to: (actions) => ({
-      getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
+      getResourceAccessAcceptors: [getAuthRoleResourceAccessAcceptor],
       actions,
       idSubstitution: '*',
     }),
   },
   guest: {
     to: (actions) => ({
-      getResourceAccessAcceptor: getUnauthRoleResourceAccessAcceptor,
+      getResourceAccessAcceptors: [getUnauthRoleResourceAccessAcceptor],
       actions,
       idSubstitution: '*',
     }),
   },
-  group: (groupName) => ({
+  groups: (groupNames) => ({
     to: (actions) => ({
-      getResourceAccessAcceptor: (getInstanceProps) =>
-        getUserRoleResourceAccessAcceptor(getInstanceProps, groupName),
+      getResourceAccessAcceptors: groupNames.map(
+        (groupName) => (getInstanceProps) =>
+          getUserRoleResourceAccessAcceptor(getInstanceProps, groupName)
+      ),
       actions,
       idSubstitution: '*',
     }),
   }),
   entity: () => ({
     to: (actions) => ({
-      getResourceAccessAcceptor: getAuthRoleResourceAccessAcceptor,
+      getResourceAccessAcceptors: [getAuthRoleResourceAccessAcceptor],
       actions,
       idSubstitution: '${cognito-identity.amazonaws.com:sub}',
     }),
   }),
   resource: (other) => ({
     to: (actions) => ({
-      getResourceAccessAcceptor: (getInstanceProps) =>
-        other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
+      getResourceAccessAcceptors: [
+        (getInstanceProps) =>
+          other.getInstance(getInstanceProps).getResourceAccessAcceptor(),
+      ],
       actions,
       idSubstitution: '*',
     }),

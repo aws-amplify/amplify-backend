@@ -93,11 +93,6 @@ export class StorageAccessOrchestrator {
       ([s3Prefix, accessPermissions]) => {
         // iterate over all of the access definitions for a given prefix
         accessPermissions.forEach((permission) => {
-          // get the ResourceAccessAcceptor for the permission and add it to the map if not already present
-          const resourceAccessAcceptor = permission.getResourceAccessAcceptor(
-            this.getInstanceProps
-          );
-
           // make the owner placeholder substitution in the s3 prefix
           const prefix = s3Prefix.replaceAll(
             entityIdPathToken,
@@ -114,11 +109,15 @@ export class StorageAccessOrchestrator {
             new Set(replaceReadWithGetAndList)
           );
 
-          // set an entry that maps this permission to the resource acceptor
-          this.addAccessDefinition(
-            resourceAccessAcceptor,
-            noDuplicateActions,
-            prefix
+          // set an entry that maps this permission to each resource acceptor
+          permission.getResourceAccessAcceptors.forEach(
+            (getResourceAccessAcceptor) => {
+              this.addAccessDefinition(
+                getResourceAccessAcceptor(this.getInstanceProps),
+                noDuplicateActions,
+                prefix
+              );
+            }
           );
         });
       }

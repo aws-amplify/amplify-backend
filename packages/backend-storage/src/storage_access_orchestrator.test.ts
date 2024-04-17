@@ -31,10 +31,12 @@ void describe('StorageAccessOrchestrator', () => {
           'test/prefix/*': [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'testResourceAccessAcceptor',
-                acceptResourceAccess: acceptResourceAccessMock,
-              }),
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'testResourceAccessAcceptor',
+                  acceptResourceAccess: acceptResourceAccessMock,
+                }),
+              ],
               idSubstitution: '*',
             },
           ],
@@ -60,10 +62,12 @@ void describe('StorageAccessOrchestrator', () => {
           'test/prefix/*': [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'testResourceAccessAcceptor',
-                acceptResourceAccess: acceptResourceAccessMock,
-              }),
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'testResourceAccessAcceptor',
+                  acceptResourceAccess: acceptResourceAccessMock,
+                }),
+              ],
               idSubstitution: '*',
             },
           ],
@@ -110,14 +114,14 @@ void describe('StorageAccessOrchestrator', () => {
           'test/prefix/*': [
             {
               actions: ['get', 'write', 'delete'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub],
               idSubstitution: '*',
             },
           ],
           'another/prefix/*': [
             {
               actions: ['get'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub],
               idSubstitution: '*',
             },
           ],
@@ -177,19 +181,19 @@ void describe('StorageAccessOrchestrator', () => {
           'test/prefix/*': [
             {
               actions: ['get', 'write', 'delete'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub1],
               idSubstitution: '*',
             },
             {
               actions: ['get'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
               idSubstitution: '*',
             },
           ],
           'another/prefix/*': [
             {
               actions: ['get', 'delete'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
               idSubstitution: '*',
             },
           ],
@@ -263,10 +267,12 @@ void describe('StorageAccessOrchestrator', () => {
           [`test/${entityIdPathToken}/*`]: [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'testResourceAccessAcceptor',
-                acceptResourceAccess: acceptResourceAccessMock,
-              }),
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'testResourceAccessAcceptor',
+                  acceptResourceAccess: acceptResourceAccessMock,
+                }),
+              ],
               idSubstitution: '{testOwnerSub}',
             },
           ],
@@ -310,20 +316,24 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/*': [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'resourceAccessAcceptor1',
-                acceptResourceAccess: acceptResourceAccessMock1,
-              }),
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'resourceAccessAcceptor1',
+                  acceptResourceAccess: acceptResourceAccessMock1,
+                }),
+              ],
               idSubstitution: '*',
             },
           ],
           'foo/bar/*': [
             {
               actions: ['get'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'resourceAccessAcceptor2',
-                acceptResourceAccess: acceptResourceAccessMock2,
-              }),
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'resourceAccessAcceptor2',
+                  acceptResourceAccess: acceptResourceAccessMock2,
+                }),
+              ],
               idSubstitution: '*',
             },
           ],
@@ -396,12 +406,12 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/{entity_id}/*': [
             {
               actions: ['write', 'delete'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
               idSubstitution: '{idSub}',
             },
             {
               actions: ['get'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
               idSubstitution: '*',
             },
           ],
@@ -461,7 +471,7 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/*': [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub1],
               idSubstitution: '*',
             },
           ],
@@ -470,7 +480,7 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/bar/*': [
             {
               actions: ['get'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
               idSubstitution: '{idSub}',
             },
           ],
@@ -480,7 +490,7 @@ void describe('StorageAccessOrchestrator', () => {
             {
               actions: ['get'],
               idSubstitution: '*',
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub1],
             },
           ],
           // acceptor 1 is denied write on this path (read still allowed)
@@ -488,12 +498,12 @@ void describe('StorageAccessOrchestrator', () => {
           'other/{entity_id}/*': [
             {
               actions: ['get', 'write', 'delete'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
               idSubstitution: '{idSub}',
             },
             {
               actions: ['get'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub1],
               idSubstitution: '*',
             },
           ],
@@ -585,17 +595,17 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/*': [
             {
               actions: ['get'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
               idSubstitution: '*',
             },
             {
               actions: ['write'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
               idSubstitution: '{idSub}',
             },
             {
               actions: ['delete'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
               idSubstitution: '*',
             },
           ],
@@ -648,19 +658,19 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/bar/*': [
             {
               actions: ['read', 'get', 'list'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
               idSubstitution: '*',
             },
             {
               actions: ['list'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
               idSubstitution: '*',
             },
           ],
           'other/baz/*': [
             {
               actions: ['read'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
               idSubstitution: '*',
             },
           ],
