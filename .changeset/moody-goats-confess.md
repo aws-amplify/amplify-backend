@@ -1,8 +1,7 @@
 ---
-'@aws-amplify/deployed-backend-client': patch
-'@aws-amplify/integration-tests': patch
-'@aws-amplify/model-generator': patch
-'@aws-amplify/client-config': patch
+'@aws-amplify/deployed-backend-client': minor
+'@aws-amplify/model-generator': minor
+'@aws-amplify/client-config': minor
 '@aws-amplify/backend-cli': patch
 ---
 
