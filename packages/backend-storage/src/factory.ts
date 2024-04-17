@@ -51,20 +51,20 @@ class AmplifyStorageFactory
   };
 
   private sanitizeName = (name: string): string => {
-    const sanitizedName = this.kebabCase(name);
+    const sanitizedName = this.toKebabCase(name);
 
     if (!/^[a-z0-9-]+$/.test(sanitizedName)) {
       throw new AmplifyUserError('InvalidResourceNameError', {
         message: `defineStorage name contains invalid characters, found ${name}`,
         resolution:
-          'Change the name parameter of defineStorage to only use alphanumeric characters or -',
+          'Update name to use only alphanumeric characters and dashes',
       });
     }
 
     return sanitizedName;
   };
 
-  private kebabCase = (str: string): string =>
+  private toKebabCase = (str: string): string =>
     str
       .replace(/([a-z])([A-Z])/g, '$1-$2')
       .replace(/[\s_]+/g, '-')
