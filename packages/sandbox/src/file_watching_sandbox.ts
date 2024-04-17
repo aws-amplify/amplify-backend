@@ -152,7 +152,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       this.emitWatching();
     });
 
-    if (options.watchForChanges !== false)) {
+    if (options.watchForChanges !== false) {
       this.watcherSubscription = await parcelWatcher.subscribe(
         watchDir,
         async (_, events) => {
