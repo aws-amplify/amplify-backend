@@ -12,7 +12,7 @@ import { createGraphqlDocumentGenerator } from './create_graphql_document_genera
 import { getOutputFileName } from '@aws-amplify/graphql-types-generator';
 import path from 'path';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { AWSClientProvider } from '../../platform-core/src/aws_client_provider.js';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 export enum GenerateApiCodeFormat {
   MODELGEN = 'modelgen',

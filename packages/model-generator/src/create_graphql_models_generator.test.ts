@@ -6,7 +6,7 @@ import {
   createGraphqlModelsFromS3UriGenerator,
   createGraphqlModelsGenerator,
 } from './create_graphql_models_generator.js';
-import { AWSClientProvider } from '../../platform-core/src/aws_client_provider.js';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 void describe('models generator factory', () => {
   void describe('createGraphqlModelsGenerator', () => {

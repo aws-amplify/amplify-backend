@@ -8,7 +8,7 @@ import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_res
 import { StackMetadataGraphqlModelsGenerator } from './graphql_models_generator.js';
 import { GraphqlModelsGenerator } from './model_generator.js';
 import { S3StringObjectFetcher } from './s3_string_object_fetcher.js';
-import { AWSClientProvider } from '../../platform-core/src/aws_client_provider.js';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 export type GraphqlModelsGeneratorFactoryParams =
   | {

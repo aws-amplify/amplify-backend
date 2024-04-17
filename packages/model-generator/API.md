@@ -4,12 +4,9 @@
 
 ```ts
 
-import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { ModelsTarget } from '@aws-amplify/graphql-generator';
-import { S3Client } from '@aws-sdk/client-s3';
 import { StatementsTarget } from '@aws-amplify/graphql-generator';
 import { TypesTarget } from '@aws-amplify/graphql-generator';
 
@@ -182,10 +179,6 @@ export type TypesGenerationParameters = {
     target: TypesTarget;
     multipleSwiftFiles?: boolean;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/generate_api_code.ts:84:5 - (ae-forgotten-export) The symbol "AWSClientProvider" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

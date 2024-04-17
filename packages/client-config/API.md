@@ -211,7 +211,7 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "0" | "1">(awsClientProvider: AWSClientProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
+export const generateClientConfig: <T extends "1" | "0">(awsClientProvider: AWSClientProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
 
 // @public (undocumented)
 export type GenerateClientConfigOptions = {

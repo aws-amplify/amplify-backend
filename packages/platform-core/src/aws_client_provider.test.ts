@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { AWSClientProvider } from './aws_client_provider';
+import { AWSClientProvider } from './index';
 import { S3Client } from '@aws-sdk/client-s3';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';

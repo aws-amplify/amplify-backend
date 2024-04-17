@@ -8,7 +8,7 @@ import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_res
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 import { AppSyncGraphqlDocumentGenerator } from './graphql_document_generator.js';
 import { GraphqlDocumentGenerator } from './model_generator.js';
-import { AWSClientProvider } from '../../platform-core/src/aws_client_provider.js';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 export type GraphqlDocumentGeneratorFactoryParams = {
   backendIdentifier: DeployedBackendIdentifier;

@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { createGraphqlDocumentGenerator } from './create_graphql_document_generator.js';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { AWSClientProvider } from '../../platform-core/src/aws_client_provider.js';
+import { AWSClientProvider } from '@aws-amplify/platform-core';
 
 void describe('model generator factory', () => {
   void it('throws an error if a null backendIdentifier is passed in', async () => {

@@ -19,7 +19,7 @@ export type AWSClientsOptions =
   | AWSClientsCredentialsOptions;
 
 /**
- * Instantiates AWSClientsFactory
+ * Instantiates AWSClientProvider
  */
 export class AWSClientProvider {
   private readonly s3Client: S3Client | undefined;
@@ -28,7 +28,7 @@ export class AWSClientProvider {
   private readonly credentials: AwsCredentialIdentityProvider | undefined;
 
   /**
-   * Instantiates AWSClientsFactory
+   * Instantiates AWSClientProvider
    */
   constructor(awsClientOptions?: AWSClientsOptions) {
     this.s3Client =
