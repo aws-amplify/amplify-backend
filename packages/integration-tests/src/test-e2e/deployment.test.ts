@@ -138,6 +138,21 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
 
+          void it('generates config after sandbox --once deployment', async () => {
+            const processController = amplifyCli(
+              ['sandbox', '--once'],
+              testProject.projectDirPath,
+              {
+                env: sharedSecretsEnv,
+              }
+            );
+            await processController
+              .do(waitForConfigUpdateAfterDeployment())
+              .run();
+
+            await testProject.assertPostDeployment(sandboxBackendIdentifier);
+          });
+
           void it(`[${testProjectCreator.name}] hot-swaps a change`, async () => {
             const processController = amplifyCli(
               ['sandbox', '--dirToWatch', 'amplify'],
@@ -158,21 +173,6 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             await processController
               .do(interruptSandbox())
               .do(rejectCleanupSandbox())
-              .run();
-
-            await testProject.assertPostDeployment(sandboxBackendIdentifier);
-          });
-
-          void describe('generates config after sandbox --once deployment', async () => {
-            const processController = amplifyCli(
-              ['sandbox', '--once'],
-              testProject.projectDirPath,
-              {
-                env: sharedSecretsEnv,
-              }
-            );
-            await processController
-              .do(waitForConfigUpdateAfterDeployment())
               .run();
 
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
