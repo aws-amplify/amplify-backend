@@ -92,6 +92,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   start = async (options: SandboxOptions) => {
     const watchDir = options.dir ?? './amplify';
+    const watchForChanges = options.watchForChanges ?? true;
+
     if (!fs.existsSync(watchDir)) {
       throw new AmplifyUserError('PathNotFoundError', {
         message: `${watchDir} does not exist.`,
@@ -152,7 +154,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       this.emitWatching();
     });
 
-    if (options.watchForChanges !== false) {
+    if (watchForChanges) {
       this.watcherSubscription = await parcelWatcher.subscribe(
         watchDir,
         async (_, events) => {
