@@ -22,7 +22,7 @@ void describe('awsClientProvider', () => {
     assert.ok(actual.getCloudFormationClient() instanceof CloudFormationClient);
   });
   void it('can use passed in clients', () => {
-    const s3Client = new S3Client();
+    const s3Client = {} as S3Client;
     const amplifyClient = new AmplifyClient();
     const cloudformationClient = new CloudFormationClient();
     const actual = new AWSClientProvider({
