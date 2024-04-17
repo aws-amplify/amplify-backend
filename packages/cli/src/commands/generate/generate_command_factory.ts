@@ -25,10 +25,14 @@ import { S3Client } from '@aws-sdk/client-s3';
  * Creates wired generate command.
  */
 export const createGenerateCommand = (): CommandModule => {
+  const s3Client = new S3Client();
+  const amplifyClient = new AmplifyClient();
+  const cloudFormationClient = new CloudFormationClient();
+
   const awsClientProvider = {
-    getS3Client: () => new S3Client(),
-    getAmplifyClient: () => new AmplifyClient(),
-    getCloudFormationClient: () => new CloudFormationClient(),
+    getS3Client: () => s3Client,
+    getAmplifyClient: () => amplifyClient,
+    getCloudFormationClient: () => cloudFormationClient,
   };
   const secretClient = getSecretClient();
 

@@ -21,11 +21,18 @@ export const createPipelineDeployCommand = (): CommandModule<
   object,
   PipelineDeployCommandOptions
 > => {
-  const clientConfigGenerator = new ClientConfigGeneratorAdapter({
-    getS3Client: () => new S3Client(),
-    getAmplifyClient: () => new AmplifyClient(),
-    getCloudFormationClient: () => new CloudFormationClient(),
-  });
+  const s3Client = new S3Client();
+  const amplifyClient = new AmplifyClient();
+  const cloudFormationClient = new CloudFormationClient();
+
+  const awsClientProvider = {
+    getS3Client: () => s3Client,
+    getAmplifyClient: () => amplifyClient,
+    getCloudFormationClient: () => cloudFormationClient,
+  };
+  const clientConfigGenerator = new ClientConfigGeneratorAdapter(
+    awsClientProvider
+  );
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
     process.cwd(),
     printer

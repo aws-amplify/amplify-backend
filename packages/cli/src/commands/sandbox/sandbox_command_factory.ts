@@ -36,11 +36,18 @@ export const createSandboxCommand = (): CommandModule<
     sandboxBackendIdPartsResolver.resolve,
     printer
   );
-  const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter({
-    getS3Client: () => new S3Client(),
-    getAmplifyClient: () => new AmplifyClient(),
-    getCloudFormationClient: () => new CloudFormationClient(),
-  });
+  const s3Client = new S3Client();
+  const amplifyClient = new AmplifyClient();
+  const cloudFormationClient = new CloudFormationClient();
+
+  const awsClientProvider = {
+    getS3Client: () => s3Client,
+    getAmplifyClient: () => amplifyClient,
+    getCloudFormationClient: () => cloudFormationClient,
+  };
+  const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
+    awsClientProvider
+  );
 
   const libraryVersion =
     new PackageJsonReader().read(

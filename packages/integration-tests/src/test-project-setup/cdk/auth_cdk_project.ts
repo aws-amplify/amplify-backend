@@ -64,17 +64,22 @@ class AuthTestCdkProject extends TestCdkProjectBase {
     );
     assert.equal(userPools.length, 1);
 
+    const s3Client = new S3Client();
+    const amplifyClient = new AmplifyClient();
+    const cloudFormationClient = new CloudFormationClient();
+
+    const awsClientProvider = {
+      getS3Client: () => s3Client,
+      getAmplifyClient: () => amplifyClient,
+      getCloudFormationClient: () => cloudFormationClient,
+    };
     // assert that we can generate client config
     const clientConfig = await generateClientConfig(
       {
         stackName: this.stackName,
       },
       '1', //version of the config
-      {
-        getS3Client: () => new S3Client(),
-        getAmplifyClient: () => new AmplifyClient(),
-        getCloudFormationClient: () => new CloudFormationClient(),
-      }
+      awsClientProvider
     );
 
     assert.ok(
