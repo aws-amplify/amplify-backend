@@ -38,7 +38,7 @@ void describe('generate empty client config to file', () => {
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[1],
-      `{${os.EOL}  "version": "1"${os.EOL}}`
+      `{\n  "version": "1"\n}`
     );
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],
