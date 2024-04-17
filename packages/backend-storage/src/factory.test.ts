@@ -112,8 +112,23 @@ void describe('AmplifyStorageFactory', () => {
   void it('throws on invalid name', () => {
     const storageFactory = defineStorage({ name: '!$87++|' });
     assert.throws(() => storageFactory.getInstance(getInstanceProps), {
-      message:
-        'defineStorage name can only contain alphanumeric characters, found !$87++|',
+      message: 'defineStorage name contains invalid characters, found !$87++|',
     });
+  });
+
+  void it('should convert name to kebab case if possible', () => {
+    const mockGetOrCompute = mock.fn();
+    const storageFactory = defineStorage({ name: 'camelCase with whiteSpace' });
+    storageFactory.getInstance({
+      ...getInstanceProps,
+      constructContainer: {
+        getOrCompute: mockGetOrCompute,
+      } as unknown as ConstructContainer,
+    });
+
+    assert.strictEqual(
+      mockGetOrCompute.mock.calls[0].arguments[0].props.name,
+      'camel-case-with-white-space'
+    );
   });
 });
