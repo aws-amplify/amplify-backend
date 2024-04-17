@@ -54,9 +54,9 @@ export class AWSClientProvider {
    */
   getS3Client() {
     if (this.s3Client) return this.s3Client;
-    return this.credentials
-      ? new S3Client({ credentials: this.credentials })
-      : new S3Client({ credentials: fromNodeProviderChain() });
+    if (this.credentials)
+      return new S3Client({ credentials: this.credentials });
+    return new S3Client({ credentials: fromNodeProviderChain() });
   }
 
   /**
@@ -64,9 +64,9 @@ export class AWSClientProvider {
    */
   getAmplifyClient() {
     if (this.amplifyClient) return this.amplifyClient;
-    return this.credentials
-      ? new AmplifyClient({ credentials: this.credentials })
-      : new AmplifyClient({ credentials: fromNodeProviderChain() });
+    if (this.credentials)
+      return new AmplifyClient({ credentials: this.credentials });
+    return new AmplifyClient({ credentials: fromNodeProviderChain() });
   }
 
   /**
@@ -74,9 +74,8 @@ export class AWSClientProvider {
    */
   getCloudFormationClient() {
     if (this.cloudformationClient) return this.cloudformationClient;
-
-    return this.credentials
-      ? new CloudFormationClient({ credentials: this.credentials })
-      : new CloudFormationClient({ credentials: fromNodeProviderChain() });
+    if (this.credentials)
+      return new CloudFormationClient({ credentials: this.credentials });
+    return new CloudFormationClient({ credentials: fromNodeProviderChain() });
   }
 }
