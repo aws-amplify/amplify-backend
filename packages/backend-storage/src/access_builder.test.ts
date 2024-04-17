@@ -10,16 +10,19 @@ import {
 
 void describe('storageAccessBuilder', () => {
   const resourceAccessAcceptorMock = mock.fn();
-  const groupAccessAcceptorMock = mock.fn();
+  const group1AccessAcceptorMock = mock.fn();
+  const group2AccessAcceptorMock = mock.fn();
 
-  const getResourceAccessAcceptorMock = mock.fn(
-    // allows us to get proper typing on the mock args
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (roleName: string) =>
-      roleName === 'testGroupName'
-        ? groupAccessAcceptorMock
-        : resourceAccessAcceptorMock
-  );
+  const getResourceAccessAcceptorMock = mock.fn((roleName: string) => {
+    switch (roleName) {
+      case 'group1Name':
+        return group1AccessAcceptorMock;
+      case 'group2Name':
+        return group2AccessAcceptorMock;
+      default:
+        return resourceAccessAcceptorMock;
+    }
+  });
 
   const getConstructFactoryMock = mock.fn(
     // this lets us get proper typing on the mock args
@@ -154,9 +157,9 @@ void describe('storageAccessBuilder', () => {
     );
   });
 
-  void it('builds storage access definition for user pool groups', () => {
+  void it('builds storage access definition for multiple user pool groups', () => {
     const accessDefinition = roleAccessBuilder
-      .groups(['testGroupName'])
+      .groups(['group1Name', 'group2Name'])
       .to(['read', 'write']);
 
     assert.deepStrictEqual(accessDefinition.actions, ['read', 'write']);
@@ -166,7 +169,7 @@ void describe('storageAccessBuilder', () => {
         (getResourceAccessAcceptor) =>
           getResourceAccessAcceptor(stubGetInstanceProps)
       ),
-      [groupAccessAcceptorMock]
+      [group1AccessAcceptorMock, group2AccessAcceptorMock]
     );
   });
 });
