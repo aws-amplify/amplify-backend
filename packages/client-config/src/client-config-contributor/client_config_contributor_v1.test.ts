@@ -23,6 +23,12 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
+const stubClientProvider = {
+  getS3Client: () => new S3Client(),
+  getAmplifyClient: () => new AmplifyClient(),
+  getCloudFormationClient: () => new CloudFormationClient(),
+};
+
 void describe('auth client config contributor v1', () => {
   void it('returns an empty object if output has no auth output', () => {
     const contributor = new AuthClientConfigContributor();
@@ -164,11 +170,9 @@ void describe('auth client config contributor v1', () => {
 
 void describe('data client config contributor v1', () => {
   void it('returns an empty object if output has no graphql output', async () => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-      getS3Client: () => new S3Client(),
-      getAmplifyClient: () => new AmplifyClient(),
-      getCloudFormationClient: () => new CloudFormationClient(),
-    });
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+      stubClientProvider
+    );
 
     mock.method(
       modelSchemaAdapter,
@@ -192,11 +196,9 @@ void describe('data client config contributor v1', () => {
   });
 
   void it('returns translated config when output has graphql', async () => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-      getS3Client: () => new S3Client(),
-      getAmplifyClient: () => new AmplifyClient(),
-      getCloudFormationClient: () => new CloudFormationClient(),
-    });
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+      stubClientProvider
+    );
 
     mock.method(
       modelSchemaAdapter,
@@ -231,11 +233,9 @@ void describe('data client config contributor v1', () => {
   });
 
   void it('returns translated config with model introspection when resolvable', async () => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-      getS3Client: () => new S3Client(),
-      getAmplifyClient: () => new AmplifyClient(),
-      getCloudFormationClient: () => new CloudFormationClient(),
-    });
+    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+      stubClientProvider
+    );
 
     mock.method(
       modelSchemaAdapter,

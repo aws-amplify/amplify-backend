@@ -48,9 +48,9 @@ export const generateClientConfigToFile = async (
   );
 
   const clientConfig = await generateClientConfig(
-    awsClientProvider,
     backendIdentifier,
-    version
+    version,
+    awsClientProvider
   );
 
   return await clientConfigWriter.writeClientConfig(

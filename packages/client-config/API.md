@@ -210,18 +210,11 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "0">(awsClientProvider: AWSClientProvider<{
+export const generateClientConfig: <T extends "1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
-}>, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
-
-// @public (undocumented)
-export type GenerateClientConfigOptions = AWSClientProvider<{
-    s3Client: S3Client;
-    cloudFormationClient: CloudFormationClient;
-    amplifyClient: AmplifyClient;
-}>;
+}>) => Promise<ClientConfigVersionTemplateType<T>>;
 
 // @public
 export const generateClientConfigToFile: (awsClientProvider: AWSClientProvider<{

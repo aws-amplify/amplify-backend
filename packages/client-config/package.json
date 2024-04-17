@@ -27,8 +27,6 @@
     "@aws-amplify/deployed-backend-client": "^0.4.0-beta.8",
     "@aws-amplify/model-generator": "^0.5.0-beta.10",
     "@aws-amplify/platform-core": "^0.5.0-beta.6",
-    "@aws-sdk/client-amplify": "^3.465.0",
-    "@aws-sdk/client-cloudformation": "^3.465.0",
     "@aws-sdk/client-ssm": "^3.465.0",
     "@aws-sdk/credential-providers": "^3.465.0",
     "zod": "^3.22.2"
@@ -38,5 +36,9 @@
     "@aws-sdk/types": "^3.465.0",
     "@aws-sdk/util-stream-node": "^3.374.0",
     "aws-sdk-client-mock": "^3.0.0"
+  },
+  "peerDependencies": {
+    "@aws-sdk/client-amplify": "^3.465.0",
+    "@aws-sdk/client-cloudformation": "^3.465.0"
   }
 }

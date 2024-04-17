@@ -13,12 +13,6 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { AWSClientProvider } from '@aws-amplify/plugin-types';
 
-export type GenerateClientConfigOptions = AWSClientProvider<{
-  s3Client: S3Client;
-  cloudFormationClient: CloudFormationClient;
-  amplifyClient: AmplifyClient;
-}>;
-
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file
 // All this function should do is construct the factory and delegate to generateClientConfig()
@@ -30,13 +24,13 @@ export type GenerateClientConfigOptions = AWSClientProvider<{
  * Main entry point for generating client config
  */
 export const generateClientConfig = async <T extends ClientConfigVersion>(
+  backendIdentifier: DeployedBackendIdentifier,
+  version: T,
   awsClientProvider: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
-  }>,
-  backendIdentifier: DeployedBackendIdentifier,
-  version: T
+  }>
 ): Promise<ClientConfigVersionTemplateType<T>> => {
   const backendOutputClient =
     BackendOutputClientFactory.getInstance(awsClientProvider);

@@ -15,7 +15,11 @@ import { ClientConfigContributorFactory } from './client-config-contributor/clie
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-
+const stubClientProvider = {
+  getS3Client: () => new S3Client(),
+  getAmplifyClient: () => new AmplifyClient(),
+  getCloudFormationClient: () => new CloudFormationClient(),
+};
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
     void it('transforms backend output into client config', async () => {
@@ -60,11 +64,9 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
-      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-        getS3Client: () => new S3Client(),
-        getAmplifyClient: () => new AmplifyClient(),
-        getCloudFormationClient: () => new CloudFormationClient(),
-      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
 
       mock.method(
         modelSchemaAdapter,
@@ -135,11 +137,9 @@ void describe('UnifiedClientConfigGenerator', () => {
         },
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
-      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter({
-        getS3Client: () => new S3Client(),
-        getAmplifyClient: () => new AmplifyClient(),
-        getCloudFormationClient: () => new CloudFormationClient(),
-      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
 
       mock.method(
         modelSchemaAdapter,
