@@ -1,5 +1,18 @@
 # @aws-amplify/backend-storage
 
+## 0.6.0-beta.10
+
+### Minor Changes
+
+- 173c4ba: Change group access to allow multiple group names in one rule. Also enforce that there are no duplicate access targets for a single path.
+
+### Patch Changes
+
+- ef111b4: Add friendly-name tag to resources
+- Updated dependencies [db23a3f]
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/backend-output-storage@0.4.0-beta.8
+
 ## 0.6.0-beta.9
 
 ### Patch Changes

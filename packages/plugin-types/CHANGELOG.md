@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 0.9.0-beta.3
+
+### Minor Changes
+
+- db23a3f: add AWSClientProvider type
+
 ## 0.9.0-beta.2
 
 ### Patch Changes
