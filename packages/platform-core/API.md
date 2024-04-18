@@ -173,6 +173,9 @@ export class ParameterPathConversions {
     static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
 }
 
+// @public (undocumented)
+export const toScreamingSnakeCase: (input: string) => string;
+
 // @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 
@@ -186,6 +189,9 @@ export type UsageDataEmitter = {
 export class UsageDataEmitterFactory {
     getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
 }
+
+// @public (undocumented)
+export const validateResourceName: (resourceName: string) => void;
 
 // (No @packageDocumentation comment for this package)
 

@@ -150,7 +150,8 @@ void describe('StorageGenerator', () => {
       const template = Template.fromStack(stack);
       template.hasResourceProperties('Custom::S3BucketNotifications', {
         BucketName: {
-          Ref: 'testNameBucketB4152AD5',
+          // eslint-disable-next-line spellcheck/spell-checker
+          Ref: 'testnameBucketEF49125A',
         },
         NotificationConfiguration: {
           LambdaFunctionConfigurations: [

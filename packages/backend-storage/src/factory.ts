@@ -6,7 +6,6 @@ import {
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
 import { AmplifyStorage, StorageResources } from './construct.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { AmplifyStorageFactoryProps } from './types.js';
 import { StorageContainerEntryGenerator } from './storage_container_entry_generator.js';
 
@@ -38,7 +37,6 @@ class AmplifyStorageFactory
       path.join('amplify', 'storage', 'resource'),
       'Amplify Storage must be defined in amplify/storage/resource.ts'
     );
-    this.validateName(this.props.name);
     if (!this.generator) {
       this.generator = new StorageContainerEntryGenerator(
         this.props,
@@ -46,17 +44,6 @@ class AmplifyStorageFactory
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyStorage;
-  };
-
-  private validateName = (name: string): void => {
-    const nameIsAlphanumeric = /^[a-zA-Z0-9]+$/.test(name);
-    if (!nameIsAlphanumeric) {
-      throw new AmplifyUserError('InvalidResourceNameError', {
-        message: `defineStorage name can only contain alphanumeric characters, found ${name}`,
-        resolution:
-          'Change the name parameter of defineStorage to only use alphanumeric characters',
-      });
-    }
   };
 }
 

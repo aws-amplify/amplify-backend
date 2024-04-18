@@ -112,8 +112,7 @@ void describe('AmplifyStorageFactory', () => {
   void it('throws on invalid name', () => {
     const storageFactory = defineStorage({ name: '!$87++|' });
     assert.throws(() => storageFactory.getInstance(getInstanceProps), {
-      message:
-        'defineStorage name can only contain alphanumeric characters, found !$87++|',
+      message: 'Resource name contains invalid characters, found !$87++|',
     });
   });
 });

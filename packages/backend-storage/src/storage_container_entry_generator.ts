@@ -8,6 +8,7 @@ import { StorageAccessOrchestratorFactory } from './storage_access_orchestrator.
 import { AmplifyStorageFactoryProps } from './types.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
+import { validateResourceName } from '@aws-amplify/platform-core';
 
 /**
  * Generates a single instance of storage resources
@@ -30,7 +31,9 @@ export class StorageContainerEntryGenerator
     scope,
     ssmEnvironmentEntriesGenerator,
   }: GenerateContainerEntryProps) => {
-    const amplifyStorage = new AmplifyStorage(scope, this.props.name, {
+    validateResourceName(this.props.name);
+    const sanitizedName = this.sanitizeName(this.props.name);
+    const amplifyStorage = new AmplifyStorage(scope, sanitizedName, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     });
@@ -77,5 +80,13 @@ export class StorageContainerEntryGenerator
     storageAccessOrchestrator.orchestrateStorageAccess();
 
     return amplifyStorage;
+  };
+
+  /**
+   * Bucket name cannot contain underscores, spaces or upper case characters
+   * https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+   */
+  private sanitizeName = (name: string): string => {
+    return name.replace(/[\s_]+/g, '').toLowerCase();
   };
 }
