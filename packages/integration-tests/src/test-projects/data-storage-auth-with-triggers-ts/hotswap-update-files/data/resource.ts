@@ -13,7 +13,10 @@ const schema = a.schema({
       filedChanged: a.string(), // field changed
       newFieldAdded: a.string(), // new field added
     })
-    .authorization([a.allow.owner(), a.allow.public().to(['read'])]),
+    .authorization((allow) => [
+      allow.owner(),
+      allow.publicApiKey().to(['read']),
+    ]),
 
   EchoResponse: a.customType({
     content: a.string(),
@@ -24,7 +27,7 @@ const schema = a.schema({
     .query()
     .arguments({ id: a.string() })
     .returns(a.ref('Todo'))
-    .authorization([a.allow.private()])
+    .authorization((allow) => allow.authenticated())
     .handler(
       // provisions JS resolver
       a.handler.custom({
@@ -37,14 +40,14 @@ const schema = a.schema({
     .query()
     .arguments({ content: a.string() })
     .returns(a.ref('EchoResponse'))
-    .authorization([a.allow.private()])
+    .authorization((allow) => allow.authenticated())
     .handler(a.handler.function('echo')),
 
   echoInline: a
     .query()
     .arguments({ content: a.string() })
     .returns(a.ref('EchoResponse'))
-    .authorization([a.allow.private()])
+    .authorization((allow) => allow.authenticated())
     .handler(
       a.handler.function(
         defineFunction({
@@ -60,7 +63,7 @@ export const data = defineData({
   schema,
   authorizationModes: {
     defaultAuthorizationMode: 'apiKey',
-    // API Key is used for a.allow.public() rules
+    // API Key is used for allow.publicApiKey() rules
     apiKeyAuthorizationMode: {
       expiresInDays: 30,
     },
