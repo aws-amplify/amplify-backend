@@ -1,7 +1,6 @@
 import { UnifiedClientConfigGenerator } from './unified_client_config_generator.js';
 import { ClientConfigGenerator } from './client_config_generator.js';
 import { BackendOutput } from '@aws-amplify/plugin-types';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
 import { ClientConfigContributorFactory } from './client-config-contributor/client_config_contributor_factory.js';
 import { ClientConfigVersion } from './index.js';
@@ -19,13 +18,9 @@ export class ClientConfigGeneratorFactory {
    * Returns a ClientConfigGenerator for the given BackendIdentifier type
    */
   getInstance = (
-    credentialProvider: AwsCredentialIdentityProvider,
+    modelSchemaAdapter: ModelIntrospectionSchemaAdapter,
     version: ClientConfigVersion
   ): ClientConfigGenerator => {
-    const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      credentialProvider
-    );
-
     return new UnifiedClientConfigGenerator(
       this.fetchOutput,
       new ClientConfigContributorFactory(modelSchemaAdapter).getContributors(

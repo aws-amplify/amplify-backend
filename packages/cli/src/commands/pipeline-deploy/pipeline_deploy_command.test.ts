@@ -10,7 +10,6 @@ import {
   PipelineDeployCommandOptions,
 } from './pipeline_deploy_command.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import {
   LogLevel,
   PackageManagerControllerFactory,
@@ -18,12 +17,16 @@ import {
 } from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 void describe('deploy command', () => {
-  const credentialProvider = fromNodeProviderChain();
-  const clientConfigGenerator = new ClientConfigGeneratorAdapter(
-    credentialProvider
-  );
+  const clientConfigGenerator = new ClientConfigGeneratorAdapter({
+    getS3Client: () => new S3Client(),
+    getAmplifyClient: () => new AmplifyClient(),
+    getCloudFormationClient: () => new CloudFormationClient(),
+  });
   const generateClientConfigMock = mock.method(
     clientConfigGenerator,
     'generateClientConfigToFile',

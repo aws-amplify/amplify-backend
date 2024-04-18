@@ -1,5 +1,3 @@
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import {
   DocumentGenerationParameters,
   GenerateGraphqlCodegenToFileResult,
@@ -14,6 +12,10 @@ import { createGraphqlDocumentGenerator } from './create_graphql_document_genera
 import { getOutputFileName } from '@aws-amplify/graphql-types-generator';
 import path from 'path';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { S3Client } from '@aws-sdk/client-s3';
 
 export enum GenerateApiCodeFormat {
   MODELGEN = 'modelgen',
@@ -80,7 +82,11 @@ export type GenerateOptions =
 
 export type GenerateApiCodeProps = GenerateOptions &
   DeployedBackendIdentifier & {
-    credentialProvider: AwsCredentialIdentityProvider;
+    awsClientProvider: AWSClientProvider<{
+      getAmplifyClient: AmplifyClient;
+      getCloudFormationClient: CloudFormationClient;
+      getS3Client: S3Client;
+    }>;
   };
 
 /**
@@ -89,12 +95,20 @@ export type GenerateApiCodeProps = GenerateOptions &
 export const generateApiCode = async (
   props: GenerateApiCodeProps
 ): Promise<GenerationResult> => {
-  const { credentialProvider = fromNodeProviderChain() } = props;
   const backendIdentifier = props;
   return new ApiCodeGenerator(
-    createGraphqlDocumentGenerator({ backendIdentifier, credentialProvider }),
-    createGraphqlTypesGenerator({ backendIdentifier, credentialProvider }),
-    createGraphqlModelsGenerator({ backendIdentifier, credentialProvider })
+    createGraphqlDocumentGenerator({
+      backendIdentifier,
+      awsClientProvider: props.awsClientProvider,
+    }),
+    createGraphqlTypesGenerator({
+      backendIdentifier,
+      awsClientProvider: props.awsClientProvider,
+    }),
+    createGraphqlModelsGenerator({
+      backendIdentifier,
+      awsClientProvider: props.awsClientProvider,
+    })
   ).generate(props);
 };
 
