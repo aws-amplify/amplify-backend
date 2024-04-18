@@ -142,6 +142,8 @@
   "subpath",
   "syncable",
   "synthing",
+  "testname",
+  "testnamebucket",
   "timestamps",
   "tmpdir",
   "todos",
