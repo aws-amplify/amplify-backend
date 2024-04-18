@@ -338,7 +338,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Update hotfix branch
-        if: ${{ steps.changeset_publish.outputs.published && github.ref_name == 'main' }}
+        if: ${{ steps.changeset_publish.outputs.published == 'true' && github.ref_name == 'main' }}
         run: git push origin main:hotfix --force
   codeql:
     runs-on: ubuntu-latest
