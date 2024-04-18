@@ -1,5 +1,14 @@
 # @aws-amplify/backend-function
 
+## 0.8.0-beta.12
+
+### Patch Changes
+
+- ef111b4: Add friendly-name tag to resources
+- Updated dependencies [db23a3f]
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/backend-output-storage@0.4.0-beta.8
+
 ## 0.8.0-beta.11
 
 ### Patch Changes

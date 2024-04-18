@@ -1,5 +1,12 @@
 # @aws-amplify/schema-generator
 
+## 0.1.0-beta.7
+
+### Patch Changes
+
+- Updated dependencies [ef111b4]
+  - @aws-amplify/platform-core@0.5.0-beta.7
+
 ## 0.1.0-beta.6
 
 ### Patch Changes

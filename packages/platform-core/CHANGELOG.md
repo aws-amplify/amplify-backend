@@ -1,5 +1,16 @@
 # @aws-amplify/platform-core
 
+## 0.5.0-beta.7
+
+### Minor Changes
+
+- ef111b4: Add friendly-name tag to resources
+
+### Patch Changes
+
+- Updated dependencies [db23a3f]
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+
 ## 0.5.0-beta.6
 
 ### Patch Changes
