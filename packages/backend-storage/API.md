@@ -6,6 +6,7 @@
 
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
@@ -77,6 +78,9 @@ export type StoragePath = `${string}/*`;
 // @public (undocumented)
 export type StorageResources = {
     bucket: IBucket;
+    cfnResources: {
+        cfnBucket: CfnBucket;
+    };
 };
 
 // (No @packageDocumentation comment for this package)
