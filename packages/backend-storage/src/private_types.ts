@@ -7,7 +7,9 @@ import { StorageAction } from './types.js';
 /**
  * Storage user error types
  */
-export type StorageError = 'InvalidStorageAccessPathError';
+export type StorageError =
+  | 'InvalidStorageAccessDefinition'
+  | 'InvalidStorageAccessPathError';
 
 /**
  * StorageAction type intended to be used after mapping "read" to "get" and "list"
