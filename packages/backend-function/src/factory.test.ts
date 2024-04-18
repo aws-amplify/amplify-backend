@@ -99,6 +99,19 @@ void describe('AmplifyFunctionFactory', () => {
     assert.ok(lambdaLogicalId.includes('myCoolLambda'));
   });
 
+  void it('sets friendly-name tag', () => {
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'myCoolLambda',
+    });
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Tags: [{ Key: 'amplify:friendly-name', Value: 'myCoolLambda' }],
+    });
+  });
+
   void it('builds lambda with local and 3p dependencies', () => {
     const lambda = lambdaWithDependencies.getInstance(getInstanceProps);
     const template = Template.fromStack(Stack.of(lambda.resources.lambda));

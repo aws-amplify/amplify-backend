@@ -165,6 +165,19 @@ void describe('DataFactory', () => {
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
   });
 
+  void it('tags api with friendly name', () => {
+    resetFactoryCount();
+    const dataFactory = defineData({ schema: testSchema, name: 'testNameFoo' });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(
+      Stack.of(dataConstruct.resources.graphqlApi)
+    );
+    template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
+    template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
+      Tags: [{ Key: 'amplify:friendly-name', Value: 'testNameFoo' }],
+    });
+  });
+
   void it('sets output using storage strategy', () => {
     dataFactory.getInstance(getInstanceProps);
 

@@ -76,6 +76,28 @@ void describe('StorageGenerator', () => {
       assert.ok(storageInstance instanceof AmplifyStorage);
     });
 
+    void it('sets friendly-name tag on resources', () => {
+      const storageGenerator = new StorageContainerEntryGenerator(
+        {
+          name: 'coolBucketName',
+        },
+        getInstanceProps,
+        new StorageAccessOrchestratorFactory()
+      );
+
+      storageGenerator.generateContainerEntry(generateContainerEntryProps);
+
+      const template = Template.fromStack(stack);
+      template.resourceCountIs('AWS::S3::Bucket', 1);
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        Tags: [
+          { Key: 'amplify:friendly-name', Value: 'coolBucketName' },
+          // this tag is added by CDK but the assertion fails without it
+          { Key: 'aws-cdk:auto-delete-objects', Value: 'true' },
+        ],
+      });
+    });
+
     void it('invokes the policy orchestrator when access rules are defined', () => {
       const orchestrateStorageAccessMock = mock.fn();
       const storageAccessOrchestratorFactoryStub =
