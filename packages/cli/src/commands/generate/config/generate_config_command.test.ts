@@ -62,7 +62,7 @@ void describe('generate config command', () => {
 
   void it('generates and writes config for stack', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out-dir /foo/bar --format ts'
+      'config --stack stack_name --out-dir /foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -71,21 +71,17 @@ void describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      '0' // default version
+      '1' // default version
     );
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[2],
       '/foo/bar'
     );
-    assert.deepEqual(
-      generateClientConfigMock.mock.calls[0].arguments[3],
-      ClientConfigFormat.TS
-    );
   });
 
   void it('generates and writes config for branch', async () => {
     await commandRunner.runCommand(
-      'config --branch branch_name --out-dir /foo/bar --format ts'
+      'config --branch branch_name --out-dir /foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -98,21 +94,17 @@ void describe('generate config command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
       generateClientConfigMock.mock.calls[0].arguments[1],
-      '0' // default version
+      '1' // default version
     );
     assert.deepStrictEqual(
       generateClientConfigMock.mock.calls[0].arguments[2],
       '/foo/bar'
     );
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[3],
-      ClientConfigFormat.TS
-    );
   });
 
   void it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
-      'config --branch branch_name --app-id app_id --out-dir /foo/bar --format mjs'
+      'config --branch branch_name --app-id app_id --out-dir /foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -123,16 +115,16 @@ void describe('generate config command', () => {
           namespace: 'app_id',
           type: 'branch',
         },
-        '0',
+        '1',
         '/foo/bar',
-        ClientConfigFormat.MJS,
+        undefined,
       ]
     );
   });
 
   void it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out-dir /foo/bar --format ts'
+      'config --stack stack_name --out-dir /foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -141,16 +133,16 @@ void describe('generate config command', () => {
         {
           stackName: 'stack_name',
         },
-        '0',
+        '1',
         '/foo/bar',
-        ClientConfigFormat.TS,
+        undefined,
       ]
     );
   });
 
   void it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out-dir foo/bar --format mjs'
+      'config --stack stack_name --out-dir foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -159,9 +151,9 @@ void describe('generate config command', () => {
         {
           stackName: 'stack_name',
         },
-        '0',
+        '1',
         'foo/bar',
-        ClientConfigFormat.MJS,
+        undefined,
       ]
     );
   });
@@ -177,16 +169,16 @@ void describe('generate config command', () => {
         {
           stackName: 'stack_name',
         },
-        '0',
+        '1',
         'foo/bar',
         ClientConfigFormat.DART,
       ]
     );
   });
 
-  void it('can generate config in json mobile format', async () => {
+  void it('can generate legacy config in json mobile format', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --out-dir foo/bar --format json-mobile'
+      'config --stack stack_name --config-version 0 --out-dir foo/bar --format json-mobile'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -202,9 +194,9 @@ void describe('generate config command', () => {
     );
   });
 
-  void it('can generate config in with a different version', async () => {
+  void it('can generate legacy config in ts format', async () => {
     await commandRunner.runCommand(
-      'config --stack stack_name --config-version 1 --out-dir foo/bar --format json-mobile'
+      'config --stack stack_name --config-version 0 --out-dir foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -213,9 +205,27 @@ void describe('generate config command', () => {
         {
           stackName: 'stack_name',
         },
-        '1',
+        '0',
         'foo/bar',
-        ClientConfigFormat.JSON_MOBILE,
+        ClientConfigFormat.TS,
+      ]
+    );
+  });
+
+  void it('can generate legacy config in mjs format', async () => {
+    await commandRunner.runCommand(
+      'config --stack stack_name --config-version 0 --out-dir foo/bar --format mjs'
+    );
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
+      [
+        {
+          stackName: 'stack_name',
+        },
+        '0',
+        'foo/bar',
+        ClientConfigFormat.MJS,
       ]
     );
   });
