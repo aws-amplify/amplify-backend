@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { validateResourceName } from './resource_name_validator.js';
+import { DefaultResourceNameValidator } from './default_resource_name_validator.js';
 import assert from 'node:assert';
 
 void describe('resource name validation', () => {
@@ -18,14 +18,15 @@ void describe('resource name validation', () => {
     '', //empty
     'invalid character %',
   ];
+  const underTest = new DefaultResourceNameValidator();
   shouldSucceed.forEach((stringToValidate) => {
     void it(`should validate '${stringToValidate}' successfully`, () => {
-      validateResourceName(stringToValidate); // no error thrown
+      underTest.validate(stringToValidate); // no error thrown
     });
   });
   shouldFail.forEach((stringToValidate) => {
     void it(`should fail to validate '${stringToValidate}'`, () => {
-      assert.throws(() => validateResourceName(stringToValidate), {
+      assert.throws(() => underTest.validate(stringToValidate), {
         message: `Resource name contains invalid characters, found ${stringToValidate}`,
       });
     });

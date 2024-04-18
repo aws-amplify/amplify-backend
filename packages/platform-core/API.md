@@ -7,6 +7,7 @@
 import { AppId } from '@aws-amplify/plugin-types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartial } from '@aws-amplify/plugin-types';
+import { ResourceNameValidator } from '@aws-amplify/plugin-types';
 import z from 'zod';
 
 // @public
@@ -104,6 +105,12 @@ export class ConfigurationControllerFactory {
 }
 
 // @public
+export class DefaultResourceNameValidator implements ResourceNameValidator {
+    // (undocumented)
+    validate: (resourceName: string) => void;
+}
+
+// @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
@@ -174,9 +181,6 @@ export class ParameterPathConversions {
 }
 
 // @public
-export const toScreamingSnakeCase: (input: string) => string;
-
-// @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 
 // @public (undocumented)
@@ -189,9 +193,6 @@ export type UsageDataEmitter = {
 export class UsageDataEmitterFactory {
     getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
 }
-
-// @public
-export const validateResourceName: (resourceName: string) => void;
 
 // (No @packageDocumentation comment for this package)
 

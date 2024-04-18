@@ -10,6 +10,7 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
+  ResourceNameValidator,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
@@ -19,6 +20,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { StorageResources } from './construct.js';
+import { DefaultResourceNameValidator } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -34,6 +36,8 @@ void describe('AmplifyStorageFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
+  let resourceNameValidator: ResourceNameValidator;
+
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
@@ -50,10 +54,13 @@ void describe('AmplifyStorageFactory', () => {
 
     importPathVerifier = new ImportPathVerifierStub();
 
+    resourceNameValidator = new DefaultResourceNameValidator();
+
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      resourceNameValidator,
     };
   });
   void it('returns singleton instance', () => {

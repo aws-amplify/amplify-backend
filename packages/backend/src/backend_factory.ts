@@ -25,7 +25,10 @@ import {
   ClientConfigVersionOption,
 } from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
-import { ObjectAccumulator } from '@aws-amplify/platform-core';
+import {
+  DefaultResourceNameValidator,
+  ObjectAccumulator,
+} from '@aws-amplify/platform-core';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -95,6 +98,8 @@ export class BackendFactory<
 
     const importPathVerifier = new ToggleableImportPathVerifier();
 
+    const resourceNameValidator = new DefaultResourceNameValidator();
+
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
       if (typeof factory.provides === 'string') {
@@ -114,6 +119,7 @@ export class BackendFactory<
             constructContainer,
             outputStorageStrategy,
             importPathVerifier,
+            resourceNameValidator,
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any;

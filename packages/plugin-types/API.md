@@ -125,6 +125,7 @@ export type ConstructFactoryGetInstanceProps = {
     constructContainer: ConstructContainer;
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     importPathVerifier?: ImportPathVerifier;
+    resourceNameValidator?: ResourceNameValidator;
 };
 
 // @public
@@ -194,6 +195,11 @@ export type ResourceAccessAcceptor = {
 // @public (undocumented)
 export type ResourceAccessAcceptorFactory<RoleIdentifier extends string | undefined = undefined> = {
     getResourceAccessAcceptor: (...roleIdentifier: RoleIdentifier extends string ? [RoleIdentifier] : []) => ResourceAccessAcceptor;
+};
+
+// @public
+export type ResourceNameValidator = {
+    validate: (resourceName: string) => void;
 };
 
 // @public

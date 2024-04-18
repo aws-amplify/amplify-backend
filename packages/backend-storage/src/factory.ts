@@ -31,12 +31,15 @@ class AmplifyStorageFactory
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ): AmplifyStorage => {
-    const { constructContainer, importPathVerifier } = getInstanceProps;
+    const { constructContainer, importPathVerifier, resourceNameValidator } =
+      getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'storage', 'resource'),
       'Amplify Storage must be defined in amplify/storage/resource.ts'
     );
+    resourceNameValidator?.validate(this.props.name);
+
     if (!this.generator) {
       this.generator = new StorageContainerEntryGenerator(
         this.props,
