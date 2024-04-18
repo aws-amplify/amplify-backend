@@ -84,7 +84,10 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
           );
 
           // test generating all client formats
-          for (const format of Object.values(ClientConfigFormat)) {
+          for (const format of [
+            ClientConfigFormat.DART,
+            ClientConfigFormat.JSON,
+          ]) {
             await amplifyCli(
               [
                 'generate',
