@@ -16,7 +16,7 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 export type GraphqlModelsGeneratorFactoryParams =
   | {
       backendIdentifier: DeployedBackendIdentifier;
-      awsClientProvider?: AWSClientProvider<{
+      awsClientProvider: AWSClientProvider<{
         getS3Client: S3Client;
         getAmplifyClient: AmplifyClient;
         getCloudFormationClient: CloudFormationClient;
@@ -24,7 +24,7 @@ export type GraphqlModelsGeneratorFactoryParams =
     }
   | {
       modelSchemaS3Uri: string;
-      awsClientProvider?: AWSClientProvider<{
+      awsClientProvider: AWSClientProvider<{
         getS3Client: S3Client;
         getAmplifyClient: AmplifyClient;
         getCloudFormationClient: CloudFormationClient;
@@ -45,7 +45,7 @@ export const createGraphqlModelsGenerator = (
 
 export type GraphqlModelsFromBackendIdentifierParams = {
   backendIdentifier: DeployedBackendIdentifier;
-  awsClientProvider?: AWSClientProvider<{
+  awsClientProvider: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
@@ -74,7 +74,7 @@ const createGraphqlModelsGeneratorFromBackendIdentifier = ({
 
 export type GraphqlModelsFromS3UriGeneratorFactoryParams = {
   modelSchemaS3Uri: string;
-  awsClientProvider?: AWSClientProvider<{
+  awsClientProvider: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
@@ -102,7 +102,7 @@ export const createGraphqlModelsFromS3UriGenerator = ({
 
 const getModelSchema = async (
   backendIdentifier: DeployedBackendIdentifier,
-  awsClientProvider?: AWSClientProvider<{
+  awsClientProvider: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
@@ -122,12 +122,12 @@ const getModelSchema = async (
 
 const getModelSchemaFromS3Uri = async (
   modelSchemaS3Uri: string,
-  awsClientProvider?: AWSClientProvider<{
+  awsClientProvider: AWSClientProvider<{
     getS3Client: S3Client;
   }>
 ): Promise<string> => {
   const schemaFetcher = new S3StringObjectFetcher(
-    awsClientProvider?.getS3Client() ?? new S3Client()
+    awsClientProvider.getS3Client()
   );
   return await schemaFetcher.fetch(modelSchemaS3Uri);
 };

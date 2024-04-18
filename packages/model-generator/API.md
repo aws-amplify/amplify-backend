@@ -160,14 +160,14 @@ export type GraphqlModelsGenerator = {
 // @public (undocumented)
 export type GraphqlModelsGeneratorFactoryParams = {
     backendIdentifier: DeployedBackendIdentifier;
-    awsClientProvider?: AWSClientProvider<{
+    awsClientProvider: AWSClientProvider<{
         getS3Client: S3Client;
         getAmplifyClient: AmplifyClient;
         getCloudFormationClient: CloudFormationClient;
     }>;
 } | {
     modelSchemaS3Uri: string;
-    awsClientProvider?: AWSClientProvider<{
+    awsClientProvider: AWSClientProvider<{
         getS3Client: S3Client;
         getAmplifyClient: AmplifyClient;
         getCloudFormationClient: CloudFormationClient;

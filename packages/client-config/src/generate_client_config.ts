@@ -32,6 +32,17 @@ export const generateClientConfig = async <T extends ClientConfigVersion>(
     getCloudFormationClient: CloudFormationClient;
   }>
 ): Promise<ClientConfigVersionTemplateType<T>> => {
+  if (!awsClientProvider) {
+    const s3Client = new S3Client();
+    const amplifyClient = new AmplifyClient();
+    const cloudFormationClient = new CloudFormationClient();
+    awsClientProvider = {
+      getS3Client: () => s3Client,
+      getAmplifyClient: () => amplifyClient,
+      getCloudFormationClient: () => cloudFormationClient,
+    };
+  }
+
   const backendOutputClient =
     BackendOutputClientFactory.getInstance(awsClientProvider);
   const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
