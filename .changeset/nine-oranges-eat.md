@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/plugin-types': patch
+'@aws-amplify/plugin-types': minor
 ---
 
-update plugin-types for https://github.com/aws-amplify/amplify-backend/pull/1288
+add AWSClientProvider type
