@@ -26,6 +26,7 @@ import { defineStorage } from '@aws-amplify/backend-storage';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GenerateContainerEntryProps } from '@aws-amplify/plugin-types';
 import { ImportPathVerifier } from '@aws-amplify/plugin-types';
+import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntriesGenerator } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntry } from '@aws-amplify/plugin-types';
@@ -41,7 +42,7 @@ export { AuthRoleName }
 
 // @public
 export type Backend<T extends DefineBackendProps> = BackendBase & {
-    [K in keyof T]: ReturnType<T[K]['getInstance']>;
+    [K in keyof T]: Omit<ReturnType<T[K]['getInstance']>, keyof ResourceAccessAcceptorFactory>;
 };
 
 // @public (undocumented)
@@ -72,7 +73,7 @@ export { defineAuth }
 export const defineBackend: <T extends DefineBackendProps>(constructFactories: T) => Backend<T>;
 
 // @public (undocumented)
-export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider>> & {
+export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {
     [K in keyof BackendBase]?: never;
 };
 

@@ -1,6 +1,7 @@
 import {
   ConstructFactory,
   DeepPartial,
+  ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
@@ -14,7 +15,9 @@ export type BackendBase = {
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers
 export type DefineBackendProps = Record<
   string,
-  ConstructFactory<ResourceProvider>
+  ConstructFactory<
+    ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>
+  >
 > & { [K in keyof BackendBase]?: never };
 
 /**
@@ -23,5 +26,8 @@ export type DefineBackendProps = Record<
  * It also has dynamic properties based on the resources passed into `defineBackend`
  */
 export type Backend<T extends DefineBackendProps> = BackendBase & {
-  [K in keyof T]: ReturnType<T[K]['getInstance']>;
+  [K in keyof T]: Omit<
+    ReturnType<T[K]['getInstance']>,
+    keyof ResourceAccessAcceptorFactory
+  >;
 };
