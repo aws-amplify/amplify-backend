@@ -9,11 +9,17 @@ import {
   platformOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { ClientConfigContributorFactory } from './client-config-contributor/client_config_contributor_factory.js';
-
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+const stubClientProvider = {
+  getS3Client: () => new S3Client(),
+  getAmplifyClient: () => new AmplifyClient(),
+  getCloudFormationClient: () => new CloudFormationClient(),
+};
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
     void it('transforms backend output into client config', async () => {
@@ -59,7 +65,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        fromNodeProviderChain()
+        stubClientProvider
       );
 
       mock.method(
@@ -132,7 +138,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       };
       const outputRetrieval = mock.fn(async () => stubOutput);
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-        fromNodeProviderChain()
+        stubClientProvider
       );
 
       mock.method(

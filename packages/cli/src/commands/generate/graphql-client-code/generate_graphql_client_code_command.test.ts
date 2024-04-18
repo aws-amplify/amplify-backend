@@ -1,5 +1,4 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateGraphqlClientCodeCommand } from './generate_graphql_client_code_command.js';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
@@ -16,11 +15,16 @@ import {
 } from '@aws-amplify/model-generator';
 import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 void describe('generate graphql-client-code command', () => {
-  const generateApiCodeAdapter = new GenerateApiCodeAdapter(
-    fromNodeProviderChain()
-  );
+  const generateApiCodeAdapter = new GenerateApiCodeAdapter({
+    getS3Client: () => new S3Client(),
+    getAmplifyClient: () => new AmplifyClient(),
+    getCloudFormationClient: () => new CloudFormationClient(),
+  });
 
   const writeToDirectoryMock = mock.fn();
   const invokeGenerateApiCodeMock = mock.method(
