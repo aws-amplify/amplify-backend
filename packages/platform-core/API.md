@@ -173,7 +173,7 @@ export class ParameterPathConversions {
     static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
 }
 
-// @public (undocumented)
+// @public
 export const toScreamingSnakeCase: (input: string) => string;
 
 // @public
@@ -190,7 +190,7 @@ export class UsageDataEmitterFactory {
     getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
 }
 
-// @public (undocumented)
+// @public
 export const validateResourceName: (resourceName: string) => void;
 
 // (No @packageDocumentation comment for this package)
