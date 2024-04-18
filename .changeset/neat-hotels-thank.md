@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/backend-storage': patch
+'@aws-amplify/backend-storage': minor
 ---
 
 Add cfnBucket to storage resource
