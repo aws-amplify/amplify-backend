@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/deployed-backend-client",
-  "version": "0.4.0-beta.8",
+  "version": "0.4.0-beta.9",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -20,10 +20,12 @@
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^0.7.0-beta.1",
     "@aws-amplify/platform-core": "^0.5.0-beta.6",
+    "zod": "^3.22.2"
+  },
+  "peerDependencies": {
     "@aws-sdk/client-amplify": "^3.465.0",
     "@aws-sdk/client-cloudformation": "^3.465.0",
     "@aws-sdk/client-s3": "^3.465.0",
-    "@aws-sdk/types": "^3.465.0",
-    "zod": "^3.22.2"
+    "@aws-sdk/types": "^3.465.0"
   }
 }

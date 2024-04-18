@@ -1,4 +1,3 @@
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { ClientConfigGeneratorFactory } from './client_config_generator_factory.js';
 import {
   ClientConfigVersion,
@@ -8,6 +7,11 @@ import {
   BackendOutputClientFactory,
   DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
+import { ModelIntrospectionSchemaAdapter } from './model_introspection_schema_adapter.js';
+import { S3Client } from '@aws-sdk/client-s3';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
 
 // Because this function is acting as the DI container for this functionality, there is no way to test it without
 // exposing the ClientConfigGeneratorFactory in the method signature. For this reason, we're turning off coverage for this file
@@ -20,16 +24,33 @@ import {
  * Main entry point for generating client config
  */
 export const generateClientConfig = async <T extends ClientConfigVersion>(
-  credentialProvider: AwsCredentialIdentityProvider,
   backendIdentifier: DeployedBackendIdentifier,
-  version: T
+  version: T,
+  awsClientProvider?: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>
 ): Promise<ClientConfigVersionTemplateType<T>> => {
-  const backendOutputClient = BackendOutputClientFactory.getInstance({
-    credentials: credentialProvider,
-  });
+  if (!awsClientProvider) {
+    const s3Client = new S3Client();
+    const amplifyClient = new AmplifyClient();
+    const cloudFormationClient = new CloudFormationClient();
+    awsClientProvider = {
+      getS3Client: () => s3Client,
+      getAmplifyClient: () => amplifyClient,
+      getCloudFormationClient: () => cloudFormationClient,
+    };
+  }
+
+  const backendOutputClient =
+    BackendOutputClientFactory.getInstance(awsClientProvider);
+  const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+    awsClientProvider
+  );
   return new ClientConfigGeneratorFactory(() =>
     backendOutputClient.getOutput(backendIdentifier)
   )
-    .getInstance(credentialProvider, version)
+    .getInstance(modelSchemaAdapter, version)
     .generateClientConfig() as Promise<ClientConfigVersionTemplateType<T>>;
 };

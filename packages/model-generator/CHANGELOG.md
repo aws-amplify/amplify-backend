@@ -1,5 +1,16 @@
 # @aws-amplify/model-generator
 
+## 0.5.0-beta.11
+
+### Minor Changes
+
+- fe46848: Allow passing clients in to client-config from browser context.
+
+### Patch Changes
+
+- Updated dependencies [fe46848]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.9
+
 ## 0.5.0-beta.10
 
 ### Patch Changes

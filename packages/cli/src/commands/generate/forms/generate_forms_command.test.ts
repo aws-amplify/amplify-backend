@@ -1,6 +1,5 @@
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import assert from 'node:assert';
 import path from 'node:path';
 import { describe, it, mock } from 'node:test';
@@ -11,22 +10,27 @@ import { FormGenerationHandler } from '../../../form-generation/form_generation_
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
 import { GenerateFormsCommand } from './generate_forms_command.js';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
+const awsClientProvider = {
+  getS3Client: () => new S3Client(),
+  getAmplifyClient: () => new AmplifyClient(),
+  getCloudFormationClient: () => new CloudFormationClient(),
+};
 void describe('generate forms command', () => {
   void describe('form generation validation', () => {
     void it('models are generated in ${out-dir}/graphql', async () => {
-      const credentialProvider = fromNodeProviderChain();
-
       const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
       });
       const formGenerationHandler = new FormGenerationHandler({
-        credentialProvider,
+        awsClientProvider,
       });
 
-      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
-        credentials: credentialProvider,
-      });
+      const fakedBackendOutputClient =
+        BackendOutputClientFactory.getInstance(awsClientProvider);
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
@@ -62,18 +66,15 @@ void describe('generate forms command', () => {
       );
     });
     void it('out-dir path can be customized', async () => {
-      const credentialProvider = fromNodeProviderChain();
-
       const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
       });
       const formGenerationHandler = new FormGenerationHandler({
-        credentialProvider,
+        awsClientProvider,
       });
 
-      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
-        credentials: credentialProvider,
-      });
+      const fakedBackendOutputClient =
+        BackendOutputClientFactory.getInstance(awsClientProvider);
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
@@ -109,18 +110,15 @@ void describe('generate forms command', () => {
       );
     });
     void it('./ui-components is the default graphql model generation path', async () => {
-      const credentialProvider = fromNodeProviderChain();
-
       const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
       });
       const formGenerationHandler = new FormGenerationHandler({
-        credentialProvider,
+        awsClientProvider,
       });
 
-      const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
-        credentials: credentialProvider,
-      });
+      const fakedBackendOutputClient =
+        BackendOutputClientFactory.getInstance(awsClientProvider);
 
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
@@ -153,8 +151,6 @@ void describe('generate forms command', () => {
     });
   });
   void it('if neither branch nor stack are provided, the sandbox id is used by default', async () => {
-    const credentialProvider = fromNodeProviderChain();
-
     const appNameResolver = {
       resolve: () => Promise.resolve('testAppName'),
     };
@@ -175,12 +171,11 @@ void describe('generate forms command', () => {
       mockedSandboxIdResolver
     );
     const formGenerationHandler = new FormGenerationHandler({
-      credentialProvider,
+      awsClientProvider,
     });
 
-    const fakedBackendOutputClient = BackendOutputClientFactory.getInstance({
-      credentials: credentialProvider,
-    });
+    const fakedBackendOutputClient =
+      BackendOutputClientFactory.getInstance(awsClientProvider);
 
     const generateFormsCommand = new GenerateFormsCommand(
       backendIdResolver,

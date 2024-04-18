@@ -1,5 +1,13 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.19
+
+### Patch Changes
+
+- Updated dependencies [fe46848]
+- Updated dependencies [4f66069]
+  - @aws-amplify/client-config@0.9.0-beta.14
+
 ## 0.13.0-beta.18
 
 ### Patch Changes
