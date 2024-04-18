@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 0.5.0-beta.7
+
+### Patch Changes
+
+- d9ed92c: testing hotfix release process
+
 ## 0.5.0-beta.6
 
 ### Patch Changes

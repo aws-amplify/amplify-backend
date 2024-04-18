@@ -1,5 +1,13 @@
 # create-amplify
 
+## 0.7.0-beta.14
+
+### Patch Changes
+
+- Updated dependencies [d9ed92c]
+  - @aws-amplify/platform-core@0.5.0-beta.7
+  - @aws-amplify/cli-core@0.5.0-beta.12
+
 ## 0.7.0-beta.13
 
 ### Patch Changes
