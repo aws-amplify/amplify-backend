@@ -5,9 +5,9 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
+  ClientConfig,
   ClientConfigFileBaseName,
   ClientConfigFormat,
-  ClientConfigLegacy,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import assert from 'node:assert';
@@ -75,15 +75,18 @@ class CustomOutputsTestProject extends TestProjectBase {
     await super.assertPostDeployment(backendId);
 
     const clientConfigPath = await getClientConfigPath(
-      ClientConfigFileBaseName.LEGACY,
+      ClientConfigFileBaseName.DEFAULT,
       this.projectDirPath,
       ClientConfigFormat.JSON
     );
-    const clientConfig: ClientConfigLegacy = JSON.parse(
+    const clientConfig: ClientConfig = JSON.parse(
       await fsp.readFile(clientConfigPath, 'utf-8')
     );
 
-    assert.strictEqual(clientConfig.aws_user_pools_id, 'fakeCognitoUserPoolId');
+    assert.strictEqual(
+      clientConfig.auth?.user_pool_id,
+      'fakeCognitoUserPoolId'
+    );
     assert.strictEqual(
       clientConfig.custom?.someConstant1,
       'someHardCodedValue1'
