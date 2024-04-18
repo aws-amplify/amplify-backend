@@ -1,5 +1,20 @@
 # @aws-amplify/backend-cli
 
+## 0.12.0-beta.21
+
+### Patch Changes
+
+- e90f066: support single sandbox deployment with --once flag
+- fe46848: Allow passing clients in to client-config from browser context.
+- 4f66069: chore: create an empty configuration file during sandbox startup
+- Updated dependencies [e90f066]
+- Updated dependencies [fe46848]
+- Updated dependencies [4f66069]
+  - @aws-amplify/sandbox@0.5.2-beta.18
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.9
+  - @aws-amplify/model-generator@0.5.0-beta.11
+  - @aws-amplify/client-config@0.9.0-beta.14
+
 ## 0.12.0-beta.20
 
 ### Patch Changes

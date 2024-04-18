@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/deployed-backend-client",
-  "version": "0.4.0-beta.8",
+  "version": "0.4.0-beta.9",
   "type": "module",
   "publishConfig": {
     "access": "public"

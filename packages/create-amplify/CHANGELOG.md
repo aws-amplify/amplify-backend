@@ -1,5 +1,11 @@
 # create-amplify
 
+## 0.7.0-beta.14
+
+### Patch Changes
+
+- f30e24e: Add docs link to getting started template
+
 ## 0.7.0-beta.13
 
 ### Patch Changes
