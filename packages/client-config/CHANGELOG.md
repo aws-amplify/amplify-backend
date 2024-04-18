@@ -1,5 +1,18 @@
 # @aws-amplify/client-config
 
+## 0.9.0-beta.14
+
+### Minor Changes
+
+- fe46848: Allow passing clients in to client-config from browser context.
+
+### Patch Changes
+
+- 4f66069: chore: create an empty configuration file during sandbox startup
+- Updated dependencies [fe46848]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.9
+  - @aws-amplify/model-generator@0.5.0-beta.11
+
 ## 0.9.0-beta.13
 
 ### Patch Changes

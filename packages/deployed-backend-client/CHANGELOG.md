@@ -1,5 +1,11 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.4.0-beta.9
+
+### Minor Changes
+
+- fe46848: Allow passing clients in to client-config from browser context.
+
 ## 0.4.0-beta.8
 
 ### Patch Changes
