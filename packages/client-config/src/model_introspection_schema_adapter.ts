@@ -13,7 +13,7 @@ export class ModelIntrospectionSchemaAdapter {
    * Creates new adapter for getModelIntrospectionSchemaFromS3Uri from @aws-amplify/model-generator.
    */
   constructor(
-    private readonly awsClientProvider: AWSClientProvider<{
+    private readonly awsClientProvider?: AWSClientProvider<{
       getS3Client: S3Client;
       getAmplifyClient: AmplifyClient;
       getCloudFormationClient: CloudFormationClient;

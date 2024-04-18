@@ -51,11 +51,11 @@ export class ClientConfigGeneratorAdapter {
     format?: ClientConfigFormat
   ): Promise<void> => {
     const { filesWritten } = await generateClientConfigToFile(
-      this.awsClientProvider,
       backendIdentifier,
       version,
       outDir,
-      format
+      format,
+      this.awsClientProvider
     );
 
     filesWritten.forEach((file) => printer.log(`File written: ${file}`));

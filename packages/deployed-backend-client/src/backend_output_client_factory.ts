@@ -57,14 +57,15 @@ export class BackendOutputClientFactory {
    * Returns a single instance of BackendOutputClient
    */
   static getInstance = (
-    awsClientProvider: AWSClientProvider<{
+    awsClientProvider?: AWSClientProvider<{
       getAmplifyClient: AmplifyClient;
       getCloudFormationClient: CloudFormationClient;
     }>
   ): BackendOutputClient => {
     return new DefaultBackendOutputClient(
-      awsClientProvider.getCloudFormationClient(),
-      awsClientProvider.getAmplifyClient()
+      awsClientProvider?.getCloudFormationClient() ??
+        new CloudFormationClient(),
+      awsClientProvider?.getAmplifyClient() ?? new AmplifyClient()
     );
   };
 }

@@ -26,7 +26,7 @@ import { AWSClientProvider } from '@aws-amplify/plugin-types';
 export const generateClientConfig = async <T extends ClientConfigVersion>(
   backendIdentifier: DeployedBackendIdentifier,
   version: T,
-  awsClientProvider: AWSClientProvider<{
+  awsClientProvider?: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;

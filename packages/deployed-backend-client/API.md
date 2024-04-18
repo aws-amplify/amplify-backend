@@ -99,7 +99,7 @@ export enum BackendOutputClientErrorType {
 
 // @public
 export class BackendOutputClientFactory {
-    static getInstance: (awsClientProvider: AWSClientProvider<{
+    static getInstance: (awsClientProvider?: AWSClientProvider<{
         getAmplifyClient: AmplifyClient;
         getCloudFormationClient: CloudFormationClient;
     }>) => BackendOutputClient;

@@ -15,15 +15,15 @@ import { writeClientConfigToFile } from './write_client_config_to_file.js';
  * Main entry point for generating client config and writing to a file
  */
 export const generateClientConfigToFile = async (
-  awsClientProvider: AWSClientProvider<{
-    getS3Client: S3Client;
-    getAmplifyClient: AmplifyClient;
-    getCloudFormationClient: CloudFormationClient;
-  }>,
   backendIdentifier: DeployedBackendIdentifier,
   version: ClientConfigVersion,
   outDir?: string,
-  format?: ClientConfigFormat
+  format?: ClientConfigFormat,
+  awsClientProvider?: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>
 ): Promise<GenerateClientConfigToFileResult> => {
   const clientConfig = await generateClientConfig(
     backendIdentifier,
