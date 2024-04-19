@@ -1,5 +1,15 @@
 # @aws-amplify/backend-output-schemas
 
+## 0.7.0
+
+### Minor Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+
+### Patch Changes
+
+- 1e93535: chore: auto-generate cognito domain when external providers are configured
+
 ## 0.7.0-beta.1
 
 ### Patch Changes
