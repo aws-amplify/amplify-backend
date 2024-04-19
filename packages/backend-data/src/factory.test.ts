@@ -486,9 +486,9 @@ void describe('DataFactory', () => {
             content: a.string(),
           }),
         })
-        .authorization([
-          a.allow.private().to(['read']),
-          a.allow.resource(myFunc),
+        .authorization((allow) => [
+          allow.authenticated().to(['read']),
+          allow.resource(myFunc),
         ]);
 
       const dataFactory = defineData({
@@ -668,10 +668,10 @@ void describe('DataFactory', () => {
             content: a.string(),
           }),
         })
-        .authorization([
-          a.allow.private().to(['read']),
-          a.allow.resource(myFunc1).to(['mutate']),
-          a.allow.resource(myFunc2).to(['query']),
+        .authorization((allow) => [
+          allow.authenticated().to(['read']),
+          allow.resource(myFunc1).to(['mutate']),
+          allow.resource(myFunc2).to(['query']),
         ]);
 
       const dataFactory = defineData({
