@@ -101,7 +101,7 @@ export type MFASettings = {
 
 // @public
 export type MFASmsSettings = boolean | {
-    smsMessage: (code: string) => string;
+    smsMessage: (createCode: () => string) => string;
 };
 
 // @public
@@ -114,7 +114,7 @@ export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcPro
 
 // @public
 export type PhoneNumberLogin = true | {
-    verificationMessage?: (code: string) => string;
+    verificationMessage?: (createCode: () => string) => string;
 };
 
 // @public
@@ -133,14 +133,14 @@ export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "d
 // @public (undocumented)
 export type VerificationEmailWithCode = {
     verificationEmailStyle?: 'CODE';
-    verificationEmailBody?: (code: () => string) => string;
+    verificationEmailBody?: (createCode: () => string) => string;
     verificationEmailSubject?: string;
 };
 
 // @public (undocumented)
 export type VerificationEmailWithLink = {
     verificationEmailStyle?: 'LINK';
-    verificationEmailBody?: (link: (text?: string) => string) => string;
+    verificationEmailBody?: (createLink: (text?: string) => string) => string;
     verificationEmailSubject?: string;
 };
 
