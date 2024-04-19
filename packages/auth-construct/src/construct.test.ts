@@ -247,12 +247,18 @@ void describe('Auth construct', () => {
       `custom email body ${code()}`;
     const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
+    const userInvitationSettings = {
+      emailBody: 'invited by admin',
+      emailSubject: 'your invitation',
+      smsMessage: 'your invitation code is ${####}',
+    };
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
           verificationEmailBody: emailBodyFunction,
           verificationEmailStyle: 'CODE',
           verificationEmailSubject: customEmailVerificationSubject,
+          userInvitation: userInvitationSettings,
         },
       },
     });
@@ -265,6 +271,14 @@ void describe('Auth construct', () => {
         EmailMessage: expectedEmailMessage,
         EmailSubject: customEmailVerificationSubject,
         SmsMessage: 'The verification code to your new account is {####}',
+      },
+      AdminCreateUserConfig: {
+        AllowAdminCreateUserOnly: false,
+        InviteMessageTemplate: {
+          EmailMessage: userInvitationSettings.emailBody,
+          EmailSubject: userInvitationSettings.emailSubject,
+          SMSMessage: userInvitationSettings.smsMessage,
+        },
       },
     });
   });

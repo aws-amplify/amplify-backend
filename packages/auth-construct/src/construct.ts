@@ -408,6 +408,10 @@ export class AmplifyAuth
         props.accountRecovery
       ),
       removalPolicy: RemovalPolicy.DESTROY,
+      userInvitation:
+        typeof props.loginWith.email !== 'boolean'
+          ? props.loginWith.email?.userInvitation
+          : undefined,
     };
     return userPoolProps;
   };
