@@ -83,6 +83,25 @@ void describe('AmplifyAuthFactory', () => {
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
   });
 
+  void it('tags resources with friendly name', () => {
+    resetFactoryCount();
+    const authFactory = defineAuth({
+      loginWith: { email: true },
+      name: 'testNameFoo',
+    });
+
+    const backendAuth = authFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(
+      Stack.of(backendAuth.resources.userPool)
+    );
+
+    template.resourceCountIs('AWS::Cognito::UserPool', 1);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UserPoolTags: { 'amplify:friendly-name': 'testNameFoo' },
+    });
+  });
+
   void it('verifies constructor import path', () => {
     const importPathVerifier = {
       verify: mock.fn(),

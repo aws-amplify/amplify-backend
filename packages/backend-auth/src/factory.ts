@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import {
   AmplifyAuth,
   AuthProps,
@@ -28,6 +28,7 @@ import {
   Expand,
 } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
+import { Tags } from 'aws-cdk-lib';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName | string>;
@@ -149,6 +150,12 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
         error as Error
       );
     }
+
+    Tags.of(authConstruct).add(
+      TagName.FRIENDLY_NAME,
+      this.props.name ?? this.defaultName
+    );
+
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
         (authConstruct.resources.userPool as UserPool).addTrigger(
