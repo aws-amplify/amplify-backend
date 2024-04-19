@@ -967,6 +967,24 @@ void describe('Auth construct', () => {
       });
     });
 
+    void it('disables implicit grant OAUTH flow by default', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          PasswordPolicy: {
+            MinimumLength: 8,
+            RequireLowercase: true,
+            RequireNumbers: true,
+            RequireSymbols: true,
+            RequireUppercase: true,
+          },
+        },
+      });
+    });
+
     void it('creates a default client with cognito provider', () => {
       const app = new App();
       const stack = new Stack(app);

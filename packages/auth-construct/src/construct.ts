@@ -770,9 +770,7 @@ export class AmplifyAuth
       scopes: external.scopes
         ? this.getOAuthScopes(external.scopes)
         : DEFAULT_OAUTH_SCOPES,
-      flows: {
-        authorizationCodeGrant: true,
-      },
+      flows: DEFAULTS.OAUTH_FLOWS,
     };
 
     return result;
