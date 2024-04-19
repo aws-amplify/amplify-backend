@@ -160,7 +160,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
           authOutput.payload.oauthRedirectSignOut.split(','),
         response_type: authOutput.payload.oauthResponseType as 'code' | 'token',
         scopes: JSON.parse(authOutput.payload.oauthScope),
-        cognito_domain: authOutput.payload.oauthCognitoDomain,
+        domain: authOutput.payload.oauthCognitoDomain,
       };
     }
 
