@@ -37,16 +37,16 @@ void it('data storage auth with triggers', () => {
 
   /* eslint-disable spellcheck/spell-checker */
   assertExpectedLogicalIds(templates.storage, 'AWS::S3::Bucket', [
-    'testnameBucketEF49125A',
+    'testNameBucketB4152AD5',
   ]);
 
   assertExpectedLogicalIds(templates.storage, 'Custom::S3BucketNotifications', [
-    'testnameBucketNotifications2C016E1B',
+    'testNameBucketNotificationsB9BE9A01',
   ]);
 
   assertExpectedLogicalIds(templates.storage, 'AWS::Lambda::Permission', [
-    'testnameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononDeletelambda572CB9D7F766F7A5',
-    'testnameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononUploadlambda74F01BD6470AAC85',
+    'testNameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononDeletelambda572CB9D7EA473960',
+    'testNameBucketAllowBucketNotificationsToamplifytestAppIdtestBranchNamebranch7d6f6c854afunctiononUploadlambda74F01BD6AFF08959',
   ]);
 
   assertExpectedLogicalIds(templates.defaultNodeFunc, 'AWS::Lambda::Function', [

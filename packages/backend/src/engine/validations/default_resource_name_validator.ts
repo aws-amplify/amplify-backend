@@ -1,5 +1,5 @@
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { ResourceNameValidator } from '@aws-amplify/plugin-types';
-import { AmplifyUserError } from '../errors';
 
 /**
  * Validates that the resource name doesn't have invalid characters or starts with a number

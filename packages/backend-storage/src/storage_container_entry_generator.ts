@@ -30,8 +30,7 @@ export class StorageContainerEntryGenerator
     scope,
     ssmEnvironmentEntriesGenerator,
   }: GenerateContainerEntryProps) => {
-    const sanitizedName = this.sanitizeName(this.props.name);
-    const amplifyStorage = new AmplifyStorage(scope, sanitizedName, {
+    const amplifyStorage = new AmplifyStorage(scope, this.props.name, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     });
@@ -78,13 +77,5 @@ export class StorageContainerEntryGenerator
     storageAccessOrchestrator.orchestrateStorageAccess();
 
     return amplifyStorage;
-  };
-
-  /**
-   * Bucket name cannot contain underscores, spaces or upper case characters
-   * https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
-   */
-  private sanitizeName = (name: string): string => {
-    return name.replace(/[\s_]+/g, '').toLowerCase();
   };
 }

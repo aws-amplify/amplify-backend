@@ -17,10 +17,10 @@ import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
+  ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { StorageResources } from './construct.js';
-import { DefaultResourceNameValidator } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -54,7 +54,7 @@ void describe('AmplifyStorageFactory', () => {
 
     importPathVerifier = new ImportPathVerifierStub();
 
-    resourceNameValidator = new DefaultResourceNameValidator();
+    resourceNameValidator = new ResourceNameValidatorStub();
 
     getInstanceProps = {
       constructContainer,
@@ -117,9 +117,24 @@ void describe('AmplifyStorageFactory', () => {
   });
 
   void it('throws on invalid name', () => {
+    const resourceNameValidator = {
+      validate: () => {
+        throw new Error(
+          'Resource name contains invalid characters, found !$87++|'
+        );
+      },
+    };
+
     const storageFactory = defineStorage({ name: '!$87++|' });
-    assert.throws(() => storageFactory.getInstance(getInstanceProps), {
-      message: 'Resource name contains invalid characters, found !$87++|',
-    });
+    assert.throws(
+      () =>
+        storageFactory.getInstance({
+          ...getInstanceProps,
+          resourceNameValidator,
+        }),
+      {
+        message: 'Resource name contains invalid characters, found !$87++|',
+      }
+    );
   });
 });

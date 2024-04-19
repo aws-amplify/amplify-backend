@@ -7,7 +7,6 @@
 import { AppId } from '@aws-amplify/plugin-types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartial } from '@aws-amplify/plugin-types';
-import { ResourceNameValidator } from '@aws-amplify/plugin-types';
 import z from 'zod';
 
 // @public
@@ -102,12 +101,6 @@ export type ConfigurationController = {
 export class ConfigurationControllerFactory {
     constructor();
     getInstance: (configFileName: LocalConfigurationFileName) => ConfigurationController;
-}
-
-// @public
-export class DefaultResourceNameValidator implements ResourceNameValidator {
-    // (undocumented)
-    validate: (resourceName: string) => void;
 }
 
 // @public

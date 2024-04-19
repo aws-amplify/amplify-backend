@@ -9,7 +9,7 @@ import {
   StackResolver,
 } from './engine/nested_stack_resolver.js';
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
-import { ToggleableImportPathVerifier } from './engine/toggleable_import_path_verifier.js';
+import { ToggleableImportPathVerifier } from './engine/validations/toggleable_import_path_verifier.js';
 import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
@@ -25,10 +25,8 @@ import {
   ClientConfigVersionOption,
 } from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
-import {
-  DefaultResourceNameValidator,
-  ObjectAccumulator,
-} from '@aws-amplify/platform-core';
+import { ObjectAccumulator } from '@aws-amplify/platform-core';
+import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
