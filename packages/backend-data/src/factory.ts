@@ -78,13 +78,20 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
    * Gets an instance of the Data construct
    */
   getInstance = (props: ConstructFactoryGetInstanceProps): AmplifyData => {
-    const { constructContainer, outputStorageStrategy, importPathVerifier } =
-      props;
+    const {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+      resourceNameValidator,
+    } = props;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'data', 'resource'),
       'Amplify Data must be defined in amplify/data/resource.ts'
     );
+    if (this.props.name) {
+      resourceNameValidator?.validate(this.props.name);
+    }
     if (!this.generator) {
       this.generator = new DataGenerator(
         this.props,
@@ -105,14 +112,16 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
 
 class DataGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'data';
-  private readonly defaultName = 'amplifyData';
+  private readonly name: string;
 
   constructor(
     private readonly props: DataProps,
     private readonly providedAuthConfig: ProvidedAuthConfig | undefined,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
-  ) {}
+  ) {
+    this.name = props.name ?? 'amplifyData';
+  }
 
   generateContainerEntry = ({
     scope,
@@ -209,7 +218,6 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         error instanceof Error ? error : undefined
       );
     }
-    const apiName = this.props.name ?? this.defaultName;
 
     const sandboxModeEnabled = isUsingDefaultApiKeyAuth(
       this.providedAuthConfig,
@@ -225,8 +233,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     let amplifyApi = undefined;
 
     try {
-      amplifyApi = new AmplifyData(scope, this.defaultName, {
-        apiName,
+      amplifyApi = new AmplifyData(scope, this.name, {
+        apiName: this.name,
         definition: combineCDKSchemas(amplifyGraphqlDefinitions),
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
@@ -251,10 +259,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       );
     }
 
-    Tags.of(amplifyApi).add(
-      TagName.FRIENDLY_NAME,
-      this.props.name ?? this.defaultName
-    );
+    Tags.of(amplifyApi).add(TagName.FRIENDLY_NAME, this.name);
 
     /**;
      * Enable the table replacement upon GSI update
@@ -270,7 +275,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${apiName}_GRAPHQL_ENDPOINT`]:
+        [`${this.name}_GRAPHQL_ENDPOINT`]:
           amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
       });
 
