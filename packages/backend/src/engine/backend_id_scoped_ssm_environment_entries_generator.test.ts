@@ -28,14 +28,14 @@ void describe('BackendIdScopedSsmEnvironmentEntriesGenerator', () => {
 
     assert.deepStrictEqual(ssmEnvironmentEntries, [
       {
-        name: 'bucketName',
+        name: 'BUCKET_NAME',
         // eslint-disable-next-line spellcheck/spell-checker
-        path: '/amplify/resource_reference/testNamespace/testName-branch-85fd30d970/bucketName',
+        path: '/amplify/resource_reference/testNamespace/testName-branch-85fd30d970/BUCKET_NAME',
       },
       {
-        name: 'queueArn',
+        name: 'QUEUE_ARN',
         // eslint-disable-next-line spellcheck/spell-checker
-        path: '/amplify/resource_reference/testNamespace/testName-branch-85fd30d970/queueArn',
+        path: '/amplify/resource_reference/testNamespace/testName-branch-85fd30d970/QUEUE_ARN',
       },
     ]);
 
@@ -44,7 +44,7 @@ void describe('BackendIdScopedSsmEnvironmentEntriesGenerator', () => {
     template.resourceCountIs('AWS::SSM::Parameter', 2);
     template.hasResourceProperties('AWS::SSM::Parameter', {
       // eslint-disable-next-line spellcheck/spell-checker
-      Name: '/amplify/resource_reference/testNamespace/testName-branch-85fd30d970/queueArn',
+      Name: '/amplify/resource_reference/testNamespace/testName-branch-85fd30d970/QUEUE_ARN',
       Type: 'String',
 
       Value: {
@@ -53,7 +53,7 @@ void describe('BackendIdScopedSsmEnvironmentEntriesGenerator', () => {
     });
     template.hasResourceProperties('AWS::SSM::Parameter', {
       // eslint-disable-next-line spellcheck/spell-checker
-      Name: '/amplify/resource_reference/testNamespace/testName-branch-85fd30d970/bucketName',
+      Name: '/amplify/resource_reference/testNamespace/testName-branch-85fd30d970/BUCKET_NAME',
       Type: 'String',
       Value: {
         Ref: 'testBucketDF4D7D1A',
