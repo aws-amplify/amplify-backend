@@ -140,4 +140,23 @@ void describe('AmplifyStorage', () => {
       });
     });
   });
+
+  void describe('storage overrides', () => {
+    void it('can override bucket properties', () => {
+      const app = new App();
+      const stack = new Stack(app);
+
+      const bucket = new AmplifyStorage(stack, 'test', { name: 'testName' });
+      bucket.resources.cfnResources.cfnBucket.accelerateConfiguration = {
+        accelerationStatus: 'Enabled',
+      };
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        AccelerateConfiguration: {
+          AccelerationStatus: 'Enabled',
+        },
+      });
+    });
+  });
 });
