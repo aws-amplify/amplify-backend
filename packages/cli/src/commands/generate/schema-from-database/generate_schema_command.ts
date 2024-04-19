@@ -4,7 +4,7 @@ import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
-import { AmplifyFault } from '@aws-amplify/platform-core';
+import { AmplifyFault, UsageDataEmitter } from '@aws-amplify/platform-core';
 
 const DEFAULT_OUTPUT = 'amplify/data/schema.sql.ts';
 
@@ -41,7 +41,8 @@ export class GenerateSchemaCommand
   constructor(
     private readonly backendIdentifierResolver: BackendIdentifierResolver,
     private readonly secretClient: SecretClient,
-    private readonly schemaGenerator: SchemaGenerator
+    private readonly schemaGenerator: SchemaGenerator,
+    private readonly usageDataEmitterCreator: () => Promise<UsageDataEmitter>
   ) {
     this.command = 'schema-from-database';
     this.describe = 'Generates typescript data schema from a SQL database';
@@ -56,6 +57,10 @@ export class GenerateSchemaCommand
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
+    const usageDataEmitter = await this.usageDataEmitterCreator();
+    const metricDimension = {
+      command: 'amplify generate schema-from-database',
+    };
 
     if (!backendIdentifier) {
       throw new AmplifyFault('BackendIdentifierFault', {
@@ -73,13 +78,16 @@ export class GenerateSchemaCommand
       }
     );
 
-    await this.schemaGenerator.generate({
-      connectionUri: {
-        secretName,
-        value: connectionUriSecret.value,
-      },
-      out: outputFile,
-    });
+    await this.schemaGenerator
+      .generate({
+        connectionUri: {
+          secretName,
+          value: connectionUriSecret.value,
+        },
+        out: outputFile,
+      })
+      .then(() => usageDataEmitter.emitSuccess({}, metricDimension))
+      .catch((error) => usageDataEmitter.emitFailure(error, metricDimension));
   };
 
   /**

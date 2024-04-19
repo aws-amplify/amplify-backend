@@ -1,5 +1,6 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
+import { UsageDataEmitter } from '@aws-amplify/platform-core';
 import { DEFAULT_PROFILE } from '@smithy/shared-ini-file-loader';
 import { EOL } from 'os';
 import { Open } from '../open/open.js';
@@ -30,7 +31,10 @@ export class ConfigureProfileCommand
   /**
    * Configure profile command.
    */
-  constructor(private readonly profileController: ProfileController) {
+  constructor(
+    private readonly profileController: ProfileController,
+    private readonly usageDataEmitterCreator: () => Promise<UsageDataEmitter>
+  ) {
     this.command = 'profile';
     this.describe = 'Configure an AWS Amplify profile';
   }
@@ -41,6 +45,12 @@ export class ConfigureProfileCommand
   handler = async (
     args: ArgumentsCamelCase<ConfigureProfileCommandOptions>
   ): Promise<void> => {
+    const usageDataEmitter = await this.usageDataEmitterCreator();
+    await usageDataEmitter.emitSuccess(
+      {},
+      { command: 'amplify configure profile' }
+    );
+
     const profileName = args.name;
     const profileExists = await this.profileController.profileExists(
       profileName

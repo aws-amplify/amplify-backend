@@ -1,16 +1,18 @@
-import { beforeEach, describe, it, mock } from 'node:test';
-import { GenerateConfigCommand } from './generate_config_command.js';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
 import yargs, { CommandModule } from 'yargs';
-import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
+import { beforeEach, describe, it, mock } from 'node:test';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { UsageDataEmitter } from '@aws-amplify/platform-core';
+import { GenerateConfigCommand } from './generate_config_command.js';
+import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
-import { S3Client } from '@aws-sdk/client-s3';
-import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { getUsageDataEmitterFactoryMock } from '../../../test-utils/mock_usage_data_emitter.js';
 
 void describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter({
@@ -19,7 +21,7 @@ void describe('generate config command', () => {
     getCloudFormationClient: () => new CloudFormationClient(),
   });
 
-  const generateClientConfigMock = mock.method(
+  const generateClientConfigToFileMock = mock.method(
     clientConfigGeneratorAdapter,
     'generateClientConfigToFile',
     () => Promise.resolve()
@@ -30,7 +32,6 @@ void describe('generate config command', () => {
   };
 
   const defaultResolver = new AppBackendIdentifierResolver(namespaceResolver);
-
   const sandboxIdResolver = new SandboxBackendIdResolver(namespaceResolver);
   const fakeSandboxId = 'my-fake-app-my-fake-username';
   const mockedSandboxIdResolver = mock.method(sandboxIdResolver, 'resolve');
@@ -41,9 +42,13 @@ void describe('generate config command', () => {
     sandboxIdResolver
   );
 
+  const emitSuccess = mock.fn<UsageDataEmitter['emitSuccess']>();
+  const emitFailure = mock.fn<UsageDataEmitter['emitFailure']>();
+
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGeneratorAdapter,
-    backendIdResolver
+    backendIdResolver,
+    getUsageDataEmitterFactoryMock(emitSuccess, emitFailure)
   );
   const parser = yargs().command(
     generateConfigCommand as unknown as CommandModule
@@ -51,76 +56,96 @@ void describe('generate config command', () => {
   const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(() => {
-    generateClientConfigMock.mock.resetCalls();
+    generateClientConfigToFileMock.mock.resetCalls();
+    emitSuccess.mock.resetCalls();
+    emitFailure.mock.resetCalls();
   });
 
   void it('uses the sandbox id by default if stack or branch are not provided', async () => {
-    const handlerSpy = mock.method(
-      clientConfigGeneratorAdapter,
-      'generateClientConfigToFile'
-    );
     await commandRunner.runCommand('config');
 
-    assert.equal(handlerSpy.mock.calls[0].arguments[0], fakeSandboxId);
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.equal(
+      generateClientConfigToFileMock.mock.calls[0].arguments[0],
+      fakeSandboxId
+    );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'amplify generate config',
+    });
   });
 
   void it('generates and writes config for stack', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir /foo/bar --format ts'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      stackName: 'stack_name',
-    });
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
     assert.deepEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
+      generateClientConfigToFileMock.mock.calls[0].arguments[0],
+      {
+        stackName: 'stack_name',
+      }
+    );
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.deepEqual(
+      generateClientConfigToFileMock.mock.calls[0].arguments[1],
       '0' // default version
     );
     assert.deepEqual(
-      generateClientConfigMock.mock.calls[0].arguments[2],
+      generateClientConfigToFileMock.mock.calls[0].arguments[2],
       '/foo/bar'
     );
     assert.deepEqual(
-      generateClientConfigMock.mock.calls[0].arguments[3],
+      generateClientConfigToFileMock.mock.calls[0].arguments[3],
       ClientConfigFormat.TS
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'amplify generate config',
+    });
   });
 
   void it('generates and writes config for branch', async () => {
     await commandRunner.runCommand(
       'config --branch branch_name --out-dir /foo/bar --format ts'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      appName: 'testAppName',
-      branchName: 'branch_name',
-    });
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.deepEqual(
+      generateClientConfigToFileMock.mock.calls[0].arguments[0],
+      {
+        appName: 'testAppName',
+        branchName: 'branch_name',
+      }
+    );
     // I can't find any open node:test or yargs issues that would explain why this is necessary
     // but for some reason the mock call count does not update without this 0ms wait
     await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
     assert.deepEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
+      generateClientConfigToFileMock.mock.calls[0].arguments[1],
       '0' // default version
     );
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[2],
+      generateClientConfigToFileMock.mock.calls[0].arguments[2],
       '/foo/bar'
     );
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[3],
+      generateClientConfigToFileMock.mock.calls[0].arguments[3],
       ClientConfigFormat.TS
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'amplify generate config',
+    });
   });
 
   void it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
       'config --branch branch_name --app-id app_id --out-dir /foo/bar --format mjs'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           name: 'branch_name',
@@ -132,15 +157,19 @@ void describe('generate config command', () => {
         ClientConfigFormat.MJS,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'amplify generate config',
+    });
   });
 
   void it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir /foo/bar --format ts'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',
@@ -150,15 +179,19 @@ void describe('generate config command', () => {
         ClientConfigFormat.TS,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'amplify generate config',
+    });
   });
 
   void it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir foo/bar --format mjs'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',
@@ -168,15 +201,19 @@ void describe('generate config command', () => {
         ClientConfigFormat.MJS,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'amplify generate config',
+    });
   });
 
   void it('can generate config in dart format', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir foo/bar --format dart'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',
@@ -186,15 +223,19 @@ void describe('generate config command', () => {
         ClientConfigFormat.DART,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'amplify generate config',
+    });
   });
 
   void it('can generate config in json mobile format', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir foo/bar --format json-mobile'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',
@@ -204,15 +245,19 @@ void describe('generate config command', () => {
         ClientConfigFormat.JSON_MOBILE,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'amplify generate config',
+    });
   });
 
   void it('can generate config in with a different version', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --config-version 1 --out-dir foo/bar --format json-mobile'
     );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',
@@ -222,6 +267,10 @@ void describe('generate config command', () => {
         ClientConfigFormat.JSON_MOBILE,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'amplify generate config',
+    });
   });
 
   void it('shows available options in help output', async () => {
@@ -231,6 +280,8 @@ void describe('generate config command', () => {
     assert.match(output, /--branch/);
     assert.match(output, /--format/);
     assert.match(output, /--out-dir/);
+    assert.equal(emitSuccess.mock.calls.length, 0);
+    assert.equal(emitFailure.mock.calls.length, 0);
   });
 
   void it('fails if both stack and branch are present', async () => {
@@ -238,5 +289,7 @@ void describe('generate config command', () => {
       'config --stack foo --branch baz'
     );
     assert.match(output, /Arguments .* mutually exclusive/);
+    assert.equal(emitSuccess.mock.calls.length, 0);
+    assert.equal(emitFailure.mock.calls.length, 0);
   });
 });
