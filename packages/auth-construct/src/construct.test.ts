@@ -972,16 +972,31 @@ void describe('Auth construct', () => {
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
       const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        Policies: {
-          PasswordPolicy: {
-            MinimumLength: 8,
-            RequireLowercase: true,
-            RequireNumbers: true,
-            RequireSymbols: true,
-            RequireUppercase: true,
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        AllowedOAuthFlows: ['code'],
+      });
+    });
+
+    void it('disables implicit grant OAUTH flow by default when oauth providers are used', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: new SecretValue(googleClientSecret),
+            },
+            callbackUrls: ['https://callback.com'],
+            logoutUrls: ['https://logout.com'],
+            domainPrefix: 'test',
           },
         },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        AllowedOAuthFlows: ['code'],
       });
     });
 

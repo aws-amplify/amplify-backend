@@ -573,7 +573,9 @@ export class AmplifyAuth
     const result: IdentityProviderSetupResult = {
       oAuthMappings: {},
       providersList: [],
-      oAuthSettings: undefined,
+      oAuthSettings: {
+        flows: DEFAULTS.OAUTH_FLOWS,
+      },
     };
     // external providers
     const external = loginOptions.externalProviders;
