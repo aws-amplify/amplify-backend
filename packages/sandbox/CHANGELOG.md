@@ -1,5 +1,68 @@
 # @aws-amplify/sandbox
 
+## 0.5.2
+
+### Patch Changes
+
+- 1375e5b: improve to notify us that the amplify dir does not exist at the path when run amplify sandox
+- 88c1b28: temporarely downgrade @parcel/watcher to 2.1.0 for npm 10.4 issue
+- aec89f9: chore: correctly handle quotes in the error messages
+- e90f066: support single sandbox deployment with --once flag
+- 3e34244: use `format` to replace `color` and remove `color`.
+- 615a3e6: upgrade @parcel/watcher wo use the latest version
+- 937086b: require "resolution" in AmplifyUserError options
+- cff84c0: chore: add more cdk errors in the error mapper
+- 1c52df1: chore: Adds a log message to inform the name of the sandbox being created/initialized
+- Updated dependencies [6c6af9b]
+- Updated dependencies [54c69c4]
+- Updated dependencies [ab7533d]
+- Updated dependencies [a01f6b9]
+- Updated dependencies [8d73779]
+- Updated dependencies [74cbda0]
+- Updated dependencies [1e93535]
+- Updated dependencies [7537216]
+- Updated dependencies [baeb68f]
+- Updated dependencies [77079c6]
+- Updated dependencies [aec89f9]
+- Updated dependencies [e0ae60c]
+- Updated dependencies [b0112e3]
+- Updated dependencies [ef111b4]
+- Updated dependencies [3998cd3]
+- Updated dependencies [4d47f63]
+- Updated dependencies [79cff6d]
+- Updated dependencies [fe46848]
+- Updated dependencies [8d9a7a4]
+- Updated dependencies [3e34244]
+- Updated dependencies [394b72e]
+- Updated dependencies [592bd4f]
+- Updated dependencies [b0ba24d]
+- Updated dependencies [e15e9be]
+- Updated dependencies [ee247fd]
+- Updated dependencies [8d9a7a4]
+- Updated dependencies [937086b]
+- Updated dependencies [0d1b00e]
+- Updated dependencies [cff84c0]
+- Updated dependencies [2a69684]
+- Updated dependencies [d95ab02]
+- Updated dependencies [4995bda]
+- Updated dependencies [4cd282e]
+- Updated dependencies [edee8d7]
+- Updated dependencies [a05933c]
+- Updated dependencies [5e12247]
+- Updated dependencies [4f66069]
+- Updated dependencies [e3a537f]
+- Updated dependencies [415c4c1]
+- Updated dependencies [1c52df1]
+- Updated dependencies [b931980]
+- Updated dependencies [bb5a446]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/backend-deployer@0.5.1
+  - @aws-amplify/platform-core@0.5.0
+  - @aws-amplify/client-config@0.9.0
+  - @aws-amplify/deployed-backend-client@0.4.0
+  - @aws-amplify/cli-core@0.5.0
+  - @aws-amplify/backend-secret@0.4.5
+
 ## 0.5.2-beta.19
 
 ### Patch Changes
