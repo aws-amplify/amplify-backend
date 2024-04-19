@@ -4,8 +4,11 @@
 
 ```ts
 
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { S3Client } from '@aws-sdk/client-s3';
 
 // @public
 type AmazonCognitoStandardAttributes = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
@@ -207,10 +210,18 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "0">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
+export const generateClientConfig: <T extends "1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+}>) => Promise<ClientConfigVersionTemplateType<T>>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat) => Promise<GenerateClientConfigToFileResult>;
+export const generateClientConfigToFile: (backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, awsClientProvider?: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+}>) => Promise<GenerateClientConfigToFileResult>;
 
 // @public (undocumented)
 export type GenerateClientConfigToFileResult = {

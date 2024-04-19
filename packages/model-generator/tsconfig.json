@@ -7,6 +7,7 @@
   },
   "references": [
     { "path": "../backend-output-schemas" },
-    { "path": "../deployed-backend-client" }
+    { "path": "../deployed-backend-client" },
+    { "path": "../platform-core" }
   ]
 }

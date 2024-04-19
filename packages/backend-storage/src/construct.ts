@@ -2,6 +2,7 @@ import { Construct } from 'constructs';
 import {
   Bucket,
   BucketProps,
+  CfnBucket,
   EventType,
   HttpMethods,
   IBucket,
@@ -64,6 +65,9 @@ export type AmplifyStorageProps = {
 
 export type StorageResources = {
   bucket: IBucket;
+  cfnResources: {
+    cfnBucket: CfnBucket;
+  };
 };
 
 /**
@@ -107,8 +111,14 @@ export class AmplifyStorage
       autoDeleteObjects: true,
       removalPolicy: RemovalPolicy.DESTROY,
     };
+
+    const bucket = new Bucket(this, 'Bucket', bucketProps);
+
     this.resources = {
-      bucket: new Bucket(this, 'Bucket', bucketProps),
+      bucket,
+      cfnResources: {
+        cfnBucket: bucket.node.findChild('Resource') as CfnBucket,
+      },
     };
 
     this.storeOutput(props.outputStorageStrategy);

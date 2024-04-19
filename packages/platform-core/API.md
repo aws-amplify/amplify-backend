@@ -173,6 +173,12 @@ export class ParameterPathConversions {
     static toResourceReferenceFullPath(backendId: BackendIdentifier, referenceName: string): string;
 }
 
+// @public (undocumented)
+export enum TagName {
+    // (undocumented)
+    FRIENDLY_NAME = "amplify:friendly-name"
+}
+
 // @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 

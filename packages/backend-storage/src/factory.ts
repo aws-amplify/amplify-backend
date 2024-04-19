@@ -38,37 +38,26 @@ class AmplifyStorageFactory
       path.join('amplify', 'storage', 'resource'),
       'Amplify Storage must be defined in amplify/storage/resource.ts'
     );
+    this.validateName(this.props.name);
     if (!this.generator) {
       this.generator = new StorageContainerEntryGenerator(
-        {
-          ...this.props,
-          name: this.sanitizeName(this.props.name),
-        },
+        this.props,
         getInstanceProps
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyStorage;
   };
 
-  private sanitizeName = (name: string): string => {
-    const sanitizedName = this.toKebabCase(name);
-
-    if (!/^[a-z0-9-]+$/.test(sanitizedName)) {
+  private validateName = (name: string): void => {
+    const nameIsAlphanumeric = /^[a-zA-Z0-9]+$/.test(name);
+    if (!nameIsAlphanumeric) {
       throw new AmplifyUserError('InvalidResourceNameError', {
-        message: `defineStorage name contains invalid characters, found ${name}`,
+        message: `defineStorage name can only contain alphanumeric characters, found ${name}`,
         resolution:
-          'Update name to use only alphanumeric characters and dashes',
+          'Change the name parameter of defineStorage to only use alphanumeric characters',
       });
     }
-
-    return sanitizedName;
   };
-
-  private toKebabCase = (str: string): string =>
-    str
-      .replace(/([a-z])([A-Z])/g, '$1-$2')
-      .replace(/[\s_]+/g, '-')
-      .toLowerCase();
 }
 
 /**

@@ -36,8 +36,9 @@ import {
   AmplifyError,
   AmplifyUserError,
   CDKContextKey,
+  TagName,
 } from '@aws-amplify/platform-core';
-import { Aspects, IAspect } from 'aws-cdk-lib';
+import { Aspects, IAspect, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
@@ -249,6 +250,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         error as Error
       );
     }
+
+    Tags.of(amplifyApi).add(
+      TagName.FRIENDLY_NAME,
+      this.props.name ?? this.defaultName
+    );
 
     /**;
      * Enable the table replacement upon GSI update

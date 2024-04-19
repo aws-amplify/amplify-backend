@@ -8,6 +8,8 @@ import { StorageAccessOrchestratorFactory } from './storage_access_orchestrator.
 import { AmplifyStorageFactoryProps } from './types.js';
 import { EventType } from 'aws-cdk-lib/aws-s3';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
+import { Tags } from 'aws-cdk-lib';
+import { TagName } from '@aws-amplify/platform-core';
 
 /**
  * Generates a single instance of storage resources
@@ -34,6 +36,8 @@ export class StorageContainerEntryGenerator
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     });
+
+    Tags.of(amplifyStorage).add(TagName.FRIENDLY_NAME, this.props.name);
 
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {

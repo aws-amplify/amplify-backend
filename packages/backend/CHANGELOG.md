@@ -1,5 +1,34 @@
 # @aws-amplify/backend
 
+## 0.13.0-beta.20
+
+### Minor Changes
+
+- 86ee40b: omit "getResourceAccessAcceptor" method from resources on defineBackend object
+
+### Patch Changes
+
+- Updated dependencies [ef111b4]
+- Updated dependencies [db23a3f]
+- Updated dependencies [173c4ba]
+  - @aws-amplify/platform-core@0.5.0-beta.7
+  - @aws-amplify/backend-function@0.8.0-beta.12
+  - @aws-amplify/backend-storage@0.6.0-beta.10
+  - @aws-amplify/backend-auth@0.5.0-beta.13
+  - @aws-amplify/backend-data@0.10.0-beta.14
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/backend-output-storage@0.4.0-beta.8
+  - @aws-amplify/backend-secret@0.4.5-beta.7
+  - @aws-amplify/client-config@0.9.0-beta.15
+
+## 0.13.0-beta.19
+
+### Patch Changes
+
+- Updated dependencies [fe46848]
+- Updated dependencies [4f66069]
+  - @aws-amplify/client-config@0.9.0-beta.14
+
 ## 0.13.0-beta.18
 
 ### Patch Changes

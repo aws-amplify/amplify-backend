@@ -1,5 +1,21 @@
 # create-amplify
 
+## 0.7.0-beta.15
+
+### Patch Changes
+
+- Updated dependencies [ef111b4]
+- Updated dependencies [db23a3f]
+  - @aws-amplify/platform-core@0.5.0-beta.7
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/cli-core@0.5.0-beta.12
+
+## 0.7.0-beta.14
+
+### Patch Changes
+
+- f30e24e: Add docs link to getting started template
+
 ## 0.7.0-beta.13
 
 ### Patch Changes

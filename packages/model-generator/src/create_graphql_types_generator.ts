@@ -4,15 +4,20 @@ import {
   DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { AppsyncGraphqlGenerationResult } from './appsync_graphql_generation_result.js';
 import { AppSyncIntrospectionSchemaFetcher } from './appsync_schema_fetcher.js';
 import { AppSyncGraphqlTypesGenerator } from './graphql_types_generator.js';
 import { GraphqlTypesGenerator } from './model_generator.js';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 export type GraphqlTypesGeneratorFactoryParams = {
   backendIdentifier: DeployedBackendIdentifier;
-  credentialProvider: AwsCredentialIdentityProvider;
+  awsClientProvider: AWSClientProvider<{
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+  }>;
 };
 
 /**
@@ -20,19 +25,18 @@ export type GraphqlTypesGeneratorFactoryParams = {
  */
 export const createGraphqlTypesGenerator = ({
   backendIdentifier,
-  credentialProvider,
+  awsClientProvider,
 }: GraphqlTypesGeneratorFactoryParams): GraphqlTypesGenerator => {
   if (!backendIdentifier) {
     throw new Error('`backendIdentifier` must be defined');
   }
-  if (!credentialProvider) {
-    throw new Error('`credentialProvider` must be defined');
+  if (!awsClientProvider) {
+    throw new Error('`awsClientProvider` must be defined');
   }
 
   const fetchSchema = async () => {
-    const backendOutputClient = BackendOutputClientFactory.getInstance({
-      credentials: credentialProvider,
-    });
+    const backendOutputClient =
+      BackendOutputClientFactory.getInstance(awsClientProvider);
     const output = await backendOutputClient.getOutput(backendIdentifier);
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
