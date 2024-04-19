@@ -1,16 +1,18 @@
-import { beforeEach, describe, it, mock } from 'node:test';
-import { GenerateConfigCommand } from './generate_config_command.js';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
 import yargs, { CommandModule } from 'yargs';
-import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
+import { beforeEach, describe, it, mock } from 'node:test';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { ClientConfigFormat } from '@aws-amplify/client-config';
+import { UsageDataEmitter } from '@aws-amplify/platform-core';
+import { GenerateConfigCommand } from './generate_config_command.js';
+import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
-import { S3Client } from '@aws-sdk/client-s3';
-import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { getUsageDataEmitterFactoryMock } from '../../../test-utils/mock_usage_data_emitter.js';
 
 void describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter({
@@ -30,7 +32,6 @@ void describe('generate config command', () => {
   };
 
   const defaultResolver = new AppBackendIdentifierResolver(namespaceResolver);
-
   const sandboxIdResolver = new SandboxBackendIdResolver(namespaceResolver);
   const fakeSandboxId = 'my-fake-app-my-fake-username';
   const mockedSandboxIdResolver = mock.method(sandboxIdResolver, 'resolve');
@@ -41,9 +42,13 @@ void describe('generate config command', () => {
     sandboxIdResolver
   );
 
+  const emitSuccess = mock.fn<UsageDataEmitter['emitSuccess']>();
+  const emitFailure = mock.fn<UsageDataEmitter['emitFailure']>();
+
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGeneratorAdapter,
-    backendIdResolver
+    backendIdResolver,
+    getUsageDataEmitterFactoryMock(emitSuccess, emitFailure)
   );
   const parser = yargs().command(
     generateConfigCommand as unknown as CommandModule
@@ -52,6 +57,8 @@ void describe('generate config command', () => {
 
   beforeEach(() => {
     generateClientConfigMock.mock.resetCalls();
+    emitSuccess.mock.resetCalls();
+    emitFailure.mock.resetCalls();
   });
 
   void it('uses the sandbox id by default if stack or branch are not provided', async () => {
@@ -62,6 +69,10 @@ void describe('generate config command', () => {
     await commandRunner.runCommand('config');
 
     assert.equal(handlerSpy.mock.calls[0].arguments[0], fakeSandboxId);
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'config',
+    });
   });
 
   void it('generates and writes config for stack', async () => {
@@ -85,6 +96,10 @@ void describe('generate config command', () => {
       generateClientConfigMock.mock.calls[0].arguments[3],
       ClientConfigFormat.TS
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'config',
+    });
   });
 
   void it('generates and writes config for branch', async () => {
@@ -112,6 +127,10 @@ void describe('generate config command', () => {
       generateClientConfigMock.mock.calls[0].arguments[3],
       ClientConfigFormat.TS
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'config',
+    });
   });
 
   void it('generates and writes config for appID and branch', async () => {
@@ -132,6 +151,10 @@ void describe('generate config command', () => {
         ClientConfigFormat.MJS,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'config',
+    });
   });
 
   void it('can generate to custom absolute path', async () => {
@@ -150,6 +173,10 @@ void describe('generate config command', () => {
         ClientConfigFormat.TS,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'config',
+    });
   });
 
   void it('can generate to custom relative path', async () => {
@@ -168,6 +195,10 @@ void describe('generate config command', () => {
         ClientConfigFormat.MJS,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'config',
+    });
   });
 
   void it('can generate config in dart format', async () => {
@@ -186,6 +217,10 @@ void describe('generate config command', () => {
         ClientConfigFormat.DART,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'config',
+    });
   });
 
   void it('can generate config in json mobile format', async () => {
@@ -204,6 +239,10 @@ void describe('generate config command', () => {
         ClientConfigFormat.JSON_MOBILE,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'config',
+    });
   });
 
   void it('can generate config in with a different version', async () => {
@@ -222,6 +261,10 @@ void describe('generate config command', () => {
         ClientConfigFormat.JSON_MOBILE,
       ]
     );
+    assert.equal(emitSuccess.mock.calls.length, 1);
+    assert.deepStrictEqual(emitSuccess.mock.calls[0].arguments[1], {
+      command: 'config',
+    });
   });
 
   void it('shows available options in help output', async () => {
@@ -231,6 +274,8 @@ void describe('generate config command', () => {
     assert.match(output, /--branch/);
     assert.match(output, /--format/);
     assert.match(output, /--out-dir/);
+    assert.equal(emitSuccess.mock.calls.length, 0);
+    assert.equal(emitFailure.mock.calls.length, 0);
   });
 
   void it('fails if both stack and branch are present', async () => {
@@ -238,5 +283,7 @@ void describe('generate config command', () => {
       'config --stack foo --branch baz'
     );
     assert.match(output, /Arguments .* mutually exclusive/);
+    assert.equal(emitSuccess.mock.calls.length, 0);
+    assert.equal(emitFailure.mock.calls.length, 0);
   });
 });
