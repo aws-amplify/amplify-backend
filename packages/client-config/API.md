@@ -72,7 +72,6 @@ interface AWSAmplifyBackendOutputs {
     };
     auth?: {
         aws_region: AwsRegion;
-        authentication_flow_type?: 'USER_SRP_AUTH' | 'CUSTOM_AUTH';
         user_pool_id: string;
         user_pool_client_id: string;
         identity_pool_id?: string;
@@ -85,8 +84,7 @@ interface AWSAmplifyBackendOutputs {
         };
         oauth?: {
             identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
-            cognito_domain: string;
-            custom_domain?: string;
+            domain: string;
             scopes: string[];
             redirect_sign_in_uri: string[];
             redirect_sign_out_uri: string[];
@@ -210,7 +208,7 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
+export const generateClientConfig: <T extends "0" | "1">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
@@ -286,13 +284,7 @@ export type NotificationsClientConfig = {
                 region: string;
             };
         };
-        APNS?: {
-            AWSPinpoint: {
-                appId: string;
-                region: string;
-            };
-        };
-        FCM?: {
+        Push?: {
             AWSPinpoint: {
                 appId: string;
                 region: string;
