@@ -5,6 +5,7 @@
 ```ts
 
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -98,7 +99,10 @@ export enum BackendOutputClientErrorType {
 
 // @public
 export class BackendOutputClientFactory {
-    static getInstance: (options: BackendOutputClientFactoryOptions) => BackendOutputClient;
+    static getInstance: (awsClientProvider?: AWSClientProvider<{
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+    }>) => BackendOutputClient;
 }
 
 // @public (undocumented)
@@ -148,23 +152,12 @@ export type DeployedBackendClient = {
 
 // @public
 export class DeployedBackendClientFactory {
-    getInstance(options: DeployedBackendClientFactoryOptions): DeployedBackendClient;
+    getInstance(awsClientProvider: AWSClientProvider<{
+        getS3Client: S3Client;
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+    }>): DeployedBackendClient;
 }
-
-// @public (undocumented)
-export type DeployedBackendClientFactoryOptions = DeployedBackendCredentialsOptions | DeployedBackendClientOptions;
-
-// @public (undocumented)
-export type DeployedBackendClientOptions = {
-    s3Client: S3Client;
-    cloudFormationClient: CloudFormationClient;
-    backendOutputClient: BackendOutputClient;
-};
-
-// @public (undocumented)
-export type DeployedBackendCredentialsOptions = {
-    credentials: AwsCredentialIdentityProvider;
-};
 
 // @public (undocumented)
 export type DeployedBackendIdentifier = BackendIdentifier | StackIdentifier | AppNameAndBranchBackendIdentifier;

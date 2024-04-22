@@ -1,5 +1,28 @@
 # @aws-amplify/plugin-types
 
+## 0.9.0
+
+### Minor Changes
+
+- db23a3f: add AWSClientProvider type
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- 697d791: Use screaming snake case for SSM entries
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 109cd1b: Add support for generating user pool groups.
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+- 48ff3bd: Add cfnFunction to function resources
+
+## 0.9.0-beta.3
+
+### Minor Changes
+
+- db23a3f: add AWSClientProvider type
+
 ## 0.9.0-beta.2
 
 ### Patch Changes

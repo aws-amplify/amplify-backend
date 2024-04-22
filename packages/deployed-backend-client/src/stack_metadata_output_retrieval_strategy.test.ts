@@ -79,7 +79,109 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       });
     });
 
-    void it('throws if stack is still in progress', async () => {
+    void it('throws if sandbox stack is still in progress', async () => {
+      const cfnClientMock = {
+        send: mock.fn((command) => {
+          if (command instanceof GetTemplateSummaryCommand) {
+            return {
+              Metadata: JSON.stringify({
+                [authOutputKey]: {
+                  version: '1',
+                  stackOutputs: ['testName1', 'testName2'],
+                },
+              }),
+            };
+          } else if (command instanceof DescribeStacksCommand) {
+            return {
+              Stacks: [
+                {
+                  StackName: 'testStackName',
+                  StackStatus: 'CREATE_IN_PROGRESS',
+                  Tags: [
+                    {
+                      Key: 'amplify:deployment-type',
+                      Value: 'sandbox',
+                    },
+                    {
+                      Key: 'created-by',
+                      Value: 'amplify',
+                    },
+                  ],
+                },
+              ],
+            };
+          }
+          assert.fail(`Unknown command ${typeof command}`);
+        }),
+      } as unknown as CloudFormationClient;
+
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'testMainStack'),
+      };
+
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
+        cfnClientMock,
+        stackNameResolverMock
+      );
+
+      await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
+        message:
+          'This sandbox deployment is in progress. Re-run this command once the deployment completes.',
+      });
+    });
+
+    void it('throws if branch stack is still in progress', async () => {
+      const cfnClientMock = {
+        send: mock.fn((command) => {
+          if (command instanceof GetTemplateSummaryCommand) {
+            return {
+              Metadata: JSON.stringify({
+                [authOutputKey]: {
+                  version: '1',
+                  stackOutputs: ['testName1', 'testName2'],
+                },
+              }),
+            };
+          } else if (command instanceof DescribeStacksCommand) {
+            return {
+              Stacks: [
+                {
+                  StackName: 'testStackName',
+                  StackStatus: 'CREATE_IN_PROGRESS',
+                  Tags: [
+                    {
+                      Key: 'amplify:deployment-type',
+                      Value: 'branch',
+                    },
+                    {
+                      Key: 'created-by',
+                      Value: 'amplify',
+                    },
+                  ],
+                },
+              ],
+            };
+          }
+          assert.fail(`Unknown command ${typeof command}`);
+        }),
+      } as unknown as CloudFormationClient;
+
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'testMainStack'),
+      };
+
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
+        cfnClientMock,
+        stackNameResolverMock
+      );
+
+      await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
+        message:
+          'This branch deployment is in progress. Re-run this command once the deployment completes.',
+      });
+    });
+
+    void it('throws if stack is still in progress - defaults to sandbox', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
           if (command instanceof GetTemplateSummaryCommand) {
@@ -116,7 +218,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
 
       await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
         message:
-          'testStackName is currently in CREATE_IN_PROGRESS. Metadata will be available after stack completes processing.',
+          'This sandbox deployment is in progress. Re-run this command once the deployment completes.',
       });
     });
 

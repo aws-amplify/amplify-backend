@@ -4,8 +4,11 @@
 
 ```ts
 
-import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { AWSClientProvider } from '@aws-amplify/plugin-types';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import { S3Client } from '@aws-sdk/client-s3';
 
 // @public
 type AmazonCognitoStandardAttributes = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
@@ -69,7 +72,6 @@ interface AWSAmplifyBackendOutputs {
     };
     auth?: {
         aws_region: AwsRegion;
-        authentication_flow_type?: 'USER_SRP_AUTH' | 'CUSTOM_AUTH';
         user_pool_id: string;
         user_pool_client_id: string;
         identity_pool_id?: string;
@@ -82,8 +84,7 @@ interface AWSAmplifyBackendOutputs {
         };
         oauth?: {
             identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
-            cognito_domain: string;
-            custom_domain?: string;
+            domain: string;
             scopes: string[];
             redirect_sign_in_uri: string[];
             redirect_sign_out_uri: string[];
@@ -207,15 +208,26 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "0">(credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: T) => Promise<ClientConfigVersionTemplateType<T>>;
+export const generateClientConfig: <T extends "1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+}>) => Promise<ClientConfigVersionTemplateType<T>>;
 
 // @public
-export const generateClientConfigToFile: (credentialProvider: AwsCredentialIdentityProvider, backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat) => Promise<GenerateClientConfigToFileResult>;
+export const generateClientConfigToFile: (backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, awsClientProvider?: AWSClientProvider<{
+    getS3Client: S3Client;
+    getAmplifyClient: AmplifyClient;
+    getCloudFormationClient: CloudFormationClient;
+}>) => Promise<GenerateClientConfigToFileResult>;
 
 // @public (undocumented)
 export type GenerateClientConfigToFileResult = {
     filesWritten: string[];
 };
+
+// @public
+export const generateEmptyClientConfigToFile: (version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat) => Promise<GenerateClientConfigToFileResult>;
 
 // @public (undocumented)
 export type GeoClientConfig = {
@@ -272,13 +284,7 @@ export type NotificationsClientConfig = {
                 region: string;
             };
         };
-        APNS?: {
-            AWSPinpoint: {
-                appId: string;
-                region: string;
-            };
-        };
-        FCM?: {
+        Push?: {
             AWSPinpoint: {
                 appId: string;
                 region: string;

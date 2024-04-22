@@ -18,3 +18,5 @@ export * from './ssm_environment_entries_generator.js';
 export * from './package_manager_controller.js';
 export * from './deep_partial.js';
 export * from './stable_backend_identifiers.js';
+export * from './resource_name_validator.js';
+export * from './aws_client_provider.js';

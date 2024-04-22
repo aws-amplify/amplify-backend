@@ -1,4 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import fs from 'fs';
 import fsp from 'fs/promises';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
@@ -7,6 +8,7 @@ import {
   ClientConfigVersion,
   ClientConfigVersionOption,
   DEFAULT_CLIENT_CONFIG_VERSION,
+  generateEmptyClientConfigToFile,
   getClientConfigFileName,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
@@ -23,6 +25,7 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
     configFormat: ClientConfigFormat | undefined;
     configOutDir: string | undefined;
     configVersion: string;
+    once: boolean | undefined;
   } & SandboxCommandGlobalOptions
 >;
 
@@ -109,12 +112,22 @@ export class SandboxCommand
       args.configOutDir,
       args.configFormat
     );
+
+    if (!fs.existsSync(clientConfigWritePath)) {
+      await generateEmptyClientConfigToFile(
+        args.configVersion as ClientConfigVersion,
+        args.configOutDir,
+        args.configFormat
+      );
+    }
+
     watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
       dir: args.dirToWatch,
       exclude: watchExclusions,
       identifier: args.identifier,
       profile: args.profile,
+      watchForChanges: !args.once,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
@@ -175,6 +188,12 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
+        .option('once', {
+          describe:
+            'Execute a single sandbox deployment without watching for future file changes',
+          boolean: true,
+          global: false,
+        })
         .check(async (argv) => {
           if (argv['dir-to-watch']) {
             await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
@@ -189,6 +208,7 @@ export class SandboxCommand
           }
           return true;
         })
+        .conflicts('once', ['exclude', 'dir-to-watch'])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );
   };

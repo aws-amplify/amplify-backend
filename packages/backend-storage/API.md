@@ -4,7 +4,9 @@
 
 ```ts
 
+import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
+import { CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
@@ -40,16 +42,20 @@ export type EntityId = 'identity';
 export type StorageAccessBuilder = {
     authenticated: StorageActionBuilder;
     guest: StorageActionBuilder;
-    group: (groupName: string) => StorageActionBuilder;
+    groups: (groupNames: string[]) => StorageActionBuilder;
     entity: (entityId: EntityId) => StorageActionBuilder;
     resource: (other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>) => StorageActionBuilder;
 };
 
 // @public (undocumented)
 export type StorageAccessDefinition = {
-    getResourceAccessAcceptor: (getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor;
+    getResourceAccessAcceptors: ((getInstanceProps: ConstructFactoryGetInstanceProps) => ResourceAccessAcceptor)[];
     actions: StorageAction[];
     idSubstitution: string;
+    uniqueDefinitionIdValidations: {
+        uniqueDefinitionId: string;
+        validationErrorOptions: AmplifyUserErrorOptions;
+    }[];
 };
 
 // @public (undocumented)
@@ -72,6 +78,9 @@ export type StoragePath = `${string}/*`;
 // @public (undocumented)
 export type StorageResources = {
     bucket: IBucket;
+    cfnResources: {
+        cfnBucket: CfnBucket;
+    };
 };
 
 // (No @packageDocumentation comment for this package)

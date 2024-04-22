@@ -6,16 +6,21 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AmplifyStorageProps } from './construct.js';
+import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 
 export type AmplifyStorageFactoryProps = Omit<
   AmplifyStorageProps,
   'outputStorageStrategy'
 > & {
   /**
-   * !EXPERIMENTAL!
-   *
-   * Access control is under active development and is subject to change without notice.
-   * Use at your own risk and do not use in production
+   * Define access permissions for objects in the S3 bucket.
+   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#storage-access
+   * @example
+   * export const storage = defineStorage({
+   *   access: (allow) => ({
+   *     'foo/*': [allow.authenticated.to(['read'])],
+   *   })
+   * })
    */
   access?: StorageAccessGenerator;
 };
@@ -30,22 +35,47 @@ export type AmplifyStorageFactoryProps = Omit<
 export type EntityId = 'identity';
 
 /**
- * !EXPERIMENTAL!
- *
- * Resource access patterns are under active development and are subject to breaking changes.
- * Do not use in production.
+ * Utility object for configuring storage access
  */
 export type StorageAccessBuilder = {
+  /**
+   * Configure storage access for authenticated users. Requires `defineAuth` in the backend definition.
+   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#authenticated-user-access
+   */
   authenticated: StorageActionBuilder;
+  /**
+   * Configure storage access for guest (unauthenticated) users. Requires `defineAuth` in the backend definition.
+   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#guest-user-access
+   */
   guest: StorageActionBuilder;
-  group: (groupName: string) => StorageActionBuilder;
+  /**
+   * Configure storage access for User Pool groups. Requires `defineAuth` with groups config in the backend definition.
+   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#user-group-access
+   * @param groupName The User Pool group name to configure access for
+   */
+  groups: (groupNames: string[]) => StorageActionBuilder;
+  /**
+   * Configure owner-based access. Requires `defineAuth` in the backend definition.
+   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#owner-based-access
+   * @param entityId Defines the identifier that is used to identify owners. Currently only "identity" is supported.
+   */
   entity: (entityId: EntityId) => StorageActionBuilder;
+  /**
+   * Grant other resources in the Amplify backend access to storage.
+   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#grant-function-access
+   * @param other The target resource to grant access to. Currently only the return value of `defineFunction` is supported.
+   */
   resource: (
     other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
   ) => StorageActionBuilder;
 };
 
 export type StorageActionBuilder = {
+  /**
+   * Specify which actions an entity will be able to perform on objects in the S3 bucket.
+   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#available-actions
+   * @param actions A list of allowed actions
+   */
   to: (actions: StorageAction[]) => StorageAccessDefinition;
 };
 
@@ -59,9 +89,9 @@ export type StorageAccessRecord = Record<
 >;
 
 export type StorageAccessDefinition = {
-  getResourceAccessAcceptor: (
+  getResourceAccessAcceptors: ((
     getInstanceProps: ConstructFactoryGetInstanceProps
-  ) => ResourceAccessAcceptor;
+  ) => ResourceAccessAcceptor)[];
   /**
    * Actions to grant to this role on a specific prefix
    */
@@ -70,6 +100,33 @@ export type StorageAccessDefinition = {
    * The value that will be substituted into the resource string in place of the {owner} token
    */
   idSubstitution: string;
+  /**
+   * Evaluation of the access definition will ensure that all uniqueDefinitionIds occur at most once for a given access path.
+   * This can be used to validate against definitions like
+   *
+   * {
+   *   'foo/*': [
+   *     allow.authenticated.to(['read']),
+   *     allow.authenticated.to(['write'])
+   *   ]
+   * }
+   *
+   * and instead require such a definition to be specified as
+   *
+   * {
+   *   'foo/*': [
+   *     allow.authenticated.to(['read', 'write']),
+   *   ]
+   * }
+   *
+   * The validationErrorMessage will be used to print an error message in case of validation failure
+   *
+   * An empty array means that no uniqueness will be enforced
+   */
+  uniqueDefinitionIdValidations: {
+    uniqueDefinitionId: string;
+    validationErrorOptions: AmplifyUserErrorOptions;
+  }[];
 };
 
 /**

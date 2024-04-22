@@ -19,7 +19,15 @@ import {
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+
+const stubClientProvider = {
+  getS3Client: () => new S3Client(),
+  getAmplifyClient: () => new AmplifyClient(),
+  getCloudFormationClient: () => new CloudFormationClient(),
+};
 
 void describe('auth client config contributor v1', () => {
   void it('returns an empty object if output has no auth output', () => {
@@ -145,7 +153,7 @@ void describe('auth client config contributor v1', () => {
           user_verification_types: ['email', 'phone_number'],
           oauth: {
             identity_providers: ['GOOGLE', 'FACEBOOK'],
-            cognito_domain: 'testDomain',
+            domain: 'testDomain',
             scopes: ['email', 'profile'],
             redirect_sign_in_uri: [
               'http://callback.com',
@@ -163,7 +171,7 @@ void describe('auth client config contributor v1', () => {
 void describe('data client config contributor v1', () => {
   void it('returns an empty object if output has no graphql output', async () => {
     const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      fromNodeProviderChain()
+      stubClientProvider
     );
 
     mock.method(
@@ -189,7 +197,7 @@ void describe('data client config contributor v1', () => {
 
   void it('returns translated config when output has graphql', async () => {
     const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      fromNodeProviderChain()
+      stubClientProvider
     );
 
     mock.method(
@@ -226,7 +234,7 @@ void describe('data client config contributor v1', () => {
 
   void it('returns translated config with model introspection when resolvable', async () => {
     const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
-      fromNodeProviderChain()
+      stubClientProvider
     );
 
     mock.method(

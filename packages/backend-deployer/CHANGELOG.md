@@ -1,5 +1,50 @@
 # @aws-amplify/backend-deployer
 
+## 0.5.1
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- 74cbda0: decentralize AmplifyErrorType
+- aec89f9: chore: correctly handle quotes in the error messages
+- 937086b: require "resolution" in AmplifyUserError options
+- cff84c0: chore: add more cdk errors in the error mapper
+- a05933c: run tsc after CDK synth but before deploy
+- e3a537f: chore: Translate secrets not set error to a more user friendly error message
+- Updated dependencies [6c6af9b]
+- Updated dependencies [ab7533d]
+- Updated dependencies [697d791]
+- Updated dependencies [74cbda0]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [aec89f9]
+- Updated dependencies [ef111b4]
+- Updated dependencies [109cd1b]
+- Updated dependencies [db23a3f]
+- Updated dependencies [937086b]
+- Updated dependencies [2a69684]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [48ff3bd]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0
+  - @aws-amplify/plugin-types@0.9.0
+
+## 0.5.1-beta.8
+
+### Patch Changes
+
+- Updated dependencies [ef111b4]
+- Updated dependencies [db23a3f]
+  - @aws-amplify/platform-core@0.5.0-beta.7
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+
+## 0.5.1-beta.7
+
+### Patch Changes
+
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0-beta.6
+
 ## 0.5.1-beta.6
 
 ### Patch Changes

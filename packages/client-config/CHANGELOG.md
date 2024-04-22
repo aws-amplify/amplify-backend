@@ -1,5 +1,96 @@
 # @aws-amplify/client-config
 
+## 0.9.0
+
+### Minor Changes
+
+- 79cff6d: fix(client-config): add legacy analytics configuration key
+- fe46848: Allow passing clients in to client-config from browser context.
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+
+### Patch Changes
+
+- 54c69c4: chore: rename the new client config file name
+- 8d73779: refactor model generation from schema uri
+- 1e93535: chore: auto-generate cognito domain when external providers are configured
+- 394b72e: chore: updates to client config schema and config generation
+- 592bd4f: refactor log abstraction in `client-config`, `form-generator`, and `model-generator` packages
+- e15e9be: chore: add legacy mobile storage config
+- d95ab02: dir options create the target dir if it does not exist
+- 4cd282e: fix: populate top level region in the client config
+- 4f66069: chore: create an empty configuration file during sandbox startup
+- bb5a446: fix: populate analytics legacy v5 config
+- Updated dependencies [6c6af9b]
+- Updated dependencies [ab7533d]
+- Updated dependencies [8d73779]
+- Updated dependencies [05c3c9b]
+- Updated dependencies [74cbda0]
+- Updated dependencies [1e93535]
+- Updated dependencies [aec89f9]
+- Updated dependencies [b0112e3]
+- Updated dependencies [ef111b4]
+- Updated dependencies [a494aca]
+- Updated dependencies [fe46848]
+- Updated dependencies [592bd4f]
+- Updated dependencies [937086b]
+- Updated dependencies [2a69684]
+- Updated dependencies [4995bda]
+- Updated dependencies [edee8d7]
+- Updated dependencies [5e12247]
+- Updated dependencies [415c4c1]
+- Updated dependencies [b931980]
+- Updated dependencies [73dcd6e]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0
+  - @aws-amplify/deployed-backend-client@0.4.0
+  - @aws-amplify/backend-output-schemas@0.7.0
+  - @aws-amplify/model-generator@0.5.0
+
+## 0.9.0-beta.15
+
+### Patch Changes
+
+- Updated dependencies [ef111b4]
+  - @aws-amplify/platform-core@0.5.0-beta.7
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.10
+  - @aws-amplify/model-generator@0.5.0-beta.12
+
+## 0.9.0-beta.14
+
+### Minor Changes
+
+- fe46848: Allow passing clients in to client-config from browser context.
+
+### Patch Changes
+
+- 4f66069: chore: create an empty configuration file during sandbox startup
+- Updated dependencies [fe46848]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.9
+  - @aws-amplify/model-generator@0.5.0-beta.11
+
+## 0.9.0-beta.13
+
+### Patch Changes
+
+- e15e9be: chore: add legacy mobile storage config
+- Updated dependencies [edee8d7]
+- Updated dependencies [73dcd6e]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.8
+  - @aws-amplify/model-generator@0.5.0-beta.10
+  - @aws-amplify/platform-core@0.5.0-beta.6
+
+## 0.9.0-beta.12
+
+### Patch Changes
+
+- 1e93535: chore: auto-generate cognito domain when external providers are configured
+- bb5a446: fix: populate analytics legacy v5 config
+- Updated dependencies [1e93535]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/deployed-backend-client@0.4.0-beta.7
+  - @aws-amplify/model-generator@0.5.0-beta.9
+
 ## 0.9.0-beta.11
 
 ### Patch Changes

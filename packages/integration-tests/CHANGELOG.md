@@ -1,5 +1,43 @@
 # @aws-amplify/integration-tests
 
+## 0.5.0
+
+### Minor Changes
+
+- f76e983: Use updated metadata fields in form and model generation
+- cec91d5: Add dynamic environment variables to function type definition files
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+- 0d1b00e: Update generated env package location and use the $ symbol
+- 62dab44: add support for function dependencies that require .node files
+
+### Patch Changes
+
+- 54c69c4: chore: rename the new client config file name
+- 697d791: Use screaming snake case for SSM entries
+- 912034e: limit defineData call to one
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 26cdffd: backend-data: add support for first-class defineFunction
+- 7cbe58b: adding triggers to storage events
+- 3998cd3: Fix how paths is added to tsconfig
+- 318335d: Ensure resource access env vars are added to function typed shim files
+- 4123204: fix: order of array in test assert in gitignored tests
+- 7f5edee: Ensure typed shim files contain only the function name
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+- e90f066: add e2e test for sandbox --once deployment
+- 0e6f436: chore: bump data-schema packages version (0.16.0)
+
+## 0.5.0-beta.10
+
+### Patch Changes
+
+- e90f066: add e2e test for sandbox --once deployment
+
+## 0.5.0-beta.9
+
+### Minor Changes
+
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+
 ## 0.5.0-beta.8
 
 ### Patch Changes

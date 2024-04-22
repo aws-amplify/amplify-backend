@@ -1,10 +1,14 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { App, Stack } from 'aws-cdk-lib';
-import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import {
+  ConstructFactoryGetInstanceProps,
+  ResourceNameValidator,
+} from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
+  ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { defaultLambda } from './test-assets/default-lambda/resource.js';
@@ -26,6 +30,7 @@ const createStackAndSetContext = (): Stack => {
 void describe('AmplifyFunctionFactory', () => {
   let rootStack: Stack;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+  let resourceNameValidator: ResourceNameValidator;
 
   beforeEach(() => {
     rootStack = createStackAndSetContext();
@@ -38,9 +43,12 @@ void describe('AmplifyFunctionFactory', () => {
       rootStack
     );
 
+    resourceNameValidator = new ResourceNameValidatorStub();
+
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
+      resourceNameValidator,
     };
   });
 
@@ -97,6 +105,34 @@ void describe('AmplifyFunctionFactory', () => {
       template.findResources('AWS::Lambda::Function')
     )[0];
     assert.ok(lambdaLogicalId.includes('myCoolLambda'));
+  });
+
+  void it('sets friendly-name tag', () => {
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'myCoolLambda',
+    });
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Tags: [{ Key: 'amplify:friendly-name', Value: 'myCoolLambda' }],
+    });
+  });
+
+  void it('throws on invalid name', () => {
+    mock
+      .method(resourceNameValidator, 'validate')
+      .mock.mockImplementationOnce(() => {
+        throw new Error('test validation error');
+      });
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'this!is@wrong',
+    });
+    assert.throws(() => functionFactory.getInstance(getInstanceProps), {
+      message: 'test validation error',
+    });
   });
 
   void it('builds lambda with local and 3p dependencies', () => {

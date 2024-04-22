@@ -92,6 +92,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   start = async (options: SandboxOptions) => {
     const watchDir = options.dir ?? './amplify';
+    const watchForChanges = options.watchForChanges ?? true;
+
     if (!fs.existsSync(watchDir)) {
       throw new AmplifyUserError('PathNotFoundError', {
         message: `${watchDir} does not exist.`,
@@ -152,38 +154,41 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       this.emitWatching();
     });
 
-    this.watcherSubscription = await parcelWatcher.subscribe(
-      watchDir,
-      async (_, events) => {
-        // Log and track file changes.
-        await Promise.all(
-          events.map(({ type: eventName, path }) => {
-            this.filesChangesTracker.trackFileChange(path);
-            this.printer.log(
-              `[Sandbox] Triggered due to a file ${eventName} event: ${path}`
-            );
-          })
-        );
-        if (latch === 'open') {
-          await deployAndWatch();
-        } else {
-          // this means latch is either 'deploying' or 'queued'
-          latch = 'queued';
-          this.printer.log(
-            '[Sandbox] Previous deployment is still in progress. ' +
-              'Will queue for another deployment after this one finishes'
+    if (watchForChanges) {
+      this.watcherSubscription = await parcelWatcher.subscribe(
+        watchDir,
+        async (_, events) => {
+          // Log and track file changes.
+          await Promise.all(
+            events.map(({ type: eventName, path }) => {
+              this.filesChangesTracker.trackFileChange(path);
+              this.printer.log(
+                `[Sandbox] Triggered due to a file ${eventName} event: ${path}`
+              );
+            })
           );
+          if (latch === 'open') {
+            await deployAndWatch();
+          } else {
+            // this means latch is either 'deploying' or 'queued'
+            latch = 'queued';
+            this.printer.log(
+              '[Sandbox] Previous deployment is still in progress. ' +
+                'Will queue for another deployment after this one finishes'
+            );
+          }
+        },
+        {
+          ignore: this.outputFilesExcludedFromWatch.concat(
+            ...(options.exclude ?? [])
+          ),
         }
-      },
-      {
-        ignore: this.outputFilesExcludedFromWatch.concat(
-          ...(options.exclude ?? [])
-        ),
-      }
-    );
-
-    // Start the first full deployment without waiting for a file change
-    await deployAndWatch();
+      );
+      // Start the first full deployment without waiting for a file change
+      await deployAndWatch();
+    } else {
+      await this.deploy(options);
+    }
   };
 
   /**

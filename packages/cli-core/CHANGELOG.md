@@ -1,5 +1,53 @@
 # @aws-amplify/cli-core
 
+## 0.5.0
+
+### Minor Changes
+
+- 7537216: Move record formatting from printer to formatter
+- 77079c6: Improve formatting of AmplifyErrors in the top-level error handler
+- 3e34244: use `format` to replace `color` and remove `color`.
+- b0ba24d: Generate type definition file for static environment variables for functions
+- 0d1b00e: Update generated env package location and use the $ symbol
+
+### Patch Changes
+
+- a01f6b9: fix pnpm Command "tsc" not found
+- baeb68f: fix yarn classic error Command "tsc" not found.
+- e0ae60c: initialize tsconfig file from object template rather than IPC call
+- 3998cd3: Fix how paths is added to tsconfig
+- 4d47f63: Improved error message when attempting to run amplify directly
+- 8d9a7a4: add error message for PNPM on windows
+- ee247fd: use printer from cli-core
+- 8d9a7a4: update PackageManagerControllerFactory to take Operation System platform information optionally
+- 937086b: require "resolution" in AmplifyUserError options
+- 1c52df1: chore: Adds a log message to inform the name of the sandbox being created/initialized
+- Updated dependencies [6c6af9b]
+- Updated dependencies [ab7533d]
+- Updated dependencies [74cbda0]
+- Updated dependencies [aec89f9]
+- Updated dependencies [ef111b4]
+- Updated dependencies [937086b]
+- Updated dependencies [2a69684]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0
+
+## 0.5.0-beta.12
+
+### Patch Changes
+
+- Updated dependencies [ef111b4]
+  - @aws-amplify/platform-core@0.5.0-beta.7
+
+## 0.5.0-beta.11
+
+### Patch Changes
+
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0-beta.6
+
 ## 0.5.0-beta.10
 
 ### Patch Changes

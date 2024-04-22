@@ -1,5 +1,177 @@
 # @aws-amplify/backend
 
+## 0.13.0
+
+### Minor Changes
+
+- c9f03ee: Re-export some plugin-types from submodule export @aws-amplify/backend/types/platform
+- 8fd5c5c: bump data-schema deps to latest
+- f76e983: Use updated metadata fields in form and model generation
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+- 86ee40b: omit "getResourceAccessAcceptor" method from resources on defineBackend object
+
+### Patch Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- 697d791: Use screaming snake case for SSM entries
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 7857f0a: backend-data: add js resolver support
+- 7dc3132: add aspect on root stack to valid role trust policies
+- 21f6292: Force release to beta tag
+- 4e6287e: chore: bump @aws-amplify/data-schema version to 0.14.0
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+- 0e6f436: chore: bump data-schema packages version (0.16.0)
+- Updated dependencies [6c6af9b]
+- Updated dependencies [54c69c4]
+- Updated dependencies [ab7533d]
+- Updated dependencies [bdbf6e8]
+- Updated dependencies [a777488]
+- Updated dependencies [8fd5c5c]
+- Updated dependencies [697d791]
+- Updated dependencies [64e425c]
+- Updated dependencies [a6f35a8]
+- Updated dependencies [8d73779]
+- Updated dependencies [95a040b]
+- Updated dependencies [912034e]
+- Updated dependencies [74cbda0]
+- Updated dependencies [f76e983]
+- Updated dependencies [91dae55]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [915bf98]
+- Updated dependencies [7857f0a]
+- Updated dependencies [1e93535]
+- Updated dependencies [26cdffd]
+- Updated dependencies [ab05ae0]
+- Updated dependencies [5969a32]
+- Updated dependencies [f6489a8]
+- Updated dependencies [aec89f9]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [c760df4]
+- Updated dependencies [ef111b4]
+- Updated dependencies [75f69ea]
+- Updated dependencies [cfc3bc4]
+- Updated dependencies [268acd8]
+- Updated dependencies [916d3f0]
+- Updated dependencies [109cd1b]
+- Updated dependencies [ab739ea]
+- Updated dependencies [79cff6d]
+- Updated dependencies [318335d]
+- Updated dependencies [fe46848]
+- Updated dependencies [6b81a42]
+- Updated dependencies [db23a3f]
+- Updated dependencies [394b72e]
+- Updated dependencies [215d65d]
+- Updated dependencies [cec91d5]
+- Updated dependencies [5ebc1d4]
+- Updated dependencies [592bd4f]
+- Updated dependencies [b0ba24d]
+- Updated dependencies [911c4c6]
+- Updated dependencies [e15e9be]
+- Updated dependencies [3adf7df]
+- Updated dependencies [060b6e5]
+- Updated dependencies [937086b]
+- Updated dependencies [0d1b00e]
+- Updated dependencies [aee7501]
+- Updated dependencies [82006e5]
+- Updated dependencies [2a69684]
+- Updated dependencies [d95ab02]
+- Updated dependencies [7f5edee]
+- Updated dependencies [62dab44]
+- Updated dependencies [4995bda]
+- Updated dependencies [4cd282e]
+- Updated dependencies [85e953f]
+- Updated dependencies [f999897]
+- Updated dependencies [4e6287e]
+- Updated dependencies [173c4ba]
+- Updated dependencies [a05933c]
+- Updated dependencies [5e12247]
+- Updated dependencies [4f66069]
+- Updated dependencies [10c9447]
+- Updated dependencies [48ff3bd]
+- Updated dependencies [de311f8]
+- Updated dependencies [6b217e6]
+- Updated dependencies [bb5a446]
+- Updated dependencies [b0b4dea]
+- Updated dependencies [0e6f436]
+  - @aws-amplify/backend-function@0.8.0
+  - @aws-amplify/platform-core@0.5.0
+  - @aws-amplify/backend-auth@0.5.0
+  - @aws-amplify/backend-data@0.10.0
+  - @aws-amplify/client-config@0.9.0
+  - @aws-amplify/backend-output-schemas@0.7.0
+  - @aws-amplify/backend-output-storage@0.4.0
+  - @aws-amplify/backend-storage@0.6.0
+  - @aws-amplify/plugin-types@0.9.0
+  - @aws-amplify/backend-secret@0.4.5
+
+## 0.13.0-beta.20
+
+### Minor Changes
+
+- 86ee40b: omit "getResourceAccessAcceptor" method from resources on defineBackend object
+
+### Patch Changes
+
+- Updated dependencies [ef111b4]
+- Updated dependencies [db23a3f]
+- Updated dependencies [173c4ba]
+  - @aws-amplify/platform-core@0.5.0-beta.7
+  - @aws-amplify/backend-function@0.8.0-beta.12
+  - @aws-amplify/backend-storage@0.6.0-beta.10
+  - @aws-amplify/backend-auth@0.5.0-beta.13
+  - @aws-amplify/backend-data@0.10.0-beta.14
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/backend-output-storage@0.4.0-beta.8
+  - @aws-amplify/backend-secret@0.4.5-beta.7
+  - @aws-amplify/client-config@0.9.0-beta.15
+
+## 0.13.0-beta.19
+
+### Patch Changes
+
+- Updated dependencies [fe46848]
+- Updated dependencies [4f66069]
+  - @aws-amplify/client-config@0.9.0-beta.14
+
+## 0.13.0-beta.18
+
+### Patch Changes
+
+- Updated dependencies [e15e9be]
+- Updated dependencies [10c9447]
+- Updated dependencies [de311f8]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/client-config@0.9.0-beta.13
+  - @aws-amplify/backend-data@0.10.0-beta.13
+  - @aws-amplify/backend-storage@0.6.0-beta.9
+  - @aws-amplify/platform-core@0.5.0-beta.6
+  - @aws-amplify/backend-auth@0.5.0-beta.12
+  - @aws-amplify/backend-function@0.8.0-beta.11
+  - @aws-amplify/backend-output-storage@0.4.0-beta.7
+  - @aws-amplify/backend-secret@0.4.5-beta.6
+
+## 0.13.0-beta.17
+
+### Minor Changes
+
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+
+### Patch Changes
+
+- Updated dependencies [1e93535]
+- Updated dependencies [ab739ea]
+- Updated dependencies [911c4c6]
+- Updated dependencies [bb5a446]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/client-config@0.9.0-beta.12
+  - @aws-amplify/backend-data@0.10.0-beta.12
+  - @aws-amplify/backend-function@0.8.0-beta.10
+  - @aws-amplify/backend-output-storage@0.4.0-beta.6
+  - @aws-amplify/backend-storage@0.6.0-beta.8
+  - @aws-amplify/backend-auth@0.5.0-beta.11
+
 ## 0.13.0-beta.16
 
 ### Patch Changes

@@ -6,6 +6,7 @@ export type ClientConfigMobile = {
   auth?: ClientConfigMobileAuth;
   geo?: ClientConfigMobileGeo;
   notifications?: ClientConfigMobileNotifications;
+  storage?: ClientConfigMobileStorage;
 };
 
 export type ClientConfigMobileApi = {
@@ -104,6 +105,15 @@ export type ClientConfigMobileAnalytics = {
       pinpointTargeting: {
         region: string;
       };
+    };
+  };
+};
+
+export type ClientConfigMobileStorage = {
+  plugins: {
+    awsS3StoragePlugin: {
+      bucket: string;
+      region?: string;
     };
   };
 };

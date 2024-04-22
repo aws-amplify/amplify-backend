@@ -8,6 +8,7 @@ import {
   FunctionResources,
   GenerateContainerEntryProps,
   ResourceAccessAcceptorFactory,
+  ResourceNameValidator,
   ResourceProvider,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
@@ -15,7 +16,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { Duration, Stack } from 'aws-cdk-lib';
+import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
@@ -29,7 +30,7 @@ import {
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'url';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 
 const functionStackType = 'function-Lambda';
 
@@ -107,19 +108,24 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   getInstance = ({
     constructContainer,
     outputStorageStrategy,
+    resourceNameValidator,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
-        this.hydrateDefaults(),
+        this.hydrateDefaults(resourceNameValidator),
         outputStorageStrategy
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
   };
 
-  private hydrateDefaults = (): HydratedFunctionProps => {
+  private hydrateDefaults = (
+    resourceNameValidator?: ResourceNameValidator
+  ): HydratedFunctionProps => {
+    const name = this.resolveName();
+    resourceNameValidator?.validate(name);
     return {
-      name: this.resolveName(),
+      name,
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
@@ -316,6 +322,8 @@ class AmplifyFunction
         error as Error
       );
     }
+
+    Tags.of(functionLambda).add(TagName.FRIENDLY_NAME, id);
 
     this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
       functionLambda,

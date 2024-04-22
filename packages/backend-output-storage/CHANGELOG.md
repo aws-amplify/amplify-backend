@@ -1,5 +1,49 @@
 # @aws-amplify/backend-output-storage
 
+## 0.4.0
+
+### Minor Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+
+### Patch Changes
+
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- Updated dependencies [6c6af9b]
+- Updated dependencies [ab7533d]
+- Updated dependencies [74cbda0]
+- Updated dependencies [1e93535]
+- Updated dependencies [aec89f9]
+- Updated dependencies [ef111b4]
+- Updated dependencies [937086b]
+- Updated dependencies [2a69684]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0
+  - @aws-amplify/backend-output-schemas@0.7.0
+
+## 0.4.0-beta.8
+
+### Patch Changes
+
+- Updated dependencies [ef111b4]
+  - @aws-amplify/platform-core@0.5.0-beta.7
+
+## 0.4.0-beta.7
+
+### Patch Changes
+
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0-beta.6
+
+## 0.4.0-beta.6
+
+### Patch Changes
+
+- Updated dependencies [1e93535]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+
 ## 0.4.0-beta.5
 
 ### Patch Changes

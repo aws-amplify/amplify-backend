@@ -1,5 +1,74 @@
 # @aws-amplify/backend-storage
 
+## 0.6.0
+
+### Minor Changes
+
+- 95a040b: Change storage access path validation from enforcing leading slash to enforcing no leading slash
+- 5969a32: Implement deny-by-default behavior on access rules
+- 7cbe58b: adding triggers to storage events
+- 6b81a42: Add cfnBucket to storage resource
+- 215d65d: Group storage access policies by action rather than prefix
+- 82006e5: Add "list" to available storage resource actions
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+- f999897: Enable auth group access to storage and change syntax for specifying owner-based access
+- 173c4ba: Change group access to allow multiple group names in one rule. Also enforce that there are no duplicate access targets for a single path.
+
+### Patch Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- 697d791: Use screaming snake case for SSM entries
+- 64e425c: fix cogntio identity placeholder value in IAM policy
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- c760df4: Use array input instead of var args for defining resource access actions
+- ef111b4: Add friendly-name tag to resources
+- cfc3bc4: Enable CORS on the S3 Bucket
+- 916d3f0: clean up s3 buckets when `defineStorage` is removed from the backend definition
+- 3adf7df: Add validation for allowed path patterns in storage access definition
+- 48ff3bd: Add cfnFunction to function resources
+- de311f8: Update defineStorage JSDocs to include prop descriptions
+- Updated dependencies [ab7533d]
+- Updated dependencies [697d791]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [1e93535]
+- Updated dependencies [109cd1b]
+- Updated dependencies [db23a3f]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/backend-output-schemas@0.7.0
+  - @aws-amplify/backend-output-storage@0.4.0
+  - @aws-amplify/plugin-types@0.9.0
+
+## 0.6.0-beta.10
+
+### Minor Changes
+
+- 173c4ba: Change group access to allow multiple group names in one rule. Also enforce that there are no duplicate access targets for a single path.
+
+### Patch Changes
+
+- ef111b4: Add friendly-name tag to resources
+- Updated dependencies [db23a3f]
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/backend-output-storage@0.4.0-beta.8
+
+## 0.6.0-beta.9
+
+### Patch Changes
+
+- de311f8: Update defineStorage JSDocs to include prop descriptions
+  - @aws-amplify/backend-output-storage@0.4.0-beta.7
+
+## 0.6.0-beta.8
+
+### Patch Changes
+
+- Updated dependencies [1e93535]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/backend-output-storage@0.4.0-beta.6
+
 ## 0.6.0-beta.7
 
 ### Patch Changes
