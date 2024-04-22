@@ -72,6 +72,7 @@ interface AWSAmplifyBackendOutputs {
     };
     auth?: {
         aws_region: AwsRegion;
+        authentication_flow_type?: 'USER_SRP_AUTH' | 'CUSTOM_AUTH';
         user_pool_id: string;
         user_pool_client_id: string;
         identity_pool_id?: string;
@@ -84,7 +85,8 @@ interface AWSAmplifyBackendOutputs {
         };
         oauth?: {
             identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
-            domain: string;
+            cognito_domain: string;
+            custom_domain?: string;
             scopes: string[];
             redirect_sign_in_uri: string[];
             redirect_sign_out_uri: string[];
@@ -284,7 +286,13 @@ export type NotificationsClientConfig = {
                 region: string;
             };
         };
-        Push?: {
+        APNS?: {
+            AWSPinpoint: {
+                appId: string;
+                region: string;
+            };
+        };
+        FCM?: {
             AWSPinpoint: {
                 appId: string;
                 region: string;
