@@ -76,10 +76,6 @@ export interface AWSAmplifyBackendOutputs {
      */
     aws_region: AwsRegion;
     /**
-     * Authentication flow types
-     */
-    authentication_flow_type?: 'USER_SRP_AUTH' | 'CUSTOM_AUTH';
-    /**
      * Cognito User Pool ID
      */
     user_pool_id: string;
@@ -114,13 +110,9 @@ export interface AWSAmplifyBackendOutputs {
         | 'SIGN_IN_WITH_APPLE'
       )[];
       /**
-       * Auto generated cognito domain used for identity providers
+       * Domain used for identity providers
        */
-      cognito_domain: string;
-      /**
-       * Custom Domain used for identity providers
-       */
-      custom_domain?: string;
+      domain: string;
       /**
        * @minItems 0
        */
