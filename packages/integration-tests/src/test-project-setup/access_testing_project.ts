@@ -476,7 +476,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   private createAppSyncClient = (
     clientConfig: ClientConfigVersionTemplateType<'1'>,
     credentials: IamCredentials
-  ): AWSAppSyncClient<any> => {
+  ): AWSAppSyncClient<never> => {
     if (!clientConfig.data?.url) {
       throw new Error('Appsync API URL is undefined');
     }
