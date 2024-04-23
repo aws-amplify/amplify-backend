@@ -1,5 +1,19 @@
 # @aws-amplify/backend-cli
 
+## 0.13.0
+
+### Minor Changes
+
+- 33fc16f: add 'backend' as valid CLI command name
+
+### Patch Changes
+
+- Updated dependencies [c2c8910]
+  - @aws-amplify/deployed-backend-client@0.4.1
+  - @aws-amplify/client-config@0.9.2
+  - @aws-amplify/model-generator@0.6.1
+  - @aws-amplify/sandbox@0.5.4
+
 ## 0.12.1
 
 ### Patch Changes
