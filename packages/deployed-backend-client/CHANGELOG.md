@@ -1,5 +1,11 @@
 # @aws-amplify/deployed-backend-client
 
+## 0.4.1
+
+### Patch Changes
+
+- c2c8910: handled undefined physicalResourceld in ArnGenerator in deployed-backend-client/arn_generator.ts
+
 ## 0.4.0
 
 ### Minor Changes
