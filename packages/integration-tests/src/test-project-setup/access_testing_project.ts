@@ -62,13 +62,8 @@ export class AccessTestingProjectTestProjectCreator
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
-    // const { projectName, projectRoot, projectAmplifyDir } =
-    //   await createEmptyAmplifyProject(this.name, e2eProjectDir);
-    const projectName = 'test-project-access-testing-e353b842e670';
-    const projectRoot =
-      '/Users/sobkamil/git/samsara-cli/packages/integration-tests/src/e2e-tests/access-testingXbk9yo';
-    const projectAmplifyDir =
-      '/Users/sobkamil/git/samsara-cli/packages/integration-tests/src/e2e-tests/access-testingXbk9yo/amplify';
+    const { projectName, projectRoot, projectAmplifyDir } =
+      await createEmptyAmplifyProject(this.name, e2eProjectDir);
 
     const project = new AccessTestingProjectTestProject(
       projectName,
