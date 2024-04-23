@@ -80,7 +80,6 @@ export class AmplifyAuthCredentialsFactory {
     });
 
     const authSession = await auth.fetchAuthSession();
-    authSession.credentials;
 
     if (!authSession.credentials) {
       throw new Error('No credentials in auth session');
