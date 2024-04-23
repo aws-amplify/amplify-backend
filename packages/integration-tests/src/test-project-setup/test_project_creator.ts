@@ -39,16 +39,16 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   const stsClient = new STSClient(e2eToolingClientConfig);
   const secretClient = getSecretClient(e2eToolingClientConfig);
   testProjectCreators.push(
-    // new DataStorageAuthWithTriggerTestProjectCreator(
-    //   cfnClient,
-    //   secretClient,
-    //   lambdaClient,
-    //   s3Client,
-    //   iamClient,
-    //   resourceFinder
-    // ),
-    // new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient),
-    // new CustomOutputsTestProjectCreator(cfnClient),
+    new DataStorageAuthWithTriggerTestProjectCreator(
+      cfnClient,
+      secretClient,
+      lambdaClient,
+      s3Client,
+      iamClient,
+      resourceFinder
+    ),
+    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient),
+    new CustomOutputsTestProjectCreator(cfnClient),
     new AccessTestingProjectTestProjectCreator(
       cfnClient,
       cognitoIdentityClient,
