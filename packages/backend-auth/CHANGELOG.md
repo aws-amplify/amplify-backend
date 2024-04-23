@@ -1,5 +1,104 @@
 # @aws-amplify/backend-auth
 
+## 0.6.0
+
+### Minor Changes
+
+- 1058383: Standardize name validation across storage, functions, auth, and data
+
+### Patch Changes
+
+- d558832: Update sms and mfa types to use code generation functions instead of strings.
+- Updated dependencies [d558832]
+  - @aws-amplify/auth-construct-alpha@0.6.1
+
+## 0.5.0
+
+### Minor Changes
+
+- ab05ae0: attach policy & ssm params to acces userpool from auth resource
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+- 85e953f: OIDC now supports a list of providers which will be configured for your user pool.
+- f999897: Enable auth group access to storage and change syntax for specifying owner-based access
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- 697d791: Use screaming snake case for SSM entries
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- ef111b4: Add friendly-name tag to resources
+- 5ebc1d4: Added manageGroups as an IAM action.
+- 937086b: require "resolution" in AmplifyUserError options
+- aee7501: limit defineAuth call to one
+- 48ff3bd: Add cfnFunction to function resources
+- Updated dependencies [ab7533d]
+- Updated dependencies [697d791]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [1e93535]
+- Updated dependencies [109cd1b]
+- Updated dependencies [65b516d]
+- Updated dependencies [db23a3f]
+- Updated dependencies [1d444df]
+- Updated dependencies [394b72e]
+- Updated dependencies [fe59a49]
+- Updated dependencies [c54625f]
+- Updated dependencies [3cb2a52]
+- Updated dependencies [4995bda]
+- Updated dependencies [85e953f]
+- Updated dependencies [5e12247]
+- Updated dependencies [48ff3bd]
+- Updated dependencies [1b8386b]
+  - @aws-amplify/backend-output-storage@0.4.0
+  - @aws-amplify/auth-construct-alpha@0.6.0
+  - @aws-amplify/plugin-types@0.9.0
+
+## 0.5.0-beta.13
+
+### Patch Changes
+
+- ef111b4: Add friendly-name tag to resources
+- Updated dependencies [db23a3f]
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/backend-output-storage@0.4.0-beta.8
+  - @aws-amplify/auth-construct-alpha@0.6.0-beta.13
+
+## 0.5.0-beta.12
+
+### Patch Changes
+
+- Updated dependencies [65b516d]
+  - @aws-amplify/auth-construct-alpha@0.6.0-beta.12
+  - @aws-amplify/backend-output-storage@0.4.0-beta.7
+
+## 0.5.0-beta.11
+
+### Patch Changes
+
+- Updated dependencies [1e93535]
+  - @aws-amplify/auth-construct-alpha@0.6.0-beta.11
+  - @aws-amplify/backend-output-storage@0.4.0-beta.6
+
+## 0.5.0-beta.10
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- 5ebc1d4: Added manageGroups as an IAM action.
+- 48ff3bd: Add cfnFunction to function resources
+- Updated dependencies [48ff3bd]
+- Updated dependencies [1b8386b]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+  - @aws-amplify/auth-construct-alpha@0.6.0-beta.10
+  - @aws-amplify/backend-output-storage@0.4.0-beta.5
+
+## 0.5.0-beta.9
+
+### Patch Changes
+
+- Updated dependencies [fe59a49]
+  - @aws-amplify/auth-construct-alpha@0.6.0-beta.9
+
 ## 0.5.0-beta.8
 
 ### Patch Changes

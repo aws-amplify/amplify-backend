@@ -164,21 +164,6 @@ export class ClientConfigMobileConverter {
     }
 
     if (clientConfig.Notifications) {
-      // APNS and FCM are mapped to the same awsPinpointPushNotificationsPlugin
-      // Throw if they're both present but defined differently
-      // as this is ambiguous situation
-      const fcm = clientConfig.Notifications.FCM;
-      const apns = clientConfig.Notifications.APNS;
-      if (
-        fcm &&
-        apns &&
-        (fcm.AWSPinpoint.appId !== apns.AWSPinpoint.appId ||
-          fcm.AWSPinpoint.region !== apns.AWSPinpoint.region)
-      ) {
-        throw new Error(
-          'Cannot convert client config to mobile config if both FCM and APNS are defined with different AWS Pinpoint instance'
-        );
-      }
       mobileConfig.notifications = {
         plugins: {},
       };
@@ -194,15 +179,21 @@ export class ClientConfigMobileConverter {
         mobileConfig.notifications.plugins.awsPinpointInAppMessagingNotificationsPlugin =
           clientConfig.Notifications.InAppMessaging.AWSPinpoint;
       }
-      // It's fine to overwrite FCM and APNS given validation above.
-      if (clientConfig.Notifications.FCM) {
+      if (clientConfig.Notifications.Push) {
         mobileConfig.notifications.plugins.awsPinpointPushNotificationsPlugin =
-          clientConfig.Notifications.FCM.AWSPinpoint;
+          clientConfig.Notifications.Push.AWSPinpoint;
       }
-      if (clientConfig.Notifications.APNS) {
-        mobileConfig.notifications.plugins.awsPinpointPushNotificationsPlugin =
-          clientConfig.Notifications.APNS.AWSPinpoint;
-      }
+    }
+
+    if (clientConfig.aws_user_files_s3_bucket) {
+      mobileConfig.storage = {
+        plugins: {
+          awsS3StoragePlugin: {
+            bucket: clientConfig.aws_user_files_s3_bucket,
+            region: clientConfig.aws_user_files_s3_bucket_region,
+          },
+        },
+      };
     }
 
     return mobileConfig;

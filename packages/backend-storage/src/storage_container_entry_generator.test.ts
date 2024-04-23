@@ -19,7 +19,12 @@ import { App, Stack } from 'aws-cdk-lib';
 import { StorageAccessOrchestratorFactory } from './storage_access_orchestrator.js';
 import { AmplifyStorage } from './construct.js';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
-import { Function, InlineCode, Runtime } from 'aws-cdk-lib/aws-lambda';
+import {
+  CfnFunction,
+  Function,
+  InlineCode,
+  Runtime,
+} from 'aws-cdk-lib/aws-lambda';
 import { Template } from 'aws-cdk-lib/assertions';
 import { StorageAccessGenerator } from './types.js';
 
@@ -71,6 +76,28 @@ void describe('StorageGenerator', () => {
       assert.ok(storageInstance instanceof AmplifyStorage);
     });
 
+    void it('sets friendly-name tag on resources', () => {
+      const storageGenerator = new StorageContainerEntryGenerator(
+        {
+          name: 'coolBucketName',
+        },
+        getInstanceProps,
+        new StorageAccessOrchestratorFactory()
+      );
+
+      storageGenerator.generateContainerEntry(generateContainerEntryProps);
+
+      const template = Template.fromStack(stack);
+      template.resourceCountIs('AWS::S3::Bucket', 1);
+      template.hasResourceProperties('AWS::S3::Bucket', {
+        Tags: [
+          { Key: 'amplify:friendly-name', Value: 'coolBucketName' },
+          // this tag is added by CDK but the assertion fails without it
+          { Key: 'aws-cdk:auto-delete-objects', Value: 'true' },
+        ],
+      });
+    });
+
     void it('invokes the policy orchestrator when access rules are defined', () => {
       const orchestrateStorageAccessMock = mock.fn();
       const storageAccessOrchestratorFactoryStub =
@@ -108,15 +135,24 @@ void describe('StorageGenerator', () => {
       const stubFunctionFactory: ConstructFactory<
         ResourceProvider<FunctionResources>
       > = {
-        getInstance: () => ({
-          resources: {
-            lambda: new Function(stack, `testFunction${counter++}`, {
-              code: new InlineCode('testCode'),
-              handler: 'test.handler',
-              runtime: Runtime.NODEJS_LATEST,
-            }),
-          },
-        }),
+        getInstance: () => {
+          const testFunction = new Function(stack, `testFunction${counter++}`, {
+            code: new InlineCode('testCode'),
+            handler: 'test.handler',
+            runtime: Runtime.NODEJS_LATEST,
+          });
+
+          return {
+            resources: {
+              lambda: testFunction,
+              cfnResources: {
+                cfnFunction: testFunction.node.tryFindChild(
+                  'Resource'
+                ) as CfnFunction,
+              },
+            },
+          };
+        },
       };
 
       const storageGenerator = new StorageContainerEntryGenerator(

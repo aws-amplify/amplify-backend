@@ -141,7 +141,7 @@ export type AmplifyUserErrorOptions = Omit<
 > & { resolution: string };
 
 const errorSerializer = (_: unknown, value: unknown) => {
-  if (value instanceof Error && value?.constructor.name === 'Error') {
+  if (value instanceof Error) {
     return ErrorSerializerDeserializer.serialize(value);
   }
   return value;
@@ -149,21 +149,23 @@ const errorSerializer = (_: unknown, value: unknown) => {
 class ErrorSerializerDeserializer {
   static serialize = (error: Error) => {
     const serializedError: SerializedErrorType = {
-      name: 'Error',
+      name: error.name,
       message: error.message,
     };
     return serializedError;
   };
 
   static deserialize = (deserialized: SerializedErrorType) => {
-    return new Error(deserialized.message);
+    const error = new Error(deserialized.message);
+    error.name = deserialized.name;
+    return error;
   };
 
   static isSerializedErrorType = (obj: unknown): obj is SerializedErrorType => {
     if (
       obj &&
       (obj as SerializedErrorType).name &&
-      (obj as SerializedErrorType).name === 'Error'
+      (obj as SerializedErrorType).message
     )
       return true;
     return false;

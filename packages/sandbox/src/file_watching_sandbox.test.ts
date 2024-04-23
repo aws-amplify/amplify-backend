@@ -15,13 +15,13 @@ import parseGitIgnore from 'parse-gitignore';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import _open from 'open';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
-import { ClientConfigFormat } from '@aws-amplify/client-config';
-import { Sandbox } from './sandbox.js';
+import { Sandbox, SandboxOptions } from './sandbox.js';
 import {
   AmplifyPrompter,
   LogLevel,
   PackageManagerControllerFactory,
   Printer,
+  format,
 } from '@aws-amplify/cli-core';
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -124,7 +124,11 @@ void describe('Sandbox to check if region is bootstrapped', () => {
 
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
+    mock.method(
+      fs,
+      'existsSync',
+      (p: string) => path.basename(p) !== '.gitignore'
+    );
     sandboxInstance = new FileWatchingSandbox(
       async () => testSandboxBackendId,
       sandboxExecutor,
@@ -145,6 +149,10 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     backendDeployerDestroyMock.mock.resetCalls();
     backendDeployerDeployMock.mock.resetCalls();
     await sandboxInstance.stop();
+
+    // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
+    printer.log.mock.resetCalls();
+    printer.print.mock.resetCalls();
   });
 
   void it('when region has not bootstrapped, then opens console to initiate bootstrap', async () => {
@@ -217,7 +225,11 @@ void describe('Sandbox using local project name resolver', () => {
    */
   beforeEach(async () => {
     // ensures that .gitignore is set as absent
-    mock.method(fs, 'existsSync', () => false);
+    mock.method(
+      fs,
+      'existsSync',
+      (p: string) => path.basename(p) !== '.gitignore'
+    );
   });
 
   afterEach(async () => {
@@ -226,6 +238,33 @@ void describe('Sandbox using local project name resolver', () => {
     subscribeMock.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
+
+    // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
+    printer.log.mock.resetCalls();
+    printer.print.mock.resetCalls();
+  });
+
+  void it('correctly displays the sandbox name at the startup and helper message when --identifier is not provided', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      undefined,
+      false
+    ));
+    assert.strictEqual(printer.log.mock.callCount(), 7);
+
+    assert.strictEqual(
+      printer.log.mock.calls[1].arguments[0],
+      format.indent(`${format.bold('Identifier:')} \ttestSandboxName`)
+    );
+    assert.strictEqual(
+      printer.log.mock.calls[3].arguments[0],
+      `${format.indent(
+        format.dim('\nTo specify a different sandbox identifier, use ')
+      )}${format.bold('--identifier')}`
+    );
   });
 
   void it('makes initial deployment without type checking at start if no typescript file is present', async () => {
@@ -233,6 +272,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         cfnClient: cfnClientMock,
+      },
+      {
         // imaginary dir does not have any ts files
         dir: 'testDir',
         exclude: ['exclude1', 'exclude2'],
@@ -261,6 +302,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         cfnClient: cfnClientMock,
+      },
+      {
         dir: testDir,
         exclude: ['exclude1', 'exclude2'],
       },
@@ -281,12 +324,16 @@ void describe('Sandbox using local project name resolver', () => {
   });
 
   void it('calls BackendDeployer once when a file change is present', async () => {
-    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
-      executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
-      dir: 'testDir',
-      exclude: ['exclude1', 'exclude2'],
-    }));
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      {
+        dir: 'testDir',
+        exclude: ['exclude1', 'exclude2'],
+      }
+    ));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
@@ -611,12 +658,16 @@ void describe('Sandbox using local project name resolver', () => {
   });
 
   void it('handles error thrown by BackendDeployer and terminate while destroying', async (contextual) => {
-    ({ sandboxInstance } = await setupAndStartSandbox({
-      executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
-      dir: 'testDir',
-      exclude: ['exclude1', 'exclude2'],
-    }));
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      {
+        dir: 'testDir',
+        exclude: ['exclude1', 'exclude2'],
+      }
+    ));
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
       'destroy',
@@ -632,11 +683,13 @@ void describe('Sandbox using local project name resolver', () => {
   });
 
   void it('correctly handles user provided appName while deploying', async () => {
-    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
-      executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
-      name: 'customSandboxName',
-    }));
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      { identifier: 'customSandboxName' }
+    ));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
@@ -660,12 +713,14 @@ void describe('Sandbox using local project name resolver', () => {
   });
 
   void it('correctly handles user provided appName while destroying', async () => {
-    ({ sandboxInstance } = await setupAndStartSandbox({
-      executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
-      name: 'customSandboxName',
-    }));
-    await sandboxInstance.delete({ name: 'customSandboxName' });
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      { identifier: 'customSandboxName' }
+    ));
+    await sandboxInstance.delete({ identifier: 'customSandboxName' });
 
     // BackendDeployer should be called once
     assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
@@ -693,11 +748,15 @@ void describe('Sandbox using local project name resolver', () => {
         ],
       };
     });
-    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
-      executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
-      exclude: ['customer_exclude1', 'customer_exclude2'],
-    }));
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      {
+        exclude: ['customer_exclude1', 'customer_exclude2'],
+      }
+    ));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
@@ -734,11 +793,15 @@ void describe('Sandbox using local project name resolver', () => {
         ],
       };
     });
-    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
-      executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
-      exclude: ['customer_exclude1', 'customer_exclude2'],
-    }));
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      {
+        exclude: ['customer_exclude1', 'customer_exclude2'],
+      }
+    ));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
     ]);
@@ -790,6 +853,18 @@ void describe('Sandbox using local project name resolver', () => {
 
     assert.equal(mockListener.mock.callCount(), 1);
   });
+
+  void it('should trigger single deployment without watcher if watchForChanges is false', async () => {
+    await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        cfnClient: cfnClientMock,
+      },
+      { watchForChanges: false }
+    );
+
+    assert.strictEqual(subscribeMock.mock.callCount(), 0);
+  });
 });
 
 /**
@@ -801,6 +876,7 @@ void describe('Sandbox using local project name resolver', () => {
  */
 const setupAndStartSandbox = async (
   testData: SandboxTestData,
+  sandboxOptions: SandboxOptions = {},
   resetMocksAfterStart = true
 ) => {
   const sandboxInstance = new FileWatchingSandbox(
@@ -815,18 +891,30 @@ const setupAndStartSandbox = async (
     testData.open ?? _open
   );
 
-  await sandboxInstance.start({
-    dir: testData.dir,
-    exclude: testData.exclude,
-    name: testData.name,
-    format: testData.format,
-    profile: testData.profile,
-  });
+  await sandboxInstance.start(sandboxOptions);
 
   // At this point one deployment should already have been done on sandbox startup
   assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
   // and client config generated only once
 
+  if (resetMocksAfterStart) {
+    // Reset all the calls to avoid extra startup call
+    backendDeployerDestroyMock.mock.resetCalls();
+    backendDeployerDeployMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
+    listSecretMock.mock.resetCalls();
+  }
+
+  if (sandboxOptions.watchForChanges === false) {
+    return {
+      sandboxInstance,
+      fileChangeEventCallback: () => {
+        throw new Error(
+          'When not watching for changes, file change event callback is not available'
+        );
+      },
+    };
+  }
   /**
    * For each test we start the sandbox and hence file watcher and get hold of
    * file change event function which tests can simulate by calling as desired.
@@ -843,14 +931,6 @@ const setupAndStartSandbox = async (
     );
   }
 
-  if (resetMocksAfterStart) {
-    // Reset all the calls to avoid extra startup call
-    backendDeployerDestroyMock.mock.resetCalls();
-    backendDeployerDeployMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
-    listSecretMock.mock.resetCalls();
-  }
-
   return { sandboxInstance, fileChangeEventCallback };
 };
 
@@ -860,11 +940,4 @@ type SandboxTestData = {
   executor: AmplifySandboxExecutor;
   cfnClient: CloudFormationClient;
   open?: typeof _open;
-
-  // To start sandbox
-  dir?: string;
-  exclude?: string[];
-  name?: string;
-  format?: ClientConfigFormat;
-  profile?: string;
 };

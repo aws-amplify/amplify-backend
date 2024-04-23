@@ -1,4 +1,5 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
+import fs from 'fs';
 import fsp from 'fs/promises';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
@@ -7,6 +8,7 @@ import {
   ClientConfigVersion,
   ClientConfigVersionOption,
   DEFAULT_CLIENT_CONFIG_VERSION,
+  generateEmptyClientConfigToFile,
   getClientConfigFileName,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
@@ -23,6 +25,7 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
     configFormat: ClientConfigFormat | undefined;
     configOutDir: string | undefined;
     configVersion: string;
+    once: boolean | undefined;
   } & SandboxCommandGlobalOptions
 >;
 
@@ -35,7 +38,7 @@ export type SandboxEventHandlers = {
 };
 
 export type SandboxEventHandlerParams = {
-  sandboxName?: string;
+  sandboxIdentifier?: string;
   clientConfigLifecycleHandler: ClientConfigLifecycleHandler;
 };
 
@@ -59,7 +62,7 @@ export class SandboxCommand
    */
   readonly describe: string;
 
-  private sandboxName?: string;
+  private sandboxIdentifier?: string;
 
   /**
    * Creates sandbox command.
@@ -82,7 +85,7 @@ export class SandboxCommand
     args: ArgumentsCamelCase<SandboxCommandOptionsKebabCase>
   ): Promise<void> => {
     const sandbox = await this.sandboxFactory.getInstance();
-    this.sandboxName = args.name;
+    this.sandboxIdentifier = args.identifier;
 
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
@@ -92,7 +95,7 @@ export class SandboxCommand
       args.configFormat
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
-      sandboxName: this.sandboxName,
+      sandboxIdentifier: this.sandboxIdentifier,
       clientConfigLifecycleHandler,
     });
     if (eventHandlers) {
@@ -109,12 +112,22 @@ export class SandboxCommand
       args.configOutDir,
       args.configFormat
     );
+
+    if (!fs.existsSync(clientConfigWritePath)) {
+      await generateEmptyClientConfigToFile(
+        args.configVersion as ClientConfigVersion,
+        args.configOutDir,
+        args.configFormat
+      );
+    }
+
     watchExclusions.push(clientConfigWritePath);
     await sandbox.start({
       dir: args.dirToWatch,
       exclude: watchExclusions,
-      name: args.name,
+      identifier: args.identifier,
       profile: args.profile,
+      watchForChanges: !args.once,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
@@ -142,9 +155,9 @@ export class SandboxCommand
           array: true,
           global: false,
         })
-        .option('name', {
+        .option('identifier', {
           describe:
-            'An optional name to distinguish between different sandboxes. Default is the name of the system user executing the process',
+            'An optional identifier to distinguish between different sandboxes. Default is the name of the system user executing the process',
           type: 'string',
           array: false,
         })
@@ -175,20 +188,27 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
+        .option('once', {
+          describe:
+            'Execute a single sandbox deployment without watching for future file changes',
+          boolean: true,
+          global: false,
+        })
         .check(async (argv) => {
           if (argv['dir-to-watch']) {
             await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
           }
-          if (argv.name) {
-            const projectNameRegex = /^[a-zA-Z0-9-]{1,15}$/;
-            if (!argv.name.match(projectNameRegex)) {
+          if (argv.identifier) {
+            const identifierRegex = /^[a-zA-Z0-9-]{1,15}$/;
+            if (!argv.identifier.match(identifierRegex)) {
               throw new Error(
-                `--name should match [a-zA-Z0-9-] and be less than 15 characters.`
+                `--identifier should match [a-zA-Z0-9-] and be less than 15 characters.`
               );
             }
           }
           return true;
         })
+        .conflicts('once', ['exclude', 'dir-to-watch'])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );
   };
@@ -202,7 +222,7 @@ export class SandboxCommand
     if (answer)
       await (
         await this.sandboxFactory.getInstance()
-      ).delete({ name: this.sandboxName });
+      ).delete({ identifier: this.sandboxIdentifier });
   };
 
   private validateDirectory = async (option: string, dir: string) => {

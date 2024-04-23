@@ -168,6 +168,10 @@ export class ClientConfigLegacyConverter {
         },
       };
       legacyConfig = { ...legacyConfig, ...analyticsConfig };
+      legacyConfig.aws_mobile_analytics_app_id =
+        clientConfig.analytics.amazon_pinpoint.app_id;
+      legacyConfig.aws_mobile_analytics_app_region =
+        clientConfig.analytics.amazon_pinpoint.aws_region;
     }
 
     // Geo category
@@ -224,10 +228,11 @@ export class ClientConfigLegacyConverter {
             notificationConfig.Notifications.InAppMessaging = pinPointConfig;
             break;
           case 'FCM':
-            notificationConfig.Notifications.FCM = pinPointConfig;
+            notificationConfig.Notifications.Push = pinPointConfig;
             break;
           case 'APNS':
-            notificationConfig.Notifications.APNS = pinPointConfig;
+            // It's fine to overwrite APNS over FCM since they are the exact same config.
+            notificationConfig.Notifications.Push = pinPointConfig;
             break;
           case 'EMAIL':
             notificationConfig.Notifications.EMAIL = pinPointConfig;

@@ -14,6 +14,7 @@ import {
   FunctionResources,
   ImportPathVerifier,
   ResourceAccessAcceptorFactory,
+  ResourceNameValidator,
   ResourceProvider,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
@@ -26,11 +27,12 @@ import {
   UserPool,
   UserPoolClient,
 } from 'aws-cdk-lib/aws-cognito';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { CfnFunction, Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
+  ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { AmplifyDataResources } from '@aws-amplify/data-construct';
@@ -130,6 +132,7 @@ void describe('DataFactory', () => {
   let importPathVerifier: ImportPathVerifier;
   let dataFactory: ConstructFactory<ResourceProvider<AmplifyDataResources>>;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+  let resourceNameValidator: ResourceNameValidator;
 
   beforeEach(() => {
     resetFactoryCount();
@@ -143,10 +146,13 @@ void describe('DataFactory', () => {
     );
     importPathVerifier = new ImportPathVerifierStub();
 
+    resourceNameValidator = new ResourceNameValidatorStub();
+
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      resourceNameValidator,
     };
   });
 
@@ -163,6 +169,35 @@ void describe('DataFactory', () => {
       Stack.of(dataConstruct.resources.graphqlApi)
     );
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
+  });
+
+  void it('tags api with friendly name', () => {
+    resetFactoryCount();
+    const dataFactory = defineData({ schema: testSchema, name: 'testNameFoo' });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(
+      Stack.of(dataConstruct.resources.graphqlApi)
+    );
+    template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
+    template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
+      Tags: [{ Key: 'amplify:friendly-name', Value: 'testNameFoo' }],
+    });
+  });
+
+  void it('throws on invalid name', () => {
+    mock
+      .method(resourceNameValidator, 'validate')
+      .mock.mockImplementationOnce(() => {
+        throw new Error('test validation error');
+      });
+    resetFactoryCount();
+    const dataFactory = defineData({
+      schema: testSchema,
+      name: 'this!is@wrong$',
+    });
+    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
+      message: 'test validation error',
+    });
   });
 
   void it('sets output using storage strategy', () => {
@@ -216,6 +251,22 @@ void describe('DataFactory', () => {
     });
   });
 
+  void it('sets the api name to default name if a name property is not specified', () => {
+    resetFactoryCount();
+    dataFactory = defineData({
+      schema: testSchema,
+    });
+    const dataConstruct = dataFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(
+      Stack.of(dataConstruct.resources.graphqlApi)
+    );
+    template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
+    template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
+      Name: 'amplifyData',
+    });
+  });
+
   void it('does not throw if no auth resources are registered and only api key is provided', () => {
     resetFactoryCount();
     dataFactory = defineData({
@@ -239,17 +290,21 @@ void describe('DataFactory', () => {
   });
 
   void it('does not throw if no auth resources are registered and only lambda is provided', () => {
+    const myEchoFn = new Function(stack, 'MyEchoFn', {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromInline(
+        'module.handler = async () => console.log("Hello");'
+      ),
+      handler: 'index.handler',
+    });
     resetFactoryCount();
     const echo: ConstructFactory<AmplifyFunction> = {
       getInstance: () => ({
         resources: {
-          lambda: new Function(stack, 'MyEchoFn', {
-            runtime: Runtime.NODEJS_18_X,
-            code: Code.fromInline(
-              'module.handler = async () => console.log("Hello");'
-            ),
-            handler: 'index.handler',
-          }),
+          lambda: myEchoFn,
+          cfnResources: {
+            cfnFunction: myEchoFn.node.findChild('Resource') as CfnFunction,
+          },
         },
       }),
     };
@@ -357,16 +412,20 @@ void describe('DataFactory', () => {
 
   void it('accepts functions as inputs to the defineData call', () => {
     resetFactoryCount();
+    const myEchoFn = new Function(stack, 'MyEchoFn', {
+      runtime: Runtime.NODEJS_18_X,
+      code: Code.fromInline(
+        'module.handler = async () => console.log("Hello");'
+      ),
+      handler: 'index.handler',
+    });
     const echo: ConstructFactory<AmplifyFunction> = {
       getInstance: () => ({
         resources: {
-          lambda: new Function(stack, 'MyEchoFn', {
-            runtime: Runtime.NODEJS_18_X,
-            code: Code.fromInline(
-              'module.handler = async () => console.log("Hello");'
-            ),
-            handler: 'index.handler',
-          }),
+          lambda: myEchoFn,
+          cfnResources: {
+            cfnFunction: myEchoFn.node.findChild('Resource') as CfnFunction,
+          },
         },
       }),
     };
@@ -433,6 +492,9 @@ void describe('DataFactory', () => {
         getInstance: () => ({
           resources: {
             lambda,
+            cfnResources: {
+              cfnFunction: lambda.node.findChild('Resource') as CfnFunction,
+            },
           },
           getResourceAccessAcceptor: () => ({
             identifier: 'testId',
@@ -446,9 +508,9 @@ void describe('DataFactory', () => {
             content: a.string(),
           }),
         })
-        .authorization([
-          a.allow.private().to(['read']),
-          a.allow.resource(myFunc),
+        .authorization((allow) => [
+          allow.authenticated().to(['read']),
+          allow.resource(myFunc),
         ]);
 
       const dataFactory = defineData({
@@ -584,6 +646,9 @@ void describe('DataFactory', () => {
         getInstance: () => ({
           resources: {
             lambda: lambda1,
+            cfnResources: {
+              cfnFunction: lambda1.node.findChild('Resource') as CfnFunction,
+            },
           },
           getResourceAccessAcceptor: () => ({
             identifier: 'testId1',
@@ -609,6 +674,9 @@ void describe('DataFactory', () => {
         getInstance: () => ({
           resources: {
             lambda: lambda2,
+            cfnResources: {
+              cfnFunction: lambda2.node.findChild('Resource') as CfnFunction,
+            },
           },
           getResourceAccessAcceptor: () => ({
             identifier: 'testId2',
@@ -622,10 +690,10 @@ void describe('DataFactory', () => {
             content: a.string(),
           }),
         })
-        .authorization([
-          a.allow.private().to(['read']),
-          a.allow.resource(myFunc1).to(['mutate']),
-          a.allow.resource(myFunc2).to(['query']),
+        .authorization((allow) => [
+          allow.authenticated().to(['read']),
+          allow.resource(myFunc1).to(['mutate']),
+          allow.resource(myFunc2).to(['query']),
         ]);
 
       const dataFactory = defineData({

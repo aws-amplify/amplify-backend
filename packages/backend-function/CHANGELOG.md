@@ -1,5 +1,81 @@
 # @aws-amplify/backend-function
 
+## 0.9.0
+
+### Minor Changes
+
+- 1058383: Standardize name validation across storage, functions, auth, and data
+
+## 0.8.0
+
+### Minor Changes
+
+- ab7533d: Add output and configuration for customer owned lambdas
+- cec91d5: Add dynamic environment variables to function type definition files
+- b0ba24d: Generate type definition file for static environment variables for functions
+- 0d1b00e: Update generated env package location and use the $ symbol
+- 62dab44: add support for function dependencies that require .node files
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- bdbf6e8: Set default function memory to 512
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- aec89f9: chore: correctly handle quotes in the error messages
+- ef111b4: Add friendly-name tag to resources
+- 75f69ea: store attribution string in funciton stack
+- 318335d: Ensure resource access env vars are added to function typed shim files
+- 7f5edee: Ensure typed shim files contain only the function name
+- a05933c: run tsc after CDK synth but before deploy
+- 48ff3bd: Add cfnFunction to function resources
+- Updated dependencies [ab7533d]
+- Updated dependencies [697d791]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [1e93535]
+- Updated dependencies [109cd1b]
+- Updated dependencies [db23a3f]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/backend-output-schemas@0.7.0
+  - @aws-amplify/backend-output-storage@0.4.0
+  - @aws-amplify/plugin-types@0.9.0
+
+## 0.8.0-beta.12
+
+### Patch Changes
+
+- ef111b4: Add friendly-name tag to resources
+- Updated dependencies [db23a3f]
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/backend-output-storage@0.4.0-beta.8
+
+## 0.8.0-beta.11
+
+### Patch Changes
+
+- @aws-amplify/backend-output-storage@0.4.0-beta.7
+
+## 0.8.0-beta.10
+
+### Patch Changes
+
+- Updated dependencies [1e93535]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/backend-output-storage@0.4.0-beta.6
+
+## 0.8.0-beta.9
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- 48ff3bd: Add cfnFunction to function resources
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.5
+
 ## 0.8.0-beta.8
 
 ### Minor Changes

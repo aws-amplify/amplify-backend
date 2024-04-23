@@ -19,10 +19,10 @@ void describe('sandbox secret remove command', () => {
   );
 
   const sandboxIdResolver: SandboxBackendIdResolver = {
-    resolve: (nameOverride?: string) =>
+    resolve: (identifier?: string) =>
       Promise.resolve({
         namespace: testBackendId,
-        name: nameOverride || testSandboxName,
+        name: identifier || testSandboxName,
         type: 'sandbox',
       }),
   } as SandboxBackendIdResolver;
@@ -57,7 +57,7 @@ void describe('sandbox secret remove command', () => {
 
   void it('removes secret from named sandbox', async () => {
     await commandRunner.runCommand(
-      `remove ${testSecretName} --name anotherName`
+      `remove ${testSecretName} --identifier anotherName`
     );
     assert.equal(secretRemoveMock.mock.callCount(), 1);
     assert.deepStrictEqual(secretRemoveMock.mock.calls[0].arguments, [

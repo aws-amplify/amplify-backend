@@ -210,7 +210,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::S3::Bucket',
-      // eslint-disable-next-line spellcheck/spell-checker
       (bucketName) => bucketName.includes('testnamebucket')
     );
     assert.equal(

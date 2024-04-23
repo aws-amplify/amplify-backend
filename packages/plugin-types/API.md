@@ -4,17 +4,20 @@
 
 ```ts
 
+import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolGroup } from 'aws-cdk-lib/aws-cognito';
+import { Client } from '@aws-sdk/types';
 import { Construct } from 'constructs';
 import { ExecaChildProcess } from 'execa';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { MetadataBearer } from '@aws-sdk/types';
 import { Options } from 'execa';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { SecretValue } from 'aws-cdk-lib';
@@ -51,6 +54,11 @@ export type AuthResources = {
 
 // @public (undocumented)
 export type AuthRoleName = keyof Pick<AuthResources, 'authenticatedUserIamRole' | 'unauthenticatedUserIamRole'>;
+
+// @public (undocumented)
+export type AWSClientProvider<T extends Record<`get${string}Client`, Client<object, MetadataBearer, unknown>>> = {
+    [K in keyof T]: () => T[K];
+};
 
 // @public
 export type BackendIdentifier = {
@@ -124,6 +132,7 @@ export type ConstructFactoryGetInstanceProps = {
     constructContainer: ConstructContainer;
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     importPathVerifier?: ImportPathVerifier;
+    resourceNameValidator?: ResourceNameValidator;
 };
 
 // @public
@@ -137,6 +146,9 @@ export type DeploymentType = 'branch' | 'sandbox';
 // @public (undocumented)
 export type FunctionResources = {
     lambda: IFunction;
+    cfnResources: {
+        cfnFunction: CfnFunction;
+    };
 };
 
 // @public (undocumented)
@@ -144,6 +156,7 @@ export type GenerateContainerEntryProps = {
     scope: Construct;
     backendSecretResolver: BackendSecretResolver;
     ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
+    stableBackendIdentifiers: StableBackendIdentifiers;
 };
 
 // @public
@@ -192,6 +205,11 @@ export type ResourceAccessAcceptorFactory<RoleIdentifier extends string | undefi
 };
 
 // @public
+export type ResourceNameValidator = {
+    validate: (resourceName: string) => void;
+};
+
+// @public
 export type ResourceProvider<T extends object = object> = {
     resources: T;
 };
@@ -208,6 +226,11 @@ export type SsmEnvironmentEntriesGenerator = {
 export type SsmEnvironmentEntry = {
     name: string;
     path: string;
+};
+
+// @public (undocumented)
+export type StableBackendIdentifiers = {
+    getStableBackendHash: () => string;
 };
 
 // (No @packageDocumentation comment for this package)

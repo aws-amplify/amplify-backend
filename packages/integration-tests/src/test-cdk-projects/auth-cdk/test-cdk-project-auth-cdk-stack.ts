@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct-alpha';
+import { randomBytes } from 'node:crypto';
 
 export class TestCdkProjectAuthCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -19,6 +20,7 @@ export class TestCdkProjectAuthCdkStack extends cdk.Stack {
             clientId: '123',
             clientSecret: '123',
           },
+          domainPrefix: randomBytes(10).toString('hex'),
           logoutUrls: ['https://logout.com'],
           callbackUrls: ['https://redirect.com'],
         },

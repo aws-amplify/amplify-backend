@@ -8,6 +8,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { BackendSecretResolverStub } from './backend_secret_resolver_stub.js';
 import { SsmEnvironmentEntriesGeneratorStub } from './ssm_environment_entries_generator_stub.js';
+import { BackendIdScopedStableBackendIdentifiers } from './stable_backend_identifiers_stub.js';
 
 /**
  * Stub implementation of ConstructContainer. Currently, it is the same as the implementation in @aws-amplify/backend but this doesn't need to be the case moving forward
@@ -43,12 +44,15 @@ export class ConstructContainerStub implements ConstructContainer {
       );
       const ssmEnvironmentEntriesGenerator =
         new SsmEnvironmentEntriesGeneratorStub(scope);
+      const stableBackendIdentifiers =
+        new BackendIdScopedStableBackendIdentifiers(backendId);
       this.providerCache.set(
         generator,
         generator.generateContainerEntry({
           scope,
           backendSecretResolver,
           ssmEnvironmentEntriesGenerator,
+          stableBackendIdentifiers,
         })
       );
     }

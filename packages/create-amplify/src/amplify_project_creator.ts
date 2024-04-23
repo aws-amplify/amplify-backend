@@ -12,13 +12,9 @@ const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
  * Orchestration class that sets up a new Amplify project
  */
 export class AmplifyProjectCreator {
-  /**
-   * TODO: remove @beta tags before GA
-   * https://github.com/aws-amplify/amplify-backend/issues/1013
-   */
   private readonly defaultDevPackages = [
-    '@aws-amplify/backend@beta',
-    '@aws-amplify/backend-cli@beta',
+    '@aws-amplify/backend',
+    '@aws-amplify/backend-cli',
     'aws-cdk@^2',
     'aws-cdk-lib@^2',
     'constructs@^10.0.0',
@@ -68,22 +64,19 @@ export class AmplifyProjectCreator {
         'dev'
       )
     );
-    printer.print(`✔ DevDependencies installed`);
-    printer.printNewLine();
+    printer.log(`✔ DevDependencies installed`);
     await printer.indicateProgress('Installing dependencies', () =>
       this.packageManagerController.installDependencies(
         this.defaultProdPackages,
         'prod'
       )
     );
-    printer.print(`✔ Dependencies installed`);
-    printer.printNewLine();
+    printer.log(`✔ Dependencies installed`);
     await printer.indicateProgress('Creating template files', async () => {
       await this.gitIgnoreInitializer.ensureInitialized();
       await this.initialProjectFileGenerator.generateInitialProjectFiles();
     });
-    printer.print(`✔ Template files created`);
-    printer.printNewLine();
+    printer.log(`✔ Template files created`);
 
     printer.log(format.success('Successfully created a new project!'));
     printer.printNewLine();

@@ -1,7 +1,6 @@
 import { CommandModule } from 'yargs';
 import { GenerateCommand } from './generate_command.js';
 import { GenerateConfigCommand } from './config/generate_config_command.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
@@ -17,16 +16,28 @@ import { AppBackendIdentifierResolver } from '../../backend-identifier/backend_i
 import { GenerateSchemaCommand } from './schema-from-database/generate_schema_command.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
+import { printer } from '@aws-amplify/cli-core';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { S3Client } from '@aws-sdk/client-s3';
 
 /**
  * Creates wired generate command.
  */
 export const createGenerateCommand = (): CommandModule => {
-  const credentialProvider = fromNodeProviderChain();
+  const s3Client = new S3Client();
+  const amplifyClient = new AmplifyClient();
+  const cloudFormationClient = new CloudFormationClient();
+
+  const awsClientProvider = {
+    getS3Client: () => s3Client,
+    getAmplifyClient: () => amplifyClient,
+    getCloudFormationClient: () => cloudFormationClient,
+  };
   const secretClient = getSecretClient();
 
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
-    credentialProvider
+    awsClientProvider
   );
 
   const namespaceResolver = new LocalNamespaceResolver(new PackageJsonReader());
@@ -43,14 +54,11 @@ export const createGenerateCommand = (): CommandModule => {
 
   const generateFormsCommand = new GenerateFormsCommand(
     backendIdentifierResolver,
-    () =>
-      BackendOutputClientFactory.getInstance({
-        credentials: credentialProvider,
-      }),
-    new FormGenerationHandler({ credentialProvider })
+    () => BackendOutputClientFactory.getInstance(awsClientProvider),
+    new FormGenerationHandler({ awsClientProvider })
   );
 
-  const generateApiCodeAdapter = new GenerateApiCodeAdapter(credentialProvider);
+  const generateApiCodeAdapter = new GenerateApiCodeAdapter(awsClientProvider);
 
   const generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
     generateApiCodeAdapter,
@@ -63,7 +71,7 @@ export const createGenerateCommand = (): CommandModule => {
     new SchemaGenerator()
   );
 
-  const commandMiddleware = new CommandMiddleware();
+  const commandMiddleware = new CommandMiddleware(printer);
 
   return new GenerateCommand(
     generateConfigCommand,

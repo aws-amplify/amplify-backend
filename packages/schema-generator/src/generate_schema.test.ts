@@ -20,7 +20,10 @@ void describe('SchemaGenerator', () => {
   void it('should generate schema', async () => {
     const schemaGenerator = new SchemaGenerator();
     await schemaGenerator.generate({
-      connectionUri: 'mysql://user:password@hostname:3306/db',
+      connectionUri: {
+        secretName: 'FAKE_SECRET_NAME',
+        value: 'mysql://user:password@hostname:3306/db',
+      },
       out: 'schema.ts',
     });
     assert.strictEqual(mockGenerateMethod.mock.calls.length, 1);
@@ -51,22 +54,60 @@ void describe('SchemaGenerator', () => {
     assert.strictEqual(dbConfig.port, 3306);
   });
 
+  void it('should parse postgres url correctly', async () => {
+    const dbConfig = parseDatabaseUrl(
+      'postgresql://user:password@test-host-name:5432/db'
+    );
+    assert.strictEqual(dbConfig.engine, 'postgresql');
+    assert.strictEqual(dbConfig.username, 'user');
+    assert.strictEqual(dbConfig.password, 'password');
+    assert.strictEqual(dbConfig.host, 'test-host-name');
+    assert.strictEqual(dbConfig.database, 'db');
+    assert.strictEqual(dbConfig.port, 5432);
+  });
+
+  void it('should parse database url with postgres protocol correctly', async () => {
+    const dbConfig = parseDatabaseUrl(
+      'postgres://user:password@test-host-name:5432/db'
+    );
+    assert.strictEqual(dbConfig.engine, 'postgresql');
+    assert.strictEqual(dbConfig.username, 'user');
+    assert.strictEqual(dbConfig.password, 'password');
+    assert.strictEqual(dbConfig.host, 'test-host-name');
+    assert.strictEqual(dbConfig.database, 'db');
+    assert.strictEqual(dbConfig.port, 5432);
+  });
+
+  void it('should assign default port for mysql db url', async () => {
+    const dbConfig = parseDatabaseUrl(
+      'mysql://user:password@test-host-name/db'
+    );
+    assert.strictEqual(dbConfig.engine, 'mysql');
+    assert.strictEqual(dbConfig.username, 'user');
+    assert.strictEqual(dbConfig.password, 'password');
+    assert.strictEqual(dbConfig.host, 'test-host-name');
+    assert.strictEqual(dbConfig.database, 'db');
+    assert.strictEqual(dbConfig.port, 3306);
+  });
+
+  void it('should assign default port for postgres db url', async () => {
+    const dbConfig = parseDatabaseUrl(
+      'postgres://user:password@test-host-name/db'
+    );
+    assert.strictEqual(dbConfig.engine, 'postgresql');
+    assert.strictEqual(dbConfig.username, 'user');
+    assert.strictEqual(dbConfig.password, 'password');
+    assert.strictEqual(dbConfig.host, 'test-host-name');
+    assert.strictEqual(dbConfig.database, 'db');
+    assert.strictEqual(dbConfig.port, 5432);
+  });
+
   void it('should throw error if one or more parts are missing in the database url', async () => {
     const parse = () => parseDatabaseUrl('mysql://hostname/db');
     assert.throws(parse, {
       name: 'DatabaseUrlParseError',
       message:
-        'Unable to parse the database URL. One or more parts of the database URL is missing. Missing [username, password, port].',
-    });
-  });
-
-  void it('should throw error if the connection uri is missing port', async () => {
-    const parse = () =>
-      parseDatabaseUrl('mysql://user:password@mysql-hostname/db');
-    assert.throws(parse, {
-      name: 'DatabaseUrlParseError',
-      message:
-        'Unable to parse the database URL. One or more parts of the database URL is missing. Missing [port].',
+        'Unable to parse the database URL. One or more parts of the database URL is missing. Missing [username, password].',
     });
   });
 });

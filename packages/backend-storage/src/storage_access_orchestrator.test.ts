@@ -6,6 +6,7 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import assert from 'node:assert';
 import { entityIdPathToken } from './constants.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
+import { StorageAccessDefinition } from './types.js';
 
 void describe('StorageAccessOrchestrator', () => {
   void describe('orchestrateStorageAccess', () => {
@@ -31,11 +32,13 @@ void describe('StorageAccessOrchestrator', () => {
           'test/prefix/*': [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'testResourceAccessAcceptor',
-                acceptResourceAccess: acceptResourceAccessMock,
-              }),
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'testResourceAccessAcceptor',
+                  acceptResourceAccess: acceptResourceAccessMock,
+                }),
+              ],
+              ...accessDefinitionTestDefaults('acceptor'),
             },
           ],
         }),
@@ -60,11 +63,13 @@ void describe('StorageAccessOrchestrator', () => {
           'test/prefix/*': [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'testResourceAccessAcceptor',
-                acceptResourceAccess: acceptResourceAccessMock,
-              }),
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'testResourceAccessAcceptor',
+                  acceptResourceAccess: acceptResourceAccessMock,
+                }),
+              ],
+              ...accessDefinitionTestDefaults('acceptor'),
             },
           ],
         }),
@@ -110,15 +115,15 @@ void describe('StorageAccessOrchestrator', () => {
           'test/prefix/*': [
             {
               actions: ['get', 'write', 'delete'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub],
+              ...accessDefinitionTestDefaults('acceptor'),
             },
           ],
           'another/prefix/*': [
             {
               actions: ['get'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub],
+              ...accessDefinitionTestDefaults('acceptor'),
             },
           ],
         }),
@@ -177,20 +182,20 @@ void describe('StorageAccessOrchestrator', () => {
           'test/prefix/*': [
             {
               actions: ['get', 'write', 'delete'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub1],
+              ...accessDefinitionTestDefaults('acceptor1'),
             },
             {
               actions: ['get'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
+              ...accessDefinitionTestDefaults('acceptor2'),
             },
           ],
           'another/prefix/*': [
             {
               actions: ['get', 'delete'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
+              ...accessDefinitionTestDefaults('acceptor2'),
             },
           ],
         }),
@@ -263,11 +268,16 @@ void describe('StorageAccessOrchestrator', () => {
           [`test/${entityIdPathToken}/*`]: [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'testResourceAccessAcceptor',
-                acceptResourceAccess: acceptResourceAccessMock,
-              }),
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'testResourceAccessAcceptor',
+                  acceptResourceAccess: acceptResourceAccessMock,
+                }),
+              ],
               idSubstitution: '{testOwnerSub}',
+              uniqueDefinitionIdValidations:
+                accessDefinitionTestDefaults('acceptor')
+                  .uniqueDefinitionIdValidations,
             },
           ],
         }),
@@ -310,21 +320,25 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/*': [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'resourceAccessAcceptor1',
-                acceptResourceAccess: acceptResourceAccessMock1,
-              }),
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'resourceAccessAcceptor1',
+                  acceptResourceAccess: acceptResourceAccessMock1,
+                }),
+              ],
+              ...accessDefinitionTestDefaults('acceptor1'),
             },
           ],
           'foo/bar/*': [
             {
               actions: ['get'],
-              getResourceAccessAcceptor: () => ({
-                identifier: 'resourceAccessAcceptor2',
-                acceptResourceAccess: acceptResourceAccessMock2,
-              }),
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [
+                () => ({
+                  identifier: 'resourceAccessAcceptor2',
+                  acceptResourceAccess: acceptResourceAccessMock2,
+                }),
+              ],
+              ...accessDefinitionTestDefaults('acceptor2'),
             },
           ],
         }),
@@ -396,13 +410,16 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/{entity_id}/*': [
             {
               actions: ['write', 'delete'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
               idSubstitution: '{idSub}',
+              uniqueDefinitionIdValidations:
+                accessDefinitionTestDefaults('auth-with-id')
+                  .uniqueDefinitionIdValidations,
             },
             {
               actions: ['get'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
+              ...accessDefinitionTestDefaults('auth'),
             },
           ],
         }),
@@ -461,8 +478,8 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/*': [
             {
               actions: ['get', 'write'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub1],
+              ...accessDefinitionTestDefaults('stub1'),
             },
           ],
           // acceptor1 should be denied read and write on this path
@@ -470,8 +487,11 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/bar/*': [
             {
               actions: ['get'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
               idSubstitution: '{idSub}',
+              uniqueDefinitionIdValidations:
+                accessDefinitionTestDefaults('stub2')
+                  .uniqueDefinitionIdValidations,
             },
           ],
           // acceptor1 should be denied write on this path (read from parent path covers read on this path)
@@ -479,8 +499,8 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/baz/*': [
             {
               actions: ['get'],
-              idSubstitution: '*',
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub1],
+              ...accessDefinitionTestDefaults('stub1'),
             },
           ],
           // acceptor 1 is denied write on this path (read still allowed)
@@ -488,13 +508,16 @@ void describe('StorageAccessOrchestrator', () => {
           'other/{entity_id}/*': [
             {
               actions: ['get', 'write', 'delete'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub2,
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
               idSubstitution: '{idSub}',
+              uniqueDefinitionIdValidations:
+                accessDefinitionTestDefaults('stub2')
+                  .uniqueDefinitionIdValidations,
             },
             {
               actions: ['get'],
-              getResourceAccessAcceptor: getResourceAccessAcceptorStub1,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [getResourceAccessAcceptorStub1],
+              ...accessDefinitionTestDefaults('stub1'),
             },
           ],
         }),
@@ -573,7 +596,7 @@ void describe('StorageAccessOrchestrator', () => {
       );
     });
 
-    void it('combines actions from multiple rules on the same resource access acceptor', () => {
+    void it('throws validation error for multiple rules on the same resource access acceptor', () => {
       const acceptResourceAccessMock = mock.fn();
       const authenticatedResourceAccessAcceptor = () => ({
         identifier: 'authenticatedResourceAccessAcceptor',
@@ -585,18 +608,13 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/*': [
             {
               actions: ['get'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
+              ...accessDefinitionTestDefaults('auth'),
             },
             {
               actions: ['write'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              idSubstitution: '{idSub}',
-            },
-            {
-              actions: ['delete'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
+              ...accessDefinitionTestDefaults('auth'),
             },
           ],
         }),
@@ -605,34 +623,9 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessOrchestrator.orchestrateStorageAccess();
-      assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
-      assert.deepStrictEqual(
-        acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
-        {
-          Statement: [
-            {
-              Action: 's3:GetObject',
-              Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/foo/*`,
-            },
-            {
-              Action: 's3:PutObject',
-              Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/foo/*`,
-            },
-            {
-              Action: 's3:DeleteObject',
-              Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/foo/*`,
-            },
-          ],
-          Version: '2012-10-17',
-        }
-      );
-      assert.deepStrictEqual(
-        acceptResourceAccessMock.mock.calls[0].arguments[1],
-        ssmEnvironmentEntriesStub
+      assert.throws(
+        () => storageAccessOrchestrator.orchestrateStorageAccess(),
+        { message: 'test duplicate id message for auth identifier' }
       );
     });
 
@@ -648,20 +641,15 @@ void describe('StorageAccessOrchestrator', () => {
           'foo/bar/*': [
             {
               actions: ['read', 'get', 'list'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              idSubstitution: '*',
-            },
-            {
-              actions: ['list'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
+              ...accessDefinitionTestDefaults('auth'),
             },
           ],
           'other/baz/*': [
             {
               actions: ['read'],
-              getResourceAccessAcceptor: authenticatedResourceAccessAcceptor,
-              idSubstitution: '*',
+              getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
+              ...accessDefinitionTestDefaults('auth'),
             },
           ],
         }),
@@ -719,3 +707,21 @@ const createStackAndSetContext = (): Stack => {
   const stack = new Stack(app);
   return stack;
 };
+
+const accessDefinitionTestDefaults = (
+  id: string
+): Pick<
+  StorageAccessDefinition,
+  'idSubstitution' | 'uniqueDefinitionIdValidations'
+> => ({
+  idSubstitution: '*',
+  uniqueDefinitionIdValidations: [
+    {
+      uniqueDefinitionId: id,
+      validationErrorOptions: {
+        message: `test duplicate id message for ${id} identifier`,
+        resolution: `test resolution for ${id}`,
+      },
+    },
+  ],
+});

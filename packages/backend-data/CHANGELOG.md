@@ -1,5 +1,99 @@
 # @aws-amplify/backend-data
 
+## 0.11.0
+
+### Minor Changes
+
+- 1058383: Standardize name validation across storage, functions, auth, and data
+
+## 0.10.0
+
+### Minor Changes
+
+- a777488: plumb function access definition from schema into IAM policies attached to the functions
+- 8fd5c5c: bump data-schema deps to latest
+- f76e983: Use updated metadata fields in form and model generation
+- 91dae55: remove allowListedRoleNames from defineData
+- f6489a8: enable iam auth in defineData
+- 268acd8: feat: enable destructive schema updates in amplify sandbox
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- a6f35a8: feat: Allow defineData to process combined and RDS schemas
+- 912034e: limit defineData call to one
+- 74cbda0: decentralize AmplifyErrorType
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+- 915bf98: upgrade @aws-amplify/data-construct dependency
+- 7857f0a: backend-data: add js resolver support
+- 26cdffd: backend-data: add support for first-class defineFunction
+- ef111b4: Add friendly-name tag to resources
+- 109cd1b: Add support for generating user pool groups.
+- ab739ea: backend-data sql PR naming cleanup
+- 060b6e5: Upgrade data packages
+- 937086b: require "resolution" in AmplifyUserError options
+- 4e6287e: chore: bump @aws-amplify/data-schema version to 0.14.0
+- 10c9447: Fix dependent bot alert for mysql2
+- 48ff3bd: Add cfnFunction to function resources
+- 6b217e6: Fixes bug where apiName can resolve to undefined
+- 0e6f436: chore: bump data-schema packages version (0.16.0)
+- Updated dependencies [ab7533d]
+- Updated dependencies [697d791]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [1e93535]
+- Updated dependencies [109cd1b]
+- Updated dependencies [db23a3f]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/backend-output-schemas@0.7.0
+  - @aws-amplify/backend-output-storage@0.4.0
+  - @aws-amplify/plugin-types@0.9.0
+
+## 0.10.0-beta.14
+
+### Patch Changes
+
+- ef111b4: Add friendly-name tag to resources
+- Updated dependencies [db23a3f]
+  - @aws-amplify/plugin-types@0.9.0-beta.3
+  - @aws-amplify/backend-output-storage@0.4.0-beta.8
+
+## 0.10.0-beta.13
+
+### Patch Changes
+
+- 10c9447: Fix dependent bot alert for mysql2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.7
+
+## 0.10.0-beta.12
+
+### Minor Changes
+
+- 911c4c6: chore!: update data-construct, data-schema, data-schema-types dependencies
+
+### Patch Changes
+
+- ab739ea: backend-data sql PR naming cleanup
+- Updated dependencies [1e93535]
+  - @aws-amplify/backend-output-schemas@0.7.0-beta.1
+  - @aws-amplify/backend-output-storage@0.4.0-beta.6
+
+## 0.10.0-beta.11
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- a6f35a8: feat: Allow defineData to process combined and RDS schemas
+- 48ff3bd: Add cfnFunction to function resources
+- 6b217e6: Fixes bug where apiName can resolve to undefined
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0-beta.2
+  - @aws-amplify/backend-output-storage@0.4.0-beta.5
+
 ## 0.10.0-beta.10
 
 ### Minor Changes

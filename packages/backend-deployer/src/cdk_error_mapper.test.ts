@@ -24,11 +24,22 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: 'Access Denied',
   },
   {
-    errorMessage: 'ReferenceError: var is not defined\n',
+    errorMessage: `ReferenceError: var is not defined
+    at lookup(/some_random/path.js: 1: 3005)`,
     expectedTopLevelErrorMessage:
       'Unable to build the Amplify backend definition.',
     errorName: 'SyntaxError',
-    expectedDownstreamErrorMessage: 'ReferenceError: var is not defined\n',
+    expectedDownstreamErrorMessage: `ReferenceError: var is not defined
+    at lookup(/some_random/path.js: 1: 3005)`,
+  },
+  {
+    errorMessage: `TypeError: Cannot read properties of undefined (reading 'post')
+    at lookup(/some_random/path.js: 1: 3005)`,
+    expectedTopLevelErrorMessage:
+      'Unable to build the Amplify backend definition.',
+    errorName: 'SyntaxError',
+    expectedDownstreamErrorMessage: `TypeError: Cannot read properties of undefined (reading 'post')
+    at lookup(/some_random/path.js: 1: 3005)`,
   },
   {
     errorMessage: 'Has the environment been bootstrapped',
@@ -66,6 +77,12 @@ const testErrorMappings = [
     errorName: 'CloudFormationDeploymentError',
     expectedDownstreamErrorMessage:
       '❌ Deployment failed: something bad happened\n',
+  },
+  {
+    errorMessage: `Received response status [FAILED] from custom resource. Message returned: Failed to retrieve backend secret 'non-existent-secret' for 'project-name'. Reason: {"cause":{"name":"ParameterNotFound","$fault":"client"},"__type":"ParameterNotFound","message":"UnknownError"},"httpStatusCode":400,"name":"SecretError"}`,
+    expectedTopLevelErrorMessage: `The secret 'non-existent-secret' specified in the backend does not exist.`,
+    errorName: 'SecretNotSetError',
+    expectedDownstreamErrorMessage: undefined,
   },
   {
     errorMessage:

@@ -8,7 +8,6 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
 import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import {
@@ -18,6 +17,9 @@ import {
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { printer } from '@aws-amplify/cli-core';
+import { S3Client } from '@aws-sdk/client-s3';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 /**
  * Creates wired sandbox command.
@@ -26,7 +28,6 @@ export const createSandboxCommand = (): CommandModule<
   object,
   SandboxCommandOptionsKebabCase
 > => {
-  const credentialProvider = fromNodeProviderChain();
   const sandboxBackendIdPartsResolver = new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader())
   );
@@ -35,8 +36,17 @@ export const createSandboxCommand = (): CommandModule<
     sandboxBackendIdPartsResolver.resolve,
     printer
   );
+  const s3Client = new S3Client();
+  const amplifyClient = new AmplifyClient();
+  const cloudFormationClient = new CloudFormationClient();
+
+  const awsClientProvider = {
+    getS3Client: () => s3Client,
+    getAmplifyClient: () => amplifyClient,
+    getCloudFormationClient: () => cloudFormationClient,
+  };
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter(
-    credentialProvider
+    awsClientProvider
   );
 
   const libraryVersion =
@@ -49,7 +59,7 @@ export const createSandboxCommand = (): CommandModule<
     async () => await new UsageDataEmitterFactory().getInstance(libraryVersion)
   );
 
-  const commandMiddleWare = new CommandMiddleware();
+  const commandMiddleWare = new CommandMiddleware(printer);
   return new SandboxCommand(
     sandboxFactory,
     [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],

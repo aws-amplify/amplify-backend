@@ -3,7 +3,10 @@ import fs from 'fs/promises';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type SchemaGeneratorConfig = {
-  connectionUri: string;
+  connectionUri: {
+    secretName: string;
+    value: string;
+  };
   out: string;
 };
 
@@ -16,10 +19,13 @@ type AmplifyGenerateSchemaError =
  */
 export class SchemaGenerator {
   generate = async (props: SchemaGeneratorConfig) => {
-    const dbConfig = parseDatabaseUrl(props.connectionUri);
+    const dbConfig = parseDatabaseUrl(props.connectionUri.value);
 
     try {
-      const schema = await TypescriptDataSchemaGenerator.generate(dbConfig);
+      const schema = await TypescriptDataSchemaGenerator.generate({
+        ...dbConfig,
+        connectionUriSecretName: props.connectionUri.secretName,
+      });
       await fs.writeFile(props.out, schema);
     } catch (err) {
       const databaseError = err as DatabaseConnectError;
@@ -40,6 +46,7 @@ export class SchemaGenerator {
 }
 
 export type SQLEngine = 'mysql' | 'postgresql';
+const DEFAULT_ENGINE = 'mysql';
 
 export type SQLDataSourceConfig = {
   engine: SQLEngine;
@@ -79,8 +86,13 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
     const password = decodeURIComponent(encodedPassword);
     const host = decodeURIComponent(encodedHost);
     const database = decodeURIComponent(parsedDatabaseUrl?.pathname?.slice(1));
-    const port = parseInt(parsedDatabaseUrl?.port, 10);
-    const engine = parsedDatabaseUrl?.protocol?.slice(0, -1) as SQLEngine;
+    // Default engine is MySQL
+    const engine = constructDBEngine(
+      parsedDatabaseUrl?.protocol?.slice(0, -1) ?? DEFAULT_ENGINE
+    );
+    const port = parsedDatabaseUrl?.port
+      ? parseInt(parsedDatabaseUrl?.port, 10)
+      : getDefaultPort(engine);
 
     const config = {
       engine,
@@ -118,5 +130,26 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
         resolution: 'Check if the database URL is correct and accessible.',
       }
     );
+  }
+};
+
+const constructDBEngine = (engine: string): SQLEngine => {
+  switch (engine) {
+    case 'mysql':
+      return 'mysql';
+    case 'postgresql':
+    case 'postgres':
+      return 'postgresql';
+    default:
+      throw new Error(`Unsupported database engine: ${engine}`);
+  }
+};
+
+const getDefaultPort = (engine: SQLEngine): number => {
+  switch (engine) {
+    case 'mysql':
+      return 3306;
+    case 'postgresql':
+      return 5432;
   }
 };

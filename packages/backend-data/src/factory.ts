@@ -12,12 +12,18 @@ import {
 import {
   AmplifyData,
   AmplifyDynamoDbTableWrapper,
+  IAmplifyDataDefinition,
   TranslationBehavior,
 } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
-import { convertSchemaToCDK, isModelSchema } from './convert_schema.js';
+import {
+  combineCDKSchemas,
+  convertSchemaToCDK,
+  isCombinedSchema,
+  isDataSchema,
+} from './convert_schema.js';
 import { convertFunctionNameMapToCDK } from './convert_functions.js';
 import {
   ProvidedAuthConfig,
@@ -28,11 +34,11 @@ import {
 import { validateAuthorizationModes } from './validate_authorization_modes.js';
 import {
   AmplifyError,
-  AmplifyFault,
   AmplifyUserError,
   CDKContextKey,
+  TagName,
 } from '@aws-amplify/platform-core';
-import { Aspects, IAspect } from 'aws-cdk-lib';
+import { Aspects, IAspect, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
@@ -72,13 +78,20 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
    * Gets an instance of the Data construct
    */
   getInstance = (props: ConstructFactoryGetInstanceProps): AmplifyData => {
-    const { constructContainer, outputStorageStrategy, importPathVerifier } =
-      props;
+    const {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+      resourceNameValidator,
+    } = props;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'data', 'resource'),
       'Amplify Data must be defined in amplify/data/resource.ts'
     );
+    if (this.props.name) {
+      resourceNameValidator?.validate(this.props.name);
+    }
     if (!this.generator) {
       this.generator = new DataGenerator(
         this.props,
@@ -99,29 +112,55 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
 
 class DataGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'data';
-  private readonly defaultName = 'amplifyData';
+  private readonly name: string;
 
   constructor(
     private readonly props: DataProps,
     private readonly providedAuthConfig: ProvidedAuthConfig | undefined,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
-  ) {}
+  ) {
+    this.name = props.name ?? 'amplifyData';
+  }
 
   generateContainerEntry = ({
     scope,
     ssmEnvironmentEntriesGenerator,
+    backendSecretResolver,
+    stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
-    let amplifyGraphqlDefinition;
-    let jsFunctions: JsResolver[] = [];
-    let functionSchemaAccess: FunctionSchemaAccess[] = [];
-    let lambdaFunctions: Record<string, ConstructFactory<AmplifyFunction>> = {};
+    const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
+    const schemasJsFunctions: JsResolver[] = [];
+    const schemasFunctionSchemaAccess: FunctionSchemaAccess[] = [];
+    let schemasLambdaFunctions: Record<
+      string,
+      ConstructFactory<AmplifyFunction>
+    > = {};
     try {
-      if (isModelSchema(this.props.schema)) {
-        ({ jsFunctions, functionSchemaAccess, lambdaFunctions } =
-          this.props.schema.transform());
-      }
-      amplifyGraphqlDefinition = convertSchemaToCDK(this.props.schema);
+      const schemas = isCombinedSchema(this.props.schema)
+        ? this.props.schema.schemas
+        : [this.props.schema];
+
+      schemas.forEach((schema) => {
+        if (isDataSchema(schema)) {
+          const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
+            schema.transform();
+          schemasJsFunctions.push(...jsFunctions);
+          schemasFunctionSchemaAccess.push(...functionSchemaAccess);
+          schemasLambdaFunctions = {
+            ...schemasLambdaFunctions,
+            ...lambdaFunctions,
+          };
+        }
+
+        amplifyGraphqlDefinitions.push(
+          convertSchemaToCDK(
+            schema,
+            backendSecretResolver,
+            stableBackendIdentifiers
+          )
+        );
+      });
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
         'InvalidSchemaError',
@@ -189,14 +228,14 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     const functionNameMap = convertFunctionNameMapToCDK(this.getInstanceProps, {
       ...propsFunctions,
-      ...lambdaFunctions,
+      ...schemasLambdaFunctions,
     });
     let amplifyApi = undefined;
 
     try {
-      amplifyApi = new AmplifyData(scope, this.defaultName, {
-        apiName: this.props.name,
-        definition: amplifyGraphqlDefinition,
+      amplifyApi = new AmplifyData(scope, this.name, {
+        apiName: this.name,
+        definition: combineCDKSchemas(amplifyGraphqlDefinitions),
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
         functionNameMap,
@@ -210,12 +249,17 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         },
       });
     } catch (error) {
-      throw new AmplifyFault(
-        'AmplifyDataConstructFault',
-        { message: 'Failed to instantiate data construct' },
+      throw new AmplifyUserError(
+        'AmplifyDataConstructInitializationError',
+        {
+          message: 'Failed to instantiate data construct',
+          resolution: 'See the underlying error message for more details.',
+        },
         error as Error
       );
     }
+
+    Tags.of(amplifyApi).add(TagName.FRIENDLY_NAME, this.name);
 
     /**;
      * Enable the table replacement upon GSI update
@@ -227,11 +271,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       Aspects.of(amplifyApi).add(new ReplaceTableUponGsiUpdateOverrideAspect());
     }
 
-    convertJsResolverDefinition(scope, amplifyApi, jsFunctions);
+    convertJsResolverDefinition(scope, amplifyApi, schemasJsFunctions);
 
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${this.props.name}_GRAPHQL_ENDPOINT`]:
+        [`${this.name}_GRAPHQL_ENDPOINT`]:
           amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
       });
 
@@ -239,7 +283,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       amplifyApi.resources.graphqlApi
     );
 
-    functionSchemaAccess.forEach((accessDefinition) => {
+    schemasFunctionSchemaAccess.forEach((accessDefinition) => {
       const policy = policyGenerator.generateGraphqlAccessPolicy(
         accessDefinition.actions
       );

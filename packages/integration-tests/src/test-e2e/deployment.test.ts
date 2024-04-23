@@ -17,6 +17,7 @@ import {
   interruptSandbox,
   rejectCleanupSandbox,
   replaceFiles,
+  waitForConfigUpdateAfterDeployment,
 } from '../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
@@ -134,6 +135,21 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
               sandboxBackendIdentifier,
               sharedSecretsEnv
             );
+            await testProject.assertPostDeployment(sandboxBackendIdentifier);
+          });
+
+          void it('generates config after sandbox --once deployment', async () => {
+            const processController = amplifyCli(
+              ['sandbox', '--once'],
+              testProject.projectDirPath,
+              {
+                env: sharedSecretsEnv,
+              }
+            );
+            await processController
+              .do(waitForConfigUpdateAfterDeployment())
+              .run();
+
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
 

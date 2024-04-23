@@ -28,6 +28,7 @@ import {
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
+  AttributeMapping,
   AuthProps,
   EmailLoginSettings,
   ExternalProviderOptions,
@@ -356,7 +357,7 @@ export class AmplifyAuth
       ) {
         // validate sms message structure
         smsMessage = phoneSettings.verificationMessage(
-          VERIFICATION_SMS_PLACEHOLDERS.CODE
+          () => VERIFICATION_SMS_PLACEHOLDERS.CODE
         );
         if (!smsMessage.includes(VERIFICATION_SMS_PLACEHOLDERS.CODE)) {
           throw Error(
@@ -426,7 +427,7 @@ export class AmplifyAuth
       emailSettings.verificationEmailStyle !== 'LINK'
     ) {
       emailBody = emailSettings.verificationEmailBody(
-        VERIFICATION_EMAIL_PLACEHOLDERS.CODE
+        () => VERIFICATION_EMAIL_PLACEHOLDERS.CODE
       );
       if (!emailBody.includes(VERIFICATION_EMAIL_PLACEHOLDERS.CODE)) {
         throw Error(
@@ -438,10 +439,14 @@ export class AmplifyAuth
       emailSettings.verificationEmailBody &&
       emailSettings.verificationEmailStyle === 'LINK'
     ) {
-      emailBody = emailSettings.verificationEmailBody(
-        VERIFICATION_EMAIL_PLACEHOLDERS.LINK
-      );
-      if (!emailBody.includes(VERIFICATION_EMAIL_PLACEHOLDERS.LINK)) {
+      let linkText: string = '';
+      emailBody = emailSettings.verificationEmailBody((text?: string) => {
+        linkText = text
+          ? `{##${text}##}`
+          : VERIFICATION_EMAIL_PLACEHOLDERS.LINK;
+        return linkText;
+      });
+      if (linkText === '' || !emailBody.includes(linkText)) {
         throw Error(
           "Invalid email settings. Property 'verificationEmailBody' must utilize the 'link' parameter at least once as a placeholder for the verification link."
         );
@@ -541,7 +546,7 @@ export class AmplifyAuth
     mfa: AuthProps['multifactor']
   ): string | undefined => {
     if (mfa && mfa.mode !== 'OFF' && typeof mfa.sms === 'object') {
-      const message = mfa.sms.smsMessage(MFA_SMS_PLACEHOLDERS.CODE);
+      const message = mfa.sms.smsMessage(() => MFA_SMS_PLACEHOLDERS.CODE);
       if (!message.includes(MFA_SMS_PLACEHOLDERS.CODE)) {
         throw Error(
           "Invalid MFA settings. Property 'smsMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."
@@ -576,12 +581,12 @@ export class AmplifyAuth
       return result;
     }
     // make sure logout/callback urls are not empty
-    if (external.logoutUrls.length === 0) {
+    if (external.logoutUrls && external.logoutUrls.length === 0) {
       throw Error(
         'You must define logoutUrls when configuring external login providers.'
       );
     }
-    if (external.callbackUrls.length === 0) {
+    if (external.callbackUrls && external.callbackUrls.length === 0) {
       throw Error(
         'You must define callbackUrls when configuring external login providers.'
       );
@@ -601,7 +606,9 @@ export class AmplifyAuth
                   email: ProviderAttribute.GOOGLE_EMAIL,
                 }
               : undefined),
-            ...googleProps.attributeMapping,
+            ...this.convertToCognitoAttributeMapping(
+              googleProps.attributeMapping
+            ),
           },
           scopes: googleProps.scopes,
         }
@@ -622,7 +629,9 @@ export class AmplifyAuth
                   email: ProviderAttribute.FACEBOOK_EMAIL,
                 }
               : undefined),
-            ...external.facebook.attributeMapping,
+            ...this.convertToCognitoAttributeMapping(
+              external.facebook.attributeMapping
+            ),
           },
         }
       );
@@ -643,7 +652,9 @@ export class AmplifyAuth
                   email: ProviderAttribute.AMAZON_EMAIL,
                 }
               : undefined),
-            ...external.loginWithAmazon.attributeMapping,
+            ...this.convertToCognitoAttributeMapping(
+              external.loginWithAmazon.attributeMapping
+            ),
           },
         }
       );
@@ -664,7 +675,9 @@ export class AmplifyAuth
                   email: ProviderAttribute.APPLE_EMAIL,
                 }
               : undefined),
-            ...external.signInWithApple.attributeMapping,
+            ...this.convertToCognitoAttributeMapping(
+              external.signInWithApple.attributeMapping
+            ),
           },
         }
       );
@@ -703,7 +716,9 @@ export class AmplifyAuth
                     },
                   }
                 : undefined),
-              ...provider.attributeMapping,
+              ...this.convertToCognitoAttributeMapping(
+                provider.attributeMapping
+              ),
             },
           }
         );
@@ -718,7 +733,9 @@ export class AmplifyAuth
         `${this.name}SamlIDP`,
         {
           userPool,
-          attributeMapping: saml.attributeMapping,
+          attributeMapping: this.convertToCognitoAttributeMapping(
+            saml.attributeMapping
+          ),
           identifiers: saml.identifiers,
           idpSignout: saml.idpSignout,
           metadata: {
@@ -734,15 +751,16 @@ export class AmplifyAuth
       result.providersList.push('SAML');
     }
 
-    // UserPool Domain
-    if (this.domainPrefix && result.providersList.length > 0) {
-      this.userPool.addDomain(`${this.name}UserPoolDomain`, {
-        cognitoDomain: { domainPrefix: this.domainPrefix },
-      });
-    } else if (this.domainPrefix && result.providersList.length === 0) {
-      throw new Error(
-        'You cannot configure a domain prefix if there are no external providers configured.'
-      );
+    if (result.providersList.length > 0) {
+      if (this.domainPrefix) {
+        this.userPool.addDomain(`${this.name}UserPoolDomain`, {
+          cognitoDomain: { domainPrefix: this.domainPrefix },
+        });
+      } else {
+        throw new Error(
+          'Cognito Domain Prefix is missing when external providers are configured.'
+        );
+      }
     }
 
     // oauth settings for the UserPool client
@@ -760,6 +778,43 @@ export class AmplifyAuth
     return result;
   };
 
+  /**
+   * Converts the simplified mapping type to cognito.AttributeMapping.
+   * @param mapping the AttributeMapping to convert to a cognito.AttributeMapping
+   * @returns cognito.AttributeMapping
+   */
+  private convertToCognitoAttributeMapping = (
+    mapping?: AttributeMapping
+  ): cognito.AttributeMapping | undefined => {
+    if (!mapping) {
+      return undefined;
+    }
+    const result: Record<
+      string,
+      | ProviderAttribute
+      | {
+          [key: string]: ProviderAttribute;
+        }
+    > = {};
+    for (const [attrName, value] of Object.entries(mapping)) {
+      if (typeof value === 'string') {
+        result[attrName] = {
+          attributeName: value,
+        };
+      }
+      if (typeof value === 'object' && attrName === 'custom') {
+        // dealing with custom attributes
+        const customAttributes: Record<string, ProviderAttribute> = {};
+        for (const [customKey, attrName] of Object.entries(value)) {
+          customAttributes[customKey] = {
+            attributeName: attrName,
+          };
+        }
+        result[attrName] = customAttributes;
+      }
+    }
+    return result;
+  };
   /**
    * Convert scopes from string list to OAuthScopes.
    * @param scopes - scope list
@@ -910,7 +965,7 @@ export class AmplifyAuth
       const oAuthSettings = this.providerSetupResult.oAuthSettings;
       if (oAuthSettings) {
         if (this.domainPrefix) {
-          output.oauthDomain = `${this.domainPrefix}.auth.${
+          output.oauthCognitoDomain = `${this.domainPrefix}.auth.${
             Stack.of(this).region
           }.amazoncognito.com`;
         }

@@ -5,7 +5,7 @@
 // we have to match the expected environment variable names
 /* eslint-disable @typescript-eslint/naming-convention */
 export const env = process.env as {
-  testName_BUCKET_NAME: string;
+  TEST_NAME_BUCKET_NAME: string;
   AWS_REGION: string;
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;

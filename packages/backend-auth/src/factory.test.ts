@@ -12,6 +12,7 @@ import {
   FunctionResources,
   ImportPathVerifier,
   ResourceAccessAcceptorFactory,
+  ResourceNameValidator,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
@@ -19,10 +20,12 @@ import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
+  ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -39,6 +42,7 @@ void describe('AmplifyAuthFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+  let resourceNameValidator: ResourceNameValidator;
   let stack: Stack;
   beforeEach(() => {
     resetFactoryCount();
@@ -58,10 +62,13 @@ void describe('AmplifyAuthFactory', () => {
 
     importPathVerifier = new ImportPathVerifierStub();
 
+    resourceNameValidator = new ResourceNameValidatorStub();
+
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      resourceNameValidator,
     };
   });
 
@@ -80,6 +87,41 @@ void describe('AmplifyAuthFactory', () => {
     );
 
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
+  });
+
+  void it('tags resources with friendly name', () => {
+    resetFactoryCount();
+    const authFactory = defineAuth({
+      loginWith: { email: true },
+      name: 'testNameFoo',
+    });
+
+    const backendAuth = authFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(
+      Stack.of(backendAuth.resources.userPool)
+    );
+
+    template.resourceCountIs('AWS::Cognito::UserPool', 1);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UserPoolTags: { 'amplify:friendly-name': 'testNameFoo' },
+    });
+  });
+
+  void it('throws on invalid name', () => {
+    mock
+      .method(resourceNameValidator, 'validate')
+      .mock.mockImplementationOnce(() => {
+        throw new Error('test validation error');
+      });
+    resetFactoryCount();
+    const authFactory = defineAuth({
+      loginWith: { email: true },
+      name: 'this!is@wrong$',
+    });
+    assert.throws(() => authFactory.getInstance(getInstanceProps), {
+      message: 'test validation error',
+    });
   });
 
   void it('verifies constructor import path', () => {
@@ -178,15 +220,19 @@ void describe('AmplifyAuthFactory', () => {
 
   triggerEvents.forEach((event) => {
     void it(`resolves ${event} trigger and attaches handler to auth construct`, () => {
+      const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+        code: aws_lambda.Code.fromInline('test placeholder'),
+        runtime: aws_lambda.Runtime.NODEJS_18_X,
+        handler: 'index.handler',
+      });
       const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
         getInstance: () => {
           return {
             resources: {
-              lambda: new aws_lambda.Function(stack, 'testFunc', {
-                code: aws_lambda.Code.fromInline('test placeholder'),
-                runtime: aws_lambda.Runtime.NODEJS_18_X,
-                handler: 'index.handler',
-              }),
+              lambda: testFunc,
+              cfnResources: {
+                cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+              },
             },
           };
         },

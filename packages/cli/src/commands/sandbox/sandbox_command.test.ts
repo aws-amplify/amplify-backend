@@ -19,6 +19,9 @@ import path from 'path';
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
+// To check if client config already exists before creating an empty one.
+mock.method(fs, 'existsSync', () => true);
+
 void describe('sandbox command factory', () => {
   void it('instantiate a sandbox command correctly', () => {
     assert.ok(createSandboxCommand() instanceof SandboxCommand);
@@ -37,7 +40,7 @@ void describe('sandbox command', () => {
     generateClientConfigToFile: clientConfigGenerationMock,
   } as unknown as ClientConfigGeneratorAdapter;
 
-  const commandMiddleware = new CommandMiddleware();
+  const commandMiddleware = new CommandMiddleware(printer);
   const mockHandleProfile = mock.method(
     commandMiddleware,
     'ensureAwsCredentialAndRegion',
@@ -94,25 +97,26 @@ void describe('sandbox command', () => {
   void it('starts sandbox without any additional flags', async () => {
     await commandRunner.runCommand('sandbox');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.ok(!sandboxStartMock.mock.calls[0].arguments[0].name);
+    assert.ok(!sandboxStartMock.mock.calls[0].arguments[0].identifier);
   });
 
-  void it('starts sandbox with user provided app name', async () => {
-    await commandRunner.runCommand('sandbox --name user-app-name');
+  void it('starts sandbox with user provided sandbox identifier', async () => {
+    await commandRunner.runCommand('sandbox --identifier user-app-name');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      sandboxStartMock.mock.calls[0].arguments[0].name,
+      sandboxStartMock.mock.calls[0].arguments[0].identifier,
       'user-app-name'
     );
   });
 
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox --help');
-    assert.match(output, /--name/);
+    assert.match(output, /--identifier/);
     assert.match(output, /--dir-to-watch/);
     assert.match(output, /--exclude/);
     assert.match(output, /--config-format/);
     assert.match(output, /--config-out-dir/);
+    assert.match(output, /--once/);
     assert.equal(mockHandleProfile.mock.callCount(), 0);
   });
 
@@ -290,12 +294,6 @@ void describe('sandbox command', () => {
   });
 
   void it('starts sandbox with provided client config options as watch exclusions', async (contextual) => {
-    mock.method(fs, 'lstatSync', () => {
-      return {
-        isFile: () => false,
-        isDir: () => true,
-      };
-    });
     contextual.mock.method(fsp, 'stat', () => ({
       isDirectory: () => true,
     }));
@@ -306,6 +304,57 @@ void describe('sandbox command', () => {
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].exclude,
       [path.join(process.cwd(), 'existentDir', 'amplifyconfiguration.ts')]
+    );
+  });
+
+  void it('sandbox creates an empty client config file if one does not already exist for version 0', async (contextual) => {
+    contextual.mock.method(fs, 'existsSync', () => false);
+    const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
+    await commandRunner.runCommand('sandbox --config-version 0');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.equal(writeFileMock.mock.callCount(), 1);
+    assert.deepStrictEqual(writeFileMock.mock.calls[0].arguments[1], '{}');
+    assert.deepStrictEqual(
+      writeFileMock.mock.calls[0].arguments[0],
+      path.join(process.cwd(), 'amplifyconfiguration.json')
+    );
+  });
+
+  void it('sandbox creates an empty client config file if one does not already exist for version 1', async (contextual) => {
+    contextual.mock.method(fs, 'existsSync', () => false);
+    const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
+    await commandRunner.runCommand('sandbox --config-version 1');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.equal(writeFileMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      writeFileMock.mock.calls[0].arguments[1],
+      `{\n  "version": "1"\n}`
+    );
+    assert.deepStrictEqual(
+      writeFileMock.mock.calls[0].arguments[0],
+      path.join(process.cwd(), 'amplify_outputs.json')
+    );
+  });
+
+  void it('starts sandbox with watchForChanges when --once flag is set', async () => {
+    await commandRunner.runCommand('sandbox --once');
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.strictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].watchForChanges,
+      false
+    );
+  });
+
+  void it('--once flag is mutually exclusive with dir-to-watch & exclude', async () => {
+    assert.match(
+      await commandRunner.runCommand(
+        'sandbox --once --dir-to-watch nonExistentDir'
+      ),
+      /Arguments once and dir-to-watch are mutually exclusive/
+    );
+    assert.match(
+      await commandRunner.runCommand('sandbox --once --exclude test'),
+      /Arguments once and exclude are mutually exclusive/
     );
   });
 });

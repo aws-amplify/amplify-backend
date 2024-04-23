@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import {
   AmplifyAuth,
   AuthProps,
@@ -28,6 +28,7 @@ import {
   Expand,
 } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
+import { Tags } from 'aws-cdk-lib';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName | string>;
@@ -93,12 +94,16 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ): BackendAuth => {
-    const { constructContainer, importPathVerifier } = getInstanceProps;
+    const { constructContainer, importPathVerifier, resourceNameValidator } =
+      getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'auth', 'resource'),
       'Amplify Auth must be defined in amplify/auth/resource.ts'
     );
+    if (this.props.name) {
+      resourceNameValidator?.validate(this.props.name);
+    }
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
     }
@@ -108,19 +113,22 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
 
 class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'auth';
-  private readonly defaultName = 'amplifyAuth';
+  private readonly name: string;
 
   constructor(
     private readonly props: AmplifyAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly authAccessBuilder = _authAccessBuilder,
     private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
-  ) {}
+  ) {
+    this.name = props.name ?? 'amplifyAuth';
+  }
 
   generateContainerEntry = ({
     scope,
     backendSecretResolver,
     ssmEnvironmentEntriesGenerator,
+    stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
     const authProps: AuthProps = {
       ...this.props,
@@ -130,8 +138,27 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
+    if (authProps.loginWith.externalProviders) {
+      authProps.loginWith.externalProviders.domainPrefix =
+        stableBackendIdentifiers.getStableBackendHash();
+    }
 
-    const authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
+    let authConstruct: AmplifyAuth;
+    try {
+      authConstruct = new AmplifyAuth(scope, this.name, authProps);
+    } catch (error) {
+      throw new AmplifyUserError(
+        'AmplifyAuthConstructInitializationError',
+        {
+          message: 'Failed to instantiate auth construct',
+          resolution: 'See the underlying error message for more details.',
+        },
+        error as Error
+      );
+    }
+
+    Tags.of(authConstruct).add(TagName.FRIENDLY_NAME, this.name);
+
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
         (authConstruct.resources.userPool as UserPool).addTrigger(
@@ -175,7 +202,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${this.defaultName}_USERPOOL_ID`]:
+        [`${this.name}_USERPOOL_ID`]:
           authConstructMixin.resources.userPool.userPoolId,
       });
 

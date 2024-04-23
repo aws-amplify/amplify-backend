@@ -313,6 +313,30 @@ void describe('client config converter', () => {
     assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
   });
 
+  void it('converts storage config', () => {
+    const clientConfig: ClientConfigLegacy = {
+      aws_user_files_s3_bucket: 'testBucketName',
+      aws_user_files_s3_bucket_region: 'testBucketRegion',
+    };
+
+    const expectedMobileConfig: ClientConfigMobile = {
+      UserAgent: 'test_package_name/test_package_version;',
+      Version: '1.0',
+      storage: {
+        plugins: {
+          awsS3StoragePlugin: {
+            bucket: 'testBucketName',
+            region: 'testBucketRegion',
+          },
+        },
+      },
+    };
+
+    const actualMobileConfig = converter.convertToMobileConfig(clientConfig);
+
+    assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
+  });
+
   void it('converts full notifications config', () => {
     const clientConfig: ClientConfigLegacy = {
       Notifications: {
@@ -328,13 +352,7 @@ void describe('client config converter', () => {
             region: 'email_region',
           },
         },
-        FCM: {
-          AWSPinpoint: {
-            appId: 'push_app_id',
-            region: 'push_region',
-          },
-        },
-        APNS: {
+        Push: {
           AWSPinpoint: {
             appId: 'push_app_id',
             region: 'push_region',
@@ -379,10 +397,10 @@ void describe('client config converter', () => {
     assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
   });
 
-  void it('converts apn notifications config', () => {
+  void it('converts push notifications config', () => {
     const clientConfig: ClientConfigLegacy = {
       Notifications: {
-        APNS: {
+        Push: {
           AWSPinpoint: {
             appId: 'push_app_id',
             region: 'push_region',
@@ -407,65 +425,5 @@ void describe('client config converter', () => {
     const actualMobileConfig = converter.convertToMobileConfig(clientConfig);
 
     assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
-  });
-
-  void it('converts fcm notifications config', () => {
-    const clientConfig: ClientConfigLegacy = {
-      Notifications: {
-        FCM: {
-          AWSPinpoint: {
-            appId: 'push_app_id',
-            region: 'push_region',
-          },
-        },
-      },
-    };
-
-    const expectedMobileConfig: ClientConfigMobile = {
-      UserAgent: 'test_package_name/test_package_version;',
-      Version: '1.0',
-      notifications: {
-        plugins: {
-          awsPinpointPushNotificationsPlugin: {
-            appId: 'push_app_id',
-            region: 'push_region',
-          },
-        },
-      },
-    };
-
-    const actualMobileConfig = converter.convertToMobileConfig(clientConfig);
-
-    assert.deepStrictEqual(expectedMobileConfig, actualMobileConfig);
-  });
-
-  void it('throw on ambiguous push config', () => {
-    const clientConfig: ClientConfigLegacy = {
-      Notifications: {
-        FCM: {
-          AWSPinpoint: {
-            appId: 'push_app_id_1',
-            region: 'push_region',
-          },
-        },
-        APNS: {
-          AWSPinpoint: {
-            appId: 'push_app_id_2',
-            region: 'push_region',
-          },
-        },
-      },
-    };
-
-    assert.throws(
-      () => converter.convertToMobileConfig(clientConfig),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'Cannot convert client config to mobile config if both FCM and APNS are defined with different AWS Pinpoint instance'
-        );
-        return true;
-      }
-    );
   });
 });

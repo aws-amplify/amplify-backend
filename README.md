@@ -10,6 +10,12 @@ To quickly get started with Amplify (Gen 2), please visit [AWS Amplify (Gen 2) Q
 npm create amplify@latest
 ```
 
+## Package Manager Support
+
+- NPM, Yarn, PNPM are officially supported.
+- NodeJS 20 or later version is required for Yarn because of the NodeJS [loader bug](https://github.com/nodejs/node/pull/43772) causing yarn [chain loader error](https://github.com/yarnpkg/berry/issues/4694).
+- Yarn PnP is not supported. Run `yarn config set nodeLinker node-modules` to use "node-modules".
+
 ## Security
 
 If you discover a potential security issue in this project we ask that you notify AWS/Amazon Security via our [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public GitHub issue.

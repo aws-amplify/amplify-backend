@@ -69,7 +69,7 @@ export enum ClientConfigFormat {
 
 export enum ClientConfigFileBaseName {
   LEGACY = 'amplifyconfiguration',
-  DEFAULT = 'amplify-outputs',
+  DEFAULT = 'amplify_outputs',
 }
 
 export type GenerateClientConfigToFileResult = {
