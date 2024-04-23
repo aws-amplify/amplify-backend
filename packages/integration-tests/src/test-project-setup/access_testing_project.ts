@@ -22,6 +22,8 @@ import {
   GetOpenIdTokenCommandOutput,
 } from '@aws-sdk/client-cognito-identity';
 import {
+  AssumeRoleCommand,
+  AssumeRoleCommandOutput,
   AssumeRoleWithWebIdentityCommand,
   STSClient,
 } from '@aws-sdk/client-sts';
@@ -161,7 +163,108 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       backendId
     );
     await this.assertAmplifyAuthAccessToData(backendId);
+    await this.assertGenericIamRolesAccessToData(backendId);
   }
+
+  private assertGenericIamRolesAccessToData = async (
+    backendId: BackendIdentifier
+  ) => {
+    const clientConfig = await generateClientConfig(backendId, '1');
+    if (!clientConfig.custom) {
+      throw new Error('Client config is missing custom section');
+    }
+
+    const roleWithAccessToDataArn = clientConfig.custom
+      .roleWithAccessToDataArn as string;
+    const roleWithAccessToDataCredentials = await this.assumeRole(
+      roleWithAccessToDataArn
+    );
+    const appSyncClientForRoleWithAccessToData = this.createAppSyncClient(
+      clientConfig,
+      roleWithAccessToDataCredentials
+    );
+    // evaluates successfully
+    await appSyncClientForRoleWithAccessToData.query({
+      query: gql`
+        query TestQuery {
+          listPrivateTodos {
+            items {
+              id
+              content
+            }
+          }
+        }
+      `,
+    });
+    // evaluates successfully
+    await appSyncClientForRoleWithAccessToData.query({
+      query: gql`
+        query TestQuery {
+          listPublicTodos {
+            items {
+              id
+              content
+            }
+          }
+        }
+      `,
+    });
+
+    const roleWithoutAccessToDataArn = clientConfig.custom
+      .roleWithoutAccessToDataArn as string;
+    const roleWithoutAccessToDataCredentials = await this.assumeRole(
+      roleWithoutAccessToDataArn
+    );
+    const appSyncClientForRoleWithoutAccessToData = this.createAppSyncClient(
+      clientConfig,
+      roleWithoutAccessToDataCredentials
+    );
+    await assert.rejects(
+      () =>
+        appSyncClientForRoleWithoutAccessToData.query({
+          query: gql`
+            query TestQuery {
+              listPrivateTodos {
+                items {
+                  id
+                  content
+                }
+              }
+            }
+          `,
+        }),
+      (error: Error) => {
+        assert.strictEqual(
+          error.message,
+          'Network error: Response not successful: Received status code 401'
+        );
+        return true;
+      }
+    );
+
+    await assert.rejects(
+      () =>
+        appSyncClientForRoleWithoutAccessToData.query({
+          query: gql`
+            query TestQuery {
+              listPublicTodos {
+                items {
+                  id
+                  content
+                }
+              }
+            }
+          `,
+        }),
+      (error: Error) => {
+        assert.strictEqual(
+          error.message,
+          'Network error: Response not successful: Received status code 401'
+        );
+        return true;
+      }
+    );
+  };
 
   private assertAmplifyAuthAccessToData = async (
     backendId: BackendIdentifier
@@ -559,5 +662,29 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       },
       disableOffline: true,
     });
+  };
+
+  private assumeRole = async (roleArn: string): Promise<IamCredentials> => {
+    const assumeRoleResponse: AssumeRoleCommandOutput =
+      await this.stsClient.send(
+        new AssumeRoleCommand({
+          RoleArn: roleArn,
+          RoleSessionName: shortUuid(),
+        })
+      );
+
+    if (
+      !assumeRoleResponse.Credentials?.AccessKeyId ||
+      !assumeRoleResponse.Credentials?.SecretAccessKey ||
+      !assumeRoleResponse.Credentials?.SessionToken
+    ) {
+      throw new Error('Invalid IAM role credentials.');
+    }
+
+    return {
+      accessKeyId: assumeRoleResponse.Credentials?.AccessKeyId,
+      secretAccessKey: assumeRoleResponse.Credentials?.SecretAccessKey,
+      sessionToken: assumeRoleResponse.Credentials?.SessionToken,
+    };
   };
 }
