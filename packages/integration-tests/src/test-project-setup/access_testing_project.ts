@@ -12,7 +12,6 @@ import {
   RespondToAuthChallengeCommandOutput,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { shortUuid } from '../short_uuid.js';
 import {
   CognitoIdentityClient,
@@ -27,11 +26,6 @@ import {
   AssumeRoleWithWebIdentityCommand,
   STSClient,
 } from '@aws-sdk/client-sts';
-import {
-  GetRoleCommand,
-  GetRoleCommandOutput,
-  IAMClient,
-} from '@aws-sdk/client-iam';
 import assert from 'assert';
 import {
   ClientConfigVersionTemplateType,
@@ -43,9 +37,10 @@ import { AUTH_TYPE, AWSAppSyncClient } from 'aws-appsync';
 import crypto from 'node:crypto';
 import { gql } from 'graphql-tag';
 
-// FIXME: this is a hack to work around https://github.com/aws-amplify/amplify-js/issues/12751
+// TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
-// @ts-expect-error
+// see https://github.com/aws-amplify/amplify-js/issues/12751
+// @ts-expect-error altering typing for global to make compiler happy is not worth the effort assuming this is temporary workaround
 globalThis.crypto = crypto;
 
 /**
@@ -63,9 +58,7 @@ export class AccessTestingProjectTestProjectCreator
     private readonly cfnClient: CloudFormationClient,
     private readonly cognitoIdentityClient: CognitoIdentityClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly iamClient: IAMClient,
-    private readonly stsClient: STSClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly stsClient: STSClient
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -84,9 +77,7 @@ export class AccessTestingProjectTestProjectCreator
       this.cfnClient,
       this.cognitoIdentityClient,
       this.cognitoIdentityProviderClient,
-      this.iamClient,
-      this.stsClient,
-      this.resourceFinder
+      this.stsClient
     );
     await fs.cp(
       project.sourceProjectAmplifyDirPath,
@@ -117,11 +108,6 @@ type AmplifyAuthCognitoUser = {
   credentials: IamCredentials;
 };
 
-type AmplifyAuthRoles = {
-  authRoleArn: string;
-  unAuthRoleArn: string;
-};
-
 /**
  * The access testing project.
  */
@@ -148,9 +134,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     cfnClient: CloudFormationClient,
     private readonly cognitoIdentityClient: CognitoIdentityClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly iamClient: IAMClient,
-    private readonly stsClient: STSClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly stsClient: STSClient
   ) {
     super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
   }
@@ -159,17 +143,17 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     backendId: BackendIdentifier
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
+    const clientConfig = await generateClientConfig(backendId, '1');
     await this.assertDifferentCognitoInstanceCannotAssumeAmplifyRoles(
-      backendId
+      clientConfig
     );
-    await this.assertAmplifyAuthAccessToData(backendId);
-    await this.assertGenericIamRolesAccessToData(backendId);
+    await this.assertAmplifyAuthAccessToData(clientConfig);
+    await this.assertGenericIamRolesAccessToData(clientConfig);
   }
 
   private assertGenericIamRolesAccessToData = async (
-    backendId: BackendIdentifier
+    clientConfig: ClientConfigVersionTemplateType<'1'>
   ) => {
-    const clientConfig = await generateClientConfig(backendId, '1');
     if (!clientConfig.custom) {
       throw new Error('Client config is missing custom section');
     }
@@ -267,10 +251,8 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   };
 
   private assertAmplifyAuthAccessToData = async (
-    backendId: BackendIdentifier
+    clientConfig: ClientConfigVersionTemplateType<'1'>
   ): Promise<void> => {
-    const clientConfig = await generateClientConfig(backendId, '1');
-
     const authenticatedUser =
       await this.createAuthenticatedAmplifyAuthCognitoUser(clientConfig);
     const appSyncClientForAuthenticatedUser = this.createAppSyncClient(
@@ -361,18 +343,22 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   };
 
   private assertDifferentCognitoInstanceCannotAssumeAmplifyRoles = async (
-    backendId: BackendIdentifier
+    clientConfig: ClientConfigVersionTemplateType<'1'>
   ): Promise<void> => {
     const simpleAuthUser = await this.createAuthenticatedSimpleAuthCognitoUser(
-      backendId
+      clientConfig
     );
-    const amplifyAuthRoles = await this.getAmplifyAuthRoles(backendId);
+    if (!clientConfig.custom) {
+      throw new Error('Client config is missing custom section');
+    }
+    const authRoleArn = clientConfig.custom.authRoleArn as string;
+    const unAuthRoleArn = clientConfig.custom.unAuthRoleArn as string;
 
     await assert.rejects(
       () =>
         this.stsClient.send(
           new AssumeRoleWithWebIdentityCommand({
-            RoleArn: amplifyAuthRoles.authRoleArn,
+            RoleArn: authRoleArn,
             RoleSessionName: shortUuid(),
             WebIdentityToken: simpleAuthUser.openIdToken,
           })
@@ -390,7 +376,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       () =>
         this.stsClient.send(
           new AssumeRoleWithWebIdentityCommand({
-            RoleArn: amplifyAuthRoles.unAuthRoleArn,
+            RoleArn: unAuthRoleArn,
             RoleSessionName: shortUuid(),
             WebIdentityToken: simpleAuthUser.openIdToken,
           })
@@ -403,50 +389,6 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         return true;
       }
     );
-  };
-
-  private getAmplifyAuthRoles = async (
-    backendId: BackendIdentifier
-  ): Promise<AmplifyAuthRoles> => {
-    const [authRoleName] = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::IAM::Role',
-      undefined,
-      (name) => name.includes('amplifyAuthauthenticatedUserRole')
-    );
-
-    const getAuthRoleResponse: GetRoleCommandOutput = await this.iamClient.send(
-      new GetRoleCommand({
-        RoleName: authRoleName,
-      })
-    );
-
-    if (!getAuthRoleResponse.Role?.Arn) {
-      throw new Error('Missing auth role arn');
-    }
-
-    const [unAuthRoleName] = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::IAM::Role',
-      undefined,
-      (name) => name.includes('amplifyAuthunauthenticatedUserRole')
-    );
-
-    const getUnAuthRoleResponse: GetRoleCommandOutput =
-      await this.iamClient.send(
-        new GetRoleCommand({
-          RoleName: unAuthRoleName,
-        })
-      );
-
-    if (!getUnAuthRoleResponse.Role?.Arn) {
-      throw new Error('Missing un auth role arn');
-    }
-
-    return {
-      authRoleArn: getAuthRoleResponse.Role.Arn,
-      unAuthRoleArn: getUnAuthRoleResponse.Role.Arn,
-    };
   };
 
   private createAuthenticatedAmplifyAuthCognitoUser = async (
@@ -513,31 +455,17 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   };
 
   private createAuthenticatedSimpleAuthCognitoUser = async (
-    backendId: BackendIdentifier
+    clientConfig: ClientConfigVersionTemplateType<'1'>
   ): Promise<SimpleAuthCognitoUser> => {
-    const [simpleAuthUserPoolId] =
-      await this.resourceFinder.findByBackendIdentifier(
-        backendId,
-        'AWS::Cognito::UserPool',
-        undefined,
-        (name) => name.includes('SimpleAuthUserPool')
-      );
-    const [simpleAuthUserPoolClientId] =
-      await this.resourceFinder.findByBackendIdentifier(
-        backendId,
-        'AWS::Cognito::UserPoolClient',
-        undefined,
-        (name) => name.includes('SimpleAuthUserPoolClient')
-      );
-
-    const [simpleAuthIdentityPoolId] =
-      await this.resourceFinder.findByBackendIdentifier(
-        backendId,
-        'AWS::Cognito::IdentityPool',
-        undefined,
-        (name) => name.includes('SimpleAuthIdentityPool')
-      );
-
+    if (!clientConfig.custom) {
+      throw new Error('Client config is missing custom section');
+    }
+    const simpleAuthUserPoolId = clientConfig.custom
+      .simpleAuthUserPoolId as string;
+    const simpleAuthUserPoolClientId = clientConfig.custom
+      .simpleAuthUserPoolClientId as string;
+    const simpleAuthIdentityPoolId = clientConfig.custom
+      .simpleAuthIdentityPoolId as string;
     const username = `amplify-backend-${shortUuid()}@amazon.com`;
     const temporaryPassword = `Test1@Temp${shortUuid()}`;
     const password = `Test1@${shortUuid()}`;

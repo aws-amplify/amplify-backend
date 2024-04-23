@@ -12,7 +12,7 @@ import { IAMClient } from '@aws-sdk/client-iam';
 import { AccessTestingProjectTestProjectCreator } from './access_testing_project.js';
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
-import { STSClient } from "@aws-sdk/client-sts";
+import { STSClient } from '@aws-sdk/client-sts';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -53,9 +53,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
       cfnClient,
       cognitoIdentityClient,
       cognitoIdentityProviderClient,
-      iamClient,
-      stsClient,
-      resourceFinder
+      stsClient
     )
   );
   return testProjectCreators;

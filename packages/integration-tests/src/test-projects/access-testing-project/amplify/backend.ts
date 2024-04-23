@@ -111,5 +111,10 @@ backend.addOutput({
   custom: {
     roleWithAccessToDataArn: roleWithAccessToData.roleArn,
     roleWithoutAccessToDataArn: roleWithoutAccessToData.roleArn,
+    simpleAuthUserPoolId: simpleAuthUserPool.userPoolId,
+    simpleAuthUserPoolClientId: simpleAuthUserPoolClient.userPoolClientId,
+    simpleAuthIdentityPoolId: simpleAuthIdentityPool.ref,
+    authRoleArn: backend.auth.resources.authenticatedUserIamRole.roleArn,
+    unAuthRoleArn: backend.auth.resources.unauthenticatedUserIamRole.roleArn,
   },
 });
