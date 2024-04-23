@@ -31,6 +31,20 @@ import {
   IAMClient,
 } from '@aws-sdk/client-iam';
 import assert from 'assert';
+import {
+  ClientConfigVersionTemplateType,
+  generateClientConfig,
+} from '@aws-amplify/client-config';
+import { Amplify } from 'aws-amplify';
+import * as auth from 'aws-amplify/auth';
+import { AUTH_TYPE, AWSAppSyncClient } from 'aws-appsync';
+import crypto from 'node:crypto';
+import { gql } from 'graphql-tag';
+
+// FIXME: this is a hack to work around https://github.com/aws-amplify/amplify-js/issues/12751
+// it seems like as of amplify v6 , some of the code only runs in the browser ...
+// @ts-expect-error
+globalThis.crypto = crypto;
 
 /**
  * Creates access testing projects with typescript idioms.
@@ -89,6 +103,18 @@ type SimpleAuthCognitoUser = {
   openIdToken: string;
 };
 
+type IamCredentials = {
+  accessKeyId: string;
+  secretAccessKey: string;
+  sessionToken?: string;
+};
+
+type AmplifyAuthCognitoUser = {
+  username: string;
+  password: string;
+  credentials: IamCredentials;
+};
+
 type AmplifyAuthRoles = {
   authRoleArn: string;
   unAuthRoleArn: string;
@@ -134,7 +160,102 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     await this.assertDifferentCognitoInstanceCannotAssumeAmplifyRoles(
       backendId
     );
+    await this.assertAmplifyAuthAccessToData(backendId);
   }
+
+  private assertAmplifyAuthAccessToData = async (
+    backendId: BackendIdentifier
+  ): Promise<void> => {
+    const clientConfig = await generateClientConfig(backendId, '1');
+
+    const authenticatedUser =
+      await this.createAuthenticatedAmplifyAuthCognitoUser(clientConfig);
+    const appSyncClientForAuthenticatedUser = this.createAppSyncClient(
+      clientConfig,
+      authenticatedUser.credentials
+    );
+
+    // evaluates successfully
+    await appSyncClientForAuthenticatedUser.query({
+      query: gql`
+        query TestQuery {
+          listPrivateTodos {
+            items {
+              id
+              content
+            }
+          }
+        }
+      `,
+    });
+
+    await assert.rejects(
+      () =>
+        appSyncClientForAuthenticatedUser.query({
+          query: gql`
+            query TestQuery {
+              listPublicTodos {
+                items {
+                  id
+                  content
+                }
+              }
+            }
+          `,
+        }),
+      (error: Error) => {
+        assert.strictEqual(
+          error.message,
+          'GraphQL error: Not Authorized to access listPublicTodos on type Query'
+        );
+        return true;
+      }
+    );
+
+    const guestUserCredentials =
+      await this.getGuestAccessAmplifyAuthCredentials(clientConfig);
+    const appSyncClientForGuestUser = this.createAppSyncClient(
+      clientConfig,
+      guestUserCredentials
+    );
+
+    // evaluates successfully
+    await appSyncClientForGuestUser.query({
+      query: gql`
+        query TestQuery {
+          listPublicTodos {
+            items {
+              id
+              content
+            }
+          }
+        }
+      `,
+    });
+
+    await assert.rejects(
+      () =>
+        appSyncClientForGuestUser.query({
+          query: gql`
+            query TestQuery {
+              listPrivateTodos {
+                items {
+                  id
+                  content
+                }
+              }
+            }
+          `,
+        }),
+      (error: Error) => {
+        assert.strictEqual(
+          error.message,
+          'Network error: Response not successful: Received status code 401'
+        );
+        return true;
+      }
+    );
+  };
 
   private assertDifferentCognitoInstanceCannotAssumeAmplifyRoles = async (
     backendId: BackendIdentifier
@@ -225,6 +346,69 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     };
   };
 
+  private createAuthenticatedAmplifyAuthCognitoUser = async (
+    clientConfig: ClientConfigVersionTemplateType<'1'>
+  ): Promise<AmplifyAuthCognitoUser> => {
+    const username = `amplify-backend-${shortUuid()}@amazon.com`;
+    const temporaryPassword = `Test1@Temp${shortUuid()}`;
+    const password = `Test1@${shortUuid()}`;
+    await this.cognitoIdentityProviderClient.send(
+      new AdminCreateUserCommand({
+        Username: username,
+        TemporaryPassword: temporaryPassword,
+        UserPoolId: clientConfig.auth?.user_pool_id,
+        MessageAction: 'SUPPRESS',
+      })
+    );
+
+    if (!clientConfig.auth?.user_pool_id) {
+      throw new Error('Client config must have user pool id.');
+    }
+
+    if (!clientConfig.auth?.identity_pool_id) {
+      throw new Error('Client config must have identity pool id.');
+    }
+
+    Amplify.configure({
+      Auth: {
+        Cognito: {
+          userPoolId: clientConfig.auth?.user_pool_id,
+          userPoolClientId: clientConfig.auth?.user_pool_client_id,
+          identityPoolId: clientConfig.auth?.identity_pool_id,
+          allowGuestAccess:
+            clientConfig.auth.unauthenticated_identities_enabled,
+        },
+      },
+    });
+
+    const signInResult = await auth.signIn({
+      username,
+      password: temporaryPassword,
+    });
+
+    assert.strictEqual(
+      signInResult.nextStep.signInStep,
+      'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
+    );
+
+    await auth.confirmSignIn({
+      challengeResponse: password,
+    });
+
+    const authSession = await auth.fetchAuthSession();
+    authSession.credentials;
+
+    if (!authSession.credentials) {
+      throw new Error('No credentials in auth session');
+    }
+
+    return {
+      username,
+      password,
+      credentials: authSession.credentials,
+    };
+  };
+
   private createAuthenticatedSimpleAuthCognitoUser = async (
     backendId: BackendIdentifier
   ): Promise<SimpleAuthCognitoUser> => {
@@ -288,10 +472,12 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         })
       );
 
-    const logins: Record<string, string | undefined> = {};
-    logins[
-      `cognito-idp.${await this.cognitoIdentityClient.config.region()}.amazonaws.com/${simpleAuthUserPoolId}`
-    ] = respondToAuthChallengeResponse.AuthenticationResult?.IdToken;
+    const logins: Record<string, string> = {};
+    if (respondToAuthChallengeResponse.AuthenticationResult?.IdToken) {
+      logins[
+        `cognito-idp.${await this.cognitoIdentityClient.config.region()}.amazonaws.com/${simpleAuthUserPoolId}`
+      ] = respondToAuthChallengeResponse.AuthenticationResult.IdToken;
+    }
     const getIdResponse: GetIdCommandOutput =
       await this.cognitoIdentityClient.send(
         new GetIdCommand({
@@ -317,5 +503,61 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       password,
       openIdToken: getOpenIdTokenResponse.Token,
     };
+  };
+
+  private getGuestAccessAmplifyAuthCredentials = async (
+    clientConfig: ClientConfigVersionTemplateType<'1'>
+  ): Promise<IamCredentials> => {
+    if (!clientConfig.auth?.user_pool_id) {
+      throw new Error('Client config must have user pool id.');
+    }
+
+    if (!clientConfig.auth?.identity_pool_id) {
+      throw new Error('Client config must have identity pool id.');
+    }
+
+    Amplify.configure({
+      Auth: {
+        Cognito: {
+          userPoolId: clientConfig.auth?.user_pool_id,
+          userPoolClientId: clientConfig.auth?.user_pool_client_id,
+          identityPoolId: clientConfig.auth?.identity_pool_id,
+          allowGuestAccess:
+            clientConfig.auth.unauthenticated_identities_enabled,
+        },
+      },
+    });
+
+    await auth.signOut();
+
+    const authSession = await auth.fetchAuthSession();
+    authSession.credentials;
+
+    if (!authSession.credentials) {
+      throw new Error('No credentials in auth session');
+    }
+
+    return authSession.credentials;
+  };
+
+  private createAppSyncClient = (
+    clientConfig: ClientConfigVersionTemplateType<'1'>,
+    credentials: IamCredentials
+  ): AWSAppSyncClient<any> => {
+    if (!clientConfig.data?.url) {
+      throw new Error('Appsync API URL is undefined');
+    }
+    if (!clientConfig.data?.aws_region) {
+      throw new Error('Appsync API region is undefined');
+    }
+    return new AWSAppSyncClient({
+      url: clientConfig.data?.url,
+      region: clientConfig.data?.aws_region,
+      auth: {
+        type: AUTH_TYPE.AWS_IAM,
+        credentials,
+      },
+      disableOffline: true,
+    });
   };
 }

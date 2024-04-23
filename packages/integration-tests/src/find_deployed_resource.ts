@@ -73,6 +73,7 @@ export class DeployedResourcesFinder {
           resource.ResourceType === resourceType &&
           resource.PhysicalResourceId &&
           physicalNamePredicate(resource.PhysicalResourceId) &&
+          resource.LogicalResourceId &&
           logicalNamePredicate(resource.LogicalResourceId)
         ) {
           resourcePhysicalIds.push(resource.PhysicalResourceId);
