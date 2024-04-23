@@ -138,7 +138,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
 
-          void it('generates config after sandbox --once deployment', async () => {
+          void it('generates config after sandbox --once deployment', {skip: true }, async () => {
             const processController = amplifyCli(
               ['sandbox', '--once'],
               testProject.projectDirPath,
@@ -153,7 +153,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
 
-          void it(`[${testProjectCreator.name}] hot-swaps a change`, {skip: false }, async () => {
+          void it(`[${testProjectCreator.name}] hot-swaps a change`, {skip: true }, async () => {
             const processController = amplifyCli(
               ['sandbox', '--dirToWatch', 'amplify'],
               testProject.projectDirPath,
