@@ -31,11 +31,11 @@ import {
   ClientConfigVersionTemplateType,
   generateClientConfig,
 } from '@aws-amplify/client-config';
-import { Amplify } from 'aws-amplify';
-import * as auth from 'aws-amplify/auth';
 import { AUTH_TYPE, AWSAppSyncClient } from 'aws-appsync';
 import crypto from 'node:crypto';
 import { gql } from 'graphql-tag';
+import { IamCredentials } from '../types.js';
+import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -96,18 +96,6 @@ type SimpleAuthCognitoUser = {
   openIdToken: string;
 };
 
-type IamCredentials = {
-  accessKeyId: string;
-  secretAccessKey: string;
-  sessionToken?: string;
-};
-
-type AmplifyAuthCognitoUser = {
-  username: string;
-  password: string;
-  credentials: IamCredentials;
-};
-
 /**
  * The access testing project.
  */
@@ -151,6 +139,10 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     await this.assertGenericIamRolesAccessToData(clientConfig);
   }
 
+  /**
+   * This test asserts that generic IAM roles have proper access to data API.
+   * I.e. roles not created by auth construct.
+   */
   private assertGenericIamRolesAccessToData = async (
     clientConfig: ClientConfigVersionTemplateType<'1'>
   ) => {
@@ -250,14 +242,20 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     );
   };
 
+  /**
+   * This asserts that authenticated and unauthenticated roles have relevant access to data API.
+   */
   private assertAmplifyAuthAccessToData = async (
     clientConfig: ClientConfigVersionTemplateType<'1'>
   ): Promise<void> => {
-    const authenticatedUser =
-      await this.createAuthenticatedAmplifyAuthCognitoUser(clientConfig);
+    const authenticatedUserCredentials =
+      await new AmplifyAuthCredentialsFactory(
+        this.cognitoIdentityProviderClient,
+        clientConfig
+      ).getNewAuthenticatedUserCredentials();
     const appSyncClientForAuthenticatedUser = this.createAppSyncClient(
       clientConfig,
-      authenticatedUser.credentials
+      authenticatedUserCredentials
     );
 
     // evaluates successfully
@@ -297,11 +295,13 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       }
     );
 
-    const guestUserCredentials =
-      await this.getGuestAccessAmplifyAuthCredentials(clientConfig);
+    const guestAccessCredentials = await new AmplifyAuthCredentialsFactory(
+      this.cognitoIdentityProviderClient,
+      clientConfig
+    ).getGuestAccessCredentials();
     const appSyncClientForGuestUser = this.createAppSyncClient(
       clientConfig,
-      guestUserCredentials
+      guestAccessCredentials
     );
 
     // evaluates successfully
@@ -342,6 +342,11 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     );
   };
 
+  /**
+   * This asserts that idToken obtained from Cognito instance other than
+   * created by auth construct cannot be used to assume Amplify authorized and
+   * unauthorized roles. I.e. it tests trust policy.
+   */
   private assertDifferentCognitoInstanceCannotAssumeAmplifyRoles = async (
     clientConfig: ClientConfigVersionTemplateType<'1'>
   ): Promise<void> => {
@@ -389,69 +394,6 @@ class AccessTestingProjectTestProject extends TestProjectBase {
         return true;
       }
     );
-  };
-
-  private createAuthenticatedAmplifyAuthCognitoUser = async (
-    clientConfig: ClientConfigVersionTemplateType<'1'>
-  ): Promise<AmplifyAuthCognitoUser> => {
-    const username = `amplify-backend-${shortUuid()}@amazon.com`;
-    const temporaryPassword = `Test1@Temp${shortUuid()}`;
-    const password = `Test1@${shortUuid()}`;
-    await this.cognitoIdentityProviderClient.send(
-      new AdminCreateUserCommand({
-        Username: username,
-        TemporaryPassword: temporaryPassword,
-        UserPoolId: clientConfig.auth?.user_pool_id,
-        MessageAction: 'SUPPRESS',
-      })
-    );
-
-    if (!clientConfig.auth?.user_pool_id) {
-      throw new Error('Client config must have user pool id.');
-    }
-
-    if (!clientConfig.auth?.identity_pool_id) {
-      throw new Error('Client config must have identity pool id.');
-    }
-
-    Amplify.configure({
-      Auth: {
-        Cognito: {
-          userPoolId: clientConfig.auth?.user_pool_id,
-          userPoolClientId: clientConfig.auth?.user_pool_client_id,
-          identityPoolId: clientConfig.auth?.identity_pool_id,
-          allowGuestAccess:
-            clientConfig.auth.unauthenticated_identities_enabled,
-        },
-      },
-    });
-
-    const signInResult = await auth.signIn({
-      username,
-      password: temporaryPassword,
-    });
-
-    assert.strictEqual(
-      signInResult.nextStep.signInStep,
-      'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
-    );
-
-    await auth.confirmSignIn({
-      challengeResponse: password,
-    });
-
-    const authSession = await auth.fetchAuthSession();
-    authSession.credentials;
-
-    if (!authSession.credentials) {
-      throw new Error('No credentials in auth session');
-    }
-
-    return {
-      username,
-      password,
-      credentials: authSession.credentials,
-    };
   };
 
   private createAuthenticatedSimpleAuthCognitoUser = async (
@@ -534,41 +476,6 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       password,
       openIdToken: getOpenIdTokenResponse.Token,
     };
-  };
-
-  private getGuestAccessAmplifyAuthCredentials = async (
-    clientConfig: ClientConfigVersionTemplateType<'1'>
-  ): Promise<IamCredentials> => {
-    if (!clientConfig.auth?.user_pool_id) {
-      throw new Error('Client config must have user pool id.');
-    }
-
-    if (!clientConfig.auth?.identity_pool_id) {
-      throw new Error('Client config must have identity pool id.');
-    }
-
-    Amplify.configure({
-      Auth: {
-        Cognito: {
-          userPoolId: clientConfig.auth?.user_pool_id,
-          userPoolClientId: clientConfig.auth?.user_pool_client_id,
-          identityPoolId: clientConfig.auth?.identity_pool_id,
-          allowGuestAccess:
-            clientConfig.auth.unauthenticated_identities_enabled,
-        },
-      },
-    });
-
-    await auth.signOut();
-
-    const authSession = await auth.fetchAuthSession();
-    authSession.credentials;
-
-    if (!authSession.credentials) {
-      throw new Error('No credentials in auth session');
-    }
-
-    return authSession.credentials;
   };
 
   private createAppSyncClient = (
