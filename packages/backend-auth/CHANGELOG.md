@@ -1,5 +1,17 @@
 # @aws-amplify/backend-auth
 
+## 0.6.0
+
+### Minor Changes
+
+- 1058383: Standardize name validation across storage, functions, auth, and data
+
+### Patch Changes
+
+- d558832: Update sms and mfa types to use code generation functions instead of strings.
+- Updated dependencies [d558832]
+  - @aws-amplify/auth-construct-alpha@0.6.1
+
 ## 0.5.0
 
 ### Minor Changes
