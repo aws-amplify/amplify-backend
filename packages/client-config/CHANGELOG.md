@@ -1,5 +1,13 @@
 # @aws-amplify/client-config
 
+## 0.9.1
+
+### Patch Changes
+
+- dca2a00: minor client config updates
+- Updated dependencies [9ea3c38]
+  - @aws-amplify/model-generator@0.6.0
+
 ## 0.9.0
 
 ### Minor Changes

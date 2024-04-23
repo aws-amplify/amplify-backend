@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 0.11.0
+
+### Minor Changes
+
+- 1058383: Standardize name validation across storage, functions, auth, and data
+
 ## 0.10.0
 
 ### Minor Changes
