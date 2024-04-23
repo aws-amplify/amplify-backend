@@ -1,5 +1,11 @@
 # @aws-amplify/backend-storage
 
+## 0.7.0
+
+### Minor Changes
+
+- 067ca74: Enforce mutually exclusive storage access actions in type
+
 ## 0.6.0
 
 ### Minor Changes
