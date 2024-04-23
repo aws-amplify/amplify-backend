@@ -1,5 +1,16 @@
 # @aws-amplify/backend-cli
 
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies [dca2a00]
+- Updated dependencies [9ea3c38]
+  - @aws-amplify/client-config@0.9.1
+  - @aws-amplify/model-generator@0.6.0
+  - @aws-amplify/form-generator@0.9.0
+  - @aws-amplify/sandbox@0.5.3
+
 ## 0.12.0
 
 ### Minor Changes

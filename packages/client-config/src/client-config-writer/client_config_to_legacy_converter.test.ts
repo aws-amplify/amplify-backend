@@ -54,7 +54,7 @@ void describe('ClientConfigLegacyConverter', () => {
         standard_required_attributes: ['email'],
         unauthenticated_identities_enabled: true,
         oauth: {
-          cognito_domain: 'testDomain',
+          domain: 'testDomain',
           scopes: ['email', 'profile'],
           redirect_sign_in_uri: ['http://callback.com', 'http://callback2.com'],
           redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
@@ -379,16 +379,16 @@ void describe('ClientConfigLegacyConverter', () => {
   void it('returns translated legacy config for notifications', () => {
     const converter = new ClientConfigLegacyConverter();
 
-    const v1Config: ClientConfig = {
+    let v1Config: ClientConfig = {
       version: ClientConfigVersionOption.V1,
       notifications: {
         amazon_pinpoint_app_id: 'testAppId',
         aws_region: 'testRegion',
-        channels: ['APNS', 'EMAIL', 'FCM', 'IN_APP_MESSAGING', 'SMS'],
+        channels: ['EMAIL', 'FCM', 'IN_APP_MESSAGING', 'SMS'],
       },
     };
 
-    const expectedLegacyConfig: NotificationsClientConfig = {
+    let expectedLegacyConfig: NotificationsClientConfig = {
       Notifications: {
         InAppMessaging: {
           AWSPinpoint: {
@@ -396,7 +396,7 @@ void describe('ClientConfigLegacyConverter', () => {
             region: 'testRegion',
           },
         },
-        APNS: {
+        Push: {
           AWSPinpoint: {
             appId: 'testAppId',
             region: 'testRegion',
@@ -408,13 +408,32 @@ void describe('ClientConfigLegacyConverter', () => {
             region: 'testRegion',
           },
         },
-        FCM: {
+        SMS: {
           AWSPinpoint: {
             appId: 'testAppId',
             region: 'testRegion',
           },
         },
-        SMS: {
+      },
+    };
+    assert.deepStrictEqual(
+      converter.convertToLegacyConfig(v1Config),
+      expectedLegacyConfig
+    );
+
+    // both APNS and FCM cannot be specified together as they both map to Push.
+    v1Config = {
+      version: ClientConfigVersionOption.V1,
+      notifications: {
+        amazon_pinpoint_app_id: 'testAppId',
+        aws_region: 'testRegion',
+        channels: ['APNS'],
+      },
+    };
+
+    expectedLegacyConfig = {
+      Notifications: {
+        Push: {
           AWSPinpoint: {
             appId: 'testAppId',
             region: 'testRegion',

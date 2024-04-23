@@ -357,7 +357,7 @@ export class AmplifyAuth
       ) {
         // validate sms message structure
         smsMessage = phoneSettings.verificationMessage(
-          VERIFICATION_SMS_PLACEHOLDERS.CODE
+          () => VERIFICATION_SMS_PLACEHOLDERS.CODE
         );
         if (!smsMessage.includes(VERIFICATION_SMS_PLACEHOLDERS.CODE)) {
           throw Error(
@@ -546,7 +546,7 @@ export class AmplifyAuth
     mfa: AuthProps['multifactor']
   ): string | undefined => {
     if (mfa && mfa.mode !== 'OFF' && typeof mfa.sms === 'object') {
-      const message = mfa.sms.smsMessage(MFA_SMS_PLACEHOLDERS.CODE);
+      const message = mfa.sms.smsMessage(() => MFA_SMS_PLACEHOLDERS.CODE);
       if (!message.includes(MFA_SMS_PLACEHOLDERS.CODE)) {
         throw Error(
           "Invalid MFA settings. Property 'smsMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."

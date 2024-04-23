@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct-alpha
 
+## 0.6.1
+
+### Patch Changes
+
+- d558832: Update sms and mfa types to use code generation functions instead of strings.
+
 ## 0.6.0
 
 ### Minor Changes

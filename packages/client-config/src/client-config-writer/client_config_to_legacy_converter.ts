@@ -113,7 +113,7 @@ export class ClientConfigLegacyConverter {
         authClientConfig.oauth = {};
         authClientConfig.aws_cognito_social_providers =
           clientConfig.auth.oauth.identity_providers;
-        authClientConfig.oauth.domain = clientConfig.auth.oauth.cognito_domain;
+        authClientConfig.oauth.domain = clientConfig.auth.oauth.domain;
         authClientConfig.oauth.scope = clientConfig.auth.oauth.scopes;
         authClientConfig.oauth.redirectSignIn =
           clientConfig.auth.oauth.redirect_sign_in_uri.join(',');
@@ -228,10 +228,11 @@ export class ClientConfigLegacyConverter {
             notificationConfig.Notifications.InAppMessaging = pinPointConfig;
             break;
           case 'FCM':
-            notificationConfig.Notifications.FCM = pinPointConfig;
+            notificationConfig.Notifications.Push = pinPointConfig;
             break;
           case 'APNS':
-            notificationConfig.Notifications.APNS = pinPointConfig;
+            // It's fine to overwrite APNS over FCM since they are the exact same config.
+            notificationConfig.Notifications.Push = pinPointConfig;
             break;
           case 'EMAIL':
             notificationConfig.Notifications.EMAIL = pinPointConfig;

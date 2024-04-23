@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.9.0
+
+### Minor Changes
+
+- 9ea3c38: bumps the codegen dependencies to use the latest tag
+
 ## 0.8.0
 
 ### Minor Changes

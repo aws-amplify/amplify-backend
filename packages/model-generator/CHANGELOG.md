@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 0.6.0
+
+### Minor Changes
+
+- 9ea3c38: bumps the codegen dependencies to use the latest tag
+
 ## 0.5.0
 
 ### Minor Changes

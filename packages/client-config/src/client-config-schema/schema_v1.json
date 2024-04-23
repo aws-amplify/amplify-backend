@@ -44,12 +44,6 @@
           "description": "AWS Region of Amazon Cognito resources",
           "$ref": "#/$defs/aws_region"
         },
-        "authentication_flow_type": {
-          "description": "Authentication flow types",
-          "type": "string",
-          "enum": ["USER_SRP_AUTH", "CUSTOM_AUTH"],
-          "default": "USER_SRP_AUTH"
-        },
         "user_pool_id": {
           "description": "Cognito User Pool ID",
           "type": "string"
@@ -105,12 +99,8 @@
               "minItems": 0,
               "uniqueItems": true
             },
-            "cognito_domain": {
-              "description": "Auto generated cognito domain used for identity providers",
-              "type": "string"
-            },
-            "custom_domain": {
-              "description": "Custom Domain used for identity providers",
+            "domain": {
+              "description": "Domain used for identity providers",
               "type": "string"
             },
             "scopes": {

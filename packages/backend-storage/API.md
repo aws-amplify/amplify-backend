@@ -69,7 +69,7 @@ export type StorageAction = 'read' | 'get' | 'list' | 'write' | 'delete';
 
 // @public (undocumented)
 export type StorageActionBuilder = {
-    to: (actions: StorageAction[]) => StorageAccessDefinition;
+    to: (actions: Exclude<StorageAction, 'get' | 'list'>[] | Exclude<StorageAction, 'read'>[]) => StorageAccessDefinition;
 };
 
 // @public
