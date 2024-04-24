@@ -18,7 +18,7 @@ import { ConstructContainer } from '@aws-amplify/plugin-types';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-import { DeepPartial } from '@aws-amplify/plugin-types';
+import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import { defineAuth } from '@aws-amplify/backend-auth';
 import { defineData } from '@aws-amplify/backend-data';
 import { defineFunction } from '@aws-amplify/backend-function';
@@ -48,7 +48,7 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
 // @public (undocumented)
 export type BackendBase = {
     createStack: (name: string) => Stack;
-    addOutput: (clientConfigPart: DeepPartial<ClientConfig>) => void;
+    addOutput: (clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>) => void;
 };
 
 export { BackendOutputEntry }
