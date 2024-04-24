@@ -23,22 +23,15 @@ export class AmplifyAuthCredentialsFactory {
    */
   constructor(
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    clientConfig: ClientConfigVersionTemplateType<'1'>
+    authConfig: NonNullable<ClientConfigVersionTemplateType<'1'>['auth']>
   ) {
-    if (!clientConfig.auth?.user_pool_id) {
-      throw new Error('Client config must have user pool id.');
-    }
-    if (!clientConfig.auth?.user_pool_client_id) {
-      throw new Error('Client config must have user pool client id.');
-    }
-    if (!clientConfig.auth?.identity_pool_id) {
+    if (!authConfig.identity_pool_id) {
       throw new Error('Client config must have identity pool id.');
     }
-    this.userPoolId = clientConfig.auth?.user_pool_id;
-    this.userPoolClientId = clientConfig.auth?.user_pool_client_id;
-    this.identityPoolId = clientConfig.auth?.identity_pool_id;
-    this.allowGuestAccess =
-      clientConfig.auth?.unauthenticated_identities_enabled;
+    this.userPoolId = authConfig.user_pool_id;
+    this.userPoolClientId = authConfig.user_pool_client_id;
+    this.identityPoolId = authConfig.identity_pool_id;
+    this.allowGuestAccess = authConfig.unauthenticated_identities_enabled;
   }
 
   getNewAuthenticatedUserCredentials = async (): Promise<IamCredentials> => {

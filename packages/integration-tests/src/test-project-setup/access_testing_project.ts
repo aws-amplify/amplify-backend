@@ -86,8 +86,6 @@ export class AccessTestingProjectTestProjectCreator
 }
 
 type SimpleAuthCognitoUser = {
-  username: string;
-  password: string;
   openIdToken: string;
 };
 
@@ -243,10 +241,13 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   private assertAmplifyAuthAccessToData = async (
     clientConfig: ClientConfigVersionTemplateType<'1'>
   ): Promise<void> => {
+    if (!clientConfig.auth) {
+      throw new Error('Client config is missing auth section');
+    }
     const authenticatedUserCredentials =
       await new AmplifyAuthCredentialsFactory(
         this.cognitoIdentityProviderClient,
-        clientConfig
+        clientConfig.auth
       ).getNewAuthenticatedUserCredentials();
     const appSyncClientForAuthenticatedUser = this.createAppSyncClient(
       clientConfig,
@@ -292,7 +293,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
 
     const guestAccessCredentials = await new AmplifyAuthCredentialsFactory(
       this.cognitoIdentityProviderClient,
-      clientConfig
+      clientConfig.auth
     ).getGuestAccessCredentials();
     const appSyncClientForGuestUser = this.createAppSyncClient(
       clientConfig,
@@ -467,8 +468,6 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     }
 
     return {
-      username,
-      password,
       openIdToken: getOpenIdTokenResponse.Token,
     };
   };
