@@ -53,7 +53,7 @@ export const attachUnhandledExceptionListeners = (
  */
 export const generateCommandFailureHandler = (
   parser: Argv,
-  usageDataEmitter: UsageDataEmitter
+  usageDataEmitter?: UsageDataEmitter
 ): ((message: string, error: Error) => Promise<void>) => {
   /**
    * Format error output when a command fails

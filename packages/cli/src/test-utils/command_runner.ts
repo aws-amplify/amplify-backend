@@ -55,7 +55,7 @@ export class TestCommandRunner {
   /**
    * Creates new command runner.
    */
-  constructor(parser: Argv, private usageDataEmitter: UsageDataEmitter) {
+  constructor(parser: Argv, private usageDataEmitter?: UsageDataEmitter) {
     // no disable telemetry from test runner.
     process.env.AMPLIFY_DISABLE_TELEMETRY = 'true';
     this.parser = parser
@@ -87,11 +87,7 @@ export class TestCommandRunner {
       // AsyncLocalStorage is used to make sure that we're capturing outputs only from the same asynchronous context
       // in potentially concurrent environment.
       await asyncLocalStorage.run(interceptor, async () => {
-        await this.parser
-          .parseAsync(args)
-          .then(async (argv) =>
-            this.usageDataEmitter.emitSuccess({}, { command: argv._.join(' ') })
-          );
+        await this.parser.parseAsync(args);
       });
       return interceptor.getOutput();
     } catch (err) {

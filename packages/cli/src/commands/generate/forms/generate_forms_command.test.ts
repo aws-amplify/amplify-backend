@@ -2,7 +2,7 @@ import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import assert from 'node:assert';
 import path from 'node:path';
-import { beforeEach, describe, it, mock } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
@@ -24,14 +24,6 @@ const awsClientProvider = {
 };
 void describe('generate forms command', () => {
   void describe('form generation validation', () => {
-    const emitFailureSpy = mock.method(usageDataEmitter, 'emitFailure');
-    const emitSuccessSpy = mock.method(usageDataEmitter, 'emitSuccess');
-
-    beforeEach(() => {
-      emitFailureSpy.mock.resetCalls();
-      emitSuccessSpy.mock.resetCalls();
-    });
-
     void it('models are generated in ${out-dir}/graphql', async () => {
       const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
@@ -75,7 +67,6 @@ void describe('generate forms command', () => {
         path.join(generationMock.mock.calls[0].arguments[0].modelsOutDir),
         path.join(`${outPath}/graphql`)
       );
-      assert.equal(emitSuccessSpy.mock.callCount(), 1);
     });
     void it('out-dir path can be customized', async () => {
       const backendIdResolver = new AppBackendIdentifierResolver({
@@ -120,7 +111,6 @@ void describe('generate forms command', () => {
         generationMock.mock.calls[0].arguments[0].uiOutDir,
         uiOutPath
       );
-      assert.equal(emitSuccessSpy.mock.callCount(), 1);
     });
     void it('./ui-components is the default graphql model generation path', async () => {
       const backendIdResolver = new AppBackendIdentifierResolver({
@@ -161,7 +151,6 @@ void describe('generate forms command', () => {
         generationMock.mock.calls[0].arguments[0].uiOutDir,
         './ui-components'
       );
-      assert.equal(emitSuccessSpy.mock.callCount(), 1);
     });
   });
   void it('if neither branch nor stack are provided, the sandbox id is used by default', async () => {
