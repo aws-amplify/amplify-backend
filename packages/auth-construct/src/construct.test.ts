@@ -280,9 +280,9 @@ void describe('Auth construct', () => {
         `SMS: your username is ${username()} and invitation code is ${code()}`,
     };
     const expectedEmailBody =
-      'EMAIL: your username is {username} and invitation code is {code}';
+      'EMAIL: your username is {username} and invitation code is {####}';
     const expectedSMSMessage =
-      'SMS: your username is {username} and invitation code is {code}';
+      'SMS: your username is {username} and invitation code is {####}';
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
