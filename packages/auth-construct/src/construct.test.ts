@@ -247,18 +247,12 @@ void describe('Auth construct', () => {
       `custom email body ${code()}`;
     const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
-    const userInvitationSettings = {
-      emailBody: 'invited by admin',
-      emailSubject: 'your invitation',
-      smsMessage: 'your invitation code is ${####}',
-    };
     new AmplifyAuth(stack, 'test', {
       loginWith: {
         email: {
           verificationEmailBody: emailBodyFunction,
           verificationEmailStyle: 'CODE',
           verificationEmailSubject: customEmailVerificationSubject,
-          userInvitation: userInvitationSettings,
         },
       },
     });
@@ -272,12 +266,38 @@ void describe('Auth construct', () => {
         EmailSubject: customEmailVerificationSubject,
         SmsMessage: 'The verification code to your new account is {####}',
       },
+    });
+  });
+
+  void it('creates email login mechanism with custom invitation settings', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const userInvitationSettings = {
+      emailSubject: 'invited by admin',
+      emailBody: (username: () => string, code: () => string) =>
+        `EMAIL: your username is ${username()} and invitation code is ${code()}`,
+      smsMessage: (username: () => string, code: () => string) =>
+        `SMS: your username is ${username()} and invitation code is ${code()}`,
+    };
+    const expectedEmailBody =
+      'EMAIL: your username is {username} and invitation code is {code}';
+    const expectedSMSMessage =
+      'SMS: your username is {username} and invitation code is {code}';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: {
+          userInvitation: userInvitationSettings,
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
       AdminCreateUserConfig: {
         AllowAdminCreateUserOnly: false,
         InviteMessageTemplate: {
-          EmailMessage: userInvitationSettings.emailBody,
+          EmailMessage: expectedEmailBody,
           EmailSubject: userInvitationSettings.emailSubject,
-          SMSMessage: userInvitationSettings.smsMessage,
+          SMSMessage: expectedSMSMessage,
         },
       },
     });

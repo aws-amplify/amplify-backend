@@ -64,14 +64,14 @@ export type EmailLoginSettings = (
     emailSubject?: string;
     /**
      * The template to the email body that is sent to the user when an administrator signs them up to the user pool.
-     * @default 'Your username is {username} and temporary password is {####}.'
+     * @default (username, code) => 'Your username is {username()} and temporary password is {code()}.'
      */
-    emailBody?: string;
+    emailBody?: (username: () => string, code: () => string) => string;
     /**
      * The template to the SMS message that is sent to the user when an administrator signs them up to the user pool.
-     * @default 'Your username is {username} and temporary password is {####}'
+     * @default (username, code) => 'Your username is {username()} and temporary password is {code()}.'
      */
-    smsMessage?: string;
+    smsMessage?: (username: () => string, code: () => string) => string;
   };
 };
 /**
