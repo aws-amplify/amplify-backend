@@ -57,8 +57,8 @@ export type EmailLogin = true | EmailLoginSettings;
 export type EmailLoginSettings = (VerificationEmailWithLink | VerificationEmailWithCode) & {
     userInvitation?: {
         emailSubject?: string;
-        emailBody?: string;
-        smsMessage?: string;
+        emailBody?: (username: () => string, code: () => string) => string;
+        smsMessage?: (username: () => string, code: () => string) => string;
     };
 };
 
