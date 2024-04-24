@@ -142,7 +142,7 @@ export type DeepPartial<T> = {
 
 // @public
 export type DeepPartialAmplifyGeneratedConfigs<T> = {
-    [P in keyof T]?: P extends ('analytics' | 'geo' | 'notifications') ? T[P] : (T[P] extends object ? DeepPartialAmplifyGeneratedConfigs<T[P]> : Partial<T[P]>);
+    [P in keyof T]?: P extends 'analytics' | 'geo' | 'notifications' ? T[P] : (T[P] extends object ? DeepPartialAmplifyGeneratedConfigs<T[P]> : Partial<T[P]>);
 };
 
 // @public

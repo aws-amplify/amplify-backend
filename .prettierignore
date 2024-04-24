@@ -13,3 +13,4 @@ concurrent_workspace_script_cache.json
 scripts/components/api-changes-validator/test-resources/working-directory
 /test-projects
 testDir
+packages/plugin-types/src/deep_partial.ts
