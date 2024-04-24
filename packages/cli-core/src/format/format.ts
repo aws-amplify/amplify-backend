@@ -9,19 +9,30 @@ import {
   red,
   underline,
 } from 'kleur/colors';
+import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { PackageManagerControllerFactory } from '../package-manager-controller/package_manager_controller_factory.js';
+import { AmplifyFault } from '@aws-amplify/platform-core';
+
+let packageManagerController: PackageManagerController;
 
 /**
  * Formats various inputs into single string.
  */
 export const format = {
-  runner: (binaryRunner: string) => ({
-    amplifyCommand: (command: string) => {
-      if (command === '') {
-        throw new Error('Command cannot be empty');
-      }
-      return cyan(`${binaryRunner} amplify ${command}`);
-    },
-  }),
+  backendCliCommand: (command: string) => {
+    if (command.length === 0) {
+      throw new AmplifyFault('InvalidFormatFault', {
+        message: 'The command must be non-empty',
+      });
+    }
+    if (!packageManagerController) {
+      packageManagerController =
+        new PackageManagerControllerFactory().getPackageManagerController();
+    }
+    return cyan(
+      packageManagerController.getCommand(['amplify', ...command.split(' ')])
+    );
+  },
   error: (message: string) => red(message),
   note: (message: string) => grey(message),
   command: (command: string) => cyan(command),

@@ -84,7 +84,7 @@ void describe('NpmPackageManagerController', () => {
         npmPackageManagerController.getWelcomeMessage(),
         ` - Get started by running ${cyan('npx amplify sandbox')}.${
           os.EOL
-        } - Run ${cyan('npx amplify help')} for a list of available commands. `
+        } - Run ${cyan('npx amplify help')} for a list of available commands.`
       );
     });
   });

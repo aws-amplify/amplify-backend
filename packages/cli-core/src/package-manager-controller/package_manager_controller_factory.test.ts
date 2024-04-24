@@ -3,7 +3,6 @@ import assert from 'assert';
 import { PackageManagerControllerFactory } from './package_manager_controller_factory.js';
 import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
-import { printer } from '../printer.js';
 
 void describe('packageManagerControllerFactory', () => {
   const packageRoot = '/path/to/project';
@@ -44,7 +43,7 @@ void describe('packageManagerControllerFactory', () => {
     for (const testCase of testCases) {
       void it(`should return the correct package manager controller for ${testCase.name}`, () => {
         const packageManagerControllerFactory =
-          new PackageManagerControllerFactory(packageRoot, printer);
+          new PackageManagerControllerFactory(packageRoot);
 
         const packageManagerController =
           packageManagerControllerFactory.getPackageManagerController();
@@ -58,7 +57,7 @@ void describe('packageManagerControllerFactory', () => {
       const userAgent = 'unsupported/1.0.0 node/v15.0.0 darwin x64';
       process.env.npm_config_user_agent = userAgent;
       const packageManagerControllerFactory =
-        new PackageManagerControllerFactory(packageRoot, printer);
+        new PackageManagerControllerFactory(packageRoot);
 
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),
@@ -72,7 +71,7 @@ void describe('packageManagerControllerFactory', () => {
       const userAgent = 'pnpm/1.0.0 node/v15.0.0 darwin x64';
       process.env.npm_config_user_agent = userAgent;
       const packageManagerControllerFactory =
-        new PackageManagerControllerFactory(packageRoot, printer, 'win32');
+        new PackageManagerControllerFactory(packageRoot, undefined, 'win32');
 
       assert.throws(
         () => packageManagerControllerFactory.getPackageManagerController(),

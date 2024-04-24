@@ -5,22 +5,21 @@ import { format } from './format.js';
 import { $, blue, bold, cyan, green, underline } from 'kleur/colors';
 
 void describe('format', () => {
-  void it('should format amplify command with yarn', () => {
+  void it('should format amplify command with npx', () => {
     const command = 'help';
-    const binaryRunner = 'yarn';
-    const expectedOutput = cyan(`yarn amplify help`);
-    const actualOutput = format.runner(binaryRunner).amplifyCommand(command);
+    const expectedOutput = cyan(`npx amplify help`);
+    const actualOutput = format.backendCliCommand(command);
     assert.strictEqual(actualOutput, expectedOutput);
   });
 
   void it('should return error for empty amplify command', () => {
-    const binaryRunner = 'yarn';
     assert.throws(
       () => {
-        format.runner(binaryRunner).amplifyCommand('');
+        format.backendCliCommand('');
       },
-      Error,
-      'Command cannot be empty'
+      {
+        message: 'The command must be non-empty',
+      }
     );
   });
 
@@ -101,13 +100,13 @@ void describe('format when terminal colors disabled', async () => {
 
   void it('prints plain command', () => {
     const message = 'hello';
-    const coloredMessage = format.runner('yarn').amplifyCommand(message);
+    const coloredMessage = format.backendCliCommand(message);
 
     assert.strictEqual(
       coloredMessage.includes('\x1b['),
       false,
       'Color codes should not be present'
     );
-    assert.strictEqual(coloredMessage, 'yarn amplify hello');
+    assert.strictEqual(coloredMessage, 'npx amplify hello');
   });
 });

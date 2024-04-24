@@ -84,7 +84,7 @@ void describe('PnpmPackageManagerController', () => {
         pnpmPackageManagerController.getWelcomeMessage(),
         ` - Get started by running ${cyan('pnpm amplify sandbox')}.${
           os.EOL
-        } - Run ${cyan('pnpm amplify help')} for a list of available commands. `
+        } - Run ${cyan('pnpm amplify help')} for a list of available commands.`
       );
     });
   });

@@ -54,10 +54,13 @@ export abstract class PackageManagerControllerBase
    * getWelcomeMessage - returns a welcome message for the customer
    */
   getWelcomeMessage = () => {
-    const { amplifyCommand } = format.runner(this.binaryRunner);
     const welcomeInfo = [
-      `Get started by running ${amplifyCommand('sandbox')}.`,
-      `Run ${amplifyCommand('help')} for a list of available commands. `,
+      `Get started by running ${format.command(
+        this.getCommand(['amplify', 'sandbox'])
+      )}.`,
+      `Run ${format.command(
+        this.getCommand(['amplify', 'help'])
+      )} for a list of available commands.`,
     ];
     return format.list(welcomeInfo);
   };
@@ -142,7 +145,7 @@ export abstract class PackageManagerControllerBase
     );
   }
 
-  getCommand = (args: string[]) => `'${this.binaryRunner} ${args.join(' ')}'`;
+  getCommand = (args: string[]) => `${this.binaryRunner} ${args.join(' ')}`;
 
   /**
    * Check if a package.json file exists in projectRoot

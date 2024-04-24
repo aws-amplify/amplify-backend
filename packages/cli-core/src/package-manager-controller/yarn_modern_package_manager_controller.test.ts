@@ -78,7 +78,7 @@ void describe('YarnModernPackageManagerController', () => {
         yarnModernPackageManagerController.getWelcomeMessage(),
         ` - Get started by running ${cyan('yarn amplify sandbox')}.${
           os.EOL
-        } - Run ${cyan('yarn amplify help')} for a list of available commands. `
+        } - Run ${cyan('yarn amplify help')} for a list of available commands.`
       );
     });
   });
