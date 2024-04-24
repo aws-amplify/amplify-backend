@@ -7,6 +7,7 @@
 /// <reference types="node" />
 
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { Printer as Printer_2 } from '../index.js';
 
 // @public
 export class AmplifyPrompter {
@@ -23,9 +24,7 @@ export class AmplifyPrompter {
 
 // @public
 export const format: {
-    runner: (binaryRunner: string) => {
-        amplifyCommand: (command: string) => string;
-    };
+    backendCliCommand: (command: string) => string;
     error: (message: string) => string;
     note: (message: string) => string;
     command: (command: string) => string;
@@ -52,7 +51,7 @@ export enum LogLevel {
 
 // @public
 export class PackageManagerControllerFactory {
-    constructor(cwd: string, printer: Printer, platform?: NodeJS.Platform);
+    constructor(cwd?: string, printer?: Printer_2, platform?: NodeJS.Platform);
     getPackageManagerController(): PackageManagerController;
 }
 
