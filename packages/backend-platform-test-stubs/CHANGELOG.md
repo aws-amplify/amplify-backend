@@ -1,5 +1,11 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.3
+
+### Patch Changes
+
+- 7cbe58b: bump aws-cdk-lib to 2.127.0
+
 ## 0.3.3-beta.0
 
 ### Patch Changes

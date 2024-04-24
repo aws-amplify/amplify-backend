@@ -61,7 +61,7 @@ void describe('convertJsResolverDefinition', () => {
     const schema = a.schema({
       customQuery: a
         .query()
-        .authorization([a.allow.public()])
+        .authorization((allow) => allow.publicApiKey())
         .returns(a.string())
         .handler(
           a.handler.custom({
@@ -112,7 +112,7 @@ void describe('convertJsResolverDefinition', () => {
     const schema = a.schema({
       customQuery: a
         .query()
-        .authorization([a.allow.public()])
+        .authorization((allow) => allow.publicApiKey())
         .returns(a.string())
         .handler([
           a.handler.custom({

@@ -243,8 +243,8 @@ void describe('Auth construct', () => {
   void it('creates email login mechanism with specific settings', () => {
     const app = new App();
     const stack = new Stack(app);
-    const emailBodyFunction = (code: () => string) =>
-      `custom email body ${code()}`;
+    const emailBodyFunction = (createCode: () => string) =>
+      `custom email body ${createCode()}`;
     const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
     new AmplifyAuth(stack, 'test', {
@@ -269,17 +269,52 @@ void describe('Auth construct', () => {
     });
   });
 
+  void it('creates email login mechanism with custom invitation settings', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const userInvitationSettings = {
+      emailSubject: 'invited by admin',
+      emailBody: (username: () => string, code: () => string) =>
+        `EMAIL: your username is ${username()} and invitation code is ${code()}`,
+      smsMessage: (username: () => string, code: () => string) =>
+        `SMS: your username is ${username()} and invitation code is ${code()}`,
+    };
+    const expectedEmailBody =
+      'EMAIL: your username is {username} and invitation code is {####}';
+    const expectedSMSMessage =
+      'SMS: your username is {username} and invitation code is {####}';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: {
+          userInvitation: userInvitationSettings,
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      AdminCreateUserConfig: {
+        AllowAdminCreateUserOnly: false,
+        InviteMessageTemplate: {
+          EmailMessage: expectedEmailBody,
+          EmailSubject: userInvitationSettings.emailSubject,
+          SMSMessage: expectedSMSMessage,
+        },
+      },
+    });
+  });
+
   void it('creates email login mechanism with MFA', () => {
     const app = new App();
     const stack = new Stack(app);
-    const emailBodyFunction = (code: () => string) =>
-      `custom email body ${code()}`;
+    const emailBodyFunction = (createCode: () => string) =>
+      `custom email body ${createCode()}`;
     const expectedEmailMessage = 'custom email body {####}';
     const customEmailVerificationSubject = 'custom subject';
-    const smsVerificationMessageFunction = (code: string) =>
-      `the verification code is ${code}`;
+    const smsVerificationMessageFunction = (createCode: () => string) =>
+      `the verification code is ${createCode()}`;
     const expectedSMSVerificationMessage = 'the verification code is {####}';
-    const smsMFAMessageFunction = (code: string) => `SMS MFA code is ${code}`;
+    const smsMFAMessageFunction = (createCode: () => string) =>
+      `SMS MFA code is ${createCode()}`;
     const expectedSMSMFAMessage = 'SMS MFA code is {####}';
     new AmplifyAuth(stack, 'test', {
       loginWith: {
@@ -365,8 +400,8 @@ void describe('Auth construct', () => {
   void it('does not throw if valid email verification message for LINK', () => {
     const app = new App();
     const stack = new Stack(app);
-    const emailBodyFunction = (link: (text?: string) => string) =>
-      `valid message ${link()} with link`;
+    const emailBodyFunction = (createLink: (text?: string) => string) =>
+      `valid message ${createLink()} with link`;
     const customEmailVerificationSubject = 'custom subject';
     assert.doesNotThrow(
       () =>
@@ -392,8 +427,8 @@ void describe('Auth construct', () => {
   void it('correctly formats email verification message for LINK with custom link text', () => {
     const app = new App();
     const stack = new Stack(app);
-    const emailBodyFunction = (link: (text?: string) => string) =>
-      `valid message ${link('my custom link')} with link`;
+    const emailBodyFunction = (createLink: (text?: string) => string) =>
+      `valid message ${createLink('my custom link')} with link`;
     const customEmailVerificationSubject = 'custom subject';
     new AmplifyAuth(stack, 'test', {
       loginWith: {
@@ -436,7 +471,8 @@ void describe('Auth construct', () => {
   void it('does not throw error if valid MFA message', () => {
     const app = new App();
     const stack = new Stack(app);
-    const validMFAMessage = (code: string) => `valid MFA message with ${code}`;
+    const validMFAMessage = (createCode: () => string) =>
+      `valid MFA message with ${createCode()}`;
     assert.doesNotThrow(
       () =>
         new AmplifyAuth(stack, 'test', {

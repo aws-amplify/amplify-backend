@@ -12,13 +12,9 @@ const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
  * Orchestration class that sets up a new Amplify project
  */
 export class AmplifyProjectCreator {
-  /**
-   * TODO: remove @beta tags before GA
-   * https://github.com/aws-amplify/amplify-backend/issues/1013
-   */
   private readonly defaultDevPackages = [
-    '@aws-amplify/backend@beta',
-    '@aws-amplify/backend-cli@beta',
+    '@aws-amplify/backend',
+    '@aws-amplify/backend-cli',
     'aws-cdk@^2',
     'aws-cdk-lib@^2',
     'constructs@^10.0.0',

@@ -8,6 +8,7 @@ import {
   FunctionResources,
   GenerateContainerEntryProps,
   ResourceAccessAcceptorFactory,
+  ResourceNameValidator,
   ResourceProvider,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
@@ -107,19 +108,24 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   getInstance = ({
     constructContainer,
     outputStorageStrategy,
+    resourceNameValidator,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
-        this.hydrateDefaults(),
+        this.hydrateDefaults(resourceNameValidator),
         outputStorageStrategy
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
   };
 
-  private hydrateDefaults = (): HydratedFunctionProps => {
+  private hydrateDefaults = (
+    resourceNameValidator?: ResourceNameValidator
+  ): HydratedFunctionProps => {
+    const name = this.resolveName();
+    resourceNameValidator?.validate(name);
     return {
-      name: this.resolveName(),
+      name,
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),

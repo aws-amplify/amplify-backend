@@ -10,6 +10,7 @@ import { ConstructContainer } from '@aws-amplify/plugin-types';
 import { ConstructContainerEntryGenerator } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ImportPathVerifier } from '@aws-amplify/plugin-types';
+import { ResourceNameValidator } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntriesGenerator } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
@@ -31,6 +32,12 @@ export class ConstructContainerStub implements ConstructContainer {
 export class ImportPathVerifierStub implements ImportPathVerifier {
     // (undocumented)
     verify: () => void;
+}
+
+// @public
+export class ResourceNameValidatorStub implements ResourceNameValidator {
+    // (undocumented)
+    validate: () => void;
 }
 
 // @public

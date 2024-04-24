@@ -10,12 +10,14 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ImportPathVerifier,
+  ResourceNameValidator,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
+  ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { StorageResources } from './construct.js';
@@ -34,6 +36,8 @@ void describe('AmplifyStorageFactory', () => {
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
+  let resourceNameValidator: ResourceNameValidator;
+
   let getInstanceProps: ConstructFactoryGetInstanceProps;
 
   beforeEach(() => {
@@ -50,10 +54,13 @@ void describe('AmplifyStorageFactory', () => {
 
     importPathVerifier = new ImportPathVerifierStub();
 
+    resourceNameValidator = new ResourceNameValidatorStub();
+
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      resourceNameValidator,
     };
   });
   void it('returns singleton instance', () => {
@@ -110,10 +117,24 @@ void describe('AmplifyStorageFactory', () => {
   });
 
   void it('throws on invalid name', () => {
+    const resourceNameValidator = {
+      validate: () => {
+        throw new Error(
+          'Resource name contains invalid characters, found !$87++|'
+        );
+      },
+    };
+
     const storageFactory = defineStorage({ name: '!$87++|' });
-    assert.throws(() => storageFactory.getInstance(getInstanceProps), {
-      message:
-        'defineStorage name can only contain alphanumeric characters, found !$87++|',
-    });
+    assert.throws(
+      () =>
+        storageFactory.getInstance({
+          ...getInstanceProps,
+          resourceNameValidator,
+        }),
+      {
+        message: 'Resource name contains invalid characters, found !$87++|',
+      }
+    );
   });
 });

@@ -1,5 +1,33 @@
 # @aws-amplify/platform-core
 
+## 0.5.0
+
+### Minor Changes
+
+- 74cbda0: decentralize AmplifyErrorType
+- ef111b4: Add friendly-name tag to resources
+- 937086b: require "resolution" in AmplifyUserError options
+- 4995bda: Introduce initial iteration of access control mechanism between backend resources.
+  The APIs and functioality are NOT final and are subject to change without notice.
+
+### Patch Changes
+
+- 6c6af9b: chore: convert errors to AmplifyUserError
+- ab7533d: Add output and configuration for customer owned lambdas
+- aec89f9: chore: correctly handle quotes in the error messages
+- 2a69684: chore: handle generic error serialization correctly
+- 5e12247: feat(client-config): Generate client configuration based on a unified JSON schema
+- b0b4dea: fix: serialize downstream errors when they are not generic Errors
+- Updated dependencies [ab7533d]
+- Updated dependencies [697d791]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [109cd1b]
+- Updated dependencies [db23a3f]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [48ff3bd]
+  - @aws-amplify/plugin-types@0.9.0
+
 ## 0.5.0-beta.7
 
 ### Minor Changes

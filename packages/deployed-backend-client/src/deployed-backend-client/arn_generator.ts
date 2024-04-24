@@ -7,30 +7,33 @@ export class ArnGenerator {
   /**
    * Generates an AWS Console link to the stack resource
    * @param stackResourceSummary object including PhysicalResourceId and ResourceType, from CFN DescribeStackResources
-   * @param region If `undefined` is passed here, we do not generate the arn. Not enough data -> no ARN
-   * @param accountId If `undefined` is passed here, we do not generate the arn. Not enough data -> no ARN
-   * @returns string if arn can be generated, undefined otherwise
+   * @param region If PhysicalResourceId in the resource summary is an ARN, this is not needed. Otherwise, this is needed to construct the ARN. If needed and not specified, undefined is returned.
+   * @param accountId If PhysicalResourceId in the resource summary is an ARN, this is not needed. Otherwise, this is needed to construct the ARN. If needed and not specified, undefined is returned.
+   * @returns ARN as a string if there is enough information to construct it; undefined otherwise
    */
   generateArn = (
     stackResourceSummary: Pick<
       StackResourceSummary,
       'PhysicalResourceId' | 'ResourceType'
     >,
-    region: string | undefined,
-    accountId: string | undefined
+    region?: string,
+    accountId?: string
   ): string | undefined => {
-    if (!accountId || !region) {
-      return;
+    if (!stackResourceSummary.PhysicalResourceId) {
+      return undefined;
     }
 
     // Supported keys from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html
-    const physicalResourceId =
-      stackResourceSummary.PhysicalResourceId as string;
+    const physicalResourceId = stackResourceSummary.PhysicalResourceId;
 
     // Some resources use arns directly as physicalResourceId.
     // These include: AWS::AppSync::GraphQLApi, AWS::AppSync::DataSource, AWS::CloudFormation::Stack, AWS::Lambda::LayerVersion
     if (this.isArn(physicalResourceId)) {
       return physicalResourceId;
+    }
+
+    if (!accountId || !region) {
+      return undefined;
     }
 
     switch (stackResourceSummary.ResourceType) {
@@ -50,7 +53,7 @@ export class ArnGenerator {
         break;
     }
 
-    return;
+    return undefined;
   };
 
   private isArn = (potentialArn: string) => {

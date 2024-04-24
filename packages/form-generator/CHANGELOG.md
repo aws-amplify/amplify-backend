@@ -1,5 +1,25 @@
 # @aws-amplify/form-generator
 
+## 0.9.0
+
+### Minor Changes
+
+- 9ea3c38: bumps the codegen dependencies to use the latest tag
+
+## 0.8.0
+
+### Minor Changes
+
+- f76e983: Use updated metadata fields in form and model generation
+- a494aca: refactor: use default directives
+- 27bcc97: Fix utils file generator to generate aws-amplify v6 imports
+
+### Patch Changes
+
+- 8901779: fix test assertions compatible with new @aws-amplify/codegen-ui-react package
+- 592bd4f: refactor log abstraction in `client-config`, `form-generator`, and `model-generator` packages
+- 73dcd6e: fix: update model introspection schema generation packages for references relationships
+
 ## 0.8.0-beta.5
 
 ### Patch Changes

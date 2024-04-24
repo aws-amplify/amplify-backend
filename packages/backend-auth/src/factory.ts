@@ -94,12 +94,16 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps
   ): BackendAuth => {
-    const { constructContainer, importPathVerifier } = getInstanceProps;
+    const { constructContainer, importPathVerifier, resourceNameValidator } =
+      getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'auth', 'resource'),
       'Amplify Auth must be defined in amplify/auth/resource.ts'
     );
+    if (this.props.name) {
+      resourceNameValidator?.validate(this.props.name);
+    }
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
     }
@@ -109,14 +113,16 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
 
 class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'auth';
-  private readonly defaultName = 'amplifyAuth';
+  private readonly name: string;
 
   constructor(
     private readonly props: AmplifyAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly authAccessBuilder = _authAccessBuilder,
     private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
-  ) {}
+  ) {
+    this.name = props.name ?? 'amplifyAuth';
+  }
 
   generateContainerEntry = ({
     scope,
@@ -139,7 +145,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
     let authConstruct: AmplifyAuth;
     try {
-      authConstruct = new AmplifyAuth(scope, this.defaultName, authProps);
+      authConstruct = new AmplifyAuth(scope, this.name, authProps);
     } catch (error) {
       throw new AmplifyUserError(
         'AmplifyAuthConstructInitializationError',
@@ -151,10 +157,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       );
     }
 
-    Tags.of(authConstruct).add(
-      TagName.FRIENDLY_NAME,
-      this.props.name ?? this.defaultName
-    );
+    Tags.of(authConstruct).add(TagName.FRIENDLY_NAME, this.name);
 
     Object.entries(this.props.triggers || {}).forEach(
       ([triggerEvent, handlerFactory]) => {
@@ -199,7 +202,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${this.defaultName}_USERPOOL_ID`]:
+        [`${this.name}_USERPOOL_ID`]:
           authConstructMixin.resources.userPool.userPoolId,
       });
 
