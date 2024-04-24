@@ -9,6 +9,9 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../../command_middleware.js';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
+
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('sandbox delete command', () => {
   let commandRunner: TestCommandRunner;
@@ -47,7 +50,7 @@ void describe('sandbox delete command', () => {
       commandMiddleware
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
-    commandRunner = new TestCommandRunner(parser);
+    commandRunner = new TestCommandRunner(parser, usageDataEmitter);
     sandboxDeleteMock.mock.resetCalls();
     mockHandleProfile.mock.resetCalls();
   });

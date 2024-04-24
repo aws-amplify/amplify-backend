@@ -2,7 +2,7 @@ import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import assert from 'node:assert';
 import path from 'node:path';
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
 import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
@@ -13,6 +13,9 @@ import { GenerateFormsCommand } from './generate_forms_command.js';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
+
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 const awsClientProvider = {
   getS3Client: () => new S3Client(),
@@ -21,6 +24,14 @@ const awsClientProvider = {
 };
 void describe('generate forms command', () => {
   void describe('form generation validation', () => {
+    const emitFailureSpy = mock.method(usageDataEmitter, 'emitFailure');
+    const emitSuccessSpy = mock.method(usageDataEmitter, 'emitSuccess');
+
+    beforeEach(() => {
+      emitFailureSpy.mock.resetCalls();
+      emitSuccessSpy.mock.resetCalls();
+    });
+
     void it('models are generated in ${out-dir}/graphql', async () => {
       const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
@@ -56,7 +67,7 @@ void describe('generate forms command', () => {
       );
 
       const outPath = 'my-fake-models-path';
-      const commandRunner = new TestCommandRunner(parser);
+      const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
       await commandRunner.runCommand(
         `forms --stack my_stack --out-dir ${outPath}`
       );
@@ -64,6 +75,7 @@ void describe('generate forms command', () => {
         path.join(generationMock.mock.calls[0].arguments[0].modelsOutDir),
         path.join(`${outPath}/graphql`)
       );
+      assert.equal(emitSuccessSpy.mock.callCount(), 1);
     });
     void it('out-dir path can be customized', async () => {
       const backendIdResolver = new AppBackendIdentifierResolver({
@@ -100,7 +112,7 @@ void describe('generate forms command', () => {
       );
 
       const uiOutPath = './my-fake-ui-path';
-      const commandRunner = new TestCommandRunner(parser);
+      const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
       await commandRunner.runCommand(
         `forms --stack my_stack --out-dir ${uiOutPath}`
       );
@@ -108,6 +120,7 @@ void describe('generate forms command', () => {
         generationMock.mock.calls[0].arguments[0].uiOutDir,
         uiOutPath
       );
+      assert.equal(emitSuccessSpy.mock.callCount(), 1);
     });
     void it('./ui-components is the default graphql model generation path', async () => {
       const backendIdResolver = new AppBackendIdentifierResolver({
@@ -142,12 +155,13 @@ void describe('generate forms command', () => {
       const parser = yargs().command(
         generateFormsCommand as unknown as CommandModule
       );
-      const commandRunner = new TestCommandRunner(parser);
+      const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
       await commandRunner.runCommand('forms --stack my_stack');
       assert.equal(
         generationMock.mock.calls[0].arguments[0].uiOutDir,
         './ui-components'
       );
+      assert.equal(emitSuccessSpy.mock.callCount(), 1);
     });
   });
   void it('if neither branch nor stack are provided, the sandbox id is used by default', async () => {
@@ -199,7 +213,7 @@ void describe('generate forms command', () => {
     const parser = yargs().command(
       generateFormsCommand as unknown as CommandModule
     );
-    const commandRunner = new TestCommandRunner(parser);
+    const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
     await commandRunner.runCommand('forms');
     assert.deepEqual(
       generationMock.mock.calls[0].arguments[0].backendIdentifier,

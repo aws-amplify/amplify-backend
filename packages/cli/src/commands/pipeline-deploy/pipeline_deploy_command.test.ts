@@ -20,8 +20,9 @@ import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
 
-void describe('deploy command', () => {
+void describe('deploy command', async () => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter({
     getS3Client: () => new S3Client(),
     getAmplifyClient: () => new AmplifyClient(),
@@ -36,6 +37,9 @@ void describe('deploy command', () => {
     process.cwd(),
     new Printer(LogLevel.DEBUG)
   );
+
+  const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
+
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController()
@@ -47,7 +51,7 @@ void describe('deploy command', () => {
       isCI
     ) as CommandModule<object, PipelineDeployCommandOptions>;
     const parser = yargs().command(deployCommand);
-    return new TestCommandRunner(parser);
+    return new TestCommandRunner(parser, usageDataEmitter);
   };
 
   beforeEach(() => {

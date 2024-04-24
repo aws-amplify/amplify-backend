@@ -18,6 +18,9 @@ import { BackendIdentifierResolverWithFallback } from '../../../backend-identifi
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
+
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('generate graphql-client-code command', () => {
   const generateApiCodeAdapter = new GenerateApiCodeAdapter({
@@ -40,7 +43,6 @@ void describe('generate graphql-client-code command', () => {
   };
 
   const defaultResolver = new AppBackendIdentifierResolver(namespaceResolver);
-
   const sandboxIdResolver = new SandboxBackendIdResolver(namespaceResolver);
   const fakeSandboxId = 'my-fake-app-my-fake-username';
   const mockedSandboxIdResolver = mock.method(sandboxIdResolver, 'resolve');
@@ -60,7 +62,7 @@ void describe('generate graphql-client-code command', () => {
   const parser = yargs().command(
     generateGraphqlClientCodeCommand as unknown as CommandModule
   );
-  const commandRunner = new TestCommandRunner(parser);
+  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
 
   beforeEach(() => {
     invokeGenerateApiCodeMock.mock.resetCalls();

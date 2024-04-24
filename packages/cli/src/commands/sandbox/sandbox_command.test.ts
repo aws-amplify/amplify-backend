@@ -16,6 +16,9 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import path from 'path';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
+
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
@@ -75,7 +78,7 @@ void describe('sandbox command', () => {
       })
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
-    commandRunner = new TestCommandRunner(parser);
+    commandRunner = new TestCommandRunner(parser, usageDataEmitter);
     sandboxStartMock.mock.resetCalls();
     mockHandleProfile.mock.resetCalls();
   });
@@ -266,7 +269,7 @@ void describe('sandbox command', () => {
       undefined
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
-    commandRunner = new TestCommandRunner(parser);
+    commandRunner = new TestCommandRunner(parser, usageDataEmitter);
     await commandRunner.runCommand(`sandbox --profile ${sandboxProfile}`);
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(

@@ -6,8 +6,11 @@ import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretCommand } from './sandbox_secret_command.js';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
 
 const testBackendId = 'testBackendId';
+
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('sandbox secret command', () => {
   const secretClient = getSecretClient();
@@ -24,7 +27,7 @@ void describe('sandbox secret command', () => {
   ]);
 
   const parser = yargs().command(sandboxSecretCmd);
-  const commandRunner = new TestCommandRunner(parser);
+  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
 
   void it('show --help', async () => {
     const output = await commandRunner.runCommand('secret --help');

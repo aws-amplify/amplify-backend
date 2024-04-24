@@ -11,6 +11,9 @@ import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
+
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('generate config command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter({
@@ -48,7 +51,7 @@ void describe('generate config command', () => {
   const parser = yargs().command(
     generateConfigCommand as unknown as CommandModule
   );
-  const commandRunner = new TestCommandRunner(parser);
+  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
 
   beforeEach(() => {
     generateClientConfigToFileMock.mock.resetCalls();
@@ -58,7 +61,7 @@ void describe('generate config command', () => {
     await commandRunner.runCommand('config');
 
     assert.equal(
-      mockedSandboxIdResolver.mock.calls[0].arguments[0],
+      generateClientConfigToFileMock.mock.calls[0].arguments[0],
       fakeSandboxId
     );
   });

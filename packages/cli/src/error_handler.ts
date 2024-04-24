@@ -1,34 +1,44 @@
 import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { Argv } from 'yargs';
-import { AmplifyError } from '@aws-amplify/platform-core';
+import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
 
 let hasAttachUnhandledExceptionListenersBeenCalled = false;
 
 /**
  * Attaches process listeners to handle unhandled exceptions and rejections
  */
-export const attachUnhandledExceptionListeners = (): void => {
+export const attachUnhandledExceptionListeners = (
+  usageDataEmitter: UsageDataEmitter
+): void => {
   if (hasAttachUnhandledExceptionListenersBeenCalled) {
     return;
   }
   process.on('unhandledRejection', (reason) => {
     process.exitCode = 1;
     if (reason instanceof Error) {
-      handleError(reason);
+      void handleError(reason, undefined, undefined, usageDataEmitter);
     } else if (typeof reason === 'string') {
-      handleError(new Error(reason));
+      void handleError(
+        new Error(reason),
+        undefined,
+        undefined,
+        usageDataEmitter
+      );
     } else {
-      handleError(
+      void handleError(
         new Error(`Unhandled rejection of type [${typeof reason}]`, {
           cause: reason,
-        })
+        }),
+        undefined,
+        undefined,
+        usageDataEmitter
       );
     }
   });
 
   process.on('uncaughtException', (error) => {
     process.exitCode = 1;
-    handleError(error);
+    void handleError(error, undefined, undefined, usageDataEmitter);
   });
   hasAttachUnhandledExceptionListenersBeenCalled = true;
 };
@@ -42,21 +52,24 @@ export const attachUnhandledExceptionListeners = (): void => {
  * This prevents our top-level error handler from being invoked after the yargs error handler has already been invoked
  */
 export const generateCommandFailureHandler = (
-  parser: Argv
-): ((message: string, error: Error) => void) => {
+  parser: Argv,
+  usageDataEmitter: UsageDataEmitter
+): ((message: string, error: Error) => Promise<void>) => {
   /**
    * Format error output when a command fails
    * @param message error message set by the yargs:check validations
    * @param error error thrown by yargs handler
    */
-  const handleCommandFailure = (message: string, error?: Error) => {
+  const handleCommandFailure = async (message: string, error?: Error) => {
+    // join non-option args to find command that failed
+    const subcommand = (await parser.argv)?._.join(' ');
+
     const printHelp = () => {
       printer.printNewLine();
       parser.showHelp();
       printer.printNewLine();
     };
-
-    handleError(error, printHelp, message);
+    await handleError(error, printHelp, message, usageDataEmitter, subcommand);
     parser.exit(1, error || new Error(message));
   };
   return handleCommandFailure;
@@ -69,10 +82,12 @@ export const generateCommandFailureHandler = (
  * This includes console logging, debug logging, metrics recording, etc.
  * (Note that we don't do all of those things yet, but this is where they should go)
  */
-const handleError = (
+const handleError = async (
   error?: Error,
   printMessagePreamble?: () => void,
-  message?: string
+  message?: string,
+  usageDataEmitter?: UsageDataEmitter,
+  command?: string
 ) => {
   // If yargs threw an error because the customer force-closed a prompt (ie Ctrl+C during a prompt) then the intent to exit the process is clear
   if (isUserForceClosePromptError(error)) {
@@ -92,12 +107,16 @@ const handleError = (
     if (errorHasCauseMessage(error)) {
       printer.print(`Cause: ${error.cause.message}`);
     }
+    await usageDataEmitter?.emitFailure(error, { command: command ?? '' });
   } else {
     // non-Amplify Error object
     printer.print(format.error(message || String(error)));
     if (errorHasCauseMessage(error)) {
       printer.print(`Cause: ${error.cause.message}`);
     }
+    await usageDataEmitter?.emitFailure(AmplifyError.fromError(error), {
+      command: command ?? '',
+    });
   }
 
   // additional debug logging for the stack traces

@@ -6,6 +6,7 @@ import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
 import { format, printer } from '@aws-amplify/cli-core';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
 
 const testBackendId = 'testBackendId';
 const testSandboxName = 'testSandboxName';
@@ -19,6 +20,7 @@ const testSecrets: SecretListItem[] = [
   },
 ];
 const printMock = mock.method(printer, 'print');
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('sandbox secret list command', () => {
   const listSecretsResponseMock = mock.fn<() => Promise<SecretListItem[]>>(
@@ -45,7 +47,7 @@ void describe('sandbox secret list command', () => {
   );
 
   const parser = yargs().command(sandboxSecretListCmd);
-  const commandRunner = new TestCommandRunner(parser);
+  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
 
   beforeEach(async () => {
     secretListMock.mock.resetCalls();

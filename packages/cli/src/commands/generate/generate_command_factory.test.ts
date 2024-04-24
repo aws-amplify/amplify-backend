@@ -3,6 +3,9 @@ import { TestCommandRunner } from '../../test-utils/command_runner.js';
 import { createGenerateCommand } from './generate_command_factory.js';
 import yargs from 'yargs';
 import assert from 'node:assert';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
+
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 /**
  * Top level generate command's responsibility is to wire subcommands and delegate execution down the command chain.
@@ -11,7 +14,7 @@ import assert from 'node:assert';
 void describe('top level generate command', () => {
   const generateCommand = createGenerateCommand();
   const parser = yargs().command(generateCommand);
-  const commandRunner = new TestCommandRunner(parser);
+  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
 
   void it('includes generate subcommands in help output', async () => {
     const output = await commandRunner.runCommand('generate --help');

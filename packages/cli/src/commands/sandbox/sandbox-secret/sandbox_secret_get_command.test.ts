@@ -10,6 +10,7 @@ import {
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 import { format, printer } from '@aws-amplify/cli-core';
+import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
 
 const printMock = mock.method(printer, 'print');
 
@@ -24,6 +25,8 @@ const testSecret: Secret = {
   version: 100,
   value: 'testValue',
 };
+
+const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('sandbox secret get command', () => {
   const secretClient = getSecretClient();
@@ -51,7 +54,7 @@ void describe('sandbox secret get command', () => {
     sandboxSecretGetCmd as unknown as CommandModule
   );
 
-  const commandRunner = new TestCommandRunner(parser);
+  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
 
   beforeEach(async () => {
     secretGetMock.mock.resetCalls();
