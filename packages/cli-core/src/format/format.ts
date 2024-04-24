@@ -13,7 +13,12 @@ import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { PackageManagerControllerFactory } from '../package-manager-controller/package_manager_controller_factory.js';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 
-let packageManagerController: PackageManagerController;
+/**
+ * Exported for testing only. Should not be used directly outside of tests!
+ */
+export const packageManagerControllerContainer: {
+  packageManagerController?: PackageManagerController;
+} = {};
 
 /**
  * Formats various inputs into single string.
@@ -25,12 +30,15 @@ export const format = {
         message: 'The command must be non-empty',
       });
     }
-    if (!packageManagerController) {
-      packageManagerController =
+    if (!packageManagerControllerContainer.packageManagerController) {
+      packageManagerControllerContainer.packageManagerController =
         new PackageManagerControllerFactory().getPackageManagerController();
     }
     return cyan(
-      packageManagerController.getCommand(['amplify', ...command.split(' ')])
+      packageManagerControllerContainer.packageManagerController.getCommand([
+        'amplify',
+        ...command.split(' '),
+      ])
     );
   },
   error: (message: string) => red(message),

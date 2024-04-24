@@ -1,15 +1,20 @@
 import * as os from 'node:os';
 import * as assert from 'node:assert';
 import { after, before, describe, it } from 'node:test';
-import { format } from './format.js';
+import { format, packageManagerControllerContainer } from './format.js';
 import { $, blue, bold, cyan, green, underline } from 'kleur/colors';
+import { YarnModernPackageManagerController } from '../package-manager-controller/yarn_modern_package_manager_controller.js';
+import { printer } from '../printer.js';
 
 void describe('format', () => {
-  void it('should format amplify command with npx', () => {
+  void it('should format amplify command with yarn', { concurrency: 1 }, () => {
+    packageManagerControllerContainer.packageManagerController =
+      new YarnModernPackageManagerController(process.cwd(), printer);
     const command = 'help';
-    const expectedOutput = cyan(`npx amplify help`);
+    const expectedOutput = cyan(`yarn amplify help`);
     const actualOutput = format.backendCliCommand(command);
     assert.strictEqual(actualOutput, expectedOutput);
+    packageManagerControllerContainer.packageManagerController = undefined;
   });
 
   void it('should return error for empty amplify command', () => {
