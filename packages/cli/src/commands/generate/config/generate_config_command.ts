@@ -5,7 +5,6 @@ import {
   ClientConfigVersionOption,
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
-import { UsageDataEmitter } from '@aws-amplify/platform-core';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
@@ -43,8 +42,7 @@ export class GenerateConfigCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly backendIdentifierResolver: BackendIdentifierResolver,
-    private readonly usageDataEmitterCreator: () => Promise<UsageDataEmitter>
+    private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
     this.command = 'config';
     this.describe = 'Generates client config';
@@ -59,22 +57,17 @@ export class GenerateConfigCommand
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
-    const usageDataEmitter = await this.usageDataEmitterCreator();
-    const metricDimension = { command: 'amplify generate config' };
 
     if (!backendIdentifier) {
       throw new Error('Could not resolve the backend identifier');
     }
 
-    await this.clientConfigGenerator
-      .generateClientConfigToFile(
-        backendIdentifier,
-        args.configVersion as ClientConfigVersion,
-        args.outDir,
-        args.format
-      )
-      .then(() => usageDataEmitter.emitSuccess({}, metricDimension))
-      .catch((error) => usageDataEmitter.emitFailure(error, metricDimension));
+    await this.clientConfigGenerator.generateClientConfigToFile(
+      backendIdentifier,
+      args.configVersion as ClientConfigVersion,
+      args.outDir,
+      args.format
+    );
   };
 
   /**

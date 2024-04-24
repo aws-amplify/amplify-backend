@@ -1,12 +1,8 @@
 import { CommandModule } from 'yargs';
-import { fileURLToPath } from 'url';
 import { GenerateCommand } from './generate_command.js';
 import { GenerateConfigCommand } from './config/generate_config_command.js';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
-import {
-  PackageJsonReader,
-  UsageDataEmitterFactory,
-} from '@aws-amplify/platform-core';
+import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
@@ -39,10 +35,6 @@ export const createGenerateCommand = (): CommandModule => {
     getCloudFormationClient: () => cloudFormationClient,
   };
   const secretClient = getSecretClient();
-  const libraryVersion =
-    new PackageJsonReader().read(
-      fileURLToPath(new URL('../../../package.json', import.meta.url))
-    ).version ?? '';
 
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
     awsClientProvider
@@ -57,15 +49,13 @@ export const createGenerateCommand = (): CommandModule => {
 
   const generateConfigCommand = new GenerateConfigCommand(
     clientConfigGenerator,
-    backendIdentifierResolver,
-    () => new UsageDataEmitterFactory().getInstance(libraryVersion)
+    backendIdentifierResolver
   );
 
   const generateFormsCommand = new GenerateFormsCommand(
     backendIdentifierResolver,
     () => BackendOutputClientFactory.getInstance(awsClientProvider),
-    new FormGenerationHandler({ awsClientProvider }),
-    () => new UsageDataEmitterFactory().getInstance(libraryVersion)
+    new FormGenerationHandler({ awsClientProvider })
   );
 
   const generateApiCodeAdapter = new GenerateApiCodeAdapter(awsClientProvider);
@@ -78,8 +68,7 @@ export const createGenerateCommand = (): CommandModule => {
   const generateSchemaCommand = new GenerateSchemaCommand(
     backendIdentifierResolver,
     secretClient,
-    new SchemaGenerator(),
-    () => new UsageDataEmitterFactory().getInstance(libraryVersion)
+    new SchemaGenerator()
   );
 
   const commandMiddleware = new CommandMiddleware(printer);

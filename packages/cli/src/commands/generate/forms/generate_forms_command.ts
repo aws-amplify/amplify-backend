@@ -6,7 +6,6 @@ import { BackendIdentifierResolver } from '../../../backend-identifier/backend_i
 import { DEFAULT_UI_PATH } from '../../../form-generation/default_form_generation_output_paths.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
-import { UsageDataEmitter } from '@aws-amplify/platform-core';
 
 export type GenerateFormsCommandOptions =
   ArgumentsKebabCase<GenerateFormsCommandOptionsCamelCase>;
@@ -41,8 +40,7 @@ export class GenerateFormsCommand
   constructor(
     private readonly backendIdentifierResolver: BackendIdentifierResolver,
     private readonly backendOutputClientBuilder: () => BackendOutputClient,
-    private readonly formGenerationHandler: FormGenerationHandler,
-    private readonly usageDataEmitterCreator: () => Promise<UsageDataEmitter>
+    private readonly formGenerationHandler: FormGenerationHandler
   ) {
     this.command = 'forms';
     this.describe = 'Generates UI forms';
@@ -61,8 +59,6 @@ export class GenerateFormsCommand
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
-    const usageDataEmitter = await this.usageDataEmitterCreator();
-    const metricDimension = { command: 'amplify generate forms' };
 
     if (!backendIdentifier) {
       throw new Error('Could not resolve the backend identifier');
@@ -84,16 +80,13 @@ export class GenerateFormsCommand
 
     const outDir = args.outDir;
 
-    await this.formGenerationHandler
-      .generate({
-        modelsOutDir: path.join(outDir, 'graphql'),
-        backendIdentifier,
-        uiOutDir: outDir,
-        apiUrl,
-        modelsFilter: args.models,
-      })
-      .then(() => usageDataEmitter.emitSuccess({}, metricDimension))
-      .catch((error) => usageDataEmitter.emitFailure(error, metricDimension));
+    await this.formGenerationHandler.generate({
+      modelsOutDir: path.join(outDir, 'graphql'),
+      backendIdentifier,
+      uiOutDir: outDir,
+      apiUrl,
+      modelsFilter: args.models,
+    });
   };
 
   /**
