@@ -54,7 +54,13 @@ export type AuthProps = {
 export type EmailLogin = true | EmailLoginSettings;
 
 // @public
-export type EmailLoginSettings = VerificationEmailWithLink | VerificationEmailWithCode;
+export type EmailLoginSettings = (VerificationEmailWithLink | VerificationEmailWithCode) & {
+    userInvitation?: {
+        emailSubject?: string;
+        emailBody?: (username: () => string, code: () => string) => string;
+        smsMessage?: (username: () => string, code: () => string) => string;
+    };
+};
 
 // @public
 export type ExternalProviderOptions = {

@@ -49,9 +49,31 @@ export type VerificationEmailWithCode = {
 /**
  * Email login settings object.
  */
-export type EmailLoginSettings =
+export type EmailLoginSettings = (
   | VerificationEmailWithLink
-  | VerificationEmailWithCode;
+  | VerificationEmailWithCode
+) & {
+  /**
+   * Customize the email invitation sent to users when an administrators signs them up.
+   */
+  userInvitation?: {
+    /**
+     * The template to the email subject that is sent to the user when an administrator signs them up to the user pool.
+     * @default 'Your temporary password'
+     */
+    emailSubject?: string;
+    /**
+     * The template to the email body that is sent to the user when an administrator signs them up to the user pool.
+     * @default (username, code) => 'Your username is {username()} and temporary password is {code()}.'
+     */
+    emailBody?: (username: () => string, code: () => string) => string;
+    /**
+     * The template to the SMS message that is sent to the user when an administrator signs them up to the user pool.
+     * @default (username, code) => 'Your username is {username()} and temporary password is {code()}.'
+     */
+    smsMessage?: (username: () => string, code: () => string) => string;
+  };
+};
 /**
  * Email login options.
  *

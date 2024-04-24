@@ -269,6 +269,40 @@ void describe('Auth construct', () => {
     });
   });
 
+  void it('creates email login mechanism with custom invitation settings', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const userInvitationSettings = {
+      emailSubject: 'invited by admin',
+      emailBody: (username: () => string, code: () => string) =>
+        `EMAIL: your username is ${username()} and invitation code is ${code()}`,
+      smsMessage: (username: () => string, code: () => string) =>
+        `SMS: your username is ${username()} and invitation code is ${code()}`,
+    };
+    const expectedEmailBody =
+      'EMAIL: your username is {username} and invitation code is {####}';
+    const expectedSMSMessage =
+      'SMS: your username is {username} and invitation code is {####}';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: {
+          userInvitation: userInvitationSettings,
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      AdminCreateUserConfig: {
+        AllowAdminCreateUserOnly: false,
+        InviteMessageTemplate: {
+          EmailMessage: expectedEmailBody,
+          EmailSubject: userInvitationSettings.emailSubject,
+          SMSMessage: expectedSMSMessage,
+        },
+      },
+    });
+  });
+
   void it('creates email login mechanism with MFA', () => {
     const app = new App();
     const stack = new Stack(app);
