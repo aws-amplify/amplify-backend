@@ -967,7 +967,7 @@ void describe('Auth construct', () => {
       });
     });
 
-    void it('disables implicit grant OAUTH flow by default', () => {
+    void it('ensure that authorizationCodeGrant is the only OAUTH flow by default', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test');
@@ -977,7 +977,7 @@ void describe('Auth construct', () => {
       });
     });
 
-    void it('disables implicit grant OAUTH flow by default when oauth providers are used', () => {
+    void it('ensure that authorizationCodeGrant is the only OAUTH flow by default when oauth providers are used', () => {
       const app = new App();
       const stack = new Stack(app);
       new AmplifyAuth(stack, 'test', {
