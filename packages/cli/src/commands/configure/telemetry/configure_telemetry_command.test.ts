@@ -61,7 +61,7 @@ void describe('configure command', () => {
     );
   });
 
-  void it.skip('if subcommand is not defined, it should list of subcommands and demandCommand', async () => {
+  void it('if subcommand is not defined, it should list of subcommands and demandCommand', async () => {
     const output = await commandRunner.runCommand(`telemetry`);
     assert.match(
       output,
