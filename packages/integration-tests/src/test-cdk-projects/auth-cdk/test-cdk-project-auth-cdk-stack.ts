@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct-alpha';
+import { AmplifyAuth, AuthProps } from '@aws-amplify/auth-construct';
 import { randomBytes } from 'node:crypto';
 
 export class TestCdkProjectAuthCdkStack extends cdk.Stack {

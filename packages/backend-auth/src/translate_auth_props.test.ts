@@ -7,7 +7,7 @@ import {
 import { describe, it } from 'node:test';
 import { AuthLoginWithFactoryProps } from './types.js';
 import { Construct } from 'constructs';
-import { AuthProps, PhoneNumberLogin } from '@aws-amplify/auth-construct-alpha';
+import { AuthProps, PhoneNumberLogin } from '@aws-amplify/auth-construct';
 import { SecretValue } from 'aws-cdk-lib';
 import assert from 'node:assert';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';

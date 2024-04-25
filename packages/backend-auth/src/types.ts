@@ -6,7 +6,7 @@ import {
   FacebookProviderProps,
   GoogleProviderProps,
   OidcProviderProps,
-} from '@aws-amplify/auth-construct-alpha';
+} from '@aws-amplify/auth-construct';
 import {
   BackendSecret,
   ConstructFactory,

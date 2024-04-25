@@ -6,7 +6,7 @@ import {
   AmplifyAuth,
   AuthProps,
   TriggerEvent,
-} from '@aws-amplify/auth-construct-alpha';
+} from '@aws-amplify/auth-construct';
 import {
   AuthResources,
   AuthRoleName,
