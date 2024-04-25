@@ -11,7 +11,6 @@ void describe('InitialProjectFileGenerator', () => {
   };
   const executeWithDebugLoggerMock = mock.fn();
   const packageManagerControllerMock = {
-    getWelcomeMessage: mock.fn(() => ''),
     initializeProject: mock.fn(() => Promise.resolve()),
     initializeTsConfig: mock.fn(() => Promise.resolve()),
     installDependencies: mock.fn(() => Promise.resolve()),

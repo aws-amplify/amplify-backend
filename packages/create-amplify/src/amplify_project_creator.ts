@@ -90,10 +90,14 @@ export class AmplifyProjectCreator {
 
     printer.log(format.sectionHeader(`Welcome to AWS Amplify!`));
 
-    const instructionSteps = [
-      cdPreamble,
-      this.packageManagerController.getWelcomeMessage(),
-    ]
+    const welcomeMessage = format.list([
+      `Get started by running ${format.backendCliCommand('sandbox')}.`,
+      `Run ${format.backendCliCommand(
+        'help'
+      )} for a list of available commands.`,
+    ]);
+
+    const instructionSteps = [cdPreamble, welcomeMessage]
       .filter(Boolean)
       .join(EOL);
 

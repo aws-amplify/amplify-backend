@@ -16,7 +16,6 @@ void describe('AmplifyProjectCreator', () => {
 
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
     const packageManagerControllerMock = {
-      getWelcomeMessage: mock.fn(() => ''),
       initializeProject: mock.fn(() => Promise.resolve()),
       initializeTsConfig: mock.fn(() => Promise.resolve()),
       installDependencies: mock.fn(() => Promise.resolve()),
@@ -99,7 +98,6 @@ void describe('AmplifyProjectCreator', () => {
 
   void it('should instruct users to use the custom project root', async () => {
     const packageManagerControllerMock: PackageManagerController = {
-      getWelcomeMessage: mock.fn(() => ''),
       initializeProject: mock.fn(() => Promise.resolve()),
       initializeTsConfig: mock.fn(() => Promise.resolve()),
       installDependencies: mock.fn(() => Promise.resolve()),

@@ -42,7 +42,6 @@ void describe('invokeCDKCommand', () => {
   const locateMock = mock.fn(() => 'amplify/backend.ts');
   const backendLocator = { locate: locateMock } as unknown as BackendLocator;
   const packageManagerControllerMock: PackageManagerController = {
-    getWelcomeMessage: mock.fn(() => ''),
     initializeProject: mock.fn(() => Promise.resolve()),
     initializeTsConfig: mock.fn(() => Promise.resolve()),
     installDependencies: mock.fn(() => Promise.resolve()),
