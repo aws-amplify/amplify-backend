@@ -1,6 +1,6 @@
 import { CommandModule } from 'yargs';
 import { GenerateCommand } from './generate_command.js';
-import { GenerateConfigCommand } from './config/generate_config_command.js';
+import { GenerateOutputsCommand } from './outputs/generate_outputs_command.js';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
@@ -47,7 +47,7 @@ export const createGenerateCommand = (): CommandModule => {
     new SandboxBackendIdResolver(namespaceResolver)
   );
 
-  const generateConfigCommand = new GenerateConfigCommand(
+  const generateOutputsCommand = new GenerateOutputsCommand(
     clientConfigGenerator,
     backendIdentifierResolver
   );
@@ -74,7 +74,7 @@ export const createGenerateCommand = (): CommandModule => {
   const commandMiddleware = new CommandMiddleware(printer);
 
   return new GenerateCommand(
-    generateConfigCommand,
+    generateOutputsCommand,
     generateFormsCommand,
     generateGraphqlClientCodeCommand,
     generateSchemaCommand,
