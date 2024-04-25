@@ -2,7 +2,10 @@
 
 import { hideBin } from 'yargs/helpers';
 import { createMainParser } from './main_parser_factory.js';
-import { attachUnhandledExceptionListeners } from './error_handler.js';
+import {
+  attachUnhandledExceptionListeners,
+  extractSubCommands,
+} from './error_handler.js';
 import {
   AmplifyFault,
   PackageJsonReader,
@@ -29,7 +32,6 @@ const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
 attachUnhandledExceptionListeners(usageDataEmitter);
 
 const parser = createMainParser(libraryVersion, usageDataEmitter);
+await parser.parseAsync(hideBin(process.argv));
 
-const parsedArgv = await parser.parseAsync(hideBin(process.argv));
-
-await usageDataEmitter.emitSuccess({}, { command: parsedArgv._.join(' ') });
+await usageDataEmitter.emitSuccess({}, { command: extractSubCommands(parser) });

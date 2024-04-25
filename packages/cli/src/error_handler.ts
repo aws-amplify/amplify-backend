@@ -61,15 +61,18 @@ export const generateCommandFailureHandler = (
    * @param error error thrown by yargs handler
    */
   const handleCommandFailure = async (message: string, error?: Error) => {
-    // join non-option args to find command that failed
-    const subcommand = (await parser.argv)?._.join(' ');
-
     const printHelp = () => {
       printer.printNewLine();
       parser.showHelp();
       printer.printNewLine();
     };
-    await handleError(error, printHelp, message, usageDataEmitter, subcommand);
+    await handleError(
+      error,
+      printHelp,
+      message,
+      usageDataEmitter,
+      extractSubCommands(parser)
+    );
     parser.exit(1, error || new Error(message));
   };
   return handleCommandFailure;
@@ -152,4 +155,11 @@ const errorHasCauseMessage = (
     'message' in error.cause &&
     typeof error.cause.message === 'string'
   );
+};
+
+/**
+ * If the parser finished processing arguments, attempt extracting subcommand information.
+ */
+export const extractSubCommands = (yargs: Argv): string => {
+  return yargs.parsed ? yargs.parsed.argv._.join(' ') : '';
 };
