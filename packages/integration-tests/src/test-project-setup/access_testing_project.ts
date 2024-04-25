@@ -31,7 +31,14 @@ import {
   ClientConfigVersionTemplateType,
   generateClientConfig,
 } from '@aws-amplify/client-config';
-import { AUTH_TYPE, AWSAppSyncClient } from 'aws-appsync';
+import { AUTH_TYPE, createAuthLink } from 'aws-appsync-auth-link';
+import {
+  ApolloClient,
+  ApolloLink,
+  HttpLink,
+  InMemoryCache,
+} from '@apollo/client/core';
+import { NormalizedCacheObject } from '@apollo/client';
 import crypto from 'node:crypto';
 import { gql } from 'graphql-tag';
 import { IamCredentials } from '../types.js';
@@ -205,7 +212,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Network error: Response not successful: Received status code 401'
+          'Response not successful: Received status code 401'
         );
         return true;
       }
@@ -228,7 +235,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Network error: Response not successful: Received status code 401'
+          'Response not successful: Received status code 401'
         );
         return true;
       }
@@ -285,7 +292,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'GraphQL error: Not Authorized to access listPublicTodos on type Query'
+          'Not Authorized to access listPublicTodos on type Query'
         );
         return true;
       }
@@ -331,7 +338,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Network error: Response not successful: Received status code 401'
+          'Response not successful: Received status code 401'
         );
         return true;
       }
@@ -475,21 +482,30 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   private createAppSyncClient = (
     clientConfig: ClientConfigVersionTemplateType<'1'>,
     credentials: IamCredentials
-  ): AWSAppSyncClient<never> => {
+  ): ApolloClient<NormalizedCacheObject> => {
     if (!clientConfig.data?.url) {
       throw new Error('Appsync API URL is undefined');
     }
     if (!clientConfig.data?.aws_region) {
       throw new Error('Appsync API region is undefined');
     }
-    return new AWSAppSyncClient({
-      url: clientConfig.data?.url,
-      region: clientConfig.data?.aws_region,
-      auth: {
-        type: AUTH_TYPE.AWS_IAM,
-        credentials,
-      },
-      disableOffline: true,
+
+    const httpLink = new HttpLink({ uri: clientConfig.data.url });
+    const link = ApolloLink.from([
+      createAuthLink({
+        url: clientConfig.data.url,
+        region: clientConfig.data.aws_region,
+        auth: {
+          type: AUTH_TYPE.AWS_IAM,
+          credentials,
+        },
+      }),
+      // see https://github.com/awslabs/aws-mobile-appsync-sdk-js/issues/473#issuecomment-543029072
+      httpLink,
+    ]);
+    return new ApolloClient({
+      link,
+      cache: new InMemoryCache(),
     });
   };
 
