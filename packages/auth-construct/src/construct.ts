@@ -611,7 +611,9 @@ export class AmplifyAuth
     const result: IdentityProviderSetupResult = {
       oAuthMappings: {},
       providersList: [],
-      oAuthSettings: undefined,
+      oAuthSettings: {
+        flows: DEFAULTS.OAUTH_FLOWS,
+      },
     };
     // external providers
     const external = loginOptions.externalProviders;
@@ -808,9 +810,7 @@ export class AmplifyAuth
       scopes: external.scopes
         ? this.getOAuthScopes(external.scopes)
         : DEFAULT_OAUTH_SCOPES,
-      flows: {
-        authorizationCodeGrant: true,
-      },
+      flows: DEFAULTS.OAUTH_FLOWS,
     };
 
     return result;

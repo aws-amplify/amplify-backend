@@ -1003,6 +1003,39 @@ void describe('Auth construct', () => {
       });
     });
 
+    void it('ensure that authorizationCodeGrant is the only OAUTH flow by default', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        AllowedOAuthFlows: ['code'],
+      });
+    });
+
+    void it('ensure that authorizationCodeGrant is the only OAUTH flow by default when oauth providers are used', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: new SecretValue(googleClientSecret),
+            },
+            callbackUrls: ['https://callback.com'],
+            logoutUrls: ['https://logout.com'],
+            domainPrefix: 'test',
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        AllowedOAuthFlows: ['code'],
+      });
+    });
+
     void it('creates a default client with cognito provider', () => {
       const app = new App();
       const stack = new Stack(app);
