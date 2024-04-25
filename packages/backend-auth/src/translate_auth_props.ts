@@ -5,7 +5,7 @@ import {
   FacebookProviderProps,
   GoogleProviderProps,
   OidcProviderProps,
-} from '@aws-amplify/auth-construct-alpha';
+} from '@aws-amplify/auth-construct';
 import { BackendSecretResolver } from '@aws-amplify/plugin-types';
 import {
   AmazonProviderFactoryProps,
