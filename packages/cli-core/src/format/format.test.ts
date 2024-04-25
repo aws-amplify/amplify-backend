@@ -1,26 +1,22 @@
 import * as os from 'node:os';
 import * as assert from 'node:assert';
 import { after, before, describe, it } from 'node:test';
-import { format, packageManagerControllerContainer } from './format.js';
+import { Format, format } from './format.js';
 import { $, blue, bold, cyan, green, underline } from 'kleur/colors';
-import { YarnModernPackageManagerController } from '../package-manager-controller/yarn_modern_package_manager_controller.js';
-import { printer } from '../printer.js';
 
 void describe('format', () => {
   void it('should format amplify command with yarn', { concurrency: 1 }, () => {
-    packageManagerControllerContainer.packageManagerController =
-      new YarnModernPackageManagerController(process.cwd(), printer);
-    const command = 'help';
-    const expectedOutput = cyan(`yarn amplify help`);
-    const actualOutput = format.backendCliCommand(command);
-    assert.strictEqual(actualOutput, expectedOutput);
-    packageManagerControllerContainer.packageManagerController = undefined;
+    const formatter = new Format('yarn');
+    assert.strictEqual(
+      formatter.normalizeBackendCommand('help'),
+      cyan('yarn amplify help')
+    );
   });
 
   void it('should return error for empty amplify command', () => {
     assert.throws(
       () => {
-        format.backendCliCommand('');
+        format.normalizeBackendCommand('');
       },
       {
         message: 'The command must be non-empty',
@@ -105,7 +101,7 @@ void describe('format when terminal colors disabled', async () => {
 
   void it('prints plain command', () => {
     const message = 'hello';
-    const coloredMessage = format.backendCliCommand(message);
+    const coloredMessage = format.normalizeBackendCommand(message);
 
     assert.strictEqual(
       coloredMessage.includes('\x1b['),

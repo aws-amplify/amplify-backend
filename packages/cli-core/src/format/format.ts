@@ -9,50 +9,39 @@ import {
   red,
   underline,
 } from 'kleur/colors';
-import { PackageManagerController } from '@aws-amplify/plugin-types';
-import { PackageManagerControllerFactory } from '../package-manager-controller/package_manager_controller_factory.js';
 import { AmplifyFault } from '@aws-amplify/platform-core';
-
-/**
- * Exported for testing only. Should not be used directly outside of tests!
- */
-export const packageManagerControllerContainer: {
-  packageManagerController?: PackageManagerController;
-} = {};
+import { getPackageManagerRunnerName } from '../package-manager-controller/get_package_manager_name.js';
 
 /**
  * Formats various inputs into single string.
  */
-export const format: Format = {
-  backendCliCommand: (command: string) => {
+export class Format {
+  /**
+   * Initialize with a package manager runner name. Defaults to attempting to load a value derived from environment variables.
+   */
+  constructor(
+    private readonly packageManagerRunnerName = getPackageManagerRunnerName()
+  ) {}
+  normalizeBackendCommand = (command: string) => {
     if (command.length === 0) {
       throw new AmplifyFault('InvalidFormatFault', {
         message: 'The command must be non-empty',
       });
     }
-    if (!packageManagerControllerContainer.packageManagerController) {
-      packageManagerControllerContainer.packageManagerController =
-        new PackageManagerControllerFactory().getPackageManagerController();
-    }
-    return cyan(
-      packageManagerControllerContainer.packageManagerController.getCommand([
-        'amplify',
-        ...command.split(' '),
-      ])
-    );
-  },
-  error: (message: string) => red(message),
-  note: (message: string) => grey(message),
-  command: (command: string) => cyan(command),
-  highlight: (command: string) => cyan(command),
-  success: (message: string) => green(message),
-  sectionHeader: (header: string) => bold(blue(header)),
-  bold: (message: string) => bold(message),
-  dim: (message: string) => dim(message),
-  link: (link: string) => underline(blue(link)),
-  list: (lines: string[]) =>
-    lines.map((line: string) => ` - ${line}`).join(os.EOL),
-  indent: (message: string) => {
+    return cyan(`${this.packageManagerRunnerName} amplify ${command}`);
+  };
+  error = (message: string) => red(message);
+  note = (message: string) => grey(message);
+  command = (command: string) => cyan(command);
+  highlight = (command: string) => cyan(command);
+  success = (message: string) => green(message);
+  sectionHeader = (header: string) => bold(blue(header));
+  bold = (message: string) => bold(message);
+  dim = (message: string) => dim(message);
+  link = (link: string) => underline(blue(link));
+  list = (lines: string[]) =>
+    lines.map((line: string) => ` - ${line}`).join(os.EOL);
+  indent = (message: string) => {
     if (message === '') {
       throw new Error('Message cannot be empty');
     }
@@ -61,25 +50,11 @@ export const format: Format = {
       .split(os.EOL)
       .map((line) => `${spaces}${line}`)
       .join(os.EOL);
-  },
-  record: (record: Record<string, string | number | Date>) =>
+  };
+  record = (record: Record<string, string | number | Date>) =>
     Object.entries(record)
       .map(([key, value]) => `${key}: ${String(value)}`)
-      .join(os.EOL),
-};
+      .join(os.EOL);
+}
 
-export type Format = {
-  backendCliCommand: (command: string) => string;
-  error: (message: string) => string;
-  note: (message: string) => string;
-  command: (command: string) => string;
-  highlight: (command: string) => string;
-  success: (message: string) => string;
-  sectionHeader: (header: string) => string;
-  bold: (message: string) => string;
-  dim: (message: string) => string;
-  link: (link: string) => string;
-  list: (lines: string[]) => string;
-  indent: (message: string) => string;
-  record: (record: Record<string, string | number | Date>) => string;
-};
+export const format = new Format();

@@ -6,6 +6,7 @@ import { type PackageManagerController } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
+import { getPackageManagerRunnerName } from './get_package_manager_name.js';
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -13,13 +14,13 @@ import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_wit
 export abstract class PackageManagerControllerBase
   implements PackageManagerController
 {
+  protected readonly binaryRunner: string;
   /**
    * constructor - sets the project root
    */
   constructor(
     protected readonly cwd: string,
     protected readonly executable: string,
-    protected readonly binaryRunner: string,
     protected readonly initDefault: string[],
     protected readonly installCommand: string,
     protected readonly fsp = _fsp,
@@ -27,7 +28,9 @@ export abstract class PackageManagerControllerBase
     protected readonly execa = _execa,
     protected readonly executeWithDebugLogger = _executeWithDebugLogger,
     protected readonly existsSync = _existsSync
-  ) {}
+  ) {
+    this.binaryRunner = getPackageManagerRunnerName();
+  }
 
   /**
    * installDependencies - installs dependencies in the project root
