@@ -1,5 +1,58 @@
 # create-amplify
 
+## 0.7.0
+
+### Minor Changes
+
+- c1ec6e1: remove new lines on create-amplify
+- eec100e: Updates the create flow with colors, verbosity and better structure
+
+### Patch Changes
+
+- 54c69c4: chore: rename the new client config file name
+- 11031fd: updated the client sample to have `await`
+- d452e8e: remove comments from defineAuth template
+- 73d8da4: Updated `data/resource.ts` template based on user study
+- 21f6292: Force release to beta tag
+- c6a65d5: fix: when you do create-amplify absolute path, raised error and log.
+- 74c5d3f: drop beta tag from packages that are installed during project setup
+- f30e24e: Add docs link to getting started template
+- ee247fd: use printer from cli-core
+- 4123204: fix: order of array in test assert in gitignored tests
+- 0e6f436: chore: bump data-schema packages version (0.16.0)
+- Updated dependencies [6c6af9b]
+- Updated dependencies [ab7533d]
+- Updated dependencies [a01f6b9]
+- Updated dependencies [697d791]
+- Updated dependencies [74cbda0]
+- Updated dependencies [7cbe58b]
+- Updated dependencies [7537216]
+- Updated dependencies [baeb68f]
+- Updated dependencies [77079c6]
+- Updated dependencies [aec89f9]
+- Updated dependencies [e0ae60c]
+- Updated dependencies [ef111b4]
+- Updated dependencies [3998cd3]
+- Updated dependencies [109cd1b]
+- Updated dependencies [4d47f63]
+- Updated dependencies [8d9a7a4]
+- Updated dependencies [3e34244]
+- Updated dependencies [db23a3f]
+- Updated dependencies [b0ba24d]
+- Updated dependencies [ee247fd]
+- Updated dependencies [8d9a7a4]
+- Updated dependencies [937086b]
+- Updated dependencies [0d1b00e]
+- Updated dependencies [2a69684]
+- Updated dependencies [4995bda]
+- Updated dependencies [5e12247]
+- Updated dependencies [48ff3bd]
+- Updated dependencies [1c52df1]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0
+  - @aws-amplify/plugin-types@0.9.0
+  - @aws-amplify/cli-core@0.5.0
+
 ## 0.7.0-beta.15
 
 ### Patch Changes

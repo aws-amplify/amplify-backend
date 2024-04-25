@@ -12,6 +12,7 @@ import {
   FunctionResources,
   ImportPathVerifier,
   ResourceAccessAcceptorFactory,
+  ResourceNameValidator,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
@@ -19,6 +20,7 @@ import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-
 import {
   ConstructContainerStub,
   ImportPathVerifierStub,
+  ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
@@ -40,6 +42,7 @@ void describe('AmplifyAuthFactory', () => {
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
+  let resourceNameValidator: ResourceNameValidator;
   let stack: Stack;
   beforeEach(() => {
     resetFactoryCount();
@@ -59,10 +62,13 @@ void describe('AmplifyAuthFactory', () => {
 
     importPathVerifier = new ImportPathVerifierStub();
 
+    resourceNameValidator = new ResourceNameValidatorStub();
+
     getInstanceProps = {
       constructContainer,
       outputStorageStrategy,
       importPathVerifier,
+      resourceNameValidator,
     };
   });
 
@@ -99,6 +105,22 @@ void describe('AmplifyAuthFactory', () => {
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       UserPoolTags: { 'amplify:friendly-name': 'testNameFoo' },
+    });
+  });
+
+  void it('throws on invalid name', () => {
+    mock
+      .method(resourceNameValidator, 'validate')
+      .mock.mockImplementationOnce(() => {
+        throw new Error('test validation error');
+      });
+    resetFactoryCount();
+    const authFactory = defineAuth({
+      loginWith: { email: true },
+      name: 'this!is@wrong$',
+    });
+    assert.throws(() => authFactory.getInstance(getInstanceProps), {
+      message: 'test validation error',
     });
   });
 

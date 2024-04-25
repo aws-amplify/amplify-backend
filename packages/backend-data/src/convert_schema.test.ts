@@ -96,7 +96,7 @@ void describe('convertSchemaToCDK', () => {
 
   void it('generates for a typed schema', () => {
     const expectedGraphqlSchema = /* GraphQL */ `
-      type Todo @model @auth(rules: [{ allow: public }]) {
+      type Todo @model @auth(rules: [{ allow: public, provider: apiKey }]) {
         content: String!
       }
     `;
@@ -106,7 +106,7 @@ void describe('convertSchemaToCDK', () => {
           content: a.string().required(),
         }),
       })
-      .authorization([a.allow.public()]);
+      .authorization((allow) => allow.publicApiKey());
     const convertedDefinition = convertSchemaToCDK(
       typedSchema,
       secretResolver,
@@ -134,7 +134,7 @@ void describe('convertSchemaToCDK', () => {
           title: a.string(),
         }),
       })
-      .authorization([a.allow.public()]);
+      .authorization((allow) => allow.publicApiKey());
     const convertedDefinition = convertSchemaToCDK(
       typedSchema,
       secretResolver,
@@ -185,7 +185,7 @@ void describe('convertSchemaToCDK', () => {
           title: a.string(),
         })
         .identifier(['id'])
-        .authorization([a.allow.public()]),
+        .authorization((allow) => allow.publicApiKey()),
     });
 
     const modified = postgresSchema.addQueries({
@@ -195,7 +195,7 @@ void describe('convertSchemaToCDK', () => {
           a.handler.sqlReference('../test-assets/test-sql-handler/oddList.sql')
         )
         .returns(a.ref('post'))
-        .authorization([a.allow.public()]),
+        .authorization((allow) => allow.publicApiKey()),
     });
 
     const convertedDefinition = convertSchemaToCDK(
@@ -215,8 +215,10 @@ void describe('convertSchemaToCDK', () => {
         // eslint-disable-next-line spellcheck/spell-checker
         name: '00034dcf3444861c3ca5postgresql',
         dbConnectionConfig: {
-          connectionUriSsmPath:
+          connectionUriSsmPath: [
             '/amplify/testBackendId/testBranchName-branch-e482a1c36f/POSTGRES_CONNECTION_STRING',
+            '/amplify/shared/testBackendId/POSTGRES_CONNECTION_STRING',
+          ],
         },
         customSqlStatements: {
           '../test-assets/test-sql-handler/oddList.sql':
@@ -240,7 +242,7 @@ void describe('convertSchemaToCDK', () => {
           title: a.string(),
         })
         .identifier(['id'])
-        .authorization([a.allow.public()]),
+        .authorization((allow) => allow.publicApiKey()),
     });
 
     const modified = postgresSchema.addQueries({
@@ -248,7 +250,7 @@ void describe('convertSchemaToCDK', () => {
         .query()
         .handler(a.handler.inlineSql('SELECT * from post where id % 2 = 1;'))
         .returns(a.ref('post'))
-        .authorization([a.allow.public()]),
+        .authorization((allow) => allow.publicApiKey()),
     });
 
     const convertedDefinition = convertSchemaToCDK(
@@ -268,8 +270,10 @@ void describe('convertSchemaToCDK', () => {
         // eslint-disable-next-line spellcheck/spell-checker
         name: '00034dcf3444861c3ca5postgresql',
         dbConnectionConfig: {
-          connectionUriSsmPath:
+          connectionUriSsmPath: [
             '/amplify/testBackendId/testBranchName-branch-e482a1c36f/POSTGRES_CONNECTION_STRING',
+            '/amplify/shared/testBackendId/POSTGRES_CONNECTION_STRING',
+          ],
         },
         customSqlStatements: {},
         vpcConfiguration: undefined,
@@ -322,7 +326,7 @@ void describe('convertSchemaToCDK', () => {
           title: a.string(),
         })
         .identifier(['id'])
-        .authorization([a.allow.public()]),
+        .authorization((allow) => allow.publicApiKey()),
     });
 
     const modified = postgresSchema.addQueries({
@@ -330,7 +334,7 @@ void describe('convertSchemaToCDK', () => {
         .query()
         .handler(a.handler.inlineSql('SELECT * from post where id % 2 = 1;'))
         .returns(a.ref('post'))
-        .authorization([a.allow.public()]),
+        .authorization((allow) => allow.publicApiKey()),
     });
 
     const convertedDefinition = convertSchemaToCDK(
@@ -350,8 +354,10 @@ void describe('convertSchemaToCDK', () => {
         /* eslint-disable spellcheck/spell-checker */
         name: '00034dcf3444861c3ca5mysql',
         dbConnectionConfig: {
-          connectionUriSsmPath:
+          connectionUriSsmPath: [
             '/amplify/testBackendId/testBranchName-branch-e482a1c36f/MYSQL_CONNECTION_STRING',
+            '/amplify/shared/testBackendId/MYSQL_CONNECTION_STRING',
+          ],
         },
         customSqlStatements: {},
         vpcConfiguration: {

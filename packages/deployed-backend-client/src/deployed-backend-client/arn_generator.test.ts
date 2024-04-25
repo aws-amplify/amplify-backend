@@ -1,20 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { ArnGenerator } from './arn_generator.js';
-import { ResourceStatus } from '@aws-sdk/client-cloudformation';
 
 void describe('arn generator', () => {
   const mockResourceSummaryBase = {
     PhysicalResourceId: 'MOCK_PhysicalResourceId',
-    LogicalResourceId:
-      'arn:aws:{service}:{region}:{account}:stack/apiStack/{additionalFields}',
-    ResourceStatus: 'CREATE_COMPLETE' as ResourceStatus,
-    ResourceStatusReason: undefined,
-    LastUpdatedTimestamp: new Date(1),
   };
   const arnGenerator = new ArnGenerator();
 
-  void it('skips unsupported resources', async () => {
+  void it('skips unsupported resources', () => {
     const arn = arnGenerator.generateArn(
       {
         ...mockResourceSummaryBase,
@@ -27,17 +21,20 @@ void describe('arn generator', () => {
     assert.equal(arn, undefined);
   });
 
-  void it('uses any direct arn in a physicalResourceId', async () => {
-    const arn = arnGenerator.generateArn(
-      {
-        ...mockResourceSummaryBase,
-        ResourceType: 'AWS::UNSUPPORTED_RESOURCE::UNSUPPORTED_RESOURCE',
-        PhysicalResourceId:
-          'arn:aws:unsupported-service:us-east-1:000000:unsupported-resource',
-      },
-      'us-east-1',
-      '000000'
-    );
+  void it('returns undefined if PhysicalResourceId is undefined', () => {
+    const arn = arnGenerator.generateArn({
+      PhysicalResourceId: undefined,
+      ResourceType: 'something',
+    });
+    assert.equal(arn, undefined);
+  });
+
+  void it('returns physicalResourceId verbatim if it is already an ARN', () => {
+    const arn = arnGenerator.generateArn({
+      ResourceType: 'something',
+      PhysicalResourceId:
+        'arn:aws:unsupported-service:us-east-1:000000:unsupported-resource',
+    });
 
     assert.equal(
       arn,
@@ -45,7 +42,15 @@ void describe('arn generator', () => {
     );
   });
 
-  void it('generates user pool arn', async () => {
+  void it('returns undefined if region or account ID are needed and not specified', () => {
+    const arn = arnGenerator.generateArn({
+      ...mockResourceSummaryBase,
+      ResourceType: 'something',
+    });
+    assert.equal(arn, undefined);
+  });
+
+  void it('generates user pool arn', () => {
     const arn = arnGenerator.generateArn(
       {
         ...mockResourceSummaryBase,
@@ -61,7 +66,7 @@ void describe('arn generator', () => {
     );
   });
 
-  void it('generates identity pool arn', async () => {
+  void it('generates identity pool arn', () => {
     const arn = arnGenerator.generateArn(
       {
         ...mockResourceSummaryBase,
@@ -77,7 +82,7 @@ void describe('arn generator', () => {
     );
   });
 
-  void it('generates iam role arn', async () => {
+  void it('generates iam role arn', () => {
     const arn = arnGenerator.generateArn(
       {
         ...mockResourceSummaryBase,
@@ -93,7 +98,7 @@ void describe('arn generator', () => {
     );
   });
 
-  void it('generates DynamoDB table arn', async () => {
+  void it('generates DynamoDB table arn', () => {
     const arn = arnGenerator.generateArn(
       {
         ...mockResourceSummaryBase,
@@ -109,7 +114,7 @@ void describe('arn generator', () => {
     );
   });
 
-  void it('generates s3 bucket arn', async () => {
+  void it('generates s3 bucket arn', () => {
     const arn = arnGenerator.generateArn(
       {
         ...mockResourceSummaryBase,
@@ -122,7 +127,7 @@ void describe('arn generator', () => {
     assert.equal(arn, 'arn:aws:s3:::MOCK_PhysicalResourceId');
   });
 
-  void it('generates lambda function arn', async () => {
+  void it('generates lambda function arn', () => {
     const arn = arnGenerator.generateArn(
       {
         ...mockResourceSummaryBase,

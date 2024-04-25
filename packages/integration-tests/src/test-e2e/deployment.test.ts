@@ -91,7 +91,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
             await amplifyCli(
               [
                 'generate',
-                'config',
+                'outputs',
                 '--branch',
                 testBranch.branchName,
                 '--app-id',

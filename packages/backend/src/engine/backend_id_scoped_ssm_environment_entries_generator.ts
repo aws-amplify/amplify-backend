@@ -5,6 +5,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
+import { toScreamingSnakeCase } from './naming_convention_conversions.js';
 
 /**
  * Generates SsmEnvironmentEntry[] with SSM parameters that are scoped to a specific backend identifier
@@ -49,17 +50,18 @@ export class BackendIdScopedSsmEnvironmentEntriesGenerator
    */
   generateSsmEnvironmentEntries = (scopeContext: Record<string, string>) =>
     Object.entries(scopeContext).map(([contextKey, contextValue]) => {
+      const sanitizedContextKey = toScreamingSnakeCase(contextKey);
       const parameterPath =
         ParameterPathConversions.toResourceReferenceFullPath(
           this.backendId,
-          contextKey
+          sanitizedContextKey
         );
-      new StringParameter(this.scope, `${contextKey}Parameter`, {
+      new StringParameter(this.scope, `${sanitizedContextKey}Parameter`, {
         parameterName: parameterPath,
         stringValue: contextValue,
       });
       return {
-        name: contextKey,
+        name: sanitizedContextKey,
         path: parameterPath,
       };
     });

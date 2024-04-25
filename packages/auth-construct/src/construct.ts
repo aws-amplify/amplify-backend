@@ -59,6 +59,10 @@ const authProvidersList = {
   amazon: 'www.amazon.com',
   apple: 'appleid.apple.com',
 };
+const INVITATION_PLACEHOLDERS = {
+  CODE: '{####}',
+  USERNAME: '{username}',
+};
 const VERIFICATION_EMAIL_PLACEHOLDERS = {
   CODE: '{####}',
   LINK: '{##Verify Email##}',
@@ -357,7 +361,7 @@ export class AmplifyAuth
       ) {
         // validate sms message structure
         smsMessage = phoneSettings.verificationMessage(
-          VERIFICATION_SMS_PLACEHOLDERS.CODE
+          () => VERIFICATION_SMS_PLACEHOLDERS.CODE
         );
         if (!smsMessage.includes(VERIFICATION_SMS_PLACEHOLDERS.CODE)) {
           throw Error(
@@ -408,9 +412,43 @@ export class AmplifyAuth
         props.accountRecovery
       ),
       removalPolicy: RemovalPolicy.DESTROY,
+      userInvitation:
+        typeof props.loginWith.email !== 'boolean'
+          ? this.getUserInvitationSettings(
+              props.loginWith.email?.userInvitation
+            )
+          : undefined,
     };
     return userPoolProps;
   };
+
+  /**
+   * Parses the user invitation settings and inserts codes/usernames where necessary.
+   * @param settings the invitation settings
+   * @returns cognito.UserInvitationConfig | undefined
+   */
+  private getUserInvitationSettings(
+    settings: EmailLoginSettings['userInvitation']
+  ): cognito.UserInvitationConfig | undefined {
+    if (!settings) {
+      return undefined;
+    }
+    return {
+      emailSubject: settings.emailSubject,
+      emailBody: settings.emailBody
+        ? settings.emailBody(
+            () => INVITATION_PLACEHOLDERS.USERNAME,
+            () => INVITATION_PLACEHOLDERS.CODE
+          )
+        : undefined,
+      smsMessage: settings.smsMessage
+        ? settings.smsMessage(
+            () => INVITATION_PLACEHOLDERS.USERNAME,
+            () => INVITATION_PLACEHOLDERS.CODE
+          )
+        : undefined,
+    };
+  }
 
   /**
    * Verify the email body depending on if 'CODE' or 'LINK' style is used.
@@ -546,7 +584,7 @@ export class AmplifyAuth
     mfa: AuthProps['multifactor']
   ): string | undefined => {
     if (mfa && mfa.mode !== 'OFF' && typeof mfa.sms === 'object') {
-      const message = mfa.sms.smsMessage(MFA_SMS_PLACEHOLDERS.CODE);
+      const message = mfa.sms.smsMessage(() => MFA_SMS_PLACEHOLDERS.CODE);
       if (!message.includes(MFA_SMS_PLACEHOLDERS.CODE)) {
         throw Error(
           "Invalid MFA settings. Property 'smsMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."
@@ -573,7 +611,9 @@ export class AmplifyAuth
     const result: IdentityProviderSetupResult = {
       oAuthMappings: {},
       providersList: [],
-      oAuthSettings: undefined,
+      oAuthSettings: {
+        flows: DEFAULTS.OAUTH_FLOWS,
+      },
     };
     // external providers
     const external = loginOptions.externalProviders;
@@ -770,9 +810,7 @@ export class AmplifyAuth
       scopes: external.scopes
         ? this.getOAuthScopes(external.scopes)
         : DEFAULT_OAUTH_SCOPES,
-      flows: {
-        authorizationCodeGrant: true,
-      },
+      flows: DEFAULTS.OAUTH_FLOWS,
     };
 
     return result;

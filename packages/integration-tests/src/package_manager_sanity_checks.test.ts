@@ -25,6 +25,7 @@ import {
   runPackageManager,
   runWithPackageManager,
 } from './process-controller/process_controller.js';
+import { amplifyAtTag } from './constants.js';
 
 void describe('getting started happy path', async () => {
   let branchBackendIdentifier: BackendIdentifier;
@@ -80,9 +81,8 @@ void describe('getting started happy path', async () => {
     if (packageManager === 'pnpm' && process.platform === 'win32') {
       return;
     }
-    // TODO: remove the condition once GA https://github.com/aws-amplify/amplify-backend/issues/1013
     if (packageManager === 'yarn-classic') {
-      await execa('yarn', ['add', 'create-amplify@beta'], { cwd: tempDir });
+      await execa('yarn', ['add', 'create-amplify'], { cwd: tempDir });
       await execaCommand('./node_modules/.bin/create-amplify --yes --debug', {
         cwd: tempDir,
         env: { npm_config_user_agent: 'yarn/1.22.21' },
@@ -90,7 +90,7 @@ void describe('getting started happy path', async () => {
     } else {
       await runPackageManager(
         packageManager,
-        ['create', 'amplify@beta', '--yes'], // TODO: remove "@beta" once GA https://github.com/aws-amplify/amplify-backend/issues/1013
+        ['create', amplifyAtTag, '--yes'],
         tempDir
       ).run();
     }
@@ -140,8 +140,7 @@ void describe('getting started happy path', async () => {
   void it('throw error on win32 using pnpm', async () => {
     if (packageManager === 'pnpm' && process.platform === 'win32') {
       await assert.rejects(
-        execa('pnpm', ['create', 'amplify@beta', '--yes'], {
-          // TODO: remove the @beta tag once GA https://github.com/aws-amplify/amplify-backend/issues/1013
+        execa('pnpm', ['create', amplifyAtTag, '--yes'], {
           cwd: tempDir,
         }),
         (error) => {

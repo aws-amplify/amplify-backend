@@ -153,7 +153,7 @@ void describe('auth client config contributor v1', () => {
           user_verification_types: ['email', 'phone_number'],
           oauth: {
             identity_providers: ['GOOGLE', 'FACEBOOK'],
-            cognito_domain: 'testDomain',
+            domain: 'testDomain',
             scopes: ['email', 'profile'],
             redirect_sign_in_uri: [
               'http://callback.com',

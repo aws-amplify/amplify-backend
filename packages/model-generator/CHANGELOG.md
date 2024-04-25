@@ -1,5 +1,51 @@
 # @aws-amplify/model-generator
 
+## 0.6.1
+
+### Patch Changes
+
+- Updated dependencies [c2c8910]
+  - @aws-amplify/deployed-backend-client@0.4.1
+
+## 0.6.0
+
+### Minor Changes
+
+- 9ea3c38: bumps the codegen dependencies to use the latest tag
+
+## 0.5.0
+
+### Minor Changes
+
+- 8d73779: refactor model generation from schema uri
+- 05c3c9b: Rename target format type and prop in model gen package
+- a494aca: refactor: use default directives
+- fe46848: Allow passing clients in to client-config from browser context.
+
+### Patch Changes
+
+- 592bd4f: refactor log abstraction in `client-config`, `form-generator`, and `model-generator` packages
+- 73dcd6e: fix: update model introspection schema generation packages for references relationships
+- Updated dependencies [6c6af9b]
+- Updated dependencies [ab7533d]
+- Updated dependencies [74cbda0]
+- Updated dependencies [1e93535]
+- Updated dependencies [aec89f9]
+- Updated dependencies [b0112e3]
+- Updated dependencies [ef111b4]
+- Updated dependencies [fe46848]
+- Updated dependencies [937086b]
+- Updated dependencies [2a69684]
+- Updated dependencies [4995bda]
+- Updated dependencies [edee8d7]
+- Updated dependencies [5e12247]
+- Updated dependencies [415c4c1]
+- Updated dependencies [b931980]
+- Updated dependencies [b0b4dea]
+  - @aws-amplify/platform-core@0.5.0
+  - @aws-amplify/deployed-backend-client@0.4.0
+  - @aws-amplify/backend-output-schemas@0.7.0
+
 ## 0.5.0-beta.12
 
 ### Patch Changes

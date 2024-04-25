@@ -1,5 +1,5 @@
 import { Argv, CommandModule } from 'yargs';
-import { GenerateConfigCommand } from './config/generate_config_command.js';
+import { GenerateOutputsCommand } from './outputs/generate_outputs_command.js';
 import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { CommandMiddleware } from '../../command_middleware.js';
@@ -23,7 +23,7 @@ export class GenerateCommand implements CommandModule {
    * Creates top level entry point for generate command.
    */
   constructor(
-    private readonly generateConfigCommand: GenerateConfigCommand,
+    private readonly generateOutputsCommand: GenerateOutputsCommand,
     private readonly generateFormsCommand: GenerateFormsCommand,
     private readonly generateGraphqlClientCodeCommand: GenerateGraphqlClientCodeCommand,
     private readonly generateSchemaCommand: GenerateSchemaCommand,
@@ -48,7 +48,7 @@ export class GenerateCommand implements CommandModule {
       yargs
         .version(false)
         // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
-        .command(this.generateConfigCommand as unknown as CommandModule)
+        .command(this.generateOutputsCommand as unknown as CommandModule)
         .command(this.generateFormsCommand as unknown as CommandModule)
         .command(
           this.generateGraphqlClientCodeCommand as unknown as CommandModule
