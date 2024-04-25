@@ -8,6 +8,7 @@ import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
  * Authorization modes used in by client side Amplify represented in camelCase.
  */
 export type DefaultAuthorizationMode =
+  | 'iam'
   | 'identityPool'
   | 'userPool'
   | 'oidc'
