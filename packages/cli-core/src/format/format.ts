@@ -23,7 +23,7 @@ export const packageManagerControllerContainer: {
 /**
  * Formats various inputs into single string.
  */
-export const format = {
+export const format: Format = {
   backendCliCommand: (command: string) => {
     if (command.length === 0) {
       throw new AmplifyFault('InvalidFormatFault', {
@@ -66,4 +66,20 @@ export const format = {
     Object.entries(record)
       .map(([key, value]) => `${key}: ${String(value)}`)
       .join(os.EOL),
+};
+
+export type Format = {
+  backendCliCommand: (command: string) => string;
+  error: (message: string) => string;
+  note: (message: string) => string;
+  command: (command: string) => string;
+  highlight: (command: string) => string;
+  success: (message: string) => string;
+  sectionHeader: (header: string) => string;
+  bold: (message: string) => string;
+  dim: (message: string) => string;
+  link: (link: string) => string;
+  list: (lines: string[]) => string;
+  indent: (message: string) => string;
+  record: (record: Record<string, string | number | Date>) => string;
 };
