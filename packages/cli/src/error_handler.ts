@@ -16,29 +16,22 @@ export const attachUnhandledExceptionListeners = (
   process.on('unhandledRejection', (reason) => {
     process.exitCode = 1;
     if (reason instanceof Error) {
-      void handleError(reason, undefined, undefined, usageDataEmitter);
+      void handleError({ error: reason, usageDataEmitter });
     } else if (typeof reason === 'string') {
-      void handleError(
-        new Error(reason),
-        undefined,
-        undefined,
-        usageDataEmitter
-      );
+      void handleError({ error: new Error(reason), usageDataEmitter });
     } else {
-      void handleError(
-        new Error(`Unhandled rejection of type [${typeof reason}]`, {
+      void handleError({
+        error: new Error(`Unhandled rejection of type [${typeof reason}]`, {
           cause: reason,
         }),
-        undefined,
-        undefined,
-        usageDataEmitter
-      );
+        usageDataEmitter,
+      });
     }
   });
 
   process.on('uncaughtException', (error) => {
     process.exitCode = 1;
-    void handleError(error, undefined, undefined, usageDataEmitter);
+    void handleError({ error, usageDataEmitter });
   });
   hasAttachUnhandledExceptionListenersBeenCalled = true;
 };
@@ -66,13 +59,13 @@ export const generateCommandFailureHandler = (
       parser.showHelp();
       printer.printNewLine();
     };
-    await handleError(
+    await handleError({
+      command: extractSubCommands(parser),
+      printMessagePreamble: printHelp,
       error,
-      printHelp,
       message,
       usageDataEmitter,
-      extractSubCommands(parser)
-    );
+    });
     parser.exit(1, error || new Error(message));
   };
   return handleCommandFailure;
@@ -85,13 +78,19 @@ export const generateCommandFailureHandler = (
  * This includes console logging, debug logging, metrics recording, etc.
  * (Note that we don't do all of those things yet, but this is where they should go)
  */
-const handleError = async (
-  error?: Error,
-  printMessagePreamble?: () => void,
-  message?: string,
-  usageDataEmitter?: UsageDataEmitter,
-  command?: string
-) => {
+const handleError = async ({
+  error,
+  printMessagePreamble,
+  message,
+  usageDataEmitter,
+  command,
+}: {
+  error?: Error;
+  printMessagePreamble?: () => void;
+  message?: string;
+  usageDataEmitter?: UsageDataEmitter;
+  command?: string;
+}) => {
   // If yargs threw an error because the customer force-closed a prompt (ie Ctrl+C during a prompt) then the intent to exit the process is clear
   if (isUserForceClosePromptError(error)) {
     return;
@@ -110,7 +109,9 @@ const handleError = async (
     if (errorHasCauseMessage(error)) {
       printer.print(`Cause: ${error.cause.message}`);
     }
-    await usageDataEmitter?.emitFailure(error, { command: command ?? '' });
+    await usageDataEmitter?.emitFailure(error, {
+      command: command ?? 'UnknownCommand',
+    });
   } else {
     // non-Amplify Error object
     printer.print(format.error(message || String(error)));
@@ -118,7 +119,7 @@ const handleError = async (
       printer.print(`Cause: ${error.cause.message}`);
     }
     await usageDataEmitter?.emitFailure(AmplifyError.fromError(error), {
-      command: command ?? '',
+      command: command ?? 'UnknownCommand',
     });
   }
 

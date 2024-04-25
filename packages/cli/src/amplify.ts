@@ -34,4 +34,12 @@ attachUnhandledExceptionListeners(usageDataEmitter);
 const parser = createMainParser(libraryVersion, usageDataEmitter);
 await parser.parseAsync(hideBin(process.argv));
 
-await usageDataEmitter.emitSuccess({}, { command: extractSubCommands(parser) });
+try {
+  await usageDataEmitter.emitSuccess(
+    {},
+    { command: extractSubCommands(parser) }
+  );
+  // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+} catch (e) {
+  /* empty */
+}

@@ -1,6 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import yargs, { CommandModule } from 'yargs';
 import assert from 'node:assert';
+import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { ConfigureTelemetryCommand } from './configure_telemetry_command.js';
 import {
@@ -11,15 +11,16 @@ import { printer } from '@aws-amplify/cli-core';
 
 void describe('configure command', () => {
   const mockedConfigControllerSet = mock.fn();
+  const logMock = mock.method(printer, 'log');
+
   mock.method(configControllerFactory, 'getInstance', () => ({
     set: mockedConfigControllerSet,
   }));
   const telemetryCommand = new ConfigureTelemetryCommand(
     configControllerFactory.getInstance('usage_data_preferences.json')
   );
-  const parser = yargs().command(telemetryCommand as unknown as CommandModule);
+  const parser = yargs().command(telemetryCommand);
   const commandRunner = new TestCommandRunner(parser);
-  const logMock = mock.method(printer, 'log');
 
   beforeEach(() => {
     logMock.mock.resetCalls();
@@ -56,5 +57,10 @@ void describe('configure command', () => {
       mockedConfigControllerSet.mock.calls[0].arguments[1],
       false
     );
+  });
+
+  void it('prints help if subcommand is not provided', async () => {
+    const output = await commandRunner.runCommand('telemetry');
+    assert.match(output, /Not enough non-option arguments:/);
   });
 });

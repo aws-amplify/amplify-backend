@@ -6,13 +6,19 @@ import { ConfigureProfileCommand } from './configure_profile_command.js';
 import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import { Open } from '../open/open.js';
 import { ProfileController } from './profile_controller.js';
-import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
+import { UsageDataEmitter } from '@aws-amplify/platform-core';
 
 const testAccessKeyId = 'testAccessKeyId';
 const testSecretAccessKey = 'testSecretAccessKey';
 const testProfile = 'testProfile';
 const testRegion = 'testRegion';
-const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
+
+const emitFailureSpy = mock.fn<UsageDataEmitter['emitFailure']>(() =>
+  Promise.resolve()
+);
+const emitSuccessSpy = mock.fn<UsageDataEmitter['emitSuccess']>(() =>
+  Promise.resolve()
+);
 
 void describe('configure command', () => {
   const profileController = new ProfileController();
@@ -23,13 +29,13 @@ void describe('configure command', () => {
     () => Promise.resolve()
   );
 
-  const emitFailureSpy = mock.method(usageDataEmitter, 'emitFailure');
-  const emitSuccessSpy = mock.method(usageDataEmitter, 'emitSuccess');
-
   const configureCommand = new ConfigureProfileCommand(profileController);
   const parser = yargs().command(configureCommand as unknown as CommandModule);
 
-  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+  const commandRunner = new TestCommandRunner(parser, {
+    emitFailure: emitFailureSpy,
+    emitSuccess: emitSuccessSpy,
+  } as unknown as UsageDataEmitter);
 
   beforeEach(() => {
     mockAppendAWSFiles.mock.resetCalls();
@@ -53,7 +59,11 @@ void describe('configure command', () => {
       mockPrint.mock.calls[0].arguments[0] as string,
       /already exists!/
     );
+    assert.equal(emitFailureSpy.mock.callCount(), 0);
     assert.equal(emitSuccessSpy.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+      command: 'profile print',
+    });
   });
 
   void it('configures a profile with an IAM user', async (contextual) => {
@@ -105,7 +115,11 @@ void describe('configure command', () => {
       accessKeyId: testAccessKeyId,
       secretAccessKey: testSecretAccessKey,
     });
+    assert.equal(emitFailureSpy.mock.callCount(), 0);
     assert.equal(emitSuccessSpy.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+      command: 'profile',
+    });
   });
 
   void it('configures a profile without an IAM user', async (contextual) => {
@@ -168,7 +182,11 @@ void describe('configure command', () => {
       accessKeyId: testAccessKeyId,
       secretAccessKey: testSecretAccessKey,
     });
+    assert.equal(emitFailureSpy.mock.callCount(), 0);
     assert.equal(emitSuccessSpy.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+      command: 'profile',
+    });
   });
 
   void it('show --help', async () => {
