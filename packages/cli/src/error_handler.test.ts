@@ -48,6 +48,7 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockExit.mock.callCount(), 1);
     assert.match(mockPrint.mock.calls[0].arguments[0], new RegExp(someMsg));
     assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('prints message from error object', async () => {
@@ -64,6 +65,7 @@ void describe('generateCommandFailureHandler', () => {
       new RegExp(errMsg)
     );
     assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('handles a prompt force close error', async () => {
@@ -74,6 +76,7 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 0);
     assert.equal(mockEmitFailure.mock.callCount(), 0);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('prints error cause message, if any', async () => {
@@ -89,6 +92,7 @@ void describe('generateCommandFailureHandler', () => {
       new RegExp(errorMessage)
     );
     assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('prints AmplifyErrors', async () => {
@@ -113,6 +117,7 @@ void describe('generateCommandFailureHandler', () => {
     );
     assert.equal(mockPrint.mock.calls[2].arguments[0], 'Details: test details');
     assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('prints debug stack traces', async () => {
@@ -133,6 +138,7 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockLog.mock.callCount(), 2);
     assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
     assert.deepStrictEqual(mockLog.mock.calls[0].arguments, [
       amplifyError.stack,
       LogLevel.DEBUG,
@@ -174,6 +180,7 @@ void describe(
       );
       expectProcessExitCode1AndReset();
       assert.equal(mockEmitFailure.mock.callCount(), 1);
+      assert.equal(mockEmitSuccess.mock.callCount(), 0);
     });
 
     void it('handles rejected strings', () => {

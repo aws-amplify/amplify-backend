@@ -59,8 +59,12 @@ void describe('configure command', () => {
     );
   });
 
-  void it('prints help if subcommand is not provided', async () => {
-    const output = await commandRunner.runCommand('telemetry');
-    assert.match(output, /Not enough non-option arguments:/);
+  void it('if subcommand is not defined, it should list of subcommands and demandCommand', async () => {
+    const output = await commandRunner.runCommand(`telemetry`);
+    assert.match(
+      output,
+      /Not enough non-option arguments: got 0, need at least 1/
+    );
+    assert.strictEqual(mockedConfigControllerSet.mock.callCount(), 0);
   });
 });
