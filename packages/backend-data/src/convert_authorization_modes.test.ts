@@ -351,6 +351,28 @@ void describe('convertAuthorizationModesToCDK', () => {
     );
   });
 
+  void it('maps identityPool defaultAuthorization mode to AWS_IAM', () => {
+    const authModes: AuthorizationModes = {
+      defaultAuthorizationMode: 'identityPool',
+    };
+
+    const expectedOutput: CDKAuthorizationModes = {
+      defaultAuthorizationMode: 'AWS_IAM',
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
+    };
+
+    assert.deepStrictEqual(
+      convertAuthorizationModesToCDK(
+        getInstancePropsStub,
+        undefined,
+        authModes
+      ),
+      expectedOutput
+    );
+  });
+
   void it('throws if not default if multiple modes are specified', () => {
     const authModes: AuthorizationModes = {
       apiKeyAuthorizationMode: {
