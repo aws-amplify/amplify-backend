@@ -88,7 +88,7 @@ export type Expand<T> = T extends infer O ? {
 } : never;
 
 // @public
-export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google'>;
+export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google' | 'domainPrefix'>;
 
 // @public
 export type ExternalProviderSpecificFactoryProps = ExternalProviderGeneralFactoryProps & {
