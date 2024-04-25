@@ -15,9 +15,14 @@ export type BackendDeployer = {
 
 // @public
 export class BackendDeployerFactory {
-    constructor(packageManagerController: PackageManagerController, formatter: Formatter);
+    constructor(packageManagerController: PackageManagerController, formatter: BackendDeployerOutputFormatter);
     getInstance(): BackendDeployer;
 }
+
+// @public (undocumented)
+export type BackendDeployerOutputFormatter = {
+    normalizeBackendCommand: (command: string) => string;
+};
 
 // @public (undocumented)
 export type DeploymentTimes = {
@@ -39,11 +44,6 @@ export type DeployResult = {
 // @public (undocumented)
 export type DestroyResult = {
     deploymentTimes: DeploymentTimes;
-};
-
-// @public (undocumented)
-export type Formatter = {
-    backendCliCommand: (command: string) => string;
 };
 
 // (No @packageDocumentation comment for this package)
