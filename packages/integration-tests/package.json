@@ -4,6 +4,7 @@
   "version": "0.5.0",
   "type": "module",
   "devDependencies": {
+    "@apollo/client": "^3.10.1",
     "@aws-amplify/auth-construct-alpha": "^0.6.1",
     "@aws-amplify/backend": "^0.13.2",
     "@aws-amplify/backend-secret": "^0.4.5",
@@ -21,7 +22,7 @@
     "@aws-sdk/credential-providers": "^3.465.0",
     "@smithy/shared-ini-file-loader": "^2.2.5",
     "aws-amplify": "^6.0.16",
-    "aws-appsync": "^4.1.1",
+    "aws-appsync-auth-link": "^3.0.7",
     "aws-cdk-lib": "^2.127.0",
     "constructs": "^10.0.0",
     "execa": "^8.0.1",
