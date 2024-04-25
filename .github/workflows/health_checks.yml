@@ -307,6 +307,7 @@ jobs:
       - name: Validate that change set has necessary dependency updates
         run: |
           npx changeset version
+          npm update
           npm run check:dependencies
   check_package_versions:
     if: github.event_name == 'pull_request'
