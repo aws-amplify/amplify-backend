@@ -55,11 +55,9 @@ export abstract class PackageManagerControllerBase
    */
   getWelcomeMessage = () => {
     const welcomeInfo = [
-      `Get started by running ${format.command(
-        this.getCommand(['amplify', 'sandbox'])
-      )}.`,
-      `Run ${format.command(
-        this.getCommand(['amplify', 'help'])
+      `Get started by running ${format.backendCliCommand('sandbox')}.`,
+      `Run ${format.backendCliCommand(
+        'help'
       )} for a list of available commands.`,
     ];
     return format.list(welcomeInfo);

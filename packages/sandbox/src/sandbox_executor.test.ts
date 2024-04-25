@@ -1,7 +1,10 @@
 import { afterEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
-import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
+import {
+  BackendDeployerFactory,
+  Formatter,
+} from '@aws-amplify/backend-deployer';
 import {
   LogLevel,
   PackageManagerControllerFactory,
@@ -23,8 +26,14 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
   process.cwd(),
   new Printer(LogLevel.DEBUG)
 );
+
+const formatterStub: Formatter = {
+  backendCliCommand: () => 'test command',
+};
+
 const backendDeployerFactory = new BackendDeployerFactory(
-  packageManagerControllerFactory.getPackageManagerController()
+  packageManagerControllerFactory.getPackageManagerController(),
+  formatterStub
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 const secretClient = getSecretClient();

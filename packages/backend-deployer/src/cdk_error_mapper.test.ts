@@ -1,6 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { CdkErrorMapper, Formatter } from './cdk_error_mapper.js';
+
+const formatterStub: Formatter = {
+  backendCliCommand: () => 'test command',
+};
 
 const testErrorMappings = [
   {
@@ -183,7 +187,7 @@ Error: some cdk synth error
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
-  const cdkErrorMapper = new CdkErrorMapper();
+  const cdkErrorMapper = new CdkErrorMapper(formatterStub);
   testErrorMappings.forEach(
     ({
       errorMessage,

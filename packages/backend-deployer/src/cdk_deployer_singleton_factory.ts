@@ -3,7 +3,7 @@ import {
   type PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
-import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { CdkErrorMapper, Formatter } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
 
 export type DeployProps = {
@@ -45,7 +45,8 @@ export class BackendDeployerFactory {
    * constructor - sets the packageManagerController
    */
   constructor(
-    private readonly packageManagerController: PackageManagerController
+    private readonly packageManagerController: PackageManagerController,
+    private readonly formatter: Formatter
   ) {}
 
   /**
@@ -54,7 +55,7 @@ export class BackendDeployerFactory {
   getInstance(): BackendDeployer {
     if (!BackendDeployerFactory.instance) {
       BackendDeployerFactory.instance = new CDKDeployer(
-        new CdkErrorMapper(),
+        new CdkErrorMapper(this.formatter),
         new BackendLocator(),
         this.packageManagerController
       );

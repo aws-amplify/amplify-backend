@@ -8,6 +8,7 @@ import { cyan } from 'kleur/colors';
 import { Printer } from '@aws-amplify/cli-core';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
+import { packageManagerControllerContainer } from '../format/format.js';
 
 void describe('YarnModernPackageManagerController', () => {
   const fspMock = {
@@ -73,6 +74,9 @@ void describe('YarnModernPackageManagerController', () => {
           executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
+
+      packageManagerControllerContainer.packageManagerController =
+        yarnModernPackageManagerController;
 
       assert.equal(
         yarnModernPackageManagerController.getWelcomeMessage(),

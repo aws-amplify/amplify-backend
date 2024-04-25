@@ -7,6 +7,7 @@ import { execa } from 'execa';
 import { cyan } from 'kleur/colors';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
+import { packageManagerControllerContainer } from '../format/format.js';
 
 void describe('YarnClassicPackageManagerController', () => {
   const fspMock = {
@@ -81,6 +82,8 @@ void describe('YarnClassicPackageManagerController', () => {
           executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
           existsSyncMock
         );
+      packageManagerControllerContainer.packageManagerController =
+        yarnClassicPackageManagerController;
 
       assert.equal(
         yarnClassicPackageManagerController.getWelcomeMessage(),

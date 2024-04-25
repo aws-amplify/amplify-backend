@@ -1,6 +1,7 @@
 import {
   PackageManagerControllerFactory,
   Printer,
+  format as _format,
 } from '@aws-amplify/cli-core';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { BackendIdSandboxResolver, Sandbox } from './sandbox.js';
@@ -19,7 +20,8 @@ export class SandboxSingletonFactory {
    */
   constructor(
     private readonly sandboxIdResolver: BackendIdSandboxResolver,
-    private readonly printer: Printer
+    private readonly printer: Printer,
+    private readonly formatter: typeof _format
   ) {}
 
   /**
@@ -30,7 +32,8 @@ export class SandboxSingletonFactory {
       const packageManagerControllerFactory =
         new PackageManagerControllerFactory(process.cwd(), this.printer);
       const backendDeployerFactory = new BackendDeployerFactory(
-        packageManagerControllerFactory.getPackageManagerController()
+        packageManagerControllerFactory.getPackageManagerController(),
+        this.formatter
       );
       this.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,

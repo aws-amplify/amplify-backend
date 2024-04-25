@@ -9,7 +9,10 @@ import {
 } from './file_watching_sandbox.js';
 import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
-import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
+import {
+  BackendDeployerFactory,
+  Formatter,
+} from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -36,8 +39,13 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
   process.cwd(),
   new Printer(LogLevel.DEBUG)
 );
+const formatterStub: Formatter = {
+  backendCliCommand: () => 'test command',
+};
+
 const backendDeployerFactory = new BackendDeployerFactory(
-  packageManagerControllerFactory.getPackageManagerController()
+  packageManagerControllerFactory.getPackageManagerController(),
+  formatterStub
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 

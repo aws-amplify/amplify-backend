@@ -7,6 +7,7 @@ import { execa } from 'execa';
 import { cyan } from 'kleur/colors';
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
+import { packageManagerControllerContainer } from '../format/format.js';
 
 void describe('PnpmPackageManagerController', () => {
   const fspMock = {
@@ -79,6 +80,9 @@ void describe('PnpmPackageManagerController', () => {
         executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
         existsSyncMock
       );
+
+      packageManagerControllerContainer.packageManagerController =
+        pnpmPackageManagerController;
 
       assert.equal(
         pnpmPackageManagerController.getWelcomeMessage(),
