@@ -1,4 +1,4 @@
-# @aws-amplify/auth-construct-alpha
+# @aws-amplify/auth-construct
 
 ## 0.6.1
 
