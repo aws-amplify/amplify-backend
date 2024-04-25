@@ -4,8 +4,9 @@ import { NpmPackageManagerController } from './npm_package_manager_controller.js
 import { PnpmPackageManagerController } from './pnpm_package_manager_controller.js';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
-import { format } from '../format/format.js';
 import { printer as _printer } from '../printer.js';
+import { Printer } from '../printer/printer.js';
+import { cyan } from 'kleur/colors';
 
 /**
  * PackageManagerControllerFactory is a factory for an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -17,7 +18,7 @@ export class PackageManagerControllerFactory {
    */
   constructor(
     private readonly cwd = process.cwd(),
-    private readonly printer = _printer,
+    private readonly printer: Printer = _printer,
     private readonly platform = process.platform
   ) {}
 
@@ -59,10 +60,13 @@ export class PackageManagerControllerFactory {
     const userAgent = process.env.npm_config_user_agent;
     if (userAgent === undefined) {
       throw new AmplifyUserError('NoPackageManagerError', {
-        resolution: `This is usually caused by attempting to run ${format.command(
-          'amplify'
-        )} directly. Try running ${format.command('npx amplify')}`,
-        message: `npm_config_user_agent is undefined`,
+        message: `npm_config_user_agent environment variable is undefined`,
+        details:
+          'This is usually caused by running commands without a package manager',
+        // Note that we cannot use the format object to format the command here because that would create a circular dependency
+        resolution: `Run commands via your package manager. For example: ${cyan(
+          'npx amplify <command>'
+        )} if npm is your package manager.`,
       });
     }
     const packageManagerAndVersion = userAgent.split(' ')[0];
