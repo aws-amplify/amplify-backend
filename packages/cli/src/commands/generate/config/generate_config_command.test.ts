@@ -19,7 +19,7 @@ void describe('generate config command', () => {
     getCloudFormationClient: () => new CloudFormationClient(),
   });
 
-  const generateClientConfigToFileMock = mock.method(
+  const generateClientConfigMock = mock.method(
     clientConfigGeneratorAdapter,
     'generateClientConfigToFile',
     () => Promise.resolve()
@@ -51,40 +51,38 @@ void describe('generate config command', () => {
   const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(() => {
-    generateClientConfigToFileMock.mock.resetCalls();
+    generateClientConfigMock.mock.resetCalls();
   });
 
   void it('uses the sandbox id by default if stack or branch are not provided', async () => {
+    const handlerSpy = mock.method(
+      clientConfigGeneratorAdapter,
+      'generateClientConfigToFile'
+    );
     await commandRunner.runCommand('config');
 
-    assert.equal(
-      generateClientConfigToFileMock.mock.calls[0].arguments[0],
-      fakeSandboxId
-    );
+    assert.equal(handlerSpy.mock.calls[0].arguments[0], fakeSandboxId);
   });
 
   void it('generates and writes config for stack', async () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir /foo/bar --format ts'
     );
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+      stackName: 'stack_name',
+    });
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments[0],
-      {
-        stackName: 'stack_name',
-      }
-    );
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
-    assert.deepEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments[1],
+      generateClientConfigMock.mock.calls[0].arguments[1],
       '0' // default version
     );
     assert.deepEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments[2],
+      generateClientConfigMock.mock.calls[0].arguments[2],
       '/foo/bar'
     );
     assert.deepEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments[3],
+      generateClientConfigMock.mock.calls[0].arguments[3],
       ClientConfigFormat.TS
     );
   });
@@ -93,28 +91,25 @@ void describe('generate config command', () => {
     await commandRunner.runCommand(
       'config --branch branch_name --out-dir /foo/bar --format ts'
     );
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
-    assert.deepEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments[0],
-      {
-        appName: 'testAppName',
-        branchName: 'branch_name',
-      }
-    );
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
+      appName: 'testAppName',
+      branchName: 'branch_name',
+    });
     // I can't find any open node:test or yargs issues that would explain why this is necessary
     // but for some reason the mock call count does not update without this 0ms wait
     await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments[1],
+      generateClientConfigMock.mock.calls[0].arguments[1],
       '0' // default version
     );
     assert.deepStrictEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments[2],
+      generateClientConfigMock.mock.calls[0].arguments[2],
       '/foo/bar'
     );
     assert.deepStrictEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments[3],
+      generateClientConfigMock.mock.calls[0].arguments[3],
       ClientConfigFormat.TS
     );
   });
@@ -123,9 +118,9 @@ void describe('generate config command', () => {
     await commandRunner.runCommand(
       'config --branch branch_name --app-id app_id --out-dir /foo/bar --format mjs'
     );
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           name: 'branch_name',
@@ -143,9 +138,9 @@ void describe('generate config command', () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir /foo/bar --format ts'
     );
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',
@@ -161,9 +156,9 @@ void describe('generate config command', () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir foo/bar --format mjs'
     );
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',
@@ -179,9 +174,9 @@ void describe('generate config command', () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir foo/bar --format dart'
     );
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',
@@ -197,9 +192,9 @@ void describe('generate config command', () => {
     await commandRunner.runCommand(
       'config --stack stack_name --out-dir foo/bar --format json-mobile'
     );
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',
@@ -215,9 +210,9 @@ void describe('generate config command', () => {
     await commandRunner.runCommand(
       'config --stack stack_name --config-version 1 --out-dir foo/bar --format json-mobile'
     );
-    assert.equal(generateClientConfigToFileMock.mock.callCount(), 1);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
-      generateClientConfigToFileMock.mock.calls[0].arguments.splice(0, 4),
+      generateClientConfigMock.mock.calls[0].arguments.splice(0, 4),
       [
         {
           stackName: 'stack_name',

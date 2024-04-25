@@ -10,6 +10,7 @@ import {
   UsageDataEmitterFactory,
 } from '@aws-amplify/platform-core';
 import { fileURLToPath } from 'node:url';
+import { printer } from '@aws-amplify/cli-core';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
@@ -37,7 +38,6 @@ try {
     {},
     { command: extractSubCommands(parser) }
   );
-  // eslint-disable-next-line amplify-backend-rules/no-empty-catch
 } catch (e) {
-  /* empty */
+  printer.log('Failed to emit usage metrics');
 }

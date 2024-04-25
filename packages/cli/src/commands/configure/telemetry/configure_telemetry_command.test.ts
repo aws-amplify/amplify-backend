@@ -13,10 +13,10 @@ import { printer } from '@aws-amplify/cli-core';
 void describe('configure command', () => {
   const mockedConfigControllerSet = mock.fn();
   const logMock = mock.method(printer, 'log');
-  const emitFailureSpy = mock.fn<UsageDataEmitter['emitFailure']>(() =>
+  const emitFailureMock = mock.fn<UsageDataEmitter['emitFailure']>(() =>
     Promise.resolve()
   );
-  const emitSuccessSpy = mock.fn<UsageDataEmitter['emitSuccess']>(() =>
+  const emitSuccessMock = mock.fn<UsageDataEmitter['emitSuccess']>(() =>
     Promise.resolve()
   );
 
@@ -28,15 +28,15 @@ void describe('configure command', () => {
   );
   const parser = yargs().command(telemetryCommand);
   const commandRunner = new TestCommandRunner(parser, {
-    emitSuccess: emitSuccessSpy,
-    emitFailure: emitFailureSpy,
+    emitSuccess: emitSuccessMock,
+    emitFailure: emitFailureMock,
   });
 
   beforeEach(() => {
     logMock.mock.resetCalls();
     mockedConfigControllerSet.mock.resetCalls();
-    emitSuccessSpy.mock.resetCalls();
-    emitFailureSpy.mock.resetCalls();
+    emitSuccessMock.mock.resetCalls();
+    emitFailureMock.mock.resetCalls();
   });
 
   void it('enable telemetry & updates local config', async () => {
@@ -53,9 +53,9 @@ void describe('configure command', () => {
       mockedConfigControllerSet.mock.calls[0].arguments[1],
       true
     );
-    assert.equal(emitFailureSpy.mock.callCount(), 0);
-    assert.equal(emitSuccessSpy.mock.callCount(), 1);
-    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+    assert.equal(emitFailureMock.mock.callCount(), 0);
+    assert.equal(emitSuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
       command: 'telemetry enable',
     });
   });
@@ -74,9 +74,9 @@ void describe('configure command', () => {
       mockedConfigControllerSet.mock.calls[0].arguments[1],
       false
     );
-    assert.equal(emitFailureSpy.mock.callCount(), 0);
-    assert.equal(emitSuccessSpy.mock.callCount(), 1);
-    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+    assert.equal(emitFailureMock.mock.callCount(), 0);
+    assert.equal(emitSuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
       command: 'telemetry disable',
     });
   });
@@ -88,12 +88,12 @@ void describe('configure command', () => {
       /Not enough non-option arguments: got 0, need at least 1/
     );
     assert.strictEqual(mockedConfigControllerSet.mock.callCount(), 0);
-    assert.equal(emitFailureSpy.mock.callCount(), 1);
+    assert.equal(emitFailureMock.mock.callCount(), 1);
     assert.match(
-      emitFailureSpy.mock.calls[0].arguments[0].message,
+      emitFailureMock.mock.calls[0].arguments[0].message,
       /Not enough non-option arguments: got 0, need at least 1/
     );
-    assert.deepStrictEqual(emitFailureSpy.mock.calls[0].arguments[1], {
+    assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
       command: 'telemetry',
     });
   });
