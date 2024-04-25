@@ -1,9 +1,10 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { CdkErrorMapper, Formatter } from './cdk_error_mapper.js';
+import { CdkErrorMapper } from './cdk_error_mapper.js';
+import { BackendDeployerOutputFormatter } from './types.js';
 
-const formatterStub: Formatter = {
-  backendCliCommand: () => 'test command',
+const formatterStub: BackendDeployerOutputFormatter = {
+  normalizeBackendCommand: () => 'test command',
 };
 
 const testErrorMappings = [

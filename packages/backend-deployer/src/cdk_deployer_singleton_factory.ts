@@ -3,8 +3,9 @@ import {
   type PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
-import { CdkErrorMapper, Formatter } from './cdk_error_mapper.js';
+import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
+import { BackendDeployerOutputFormatter } from './types.js';
 
 export type DeployProps = {
   secretLastUpdated?: Date;
@@ -46,7 +47,7 @@ export class BackendDeployerFactory {
    */
   constructor(
     private readonly packageManagerController: PackageManagerController,
-    private readonly formatter: Formatter
+    private readonly formatter: BackendDeployerOutputFormatter
   ) {}
 
   /**

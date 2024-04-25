@@ -36,7 +36,7 @@ export class CommandMiddleware {
       process.env.AWS_PROFILE = argv.profile;
     }
 
-    const profileSetupInstruction = `To configure a new Amplify profile, use ${format.backendCliCommand(
+    const profileSetupInstruction = `To configure a new Amplify profile, use ${format.normalizeBackendCommand(
       'configure profile'
     )}.`;
 

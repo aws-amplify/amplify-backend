@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
   BackendDeployerFactory,
-  Formatter,
+  BackendDeployerOutputFormatter,
 } from '@aws-amplify/backend-deployer';
 import {
   LogLevel,
@@ -27,8 +27,8 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
   new Printer(LogLevel.DEBUG)
 );
 
-const formatterStub: Formatter = {
-  backendCliCommand: () => 'test command',
+const formatterStub: BackendDeployerOutputFormatter = {
+  normalizeBackendCommand: () => 'test command',
 };
 
 const backendDeployerFactory = new BackendDeployerFactory(

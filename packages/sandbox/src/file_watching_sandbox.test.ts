@@ -11,7 +11,7 @@ import assert from 'node:assert';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
   BackendDeployerFactory,
-  Formatter,
+  BackendDeployerOutputFormatter,
 } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
@@ -39,8 +39,8 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
   process.cwd(),
   new Printer(LogLevel.DEBUG)
 );
-const formatterStub: Formatter = {
-  backendCliCommand: () => 'test command',
+const formatterStub: BackendDeployerOutputFormatter = {
+  normalizeBackendCommand: () => 'test command',
 };
 
 const backendDeployerFactory = new BackendDeployerFactory(

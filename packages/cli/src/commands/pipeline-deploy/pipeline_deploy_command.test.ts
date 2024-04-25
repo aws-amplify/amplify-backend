@@ -11,7 +11,7 @@ import {
 } from './pipeline_deploy_command.js';
 import {
   BackendDeployerFactory,
-  Formatter,
+  BackendDeployerOutputFormatter,
 } from '@aws-amplify/backend-deployer';
 import {
   LogLevel,
@@ -39,8 +39,8 @@ void describe('deploy command', () => {
     process.cwd(),
     new Printer(LogLevel.DEBUG)
   );
-  const formatterStub: Formatter = {
-    backendCliCommand: () => 'test command',
+  const formatterStub: BackendDeployerOutputFormatter = {
+    normalizeBackendCommand: () => 'test command',
   };
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(

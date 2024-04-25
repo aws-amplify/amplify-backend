@@ -7,18 +7,15 @@ import {
   BackendLocator,
 } from '@aws-amplify/platform-core';
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
-import {
-  CDKDeploymentError,
-  CdkErrorMapper,
-  Formatter,
-} from './cdk_error_mapper.js';
+import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
 import {
   BackendIdentifier,
   PackageManagerController,
 } from '@aws-amplify/plugin-types';
+import { BackendDeployerOutputFormatter } from './types.js';
 
-const formatterStub: Formatter = {
-  backendCliCommand: () => 'test command',
+const formatterStub: BackendDeployerOutputFormatter = {
+  normalizeBackendCommand: () => 'test command',
 };
 
 void describe('invokeCDKCommand', () => {
