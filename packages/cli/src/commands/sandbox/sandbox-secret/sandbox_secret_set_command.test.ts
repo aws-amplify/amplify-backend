@@ -6,7 +6,6 @@ import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
-import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
 
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
@@ -17,8 +16,6 @@ const testSecretIdentifier: SecretIdentifier = {
 
 const testBackendId = 'testBackendId';
 const testSandboxName = 'testSandboxName';
-
-const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('sandbox secret set command', () => {
   const secretClient = getSecretClient();
@@ -46,7 +43,7 @@ void describe('sandbox secret set command', () => {
     sandboxSecretSetCmd as unknown as CommandModule
   );
 
-  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+  const commandRunner = new TestCommandRunner(parser);
 
   beforeEach(async () => {
     secretSetMock.mock.resetCalls();

@@ -3,15 +3,12 @@ import yargs from 'yargs';
 import { TestCommandRunner } from '../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { createConfigureCommand } from './configure_command_factory.js';
-import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
-
-const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('configure command factory', () => {
   const configureCmd = createConfigureCommand();
 
   const parser = yargs().command(configureCmd);
-  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+  const commandRunner = new TestCommandRunner(parser);
 
   void it('show --help', async () => {
     const output = await commandRunner.runCommand('configure --help');

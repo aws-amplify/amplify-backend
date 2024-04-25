@@ -56,8 +56,6 @@ export class TestCommandRunner {
    * Creates new command runner.
    */
   constructor(parser: Argv, private usageDataEmitter?: UsageDataEmitter) {
-    // no disable telemetry from test runner.
-    process.env.AMPLIFY_DISABLE_TELEMETRY = 'true';
     this.parser = parser
       // Pin locale
       .locale('en')
@@ -66,7 +64,15 @@ export class TestCommandRunner {
       // attach the failure handler
       // this is necessary because we may be testing a subcommand that doesn't have the top-level failure handler attached
       // eventually we may want to have a separate "testFailureHandler" if we need additional tooling here
-      .fail(generateCommandFailureHandler(parser, this.usageDataEmitter));
+      .fail(
+        generateCommandFailureHandler(
+          parser,
+          usageDataEmitter || {
+            emitFailure: () => Promise.resolve(),
+            emitSuccess: () => Promise.resolve(),
+          }
+        )
+      );
   }
 
   /**

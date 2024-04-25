@@ -13,9 +13,6 @@ import { GenerateFormsCommand } from './generate_forms_command.js';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
-
-const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 const awsClientProvider = {
   getS3Client: () => new S3Client(),
@@ -59,7 +56,7 @@ void describe('generate forms command', () => {
       );
 
       const outPath = 'my-fake-models-path';
-      const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+      const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
         `forms --stack my_stack --out-dir ${outPath}`
       );
@@ -103,7 +100,7 @@ void describe('generate forms command', () => {
       );
 
       const uiOutPath = './my-fake-ui-path';
-      const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+      const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
         `forms --stack my_stack --out-dir ${uiOutPath}`
       );
@@ -145,7 +142,7 @@ void describe('generate forms command', () => {
       const parser = yargs().command(
         generateFormsCommand as unknown as CommandModule
       );
-      const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+      const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand('forms --stack my_stack');
       assert.equal(
         generationMock.mock.calls[0].arguments[0].uiOutDir,
@@ -202,7 +199,7 @@ void describe('generate forms command', () => {
     const parser = yargs().command(
       generateFormsCommand as unknown as CommandModule
     );
-    const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+    const commandRunner = new TestCommandRunner(parser);
     await commandRunner.runCommand('forms');
     assert.deepEqual(
       generationMock.mock.calls[0].arguments[0].backendIdentifier,

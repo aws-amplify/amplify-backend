@@ -8,7 +8,6 @@ import { TestCommandRunner } from '../../test-utils/command_runner.js';
 import { printer } from '@aws-amplify/cli-core';
 import assert from 'node:assert';
 import yargs from 'yargs';
-import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
 
 void describe('createInfoCommand', () => {
   void it('should return an instance of InfoCommand', () => {
@@ -17,11 +16,10 @@ void describe('createInfoCommand', () => {
   });
 });
 
-void describe('info command run', async () => {
-  const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
+void describe('info command run', () => {
   const command = createInfoCommand();
   const parser = yargs().command(command);
-  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+  const commandRunner = new TestCommandRunner(parser);
 
   void it('includes info subcommands in help output', async () => {
     const output = await commandRunner.runCommand(['info', '--help']);
@@ -79,7 +77,7 @@ void describe('info command run', async () => {
       cdkInfoProviderMock
     );
     const parser = yargs().command(command);
-    const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+    const commandRunner = new TestCommandRunner(parser);
     await commandRunner.runCommand(['info']);
 
     assert.equal(infoMock.mock.callCount(), 1);

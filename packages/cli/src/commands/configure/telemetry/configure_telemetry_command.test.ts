@@ -5,12 +5,9 @@ import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import { ConfigureTelemetryCommand } from './configure_telemetry_command.js';
 import {
   USAGE_DATA_TRACKING_ENABLED,
-  UsageDataEmitterFactory,
   configControllerFactory,
 } from '@aws-amplify/platform-core';
 import { printer } from '@aws-amplify/cli-core';
-
-const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('configure command', () => {
   const mockedConfigControllerSet = mock.fn();
@@ -21,7 +18,7 @@ void describe('configure command', () => {
     configControllerFactory.getInstance('usage_data_preferences.json')
   );
   const parser = yargs().command(telemetryCommand as unknown as CommandModule);
-  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+  const commandRunner = new TestCommandRunner(parser);
   const logMock = mock.method(printer, 'log');
 
   beforeEach(() => {
