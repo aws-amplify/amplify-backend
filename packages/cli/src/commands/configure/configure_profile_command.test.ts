@@ -31,11 +31,10 @@ void describe('configure command', () => {
 
   const configureCommand = new ConfigureProfileCommand(profileController);
   const parser = yargs().command(configureCommand as unknown as CommandModule);
-
   const commandRunner = new TestCommandRunner(parser, {
-    emitFailure: emitFailureSpy,
     emitSuccess: emitSuccessSpy,
-  } as unknown as UsageDataEmitter);
+    emitFailure: emitFailureSpy,
+  });
 
   beforeEach(() => {
     mockAppendAWSFiles.mock.resetCalls();
@@ -62,7 +61,7 @@ void describe('configure command', () => {
     assert.equal(emitFailureSpy.mock.callCount(), 0);
     assert.equal(emitSuccessSpy.mock.callCount(), 1);
     assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
-      command: 'profile print',
+      command: 'profile',
     });
   });
 
@@ -192,7 +191,10 @@ void describe('configure command', () => {
   void it('show --help', async () => {
     const output = await commandRunner.runCommand('profile --help');
     assert.match(output, /Configure an AWS Amplify profile/);
-    assert.equal(emitSuccessSpy.mock.callCount(), 0);
     assert.equal(emitFailureSpy.mock.callCount(), 0);
+    assert.equal(emitSuccessSpy.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+      command: 'profile',
+    });
   });
 });

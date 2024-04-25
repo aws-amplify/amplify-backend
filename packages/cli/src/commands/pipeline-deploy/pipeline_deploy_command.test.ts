@@ -21,7 +21,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
-void describe('deploy command', async () => {
+void describe('deploy command', () => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter({
     getS3Client: () => new S3Client(),
     getAmplifyClient: () => new AmplifyClient(),

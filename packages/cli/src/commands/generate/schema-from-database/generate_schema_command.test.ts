@@ -9,9 +9,6 @@ import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
-import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
-
-const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('generate graphql-client-code command', () => {
   const namespaceResolver = {
@@ -42,9 +39,6 @@ void describe('generate graphql-client-code command', () => {
     return 'TYPESCRIPT_DATA_SCHEMA';
   });
 
-  const emitFailureSpy = mock.method(usageDataEmitter, 'emitFailure');
-  const emitSuccessSpy = mock.method(usageDataEmitter, 'emitSuccess');
-
   const generateSchemaCommand = new GenerateSchemaCommand(
     backendIdentifierResolver,
     secretClient,
@@ -54,7 +48,7 @@ void describe('generate graphql-client-code command', () => {
   const parser = yargs().command(
     generateSchemaCommand as unknown as CommandModule
   );
-  const commandRunner = new TestCommandRunner(parser, usageDataEmitter);
+  const commandRunner = new TestCommandRunner(parser);
 
   const secretClientGetSecret = mock.method(secretClient, 'getSecret');
   secretClientGetSecret.mock.mockImplementation(() => {
@@ -69,8 +63,6 @@ void describe('generate graphql-client-code command', () => {
   beforeEach(() => {
     schemaGeneratorGenerateMethod.mock.resetCalls();
     secretClientGetSecret.mock.resetCalls();
-    emitFailureSpy.mock.resetCalls();
-    emitSuccessSpy.mock.resetCalls();
   });
 
   void it('uses the sandbox id by default if stack or branch are not provided', async () => {
@@ -85,7 +77,6 @@ void describe('generate graphql-client-code command', () => {
     );
 
     assert.equal(schemaGeneratorGenerateMethod.mock.calls.length, 1);
-    assert.equal(emitSuccessSpy.mock.callCount(), 1);
   });
 
   void it('generates and writes schema for stack', async () => {
@@ -101,7 +92,6 @@ void describe('generate graphql-client-code command', () => {
       },
       out: 'schema.rds.ts',
     });
-    assert.equal(emitSuccessSpy.mock.callCount(), 1);
   });
 
   void it('generates and writes schema for branch', async () => {
@@ -117,7 +107,6 @@ void describe('generate graphql-client-code command', () => {
       },
       out: 'schema.rds.ts',
     });
-    assert.equal(emitSuccessSpy.mock.callCount(), 1);
   });
 
   void it('requires connection uri secret name', async () => {
@@ -125,7 +114,6 @@ void describe('generate graphql-client-code command', () => {
       'schema-from-database --branch branch_name --appId app_id'
     );
     assert.match(command, /Missing required argument: connection-uri-secret/);
-    assert.equal(emitFailureSpy.mock.callCount(), 1);
   });
 
   void it('fails if both stack and branch are present', async () => {
@@ -133,7 +121,6 @@ void describe('generate graphql-client-code command', () => {
       'schema-from-database --stack foo --branch baz'
     );
     assert.match(output, /Arguments .* are mutually exclusive/);
-    assert.equal(emitFailureSpy.mock.callCount(), 1);
   });
 
   void it('shows available options in help output', async () => {
@@ -145,7 +132,5 @@ void describe('generate graphql-client-code command', () => {
     assert.match(output, /--branch/);
     assert.match(output, /--out/);
     assert.match(output, /--connection-uri-secret/);
-    assert.equal(emitFailureSpy.mock.callCount(), 0);
-    assert.equal(emitSuccessSpy.mock.callCount(), 0);
   });
 });

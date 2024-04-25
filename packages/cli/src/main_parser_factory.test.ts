@@ -8,7 +8,7 @@ import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
 const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('main parser', { concurrency: false }, () => {
-  const parser = createMainParser('0.0.0', usageDataEmitter);
+  const parser = createMainParser(version, usageDataEmitter);
   const commandRunner = new TestCommandRunner(parser);
 
   void it('includes generate command in help output', async () => {

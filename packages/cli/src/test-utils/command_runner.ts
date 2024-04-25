@@ -1,6 +1,9 @@
 import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { generateCommandFailureHandler } from '../error_handler.js';
+import {
+  extractSubCommands,
+  generateCommandFailureHandler,
+} from '../error_handler.js';
 import { UsageDataEmitter } from '@aws-amplify/platform-core';
 
 class OutputInterceptor {
@@ -50,29 +53,27 @@ export class TestCommandError extends Error {
  * Runs commands given preconfigured yargs parser.
  */
 export class TestCommandRunner {
-  private readonly parser: Argv;
-
   /**
    * Creates new command runner.
    */
-  constructor(parser: Argv, private usageDataEmitter?: UsageDataEmitter) {
+  constructor(
+    private parser: Argv,
+    private usageDataEmitter: UsageDataEmitter = {
+      emitFailure: () => Promise.resolve(),
+      emitSuccess: () => Promise.resolve(),
+    }
+  ) {
     this.parser = parser
       // Pin locale
       .locale('en')
       // Override script name to avoid long test file names
       .scriptName('amplify')
+      // Make sure we don't exit process on error or --help
+      .exitProcess(false)
       // attach the failure handler
       // this is necessary because we may be testing a subcommand that doesn't have the top-level failure handler attached
       // eventually we may want to have a separate "testFailureHandler" if we need additional tooling here
-      .fail(
-        generateCommandFailureHandler(
-          parser,
-          usageDataEmitter || {
-            emitFailure: () => Promise.resolve(),
-            emitSuccess: () => Promise.resolve(),
-          }
-        )
-      );
+      .fail(generateCommandFailureHandler(parser, this.usageDataEmitter));
   }
 
   /**
@@ -94,6 +95,10 @@ export class TestCommandRunner {
       // in potentially concurrent environment.
       await asyncLocalStorage.run(interceptor, async () => {
         await this.parser.parseAsync(args);
+        await this.usageDataEmitter.emitSuccess(
+          {},
+          { command: extractSubCommands(this.parser) }
+        );
       });
       return interceptor.getOutput();
     } catch (err) {
