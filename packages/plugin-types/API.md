@@ -136,13 +136,8 @@ export type ConstructFactoryGetInstanceProps = {
 };
 
 // @public
-export type DeepPartial<T> = {
-    [P in keyof T]?: DeepPartial<T[P]>;
-};
-
-// @public
 export type DeepPartialAmplifyGeneratedConfigs<T> = {
-    [P in keyof T]?: P extends 'analytics' | 'geo' | 'notifications' ? T[P] : (T[P] extends object ? DeepPartialAmplifyGeneratedConfigs<T[P]> : Partial<T[P]>);
+    [P in keyof T]?: P extends 'auth' | 'data' | 'storage' ? T[P] extends object ? DeepPartialAmplifyGeneratedConfigs<T[P]> : Partial<T[P]> : T[P];
 };
 
 // @public
