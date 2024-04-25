@@ -12,7 +12,7 @@ import { createInfoCommand } from './commands/info/info_command_factory.js';
  */
 export const createMainParser = (
   libraryVersion: string,
-  usageDataEmitter: UsageDataEmitter
+  usageDataEmitter?: UsageDataEmitter
 ): Argv => {
   const parser = yargs()
     .version(libraryVersion)

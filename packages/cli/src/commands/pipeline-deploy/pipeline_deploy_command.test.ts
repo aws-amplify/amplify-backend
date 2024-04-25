@@ -36,7 +36,6 @@ void describe('deploy command', () => {
     process.cwd(),
     new Printer(LogLevel.DEBUG)
   );
-
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController()

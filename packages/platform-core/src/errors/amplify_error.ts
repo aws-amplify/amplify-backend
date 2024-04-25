@@ -98,11 +98,14 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     return undefined;
   };
 
-  static fromError = (error: unknown): AmplifyError<'UnknownFault'> => {
+  static fromError = (
+    error: unknown,
+    message?: string
+  ): AmplifyError<'UnknownFault'> => {
     const errorMessage =
       error instanceof Error
         ? `${error.name}: ${error.message}`
-        : 'An unknown error happened. Check downstream error';
+        : message ?? 'An unknown error happened. Check downstream error';
 
     return new AmplifyFault(
       'UnknownFault',

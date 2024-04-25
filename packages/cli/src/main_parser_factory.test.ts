@@ -3,12 +3,9 @@ import assert from 'node:assert';
 import { TestCommandRunner } from './test-utils/command_runner.js';
 import { createMainParser } from './main_parser_factory.js';
 import { version } from '#package.json';
-import { UsageDataEmitterFactory } from '@aws-amplify/platform-core';
-
-const usageDataEmitter = await new UsageDataEmitterFactory().getInstance('');
 
 void describe('main parser', { concurrency: false }, () => {
-  const parser = createMainParser(version, usageDataEmitter);
+  const parser = createMainParser(version);
   const commandRunner = new TestCommandRunner(parser);
 
   void it('includes generate command in help output', async () => {

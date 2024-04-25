@@ -118,9 +118,12 @@ const handleError = async ({
     if (errorHasCauseMessage(error)) {
       printer.print(`Cause: ${error.cause.message}`);
     }
-    await usageDataEmitter?.emitFailure(AmplifyError.fromError(error), {
-      command: command ?? 'UnknownCommand',
-    });
+    await usageDataEmitter?.emitFailure(
+      AmplifyError.fromError(error, message),
+      {
+        command: command ?? 'UnknownCommand',
+      }
+    );
   }
 
   // additional debug logging for the stack traces
