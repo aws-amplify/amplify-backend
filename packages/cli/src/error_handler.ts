@@ -1,6 +1,7 @@
 import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { Argv } from 'yargs';
 import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
+import { extractSubCommands } from './extract_subcommands.js';
 
 let hasAttachUnhandledExceptionListenersBeenCalled = false;
 
@@ -159,11 +160,4 @@ const errorHasCauseMessage = (
     'message' in error.cause &&
     typeof error.cause.message === 'string'
   );
-};
-
-/**
- * If the parser finished processing arguments, attempt extracting subcommand information.
- */
-export const extractSubCommands = (yargs: Argv): string => {
-  return yargs.parsed ? yargs.parsed.argv._.join(' ') : '';
 };

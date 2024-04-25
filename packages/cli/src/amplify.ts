@@ -2,10 +2,8 @@
 
 import { hideBin } from 'yargs/helpers';
 import { createMainParser } from './main_parser_factory.js';
-import {
-  attachUnhandledExceptionListeners,
-  extractSubCommands,
-} from './error_handler.js';
+import { attachUnhandledExceptionListeners } from './error_handler.js';
+import { extractSubCommands } from './extract_subcommands.js';
 import {
   AmplifyFault,
   PackageJsonReader,

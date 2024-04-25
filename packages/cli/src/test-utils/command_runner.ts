@@ -1,10 +1,8 @@
 import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import {
-  extractSubCommands,
-  generateCommandFailureHandler,
-} from '../error_handler.js';
 import { UsageDataEmitter } from '@aws-amplify/platform-core';
+import { generateCommandFailureHandler } from '../error_handler.js';
+import { extractSubCommands } from '../extract_subcommands.js';
 
 class OutputInterceptor {
   private output = '';
