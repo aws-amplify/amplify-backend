@@ -66,7 +66,7 @@ void describe('generate outputs command', () => {
 
   void it('generates and writes config for stack', async () => {
     await commandRunner.runCommand(
-      'outputs--stack stack_name --out-dir /foo/bar'
+      'outputs --stack stack_name --out-dir /foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -85,7 +85,7 @@ void describe('generate outputs command', () => {
 
   void it('generates and writes config for branch', async () => {
     await commandRunner.runCommand(
-      'outputs--branch branch_name --out-dir /foo/bar'
+      'outputs --branch branch_name --out-dir /foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
@@ -108,7 +108,7 @@ void describe('generate outputs command', () => {
 
   void it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
-      'outputs--branch branch_name --app-id app_id --out-dir /foo/bar'
+      'outputs --branch branch_name --app-id app_id --out-dir /foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -128,7 +128,7 @@ void describe('generate outputs command', () => {
 
   void it('can generate to custom absolute path', async () => {
     await commandRunner.runCommand(
-      'outputs--stack stack_name --out-dir /foo/bar'
+      'outputs --stack stack_name --out-dir /foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -146,7 +146,7 @@ void describe('generate outputs command', () => {
 
   void it('can generate to custom relative path', async () => {
     await commandRunner.runCommand(
-      'outputs--stack stack_name --out-dir foo/bar'
+      'outputs --stack stack_name --out-dir foo/bar'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -182,7 +182,7 @@ void describe('generate outputs command', () => {
 
   void it('can generate legacy config in json mobile format', async () => {
     await commandRunner.runCommand(
-      'outputs--stack stack_name --config-version 0 --out-dir foo/bar --format json-mobile'
+      'outputs --stack stack_name --config-version 0 --out-dir foo/bar --format json-mobile'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -200,7 +200,7 @@ void describe('generate outputs command', () => {
 
   void it('can generate legacy config in ts format', async () => {
     await commandRunner.runCommand(
-      'outputs--stack stack_name --config-version 0 --out-dir foo/bar --format ts'
+      'outputs --stack stack_name --config-version 0 --out-dir foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -218,7 +218,7 @@ void describe('generate outputs command', () => {
 
   void it('can generate legacy config in mjs format', async () => {
     await commandRunner.runCommand(
-      'outputs--stack stack_name --config-version 0 --out-dir foo/bar --format mjs'
+      'outputs --stack stack_name --config-version 0 --out-dir foo/bar --format mjs'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
