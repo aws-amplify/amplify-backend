@@ -121,7 +121,7 @@ const handleError = async ({
     }
     await usageDataEmitter?.emitFailure(
       AmplifyError.fromError(
-        error instanceof Error ? error : new Error(message)
+        error && error instanceof Error ? error : new Error(message)
       ),
       { command: command ?? 'UnknownCommand' }
     );
