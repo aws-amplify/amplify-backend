@@ -791,16 +791,15 @@ export class AmplifyAuth
       result.providersList.push('SAML');
     }
 
-    if (result.providersList.length > 0) {
-      if (this.domainPrefix) {
-        this.userPool.addDomain(`${this.name}UserPoolDomain`, {
-          cognitoDomain: { domainPrefix: this.domainPrefix },
-        });
-      } else {
-        throw new Error(
-          'Cognito Domain Prefix is missing when external providers are configured.'
-        );
-      }
+    // Always generate a domain prefix if external provider is configured
+    if (this.domainPrefix) {
+      this.userPool.addDomain(`${this.name}UserPoolDomain`, {
+        cognitoDomain: { domainPrefix: this.domainPrefix },
+      });
+    } else {
+      throw new Error(
+        'Cognito Domain Prefix is missing when external providers are configured.'
+      );
     }
 
     // oauth settings for the UserPool client
@@ -999,27 +998,30 @@ export class AmplifyAuth
       output.socialProviders = JSON.stringify(
         this.providerSetupResult.providersList
       );
-      // if any providers were defined, we must expose the oauth settings to the output
+    }
+    // if callback URLs are configured, we must expose the oauth settings to the output
+    if (
+      this.providerSetupResult.oAuthSettings &&
+      this.providerSetupResult.oAuthSettings.callbackUrls
+    ) {
       const oAuthSettings = this.providerSetupResult.oAuthSettings;
-      if (oAuthSettings) {
-        if (this.domainPrefix) {
-          output.oauthCognitoDomain = `${this.domainPrefix}.auth.${
-            Stack.of(this).region
-          }.amazoncognito.com`;
-        }
-
-        output.oauthScope = JSON.stringify(
-          oAuthSettings.scopes?.map((s) => s.scopeName) ?? []
-        );
-        output.oauthRedirectSignIn = oAuthSettings.callbackUrls
-          ? oAuthSettings.callbackUrls.join(',')
-          : '';
-        output.oauthRedirectSignOut = oAuthSettings.logoutUrls
-          ? oAuthSettings.logoutUrls.join(',')
-          : '';
-        output.oauthClientId = this.resources.userPoolClient.userPoolClientId;
-        output.oauthResponseType = 'code';
+      if (this.domainPrefix) {
+        output.oauthCognitoDomain = `${this.domainPrefix}.auth.${
+          Stack.of(this).region
+        }.amazoncognito.com`;
       }
+
+      output.oauthScope = JSON.stringify(
+        oAuthSettings.scopes?.map((s) => s.scopeName) ?? []
+      );
+      output.oauthRedirectSignIn = oAuthSettings.callbackUrls
+        ? oAuthSettings.callbackUrls.join(',')
+        : '';
+      output.oauthRedirectSignOut = oAuthSettings.logoutUrls
+        ? oAuthSettings.logoutUrls.join(',')
+        : '';
+      output.oauthClientId = this.resources.userPoolClient.userPoolClientId;
+      output.oauthResponseType = 'code';
     }
 
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
