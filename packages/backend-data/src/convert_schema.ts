@@ -172,15 +172,15 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
     customSqlDataSourceStrategies
   );
 
+  const { branchSecretPath, sharedSecretPath } =
+    backendSecretResolver.resolvePath(configuration.connectionUri);
   return {
     dbType,
     name:
       provisionStrategyName +
       (configuration.identifier ?? configuration.engine),
     dbConnectionConfig: {
-      connectionUriSsmPath: backendSecretResolver.resolvePath(
-        configuration.connectionUri
-      ).branchSecretPath,
+      connectionUriSsmPath: [branchSecretPath, sharedSecretPath],
     },
     vpcConfiguration,
     customSqlStatements,

@@ -12,6 +12,11 @@ import {
   BackendIdentifier,
   PackageManagerController,
 } from '@aws-amplify/plugin-types';
+import { BackendDeployerOutputFormatter } from './types.js';
+
+const formatterStub: BackendDeployerOutputFormatter = {
+  normalizeBackendCommand: () => 'test command',
+};
 
 void describe('invokeCDKCommand', () => {
   const branchBackendId: BackendIdentifier = {
@@ -34,7 +39,6 @@ void describe('invokeCDKCommand', () => {
   const locateMock = mock.fn(() => 'amplify/backend.ts');
   const backendLocator = { locate: locateMock } as unknown as BackendLocator;
   const packageManagerControllerMock: PackageManagerController = {
-    getWelcomeMessage: mock.fn(() => ''),
     initializeProject: mock.fn(() => Promise.resolve()),
     initializeTsConfig: mock.fn(() => Promise.resolve()),
     installDependencies: mock.fn(() => Promise.resolve()),
@@ -43,7 +47,7 @@ void describe('invokeCDKCommand', () => {
   };
 
   const invoker = new CDKDeployer(
-    new CdkErrorMapper(),
+    new CdkErrorMapper(formatterStub),
     backendLocator,
     packageManagerControllerMock as never
   );

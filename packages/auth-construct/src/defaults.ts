@@ -46,6 +46,13 @@ export const DEFAULTS = {
     custom: true,
   },
   /**
+   * Default OAUTH flows for the UserPool
+   */
+  OAUTH_FLOWS: {
+    authorizationCodeGrant: true,
+    implicitCodeGrant: false,
+  },
+  /**
    * Specifies if attributes are required for signup/login, may depend on which settings are enabled.
    */
   IS_REQUIRED_ATTRIBUTE: {

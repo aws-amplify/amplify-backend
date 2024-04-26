@@ -15,7 +15,7 @@ import {
   ResourceNameValidator,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { triggerEvents } from '@aws-amplify/auth-construct-alpha';
+import { triggerEvents } from '@aws-amplify/auth-construct';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,

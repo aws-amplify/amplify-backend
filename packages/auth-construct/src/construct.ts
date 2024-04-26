@@ -59,6 +59,10 @@ const authProvidersList = {
   amazon: 'www.amazon.com',
   apple: 'appleid.apple.com',
 };
+const INVITATION_PLACEHOLDERS = {
+  CODE: '{####}',
+  USERNAME: '{username}',
+};
 const VERIFICATION_EMAIL_PLACEHOLDERS = {
   CODE: '{####}',
   LINK: '{##Verify Email##}',
@@ -408,9 +412,43 @@ export class AmplifyAuth
         props.accountRecovery
       ),
       removalPolicy: RemovalPolicy.DESTROY,
+      userInvitation:
+        typeof props.loginWith.email !== 'boolean'
+          ? this.getUserInvitationSettings(
+              props.loginWith.email?.userInvitation
+            )
+          : undefined,
     };
     return userPoolProps;
   };
+
+  /**
+   * Parses the user invitation settings and inserts codes/usernames where necessary.
+   * @param settings the invitation settings
+   * @returns cognito.UserInvitationConfig | undefined
+   */
+  private getUserInvitationSettings(
+    settings: EmailLoginSettings['userInvitation']
+  ): cognito.UserInvitationConfig | undefined {
+    if (!settings) {
+      return undefined;
+    }
+    return {
+      emailSubject: settings.emailSubject,
+      emailBody: settings.emailBody
+        ? settings.emailBody(
+            () => INVITATION_PLACEHOLDERS.USERNAME,
+            () => INVITATION_PLACEHOLDERS.CODE
+          )
+        : undefined,
+      smsMessage: settings.smsMessage
+        ? settings.smsMessage(
+            () => INVITATION_PLACEHOLDERS.USERNAME,
+            () => INVITATION_PLACEHOLDERS.CODE
+          )
+        : undefined,
+    };
+  }
 
   /**
    * Verify the email body depending on if 'CODE' or 'LINK' style is used.
@@ -573,7 +611,9 @@ export class AmplifyAuth
     const result: IdentityProviderSetupResult = {
       oAuthMappings: {},
       providersList: [],
-      oAuthSettings: undefined,
+      oAuthSettings: {
+        flows: DEFAULTS.OAUTH_FLOWS,
+      },
     };
     // external providers
     const external = loginOptions.externalProviders;
@@ -751,16 +791,15 @@ export class AmplifyAuth
       result.providersList.push('SAML');
     }
 
-    if (result.providersList.length > 0) {
-      if (this.domainPrefix) {
-        this.userPool.addDomain(`${this.name}UserPoolDomain`, {
-          cognitoDomain: { domainPrefix: this.domainPrefix },
-        });
-      } else {
-        throw new Error(
-          'Cognito Domain Prefix is missing when external providers are configured.'
-        );
-      }
+    // Always generate a domain prefix if external provider is configured
+    if (this.domainPrefix) {
+      this.userPool.addDomain(`${this.name}UserPoolDomain`, {
+        cognitoDomain: { domainPrefix: this.domainPrefix },
+      });
+    } else {
+      throw new Error(
+        'Cognito Domain Prefix is missing when external providers are configured.'
+      );
     }
 
     // oauth settings for the UserPool client
@@ -770,9 +809,7 @@ export class AmplifyAuth
       scopes: external.scopes
         ? this.getOAuthScopes(external.scopes)
         : DEFAULT_OAUTH_SCOPES,
-      flows: {
-        authorizationCodeGrant: true,
-      },
+      flows: DEFAULTS.OAUTH_FLOWS,
     };
 
     return result;
@@ -961,27 +998,30 @@ export class AmplifyAuth
       output.socialProviders = JSON.stringify(
         this.providerSetupResult.providersList
       );
-      // if any providers were defined, we must expose the oauth settings to the output
+    }
+    // if callback URLs are configured, we must expose the oauth settings to the output
+    if (
+      this.providerSetupResult.oAuthSettings &&
+      this.providerSetupResult.oAuthSettings.callbackUrls
+    ) {
       const oAuthSettings = this.providerSetupResult.oAuthSettings;
-      if (oAuthSettings) {
-        if (this.domainPrefix) {
-          output.oauthCognitoDomain = `${this.domainPrefix}.auth.${
-            Stack.of(this).region
-          }.amazoncognito.com`;
-        }
-
-        output.oauthScope = JSON.stringify(
-          oAuthSettings.scopes?.map((s) => s.scopeName) ?? []
-        );
-        output.oauthRedirectSignIn = oAuthSettings.callbackUrls
-          ? oAuthSettings.callbackUrls.join(',')
-          : '';
-        output.oauthRedirectSignOut = oAuthSettings.logoutUrls
-          ? oAuthSettings.logoutUrls.join(',')
-          : '';
-        output.oauthClientId = this.resources.userPoolClient.userPoolClientId;
-        output.oauthResponseType = 'code';
+      if (this.domainPrefix) {
+        output.oauthCognitoDomain = `${this.domainPrefix}.auth.${
+          Stack.of(this).region
+        }.amazoncognito.com`;
       }
+
+      output.oauthScope = JSON.stringify(
+        oAuthSettings.scopes?.map((s) => s.scopeName) ?? []
+      );
+      output.oauthRedirectSignIn = oAuthSettings.callbackUrls
+        ? oAuthSettings.callbackUrls.join(',')
+        : '';
+      output.oauthRedirectSignOut = oAuthSettings.logoutUrls
+        ? oAuthSettings.logoutUrls.join(',')
+        : '';
+      output.oauthClientId = this.resources.userPoolClient.userPoolClientId;
+      output.oauthResponseType = 'code';
     }
 
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {

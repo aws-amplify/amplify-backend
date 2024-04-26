@@ -269,6 +269,40 @@ void describe('Auth construct', () => {
     });
   });
 
+  void it('creates email login mechanism with custom invitation settings', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const userInvitationSettings = {
+      emailSubject: 'invited by admin',
+      emailBody: (username: () => string, code: () => string) =>
+        `EMAIL: your username is ${username()} and invitation code is ${code()}`,
+      smsMessage: (username: () => string, code: () => string) =>
+        `SMS: your username is ${username()} and invitation code is ${code()}`,
+    };
+    const expectedEmailBody =
+      'EMAIL: your username is {username} and invitation code is {####}';
+    const expectedSMSMessage =
+      'SMS: your username is {username} and invitation code is {####}';
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: {
+          userInvitation: userInvitationSettings,
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      AdminCreateUserConfig: {
+        AllowAdminCreateUserOnly: false,
+        InviteMessageTemplate: {
+          EmailMessage: expectedEmailBody,
+          EmailSubject: userInvitationSettings.emailSubject,
+          SMSMessage: expectedSMSMessage,
+        },
+      },
+    });
+  });
+
   void it('creates email login mechanism with MFA', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -621,7 +655,7 @@ void describe('Auth construct', () => {
       ]);
     });
 
-    void it('stores outputs in platform - oauth config', () => {
+    void it('stores outputs in platform -  when external provider is present', () => {
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -709,6 +743,61 @@ void describe('Auth construct', () => {
           'Providers were not properly initialized by the construct and could not be tested for output.'
         );
       }
+    });
+
+    void it('stores relevant oauth outputs in platform -  when external provider is absent', () => {
+      const authConstruct = new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            domainPrefix: 'test-prefix',
+            scopes: ['EMAIL', 'PROFILE'],
+            callbackUrls: ['http://callback.com'],
+            logoutUrls: ['http://logout.com'],
+          },
+        },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+
+      const expectedUserPoolId = (
+        authConstruct.node.findChild('UserPool') as UserPool
+      ).userPoolId;
+      const expectedIdentityPoolId = (
+        authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
+      ).ref;
+      const expectedWebClientId = (
+        authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
+      ).userPoolClientId;
+      const expectedRegion = Stack.of(authConstruct).region;
+
+      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
+      assert.equal(storeOutputArgs.length, 2);
+      assert.deepStrictEqual(storeOutputArgs, [
+        authOutputKey,
+        {
+          version: '1',
+          payload: {
+            userPoolId: expectedUserPoolId,
+            webClientId: expectedWebClientId,
+            identityPoolId: expectedIdentityPoolId,
+            authRegion: expectedRegion,
+            passwordPolicyMinLength:
+              DEFAULTS.PASSWORD_POLICY.minLength.toString(),
+            passwordPolicyRequirements:
+              defaultPasswordPolicyCharacterRequirements,
+            signupAttributes: '["email"]',
+            verificationMechanisms: '["email"]',
+            usernameAttributes: '["email"]',
+            oauthClientId: expectedWebClientId, // same thing
+            oauthCognitoDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
+            oauthScope: '["email","profile"]',
+            oauthRedirectSignIn: 'http://callback.com',
+            oauthRedirectSignOut: 'http://logout.com',
+            oauthResponseType: 'code',
+            allowUnauthenticatedIdentities: 'true',
+          },
+        },
+      ]);
     });
 
     void it('multifactor prop updates mfaConfiguration & mfaTypes', () => {
@@ -966,6 +1055,39 @@ void describe('Auth construct', () => {
           'ALLOW_USER_SRP_AUTH',
           'ALLOW_REFRESH_TOKEN_AUTH',
         ],
+      });
+    });
+
+    void it('ensure that authorizationCodeGrant is the only OAUTH flow by default', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test');
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        AllowedOAuthFlows: ['code'],
+      });
+    });
+
+    void it('ensure that authorizationCodeGrant is the only OAUTH flow by default when oauth providers are used', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: new SecretValue(googleClientSecret),
+            },
+            callbackUrls: ['https://callback.com'],
+            logoutUrls: ['https://logout.com'],
+            domainPrefix: 'test',
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
+        AllowedOAuthFlows: ['code'],
       });
     });
 

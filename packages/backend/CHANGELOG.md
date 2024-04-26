@@ -1,5 +1,24 @@
 # @aws-amplify/backend
 
+## 0.13.3
+
+### Patch Changes
+
+- Updated dependencies [ba684bd]
+- Updated dependencies [74d2cd4]
+- Updated dependencies [d0f1452]
+  - @aws-amplify/backend-data@0.12.0
+  - @aws-amplify/backend-auth@0.6.1
+  - @aws-amplify/client-config@0.9.3
+
+## 0.13.2
+
+### Patch Changes
+
+- Updated dependencies [067ca74]
+  - @aws-amplify/backend-storage@0.7.0
+  - @aws-amplify/client-config@0.9.2
+
 ## 0.13.1
 
 ### Patch Changes

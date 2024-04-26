@@ -1,10 +1,8 @@
-import os from 'node:os';
 import fsp from 'fs/promises';
 import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
-import { cyan } from 'kleur/colors';
 import { Printer } from '@aws-amplify/cli-core';
 import { YarnModernPackageManagerController } from './yarn_modern_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
@@ -57,29 +55,6 @@ void describe('YarnModernPackageManagerController', () => {
         'prod'
       );
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 1);
-    });
-  });
-
-  void describe('getWelcomeMessage', () => {
-    void it('returns the correct welcome message', () => {
-      const existsSyncMock = mock.fn(() => true);
-      const yarnModernPackageManagerController =
-        new YarnModernPackageManagerController(
-          '/testProjectRoot',
-          printerMock as unknown as Printer,
-          fspMock as unknown as typeof fsp,
-          pathMock as unknown as typeof path,
-          execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-          existsSyncMock
-        );
-
-      assert.equal(
-        yarnModernPackageManagerController.getWelcomeMessage(),
-        ` - Get started by running ${cyan('yarn amplify sandbox')}.${
-          os.EOL
-        } - Run ${cyan('yarn amplify help')} for a list of available commands. `
-      );
     });
   });
 

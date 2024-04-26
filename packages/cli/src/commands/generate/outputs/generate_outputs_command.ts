@@ -9,10 +9,10 @@ import { BackendIdentifierResolver } from '../../../backend-identifier/backend_i
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 
-export type GenerateConfigCommandOptions =
-  ArgumentsKebabCase<GenerateConfigCommandOptionsCamelCase>;
+export type GenerateOutputsCommandOptions =
+  ArgumentsKebabCase<GenerateOutputsCommandOptionsCamelCase>;
 
-type GenerateConfigCommandOptionsCamelCase = {
+type GenerateOutputsCommandOptionsCamelCase = {
   stack: string | undefined;
   appId: string | undefined;
   branch: string | undefined;
@@ -22,10 +22,10 @@ type GenerateConfigCommandOptionsCamelCase = {
 };
 
 /**
- * Command that generates client config.
+ * Command that generates client config aka amplify_outputs.
  */
-export class GenerateConfigCommand
-  implements CommandModule<object, GenerateConfigCommandOptions>
+export class GenerateOutputsCommand
+  implements CommandModule<object, GenerateOutputsCommandOptions>
 {
   /**
    * @inheritDoc
@@ -38,21 +38,21 @@ export class GenerateConfigCommand
   readonly describe: string;
 
   /**
-   * Creates client config generation command.
+   * Creates client config (amplify-outputs.json) generation command.
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
     private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
-    this.command = 'config';
-    this.describe = 'Generates client config';
+    this.command = 'outputs';
+    this.describe = 'Generates amplify outputs';
   }
 
   /**
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateConfigCommandOptions>
+    args: ArgumentsCamelCase<GenerateOutputsCommandOptions>
   ): Promise<void> => {
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
@@ -73,7 +73,7 @@ export class GenerateConfigCommand
   /**
    * @inheritDoc
    */
-  builder = (yargs: Argv): Argv<GenerateConfigCommandOptions> => {
+  builder = (yargs: Argv): Argv<GenerateOutputsCommandOptions> => {
     return yargs
       .option('stack', {
         conflicts: ['app-id', 'branch'],
@@ -111,7 +111,7 @@ export class GenerateConfigCommand
       })
       .option('config-version', {
         describe:
-          'Version of the client config. Version 0 represents classic amplify-cli client config amplify-configuration (Default) and 1 represents new unified client config amplify_outputs',
+          'Version of the configuration. Version 0 represents classic amplify-cli config file amplify-configuration and 1 represents newer config file amplify_outputs',
         type: 'string',
         array: false,
         choices: Object.values(ClientConfigVersionOption),

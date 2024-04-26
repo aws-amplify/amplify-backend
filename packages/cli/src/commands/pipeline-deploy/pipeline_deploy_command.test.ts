@@ -9,7 +9,10 @@ import {
   PipelineDeployCommand,
   PipelineDeployCommandOptions,
 } from './pipeline_deploy_command.js';
-import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
+import {
+  BackendDeployerFactory,
+  BackendDeployerOutputFormatter,
+} from '@aws-amplify/backend-deployer';
 import {
   LogLevel,
   PackageManagerControllerFactory,
@@ -36,9 +39,13 @@ void describe('deploy command', () => {
     process.cwd(),
     new Printer(LogLevel.DEBUG)
   );
+  const formatterStub: BackendDeployerOutputFormatter = {
+    normalizeBackendCommand: () => 'test command',
+  };
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController()
+      packageManagerControllerFactory.getPackageManagerController(),
+      formatterStub
     );
     const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
@@ -88,7 +95,8 @@ void describe('deploy command', () => {
 
   void it('executes backend deployer in CI environments', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController()
+      packageManagerControllerFactory.getPackageManagerController(),
+      formatterStub
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -114,7 +122,8 @@ void describe('deploy command', () => {
 
   void it('allows --config-out-dir argument', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
-      packageManagerControllerFactory.getPackageManagerController()
+      packageManagerControllerFactory.getPackageManagerController(),
+      formatterStub
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),

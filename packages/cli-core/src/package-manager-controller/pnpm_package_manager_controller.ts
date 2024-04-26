@@ -23,7 +23,6 @@ export class PnpmPackageManagerController extends PackageManagerControllerBase {
     super(
       cwd,
       'pnpm',
-      'pnpm',
       ['init'],
       'install',
       fsp,

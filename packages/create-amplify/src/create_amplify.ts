@@ -21,8 +21,7 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
 const projectRoot = await getProjectRoot();
 
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
-  projectRoot,
-  printer
+  projectRoot
 );
 
 const packageManagerController =

@@ -8,7 +8,7 @@ import {
   TestCommandError,
   TestCommandRunner,
 } from '../../test-utils/command_runner.js';
-import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
 import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
@@ -56,7 +56,8 @@ void describe('sandbox command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
-      printer
+      printer,
+      format
     );
     sandbox = await sandboxFactory.getInstance();
 
@@ -253,7 +254,8 @@ void describe('sandbox command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
-      printer
+      printer,
+      format
     );
     sandbox = await sandboxFactory.getInstance();
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());

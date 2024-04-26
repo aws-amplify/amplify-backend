@@ -14,7 +14,7 @@ In this example, you will create a simple stack with email login enabled (by def
 
 ```ts
 import { App, Stack } from 'aws-cdk-lib';
-import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
+import { AmplifyAuth } from '@aws-amplify/auth-construct';
 
 const app = new App();
 const stack = new Stack(app, 'AuthStack');
@@ -28,7 +28,7 @@ In this example, you will create a simple stack with email login enabled and wit
 
 ```ts
 import { App, Stack } from 'aws-cdk-lib';
-import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
+import { AmplifyAuth } from '@aws-amplify/auth-construct';
 
 const app = new App();
 const stack = new Stack(app, 'AuthStack');
@@ -53,7 +53,7 @@ In this example, you will create a stack with email, phone, and external login p
 
 ```ts
 import { App, Stack, SecretValue } from 'aws-cdk-lib';
-import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
+import { AmplifyAuth } from '@aws-amplify/auth-construct';
 
 const app = new App();
 const stack = new Stack(app, 'AuthStack');
@@ -114,7 +114,7 @@ In this example, you will customize the set of attributes that are required for 
 
 ```ts
 import { App, Stack } from 'aws-cdk-lib';
-import { AmplifyAuth } from '@aws-amplify/auth-construct-alpha';
+import { AmplifyAuth } from '@aws-amplify/auth-construct';
 
 const app = new App();
 const stack = new Stack(app, 'AuthStack');
