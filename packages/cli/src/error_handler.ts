@@ -120,7 +120,7 @@ const handleError = async ({
       printer.print(`Cause: ${error.cause.message}`);
     }
     await usageDataEmitter?.emitFailure(
-      AmplifyError.fromError(error, message),
+      AmplifyError.fromError(message ? new Error(message) : error),
       {
         command: command ?? 'UnknownCommand',
       }
