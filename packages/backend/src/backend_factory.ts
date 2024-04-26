@@ -1,6 +1,6 @@
 import {
   ConstructFactory,
-  DeepPartial,
+  DeepPartialAmplifyGeneratedConfigs,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
@@ -133,7 +133,9 @@ export class BackendFactory<
     return this.stackResolver.createCustomStack(name);
   };
 
-  addOutput = (clientConfigPart: DeepPartial<ClientConfig>) => {
+  addOutput = (
+    clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>
+  ) => {
     const { version } = clientConfigPart;
     if (!version) {
       clientConfigPart.version =

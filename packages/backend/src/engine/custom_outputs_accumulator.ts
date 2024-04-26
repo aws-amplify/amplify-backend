@@ -1,6 +1,6 @@
 import {
   BackendOutputStorageStrategy,
-  DeepPartial,
+  DeepPartialAmplifyGeneratedConfigs,
 } from '@aws-amplify/plugin-types';
 import { ClientConfig } from '@aws-amplify/client-config';
 import {
@@ -29,7 +29,9 @@ export class CustomOutputsAccumulator {
     private readonly clientConfigAccumulator: ObjectAccumulator<ClientConfig>
   ) {}
 
-  addOutput = (clientConfigPart: DeepPartial<ClientConfig>) => {
+  addOutput = (
+    clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>
+  ) => {
     try {
       this.clientConfigAccumulator.accumulate(clientConfigPart);
     } catch (error) {

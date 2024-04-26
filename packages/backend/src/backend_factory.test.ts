@@ -1,7 +1,7 @@
 import { beforeEach, describe, it } from 'node:test';
 import {
   ConstructFactory,
-  DeepPartial,
+  DeepPartialAmplifyGeneratedConfigs,
   DeploymentType,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
@@ -189,12 +189,13 @@ void describe('Backend', () => {
   void it('can add custom output', () => {
     const rootStack = createStackAndSetContext('sandbox');
     const backend = new BackendFactory({}, rootStack);
-    const clientConfigPartial: DeepPartial<ClientConfig> = {
-      version: '1',
-      custom: {
-        someCustomOutput: 'someCustomOutputValue',
-      },
-    };
+    const clientConfigPartial: DeepPartialAmplifyGeneratedConfigs<ClientConfig> =
+      {
+        version: '1',
+        custom: {
+          someCustomOutput: 'someCustomOutputValue',
+        },
+      };
     backend.addOutput(clientConfigPartial);
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.hasOutput('customOutputs', {
