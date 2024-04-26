@@ -6,7 +6,7 @@
 
 import { AppId } from '@aws-amplify/plugin-types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { DeepPartial } from '@aws-amplify/plugin-types';
+import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import z from 'zod';
 
 // @public
@@ -115,10 +115,10 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 // @public
 export class ObjectAccumulator<T> {
-    constructor(accumulator: DeepPartial<T>, versionKey?: string);
-    accumulate: (part: DeepPartial<T>) => ObjectAccumulator<T>;
+    constructor(accumulator: DeepPartialAmplifyGeneratedConfigs<T>, versionKey?: string);
+    accumulate: (part: DeepPartialAmplifyGeneratedConfigs<T>) => ObjectAccumulator<T>;
     // (undocumented)
-    getAccumulatedObject: () => DeepPartial<T>;
+    getAccumulatedObject: () => DeepPartialAmplifyGeneratedConfigs<T>;
 }
 
 // @public
