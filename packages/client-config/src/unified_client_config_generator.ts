@@ -1,4 +1,7 @@
-import { BackendOutput, DeepPartial } from '@aws-amplify/plugin-types';
+import {
+  BackendOutput,
+  DeepPartialAmplifyGeneratedConfigs,
+} from '@aws-amplify/plugin-types';
 import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas';
 import { ClientConfig } from './client-config-types/client_config.js';
 import { ClientConfigContributor } from './client-config-types/client_config_contributor.js';
@@ -39,9 +42,9 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
         backendOutput
       );
       try {
-        // Partial to DeepPartial is always a safe case since it's up-casting
+        // Partial to DeepPartialAmplifyGeneratedConfigs is always a safe case since it's up-casting
         accumulator.accumulate(
-          clientConfigContribution as DeepPartial<ClientConfig>
+          clientConfigContribution as DeepPartialAmplifyGeneratedConfigs<ClientConfig>
         );
       } catch (error) {
         if (error instanceof ObjectAccumulatorPropertyAlreadyExistsError) {

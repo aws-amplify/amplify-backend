@@ -1,6 +1,6 @@
 import {
   ConstructFactory,
-  DeepPartial,
+  DeepPartialAmplifyGeneratedConfigs,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
@@ -9,7 +9,9 @@ import { ClientConfig } from '@aws-amplify/client-config';
 
 export type BackendBase = {
   createStack: (name: string) => Stack;
-  addOutput: (clientConfigPart: DeepPartial<ClientConfig>) => void;
+  addOutput: (
+    clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>
+  ) => void;
 };
 
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers
