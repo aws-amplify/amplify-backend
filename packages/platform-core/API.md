@@ -21,7 +21,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     // (undocumented)
     readonly details?: string;
     // (undocumented)
-    static fromError: (error: unknown, message?: string) => AmplifyError<'UnknownFault'>;
+    static fromError: (error: unknown) => AmplifyError<'UnknownFault'>;
     // (undocumented)
     static fromStderr: (_stderr: string) => AmplifyError | undefined;
     // (undocumented)
@@ -158,12 +158,12 @@ export const packageJsonSchema: z.ZodObject<{
     type: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"module">, z.ZodLiteral<"commonjs">]>>;
 }, "strip", z.ZodTypeAny, {
     name?: string | undefined;
-    type?: "module" | "commonjs" | undefined;
     version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
 }, {
     name?: string | undefined;
-    type?: "module" | "commonjs" | undefined;
     version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
 }>;
 
 // @public
