@@ -22,23 +22,38 @@ export class AmplifyPrompter {
 }
 
 // @public
-export const format: {
-    runner: (binaryRunner: string) => {
-        amplifyCommand: (command: string) => string;
-    };
-    error: (message: string) => string;
-    note: (message: string) => string;
-    command: (command: string) => string;
-    highlight: (command: string) => string;
-    success: (message: string) => string;
-    sectionHeader: (header: string) => string;
+export class Format {
+    constructor(packageManagerRunnerName?: string);
+    // (undocumented)
     bold: (message: string) => string;
+    // (undocumented)
+    command: (command: string) => string;
+    // (undocumented)
     dim: (message: string) => string;
-    link: (link: string) => string;
-    list: (lines: string[]) => string;
+    // (undocumented)
+    error: (message: string) => string;
+    // (undocumented)
+    highlight: (command: string) => string;
+    // (undocumented)
     indent: (message: string) => string;
+    // (undocumented)
+    link: (link: string) => string;
+    // (undocumented)
+    list: (lines: string[]) => string;
+    // (undocumented)
+    normalizeBackendCommand: (command: string) => string;
+    // (undocumented)
+    note: (message: string) => string;
+    // (undocumented)
     record: (record: Record<string, string | number | Date>) => string;
-};
+    // (undocumented)
+    sectionHeader: (header: string) => string;
+    // (undocumented)
+    success: (message: string) => string;
+}
+
+// @public (undocumented)
+export const format: Format;
 
 // @public (undocumented)
 export enum LogLevel {
@@ -52,7 +67,7 @@ export enum LogLevel {
 
 // @public
 export class PackageManagerControllerFactory {
-    constructor(cwd: string, printer: Printer, platform?: NodeJS.Platform);
+    constructor(cwd?: string, printer?: Printer, platform?: NodeJS.Platform);
     getPackageManagerController(): PackageManagerController;
 }
 

@@ -25,7 +25,6 @@ export class YarnModernPackageManagerController extends PackageManagerController
     super(
       cwd,
       'yarn',
-      'yarn',
       ['init', '--yes'],
       'add',
       fsp,

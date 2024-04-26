@@ -176,7 +176,6 @@ export type MainStackNameResolver = {
 
 // @public (undocumented)
 export type PackageManagerController = {
-    getWelcomeMessage: () => string;
     initializeProject: () => Promise<void>;
     initializeTsConfig: (targetDir: string) => Promise<void>;
     installDependencies: (packageNames: string[], type: 'dev' | 'prod') => Promise<void>;

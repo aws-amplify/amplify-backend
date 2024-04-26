@@ -23,7 +23,6 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
     super(
       cwd,
       'yarn',
-      'yarn',
       ['init', '--yes'],
       'add',
       fsp,

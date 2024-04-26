@@ -1,9 +1,6 @@
 import { CommandModule } from 'yargs';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
-import {
-  PackageManagerControllerFactory,
-  printer,
-} from '@aws-amplify/cli-core';
+import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
 
 import {
   PipelineDeployCommand,
@@ -33,12 +30,10 @@ export const createPipelineDeployCommand = (): CommandModule<
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
     awsClientProvider
   );
-  const packageManagerControllerFactory = new PackageManagerControllerFactory(
-    process.cwd(),
-    printer
-  );
+  const packageManagerControllerFactory = new PackageManagerControllerFactory();
   const backendDeployerFactory = new BackendDeployerFactory(
-    packageManagerControllerFactory.getPackageManagerController()
+    packageManagerControllerFactory.getPackageManagerController(),
+    format
   );
   const backendDeployer = backendDeployerFactory.getInstance();
   return new PipelineDeployCommand(clientConfigGenerator, backendDeployer);
