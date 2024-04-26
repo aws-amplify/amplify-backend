@@ -24,6 +24,8 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
   generateTypes = async ({
     target,
     multipleSwiftFiles,
+    maxDepth,
+    typenameIntrospection,
   }: TypesGenerationParameters) => {
     const schema = await this.fetchSchema();
 
@@ -33,6 +35,8 @@ export class AppSyncGraphqlTypesGenerator implements GraphqlTypesGenerator {
 
     const generatedStatements = generateStatements({
       schema,
+      maxDepth,
+      typenameIntrospection,
       target: 'graphql',
     });
 

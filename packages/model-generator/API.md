@@ -196,7 +196,7 @@ export type ModelsGenerationParameters = {
 export type TypesGenerationParameters = {
     target: TypesTarget;
     multipleSwiftFiles?: boolean;
-};
+} & Pick<DocumentGenerationParameters, 'maxDepth' | 'typenameIntrospection'>;
 
 // (No @packageDocumentation comment for this package)
 
