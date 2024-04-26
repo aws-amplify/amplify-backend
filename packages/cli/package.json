@@ -4,7 +4,7 @@
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "amplify": "lib/amplify.js",
-    "backend": "lib/amplify.js"
+    "ampx": "lib/amplify.js"
   },
   "type": "module",
   "publishConfig": {
