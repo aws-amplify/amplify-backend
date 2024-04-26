@@ -1,5 +1,23 @@
 # @aws-amplify/sandbox
 
+## 0.6.0
+
+### Minor Changes
+
+- 8995e3b: refactor format.runner().amplifyCommand() into format.backendCliCommand()
+
+### Patch Changes
+
+- Updated dependencies [c93ecde]
+- Updated dependencies [8995e3b]
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/client-config@0.9.4
+  - @aws-amplify/cli-core@0.6.0
+  - @aws-amplify/backend-deployer@0.6.0
+  - @aws-amplify/platform-core@0.5.1
+  - @aws-amplify/backend-secret@0.4.6
+  - @aws-amplify/deployed-backend-client@0.4.2
+
 ## 0.5.5
 
 ### Patch Changes
