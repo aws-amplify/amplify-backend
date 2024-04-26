@@ -13,7 +13,6 @@ import {
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.js';
-import { AmplifyFault } from '@aws-amplify/platform-core';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
@@ -137,30 +136,23 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       }
     }
 
-    if (authOutput.payload.socialProviders) {
-      if (
-        !(
-          authOutput.payload.oauthRedirectSignIn &&
-          authOutput.payload.oauthRedirectSignOut &&
-          authOutput.payload.oauthResponseType &&
-          authOutput.payload.oauthScope &&
-          authOutput.payload.oauthCognitoDomain
-        )
-      ) {
-        throw new AmplifyFault('InvalidBackendOutputFault', {
-          message: `Received invalid oauth output: ${JSON.stringify(
-            authOutput.payload
-          )}`,
-        });
-      }
+    // OAuth settings are present if both oauthRedirectSignIn and oauthRedirectSignOut are.
+    if (
+      authOutput.payload.oauthRedirectSignIn &&
+      authOutput.payload.oauthRedirectSignOut
+    ) {
       authClientConfig.auth.oauth = {
-        identity_providers: JSON.parse(authOutput.payload.socialProviders),
+        identity_providers: authOutput.payload.socialProviders
+          ? JSON.parse(authOutput.payload.socialProviders)
+          : [],
         redirect_sign_in_uri: authOutput.payload.oauthRedirectSignIn.split(','),
         redirect_sign_out_uri:
           authOutput.payload.oauthRedirectSignOut.split(','),
         response_type: authOutput.payload.oauthResponseType as 'code' | 'token',
-        scopes: JSON.parse(authOutput.payload.oauthScope),
-        domain: authOutput.payload.oauthCognitoDomain,
+        scopes: authOutput.payload.oauthScope
+          ? JSON.parse(authOutput.payload.oauthScope)
+          : [],
+        domain: authOutput.payload.oauthCognitoDomain ?? '',
       };
     }
 

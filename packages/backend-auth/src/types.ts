@@ -140,7 +140,12 @@ export type OidcProviderFactoryProps = Omit<
  */
 export type ExternalProviderGeneralFactoryProps = Omit<
   ExternalProviderOptions,
-  'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google'
+  | 'signInWithApple'
+  | 'loginWithAmazon'
+  | 'facebook'
+  | 'oidc'
+  | 'google'
+  | 'domainPrefix'
 >;
 
 /**
