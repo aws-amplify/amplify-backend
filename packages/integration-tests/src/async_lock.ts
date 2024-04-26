@@ -22,13 +22,13 @@ export class AsyncLock {
   /**
    * Creates async lock.
    */
-  constructor() {
+  constructor(private readonly defaultTimeoutMs?: number) {
     this.isLocked = false;
     this.queue = [];
   }
 
-  acquire = async (): Promise<void> => {
-    return new Promise<void>((resolve) => {
+  acquire = async (timeoutMs?: number): Promise<void> => {
+    const lockPromise = new Promise<void>((resolve) => {
       if (!this.isLocked) {
         this.isLocked = true;
         resolve();
@@ -36,6 +36,20 @@ export class AsyncLock {
         this.queue.push(resolve);
       }
     });
+    timeoutMs = timeoutMs ?? this.defaultTimeoutMs;
+    if (timeoutMs) {
+      const timeoutPromise = new Promise<void>((resolve, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(`Unable to acquire async lock in ${timeoutMs}ms.`)
+            ),
+          timeoutMs
+        )
+      );
+      return Promise.race<void>([lockPromise, timeoutPromise]);
+    }
+    return lockPromise;
   };
 
   release = (): void => {

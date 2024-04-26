@@ -8,15 +8,24 @@ import {
   CognitoIdentityProviderClient,
 } from '@aws-sdk/client-cognito-identity-provider';
 import assert from 'assert';
+import { AsyncLock } from './async_lock.js';
 
 /**
  * This class creates credentials for entities managed by Amplify Auth.
+ *
+ * This class is safe to use in concurrent settings, i.e. tests running in parallel.
  */
 export class AmplifyAuthCredentialsFactory {
   private readonly userPoolId: string;
   private readonly userPoolClientId: string;
   private readonly identityPoolId: string;
   private readonly allowGuestAccess: boolean | undefined;
+  /**
+   * Asynchronous lock is used to assure that all calls to Amplify JS library are
+   * made in single transaction. This is because that library maintains global state,
+   * for example auth session.
+   */
+  private readonly lock: AsyncLock = new AsyncLock(60 * 1000);
 
   /**
    * Creates Amplify Auth credentials factory.
@@ -35,72 +44,85 @@ export class AmplifyAuthCredentialsFactory {
   }
 
   getNewAuthenticatedUserCredentials = async (): Promise<IamCredentials> => {
-    const username = `amplify-backend-${shortUuid()}@amazon.com`;
-    const temporaryPassword = `Test1@Temp${shortUuid()}`;
-    const password = `Test1@${shortUuid()}`;
-    await this.cognitoIdentityProviderClient.send(
-      new AdminCreateUserCommand({
-        Username: username,
-        TemporaryPassword: temporaryPassword,
-        UserPoolId: this.userPoolId,
-        MessageAction: 'SUPPRESS',
-      })
-    );
+    await this.lock.acquire();
+    try {
+      const username = `amplify-backend-${shortUuid()}@amazon.com`;
+      const temporaryPassword = `Test1@Temp${shortUuid()}`;
+      const password = `Test1@${shortUuid()}`;
+      await this.cognitoIdentityProviderClient.send(
+        new AdminCreateUserCommand({
+          Username: username,
+          TemporaryPassword: temporaryPassword,
+          UserPoolId: this.userPoolId,
+          MessageAction: 'SUPPRESS',
+        })
+      );
 
-    Amplify.configure({
-      Auth: {
-        Cognito: {
-          userPoolId: this.userPoolId,
-          userPoolClientId: this.userPoolClientId,
-          identityPoolId: this.identityPoolId,
-          allowGuestAccess: this.allowGuestAccess,
+      Amplify.configure({
+        Auth: {
+          Cognito: {
+            userPoolId: this.userPoolId,
+            userPoolClientId: this.userPoolClientId,
+            identityPoolId: this.identityPoolId,
+            allowGuestAccess: this.allowGuestAccess,
+          },
         },
-      },
-    });
+      });
 
-    const signInResult = await auth.signIn({
-      username,
-      password: temporaryPassword,
-    });
+      // in case there's already signed user in the session.
+      await auth.signOut();
 
-    assert.strictEqual(
-      signInResult.nextStep.signInStep,
-      'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
-    );
+      const signInResult = await auth.signIn({
+        username,
+        password: temporaryPassword,
+      });
 
-    await auth.confirmSignIn({
-      challengeResponse: password,
-    });
+      assert.strictEqual(
+        signInResult.nextStep.signInStep,
+        'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
+      );
 
-    const authSession = await auth.fetchAuthSession();
+      await auth.confirmSignIn({
+        challengeResponse: password,
+      });
 
-    if (!authSession.credentials) {
-      throw new Error('No credentials in auth session');
+      const authSession = await auth.fetchAuthSession();
+
+      if (!authSession.credentials) {
+        throw new Error('No credentials in auth session');
+      }
+
+      return authSession.credentials;
+    } finally {
+      this.lock.release();
     }
-
-    return authSession.credentials;
   };
 
   getGuestAccessCredentials = async (): Promise<IamCredentials> => {
-    Amplify.configure({
-      Auth: {
-        Cognito: {
-          userPoolId: this.userPoolId,
-          userPoolClientId: this.userPoolClientId,
-          identityPoolId: this.identityPoolId,
-          allowGuestAccess: this.allowGuestAccess,
+    await this.lock.acquire();
+    try {
+      Amplify.configure({
+        Auth: {
+          Cognito: {
+            userPoolId: this.userPoolId,
+            userPoolClientId: this.userPoolClientId,
+            identityPoolId: this.identityPoolId,
+            allowGuestAccess: this.allowGuestAccess,
+          },
         },
-      },
-    });
+      });
 
-    await auth.signOut();
+      await auth.signOut();
 
-    const authSession = await auth.fetchAuthSession();
+      const authSession = await auth.fetchAuthSession();
 
-    if (!authSession.credentials) {
-      throw new Error('No credentials in auth session');
+      if (!authSession.credentials) {
+        throw new Error('No credentials in auth session');
+      }
+
+      return authSession.credentials;
+    } finally {
+      this.lock.release();
     }
-
-    return authSession.credentials;
   };
 }
