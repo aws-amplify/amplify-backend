@@ -3,7 +3,7 @@
 import { hideBin } from 'yargs/helpers';
 import { createMainParser } from './main_parser_factory.js';
 import { attachUnhandledExceptionListeners } from './error_handler.js';
-import { extractSubCommands } from './extract_subcommands.js';
+import { extractSubCommands } from './extract_sub_commands.js';
 import {
   AmplifyFault,
   PackageJsonReader,
@@ -34,10 +34,14 @@ const parser = createMainParser(libraryVersion, usageDataEmitter);
 await parser.parseAsync(hideBin(process.argv));
 
 try {
-  await usageDataEmitter.emitSuccess(
-    {},
-    { command: extractSubCommands(parser) }
-  );
+  const metricDimension: Record<string, string> = {};
+  const subCommands = extractSubCommands(parser);
+
+  if (subCommands) {
+    metricDimension.command = subCommands;
+  }
+
+  await usageDataEmitter.emitSuccess({}, metricDimension);
 } catch (e) {
   printer.log('Failed to emit usage metrics', LogLevel.DEBUG);
 }

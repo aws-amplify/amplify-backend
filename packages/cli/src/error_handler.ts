@@ -1,7 +1,7 @@
 import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { Argv } from 'yargs';
 import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
-import { extractSubCommands } from './extract_subcommands.js';
+import { extractSubCommands } from './extract_sub_commands.js';
 
 let hasAttachUnhandledExceptionListenersBeenCalled = false;
 

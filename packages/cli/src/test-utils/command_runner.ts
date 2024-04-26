@@ -2,7 +2,7 @@ import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { UsageDataEmitter } from '@aws-amplify/platform-core';
 import { generateCommandFailureHandler } from '../error_handler.js';
-import { extractSubCommands } from '../extract_subcommands.js';
+import { extractSubCommands } from '../extract_sub_commands.js';
 
 class OutputInterceptor {
   private output = '';
@@ -93,10 +93,13 @@ export class TestCommandRunner {
       // in potentially concurrent environment.
       await asyncLocalStorage.run(interceptor, async () => {
         await this.parser.parseAsync(args);
-        await this.usageDataEmitter.emitSuccess(
-          {},
-          { command: extractSubCommands(this.parser) }
-        );
+        const metricDimension: Record<string, string> = {};
+        const subCommands = extractSubCommands(this.parser);
+
+        if (subCommands) {
+          metricDimension.command = subCommands;
+        }
+        await this.usageDataEmitter.emitSuccess({}, metricDimension);
       });
       return interceptor.getOutput();
     } catch (err) {
