@@ -13,10 +13,10 @@ const testSecretAccessKey = 'testSecretAccessKey';
 const testProfile = 'testProfile';
 const testRegion = 'testRegion';
 
-const emitFailureSpy = mock.fn<UsageDataEmitter['emitFailure']>(() =>
+const emitFailureMock = mock.fn<UsageDataEmitter['emitFailure']>(() =>
   Promise.resolve()
 );
-const emitSuccessSpy = mock.fn<UsageDataEmitter['emitSuccess']>(() =>
+const emitSuccessMock = mock.fn<UsageDataEmitter['emitSuccess']>(() =>
   Promise.resolve()
 );
 
@@ -32,14 +32,14 @@ void describe('configure command', () => {
   const configureCommand = new ConfigureProfileCommand(profileController);
   const parser = yargs().command(configureCommand as unknown as CommandModule);
   const commandRunner = new TestCommandRunner(parser, {
-    emitSuccess: emitSuccessSpy,
-    emitFailure: emitFailureSpy,
+    emitSuccess: emitSuccessMock,
+    emitFailure: emitFailureMock,
   });
 
   beforeEach(() => {
     mockAppendAWSFiles.mock.resetCalls();
-    emitFailureSpy.mock.resetCalls();
-    emitSuccessSpy.mock.resetCalls();
+    emitFailureMock.mock.resetCalls();
+    emitSuccessMock.mock.resetCalls();
   });
 
   void it('configures a profile with an IAM user', async (contextual) => {
@@ -58,9 +58,9 @@ void describe('configure command', () => {
       mockPrint.mock.calls[0].arguments[0] as string,
       /already exists!/
     );
-    assert.equal(emitFailureSpy.mock.callCount(), 0);
-    assert.equal(emitSuccessSpy.mock.callCount(), 1);
-    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+    assert.equal(emitFailureMock.mock.callCount(), 0);
+    assert.equal(emitSuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
       command: 'profile',
     });
   });
@@ -114,9 +114,9 @@ void describe('configure command', () => {
       accessKeyId: testAccessKeyId,
       secretAccessKey: testSecretAccessKey,
     });
-    assert.equal(emitFailureSpy.mock.callCount(), 0);
-    assert.equal(emitSuccessSpy.mock.callCount(), 1);
-    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+    assert.equal(emitFailureMock.mock.callCount(), 0);
+    assert.equal(emitSuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
       command: 'profile',
     });
   });
@@ -181,9 +181,9 @@ void describe('configure command', () => {
       accessKeyId: testAccessKeyId,
       secretAccessKey: testSecretAccessKey,
     });
-    assert.equal(emitFailureSpy.mock.callCount(), 0);
-    assert.equal(emitSuccessSpy.mock.callCount(), 1);
-    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+    assert.equal(emitFailureMock.mock.callCount(), 0);
+    assert.equal(emitSuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
       command: 'profile',
     });
   });
@@ -191,9 +191,9 @@ void describe('configure command', () => {
   void it('show --help', async () => {
     const output = await commandRunner.runCommand('profile --help');
     assert.match(output, /Configure an AWS Amplify profile/);
-    assert.equal(emitFailureSpy.mock.callCount(), 0);
-    assert.equal(emitSuccessSpy.mock.callCount(), 1);
-    assert.deepStrictEqual(emitSuccessSpy.mock.calls[0].arguments[1], {
+    assert.equal(emitFailureMock.mock.callCount(), 0);
+    assert.equal(emitSuccessMock.mock.callCount(), 1);
+    assert.deepStrictEqual(emitSuccessMock.mock.calls[0].arguments[1], {
       command: 'profile',
     });
   });
