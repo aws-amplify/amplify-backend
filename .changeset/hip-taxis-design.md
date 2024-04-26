@@ -1,6 +1,6 @@
 ---
 '@aws-amplify/backend-auth': minor
-'@aws-amplify/auth-construct-alpha': patch
+'@aws-amplify/auth-construct': patch
 '@aws-amplify/client-config': patch
 ---
 
