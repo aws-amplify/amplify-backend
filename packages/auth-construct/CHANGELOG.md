@@ -1,5 +1,16 @@
 # @aws-amplify/auth-construct
 
+## 0.7.0
+
+### Minor Changes
+
+- 74d2cd4: drop alpha suffix from auth-construct package
+
+### Patch Changes
+
+- a3c93c6: Add support for customizing user invitation settings.
+- c637d0e: Disable implicit grant oauth flows by default.
+
 ## 0.6.1
 
 ### Patch Changes

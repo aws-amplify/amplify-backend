@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 0.7.0
+
+### Minor Changes
+
+- d0f1452: bump codegen and amplify data cdk construct, schema generator dependencies
+
 ## 0.6.1
 
 ### Patch Changes

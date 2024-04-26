@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/model-generator",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "type": "module",
   "publishConfig": {
     "access": "public"

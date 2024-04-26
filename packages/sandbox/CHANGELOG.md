@@ -1,5 +1,11 @@
 # @aws-amplify/sandbox
 
+## 0.5.5
+
+### Patch Changes
+
+- @aws-amplify/client-config@0.9.3
+
 ## 0.5.4
 
 ### Patch Changes
