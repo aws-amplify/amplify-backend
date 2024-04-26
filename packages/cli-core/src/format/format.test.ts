@@ -5,15 +5,15 @@ import { Format, format } from './format.js';
 import { $, blue, bold, cyan, green, underline } from 'kleur/colors';
 
 void describe('format', () => {
-  void it('should format amplify command with yarn', { concurrency: 1 }, () => {
+  void it('should format backend command with yarn', { concurrency: 1 }, () => {
     const formatter = new Format('yarn');
     assert.strictEqual(
       formatter.normalizeBackendCommand('help'),
-      cyan('yarn amplify help')
+      cyan('yarn backend help')
     );
   });
 
-  void it('should return error for empty amplify command', () => {
+  void it('should return error for empty backend command', () => {
     assert.throws(
       () => {
         format.normalizeBackendCommand('');
@@ -108,6 +108,6 @@ void describe('format when terminal colors disabled', async () => {
       false,
       'Color codes should not be present'
     );
-    assert.strictEqual(coloredMessage, 'npx amplify hello');
+    assert.strictEqual(coloredMessage, 'npx backend hello');
   });
 });

@@ -10,7 +10,7 @@ import { getTestProjectCreators } from '../test-project-setup/test_project_creat
 import { TestProjectBase } from '../test-project-setup/test_project_base.js';
 import { userInfo } from 'os';
 import { PredicatedActionBuilder } from '../process-controller/predicated_action_queue_builder.js';
-import { amplifyCli } from '../process-controller/process_controller.js';
+import { backendCli } from '../process-controller/process_controller.js';
 import path from 'path';
 import {
   ensureDeploymentTimeLessThan,
@@ -85,7 +85,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
 
           // test generating all client formats
           for (const format of Object.values(ClientConfigFormat)) {
-            await amplifyCli(
+            await backendCli(
               [
                 'generate',
                 'outputs',
@@ -139,7 +139,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
           });
 
           void it('generates config after sandbox --once deployment', async () => {
-            const processController = amplifyCli(
+            const processController = backendCli(
               ['sandbox', '--once'],
               testProject.projectDirPath,
               {
@@ -154,7 +154,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
           });
 
           void it(`[${testProjectCreator.name}] hot-swaps a change`, async () => {
-            const processController = amplifyCli(
+            const processController = backendCli(
               ['sandbox', '--dirToWatch', 'amplify'],
               testProject.projectDirPath,
               {
@@ -203,7 +203,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
 
       void describe('in sequence', { concurrency: false }, () => {
         void it('in sandbox deploy', async () => {
-          await amplifyCli(
+          await backendCli(
             ['sandbox', '--dirToWatch', 'amplify'],
             testProject.projectDirPath
           )
@@ -219,7 +219,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
 
         void it('in pipeline deploy', async () => {
           await assert.rejects(() =>
-            amplifyCli(
+            backendCli(
               [
                 'pipeline-deploy',
                 '--branch',

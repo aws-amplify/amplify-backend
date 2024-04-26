@@ -3,8 +3,8 @@
   "version": "0.14.0",
   "description": "Command line interface for various Amplify tools",
   "bin": {
-    "amplify": "lib/amplify.js",
-    "backend": "lib/amplify.js"
+    "amplify": "lib/backend.js",
+    "backend": "lib/backend.js"
   },
   "type": "module",
   "publishConfig": {

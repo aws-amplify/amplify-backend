@@ -70,7 +70,7 @@ void describe('getClientConfigPath', () => {
   });
 
   void it('create directory if path contains a "."', async () => {
-    // this is a valid case to maintain consistency with behaviors of amplify generate graphql-client-code/forms
+    // this is a valid case to maintain consistency with behaviors of backend generate graphql-client-code/forms
     const pathContainingDot = `${testPath}/testConfig.json`;
     const configPath = await getClientConfigPath(
       ClientConfigFileBaseName.DEFAULT,

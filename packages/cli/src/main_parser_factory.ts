@@ -7,6 +7,7 @@ import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline
 import { createConfigureCommand } from './commands/configure/configure_command_factory.js';
 import { generateCommandFailureHandler } from './error_handler.js';
 import { createInfoCommand } from './commands/info/info_command_factory.js';
+import * as path from 'path';
 
 /**
  * Creates main parser.
@@ -25,6 +26,9 @@ export const createMainParser = (): Argv => {
       description: 'Print debug logs to the console',
     })
     .strict()
+    // pnpm places the bin file in `backend.js` instead of `backend` which causes yargs to think the command name is "backend.js".
+    // This tells yargs that the command name is "backend".
+    .scriptName(path.parse(process.argv[1]).name)
     .command(createGenerateCommand())
     .command(createSandboxCommand())
     .command(createPipelineDeployCommand())

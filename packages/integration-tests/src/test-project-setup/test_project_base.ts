@@ -5,7 +5,7 @@ import {
   ClientConfigFormat,
   getClientConfigPath,
 } from '@aws-amplify/client-config';
-import { amplifyCli } from '../process-controller/process_controller.js';
+import { backendCli } from '../process-controller/process_controller.js';
 import {
   confirmDeleteSandbox,
   interruptSandbox,
@@ -66,7 +66,7 @@ export abstract class TestProjectBase {
     environment?: Record<string, string>
   ) {
     if (backendIdentifier.type === 'sandbox') {
-      await amplifyCli(['sandbox'], this.projectDirPath, {
+      await backendCli(['sandbox'], this.projectDirPath, {
         env: environment,
       })
         .do(waitForSandboxDeploymentToPrintTotalTime())
@@ -74,7 +74,7 @@ export abstract class TestProjectBase {
         .do(rejectCleanupSandbox())
         .run();
     } else {
-      await amplifyCli(
+      await backendCli(
         [
           'pipeline-deploy',
           '--branch',
@@ -98,7 +98,7 @@ export abstract class TestProjectBase {
    */
   async tearDown(backendIdentifier: BackendIdentifier) {
     if (backendIdentifier.type === 'sandbox') {
-      await amplifyCli(['sandbox', 'delete'], this.projectDirPath)
+      await backendCli(['sandbox', 'delete'], this.projectDirPath)
         .do(confirmDeleteSandbox())
         .run();
     } else {

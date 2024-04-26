@@ -28,7 +28,7 @@ export class Format {
         message: 'The command must be non-empty',
       });
     }
-    return cyan(`${this.packageManagerRunnerName} amplify ${command}`);
+    return cyan(`${this.packageManagerRunnerName} backend ${command}`);
   };
   error = (message: string) => red(message);
   note = (message: string) => grey(message);

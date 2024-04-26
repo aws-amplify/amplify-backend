@@ -45,7 +45,7 @@ export class GenerateOutputsCommand
     private readonly backendIdentifierResolver: BackendIdentifierResolver
   ) {
     this.command = 'outputs';
-    this.describe = 'Generates amplify outputs';
+    this.describe = 'Generates Amplify backend outputs';
   }
 
   /**

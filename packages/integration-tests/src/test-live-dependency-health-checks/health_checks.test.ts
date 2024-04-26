@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import { execa } from 'execa';
-import { amplifyCli } from '../process-controller/process_controller.js';
+import { backendCli } from '../process-controller/process_controller.js';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import assert from 'node:assert';
 import { existsSync } from 'fs';
@@ -83,7 +83,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         stdio: 'inherit',
       });
 
-      await amplifyCli(
+      await backendCli(
         [
           'pipeline-deploy',
           '--branch',
@@ -120,7 +120,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         stdio: 'inherit',
       });
 
-      await amplifyCli(['sandbox'], tempDir)
+      await backendCli(['sandbox'], tempDir)
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
         .do(rejectCleanupSandbox())
@@ -131,7 +131,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       );
       assert.ok(clientConfigStats.isFile());
 
-      await amplifyCli(['sandbox', 'delete'], tempDir)
+      await backendCli(['sandbox', 'delete'], tempDir)
         .do(confirmDeleteSandbox())
         .run();
     });
