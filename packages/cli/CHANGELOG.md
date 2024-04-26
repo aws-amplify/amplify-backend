@@ -1,5 +1,20 @@
 # @aws-amplify/backend-cli
 
+## 0.14.0
+
+### Minor Changes
+
+- 9bef671: change generate config command to generate outputs
+
+### Patch Changes
+
+- Updated dependencies [d0f1452]
+  - @aws-amplify/schema-generator@0.2.0
+  - @aws-amplify/model-generator@0.7.0
+  - @aws-amplify/form-generator@0.10.0
+  - @aws-amplify/client-config@0.9.3
+  - @aws-amplify/sandbox@0.5.5
+
 ## 0.13.0
 
 ### Minor Changes

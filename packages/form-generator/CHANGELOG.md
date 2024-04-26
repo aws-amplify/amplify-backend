@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 0.10.0
+
+### Minor Changes
+
+- d0f1452: bump codegen and amplify data cdk construct, schema generator dependencies
+
 ## 0.9.0
 
 ### Minor Changes

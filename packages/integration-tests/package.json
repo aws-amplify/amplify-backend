@@ -5,10 +5,10 @@
   "type": "module",
   "devDependencies": {
     "@apollo/client": "^3.10.1",
-    "@aws-amplify/auth-construct": "^0.6.1",
-    "@aws-amplify/backend": "^0.13.2",
+    "@aws-amplify/auth-construct": "^0.7.0",
+    "@aws-amplify/backend": "^0.13.3",
     "@aws-amplify/backend-secret": "^0.4.5",
-    "@aws-amplify/client-config": "^0.9.2",
+    "@aws-amplify/client-config": "^0.9.3",
     "@aws-amplify/data-schema": "^0.16.0",
     "@aws-amplify/platform-core": "^0.5.0",
     "@aws-sdk/client-amplify": "^3.465.0",

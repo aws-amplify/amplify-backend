@@ -1,5 +1,15 @@
 # @aws-amplify/backend-auth
 
+## 0.6.1
+
+### Patch Changes
+
+- 74d2cd4: drop alpha suffix from auth-construct package
+- Updated dependencies [a3c93c6]
+- Updated dependencies [c637d0e]
+- Updated dependencies [74d2cd4]
+  - @aws-amplify/auth-construct@0.7.0
+
 ## 0.6.0
 
 ### Minor Changes
