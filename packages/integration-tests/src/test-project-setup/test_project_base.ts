@@ -136,7 +136,7 @@ export abstract class TestProjectBase {
   async assertClientConfigExists(dir?: string, format?: ClientConfigFormat) {
     const clientConfigStats = await fsp.stat(
       await getClientConfigPath(
-        ClientConfigFileBaseName.LEGACY,
+        ClientConfigFileBaseName.DEFAULT,
         dir ?? this.projectDirPath,
         format
       )

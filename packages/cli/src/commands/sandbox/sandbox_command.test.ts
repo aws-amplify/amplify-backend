@@ -285,13 +285,7 @@ void describe('sandbox command', () => {
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].exclude,
-      [
-        path.join(
-          process.cwd(),
-          'existentFile.json',
-          'amplifyconfiguration.json'
-        ),
-      ]
+      [path.join(process.cwd(), 'existentFile.json', 'amplify_outputs.json')]
     );
   });
 
@@ -300,12 +294,12 @@ void describe('sandbox command', () => {
       isDirectory: () => true,
     }));
     await commandRunner.runCommand(
-      'sandbox --config-out-dir existentDir --config-format ts'
+      'sandbox --config-out-dir existentDir --config-format dart'
     );
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].exclude,
-      [path.join(process.cwd(), 'existentDir', 'amplifyconfiguration.ts')]
+      [path.join(process.cwd(), 'existentDir', 'amplify_outputs.dart')]
     );
   });
 
