@@ -4,6 +4,7 @@ import assert from 'assert';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { printer } from '@aws-amplify/cli-core';
+import { EOL } from 'os';
 
 const logSpy = mock.method(printer, 'log');
 const indicateProgressSpy = mock.method(printer, 'indicateProgress');
@@ -16,7 +17,6 @@ void describe('AmplifyProjectCreator', () => {
 
   void it('create project if passing `--yes` or `-y` to `npm create`', async () => {
     const packageManagerControllerMock = {
-      getWelcomeMessage: mock.fn(() => ''),
       initializeProject: mock.fn(() => Promise.resolve()),
       initializeTsConfig: mock.fn(() => Promise.resolve()),
       installDependencies: mock.fn(() => Promise.resolve()),
@@ -82,7 +82,11 @@ void describe('AmplifyProjectCreator', () => {
       logSpy.mock.calls[13].arguments[0],
       `Navigate to your project directory using ${cyan(
         'cd .testProjectRoot'
-      )} and then:`
+      )} and then:${EOL} - Get started by running ${cyan(
+        'npx amplify sandbox'
+      )}.${EOL} - Run ${cyan(
+        'npx amplify help'
+      )} for a list of available commands.`
     );
 
     assert.equal(
@@ -99,7 +103,6 @@ void describe('AmplifyProjectCreator', () => {
 
   void it('should instruct users to use the custom project root', async () => {
     const packageManagerControllerMock: PackageManagerController = {
-      getWelcomeMessage: mock.fn(() => ''),
       initializeProject: mock.fn(() => Promise.resolve()),
       initializeTsConfig: mock.fn(() => Promise.resolve()),
       installDependencies: mock.fn(() => Promise.resolve()),
@@ -124,7 +127,11 @@ void describe('AmplifyProjectCreator', () => {
       logSpy.mock.calls[13].arguments[0],
       `Navigate to your project directory using ${cyan(
         'cd .testProjectRoot'
-      )} and then:`
+      )} and then:${EOL} - Get started by running ${cyan(
+        'npx amplify sandbox'
+      )}.${EOL} - Run ${cyan(
+        'npx amplify help'
+      )} for a list of available commands.`
     );
 
     assert.equal(

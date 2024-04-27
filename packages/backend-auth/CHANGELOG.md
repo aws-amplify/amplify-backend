@@ -1,5 +1,30 @@
 # @aws-amplify/backend-auth
 
+## 0.7.0
+
+### Minor Changes
+
+- c93ecde: Add oauth client config even if no external provider is configured
+
+### Patch Changes
+
+- Updated dependencies [c93ecde]
+- Updated dependencies [8995e3b]
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/auth-construct@0.7.1
+  - @aws-amplify/plugin-types@0.10.0
+  - @aws-amplify/backend-output-storage@0.4.1
+
+## 0.6.1
+
+### Patch Changes
+
+- 74d2cd4: drop alpha suffix from auth-construct package
+- Updated dependencies [a3c93c6]
+- Updated dependencies [c637d0e]
+- Updated dependencies [74d2cd4]
+  - @aws-amplify/auth-construct@0.7.0
+
 ## 0.6.0
 
 ### Minor Changes

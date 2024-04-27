@@ -106,7 +106,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     const bootstrapped = await this.isBootstrapped();
     if (!bootstrapped) {
       this.printer.log(
-        'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process and re-run the amplify sandbox command.'
+        'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.'
       );
       // get region from an available sdk client;
       const region = await this.cfnClient.config.region();

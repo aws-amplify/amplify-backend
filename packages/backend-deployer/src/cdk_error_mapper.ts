@@ -4,11 +4,18 @@ import {
   AmplifyFault,
   AmplifyUserError,
 } from '@aws-amplify/platform-core';
+import { BackendDeployerOutputFormatter } from './types.js';
+
 /**
  * Transforms CDK error messages to human readable ones
  */
 export class CdkErrorMapper {
   private placeHolder = 'PLACEHOLDER';
+
+  /**
+   * Instantiate with a formatter that will be used for formatting CLI commands in error messages
+   */
+  constructor(private readonly formatter: BackendDeployerOutputFormatter) {}
 
   getAmplifyError = (
     error: Error
@@ -218,8 +225,9 @@ export class CdkErrorMapper {
       errorRegex:
         /Failed to retrieve backend secret (.*) for.*ParameterNotFound/,
       humanReadableErrorMessage: `The secret ${this.placeHolder} specified in the backend does not exist.`,
-      resolutionMessage:
-        'Create secrets using the command `npx amplify sandbox secret set`. For more information, see https://docs.amplify.aws/gen2/deploy-and-host/sandbox-environments/features/#set-secrets',
+      resolutionMessage: `Create secrets using the command ${this.formatter.normalizeBackendCommand(
+        'sandbox secret set'
+      )}. For more information, see https://docs.amplify.aws/gen2/deploy-and-host/sandbox-environments/features/#set-secrets`,
       errorName: 'SecretNotSetError',
       classification: 'ERROR',
     },

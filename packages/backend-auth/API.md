@@ -4,23 +4,23 @@
 
 ```ts
 
-import { AmazonProviderProps } from '@aws-amplify/auth-construct-alpha';
-import { AppleProviderProps } from '@aws-amplify/auth-construct-alpha';
-import { AuthProps } from '@aws-amplify/auth-construct-alpha';
+import { AmazonProviderProps } from '@aws-amplify/auth-construct';
+import { AppleProviderProps } from '@aws-amplify/auth-construct';
+import { AuthProps } from '@aws-amplify/auth-construct';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { AuthRoleName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-import { ExternalProviderOptions } from '@aws-amplify/auth-construct-alpha';
-import { FacebookProviderProps } from '@aws-amplify/auth-construct-alpha';
+import { ExternalProviderOptions } from '@aws-amplify/auth-construct';
+import { FacebookProviderProps } from '@aws-amplify/auth-construct';
 import { FunctionResources } from '@aws-amplify/plugin-types';
-import { GoogleProviderProps } from '@aws-amplify/auth-construct-alpha';
-import { OidcProviderProps } from '@aws-amplify/auth-construct-alpha';
+import { GoogleProviderProps } from '@aws-amplify/auth-construct';
+import { OidcProviderProps } from '@aws-amplify/auth-construct';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { TriggerEvent } from '@aws-amplify/auth-construct-alpha';
+import { TriggerEvent } from '@aws-amplify/auth-construct';
 
 // @public
 export type ActionIam = 'addUserToGroup' | 'createUser' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getUser' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateUserAttributes';
@@ -88,7 +88,7 @@ export type Expand<T> = T extends infer O ? {
 } : never;
 
 // @public
-export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google'>;
+export type ExternalProviderGeneralFactoryProps = Omit<ExternalProviderOptions, 'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google' | 'domainPrefix'>;
 
 // @public
 export type ExternalProviderSpecificFactoryProps = ExternalProviderGeneralFactoryProps & {

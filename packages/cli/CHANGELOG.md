@@ -1,5 +1,39 @@
 # @aws-amplify/backend-cli
 
+## 0.14.1
+
+### Patch Changes
+
+- 110cc45: Exposes the ampx binary for use with npx
+- 8995e3b: refactor format.runner().amplifyCommand() into format.backendCliCommand()
+- Updated dependencies [c93ecde]
+- Updated dependencies [8995e3b]
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/client-config@0.9.4
+  - @aws-amplify/cli-core@0.6.0
+  - @aws-amplify/sandbox@0.6.0
+  - @aws-amplify/backend-deployer@0.6.0
+  - @aws-amplify/platform-core@0.5.1
+  - @aws-amplify/backend-secret@0.4.6
+  - @aws-amplify/deployed-backend-client@0.4.2
+  - @aws-amplify/model-generator@0.7.1
+  - @aws-amplify/schema-generator@0.2.1
+
+## 0.14.0
+
+### Minor Changes
+
+- 9bef671: change generate config command to generate outputs
+
+### Patch Changes
+
+- Updated dependencies [d0f1452]
+  - @aws-amplify/schema-generator@0.2.0
+  - @aws-amplify/model-generator@0.7.0
+  - @aws-amplify/form-generator@0.10.0
+  - @aws-amplify/client-config@0.9.3
+  - @aws-amplify/sandbox@0.5.5
+
 ## 0.13.0
 
 ### Minor Changes

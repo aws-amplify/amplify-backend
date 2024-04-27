@@ -1,5 +1,21 @@
 # @aws-amplify/backend-data
 
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies [8995e3b]
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/plugin-types@0.10.0
+  - @aws-amplify/backend-output-storage@0.4.1
+
+## 0.12.0
+
+### Minor Changes
+
+- ba684bd: support connection URI as a shared secret
+- d0f1452: bump codegen and amplify data cdk construct, schema generator dependencies
+
 ## 0.11.0
 
 ### Minor Changes

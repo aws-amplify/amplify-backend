@@ -1,5 +1,18 @@
 # @aws-amplify/schema-generator
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/platform-core@0.5.1
+
+## 0.2.0
+
+### Minor Changes
+
+- d0f1452: bump codegen and amplify data cdk construct, schema generator dependencies
+
 ## 0.1.0
 
 ### Patch Changes

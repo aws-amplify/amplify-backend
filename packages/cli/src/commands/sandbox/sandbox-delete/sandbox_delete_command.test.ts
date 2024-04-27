@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
@@ -29,7 +29,8 @@ void describe('sandbox delete command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
-      printer
+      printer,
+      format
     );
     const sandbox = await sandboxFactory.getInstance();
     sandboxDeleteMock = mock.method(sandbox, 'delete', () =>

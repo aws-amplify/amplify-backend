@@ -23,7 +23,6 @@ export class NpmPackageManagerController extends PackageManagerControllerBase {
     super(
       cwd,
       'npm',
-      'npx',
       ['init', '--yes'],
       'install',
       fsp,

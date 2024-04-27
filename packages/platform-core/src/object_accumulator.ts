@@ -1,4 +1,4 @@
-import { DeepPartial } from '@aws-amplify/plugin-types';
+import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import mergeWith from 'lodash.mergewith';
 
 /**
@@ -39,7 +39,7 @@ export class ObjectAccumulator<T> {
    * creates object accumulator.
    */
   constructor(
-    private readonly accumulator: DeepPartial<T>,
+    private readonly accumulator: DeepPartialAmplifyGeneratedConfigs<T>,
     private readonly versionKey = 'version'
   ) {}
 
@@ -50,7 +50,9 @@ export class ObjectAccumulator<T> {
    * @param part a new object part to accumulate
    * @returns the accumulator object for easy chaining
    */
-  accumulate = (part: DeepPartial<T>): ObjectAccumulator<T> => {
+  accumulate = (
+    part: DeepPartialAmplifyGeneratedConfigs<T>
+  ): ObjectAccumulator<T> => {
     mergeWith(this.accumulator, part, (existingValue, incomingValue, key) => {
       if (Array.isArray(existingValue)) {
         return existingValue.concat(incomingValue);

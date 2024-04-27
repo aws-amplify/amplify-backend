@@ -136,8 +136,8 @@ export type ConstructFactoryGetInstanceProps = {
 };
 
 // @public
-export type DeepPartial<T> = {
-    [P in keyof T]?: DeepPartial<T[P]>;
+export type DeepPartialAmplifyGeneratedConfigs<T> = {
+    [P in keyof T]?: P extends 'auth' | 'data' | 'storage' ? T[P] extends object ? DeepPartialAmplifyGeneratedConfigs<T[P]> : Partial<T[P]> : T[P];
 };
 
 // @public
@@ -176,7 +176,6 @@ export type MainStackNameResolver = {
 
 // @public (undocumented)
 export type PackageManagerController = {
-    getWelcomeMessage: () => string;
     initializeProject: () => Promise<void>;
     initializeTsConfig: (targetDir: string) => Promise<void>;
     installDependencies: (packageNames: string[], type: 'dev' | 'prod') => Promise<void>;

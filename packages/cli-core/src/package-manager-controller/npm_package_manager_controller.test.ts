@@ -1,10 +1,8 @@
-import os from 'node:os';
 import fsp from 'fs/promises';
 import path from 'path';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { execa } from 'execa';
-import { cyan } from 'kleur/colors';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
 
@@ -65,27 +63,6 @@ void describe('NpmPackageManagerController', () => {
         ['install', 'testPackage1', 'testPackage2'],
         execaMock,
       ]);
-    });
-  });
-
-  void describe('getWelcomeMessage', () => {
-    void it('returns the correct welcome message', () => {
-      const existsSyncMock = mock.fn(() => true);
-      const npmPackageManagerController = new NpmPackageManagerController(
-        '/testProjectRoot',
-        fspMock as unknown as typeof fsp,
-        pathMock as unknown as typeof path,
-        execaMock as unknown as typeof execa,
-        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-        existsSyncMock
-      );
-
-      assert.equal(
-        npmPackageManagerController.getWelcomeMessage(),
-        ` - Get started by running ${cyan('npx amplify sandbox')}.${
-          os.EOL
-        } - Run ${cyan('npx amplify help')} for a list of available commands. `
-      );
     });
   });
 

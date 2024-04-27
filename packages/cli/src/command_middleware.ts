@@ -3,9 +3,7 @@ import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { loadConfig } from '@smithy/node-config-provider';
 import { NODE_REGION_CONFIG_OPTIONS } from '@aws-sdk/region-config-resolver';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { Printer } from '@aws-amplify/cli-core';
-
-export const profileSetupInstruction = `To configure a new Amplify profile, use "npx amplify configure profile".`;
+import { Printer, format } from '@aws-amplify/cli-core';
 
 /**
  * Contains middleware functions.
@@ -37,6 +35,10 @@ export class CommandMiddleware {
     if (argv.profile) {
       process.env.AWS_PROFILE = argv.profile;
     }
+
+    const profileSetupInstruction = `To configure a new Amplify profile, use ${format.normalizeBackendCommand(
+      'configure profile'
+    )}.`;
 
     // Check credentials.
     try {

@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
@@ -56,7 +56,8 @@ void describe('sandbox command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
-      printer
+      printer,
+      format
     );
     sandbox = await sandboxFactory.getInstance();
 
@@ -253,7 +254,8 @@ void describe('sandbox command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
-      printer
+      printer,
+      format
     );
     sandbox = await sandboxFactory.getInstance();
     sandboxStartMock = mock.method(sandbox, 'start', () => Promise.resolve());

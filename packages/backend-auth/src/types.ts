@@ -6,7 +6,7 @@ import {
   FacebookProviderProps,
   GoogleProviderProps,
   OidcProviderProps,
-} from '@aws-amplify/auth-construct-alpha';
+} from '@aws-amplify/auth-construct';
 import {
   BackendSecret,
   ConstructFactory,
@@ -140,7 +140,12 @@ export type OidcProviderFactoryProps = Omit<
  */
 export type ExternalProviderGeneralFactoryProps = Omit<
   ExternalProviderOptions,
-  'signInWithApple' | 'loginWithAmazon' | 'facebook' | 'oidc' | 'google'
+  | 'signInWithApple'
+  | 'loginWithAmazon'
+  | 'facebook'
+  | 'oidc'
+  | 'google'
+  | 'domainPrefix'
 >;
 
 /**

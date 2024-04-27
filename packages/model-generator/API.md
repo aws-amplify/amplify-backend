@@ -122,7 +122,7 @@ export type GenerateModelsOptions = {
     generateIndexRules?: boolean;
     emitAuthProvider?: boolean;
     useExperimentalPipelinedTransformer?: boolean;
-    transformerVersion?: boolean;
+    transformerVersion?: number;
     respectPrimaryKeyAttributesOnConnectionField?: boolean;
     generateModelsForLazyLoadAndCustomSelectionSet?: boolean;
     addTimestampFields?: boolean;
@@ -185,7 +185,7 @@ export type ModelsGenerationParameters = {
     generateIndexRules?: boolean;
     emitAuthProvider?: boolean;
     useExperimentalPipelinedTransformer?: boolean;
-    transformerVersion?: boolean;
+    transformerVersion?: number;
     respectPrimaryKeyAttributesOnConnectionField?: boolean;
     generateModelsForLazyLoadAndCustomSelectionSet?: boolean;
     addTimestampFields?: boolean;
