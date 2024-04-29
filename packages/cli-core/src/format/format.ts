@@ -30,7 +30,18 @@ export class Format {
     }
     return cyan(`${this.packageManagerRunnerName} amplify ${command}`);
   };
-  error = (message: string) => red(message);
+  error = (error: string | Error | unknown) => {
+    if (error instanceof Error) {
+      return red(`${error.name}: ${error.message}`);
+    } else if (typeof error === 'string') {
+      return red(error);
+    }
+    try {
+      return red(JSON.stringify(error, null, 2));
+    } catch {
+      return red('Invalid Error');
+    }
+  };
   note = (message: string) => grey(message);
   command = (command: string) => cyan(command);
   highlight = (command: string) => cyan(command);

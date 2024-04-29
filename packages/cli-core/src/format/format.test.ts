@@ -2,7 +2,7 @@ import * as os from 'node:os';
 import * as assert from 'node:assert';
 import { after, before, describe, it } from 'node:test';
 import { Format, format } from './format.js';
-import { $, blue, bold, cyan, green, underline } from 'kleur/colors';
+import { $, blue, bold, cyan, green, red, underline } from 'kleur/colors';
 
 void describe('format', () => {
   void it('should format amplify command with yarn', { concurrency: 1 }, () => {
@@ -73,6 +73,41 @@ void describe('format', () => {
     const message = 'Success message';
     const expectedOutput = green(message);
     const actualOutput = format.success(message);
+    assert.strictEqual(actualOutput, expectedOutput);
+  });
+});
+
+void describe('format.error', async () => {
+  void it('should format error message when input is string', () => {
+    const input = 'something went wrong';
+    const expectedOutput = red(input);
+    const actualOutput = format.error(input);
+    assert.strictEqual(actualOutput, expectedOutput);
+  });
+
+  void it('should format error message when input is Error', () => {
+    const input = new Error('something went wrong');
+    const expectedOutput = red('Error: something went wrong');
+    const actualOutput = format.error(input);
+    assert.strictEqual(actualOutput, expectedOutput);
+  });
+
+  void it('should format error message when input is unknown obj', () => {
+    const input = {
+      message: 'something went wrong',
+      // eslint-disable-next-line spellcheck/spell-checker
+      errno: 'EACCES',
+    };
+    const expectedOutput = red(JSON.stringify(input, null, 2));
+    const actualOutput = format.error(input);
+    assert.strictEqual(actualOutput, expectedOutput);
+  });
+
+  void it('should return fallback if input is invalid', () => {
+    // JSON.stringify throws for BigInt
+    const input = { badValue: 2n };
+    const expectedOutput = red('Invalid Error');
+    const actualOutput = format.error(input);
     assert.strictEqual(actualOutput, expectedOutput);
   });
 });

@@ -10,7 +10,7 @@ import {
   UsageDataEmitterFactory,
 } from '@aws-amplify/platform-core';
 import { fileURLToPath } from 'node:url';
-import { LogLevel, printer } from '@aws-amplify/cli-core';
+import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
@@ -43,9 +43,8 @@ try {
 
   await usageDataEmitter.emitSuccess({}, metricDimension);
 } catch (e) {
-  printer.log('Failed to emit usage metrics', LogLevel.DEBUG);
-  if (e instanceof Error && e.stack) {
-    printer.log(`${e.name}: ${e.message}`, LogLevel.DEBUG);
-    printer.log(e.stack, LogLevel.DEBUG);
+  if (e instanceof Error) {
+    printer.log(format.error('Failed to emit usage metrics'), LogLevel.DEBUG);
+    printer.log(format.error(e), LogLevel.DEBUG);
   }
 }
