@@ -187,6 +187,8 @@ export class ApiCodeGenerator {
       const types = await this.graphqlTypesGenerator.generateTypes({
         target: props.typeTarget,
         multipleSwiftFiles: props.multipleSwiftFiles,
+        maxDepth: props.maxDepth,
+        typenameIntrospection: props.typeNameIntrospection,
       });
 
       return {
