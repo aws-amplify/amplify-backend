@@ -40,7 +40,7 @@ void describe('deploy command', () => {
     new Printer(LogLevel.DEBUG)
   );
   const formatterStub: BackendDeployerOutputFormatter = {
-    normalizeBackendCommand: () => 'test command',
+    normalizeAmpxCommand: () => 'test command',
   };
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(

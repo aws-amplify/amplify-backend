@@ -119,7 +119,7 @@ void describe('getting started happy path', async () => {
     await runWithPackageManager(
       packageManager,
       [
-        'backend',
+        'ampx',
         'pipeline-deploy',
         '--branch',
         branchBackendIdentifier.name,

@@ -4,7 +4,7 @@ import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendDeployerOutputFormatter } from './types.js';
 
 const formatterStub: BackendDeployerOutputFormatter = {
-  normalizeBackendCommand: () => 'test command',
+  normalizeAmpxCommand: () => 'test command',
 };
 
 const testErrorMappings = [

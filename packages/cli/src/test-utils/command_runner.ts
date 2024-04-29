@@ -65,7 +65,7 @@ export class TestCommandRunner {
       // Pin locale
       .locale('en')
       // Override script name to avoid long test file names
-      .scriptName('backend')
+      .scriptName('ampx')
       // Make sure we don't exit process on error or --help
       .exitProcess(false)
       // attach the failure handler

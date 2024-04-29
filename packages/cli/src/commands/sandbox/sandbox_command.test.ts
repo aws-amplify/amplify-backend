@@ -278,7 +278,7 @@ void describe('sandbox command', () => {
   });
 
   void it('starts sandbox if a value containing "." is provided for config-out-dir', async () => {
-    // this is a valid case to maintain consistency with behaviors of backend generate graphql-client-code/forms
+    // this is a valid case to maintain consistency with behaviors of ampx generate graphql-client-code/forms
     await commandRunner.runCommand(
       'sandbox --config-out-dir existentFile.json'
     );

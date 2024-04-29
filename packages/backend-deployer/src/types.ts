@@ -1,3 +1,3 @@
 export type BackendDeployerOutputFormatter = {
-  normalizeBackendCommand: (command: string) => string;
+  normalizeAmpxCommand: (command: string) => string;
 };

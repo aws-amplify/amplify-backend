@@ -83,9 +83,9 @@ void describe('AmplifyProjectCreator', () => {
       `Navigate to your project directory using ${cyan(
         'cd .testProjectRoot'
       )} and then:${EOL} - Get started by running ${cyan(
-        'npx backend sandbox'
+        'npx ampx sandbox'
       )}.${EOL} - Run ${cyan(
-        'npx backend help'
+        'npx ampx help'
       )} for a list of available commands.`
     );
 
@@ -93,7 +93,7 @@ void describe('AmplifyProjectCreator', () => {
       logSpy.mock.calls[14].arguments[0],
       grey(
         `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
-          'npx backend configure telemetry disable'
+          'npx ampx configure telemetry disable'
         )}. To learn more about telemetry, visit ${underline(
           blue('https://docs.amplify.aws/gen2/reference/telemetry')
         )}`
@@ -128,9 +128,9 @@ void describe('AmplifyProjectCreator', () => {
       `Navigate to your project directory using ${cyan(
         'cd .testProjectRoot'
       )} and then:${EOL} - Get started by running ${cyan(
-        'npx backend sandbox'
+        'npx ampx sandbox'
       )}.${EOL} - Run ${cyan(
-        'npx backend help'
+        'npx ampx help'
       )} for a list of available commands.`
     );
 
@@ -138,7 +138,7 @@ void describe('AmplifyProjectCreator', () => {
       logSpy.mock.calls[14].arguments[0],
       grey(
         `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
-          'npx backend configure telemetry disable'
+          'npx ampx configure telemetry disable'
         )}. To learn more about telemetry, visit ${underline(
           blue('https://docs.amplify.aws/gen2/reference/telemetry')
         )}`

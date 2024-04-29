@@ -6,4 +6,4 @@
 '@aws-amplify/backend': patch
 ---
 
-throw error directing customers to the backend command when an amplify command is run
+throw error directing customers to the ampx command when an amplify command is run

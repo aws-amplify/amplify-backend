@@ -14,7 +14,7 @@ export const getPackageManagerName = () => {
         'This is usually caused by running commands without a package manager',
       // Note that we cannot use the format object to format the command here because that would create a circular dependency
       resolution: `Run commands via your package manager. For example: ${cyan(
-        'npx backend <command>'
+        'npx ampx <command>'
       )} if npm is your package manager.`,
     });
   }

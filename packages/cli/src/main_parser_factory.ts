@@ -25,8 +25,8 @@ export const createMainParser = (
       description: 'Print debug logs to the console',
     })
     .strict()
-    // pnpm places the bin file in `backend.js` instead of `backend` which causes yargs to think the command name is "backend.js".
-    // This tells yargs that the command name is "backend".
+    // pnpm places the command bin file in `ampx.js` instead of `ampx` which causes yargs to think the command name is `ampx.js`.
+    // This tells yargs that the command name is `ampx`.
     .scriptName(path.parse(process.argv[1]).name)
     .command(createGenerateCommand())
     .command(createSandboxCommand())
