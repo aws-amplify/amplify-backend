@@ -1,5 +1,17 @@
 # @aws-amplify/backend
 
+## 0.15.0
+
+### Minor Changes
+
+- ca58bc2: re-increment versions for PR# 1397
+
+### Patch Changes
+
+- Updated dependencies [ca58bc2]
+  - @aws-amplify/backend-data@0.14.0
+  - @aws-amplify/client-config@0.9.6
+
 ## 0.14.0
 
 ### Minor Changes
