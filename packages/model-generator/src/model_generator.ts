@@ -26,7 +26,9 @@ export type GraphqlDocumentGenerator = {
 export type TypesGenerationParameters = {
   target: TypesTarget;
   multipleSwiftFiles?: boolean;
-} & Pick<DocumentGenerationParameters, 'maxDepth' | 'typenameIntrospection'>;
+  maxDepth?: number;
+  typenameIntrospection?: boolean;
+};
 export type GraphqlTypesGenerator = {
   generateTypes: (
     params: TypesGenerationParameters
