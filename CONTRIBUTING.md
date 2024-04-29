@@ -56,7 +56,7 @@ npm run setup:local
 npm run test
 ```
 
-`npm run setup:local` will run `npm install`, then build all packages in the project. It also links the amplify and create-amplify bin files into the project node_modules folder.
+`npm run setup:local` will run `npm install`, then build all packages in the project. It also links the ampx and create-amplify bin files into the project node_modules folder.
 
 `npm run test` will run all the unit tests in the project
 

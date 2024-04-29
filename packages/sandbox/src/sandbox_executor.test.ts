@@ -28,7 +28,7 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
 );
 
 const formatterStub: BackendDeployerOutputFormatter = {
-  normalizeBackendCommand: () => 'test command',
+  normalizeAmpxCommand: () => 'test command',
 };
 
 const backendDeployerFactory = new BackendDeployerFactory(

@@ -40,7 +40,7 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
   new Printer(LogLevel.DEBUG)
 );
 const formatterStub: BackendDeployerOutputFormatter = {
-  normalizeBackendCommand: () => 'test command',
+  normalizeAmpxCommand: () => 'test command',
 };
 
 const backendDeployerFactory = new BackendDeployerFactory(

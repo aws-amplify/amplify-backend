@@ -13,7 +13,7 @@ body:
       description: |
         Please copy and paste output of the following command. This will be automatically formatted into code, so no need for backticks.
         ```bash
-        npx amplify info
+        npx ampx info
         ```
       render: plain text
     validations:

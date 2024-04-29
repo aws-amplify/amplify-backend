@@ -5,18 +5,18 @@ import { Format, format } from './format.js';
 import { $, blue, bold, cyan, green, underline } from 'kleur/colors';
 
 void describe('format', () => {
-  void it('should format amplify command with yarn', { concurrency: 1 }, () => {
+  void it('should format ampx command with yarn', { concurrency: 1 }, () => {
     const formatter = new Format('yarn');
     assert.strictEqual(
-      formatter.normalizeBackendCommand('help'),
-      cyan('yarn amplify help')
+      formatter.normalizeAmpxCommand('help'),
+      cyan('yarn ampx help')
     );
   });
 
-  void it('should return error for empty amplify command', () => {
+  void it('should return error for empty ampx command', () => {
     assert.throws(
       () => {
-        format.normalizeBackendCommand('');
+        format.normalizeAmpxCommand('');
       },
       {
         message: 'The command must be non-empty',
@@ -101,13 +101,13 @@ void describe('format when terminal colors disabled', async () => {
 
   void it('prints plain command', () => {
     const message = 'hello';
-    const coloredMessage = format.normalizeBackendCommand(message);
+    const coloredMessage = format.normalizeAmpxCommand(message);
 
     assert.strictEqual(
       coloredMessage.includes('\x1b['),
       false,
       'Color codes should not be present'
     );
-    assert.strictEqual(coloredMessage, 'npx amplify hello');
+    assert.strictEqual(coloredMessage, 'npx ampx hello');
   });
 });
