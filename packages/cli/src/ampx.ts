@@ -3,7 +3,6 @@
 import { hideBin } from 'yargs/helpers';
 import { createMainParser } from './main_parser_factory.js';
 import { attachUnhandledExceptionListeners } from './error_handler.js';
-import { verifyCommandName } from './verify_command_name.js';
 import { extractSubCommands } from './extract_sub_commands.js';
 import {
   AmplifyFault,
@@ -30,8 +29,6 @@ const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
 );
 
 attachUnhandledExceptionListeners(usageDataEmitter);
-
-verifyCommandName();
 
 const parser = createMainParser(libraryVersion, usageDataEmitter);
 await parser.parseAsync(hideBin(process.argv));
