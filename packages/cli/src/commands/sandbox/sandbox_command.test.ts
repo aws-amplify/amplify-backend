@@ -1,13 +1,14 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
+import assert from 'node:assert';
+import fs from 'fs';
+import fsp from 'fs/promises';
+import path from 'path';
 import yargs, { CommandModule } from 'yargs';
 import {
   TestCommandError,
   TestCommandRunner,
 } from '../../test-utils/command_runner.js';
-import assert from 'node:assert';
-import fs from 'fs';
-import fsp from 'fs/promises';
+import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
 import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
@@ -15,7 +16,6 @@ import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
-import path from 'path';
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 

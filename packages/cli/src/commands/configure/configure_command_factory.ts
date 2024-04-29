@@ -9,6 +9,7 @@ import { ConfigureTelemetryCommand } from './telemetry/configure_telemetry_comma
  */
 export const createConfigureCommand = (): CommandModule<object> => {
   const profileController = new ProfileController();
+
   const configureProfileCommand = new ConfigureProfileCommand(
     profileController
   );
