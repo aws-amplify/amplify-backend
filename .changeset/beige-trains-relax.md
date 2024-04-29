@@ -9,4 +9,4 @@
 '@aws-amplify/sandbox': patch
 ---
 
-throw error directing customers to the ampx command when an amplify command is run
+Replace amplify command occurrences with ampx and related renaming
