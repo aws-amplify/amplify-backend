@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 0.14.0
+
+### Minor Changes
+
+- ca58bc2: re-increment versions for PR# 1397
+
 ## 0.13.0
 
 ### Minor Changes
