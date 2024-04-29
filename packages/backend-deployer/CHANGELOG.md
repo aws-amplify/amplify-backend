@@ -1,5 +1,18 @@
 # @aws-amplify/backend-deployer
 
+## 0.6.0
+
+### Minor Changes
+
+- 8995e3b: refactor format.runner().amplifyCommand() into format.backendCliCommand()
+
+### Patch Changes
+
+- Updated dependencies [8995e3b]
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/plugin-types@0.10.0
+  - @aws-amplify/platform-core@0.5.1
+
 ## 0.5.1
 
 ### Patch Changes

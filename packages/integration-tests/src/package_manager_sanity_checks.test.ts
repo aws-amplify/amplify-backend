@@ -131,7 +131,7 @@ void describe('getting started happy path', async () => {
     ).run();
 
     const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(ClientConfigFileBaseName.LEGACY, tempDir)
+      await getClientConfigPath(ClientConfigFileBaseName.DEFAULT, tempDir)
     );
 
     assert.ok(clientConfigStats.isFile());

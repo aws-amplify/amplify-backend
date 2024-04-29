@@ -10,6 +10,7 @@ import {
   ClientConfigFileBaseName,
   ClientConfigFormat,
   ClientConfigVersionOption,
+  DEFAULT_CLIENT_CONFIG_VERSION,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatterLegacy } from './client_config_formatter_legacy.js';
 import { randomUUID } from 'crypto';
@@ -49,8 +50,7 @@ void describe('client config writer', () => {
       user_pool_id: 'something',
     },
   };
-
-  void it('formats and writes config', async () => {
+  void it('formats and writes legacy config', async () => {
     const outDir = '/foo/bar';
     const targetFile = '/foo/bar/baz';
     const format = ClientConfigFormat.MJS;
@@ -96,6 +96,52 @@ void describe('client config writer', () => {
     );
   });
 
+  void it('formats and writes default config', async () => {
+    const outDir = '/foo/bar';
+    const targetFile = '/foo/bar/baz';
+    const format = ClientConfigFormat.MJS;
+    const formattedContent = randomUUID().toString();
+
+    pathResolverMock.mock.mockImplementation(() => targetFile);
+    nameResolverMock.mock.mockImplementation(
+      () => ClientConfigFileBaseName.DEFAULT
+    );
+    const formatMock = mock.method(
+      clientFormatter,
+      'format',
+      () => formattedContent
+    );
+
+    await clientConfigWriter.writeClientConfig(
+      clientConfig,
+      DEFAULT_CLIENT_CONFIG_VERSION,
+      outDir,
+      format
+    );
+
+    assert.strictEqual(pathResolverMock.mock.callCount(), 1);
+    assert.strictEqual(
+      pathResolverMock.mock.calls[0].arguments[0],
+      ClientConfigFileBaseName.DEFAULT
+    );
+    assert.strictEqual(pathResolverMock.mock.calls[0].arguments[1], outDir);
+    assert.strictEqual(pathResolverMock.mock.calls[0].arguments[2], format);
+
+    assert.strictEqual(formatMock.mock.callCount(), 1);
+    assert.strictEqual(formatMock.mock.calls[0].arguments[0], clientConfig);
+    assert.strictEqual(formatMock.mock.calls[0].arguments[1], format);
+
+    assert.strictEqual(fspMock.writeFile.mock.callCount(), 1);
+    assert.strictEqual(
+      fspMock.writeFile.mock.calls[0].arguments[0],
+      targetFile
+    );
+    assert.strictEqual(
+      fspMock.writeFile.mock.calls[0].arguments[1],
+      formattedContent
+    );
+  });
+
   void it('formats as json by default', async () => {
     const outDir = '/foo/bar';
     const targetFile = '/foo/bar/baz';
@@ -103,7 +149,7 @@ void describe('client config writer', () => {
 
     pathResolverMock.mock.mockImplementation(() => targetFile);
     nameResolverMock.mock.mockImplementation(
-      () => ClientConfigFileBaseName.LEGACY
+      () => ClientConfigFileBaseName.DEFAULT
     );
 
     const formatMock = mock.method(
@@ -114,14 +160,14 @@ void describe('client config writer', () => {
 
     await clientConfigWriter.writeClientConfig(
       clientConfig,
-      ClientConfigVersionOption.V0,
+      DEFAULT_CLIENT_CONFIG_VERSION,
       outDir
     );
 
     assert.strictEqual(pathResolverMock.mock.callCount(), 1);
     assert.strictEqual(
       pathResolverMock.mock.calls[0].arguments[0],
-      ClientConfigFileBaseName.LEGACY
+      ClientConfigFileBaseName.DEFAULT
     );
     assert.strictEqual(
       pathResolverMock.mock.calls[0].arguments[2],

@@ -16,7 +16,6 @@ void describe('generate graphql-client-code command', () => {
   };
 
   const defaultResolver = new AppBackendIdentifierResolver(namespaceResolver);
-
   const sandboxIdResolver = new SandboxBackendIdResolver(namespaceResolver);
   const fakeSandboxId = 'my-fake-app-my-fake-username';
   const mockedSandboxIdResolver = mock.method(sandboxIdResolver, 'resolve');
