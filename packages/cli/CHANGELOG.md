@@ -1,5 +1,14 @@
 # @aws-amplify/backend-cli
 
+## 0.14.2
+
+### Patch Changes
+
+- a817f2d: Change the default client config version
+- Updated dependencies [a817f2d]
+  - @aws-amplify/client-config@0.9.5
+  - @aws-amplify/sandbox@0.6.1
+
 ## 0.14.1
 
 ### Patch Changes
