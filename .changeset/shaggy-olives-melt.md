@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/model-generator': patch
+'@aws-amplify/model-generator': minor
 ---
 
 respect maxDepth and typenameIntrospection when generating types
