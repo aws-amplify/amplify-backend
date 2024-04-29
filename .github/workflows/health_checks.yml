@@ -20,7 +20,7 @@ jobs:
         # Larger workers use different drive (C: instead of D:) to check out project and NPM installation
         # creates file system links that include drive letter.
         # Changing between standard and custom workers requires full install cache invalidation
-        os: [ubuntu-latest, macos-latest-xl, windows-latest]
+        os: [ubuntu-latest, macos-14, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
@@ -40,7 +40,7 @@ jobs:
       - build
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest-xl, windows-latest]
+        os: [ubuntu-latest, macos-14, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
@@ -136,7 +136,7 @@ jobs:
       # will finish running other test matrices even if one fails
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest-xl, windows-latest]
+        os: [ubuntu-latest, macos-14-xlarge, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     needs:
@@ -170,7 +170,7 @@ jobs:
       # will finish running other test matrices even if one fails
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest-xl, windows-latest]
+        os: [ubuntu-latest, macos-14-xlarge, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
@@ -189,7 +189,7 @@ jobs:
       # will finish running other test matrices even if one fails
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest-xl, windows-latest]
+        os: [ubuntu-latest, macos-14, windows-latest]
         pkg-manager: [npm, yarn-classic, yarn-modern, pnpm]
         node-version: [20]
     env:
