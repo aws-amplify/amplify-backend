@@ -45,6 +45,7 @@ try {
 } catch (e) {
   printer.log('Failed to emit usage metrics', LogLevel.DEBUG);
   if (e instanceof Error && e.stack) {
+    printer.log(`${e.name}: ${e.message}`, LogLevel.DEBUG);
     printer.log(e.stack, LogLevel.DEBUG);
   }
 }
