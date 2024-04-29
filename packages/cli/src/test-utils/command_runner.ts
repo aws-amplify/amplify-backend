@@ -1,6 +1,8 @@
 import { Argv } from 'yargs';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { UsageDataEmitter } from '@aws-amplify/platform-core';
 import { generateCommandFailureHandler } from '../error_handler.js';
+import { extractSubCommands } from '../extract_sub_commands.js';
 
 class OutputInterceptor {
   private output = '';
@@ -49,12 +51,16 @@ export class TestCommandError extends Error {
  * Runs commands given preconfigured yargs parser.
  */
 export class TestCommandRunner {
-  private readonly parser: Argv;
-
   /**
    * Creates new command runner.
    */
-  constructor(parser: Argv) {
+  constructor(
+    private parser: Argv,
+    private usageDataEmitter: UsageDataEmitter = {
+      emitFailure: () => Promise.resolve(),
+      emitSuccess: () => Promise.resolve(),
+    }
+  ) {
     this.parser = parser
       // Pin locale
       .locale('en')
@@ -65,7 +71,7 @@ export class TestCommandRunner {
       // attach the failure handler
       // this is necessary because we may be testing a subcommand that doesn't have the top-level failure handler attached
       // eventually we may want to have a separate "testFailureHandler" if we need additional tooling here
-      .fail(generateCommandFailureHandler(parser));
+      .fail(generateCommandFailureHandler(parser, this.usageDataEmitter));
   }
 
   /**
@@ -87,6 +93,13 @@ export class TestCommandRunner {
       // in potentially concurrent environment.
       await asyncLocalStorage.run(interceptor, async () => {
         await this.parser.parseAsync(args);
+        const metricDimension: Record<string, string> = {};
+        const subCommands = extractSubCommands(this.parser);
+
+        if (subCommands) {
+          metricDimension.command = subCommands;
+        }
+        await this.usageDataEmitter.emitSuccess({}, metricDimension);
       });
       return interceptor.getOutput();
     } catch (err) {

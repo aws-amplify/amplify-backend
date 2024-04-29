@@ -6,7 +6,7 @@
 
 import { AppId } from '@aws-amplify/plugin-types';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { DeepPartial } from '@aws-amplify/plugin-types';
+import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import z from 'zod';
 
 // @public
@@ -115,10 +115,10 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 // @public
 export class ObjectAccumulator<T> {
-    constructor(accumulator: DeepPartial<T>, versionKey?: string);
-    accumulate: (part: DeepPartial<T>) => ObjectAccumulator<T>;
+    constructor(accumulator: DeepPartialAmplifyGeneratedConfigs<T>, versionKey?: string);
+    accumulate: (part: DeepPartialAmplifyGeneratedConfigs<T>) => ObjectAccumulator<T>;
     // (undocumented)
-    getAccumulatedObject: () => DeepPartial<T>;
+    getAccumulatedObject: () => DeepPartialAmplifyGeneratedConfigs<T>;
 }
 
 // @public
@@ -158,12 +158,12 @@ export const packageJsonSchema: z.ZodObject<{
     type: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"module">, z.ZodLiteral<"commonjs">]>>;
 }, "strip", z.ZodTypeAny, {
     name?: string | undefined;
-    version?: string | undefined;
     type?: "module" | "commonjs" | undefined;
+    version?: string | undefined;
 }, {
     name?: string | undefined;
-    version?: string | undefined;
     type?: "module" | "commonjs" | undefined;
+    version?: string | undefined;
 }>;
 
 // @public

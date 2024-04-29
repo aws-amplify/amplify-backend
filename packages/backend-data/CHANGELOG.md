@@ -1,5 +1,20 @@
 # @aws-amplify/backend-data
 
+## 0.13.0
+
+### Minor Changes
+
+- c4a88d3: use latest data-schema
+
+## 0.12.1
+
+### Patch Changes
+
+- Updated dependencies [8995e3b]
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/plugin-types@0.10.0
+  - @aws-amplify/backend-output-storage@0.4.1
+
 ## 0.12.0
 
 ### Minor Changes

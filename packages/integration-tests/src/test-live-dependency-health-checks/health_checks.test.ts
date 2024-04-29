@@ -98,7 +98,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       ).run();
 
       const clientConfigStats = await fs.stat(
-        path.join(tempDir, 'amplifyconfiguration.json')
+        path.join(tempDir, 'amplify_outputs.json')
       );
       assert.ok(clientConfigStats.isFile());
     });
@@ -127,7 +127,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         .run();
 
       const clientConfigStats = await fs.stat(
-        path.join(tempDir, 'amplifyconfiguration.json')
+        path.join(tempDir, 'amplify_outputs.json')
       );
       assert.ok(clientConfigStats.isFile());
 

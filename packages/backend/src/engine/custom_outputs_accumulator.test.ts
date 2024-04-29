@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
-  DeepPartial,
+  DeepPartialAmplifyGeneratedConfigs,
 } from '@aws-amplify/plugin-types';
 import { CustomOutputsAccumulator } from './custom_outputs_accumulator.js';
 import {
@@ -58,11 +58,11 @@ void describe('Custom outputs accumulator', () => {
       objectAccumulator
     );
 
-    const configPart1: DeepPartial<ClientConfig> = {
+    const configPart1: DeepPartialAmplifyGeneratedConfigs<ClientConfig> = {
       version: '1',
       custom: { output1: 'val1' },
     };
-    const configPart2: DeepPartial<ClientConfig> = {
+    const configPart2: DeepPartialAmplifyGeneratedConfigs<ClientConfig> = {
       version: '1',
       custom: { output2: 'val2' },
     };
@@ -168,15 +168,16 @@ void describe('Custom outputs accumulator', () => {
       },
     });
 
-    const expectedAccumulatedOutput: DeepPartial<ClientConfig> = {
-      auth: {
-        user_pool_id: 'some_user_pool_id',
-      },
-      custom: {
-        output1: 'value1',
-        output2: 'value2',
-      },
-    };
+    const expectedAccumulatedOutput: DeepPartialAmplifyGeneratedConfigs<ClientConfig> =
+      {
+        auth: {
+          user_pool_id: 'some_user_pool_id',
+        },
+        custom: {
+          output1: 'value1',
+          output2: 'value2',
+        },
+      };
 
     const template = Template.fromStack(stack);
 

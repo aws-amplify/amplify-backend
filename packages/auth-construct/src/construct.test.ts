@@ -655,7 +655,7 @@ void describe('Auth construct', () => {
       ]);
     });
 
-    void it('stores outputs in platform - oauth config', () => {
+    void it('stores outputs in platform -  when external provider is present', () => {
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -743,6 +743,61 @@ void describe('Auth construct', () => {
           'Providers were not properly initialized by the construct and could not be tested for output.'
         );
       }
+    });
+
+    void it('stores relevant oauth outputs in platform -  when external provider is absent', () => {
+      const authConstruct = new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          externalProviders: {
+            domainPrefix: 'test-prefix',
+            scopes: ['EMAIL', 'PROFILE'],
+            callbackUrls: ['http://callback.com'],
+            logoutUrls: ['http://logout.com'],
+          },
+        },
+        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+
+      const expectedUserPoolId = (
+        authConstruct.node.findChild('UserPool') as UserPool
+      ).userPoolId;
+      const expectedIdentityPoolId = (
+        authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
+      ).ref;
+      const expectedWebClientId = (
+        authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
+      ).userPoolClientId;
+      const expectedRegion = Stack.of(authConstruct).region;
+
+      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
+      assert.equal(storeOutputArgs.length, 2);
+      assert.deepStrictEqual(storeOutputArgs, [
+        authOutputKey,
+        {
+          version: '1',
+          payload: {
+            userPoolId: expectedUserPoolId,
+            webClientId: expectedWebClientId,
+            identityPoolId: expectedIdentityPoolId,
+            authRegion: expectedRegion,
+            passwordPolicyMinLength:
+              DEFAULTS.PASSWORD_POLICY.minLength.toString(),
+            passwordPolicyRequirements:
+              defaultPasswordPolicyCharacterRequirements,
+            signupAttributes: '["email"]',
+            verificationMechanisms: '["email"]',
+            usernameAttributes: '["email"]',
+            oauthClientId: expectedWebClientId, // same thing
+            oauthCognitoDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
+            oauthScope: '["email","profile"]',
+            oauthRedirectSignIn: 'http://callback.com',
+            oauthRedirectSignOut: 'http://logout.com',
+            oauthResponseType: 'code',
+            allowUnauthenticatedIdentities: 'true',
+          },
+        },
+      ]);
     });
 
     void it('multifactor prop updates mfaConfiguration & mfaTypes', () => {
