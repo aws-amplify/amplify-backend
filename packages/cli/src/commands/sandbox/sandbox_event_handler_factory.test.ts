@@ -37,6 +37,7 @@ void describe('sandbox_event_handler_factory', () => {
   } as unknown as UsageDataEmitter;
 
   const printMock = mock.method(printer, 'print');
+  const logMock = mock.method(printer, 'log');
 
   // Class under test
   const eventFactory = new SandboxEventHandlerFactory(
@@ -49,6 +50,8 @@ void describe('sandbox_event_handler_factory', () => {
   );
 
   afterEach(() => {
+    logMock.mock.resetCalls();
+    printMock.mock.resetCalls();
     emitSuccessMock.mock.resetCalls();
     emitFailureMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
@@ -177,7 +180,7 @@ void describe('sandbox_event_handler_factory', () => {
     );
 
     assert.deepStrictEqual(
-      printMock.mock.calls[1].arguments[0],
+      logMock.mock.calls[0].arguments[0],
       format.error(new Error('test error message'))
     );
 
