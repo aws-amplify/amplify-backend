@@ -1,5 +1,16 @@
 # create-amplify
 
+## 0.7.1
+
+### Patch Changes
+
+- 8995e3b: refactor format.runner().amplifyCommand() into format.backendCliCommand()
+- Updated dependencies [8995e3b]
+- Updated dependencies [ce5a5ac]
+  - @aws-amplify/cli-core@0.6.0
+  - @aws-amplify/plugin-types@0.10.0
+  - @aws-amplify/platform-core@0.5.1
+
 ## 0.7.0
 
 ### Minor Changes

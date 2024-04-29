@@ -5,7 +5,7 @@ import { createMainParser } from './main_parser_factory.js';
 import { version } from '#package.json';
 
 void describe('main parser', { concurrency: false }, () => {
-  const parser = createMainParser();
+  const parser = createMainParser(version);
   const commandRunner = new TestCommandRunner(parser);
 
   void it('includes generate command in help output', async () => {

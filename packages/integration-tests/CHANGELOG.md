@@ -1,5 +1,17 @@
 # @aws-amplify/integration-tests
 
+## 0.5.2
+
+### Patch Changes
+
+- ca58bc2: re-increment versions for PR# 1397
+
+## 0.5.1
+
+### Patch Changes
+
+- a817f2d: Change the default client config version
+
 ## 0.5.0
 
 ### Minor Changes
