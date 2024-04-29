@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 0.13.0
+
+### Minor Changes
+
+- c4a88d3: use latest data-schema
+
 ## 0.12.1
 
 ### Patch Changes

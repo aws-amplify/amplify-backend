@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.9.5
+
+### Patch Changes
+
+- a817f2d: Change the default client config version
+
 ## 0.9.4
 
 ### Patch Changes

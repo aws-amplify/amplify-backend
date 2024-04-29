@@ -1,5 +1,12 @@
 # @aws-amplify/sandbox
 
+## 0.6.1
+
+### Patch Changes
+
+- Updated dependencies [a817f2d]
+  - @aws-amplify/client-config@0.9.5
+
 ## 0.6.0
 
 ### Minor Changes
