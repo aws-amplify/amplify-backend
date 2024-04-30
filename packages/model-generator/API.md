@@ -196,6 +196,8 @@ export type ModelsGenerationParameters = {
 export type TypesGenerationParameters = {
     target: TypesTarget;
     multipleSwiftFiles?: boolean;
+    maxDepth?: number;
+    typenameIntrospection?: boolean;
 };
 
 // (No @packageDocumentation comment for this package)

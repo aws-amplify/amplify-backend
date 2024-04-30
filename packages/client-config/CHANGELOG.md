@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 0.9.6
+
+### Patch Changes
+
+- ca58bc2: re-increment versions for PR# 1397
+
 ## 0.9.5
 
 ### Patch Changes

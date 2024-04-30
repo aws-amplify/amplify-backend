@@ -1,5 +1,18 @@
 # @aws-amplify/backend-cli
 
+## 0.15.0
+
+### Minor Changes
+
+- 255cc2c: top-level success & failure metrics for amplify commands
+
+### Patch Changes
+
+- ca58bc2: re-increment versions for PR# 1397
+- Updated dependencies [ca58bc2]
+  - @aws-amplify/client-config@0.9.6
+  - @aws-amplify/sandbox@0.6.2
+
 ## 0.14.2
 
 ### Patch Changes

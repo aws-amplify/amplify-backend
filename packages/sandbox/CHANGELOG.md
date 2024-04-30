@@ -1,5 +1,13 @@
 # @aws-amplify/sandbox
 
+## 0.6.2
+
+### Patch Changes
+
+- ca58bc2: re-increment versions for PR# 1397
+- Updated dependencies [ca58bc2]
+  - @aws-amplify/client-config@0.9.6
+
 ## 0.6.1
 
 ### Patch Changes

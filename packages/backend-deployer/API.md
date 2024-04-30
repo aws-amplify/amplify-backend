@@ -21,7 +21,7 @@ export class BackendDeployerFactory {
 
 // @public (undocumented)
 export type BackendDeployerOutputFormatter = {
-    normalizeBackendCommand: (command: string) => string;
+    normalizeAmpxCommand: (command: string) => string;
 };
 
 // @public (undocumented)

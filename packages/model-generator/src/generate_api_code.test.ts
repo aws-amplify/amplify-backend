@@ -170,12 +170,55 @@ void describe('generateAPICode', () => {
         {
           target: 'typescript',
           multipleSwiftFiles: undefined,
+          maxDepth: undefined,
+          typenameIntrospection: undefined,
         }
       );
 
       const receivedResults = await results.getResults();
       assert.deepEqual(receivedResults, {
         ...expectedDocsResults,
+        ...expectedTypesResults,
+      });
+    });
+    void it('passes maxDepth and typeNameIntrospection to type generation', async () => {
+      const expectedTypesResults = { typeGen: 'results2' };
+
+      // Setup mocked generators
+      const generateTypes = mock.fn(async () => ({
+        writeToDirectory: mock.fn(),
+        getResults: async () => expectedTypesResults,
+      }));
+      const graphqlTypesGenerator = {
+        generateTypes,
+      } as unknown as GraphqlTypesGenerator;
+
+      const results = await new ApiCodeGenerator(
+        noopGraphqlDocumentGenerator,
+        graphqlTypesGenerator,
+        noopGraphqlModelsGenerator
+      ).generate({
+        format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
+        statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
+        typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
+        maxDepth: 5,
+        typeNameIntrospection: true,
+      });
+
+      // Validate generate calls
+      assert.equal(generateTypes.mock.callCount(), 1);
+      assert.deepEqual(
+        (generateTypes.mock.calls[0].arguments as unknown[])[0],
+        {
+          target: 'typescript',
+          multipleSwiftFiles: undefined,
+          maxDepth: 5,
+          typenameIntrospection: true,
+        }
+      );
+
+      const receivedResults = await results.getResults();
+      assert.deepEqual(receivedResults, {
         ...expectedTypesResults,
       });
     });

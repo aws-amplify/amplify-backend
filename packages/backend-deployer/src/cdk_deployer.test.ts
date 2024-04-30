@@ -15,7 +15,7 @@ import {
 import { BackendDeployerOutputFormatter } from './types.js';
 
 const formatterStub: BackendDeployerOutputFormatter = {
-  normalizeBackendCommand: () => 'test command',
+  normalizeAmpxCommand: () => 'test command',
 };
 
 void describe('invokeCDKCommand', () => {

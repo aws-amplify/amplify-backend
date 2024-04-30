@@ -91,8 +91,8 @@ export class AmplifyProjectCreator {
     printer.log(format.sectionHeader(`Welcome to AWS Amplify!`));
 
     const welcomeMessage = format.list([
-      `Get started by running ${format.normalizeBackendCommand('sandbox')}.`,
-      `Run ${format.normalizeBackendCommand(
+      `Get started by running ${format.normalizeAmpxCommand('sandbox')}.`,
+      `Run ${format.normalizeAmpxCommand(
         'help'
       )} for a list of available commands.`,
     ]);
@@ -106,7 +106,7 @@ export class AmplifyProjectCreator {
 
     printer.log(
       format.note(
-        `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${format.normalizeBackendCommand(
+        `Amplify (Gen 2) collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${format.normalizeAmpxCommand(
           'configure telemetry disable'
         )}. To learn more about telemetry, visit ${format.link(
           LEARN_MORE_USAGE_DATA_TRACKING_LINK

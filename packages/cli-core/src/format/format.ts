@@ -22,13 +22,13 @@ export class Format {
   constructor(
     private readonly packageManagerRunnerName = getPackageManagerRunnerName()
   ) {}
-  normalizeBackendCommand = (command: string) => {
+  normalizeAmpxCommand = (command: string) => {
     if (command.length === 0) {
       throw new AmplifyFault('InvalidFormatFault', {
         message: 'The command must be non-empty',
       });
     }
-    return cyan(`${this.packageManagerRunnerName} amplify ${command}`);
+    return cyan(`${this.packageManagerRunnerName} ampx ${command}`);
   };
   error = (error: string | Error | unknown) => {
     if (error instanceof Error) {

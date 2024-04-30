@@ -16,7 +16,10 @@ void describe('top level generate command', () => {
   void it('includes generate subcommands in help output', async () => {
     const output = await commandRunner.runCommand('generate --help');
     assert.match(output, /Commands:/);
-    assert.match(output, /generate outputs\W*Generates amplify outputs/);
+    assert.match(
+      output,
+      /generate outputs\W*Generates Amplify backend outputs/
+    );
     assert.match(
       output,
       /generate graphql-client-code\W*Generates graphql API code/

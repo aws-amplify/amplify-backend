@@ -8,7 +8,7 @@ import { BackendSecretFetcherFactory } from './engine/backend-secret/backend_sec
  * @see https://docs.amplify.aws/gen2/deploy-and-host/fullstack-branching/secrets-and-vars/
  * @see {@link https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html AWS documentation for SSM Parameter Store}
  * @example <caption>Creating a sandbox secret with the CLI</caption>
- * > amplify sandbox secret set MY_SECRET
+ * > ampx sandbox secret set MY_SECRET
  * @example <caption>Using a secret</caption>
  * secret('MY_SECRET')
  * @example <caption>Using with `defineAuth`</caption>

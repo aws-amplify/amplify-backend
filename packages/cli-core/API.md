@@ -41,7 +41,7 @@ export class Format {
     // (undocumented)
     list: (lines: string[]) => string;
     // (undocumented)
-    normalizeBackendCommand: (command: string) => string;
+    normalizeAmpxCommand: (command: string) => string;
     // (undocumented)
     note: (message: string) => string;
     // (undocumented)
