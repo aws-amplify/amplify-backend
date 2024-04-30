@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 0.7.0
+
+### Minor Changes
+
+- 1f38466: Replace amplify command occurrences with ampx and related renaming
+
 ## 0.6.0
 
 ### Minor Changes

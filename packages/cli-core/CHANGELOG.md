@@ -1,5 +1,15 @@
 # @aws-amplify/cli-core
 
+## 0.7.0
+
+### Minor Changes
+
+- 1f38466: Replace amplify command occurrences with ampx and related renaming
+
+### Patch Changes
+
+- 694daaf: format.error to handle formating Error
+
 ## 0.6.0
 
 ### Minor Changes
