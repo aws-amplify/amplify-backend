@@ -22,9 +22,9 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
   {
     dirToWatch: string | undefined;
     exclude: string[] | undefined;
-    configFormat: ClientConfigFormat | undefined;
-    configOutDir: string | undefined;
-    configVersion: string;
+    outputsFormat: ClientConfigFormat | undefined;
+    outputsOutDir: string | undefined;
+    outputsVersion: string;
     once: boolean | undefined;
   } & SandboxCommandGlobalOptions
 >;
@@ -91,9 +91,9 @@ export class SandboxCommand
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
       this.clientConfigGeneratorAdapter,
-      args.configVersion as ClientConfigVersion,
-      args.configOutDir,
-      args.configFormat
+      args.outputsVersion as ClientConfigVersion,
+      args.outputsOutDir,
+      args.outputsFormat
     );
     const eventHandlers = this.sandboxEventHandlerCreator?.({
       sandboxIdentifier: this.sandboxIdentifier,
@@ -106,19 +106,19 @@ export class SandboxCommand
     }
     const watchExclusions = args.exclude ?? [];
     const fileName = getClientConfigFileName(
-      args.configVersion as ClientConfigVersion
+      args.outputsVersion as ClientConfigVersion
     );
     const clientConfigWritePath = await getClientConfigPath(
       fileName,
-      args.configOutDir,
-      args.configFormat
+      args.outputsOutDir,
+      args.outputsFormat
     );
 
     if (!fs.existsSync(clientConfigWritePath)) {
       await generateEmptyClientConfigToFile(
-        args.configVersion as ClientConfigVersion,
-        args.configOutDir,
-        args.configFormat
+        args.outputsVersion as ClientConfigVersion,
+        args.outputsOutDir,
+        args.outputsFormat
       );
     }
 
@@ -162,24 +162,25 @@ export class SandboxCommand
           type: 'string',
           array: false,
         })
-        .option('config-format', {
-          describe: 'Client config output format',
+        .option('outputs-format', {
+          describe: 'amplify_outputs file format',
           type: 'string',
           array: false,
           choices: Object.values(ClientConfigFormat),
           global: false,
         })
-        .option('config-version', {
-          describe: 'Client config format version',
+        .option('outputs-version', {
+          describe:
+            'Version of the configuration. Version 0 represents classic amplify-cli config file amplify-configuration and 1 represents newer config file amplify_outputs',
           type: 'string',
           array: false,
           choices: Object.values(ClientConfigVersionOption),
           global: false,
           default: DEFAULT_CLIENT_CONFIG_VERSION,
         })
-        .option('config-out-dir', {
+        .option('outputs-out-dir', {
           describe:
-            'A path to directory where config is written. If not provided defaults to current process working directory.',
+            'A path to directory where amplify_outputs is written. If not provided defaults to current process working directory.',
           type: 'string',
           array: false,
           global: false,

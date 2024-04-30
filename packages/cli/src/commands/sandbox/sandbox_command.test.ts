@@ -115,8 +115,8 @@ void describe('sandbox command', () => {
     assert.match(output, /--identifier/);
     assert.match(output, /--dir-to-watch/);
     assert.match(output, /--exclude/);
-    assert.match(output, /--config-format/);
-    assert.match(output, /--config-out-dir/);
+    assert.match(output, /--outputs-format/);
+    assert.match(output, /--outputs-out-dir/);
     assert.match(output, /--once/);
     assert.equal(mockHandleProfile.mock.callCount(), 0);
   });
@@ -280,7 +280,7 @@ void describe('sandbox command', () => {
   void it('starts sandbox if a value containing "." is provided for config-out-dir', async () => {
     // this is a valid case to maintain consistency with behaviors of ampx generate graphql-client-code/forms
     await commandRunner.runCommand(
-      'sandbox --config-out-dir existentFile.json'
+      'sandbox --outputs-out-dir existentFile.json'
     );
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -294,7 +294,7 @@ void describe('sandbox command', () => {
       isDirectory: () => true,
     }));
     await commandRunner.runCommand(
-      'sandbox --config-out-dir existentDir --config-format dart'
+      'sandbox --outputs-out-dir existentDir --outputs-format dart'
     );
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -306,7 +306,7 @@ void describe('sandbox command', () => {
   void it('sandbox creates an empty client config file if one does not already exist for version 0', async (contextual) => {
     contextual.mock.method(fs, 'existsSync', () => false);
     const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
-    await commandRunner.runCommand('sandbox --config-version 0');
+    await commandRunner.runCommand('sandbox --outputs-version 0');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(writeFileMock.mock.calls[0].arguments[1], '{}');
@@ -319,7 +319,7 @@ void describe('sandbox command', () => {
   void it('sandbox creates an empty client config file if one does not already exist for version 1', async (contextual) => {
     contextual.mock.method(fs, 'existsSync', () => false);
     const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
-    await commandRunner.runCommand('sandbox --config-version 1');
+    await commandRunner.runCommand('sandbox --outputs-version 1');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
