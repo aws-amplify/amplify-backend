@@ -152,9 +152,9 @@ jobs:
         os: [ubuntu-latest, macos-14-xlarge, windows-latest]
         include:
           - os: ubuntu-latest
-            node: lts/hydrogen
+            node-version: lts/hydrogen
           - os: ubuntu-latest
-            node: lts/iron
+            node-version: lts/iron
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     needs:
@@ -168,8 +168,7 @@ jobs:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
         with:
-          if: ${{matrix.os}}
-          node-version: ${{ matrix.node }}
+          node-version: ${{ matrix.node-version }}
       - uses: ./.github/actions/restore_build_cache
       - run: cd packages/cli && npm link
       - name: Configure test tooling credentials
