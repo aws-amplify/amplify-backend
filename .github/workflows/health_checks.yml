@@ -353,7 +353,7 @@ jobs:
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
-      - uses: ./.github/actions/restore_install_cache
+      - uses: ./.github/actions/restore_build_cache
       - id: is_version_packages_commit
         run: npx tsx scripts/is_version_packages_commit.ts "$GITHUB_EVENT_PATH" >> "$GITHUB_OUTPUT"
       - name: Publish packages
