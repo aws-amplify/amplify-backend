@@ -137,6 +137,10 @@ jobs:
     needs:
       - do_include_e2e
       - build
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
     steps:
       - name: Get baseline commit sha
         id: get_baseline_commit_sha
@@ -148,10 +152,23 @@ jobs:
             echo baseline commit sha is ${{ github.event.pull_request.base.sha }};
             echo "baseline_commit_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT";
           fi
-      - name: Prepare baseline version
+      - name: Checkout baseline version
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
         with:
           ref: ${{ steps.get_baseline_commit_sha.outputs.baseline_commit_sha }}
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - name: Move baseline version
+        id: move_baseline_version
+        run: |
+          BASELINE_DIR=$(mktemp -d)
+          mv -R ./* $BASELINE_DIR/*
+          ls -l $BASELINE_DIR
+          echo "baseline_dir=$BASELINE_DIR" >> "$GITHUB_OUTPUT";
+      - name: Checkout current version
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
