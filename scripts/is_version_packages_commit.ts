@@ -21,4 +21,4 @@ const isVersionPackagesCommit =
   ) &&
   githubPushEventPayload.commits[0].message.includes('Version Packages');
 
-console.log(`is_push_version_packages_commit=${isVersionPackagesCommit}`);
+console.log(`is_version_packages_commit=${isVersionPackagesCommit}`);

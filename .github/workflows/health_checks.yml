@@ -329,10 +329,10 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - id: is_version_packages_commit
-        run: npx tsx scripts/is_push_version_packages_commit.ts "$GITHUB_EVENT_PATH" >> "$GITHUB_OUTPUT"
+        run: npx tsx scripts/is_version_packages_commit.ts "$GITHUB_EVENT_PATH" >> "$GITHUB_OUTPUT"
       - name: Create or update Version Packages PR
         # if this push is NOT merging a version packages PR, then we update the versions
-        if: ${{ steps.is_version_packages_commit.outputs.is_push_version_packages_commit == 'false' }}
+        if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'false' }}
         uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
         with:
           publish: echo Cannot publish during update version step
@@ -351,10 +351,10 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - id: is_version_packages_commit
-        run: npx tsx scripts/is_push_version_packages_commit.ts "$GITHUB_EVENT_PATH" >> "$GITHUB_OUTPUT"
+        run: npx tsx scripts/is_version_packages_commit.ts "$GITHUB_EVENT_PATH" >> "$GITHUB_OUTPUT"
       - name: Publish packages
         # if this push is merging a version packages PR, then we publish the new versions
-        if: ${{ steps.is_version_packages_commit.outputs.is_push_version_packages_commit == 'true' }}
+        if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'true' }}
         id: changeset_publish
         uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
         with:
