@@ -149,6 +149,10 @@ jobs:
             echo baseline commit sha is ${{ github.event.pull_request.base.sha }};
             echo "baseline_commit_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT";
           fi
+      - name: Prepare baseline version
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+        with:
+          ref: ${{ steps.get_baseline_commit_sha.outputs.baseline_commit_sha }}
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
