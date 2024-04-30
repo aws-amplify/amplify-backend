@@ -162,10 +162,10 @@ jobs:
         id: move_baseline_version
         run: |
           BASELINE_DIR=$(mktemp -d)
-          ls -l .
+          ls -al .
           mv ./* $BASELINE_DIR
-          ls -l $BASELINE_DIR
-          ls -l .
+          ls -al $BASELINE_DIR
+          ls -al .
           echo "baseline_dir=$BASELINE_DIR" >> "$GITHUB_OUTPUT";
       - name: Checkout current version
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
