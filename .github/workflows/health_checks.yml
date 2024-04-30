@@ -150,7 +150,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-14-xlarge, windows-latest]
-        node: [lts/hydrogen, lts/iron]
+        node-version: [lts/hydrogen, lts/iron]
         exclude:
           - os: macos-14-xlarge
             node-version: lts/iron
