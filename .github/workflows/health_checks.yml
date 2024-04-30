@@ -58,6 +58,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: |
+          npm link ./packages/cli
           npm run set-script-shell
           npm run test:scripts
   test_with_baseline_dependencies:
