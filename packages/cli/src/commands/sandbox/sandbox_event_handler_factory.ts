@@ -47,7 +47,7 @@ export class SandboxEventHandlerFactory {
             printer.print(
               format.error('Amplify configuration could not be generated.')
             );
-            printer.log(format.error(error));
+            printer.print(format.error(error));
           }
         },
       ],
