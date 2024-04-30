@@ -163,7 +163,7 @@ jobs:
         run: |
           BASELINE_DIR=$(mktemp -d)
           ls -l .
-          mv ./* $BASELINE_DIR/*
+          mv ./* $BASELINE_DIR
           ls -l $BASELINE_DIR
           ls -l .
           echo "baseline_dir=$BASELINE_DIR" >> "$GITHUB_OUTPUT";
