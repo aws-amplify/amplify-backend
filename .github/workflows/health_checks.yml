@@ -163,6 +163,7 @@ jobs:
         run: |
           BASELINE_DIR=$(mktemp -d)
           ls -al .
+          shopt -s dotglob
           mv ./* $BASELINE_DIR
           ls -al $BASELINE_DIR
           ls -al .
