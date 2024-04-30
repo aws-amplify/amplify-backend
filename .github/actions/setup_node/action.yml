@@ -10,5 +10,5 @@ runs:
   steps:
     - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # version 3.8.1
       with:
-        node-version: { { inputs.node-version } }
+        node-version: ${{ inputs.node-version }}
         cache: 'npm'
