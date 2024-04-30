@@ -335,8 +335,11 @@ jobs:
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'false' }}
         uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
         with:
+          # this should never be called, but if something happens and it does get called, this ensures that a premature publish won't happen
           publish: echo Cannot publish during update version step
         env:
+          # we are also omitting the NPM_TOKEN here to eliminate the possibility of publishing to NPM during this step
+          # we still need the GITHUB_TOKEN so that the version packages PR can be updated
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   publish_package_versions:
     if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'hotfix') }}
