@@ -95,8 +95,7 @@ void describe('format.error', async () => {
   void it('should format error message when input is unknown obj', () => {
     const input = {
       message: 'something went wrong',
-      // eslint-disable-next-line spellcheck/spell-checker
-      errno: 'EACCES',
+      code: 1,
     };
     const expectedOutput = red(JSON.stringify(input, null, 2));
     const actualOutput = format.error(input);
