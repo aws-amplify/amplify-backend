@@ -131,29 +131,25 @@ void describe('iam access drift', () => {
     });
     await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
 
-    // nuke the npx cache to ensure we are installing packages from the npm proxy
-    const stdout2 = (await execa('npm', ['config', 'get', 'cache'])).stdout;
-    const npxCacheLocation2 = path.join(stdout2.toString().trim(), '_npx');
+    await execa('npm', ['install'], {
+      cwd: tempDir,
+      stdio: 'inherit',
+    });
 
-    if (existsSync(npxCacheLocation2)) {
-      await fsp.rm(npxCacheLocation2, { recursive: true });
-    }
-
-    // Force 'create-amplify' installation in npx cache by executing help command
-    // before tests run. Otherwise, installing 'create-amplify' concurrently
-    // may lead to race conditions and corrupted npx cache.
-    const output2 = await execa(
-      'npm',
-      ['create', amplifyAtTag, '--yes', '--', '--help'],
+    await execa(
+      'npx',
+      [
+        'ampx',
+        'pipeline-deploy',
+        '--branch',
+        branchBackendIdentifier.name,
+        '--appId',
+        branchBackendIdentifier.namespace,
+      ],
       {
-        // Command must run outside of 'amplify-backend' workspace.
-        cwd: os.homedir(),
+        cwd: tempDir,
+        stdio: 'inherit',
       }
     );
-
-    assert.match(output2.stdout, /--help/);
-    assert.match(output2.stdout, /--version/);
-    assert.match(output2.stdout, /Show version number/);
-    assert.match(output2.stdout, /--yes/);
   });
 });
