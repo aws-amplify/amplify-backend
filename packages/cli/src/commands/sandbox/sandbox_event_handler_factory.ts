@@ -2,7 +2,7 @@ import { SandboxEventHandlerCreator } from './sandbox_command.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
 import { DeployResult } from '@aws-amplify/backend-deployer';
-import { LogLevel, format, printer } from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 
 /**
  * Coordinates creation of sandbox event handlers
@@ -47,7 +47,7 @@ export class SandboxEventHandlerFactory {
             printer.print(
               format.error('Amplify configuration could not be generated.')
             );
-            printer.log(format.error(error), LogLevel.ERROR);
+            printer.log(format.error(error));
           }
         },
       ],
