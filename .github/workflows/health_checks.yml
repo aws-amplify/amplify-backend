@@ -336,6 +336,7 @@ jobs:
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'false' }}
         uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
         with:
+          createGithubReleases: false
           # this should never be called, but if something happens and it does get called, this ensures that a premature publish won't happen
           publish: echo Cannot publish during update version step
         env:
