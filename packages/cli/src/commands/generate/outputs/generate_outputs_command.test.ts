@@ -182,7 +182,7 @@ void describe('generate outputs command', () => {
 
   void it('can generate legacy config in json mobile format', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --config-version 0 --out-dir foo/bar --format json-mobile'
+      'outputs --stack stack_name --outputs-version 0 --out-dir foo/bar --format json-mobile'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -200,7 +200,7 @@ void describe('generate outputs command', () => {
 
   void it('can generate legacy config in ts format', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --config-version 0 --out-dir foo/bar --format ts'
+      'outputs --stack stack_name --outputs-version 0 --out-dir foo/bar --format ts'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -218,7 +218,7 @@ void describe('generate outputs command', () => {
 
   void it('can generate legacy config in mjs format', async () => {
     await commandRunner.runCommand(
-      'outputs --stack stack_name --config-version 0 --out-dir foo/bar --format mjs'
+      'outputs --stack stack_name --outputs-version 0 --out-dir foo/bar --format mjs'
     );
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
     assert.deepStrictEqual(

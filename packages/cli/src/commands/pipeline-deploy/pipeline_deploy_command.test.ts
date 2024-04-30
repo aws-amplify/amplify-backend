@@ -19,7 +19,10 @@ import {
   Printer,
 } from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
-import { DEFAULT_CLIENT_CONFIG_VERSION } from '@aws-amplify/client-config';
+import {
+  ClientConfigVersionOption,
+  DEFAULT_CLIENT_CONFIG_VERSION,
+} from '@aws-amplify/client-config';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -120,7 +123,7 @@ void describe('deploy command', () => {
     assert.equal(generateClientConfigMock.mock.callCount(), 1);
   });
 
-  void it('allows --config-out-dir argument', async () => {
+  void it('allows --outputs-out-dir argument', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub
@@ -131,7 +134,7 @@ void describe('deploy command', () => {
       () => Promise.resolve()
     );
     await getCommandRunner(true).runCommand(
-      'pipeline-deploy --app-id abc --branch test-branch --config-out-dir src'
+      'pipeline-deploy --app-id abc --branch test-branch --outputs-out-dir src'
     );
     assert.strictEqual(mockDeploy.mock.callCount(), 1);
     assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
@@ -153,6 +156,42 @@ void describe('deploy command', () => {
       },
       DEFAULT_CLIENT_CONFIG_VERSION,
       'src',
+    ]);
+  });
+
+  void it('allows --outputs-version argument to generate legacy config', async () => {
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController(),
+      formatterStub
+    );
+    const mockDeploy = mock.method(
+      backendDeployerFactory.getInstance(),
+      'deploy',
+      () => Promise.resolve()
+    );
+    await getCommandRunner(true).runCommand(
+      'pipeline-deploy --app-id abc --branch test-branch --outputs-version 0'
+    );
+    assert.strictEqual(mockDeploy.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+      {
+        name: 'test-branch',
+        namespace: 'abc',
+        type: 'branch',
+      },
+      {
+        validateAppSources: true,
+      },
+    ]);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
+      {
+        name: 'test-branch',
+        namespace: 'abc',
+        type: 'branch',
+      },
+      ClientConfigVersionOption.V0,
+      undefined,
     ]);
   });
 });
