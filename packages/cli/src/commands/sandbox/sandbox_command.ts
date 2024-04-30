@@ -75,7 +75,8 @@ export class SandboxCommand
     private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
-    this.describe = 'Starts sandbox, watch mode for amplify deployments';
+    this.describe =
+      'Starts sandbox, watch mode for Amplify backend deployments';
   }
 
   /**
