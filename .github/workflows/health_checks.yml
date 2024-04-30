@@ -29,7 +29,6 @@ jobs:
       - uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node }}
-          cache: 'npm'
       - uses: ./.github/actions/install_with_cache
   build:
     strategy:
@@ -40,10 +39,9 @@ jobs:
       - install
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # version 3.8.1
+      - uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node }}
-          cache: 'npm'
       - uses: ./.github/actions/install_with_cache
       - uses: ./.github/actions/build_with_cache
   test_with_coverage:
@@ -56,10 +54,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a30github57d20ec6b3fb69d # version 3.8.1
+      - uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node }}
-          cache: 'npm'
       - uses: ./.github/actions/install_with_cache
       - uses: ./.github/actions/restore_build_cache
       - run: npm run set-script-shell
@@ -153,6 +150,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-14-xlarge, windows-latest]
+        include:
+          - os: ubuntu-latest
+          - node-version: [lts/hydrogen, lts/iron]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     needs:
