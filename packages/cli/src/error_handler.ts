@@ -112,32 +112,38 @@ const handleError = async ({
   printMessagePreamble?.();
 
   if (error instanceof AmplifyError) {
-    await usageDataEmitter?.emitFailure(error, {
-      command: command ?? 'UnknownCommand',
-    });
-    printer.print(format.error(`${error.name}: ${error.message}`));
+    try {
+      await usageDataEmitter?.emitFailure(error, {
+        command: command ?? 'UnknownCommand',
+      });
+    } finally {
+      printer.print(format.error(`${error.name}: ${error.message}`));
 
-    if (error.resolution) {
-      printer.print(`Resolution: ${error.resolution}`);
-    }
-    if (error.details) {
-      printer.print(`Details: ${error.details}`);
-    }
-    if (errorHasCauseMessage(error)) {
-      printer.print(`Cause: ${error.cause.message}`);
+      if (error.resolution) {
+        printer.print(`Resolution: ${error.resolution}`);
+      }
+      if (error.details) {
+        printer.print(`Details: ${error.details}`);
+      }
+      if (errorHasCauseMessage(error)) {
+        printer.print(`Cause: ${error.cause.message}`);
+      }
     }
   } else {
     // non-Amplify Error object
-    await usageDataEmitter?.emitFailure(
-      AmplifyError.fromError(
-        error && error instanceof Error ? error : new Error(message)
-      ),
-      { command: command ?? 'UnknownCommand' }
-    );
-    printer.print(format.error(message || String(error)));
+    try {
+      await usageDataEmitter?.emitFailure(
+        AmplifyError.fromError(
+          error && error instanceof Error ? error : new Error(message)
+        ),
+        { command: command ?? 'UnknownCommand' }
+      );
+    } finally {
+      printer.print(format.error(message || String(error)));
 
-    if (errorHasCauseMessage(error)) {
-      printer.print(`Cause: ${error.cause.message}`);
+      if (errorHasCauseMessage(error)) {
+        printer.print(`Cause: ${error.cause.message}`);
+      }
     }
   }
 
