@@ -1,5 +1,16 @@
 # @aws-amplify/sandbox
 
+## 0.6.3
+
+### Patch Changes
+
+- 1f38466: Replace amplify command occurrences with ampx and related renaming
+- Updated dependencies [1f38466]
+- Updated dependencies [694daaf]
+  - @aws-amplify/backend-deployer@0.7.0
+  - @aws-amplify/cli-core@0.7.0
+  - @aws-amplify/client-config@0.9.7
+
 ## 0.6.2
 
 ### Patch Changes

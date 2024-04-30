@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 0.15.0
+
+### Minor Changes
+
+- 8dfab74: support identityPool defaultAuthMode aliased to iam
+
 ## 0.14.0
 
 ### Minor Changes
