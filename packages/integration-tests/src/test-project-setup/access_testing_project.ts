@@ -39,16 +39,9 @@ import {
   InMemoryCache,
 } from '@apollo/client/core';
 import { NormalizedCacheObject } from '@apollo/client';
-import crypto from 'node:crypto';
 import { gql } from 'graphql-tag';
 import { IamCredentials } from '../types.js';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
-
-// TODO: this is a work around
-// it seems like as of amplify v6 , some of the code only runs in the browser ...
-// see https://github.com/aws-amplify/amplify-js/issues/12751
-// @ts-expect-error altering typing for global to make compiler happy is not worth the effort assuming this is temporary workaround
-globalThis.crypto = crypto;
 
 /**
  * Creates access testing projects with typescript idioms.
