@@ -105,7 +105,19 @@ void describe('format.error', async () => {
   void it('should return fallback if input is invalid', () => {
     // JSON.stringify throws for BigInt
     const input = { badValue: 2n };
-    const expectedOutput = red('Invalid Error');
+    const expectedOutput =
+      red('Unknown error') +
+      os.EOL +
+      red('TypeError: Do not know how to serialize a BigInt');
+    const actualOutput = format.error(input);
+    assert.strictEqual(actualOutput, expectedOutput);
+  });
+
+  void it('should recursively print error.cause if present', () => {
+    const nestedError = new Error('nested error');
+    const input = new Error('something went wrong', { cause: nestedError });
+    const expectedOutput =
+      red('Error: something went wrong') + os.EOL + red('Error: nested error');
     const actualOutput = format.error(input);
     assert.strictEqual(actualOutput, expectedOutput);
   });
