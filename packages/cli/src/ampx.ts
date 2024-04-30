@@ -47,7 +47,7 @@ try {
     printer.log(format.error('Failed to emit usage metrics'), LogLevel.DEBUG);
     printer.log(format.error(e), LogLevel.DEBUG);
     if (e.stack) {
-      printer.log(format.error(e.stack), LogLevel.DEBUG);
+      printer.log(e.stack, LogLevel.DEBUG);
     }
   }
 }
