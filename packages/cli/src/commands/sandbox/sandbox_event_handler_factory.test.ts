@@ -49,6 +49,7 @@ void describe('sandbox_event_handler_factory', () => {
   );
 
   afterEach(() => {
+    printMock.mock.resetCalls();
     emitSuccessMock.mock.resetCalls();
     emitFailureMock.mock.resetCalls();
     generateClientConfigMock.mock.resetCalls();
@@ -178,7 +179,7 @@ void describe('sandbox_event_handler_factory', () => {
 
     assert.deepStrictEqual(
       printMock.mock.calls[1].arguments[0],
-      format.error('test error message')
+      format.error(new Error('test error message'))
     );
 
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [

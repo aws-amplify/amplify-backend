@@ -47,17 +47,7 @@ export class SandboxEventHandlerFactory {
             printer.print(
               format.error('Amplify configuration could not be generated.')
             );
-            if (error instanceof Error) {
-              printer.print(format.error(error.message));
-            } else {
-              try {
-                printer.print(format.error(JSON.stringify(error, null, 2)));
-              } catch {
-                // fallback in case there's an error stringify the error
-                // like with circular references.
-                printer.print(format.error('Unknown error'));
-              }
-            }
+            printer.print(format.error(error));
           }
         },
       ],

@@ -31,7 +31,7 @@ export class Format {
     // (undocumented)
     dim: (message: string) => string;
     // (undocumented)
-    error: (message: string) => string;
+    error: (error: string | Error | unknown) => string;
     // (undocumented)
     highlight: (command: string) => string;
     // (undocumented)
