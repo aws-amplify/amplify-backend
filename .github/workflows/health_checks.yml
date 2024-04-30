@@ -131,7 +131,7 @@ jobs:
             echo setting run_e2e to false;
             echo "run_e2e=false" >> "$GITHUB_OUTPUT";
           fi
-  e2e_check_new_iam_access:
+  e2e_iam_access_drift:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs:
@@ -171,6 +171,21 @@ jobs:
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
+      - name: Configure test tooling credentials
+        uses: ./.github/actions/setup_profile
+        with:
+          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          aws-region: us-west-2
+          profile-name: e2e-tooling
+      - name: Configure test execution credentials
+        uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
+        with:
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          aws-region: us-west-2
+      - name: Run e2e iam access drift test
+        run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
+        env:
+          BASELINE_DIR: ${{ steps.move_baseline_version.outputs.baseline_dir }}
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
