@@ -112,38 +112,23 @@ const handleError = async ({
   printMessagePreamble?.();
 
   if (error instanceof AmplifyError) {
-    try {
-      await usageDataEmitter?.emitFailure(error, {
-        command: command ?? 'UnknownCommand',
-      });
-    } finally {
-      printer.print(format.error(`${error.name}: ${error.message}`));
+    printer.print(format.error(`${error.name}: ${error.message}`));
 
-      if (error.resolution) {
-        printer.print(`Resolution: ${error.resolution}`);
-      }
-      if (error.details) {
-        printer.print(`Details: ${error.details}`);
-      }
-      if (errorHasCauseMessage(error)) {
-        printer.print(`Cause: ${error.cause.message}`);
-      }
+    if (error.resolution) {
+      printer.print(`Resolution: ${error.resolution}`);
+    }
+    if (error.details) {
+      printer.print(`Details: ${error.details}`);
+    }
+    if (errorHasCauseMessage(error)) {
+      printer.print(`Cause: ${error.cause.message}`);
     }
   } else {
     // non-Amplify Error object
-    try {
-      await usageDataEmitter?.emitFailure(
-        AmplifyError.fromError(
-          error && error instanceof Error ? error : new Error(message)
-        ),
-        { command: command ?? 'UnknownCommand' }
-      );
-    } finally {
-      printer.print(format.error(message || String(error)));
+    printer.print(format.error(message || String(error)));
 
-      if (errorHasCauseMessage(error)) {
-        printer.print(`Cause: ${error.cause.message}`);
-      }
+    if (errorHasCauseMessage(error)) {
+      printer.print(`Cause: ${error.cause.message}`);
     }
   }
 
@@ -154,6 +139,15 @@ const handleError = async ({
   if (errorHasCauseStackTrace(error)) {
     printer.log(error.cause.stack, LogLevel.DEBUG);
   }
+
+  await usageDataEmitter?.emitFailure(
+    error instanceof AmplifyError
+      ? error
+      : AmplifyError.fromError(
+          error && error instanceof Error ? error : new Error(message)
+        ),
+    { command: command ?? 'UnknownCommand' }
+  );
 };
 
 const isUserForceClosePromptError = (err?: Error): boolean => {

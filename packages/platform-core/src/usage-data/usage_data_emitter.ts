@@ -55,6 +55,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     dimensions?: Record<string, string>;
     error?: AmplifyError;
   }) => {
+    
     return {
       accountId: await this.accountIdFetcher.fetch(),
       sessionUuid: this.sessionUuid,
