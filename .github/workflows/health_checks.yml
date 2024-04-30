@@ -143,8 +143,8 @@ jobs:
         id: get_baseline_commit_sha
         run: |
           if [[ ${{ github.event_name }} == 'push' ]]; then
-            echo baseline commit sha is ${{ github.event.push.before }};
-            echo "baseline_commit_sha=${{ github.event.push.before }}" >> "$GITHUB_OUTPUT";
+            echo baseline commit sha is ${{ github.event.before }};
+            echo "baseline_commit_sha=${{ github.event.before }}" >> "$GITHUB_OUTPUT";
           elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
             echo baseline commit sha is ${{ github.event.pull_request.base.sha }};
             echo "baseline_commit_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT";
