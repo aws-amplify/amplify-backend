@@ -5,11 +5,13 @@ on:
     branches:
       - main
       - hotfix
+      - no-new-access-check
   pull_request:
     branches:
       - main
       - hotfix
       - feature/**
+      - no-new-access-check
   workflow_dispatch:
 
 jobs:
