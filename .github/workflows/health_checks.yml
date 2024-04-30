@@ -132,6 +132,23 @@ jobs:
             echo setting run_e2e to false;
             echo "run_e2e=false" >> "$GITHUB_OUTPUT";
           fi
+  e2e_check_new_iam_access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - do_include_e2e
+      - build
+    steps:
+      - name: Get baseline commit sha
+        id: get_baseline_commit_sha
+        run: |
+          if [[ ${{ github.event_name }} == 'push' ]]; then
+            echo baseline commit sha is ${{ github.event.push.before }};
+            echo "baseline_commit_sha=${{ github.event.push.before }}" >> "$GITHUB_OUTPUT";
+          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            echo baseline commit sha is ${{ github.event.pull_request.base.sha }};
+            echo "baseline_commit_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT";
+          fi
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
