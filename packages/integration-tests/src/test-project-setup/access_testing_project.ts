@@ -43,6 +43,7 @@ import { gql } from 'graphql-tag';
 import { IamCredentials } from '../types.js';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
 import { SemVer } from 'semver';
+import crypto from 'node:crypto';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
