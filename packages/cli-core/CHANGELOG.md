@@ -1,5 +1,16 @@
 # @aws-amplify/cli-core
 
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
+### Patch Changes
+
+- Updated dependencies [51195e2]
+  - @aws-amplify/platform-core@1.0.0
+
 ## 0.7.0
 
 ### Minor Changes

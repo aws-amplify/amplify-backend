@@ -1,5 +1,22 @@
 # @aws-amplify/sandbox
 
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
+### Patch Changes
+
+- Updated dependencies [51195e2]
+- Updated dependencies [dc193cd]
+  - @aws-amplify/backend-deployer@1.0.0
+  - @aws-amplify/backend-secret@1.0.0
+  - @aws-amplify/cli-core@1.0.0
+  - @aws-amplify/client-config@1.0.0
+  - @aws-amplify/deployed-backend-client@1.0.0
+  - @aws-amplify/platform-core@1.0.0
+
 ## 0.6.3
 
 ### Patch Changes
