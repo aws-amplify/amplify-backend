@@ -1,22 +1,35 @@
 import { glob } from 'glob';
 import { readPackageJson } from './components/package-json/package_json.js';
 
-const expectedVersionPrefix = '0.';
-
 /**
- * script that verifies that all packages in the repo are on 0.x.x version numbers.
+ * script that verifies expected major versions for all packages in the repo.
  * This is to prevent accidental major version bumps.
- *
- * Once we GA, this check should be updated to ensure we don't accidentally update to 2.x.x
  */
 
 const packagePaths = await glob('./packages/*');
 
+const getExpectedMajorVersion = (packageName: string) => {
+  switch (packageName) {
+    case 'ampx':
+      return '0.';
+    default:
+      return '1.';
+  }
+};
+
 for (const packagePath of packagePaths) {
-  const { version } = await readPackageJson(packagePath);
-  if (!version.startsWith(expectedVersionPrefix)) {
+  const {
+    version,
+    private: isPrivate,
+    name,
+  } = await readPackageJson(packagePath);
+  if (isPrivate) {
+    continue;
+  }
+  const expectedMajorVersion = getExpectedMajorVersion(name);
+  if (!version.startsWith(expectedMajorVersion)) {
     throw new Error(
-      `Expected package version to start with "${expectedVersionPrefix}" but found version ${version} in ${packagePath}.`
+      `Expected package ${name} version to start with "${expectedMajorVersion}" but found version ${version}.`
     );
   }
 }
