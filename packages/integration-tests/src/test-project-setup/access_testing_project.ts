@@ -42,14 +42,19 @@ import { NormalizedCacheObject } from '@apollo/client';
 import { gql } from 'graphql-tag';
 import { IamCredentials } from '../types.js';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
+import { SemVer } from 'semver';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
 // see https://github.com/aws-amplify/amplify-js/issues/12751
 if (process.versions.node) {
-  console.log('node version is', process.versions.node);
-  // globalThis.crypto = crypto;
+  const nodeVersion = new SemVer(process.versions.node);
+  if (nodeVersion.major < 20) {
+    // @ts-expect-error altering typing for global to make compiler happy is not worth the effort assuming this is temporary workaround
+    globalThis.crypto = crypto;
+  }
 }
+
 // @ts
 /**
  * Creates access testing projects with typescript idioms.
