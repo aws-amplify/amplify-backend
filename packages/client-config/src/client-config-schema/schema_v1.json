@@ -136,7 +136,7 @@
           },
           "required": [
             "identity_providers",
-            "cognito_domain",
+            "domain",
             "scopes",
             "redirect_sign_in_uri",
             "redirect_sign_out_uri",
