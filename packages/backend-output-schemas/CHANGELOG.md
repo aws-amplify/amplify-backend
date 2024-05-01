@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
 ## 0.7.0
 
 ### Minor Changes

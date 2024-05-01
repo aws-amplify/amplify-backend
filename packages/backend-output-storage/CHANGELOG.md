@@ -1,5 +1,17 @@
 # @aws-amplify/backend-output-storage
 
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
+### Patch Changes
+
+- Updated dependencies [51195e2]
+  - @aws-amplify/backend-output-schemas@1.0.0
+  - @aws-amplify/platform-core@1.0.0
+
 ## 0.4.1
 
 ### Patch Changes

@@ -1,5 +1,18 @@
 # @aws-amplify/backend-data
 
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
+### Patch Changes
+
+- Updated dependencies [51195e2]
+  - @aws-amplify/backend-output-schemas@1.0.0
+  - @aws-amplify/backend-output-storage@1.0.0
+  - @aws-amplify/plugin-types@1.0.0
+
 ## 0.15.0
 
 ### Minor Changes
