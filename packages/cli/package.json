@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "ampx": "lib/ampx.js",

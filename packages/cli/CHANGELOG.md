@@ -1,5 +1,11 @@
 # @aws-amplify/backend-cli
 
+## 1.0.1
+
+### Patch Changes
+
+- ae35962: change bin order so that ampx is the first one that is picked up
+
 ## 1.0.0
 
 ### Major Changes
