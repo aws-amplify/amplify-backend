@@ -1,20 +1,14 @@
 # AWS Amplify Gen 2 Backend
 
-This next generation of Amplify’s backend building experience lets you author your frontend and backend definition completely with TypeScript, a file convention, and Git branch-based environments. To learn more, visit [AWS Amplify (Gen 2)](https://docs.amplify.aws/gen2/).
+This next generation of Amplify’s backend building experience lets you author your frontend and backend definition completely with TypeScript, a file convention, and Git branch-based environments. To learn more, visit [AWS Amplify (Gen 2)](https://docs.amplify.aws).
 
 ## Quickstart
 
-To get started with Amplify Gen 2, visit [AWS Amplify Gen 2 Quickstart](https://docs.amplify.aws/gen2/start/quickstart/).
+To get started with Amplify Gen 2, visit [AWS Amplify Gen 2 Quickstart](https://docs.amplify.aws/react/start).
 
 ```bash
 npm create amplify@latest
 ```
-
-## Tutorials
-
-- [Quickstart](https://docs.amplify.aws/gen2/start/quickstart/)
-- [Set up Amplify Auth](https://docs.amplify.aws/gen2/build-a-backend/auth/set-up-auth/)
-- [Set up Amplify Data](https://docs.amplify.aws/gen2/build-a-backend/data/set-up-data/)
 
 ## Package Manager Support
 
