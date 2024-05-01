@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Command line interface for various Amplify tools",
   "bin": {
-    "amplify": "lib/ampx.js",
-    "ampx": "lib/ampx.js"
+    "ampx": "lib/ampx.js",
+    "amplify": "lib/ampx.js"
   },
   "type": "module",
   "publishConfig": {
