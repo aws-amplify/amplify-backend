@@ -16,8 +16,8 @@ export type PipelineDeployCommandOptions =
 type PipelineDeployCommandOptionsCamelCase = {
   branch: string;
   appId: string;
-  configVersion: string;
-  configOutDir?: string;
+  outputsVersion: string;
+  outputsOutDir?: string;
 };
 
 /**
@@ -71,8 +71,8 @@ export class PipelineDeployCommand
     });
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendId,
-      args.configVersion as ClientConfigVersion,
-      args.configOutDir
+      args.outputsVersion as ClientConfigVersion,
+      args.outputsOutDir
     );
   };
 
@@ -91,15 +91,15 @@ export class PipelineDeployCommand
         type: 'string',
         array: false,
       })
-      .option('config-out-dir', {
+      .option('outputs-out-dir', {
         describe:
-          'A path to directory where config is written. If not provided defaults to current process working directory.',
+          'A path to directory where amplify_outputs is written. If not provided defaults to current process working directory.',
         type: 'string',
         array: false,
       })
-      .option('config-version', {
+      .option('outputs-version', {
         describe:
-          'Version of the client config. Version 0 represents classic amplify-cli client config (Default)',
+          'Version of the configuration. Version 0 represents classic amplify-cli config file amplify-configuration and 1 represents newer config file amplify_outputs',
         type: 'string',
         array: false,
         choices: Object.values(ClientConfigVersionOption),

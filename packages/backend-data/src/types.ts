@@ -9,6 +9,7 @@ import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
  */
 export type DefaultAuthorizationMode =
   | 'iam'
+  | 'identityPool'
   | 'userPool'
   | 'oidc'
   | 'apiKey'

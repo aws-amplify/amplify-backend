@@ -1,5 +1,13 @@
 # @aws-amplify/client-config
 
+## 0.9.7
+
+### Patch Changes
+
+- 1f38466: Replace amplify command occurrences with ampx and related renaming
+- Updated dependencies [820bc5b]
+  - @aws-amplify/model-generator@0.8.0
+
 ## 0.9.6
 
 ### Patch Changes

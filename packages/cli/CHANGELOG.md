@@ -1,5 +1,27 @@
 # @aws-amplify/backend-cli
 
+## 0.16.0
+
+### Minor Changes
+
+- 1f38466: Replace amplify command occurrences with ampx and related renaming
+- f080dad: rename config generation options as outputs generation options
+- a8bab09: throw error on amplify command with message to use ampx instead
+
+### Patch Changes
+
+- 694daaf: format.error to handle formating Error
+- 694daaf: Add debug log for emitter errors
+- 0934a1f: gracefully exit on usage data emit failure
+- Updated dependencies [1f38466]
+- Updated dependencies [694daaf]
+- Updated dependencies [820bc5b]
+  - @aws-amplify/backend-deployer@0.7.0
+  - @aws-amplify/cli-core@0.7.0
+  - @aws-amplify/client-config@0.9.7
+  - @aws-amplify/sandbox@0.6.3
+  - @aws-amplify/model-generator@0.8.0
+
 ## 0.15.0
 
 ### Minor Changes

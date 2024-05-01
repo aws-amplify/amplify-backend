@@ -57,7 +57,7 @@ const DEFAULT_TYPE_TARGET_FOR_STATEMENT_TARGET: Record<
 };
 
 /**
- * Command that generates client config.
+ * Command that generates graphql client code.
  */
 export class GenerateGraphqlClientCodeCommand
   implements CommandModule<object, GenerateGraphqlClientCodeCommandOptions>

@@ -1,5 +1,17 @@
 # create-amplify
 
+## 0.7.2
+
+### Patch Changes
+
+- 1f38466: Replace amplify command occurrences with ampx and related renaming
+- 3b9e4b7: update step 1 comment
+- 694daaf: format.error to handle formating Error
+- 11959a7: remove unused assignment in create_amplify template
+- Updated dependencies [1f38466]
+- Updated dependencies [694daaf]
+  - @aws-amplify/cli-core@0.7.0
+
 ## 0.7.1
 
 ### Patch Changes

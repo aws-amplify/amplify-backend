@@ -1,5 +1,15 @@
 # @aws-amplify/backend
 
+## 0.15.1
+
+### Patch Changes
+
+- 1f38466: Replace amplify command occurrences with ampx and related renaming
+- Updated dependencies [1f38466]
+- Updated dependencies [8dfab74]
+  - @aws-amplify/client-config@0.9.7
+  - @aws-amplify/backend-data@0.15.0
+
 ## 0.15.0
 
 ### Minor Changes

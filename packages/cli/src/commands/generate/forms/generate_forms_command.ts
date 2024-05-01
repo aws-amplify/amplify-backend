@@ -19,7 +19,7 @@ type GenerateFormsCommandOptionsCamelCase = {
 };
 
 /**
- * Command that generates client config.
+ * Command that generates UI forms.
  */
 export class GenerateFormsCommand
   implements CommandModule<object, GenerateFormsCommandOptions>
@@ -35,7 +35,7 @@ export class GenerateFormsCommand
   readonly describe: string;
 
   /**
-   * Creates client config generation command.
+   * Creates UI forms generation command.
    */
   constructor(
     private readonly backendIdentifierResolver: BackendIdentifierResolver,

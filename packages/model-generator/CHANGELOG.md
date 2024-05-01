@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 0.8.0
+
+### Minor Changes
+
+- 820bc5b: respect maxDepth and typenameIntrospection when generating types
+
 ## 0.7.1
 
 ### Patch Changes
