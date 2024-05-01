@@ -7,7 +7,6 @@
 '@aws-amplify/backend-function': major
 '@aws-amplify/backend-output-schemas': major
 '@aws-amplify/backend-output-storage': major
-'@aws-amplify/backend-platform-test-stubs': major
 '@aws-amplify/backend-secret': major
 '@aws-amplify/backend-storage': major
 '@aws-amplify/backend-cli': major
