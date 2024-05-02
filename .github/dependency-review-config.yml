@@ -30,24 +30,4 @@ allow-licenses:
   - Zlib
 # Skip our packages under packages/ as they don't have their own license file and are treated as if they don't have a license
 allow-dependencies-licenses:
-  - pkg:aws-amplify/ampx
-  - pkg:aws-amplify/auth-construct
-  - pkg:aws-amplify/backend
-  - pkg:aws-amplify/backend-auth
-  - pkg:aws-amplify/backend-data
-  - pkg:aws-amplify/backend-deployer
-  - pkg:aws-amplify/backend-function
-  - pkg:aws-amplify/backend-output-schemas
-  - pkg:aws-amplify/backend-output-storage
-  - pkg:aws-amplify/backend-secret
-  - pkg:aws-amplify/backend-storage
-  - pkg:aws-amplify/cli
-  - pkg:aws-amplify/cli-core
-  - pkg:aws-amplify/client-config
-  - pkg:aws-amplify/create-amplify
-  - pkg:aws-amplify/deployed-backend-client
-  - pkg:aws-amplify/form-generator
-  - pkg:aws-amplify/platform-core
-  - pkg:aws-amplify/plugin-types
-  - pkg:aws-amplify/sandbox
-  - pkg:aws-amplify/schema-generator
+  - pkg:npm/aws-amplify/amplify-backend#packages
