@@ -33,6 +33,7 @@ import { AccessCheckPolicyType } from '@aws-sdk/client-accessanalyzer/dist-types
 import assert from 'assert';
 import os from 'os';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { amplifyAtTag } from '../constants.js';
 
 void describe('iam access drift', () => {
   let branchBackendIdentifier: BackendIdentifier;
@@ -255,6 +256,11 @@ void describe('iam access drift', () => {
 
   void it('should not drift iam policies', async () => {
     await baselineNpmProxyController.setUp();
+
+    await execa('npm', ['create', amplifyAtTag, '--yes'], {
+      cwd: tempDir,
+      stdio: 'inherit',
+    });
 
     await deploy();
 
