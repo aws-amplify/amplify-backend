@@ -10,7 +10,6 @@ on:
       - main
       - hotfix
       - feature/**
-      - no-new-access-check
   workflow_dispatch:
 
 jobs:
