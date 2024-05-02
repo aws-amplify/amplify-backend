@@ -9,6 +9,6 @@ runs:
       id: build-cache
       with:
         path: '**/lib'
-        key: ${{ github.sha }}
+        key: ${{ github.sha }}-node${{ inputs.node-version }}
         fail-on-cache-miss: true
         enableCrossOsArchive: true

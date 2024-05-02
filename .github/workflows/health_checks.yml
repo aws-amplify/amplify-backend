@@ -30,6 +30,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - uses: ./.github/actions/install_with_cache
+        with:
+          node-version: ${{ matrix.node }}
   build:
     strategy:
       matrix:
@@ -42,8 +44,9 @@ jobs:
       - uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node }}
-      - uses: ./.github/actions/install_with_cache
       - uses: ./.github/actions/build_with_cache
+        with:
+          node-version: ${{ matrix.node }}
   test_with_coverage:
     needs:
       - build
@@ -58,7 +61,11 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - uses: ./.github/actions/install_with_cache
+        with:
+          node-version: ${{ matrix.node }}
       - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: ${{ matrix.node }}
       - run: npm run set-script-shell
       - run: npm run test:coverage:threshold
   test_scripts:
