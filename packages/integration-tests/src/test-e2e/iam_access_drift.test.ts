@@ -48,11 +48,11 @@ void describe('iam access drift', () => {
   let currentNpmProxyController: NpmProxyController;
 
   before(async () => {
-    // assert.ok(
-    //   process.env.BASELINE_DIR,
-    //   'BASELINE_DIR environment variable must be set and point to amplify-backend repo at baseline version'
-    // );
-    baselineDir = process.cwd();
+    assert.ok(
+      process.env.BASELINE_DIR,
+      'BASELINE_DIR environment variable must be set and point to amplify-backend repo at baseline version'
+    );
+    baselineDir = process.env.BASELINE_DIR;
 
     tempDir = await fsp.mkdtemp(
       path.join(os.tmpdir(), 'test-iam-access-drift')
