@@ -402,4 +402,4 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@v3
         with:
-          config-file: aws-amplify/amplify-ci-support/.github/dependency-review-config.yml@main
+          config-file: ./.github/dependency-review-config.yml
