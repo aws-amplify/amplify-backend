@@ -30,24 +30,24 @@ allow-licenses:
   - Zlib
 # Skip our packages under packages/ as they don't have their own license file and are treated as if they don't have a license
 allow-dependencies-licenses:
-  - pkg:npm/aws-amplify/amplify-backend#packages/ampx
-  - pkg:npm/aws-amplify/amplify-backend#packages/auth-construct
-  - pkg:npm/aws-amplify/amplify-backend#packages/backend
-  - pkg:npm/aws-amplify/amplify-backend#packages/backend-auth
-  - pkg:npm/aws-amplify/amplify-backend#packages/backend-data
-  - pkg:npm/aws-amplify/amplify-backend#packages/backend-deployer
-  - pkg:npm/aws-amplify/amplify-backend#packages/backend-function
-  - pkg:npm/aws-amplify/amplify-backend#packages/backend-output-schemas
-  - pkg:npm/aws-amplify/amplify-backend#packages/backend-output-storage
-  - pkg:npm/aws-amplify/amplify-backend#packages/backend-secret
-  - pkg:npm/aws-amplify/amplify-backend#packages/backend-storage
-  - pkg:npm/aws-amplify/amplify-backend#packages/cli
-  - pkg:npm/aws-amplify/amplify-backend#packages/cli-core
-  - pkg:npm/aws-amplify/amplify-backend#packages/client-config
-  - pkg:npm/aws-amplify/amplify-backend#packages/create-amplify
-  - pkg:npm/aws-amplify/amplify-backend#packages/deployed-backend-client
-  - pkg:npm/aws-amplify/amplify-backend#packages/form-generator
-  - pkg:npm/aws-amplify/amplify-backend#packages/platform-core
-  - pkg:npm/aws-amplify/amplify-backend#packages/plugin-types
-  - pkg:npm/aws-amplify/amplify-backend#packages/sandbox
-  - pkg:npm/aws-amplify/amplify-backend#packages/schema-generator
+  - pkg:npm/packages/ampx
+  - pkg:npm/packages/auth-construct
+  - pkg:npm/packages/backend
+  - pkg:npm/packages/backend-auth
+  - pkg:npm/packages/backend-data
+  - pkg:npm/packages/backend-deployer
+  - pkg:npm/packages/backend-function
+  - pkg:npm/packages/backend-output-schemas
+  - pkg:npm/packages/backend-output-storage
+  - pkg:npm/packages/backend-secret
+  - pkg:npm/packages/backend-storage
+  - pkg:npm/packages/cli
+  - pkg:npm/packages/cli-core
+  - pkg:npm/packages/client-config
+  - pkg:npm/packages/create-amplify
+  - pkg:npm/packages/deployed-backend-client
+  - pkg:npm/packages/form-generator
+  - pkg:npm/packages/platform-core
+  - pkg:npm/packages/plugin-types
+  - pkg:npm/packages/sandbox
+  - pkg:npm/packages/schema-generator
