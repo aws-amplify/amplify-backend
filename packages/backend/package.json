@@ -35,7 +35,7 @@
     "@aws-amplify/client-config": "^1.0.0",
     "@aws-amplify/platform-core": "^1.0.0",
     "@aws-amplify/plugin-types": "^1.0.0",
-    "@aws-sdk/client-amplify": "^3.465.0",
+    "@aws-sdk/client-amplify": "^3.567.0",
     "lodash.snakecase": "^4.1.1"
   },
   "peerDependencies": {

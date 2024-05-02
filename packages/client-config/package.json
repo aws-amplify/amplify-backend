@@ -30,13 +30,13 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@aws-sdk/types": "^3.465.0",
+    "@aws-sdk/types": "^3.567.0",
     "@aws-sdk/util-stream-node": "^3.374.0",
     "aws-sdk-client-mock": "^3.0.0"
   },
   "peerDependencies": {
-    "@aws-sdk/client-amplify": "^3.465.0",
-    "@aws-sdk/client-cloudformation": "^3.465.0",
-    "@aws-sdk/client-s3": "^3.465.0"
+    "@aws-sdk/client-amplify": "^3.567.0",
+    "@aws-sdk/client-cloudformation": "^3.567.0",
+    "@aws-sdk/client-s3": "^3.567.0"
   }
 }
