@@ -401,3 +401,5 @@ jobs:
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
       - name: Dependency Review
         uses: actions/dependency-review-action@v3
+        with:
+          config-file: aws-amplify/amplify-ci-support/.github/dependency-review-config.yml@main
