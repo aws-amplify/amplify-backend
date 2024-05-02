@@ -30,24 +30,24 @@ allow-licenses:
   - Zlib
 # Skip our packages under packages/ as they don't have their own license file and are treated as if they don't have a license
 allow-dependencies-licenses:
-  - pkg:npm/aws-amplify/ampx
-  - pkg:npm/aws-amplify/auth-construct
-  - pkg:npm/aws-amplify/backend
-  - pkg:npm/aws-amplify/backend-auth
-  - pkg:npm/aws-amplify/backend-data
-  - pkg:npm/aws-amplify/backend-deployer
-  - pkg:npm/aws-amplify/backend-function
-  - pkg:npm/aws-amplify/backend-output-schemas
-  - pkg:npm/aws-amplify/backend-output-storage
-  - pkg:npm/aws-amplify/backend-secret
-  - pkg:npm/aws-amplify/backend-storage
-  - pkg:npm/aws-amplify/cli
-  - pkg:npm/aws-amplify/cli-core
-  - pkg:npm/aws-amplify/client-config
-  - pkg:npm/aws-amplify/create-amplify
-  - pkg:npm/aws-amplify/deployed-backend-client
-  - pkg:npm/aws-amplify/form-generator
-  - pkg:npm/aws-amplify/platform-core
-  - pkg:npm/aws-amplify/plugin-types
-  - pkg:npm/aws-amplify/sandbox
-  - pkg:npm/aws-amplify/schema-generator
+  - pkg:npm/aws-amplify/amplify-backend#packages/ampx
+  - pkg:npm/aws-amplify/amplify-backend#packages/auth-construct
+  - pkg:npm/aws-amplify/amplify-backend#packages/backend
+  - pkg:npm/aws-amplify/amplify-backend#packages/backend-auth
+  - pkg:npm/aws-amplify/amplify-backend#packages/backend-data
+  - pkg:npm/aws-amplify/amplify-backend#packages/backend-deployer
+  - pkg:npm/aws-amplify/amplify-backend#packages/backend-function
+  - pkg:npm/aws-amplify/amplify-backend#packages/backend-output-schemas
+  - pkg:npm/aws-amplify/amplify-backend#packages/backend-output-storage
+  - pkg:npm/aws-amplify/amplify-backend#packages/backend-secret
+  - pkg:npm/aws-amplify/amplify-backend#packages/backend-storage
+  - pkg:npm/aws-amplify/amplify-backend#packages/cli
+  - pkg:npm/aws-amplify/amplify-backend#packages/cli-core
+  - pkg:npm/aws-amplify/amplify-backend#packages/client-config
+  - pkg:npm/aws-amplify/amplify-backend#packages/create-amplify
+  - pkg:npm/aws-amplify/amplify-backend#packages/deployed-backend-client
+  - pkg:npm/aws-amplify/amplify-backend#packages/form-generator
+  - pkg:npm/aws-amplify/amplify-backend#packages/platform-core
+  - pkg:npm/aws-amplify/amplify-backend#packages/plugin-types
+  - pkg:npm/aws-amplify/amplify-backend#packages/sandbox
+  - pkg:npm/aws-amplify/amplify-backend#packages/schema-generator
