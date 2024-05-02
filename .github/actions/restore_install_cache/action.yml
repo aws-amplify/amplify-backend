@@ -1,5 +1,9 @@
 name: restore_install_cache
 description: restores node_modules from the cache and fails if no cache entry found
+inputs:
+  node-version:
+    description: node version used to configure environment with
+    default: 18
 runs:
   using: composite
   steps:

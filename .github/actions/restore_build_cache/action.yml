@@ -1,5 +1,9 @@
 name: restore_build_cache
 description: composes restoring node_modules and restoring build artifacts
+inputs:
+  node-version:
+    description: node version used to configure environment with
+    default: 18
 runs:
   using: composite
   steps:
