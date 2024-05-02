@@ -31,6 +31,7 @@ allow-licenses:
 # Skip our packages under packages/ as they don't have their own license file and are treated as if they don't have a license
 allow-dependencies-licenses:
   - pkg:npm/packages/ampx
+  - pkg:npm/%40aws-amplify/amplify-backend#packages%2Fauth-construct
   - pkg:npm/%40aws-amplify/auth-construct
   - pkg:npm/packages/backend
   - pkg:npm/packages/backend-auth
