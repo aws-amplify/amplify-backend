@@ -1,5 +1,28 @@
 # @aws-amplify/client-config
 
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
+### Patch Changes
+
+- dc193cd: update outputs schema oauth requirement to include "domain" instead of "cognito_domain"
+- Updated dependencies [51195e2]
+  - @aws-amplify/backend-output-schemas@1.0.0
+  - @aws-amplify/deployed-backend-client@1.0.0
+  - @aws-amplify/model-generator@1.0.0
+  - @aws-amplify/platform-core@1.0.0
+
+## 0.9.7
+
+### Patch Changes
+
+- 1f38466: Replace amplify command occurrences with ampx and related renaming
+- Updated dependencies [820bc5b]
+  - @aws-amplify/model-generator@0.8.0
+
 ## 0.9.6
 
 ### Patch Changes

@@ -1,5 +1,36 @@
 # @aws-amplify/backend
 
+## 1.0.0
+
+### Major Changes
+
+- 51195e2: Major version bump for all public pacakges.
+
+### Patch Changes
+
+- Updated dependencies [51195e2]
+- Updated dependencies [dc193cd]
+  - @aws-amplify/backend-auth@1.0.0
+  - @aws-amplify/backend-data@1.0.0
+  - @aws-amplify/backend-function@1.0.0
+  - @aws-amplify/backend-output-schemas@1.0.0
+  - @aws-amplify/backend-output-storage@1.0.0
+  - @aws-amplify/backend-secret@1.0.0
+  - @aws-amplify/backend-storage@1.0.0
+  - @aws-amplify/client-config@1.0.0
+  - @aws-amplify/platform-core@1.0.0
+  - @aws-amplify/plugin-types@1.0.0
+
+## 0.15.1
+
+### Patch Changes
+
+- 1f38466: Replace amplify command occurrences with ampx and related renaming
+- Updated dependencies [1f38466]
+- Updated dependencies [8dfab74]
+  - @aws-amplify/client-config@0.9.7
+  - @aws-amplify/backend-data@0.15.0
+
 ## 0.15.0
 
 ### Minor Changes

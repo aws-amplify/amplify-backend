@@ -1,10 +1,10 @@
 {
   "name": "@aws-amplify/backend-cli",
-  "version": "0.15.0",
+  "version": "1.0.1",
   "description": "Command line interface for various Amplify tools",
   "bin": {
-    "amplify": "lib/ampx.js",
-    "ampx": "lib/ampx.js"
+    "ampx": "lib/ampx.js",
+    "amplify": "lib/ampx.js"
   },
   "type": "module",
   "publishConfig": {
@@ -30,17 +30,17 @@
   },
   "homepage": "https://github.com/aws-amplify/amplify-backend#readme",
   "dependencies": {
-    "@aws-amplify/backend-deployer": "^0.6.0",
-    "@aws-amplify/backend-output-schemas": "^0.7.0",
-    "@aws-amplify/backend-secret": "^0.4.6",
-    "@aws-amplify/cli-core": "^0.6.0",
-    "@aws-amplify/client-config": "^0.9.6",
-    "@aws-amplify/deployed-backend-client": "^0.4.2",
-    "@aws-amplify/form-generator": "^0.10.0",
-    "@aws-amplify/model-generator": "^0.7.1",
-    "@aws-amplify/platform-core": "^0.5.1",
-    "@aws-amplify/sandbox": "^0.6.2",
-    "@aws-amplify/schema-generator": "^0.2.1",
+    "@aws-amplify/backend-deployer": "^1.0.0",
+    "@aws-amplify/backend-output-schemas": "^1.0.0",
+    "@aws-amplify/backend-secret": "^1.0.0",
+    "@aws-amplify/cli-core": "^1.0.0",
+    "@aws-amplify/client-config": "^1.0.0",
+    "@aws-amplify/deployed-backend-client": "^1.0.0",
+    "@aws-amplify/form-generator": "^1.0.0",
+    "@aws-amplify/model-generator": "^1.0.0",
+    "@aws-amplify/platform-core": "^1.0.0",
+    "@aws-amplify/sandbox": "^1.0.0",
+    "@aws-amplify/schema-generator": "^1.0.0",
     "@aws-sdk/client-amplify": "^3.465.0",
     "@aws-sdk/client-cloudformation": "^3.465.0",
     "@aws-sdk/client-s3": "^3.465.0",

@@ -11,6 +11,7 @@ import {
 } from '@aws-amplify/platform-core';
 import { fileURLToPath } from 'node:url';
 import { LogLevel, format, printer } from '@aws-amplify/cli-core';
+import { verifyCommandName } from './verify_command_name.js';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
@@ -29,6 +30,8 @@ const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
 );
 
 attachUnhandledExceptionListeners(usageDataEmitter);
+
+verifyCommandName();
 
 const parser = createMainParser(libraryVersion, usageDataEmitter);
 await parser.parseAsync(hideBin(process.argv));

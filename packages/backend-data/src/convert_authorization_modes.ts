@@ -179,6 +179,7 @@ const computeApiKeyAuthFromResource = (
 
 const authorizationModeMapping = {
   iam: 'AWS_IAM',
+  identityPool: 'AWS_IAM',
   userPool: 'AMAZON_COGNITO_USER_POOLS',
   oidc: 'OPENID_CONNECT',
   apiKey: 'API_KEY',
