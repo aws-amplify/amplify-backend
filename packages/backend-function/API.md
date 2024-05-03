@@ -9,6 +9,7 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 // @public
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;
@@ -25,6 +26,9 @@ export type FunctionProps = {
 
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20;
+
+// @public (undocumented)
+export const nodeVersionMap: Record<NodeVersion, Runtime>;
 
 // (No @packageDocumentation comment for this package)
 

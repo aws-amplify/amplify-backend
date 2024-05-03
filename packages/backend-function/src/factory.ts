@@ -391,7 +391,7 @@ const isWholeNumberBetweenInclusive = (
 
 export type NodeVersion = 16 | 18 | 20;
 
-const nodeVersionMap: Record<NodeVersion, Runtime> = {
+export const nodeVersionMap: Record<NodeVersion, Runtime> = {
   16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
