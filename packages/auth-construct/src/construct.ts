@@ -25,7 +25,12 @@ import {
   UserPoolIdentityProviderSamlMetadataType,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
-import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
+import {
+  AccountPrincipal,
+  CompositePrincipal,
+  FederatedPrincipal,
+  Role,
+} from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
   AttributeMapping,
@@ -201,17 +206,20 @@ export class AmplifyAuth
   private setupAuthAndUnAuthRoles = (identityPoolId: string): DefaultRoles => {
     const result: DefaultRoles = {
       auth: new Role(this, `${this.name}authenticatedUserRole`, {
-        assumedBy: new FederatedPrincipal(
-          'cognito-identity.amazonaws.com',
-          {
-            StringEquals: {
-              'cognito-identity.amazonaws.com:aud': identityPoolId,
+        assumedBy: new CompositePrincipal(
+          new FederatedPrincipal(
+            'cognito-identity.amazonaws.com',
+            {
+              StringEquals: {
+                'cognito-identity.amazonaws.com:aud': identityPoolId,
+              },
+              'ForAnyValue:StringLike': {
+                'cognito-identity.amazonaws.com:amr': 'authenticated',
+              },
             },
-            'ForAnyValue:StringLike': {
-              'cognito-identity.amazonaws.com:amr': 'authenticated',
-            },
-          },
-          'sts:AssumeRoleWithWebIdentity'
+            'sts:AssumeRoleWithWebIdentity'
+          ),
+          new AccountPrincipal(Stack.of(this).account)
         ),
       }),
       unAuth: new Role(this, `${this.name}unauthenticatedUserRole`, {
