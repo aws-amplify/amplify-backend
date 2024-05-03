@@ -32,7 +32,7 @@ export class AppSyncPolicyGenerator {
     return new Policy(this.stack, `${this.policyPrefix}${this.policyCount++}`, {
       statements: [
         new PolicyStatement({
-          actions: ['appsync:GraphQL'],
+          actions: ['appsync:GraphQL', 'appsync:GetGraphqlApi'],
           resources,
         }),
       ],
