@@ -37,6 +37,7 @@ allow-dependencies-licenses:
   - pkg:npm/packages/backend
   - pkg:npm/packages%2Fbackend
   - pkg:npm/packages/backend-auth
+  - pkg:npm/aws-amplify/packages%2Fbackend-auth
   - pkg:npm/packages/backend-data
   - pkg:npm/packages/backend-deployer
   - pkg:npm/packages/backend-function
