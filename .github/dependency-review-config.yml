@@ -41,6 +41,7 @@ allow-dependencies-licenses:
   - pkg:npm/packages/backend-data
   - pkg:npm/aws-amplify/%40aws-amplify%2Fbackend-data
   - pkg:npm/packages/backend-deployer
+  - pkg:npm/%40aws-amplify%2Fbackend-deployer
   - pkg:npm/packages/backend-function
   - pkg:npm/packages/backend-output-schemas
   - pkg:npm/packages/backend-output-storage
@@ -52,6 +53,7 @@ allow-dependencies-licenses:
   - pkg:npm/packages/create-amplify
   - pkg:npm/packages/deployed-backend-client
   - pkg:npm/packages/form-generator
+  - pkg:npm/packages/model-generator
   - pkg:npm/packages/platform-core
   - pkg:npm/packages/plugin-types
   - pkg:npm/packages/sandbox
