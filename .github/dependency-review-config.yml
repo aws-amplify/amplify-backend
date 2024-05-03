@@ -35,6 +35,7 @@ allow-dependencies-licenses:
   - pkg:npm/aws-amplify/amplify-backend#packages%2Fauth-construct
   - pkg:npm/%40aws-amplify/auth-construct
   - pkg:npm/packages/backend
+  - pkg:npm/packages%2Fbackend
   - pkg:npm/packages/backend-auth
   - pkg:npm/packages/backend-data
   - pkg:npm/packages/backend-deployer
