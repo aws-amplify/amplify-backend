@@ -131,6 +131,7 @@ jobs:
             echo "run_e2e=false" >> "$GITHUB_OUTPUT";
           fi
   e2e_iam_access_drift:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs:
