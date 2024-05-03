@@ -33,3 +33,5 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
     keyof ResourceAccessAcceptorFactory
   >;
 };
+
+// testing code owners default ownership
