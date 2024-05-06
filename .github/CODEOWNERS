@@ -1,7 +1,10 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence.
-*  @edwardfoyle @sobolk @Amplifiyer @srquinn21
+*  @aws-amplify/amplify-backend
 
 # API approval - public surface and dependencies.
-**/API.md @edwardfoyle @sobolk @Amplifiyer @srquinn21
-**/package.json @edwardfoyle @sobolk @Amplifiyer @srquinn21
+**/API.md @aws-amplify/amplify-backend-api-approvers
+**/package.json @aws-amplify/amplify-backend-api-approvers
+
+# GitHub actions/checks approval
+/.github/ @aws-amplify/amplify-backend-admins
