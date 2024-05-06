@@ -60,9 +60,6 @@ jobs:
       - uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node }}
-      - uses: ./.github/actions/install_with_cache
-        with:
-          node-version: ${{ matrix.node }}
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ matrix.node }}
