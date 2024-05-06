@@ -56,7 +56,6 @@ if (process.versions.node) {
   }
 }
 
-// @ts
 /**
  * Creates access testing projects with typescript idioms.
  */
