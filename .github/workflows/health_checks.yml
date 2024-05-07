@@ -424,7 +424,7 @@ jobs:
           languages: javascript
           queries: +security-and-quality
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@e4262713b504983e61c7728f5452be240d9385a7 # version 2.14.3
+        uses: github/codeql-action/analyze@8fcfedf57053e09257688fce7a0beeb18b1b9ae3 # version 2.17.2
         with:
           category: /language:javascript
   dependency-review:
