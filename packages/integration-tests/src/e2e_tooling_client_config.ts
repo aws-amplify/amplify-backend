@@ -16,6 +16,6 @@ export const e2eToolingClientConfig = process.env.CI
   ? {
       credentials: fromIni({ profile: E2E_TOOLING_PROFILE }),
       region: E2E_TOOLING_REGION,
-      maxAttempts: 5,
+      maxAttempts: 6,
     }
-  : { maxAttempts: 5 };
+  : { maxAttempts: 6 };
