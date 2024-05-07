@@ -123,10 +123,24 @@ void describe('iam access drift', () => {
     policyStatement: string;
   };
 
+  type PolicyComparisonParams = {
+    baselinePolicy?: ManagedIamPolicy | RoleTrustPolicy | RoleInlinePolicy;
+    currentPolicy?: ManagedIamPolicy | RoleTrustPolicy | RoleInlinePolicy;
+    policyType: AccessCheckPolicyType;
+  };
+
   type PolicyComparisonResult = {
-    baselinePolicy: ManagedIamPolicy | RoleTrustPolicy | RoleInlinePolicy;
-    currentPolicy: ManagedIamPolicy | RoleTrustPolicy | RoleInlinePolicy;
-    comparisonResult: CheckNoNewAccessCommandOutput;
+    baselinePolicy:
+      | ManagedIamPolicy
+      | RoleTrustPolicy
+      | RoleInlinePolicy
+      | undefined;
+    currentPolicy:
+      | ManagedIamPolicy
+      | RoleTrustPolicy
+      | RoleInlinePolicy
+      | undefined;
+    comparisonResult: Omit<CheckNoNewAccessCommandOutput, '$metadata'>;
   };
 
   const listManagedIamPolicies = async (): Promise<Array<ManagedIamPolicy>> => {
@@ -241,17 +255,70 @@ void describe('iam access drift', () => {
   };
 
   const comparePolicy = async (
-    baselinePolicy: string,
-    currentPolicy: string,
-    policyType: AccessCheckPolicyType
-  ): Promise<CheckNoNewAccessCommandOutput> => {
+    policyComparisonParams: PolicyComparisonParams
+  ): Promise<Omit<CheckNoNewAccessCommandOutput, '$metadata'>> => {
+    if (
+      !policyComparisonParams.baselinePolicy &&
+      !policyComparisonParams.currentPolicy
+    ) {
+      throw new Error('Neither baseline nor current policy has been provided');
+    }
+    if (!policyComparisonParams.baselinePolicy) {
+      return {
+        message:
+          'A new policy was added to sample application when using new version of packages',
+        result: 'FAIL',
+      };
+    }
+    if (!policyComparisonParams.currentPolicy) {
+      return {
+        message:
+          'A new policy was removed from sample application when using new version of packages',
+        result: 'FAIL',
+      };
+    }
     return await accessAnalyzerClient.send(
       new CheckNoNewAccessCommand({
-        existingPolicyDocument: baselinePolicy,
-        newPolicyDocument: currentPolicy,
-        policyType: policyType,
+        existingPolicyDocument:
+          policyComparisonParams.baselinePolicy.policyStatement,
+        newPolicyDocument: policyComparisonParams.currentPolicy.policyStatement,
+        policyType: policyComparisonParams.policyType,
       })
     );
+  };
+
+  const matchBaselineAndCurrentPolicies = <
+    T extends ManagedIamPolicy | RoleTrustPolicy | RoleInlinePolicy
+  >(
+    baselinePolicies: Array<T>,
+    currentPolicies: Array<T>,
+    uniqueKeyProvider: (policy: T) => string,
+    policyType: AccessCheckPolicyType
+  ): IterableIterator<PolicyComparisonParams> => {
+    const policyComparisonParamsMap = new Map<string, PolicyComparisonParams>();
+    baselinePolicies.forEach((policy) => {
+      const key = uniqueKeyProvider(policy);
+      let policyComparisonParams = policyComparisonParamsMap.get(key);
+      if (!policyComparisonParams) {
+        policyComparisonParams = {
+          policyType,
+        };
+        policyComparisonParamsMap.set(key, policyComparisonParams);
+      }
+      policyComparisonParams.baselinePolicy = policy;
+    });
+    currentPolicies.forEach((policy) => {
+      const key = uniqueKeyProvider(policy);
+      let policyComparisonParams = policyComparisonParamsMap.get(key);
+      if (!policyComparisonParams) {
+        policyComparisonParams = {
+          policyType,
+        };
+        policyComparisonParamsMap.set(key, policyComparisonParams);
+      }
+      policyComparisonParams.currentPolicy = policy;
+    });
+    return policyComparisonParamsMap.values();
   };
 
   void it('should not drift iam policies', async () => {
@@ -278,58 +345,41 @@ void describe('iam access drift', () => {
     const currentRoleTrustPolicies = await listRoleTrustPolicies();
     const currentRoleInlinePolicies = await listRoleInlinePolicies();
 
+    const allPolicyComparisonParams: Array<PolicyComparisonParams> = [];
+    allPolicyComparisonParams.push(
+      ...matchBaselineAndCurrentPolicies(
+        baselineManagedIamPolicies,
+        currentManagedIamPolicies,
+        (policy) => policy.policyArn,
+        'IDENTITY_POLICY'
+      )
+    );
+
+    allPolicyComparisonParams.push(
+      ...matchBaselineAndCurrentPolicies(
+        baselineRoleTrustPolicies,
+        currentRoleTrustPolicies,
+        (policy) => policy.roleName,
+        'RESOURCE_POLICY'
+      )
+    );
+
+    allPolicyComparisonParams.push(
+      ...matchBaselineAndCurrentPolicies(
+        baselineRoleInlinePolicies,
+        currentRoleInlinePolicies,
+        (policy) => `${policy.roleName}-${policy.policyName}`,
+        'IDENTITY_POLICY'
+      )
+    );
+
     const comparisonResults: Array<PolicyComparisonResult> = [];
-    for (const baselinePolicy of baselineManagedIamPolicies) {
-      const currentPolicy = currentManagedIamPolicies.find(
-        (p) => p.policyArn === baselinePolicy.policyArn
-      );
-      if (currentPolicy) {
-        comparisonResults.push({
-          baselinePolicy,
-          currentPolicy,
-          comparisonResult: await comparePolicy(
-            baselinePolicy.policyStatement,
-            currentPolicy.policyStatement,
-            'IDENTITY_POLICY'
-          ),
-        });
-      }
-    }
-
-    for (const baselinePolicy of baselineRoleTrustPolicies) {
-      const currentPolicy = currentRoleTrustPolicies.find(
-        (p) => p.roleName === baselinePolicy.roleName
-      );
-      if (currentPolicy) {
-        comparisonResults.push({
-          baselinePolicy,
-          currentPolicy,
-          comparisonResult: await comparePolicy(
-            baselinePolicy.policyStatement,
-            currentPolicy.policyStatement,
-            'RESOURCE_POLICY'
-          ),
-        });
-      }
-    }
-
-    for (const baselinePolicy of baselineRoleInlinePolicies) {
-      const currentPolicy = currentRoleInlinePolicies.find(
-        (p) =>
-          p.roleName === baselinePolicy.roleName &&
-          p.policyName === baselinePolicy.policyName
-      );
-      if (currentPolicy) {
-        comparisonResults.push({
-          baselinePolicy,
-          currentPolicy,
-          comparisonResult: await comparePolicy(
-            baselinePolicy.policyStatement,
-            currentPolicy.policyStatement,
-            'IDENTITY_POLICY'
-          ),
-        });
-      }
+    for (const policyComparisonParams of allPolicyComparisonParams) {
+      comparisonResults.push({
+        baselinePolicy: policyComparisonParams.baselinePolicy,
+        currentPolicy: policyComparisonParams.currentPolicy,
+        comparisonResult: await comparePolicy(policyComparisonParams),
+      });
     }
 
     const policiesWithNewAccess = comparisonResults.filter(
