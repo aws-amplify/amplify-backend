@@ -5,6 +5,7 @@ import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   AccessAnalyzerClient,
+  AccessCheckPolicyType,
   CheckNoNewAccessCommand,
   CheckNoNewAccessCommandOutput,
 } from '@aws-sdk/client-accessanalyzer';
@@ -29,7 +30,6 @@ import fsp from 'fs/promises';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { NpmProxyController } from '../npm_proxy_controller.js';
-import { AccessCheckPolicyType } from '@aws-sdk/client-accessanalyzer/dist-types/models/models_0.js';
 import assert from 'assert';
 import os from 'os';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
