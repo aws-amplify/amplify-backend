@@ -179,11 +179,10 @@ jobs:
         id: move_baseline_version
         run: |
           BASELINE_DIR=$(mktemp -d)
-          ls -al .
+          # Command below makes shell include .hidden files in file system commands (i.e. mv).
+          # This is to make sure that .git directory is moved with the repo content.
           shopt -s dotglob
           mv ./* $BASELINE_DIR
-          ls -al $BASELINE_DIR
-          ls -al .
           echo "baseline_dir=$BASELINE_DIR" >> "$GITHUB_OUTPUT";
       - name: Checkout current version
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
