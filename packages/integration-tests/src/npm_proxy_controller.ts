@@ -26,30 +26,8 @@ export class NpmProxyController {
       cwd: this.workspacePath,
     });
 
-    // nuke the npx cache to ensure we are installing packages from the npm proxy
-    const { stdout } = await execa('npm', ['config', 'get', 'cache']);
-    const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
-
-    if (existsSync(npxCacheLocation)) {
-      await fs.rm(npxCacheLocation, { recursive: true });
-    }
-
-    // Force 'create-amplify' installation in npx cache by executing help command
-    // before tests run. Otherwise, installing 'create-amplify' concurrently
-    // may lead to race conditions and corrupted npx cache.
-    const output = await execa(
-      'npm',
-      ['create', amplifyAtTag, '--yes', '--', '--help'],
-      {
-        // Command must run outside of 'amplify-backend' workspace.
-        cwd: os.homedir(),
-      }
-    );
-
-    assert.match(output.stdout, /--help/);
-    assert.match(output.stdout, /--version/);
-    assert.match(output.stdout, /Show version number/);
-    assert.match(output.stdout, /--yes/);
+    await this.invalidateNpxCache();
+    await this.hydrateNpxCacheWithCreateAmplify();
   };
 
   tearDown = async (): Promise<void> => {
@@ -58,5 +36,42 @@ export class NpmProxyController {
       stdio: 'inherit',
       cwd: this.workspacePath,
     });
+  };
+
+  /**
+   * Nukes the npx cache to ensure we are installing packages from the npm proxy
+   */
+  private invalidateNpxCache = async (): Promise<void> => {
+    const { stdout } = await execa('npm', ['config', 'get', 'cache']);
+    const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
+
+    if (existsSync(npxCacheLocation)) {
+      await fs.rm(npxCacheLocation, { recursive: true });
+    }
+  };
+
+  /**
+   * Forces 'create-amplify' installation in npx cache by executing help command
+   * before tests run. Otherwise, installing 'create-amplify' concurrently
+   * may lead to race conditions and corrupted npx cache.
+   */
+  private hydrateNpxCacheWithCreateAmplify = async (): Promise<void> => {
+    // Invoke create-amplify with --help to force installation in npx cache.
+    // This command does not create any project and only prints help.
+    const output = await execa(
+      'npm',
+      ['create', amplifyAtTag, '--yes', '--', '--help'],
+      {
+        // Command must run outside 'amplify-backend' workspace.
+        // Otherwise, workspace copy is found and npx cache is not hydrated.
+        cwd: os.homedir(),
+      }
+    );
+
+    // Assert that above command printed help output.
+    assert.match(output.stdout, /--help/);
+    assert.match(output.stdout, /--version/);
+    assert.match(output.stdout, /Show version number/);
+    assert.match(output.stdout, /--yes/);
   };
 }
