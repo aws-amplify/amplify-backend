@@ -25,7 +25,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/install_with_cache
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
           role-to-assume: ${{ secrets.E2E_RESOURCE_CLEANUP_ROLE_ARN }}
           aws-region: ${{ matrix.region }}
