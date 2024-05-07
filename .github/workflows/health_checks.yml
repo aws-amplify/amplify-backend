@@ -308,7 +308,7 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
       - run: npm run docs
       - if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-        uses: peaceiris/actions-gh-pages@373f7f263a76c20808c831209c920827a82a2847 # version 3.9.3
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # version 4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
@@ -370,7 +370,7 @@ jobs:
       - name: Create or update Version Packages PR
         # if this push is NOT merging a version packages PR, then we update/create the version packages PR
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'false' }}
-        uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
+        uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # version 1.4.7
         with:
           createGithubReleases: false
           # this should never be called, but if something happens and it does get called, this ensures that a premature publish won't happen
@@ -397,7 +397,7 @@ jobs:
         # if this push is merging a version packages PR, then we publish the new versions
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'true' }}
         id: changeset_publish
-        uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
+        uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # version 1.4.7
         with:
           publish: npm run publish
         env:
