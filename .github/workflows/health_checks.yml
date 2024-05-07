@@ -147,6 +147,62 @@ jobs:
             echo setting run_e2e to false;
             echo "run_e2e=false" >> "$GITHUB_OUTPUT";
           fi
+  e2e_iam_access_drift:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - do_include_e2e
+      - build
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - name: Get baseline commit sha
+        id: get_baseline_commit_sha
+        run: |
+          if [[ ${{ github.event_name }} == 'push' ]]; then
+            echo baseline commit sha is ${{ github.event.before }};
+            echo "baseline_commit_sha=${{ github.event.before }}" >> "$GITHUB_OUTPUT";
+          elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            echo baseline commit sha is ${{ github.event.pull_request.base.sha }};
+            echo "baseline_commit_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT";
+          fi
+      - name: Checkout baseline version
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+        with:
+          ref: ${{ steps.get_baseline_commit_sha.outputs.baseline_commit_sha }}
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - name: Move baseline version
+        id: move_baseline_version
+        run: |
+          BASELINE_DIR=$(mktemp -d)
+          # Command below makes shell include .hidden files in file system commands (i.e. mv).
+          # This is to make sure that .git directory is moved with the repo content.
+          shopt -s dotglob
+          mv ./* $BASELINE_DIR
+          echo "baseline_dir=$BASELINE_DIR" >> "$GITHUB_OUTPUT";
+      - name: Checkout current version
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - name: Configure test tooling credentials
+        uses: ./.github/actions/setup_profile
+        with:
+          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          aws-region: us-west-2
+          profile-name: e2e-tooling
+      - name: Configure test execution credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
+        with:
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          aws-region: us-west-2
+      - name: Run e2e iam access drift test
+        run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
+        env:
+          BASELINE_DIR: ${{ steps.move_baseline_version.outputs.baseline_dir }}
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
