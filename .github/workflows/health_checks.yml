@@ -131,7 +131,7 @@ jobs:
       # This is required so that the step can read the labels on the pull request
       pull-requests: read
     env:
-      # The gh cli expects the token at this environment variable
+      # The do_include_e2e script needs to query pull request labels
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       run_e2e: ${{ steps.check.outputs.run_e2e }}
