@@ -10,6 +10,8 @@ on:
       - main
       - hotfix
       - feature/**
+  schedule:
+    - cron: '0 12 * * *' # Every day 12:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -133,6 +135,7 @@ jobs:
       run_e2e: ${{ steps.check.outputs.run_e2e }}
     steps:
       # if this workflow is running on a push (ie merge to main), then e2e tests always run
+      # if this workflow is running on a schedule, then e2e tests always run
       # if this workflow is triggered manually, then e2e tests always run
       # if the workflow is running on a pull request, we perform an additional check for the run-e2e label
       # this is not a security measure (that is already handled by the pull_request event behavior) but rather a way for PR authors to easily check e2e test results if they wish
@@ -140,7 +143,7 @@ jobs:
       - name: Check event is push to main or pull request has run-e2e label
         id: check
         run: |
-          if [[ ${{ github.event_name }} == 'push' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet; then
+          if [[ ${{ github.event_name }} == 'push' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]] || [[ ${{ github.event_name }} == 'schedule' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet; then
             echo setting run_e2e to true;
             echo "run_e2e=true" >> "$GITHUB_OUTPUT";
           else
@@ -163,12 +166,19 @@ jobs:
         id: get_baseline_commit_sha
         run: |
           if [[ ${{ github.event_name }} == 'push' ]]; then
-            echo baseline commit sha is ${{ github.event.before }};
-            echo "baseline_commit_sha=${{ github.event.before }}" >> "$GITHUB_OUTPUT";
+            # The SHA of the most recent commit on ref before the push.
+            baseline_commit_sha="${{ github.event.before }}"
           elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
-            echo baseline commit sha is ${{ github.event.pull_request.base.sha }};
-            echo "baseline_commit_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT";
+            # The SHA of the HEAD commit on base branch.
+            baseline_commit_sha="${{ github.event.pull_request.base.sha }}"
+          elif [[ ${{ github.event_name }} == 'schedule' ]]; then
+            # The SHA of the parent of HEAD commit on main branch.
+            # This assumes linear history of main branch, i.e. one parent.
+            # The schedule event has only information about HEAD commit, hence the need for lookup.
+            baseline_commit_sha=$(gh search commits --repo ${{ github.repository }} --hash ${{ github.event.workflow_run.head_sha }} --json parents --jq '.[0].parents[0].sha')
           fi
+          echo baseline commit sha is $baseline_commit_sha;
+          echo "baseline_commit_sha=$baseline_commit_sha" >> "$GITHUB_OUTPUT";
       - name: Checkout baseline version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
         with:
