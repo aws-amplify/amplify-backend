@@ -176,6 +176,9 @@ jobs:
             # This assumes linear history of main branch, i.e. one parent.
             # The schedule event has only information about HEAD commit, hence the need for lookup.
             baseline_commit_sha=$(gh search commits --repo ${{ github.repository }} --hash ${{ github.event.workflow_run.head_sha }} --json parents --jq '.[0].parents[0].sha')
+          else
+            echo Unable to determine baseline commit sha;
+            exit 1;
           fi
           echo baseline commit sha is $baseline_commit_sha;
           echo "baseline_commit_sha=$baseline_commit_sha" >> "$GITHUB_OUTPUT";
