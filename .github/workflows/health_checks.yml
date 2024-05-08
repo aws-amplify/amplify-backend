@@ -124,32 +124,25 @@ jobs:
           mkdir api-validation-projects
           npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
   do_include_e2e:
+    needs:
+      - install
     runs-on: ubuntu-latest
     permissions:
       # This is required so that the step can read the labels on the pull request
       pull-requests: read
     env:
-      # The gh cli expects the token at this environment variable
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The do_include_e2e script needs to query pull request labels
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       run_e2e: ${{ steps.check.outputs.run_e2e }}
     steps:
-      # if this workflow is running on a push (ie merge to main), then e2e tests always run
-      # if this workflow is running on a schedule, then e2e tests always run
-      # if this workflow is triggered manually, then e2e tests always run
-      # if the workflow is running on a pull request, we perform an additional check for the run-e2e label
-      # this is not a security measure (that is already handled by the pull_request event behavior) but rather a way for PR authors to easily check e2e test results if they wish
-      # the reason it doesn't run all the time is because it will always fail for external contributor PRs (they don't have access to repo secrets) and we don't want to waste resources running e2e on every PR commit
-      - name: Check event is push to main or pull request has run-e2e label
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_install_cache
+      - name: Check if E2E tests should run
         id: check
-        run: |
-          if [[ ${{ github.event_name }} == 'push' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]] || [[ ${{ github.event_name }} == 'schedule' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet; then
-            echo setting run_e2e to true;
-            echo "run_e2e=true" >> "$GITHUB_OUTPUT";
-          else
-            echo setting run_e2e to false;
-            echo "run_e2e=false" >> "$GITHUB_OUTPUT";
-          fi
+        run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
+      - run: echo run_e2e set to ${{ steps.check.outputs.run_e2e }}
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -437,7 +430,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - id: is_version_packages_commit
-        run: npx tsx scripts/is_version_packages_commit.ts "$GITHUB_EVENT_PATH" >> "$GITHUB_OUTPUT"
+        run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
       - name: Create or update Version Packages PR
         # if this push is NOT merging a version packages PR, then we update/create the version packages PR
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'false' }}
@@ -463,7 +456,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - id: is_version_packages_commit
-        run: npx tsx scripts/is_version_packages_commit.ts "$GITHUB_EVENT_PATH" >> "$GITHUB_OUTPUT"
+        run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
       - name: Publish packages
         # if this push is merging a version packages PR, then we publish the new versions
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'true' }}
