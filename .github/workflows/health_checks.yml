@@ -138,6 +138,7 @@ jobs:
       - name: Check if E2E tests should run
         id: check
         run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
+      - run: echo run_e2e set to ${{ steps.check.outputs.run_e2e }}
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest

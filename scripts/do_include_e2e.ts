@@ -24,7 +24,7 @@ const prHasRunE2ELabel = async () => {
 const doIncludeE2e =
   await // this workflow is running on a push to a branch besides hotfix
   ((eventName === 'push' && refName !== 'hotfix') ||
-    // this workflow is running on a version packages commit to hotfix
+    // this workflow is running on a version packages push to hotfix
     (eventName === 'push' &&
       refName === 'hotfix' &&
       isVersionPackagesCommit()) ||
