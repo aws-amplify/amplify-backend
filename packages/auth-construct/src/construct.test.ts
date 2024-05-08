@@ -726,7 +726,6 @@ void describe('Auth construct', () => {
               signupAttributes: '["email"]',
               verificationMechanisms: '["email"]',
               usernameAttributes: '["email"]',
-              googleClientId: 'googleClientId',
               oauthClientId: expectedWebClientId, // same thing
               oauthCognitoDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
               oauthScope: '["email","profile"]',
