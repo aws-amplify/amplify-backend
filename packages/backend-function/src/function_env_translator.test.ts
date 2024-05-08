@@ -116,6 +116,33 @@ void describe('FunctionEnvironmentTranslator', () => {
     });
   });
 
+  void it('ignores undefined env var entries', () => {
+    const functionEnvProp = {
+      TEST_UNDEFINED: undefined as unknown as string,
+      TEST_DEFINED: 'hello',
+    };
+
+    const testLambda = getTestLambda();
+
+    new FunctionEnvironmentTranslator(
+      testLambda,
+      functionEnvProp,
+      backendResolver,
+      new FunctionEnvironmentTypeGenerator(testLambdaName)
+    );
+
+    const template = Template.fromStack(Stack.of(testLambda));
+
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Environment: {
+        Variables: {
+          TEST_DEFINED: 'hello',
+        },
+      },
+    });
+  });
+
   void it('throws if function prop contains a reserved env name', () => {
     const functionEnvProp = {
       AMPLIFY_SSM_ENV_CONFIG: 'test',

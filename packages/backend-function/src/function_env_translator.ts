@@ -35,7 +35,11 @@ export class FunctionEnvironmentTranslator {
           `${this.amplifySsmEnvConfigKey} is a reserved environment variable name`
         );
       }
-      if (typeof value !== 'string') {
+      if (typeof value === 'undefined') {
+        continue;
+      } else if (typeof value === 'string') {
+        this.lambda.addEnvironment(key, value);
+      } else {
         const { branchSecretPath, sharedSecretPath } =
           this.backendSecretResolver.resolvePath(value);
         this.lambda.addEnvironment(key, this.ssmValuePlaceholderText);
@@ -44,8 +48,6 @@ export class FunctionEnvironmentTranslator {
           sharedPath: sharedSecretPath,
         };
         this.ssmPaths.push(branchSecretPath, sharedSecretPath);
-      } else {
-        this.lambda.addEnvironment(key, value);
       }
       this.amplifyBackendEnvVarNames.push(key);
     }
