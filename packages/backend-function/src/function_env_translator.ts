@@ -4,6 +4,7 @@ import { FunctionProps } from './factory.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Translates function environment props into appropriate environment records and builds a policy statement
@@ -36,7 +37,10 @@ export class FunctionEnvironmentTranslator {
         );
       }
       if (typeof value === 'undefined') {
-        continue;
+        throw new AmplifyUserError('InvalidFunctionConfiguration', {
+          message: `The value of environment variable ${key} is undefined.`,
+          resolution: `Ensure that all defineFunction environment variables are defined.`,
+        });
       } else if (typeof value === 'string') {
         this.lambda.addEnvironment(key, value);
       } else {
