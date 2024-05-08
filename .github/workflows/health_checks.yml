@@ -164,6 +164,8 @@ jobs:
     steps:
       - name: Get baseline commit sha
         id: get_baseline_commit_sha
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [[ ${{ github.event_name }} == 'push' ]]; then
             # The SHA of the most recent commit on ref before the push.
