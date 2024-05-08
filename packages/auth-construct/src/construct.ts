@@ -980,19 +980,6 @@ export class AmplifyAuth
         output.mfaTypes = JSON.stringify(mfaTypes);
       }
     }
-    const oAuthMappings = this.providerSetupResult.oAuthMappings;
-    if (oAuthMappings[authProvidersList.amazon]) {
-      output.amazonClientId = oAuthMappings[authProvidersList.amazon];
-    }
-    if (oAuthMappings[authProvidersList.facebook]) {
-      output.facebookClientId = oAuthMappings[authProvidersList.facebook];
-    }
-    if (oAuthMappings[authProvidersList.google]) {
-      output.googleClientId = oAuthMappings[authProvidersList.google];
-    }
-    if (oAuthMappings[authProvidersList.apple]) {
-      output.appleClientId = oAuthMappings[authProvidersList.apple];
-    }
 
     if (this.providerSetupResult.providersList.length > 0) {
       output.socialProviders = JSON.stringify(
