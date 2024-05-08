@@ -130,7 +130,7 @@ jobs:
       pull-requests: read
     env:
       # The gh cli expects the token at this environment variable
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       run_e2e: ${{ steps.check.outputs.run_e2e }}
     steps:
