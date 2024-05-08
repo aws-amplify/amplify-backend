@@ -177,6 +177,7 @@ jobs:
             # The SHA of the parent of HEAD commit on main branch.
             # This assumes linear history of main branch, i.e. one parent.
             # These events have only information about HEAD commit, hence the need for lookup.
+            echo ${{ toJson(github.event) }}
             baseline_commit_sha=$(gh search commits --repo ${{ github.repository }} --hash ${{ github.event.workflow_run.head_sha }} --json parents --jq '.[0].parents[0].sha')
           else
             echo Unable to determine baseline commit sha;
