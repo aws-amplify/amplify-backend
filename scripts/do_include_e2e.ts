@@ -20,18 +20,21 @@ const prHasRunE2ELabel = async () => {
   return hasRunE2ELabel;
 };
 
-// e2e tests run if...
+const isPushToBranchBesidesHotfix =
+  eventName === 'push' && refName !== 'hotfix';
+const isVersionPackagesPushToHotfix =
+  eventName === 'push' && refName === 'hotfix' && isVersionPackagesCommit();
+
+const isWorkflowTriggeredManually = eventName === 'workflow_dispatch';
+const isWorkflowTriggeredBySchedule = eventName == 'schedule';
+const isPullRequestWithRunE2ELabel = await prHasRunE2ELabel();
+
 const doIncludeE2e =
-  await // this workflow is running on a push to a branch besides hotfix
-  ((eventName === 'push' && refName !== 'hotfix') ||
-    // this workflow is running on a version packages push to hotfix
-    (eventName === 'push' &&
-      refName === 'hotfix' &&
-      isVersionPackagesCommit()) ||
-    // this workflow was triggered manually
-    eventName === 'workflow_dispatch' ||
-    // this workflow is running on a PR with the 'run-e2e' label
-    (await prHasRunE2ELabel()));
+  isPushToBranchBesidesHotfix ||
+  isVersionPackagesPushToHotfix ||
+  isWorkflowTriggeredManually ||
+  isWorkflowTriggeredBySchedule ||
+  isPullRequestWithRunE2ELabel;
 
 // print a true/false of whether e2e tests should run
 console.log(doIncludeE2e);
