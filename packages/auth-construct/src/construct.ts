@@ -39,7 +39,6 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
-import { coreAttributeNameMap } from './string_maps.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -889,59 +888,58 @@ export class AmplifyAuth
           ? 'true'
           : 'false',
     };
-    if (this.computedUserPoolProps.standardAttributes) {
-      const signupAttributes = Object.entries(
-        this.computedUserPoolProps.standardAttributes
-      ).reduce((acc: string[], [attributeName, attribute]) => {
-        if (attribute?.required) {
-          const treatedAttributeName = coreAttributeNameMap.find(
-            ({ standardAttributeName }) =>
-              standardAttributeName === attributeName
-          );
-
-          if (treatedAttributeName) {
-            return [
-              ...acc,
-              treatedAttributeName.userpoolAttributeName.toLowerCase(),
-            ];
-          }
+    const cfnUserPool = this.resources.cfnResources.cfnUserPool;
+    // extract signupAttributes from UserPool schema's required attributes
+    const requiredAttributes: string[] = [];
+    if (cfnUserPool.schema) {
+      const schema =
+        cfnUserPool.schema as CfnUserPool.SchemaAttributeProperty[];
+      schema.forEach((attribute) => {
+        if (attribute.required && attribute.name) {
+          requiredAttributes.push(attribute.name);
         }
-        return acc;
-      }, []);
-      output.signupAttributes = JSON.stringify(signupAttributes);
+      });
+      output.signupAttributes = JSON.stringify(
+        requiredAttributes.map((attr) => attr.toLowerCase())
+      );
+      // extract usernameAttributes from UserPool's usernameAttributes
+      const usernameAttributes: string[] = cfnUserPool.usernameAttributes ?? [];
+      output.usernameAttributes = JSON.stringify(
+        usernameAttributes.map((attr) => attr.toLowerCase())
+      );
+      // extract verificationMechanisms from UserPool's autoVerifiedAttributes
+      const verificationMechanism: string[] = [];
+      (cfnUserPool.autoVerifiedAttributes ?? []).forEach((attr) => {
+        verificationMechanism.push(attr);
+      });
+      output.verificationMechanisms = JSON.stringify(verificationMechanism);
     }
 
-    if (this.computedUserPoolProps.signInAliases) {
-      const usernameAttributes = [];
-      if (this.computedUserPoolProps.signInAliases.email) {
-        usernameAttributes.push('email');
-      }
-      if (this.computedUserPoolProps.signInAliases.phone) {
-        usernameAttributes.push('phone_number');
-      }
-      if (
-        this.computedUserPoolProps.signInAliases.preferredUsername ||
-        this.computedUserPoolProps.signInAliases.username
-      ) {
-        usernameAttributes.push('preferred_username');
-      }
-      if (usernameAttributes.length > 0) {
-        output.usernameAttributes = JSON.stringify(usernameAttributes);
-      }
+    // extract the passwordPolicy from the UserPool policies
+    if (cfnUserPool.policies) {
+      const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
+        .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
+      output.passwordPolicyMinLength = policy.minimumLength?.toString();
+      const requirements = [];
+      policy.requireNumbers && requirements.push('REQUIRES_NUMBERS');
+      policy.requireLowercase && requirements.push('REQUIRES_LOWERCASE');
+      policy.requireUppercase && requirements.push('REQUIRES_UPPERCASE');
+      policy.requireSymbols && requirements.push('REQUIRES_SYMBOLS');
+      output.passwordPolicyRequirements = JSON.stringify(requirements);
     }
 
-    if (this.computedUserPoolProps.autoVerify) {
-      const verificationMechanisms = [];
-      if (this.computedUserPoolProps.autoVerify.email) {
-        verificationMechanisms.push('email');
+    // extract the MFA settings from the UserPool resource
+    output.mfaConfiguration = cfnUserPool.mfaConfiguration ?? 'OFF';
+    const mfaTypes: string[] = [];
+    (cfnUserPool.enabledMfas ?? []).forEach((type) => {
+      if (type === 'SMS_MFA') {
+        mfaTypes.push('SMS');
       }
-      if (this.computedUserPoolProps.autoVerify.phone) {
-        verificationMechanisms.push('phone_number');
+      if (type === 'SOFTWARE_TOKEN_MFA') {
+        mfaTypes.push('TOTP');
       }
-      if (verificationMechanisms.length > 0) {
-        output.verificationMechanisms = JSON.stringify(verificationMechanisms);
-      }
-    }
+    });
+    output.mfaTypes = JSON.stringify(mfaTypes);
 
     if (this.computedUserPoolProps.passwordPolicy) {
       output.passwordPolicyMinLength =
@@ -963,21 +961,6 @@ export class AmplifyAuth
 
       if (requirements.length > 0) {
         output.passwordPolicyRequirements = JSON.stringify(requirements);
-      }
-    }
-
-    if (this.computedUserPoolProps.mfa) {
-      output.mfaConfiguration = this.computedUserPoolProps.mfa;
-
-      const mfaTypes = [];
-      if (this.computedUserPoolProps.mfaSecondFactor?.otp) {
-        mfaTypes.push('TOTP');
-      }
-      if (this.computedUserPoolProps.mfaSecondFactor?.sms) {
-        mfaTypes.push('SMS');
-      }
-      if (mfaTypes.length > 0) {
-        output.mfaTypes = JSON.stringify(mfaTypes);
       }
     }
     const oAuthMappings = this.providerSetupResult.oAuthMappings;

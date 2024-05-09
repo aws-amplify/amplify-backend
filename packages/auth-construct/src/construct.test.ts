@@ -650,6 +650,8 @@ void describe('Auth construct', () => {
             verificationMechanisms: '["email"]',
             usernameAttributes: '["email"]',
             allowUnauthenticatedIdentities: 'true',
+            mfaConfiguration: 'OFF',
+            mfaTypes: '[]',
           },
         },
       ]);
@@ -735,6 +737,8 @@ void describe('Auth construct', () => {
               oauthResponseType: 'code',
               socialProviders: `["GOOGLE","${provider1}","${provider2}","${unnamedProvider}"]`,
               allowUnauthenticatedIdentities: 'true',
+              mfaConfiguration: 'OFF',
+              mfaTypes: '[]',
             },
           },
         ]);
@@ -795,6 +799,8 @@ void describe('Auth construct', () => {
             oauthRedirectSignOut: 'http://logout.com',
             oauthResponseType: 'code',
             allowUnauthenticatedIdentities: 'true',
+            mfaConfiguration: 'OFF',
+            mfaTypes: '[]',
           },
         },
       ]);
@@ -811,7 +817,7 @@ void describe('Auth construct', () => {
       const { payload } = storeOutputMock.mock.calls[0].arguments[1];
 
       assert.equal(payload.mfaConfiguration, 'OPTIONAL');
-      assert.equal(payload.mfaTypes, '["TOTP","SMS"]');
+      assert.equal(payload.mfaTypes, '["SMS","TOTP"]');
     });
 
     void it('userAttributes prop should update signupAttributes', () => {
@@ -874,6 +880,8 @@ void describe('Auth construct', () => {
               'verificationMechanisms',
               'passwordPolicyMinLength',
               'passwordPolicyRequirements',
+              'mfaConfiguration',
+              'mfaTypes',
             ],
           },
         },
