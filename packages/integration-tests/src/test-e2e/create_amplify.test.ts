@@ -255,7 +255,7 @@ void describe(
           result.stderr
             .toLocaleString()
             .includes(
-              'If you are trying to run an Amplify Gen 2 command inside an Amplify (Gen 1) project we recommend creating the project in another directory'
+              'If you are trying to run an Amplify Gen 2 command inside an Amplify Gen 1 project we recommend creating the project in another directory'
             )
         );
       });
