@@ -400,10 +400,11 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
-      - name: Validate that PR has change set
-        run: |
-          npx changeset status --since origin/${{ github.event.pull_request.base.ref }}
-      - name: Validate that change set has necessary dependency updates
+      - name: Validate that PR has changeset
+        run: npx changeset status --since origin/${{ github.event.pull_request.base.ref }}
+      - name: Validate changeset is not missing packages
+        run: npx tsx scripts/check_changeset_completeness.ts ${{ github.event.pull_request.base.ref }}
+      - name: Validate that changeset has necessary dependency updates
         run: |
           npx changeset version
           npm update
