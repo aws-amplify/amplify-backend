@@ -8,5 +8,3 @@ export {
   DataSchemaInput,
   DataProps,
 } from './types.js';
-
-// simulate a missing change
