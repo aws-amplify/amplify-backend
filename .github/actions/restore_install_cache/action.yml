@@ -1,14 +1,18 @@
 name: restore_install_cache
 description: restores node_modules from the cache and fails if no cache entry found
+inputs:
+  node-version:
+    description: node version used to configure environment with
+    default: 18
 runs:
   using: composite
   steps:
     # restore node_modules from cache
-    - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # version 3.3.1
+    - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # version 4.0.2
       id: npm-cache
       with:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}
         fail-on-cache-miss: true

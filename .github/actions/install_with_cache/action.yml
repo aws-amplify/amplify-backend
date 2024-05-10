@@ -1,16 +1,19 @@
 name: install_with_cache
 description: installs node_modules if cache miss and stores in the cache
+inputs:
+  node-version:
+    default: 18
 runs:
   using: composite
   steps:
     # cache node_modules based on package-lock.json hash
-    - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # version 3.3.1
+    - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # version 4.0.2
       id: npm-cache
       with:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-v2
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash

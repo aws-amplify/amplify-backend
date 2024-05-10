@@ -49,6 +49,14 @@ export class GithubClient {
       pullRequestNumber: prResult.data.number,
     };
   };
+
+  fetchPullRequest = async (pullRequestNumber: number) => {
+    const response = await this.ghClient.pulls.get({
+      pull_number: pullRequestNumber,
+      ...ghContext.repo,
+    });
+    return response.data;
+  };
 }
 
 /**

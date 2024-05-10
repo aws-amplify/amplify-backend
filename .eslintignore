@@ -9,6 +9,7 @@ API.md
 examples
 verdaccio-cache
 expected-cdk-out
+test-projects
 
 #auto generated files
 packages/client-config/src/client-config-schema

@@ -116,6 +116,29 @@ void describe('FunctionEnvironmentTranslator', () => {
     });
   });
 
+  void it('throws on undefined env var entries', () => {
+    const functionEnvProp = {
+      TEST_UNDEFINED: undefined as unknown as string,
+      TEST_DEFINED: 'hello',
+    };
+
+    const testLambda = getTestLambda();
+
+    assert.throws(
+      () => {
+        new FunctionEnvironmentTranslator(
+          testLambda,
+          functionEnvProp,
+          backendResolver,
+          new FunctionEnvironmentTypeGenerator(testLambdaName)
+        );
+      },
+      {
+        name: 'InvalidFunctionConfiguration',
+      }
+    );
+  });
+
   void it('throws if function prop contains a reserved env name', () => {
     const functionEnvProp = {
       AMPLIFY_SSM_ENV_CONFIG: 'test',

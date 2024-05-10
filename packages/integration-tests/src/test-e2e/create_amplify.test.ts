@@ -1,6 +1,5 @@
 import { execa } from 'execa';
 import * as fs from 'fs/promises';
-import { existsSync } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
@@ -9,42 +8,17 @@ import { glob } from 'glob';
 import { testConcurrencyLevel } from './test_concurrency.js';
 import { findBaselineCdkVersion } from '../cdk_version_finder.js';
 import { amplifyAtTag } from '../constants.js';
+import { NpmProxyController } from '../npm_proxy_controller.js';
 
 void describe(
   'create-amplify script',
   { concurrency: testConcurrencyLevel },
   () => {
     let baselineCdkVersion: string;
+    const npmProxyController = new NpmProxyController();
 
     before(async () => {
-      // start a local npm proxy and publish the current codebase to the proxy
-      await execa('npm', ['run', 'clean:npm-proxy'], { stdio: 'inherit' });
-      await execa('npm', ['run', 'vend'], { stdio: 'inherit' });
-
-      // nuke the npx cache to ensure we are installing packages from the npm proxy
-      const { stdout } = await execa('npm', ['config', 'get', 'cache']);
-      const npxCacheLocation = path.join(stdout.toString().trim(), '_npx');
-
-      if (existsSync(npxCacheLocation)) {
-        await fs.rm(npxCacheLocation, { recursive: true });
-      }
-
-      // Force 'create-amplify' installation in npx cache by executing help command
-      // before tests run. Otherwise, installing 'create-amplify' concurrently
-      // may lead to race conditions and corrupted npx cache.
-      const output = await execa(
-        'npm',
-        ['create', amplifyAtTag, '--yes', '--', '--help'],
-        {
-          // Command must run outside of 'amplify-backend' workspace.
-          cwd: os.homedir(),
-        }
-      );
-
-      assert.match(output.stdout, /--help/);
-      assert.match(output.stdout, /--version/);
-      assert.match(output.stdout, /Show version number/);
-      assert.match(output.stdout, /--yes/);
+      await npmProxyController.setUp();
 
       // Prefixing with ~. Otherwise, npm is going to install desired version but
       // declare dependency with ^ in package json. So just in case removing that
@@ -54,8 +28,7 @@ void describe(
     });
 
     after(async () => {
-      // stop the npm proxy
-      await execa('npm', ['run', 'stop:npm-proxy'], { stdio: 'inherit' });
+      await npmProxyController.tearDown();
     });
 
     const startDelayIntervalMS = 1000 * 20; // start tests 20 seconds apart to avoid file hot spots
@@ -282,7 +255,7 @@ void describe(
           result.stderr
             .toLocaleString()
             .includes(
-              'If you are trying to run an Amplify (Gen 2) command inside an Amplify (Gen 1) project we recommend creating the project in another directory'
+              'If you are trying to run an Amplify Gen 2 command inside an Amplify Gen 1 project we recommend creating the project in another directory'
             )
         );
       });

@@ -1,5 +1,17 @@
 # @aws-amplify/auth-construct
 
+## 1.1.0
+
+### Minor Changes
+
+- 15c2b7c: remove client ids from auth output schema
+
+### Patch Changes
+
+- Updated dependencies [15c2b7c]
+  - @aws-amplify/backend-output-schemas@1.1.0
+  - @aws-amplify/backend-output-storage@1.0.1
+
 ## 1.0.0
 
 ### Major Changes

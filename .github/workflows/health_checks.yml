@@ -10,6 +10,8 @@ on:
       - main
       - hotfix
       - feature/**
+  schedule:
+    - cron: '0 12 * * *' # Every day 12:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -21,31 +23,48 @@ jobs:
         # creates file system links that include drive letter.
         # Changing between standard and custom workers requires full install cache invalidation
         os: [ubuntu-latest, macos-14, windows-latest]
+        node: [18, 20]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ matrix.node }}
       - uses: ./.github/actions/install_with_cache
+        with:
+          node-version: ${{ matrix.node }}
   build:
+    strategy:
+      matrix:
+        node: [18, 20]
     runs-on: ubuntu-latest
     needs:
       - install
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ matrix.node }}
       - uses: ./.github/actions/build_with_cache
+        with:
+          node-version: ${{ matrix.node }}
   test_with_coverage:
     needs:
       - build
     strategy:
       matrix:
         os: [ubuntu-latest, macos-14, windows-latest]
+        node: [18, 20]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ matrix.node }}
       - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: ${{ matrix.node }}
       - run: npm run set-script-shell
       - run: npm run test:coverage:threshold
   test_scripts:
@@ -53,7 +72,7 @@ jobs:
       - build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: |
@@ -64,7 +83,7 @@ jobs:
       - install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - name: Pin some dependencies to nearest patch and rebuild
@@ -86,7 +105,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout pull request ref
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - name: Publish packages locally
@@ -96,7 +115,7 @@ jobs:
           # keep git diff with version increment to make sure test projects resolve right version
           npm run publish:local -- --keepGitDiff
       - name: Checkout base branch
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
         with:
           path: base-branch-content
           ref: ${{ github.event.pull_request.base.sha }}
@@ -105,31 +124,93 @@ jobs:
           mkdir api-validation-projects
           npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
   do_include_e2e:
+    needs:
+      - install
     runs-on: ubuntu-latest
     permissions:
       # This is required so that the step can read the labels on the pull request
       pull-requests: read
     env:
-      # The gh cli expects the token at this environment variable
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The do_include_e2e script needs to query pull request labels
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       run_e2e: ${{ steps.check.outputs.run_e2e }}
     steps:
-      # if this workflow is running on a push (ie merge to main), then e2e tests always run
-      # if this workflow is triggered manually, then e2e tests always run
-      # if the workflow is running on a pull request, we perform an additional check for the run-e2e label
-      # this is not a security measure (that is already handled by the pull_request event behavior) but rather a way for PR authors to easily check e2e test results if they wish
-      # the reason it doesn't run all the time is because it will always fail for external contributor PRs (they don't have access to repo secrets) and we don't want to waste resources running e2e on every PR commit
-      - name: Check event is push to main or pull request has run-e2e label
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_install_cache
+      - name: Check if E2E tests should run
         id: check
+        run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
+      - run: echo run_e2e set to ${{ steps.check.outputs.run_e2e }}
+  e2e_iam_access_drift:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - do_include_e2e
+      - build
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - name: Get baseline commit sha
+        id: get_baseline_commit_sha
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ ${{ github.event_name }} == 'push' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet; then
-            echo setting run_e2e to true;
-            echo "run_e2e=true" >> "$GITHUB_OUTPUT";
+          if [[ ${{ github.event_name }} == 'push' ]]; then
+            # The SHA of the most recent commit on ref before the push.
+            baseline_commit_sha="${{ github.event.before }}"
+          elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            # The SHA of the HEAD commit on base branch.
+            baseline_commit_sha="${{ github.event.pull_request.base.sha }}"
+          elif [[ ${{ github.event_name }} == 'schedule' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
+            # The SHA of the parent of HEAD commit on main branch.
+            # This assumes linear history of main branch, i.e. one parent.
+            # These events have only information about HEAD commit, hence the need for lookup.
+            baseline_commit_sha=$(gh api /repos/${{ github.repository }}/commits/${{ github.sha }} | jq -r '.parents[0].sha')
           else
-            echo setting run_e2e to false;
-            echo "run_e2e=false" >> "$GITHUB_OUTPUT";
+            echo Unable to determine baseline commit sha;
+            exit 1;
           fi
+          echo baseline commit sha is $baseline_commit_sha;
+          echo "baseline_commit_sha=$baseline_commit_sha" >> "$GITHUB_OUTPUT";
+      - name: Checkout baseline version
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+        with:
+          ref: ${{ steps.get_baseline_commit_sha.outputs.baseline_commit_sha }}
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - name: Move baseline version
+        id: move_baseline_version
+        run: |
+          BASELINE_DIR=$(mktemp -d)
+          # Command below makes shell include .hidden files in file system commands (i.e. mv).
+          # This is to make sure that .git directory is moved with the repo content.
+          shopt -s dotglob
+          mv ./* $BASELINE_DIR
+          echo "baseline_dir=$BASELINE_DIR" >> "$GITHUB_OUTPUT";
+      - name: Checkout current version
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - name: Configure test tooling credentials
+        uses: ./.github/actions/setup_profile
+        with:
+          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          aws-region: us-west-2
+          profile-name: e2e-tooling
+      - name: Configure test execution credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
+        with:
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          aws-region: us-west-2
+      - name: Run e2e iam access drift test
+        run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
+        env:
+          BASELINE_DIR: ${{ steps.move_baseline_version.outputs.baseline_dir }}
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -137,6 +218,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-14-xlarge, windows-latest]
+        node-version: [18, 20]
+        # skip multiple node version test on other os
+        exclude:
+          - os: macos-14-xlarge
+            node-version: 20
+          - os: windows-latest
+            node-version: 20
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     needs:
@@ -147,8 +235,10 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ matrix.node-version }}
       - uses: ./.github/actions/restore_build_cache
       - run: cd packages/cli && npm link
       - name: Configure test tooling credentials
@@ -158,7 +248,7 @@ jobs:
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
-        uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
@@ -171,14 +261,23 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-14, windows-latest]
+        node-version: [18, 20]
+        # skip multiple node version test on other os
+        exclude:
+          - os: macos-14
+            node-version: 20
+          - os: windows-latest
+            node-version: 20
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
       - do_include_e2e
       - build
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ matrix.node-version }}
       - uses: ./.github/actions/restore_build_cache
       - run: cd packages/cli && npm link
       - name: Run e2e create-amplify tests
@@ -191,7 +290,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-14, windows-latest]
         pkg-manager: [npm, yarn-classic, yarn-modern, pnpm]
-        node-version: [20]
+        node-version: ['20']
     env:
       PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
     runs-on: ${{ matrix.os }}
@@ -207,7 +306,7 @@ jobs:
       - name: Checkout aws-amplify/amplify-cli repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: Setup Node.js
-        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # version 3.8.1
+        uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node-version }}
       - name: Restore Build Cache
@@ -219,7 +318,7 @@ jobs:
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
-        uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 # version 3.0.1
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
           role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
           aws-region: us-west-2
@@ -232,7 +331,7 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run lint
@@ -241,7 +340,7 @@ jobs:
     needs:
       - install
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: npm run check:dependencies
@@ -250,7 +349,7 @@ jobs:
     needs:
       - install
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: npm run check:tsconfig-refs
@@ -259,7 +358,7 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run check:api
@@ -268,12 +367,12 @@ jobs:
     needs:
       - build
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: npm run docs
       - if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
-        uses: peaceiris/actions-gh-pages@373f7f263a76c20808c831209c920827a82a2847 # version 3.9.3
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # version 4.0.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
@@ -284,7 +383,7 @@ jobs:
     needs:
       - install
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: git fetch origin
@@ -295,7 +394,7 @@ jobs:
     needs:
       - install
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
         with:
           # fetch full history so that changeset can properly compute divergence point
           fetch-depth: 0
@@ -315,7 +414,7 @@ jobs:
     needs:
       - install
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: npx changeset version
@@ -327,15 +426,15 @@ jobs:
       - install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - id: is_version_packages_commit
-        run: npx tsx scripts/is_version_packages_commit.ts "$GITHUB_EVENT_PATH" >> "$GITHUB_OUTPUT"
+        run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
       - name: Create or update Version Packages PR
         # if this push is NOT merging a version packages PR, then we update/create the version packages PR
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'false' }}
-        uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
+        uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # version 1.4.7
         with:
           createGithubReleases: false
           # this should never be called, but if something happens and it does get called, this ensures that a premature publish won't happen
@@ -353,16 +452,16 @@ jobs:
       - e2e_create_amplify
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - id: is_version_packages_commit
-        run: npx tsx scripts/is_version_packages_commit.ts "$GITHUB_EVENT_PATH" >> "$GITHUB_OUTPUT"
+        run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
       - name: Publish packages
         # if this push is merging a version packages PR, then we publish the new versions
         if: ${{ steps.is_version_packages_commit.outputs.is_version_packages_commit == 'true' }}
         id: changeset_publish
-        uses: changesets/action@f13b1baaa620fde937751f5d2c3572b9da32af23 # version 1.4.5
+        uses: changesets/action@aba318e9165b45b7948c60273e0b72fce0a64eb9 # version 1.4.7
         with:
           publish: npm run publish
         env:
@@ -379,16 +478,28 @@ jobs:
       security-events: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # version 3.6.0
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
         with:
           # Minimal depth 2 so we can checkout the commit before possible merge commit.
           fetch-depth: 2
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@e4262713b504983e61c7728f5452be240d9385a7 # version 2.14.3
+        uses: github/codeql-action/init@8fcfedf57053e09257688fce7a0beeb18b1b9ae3 # version 2.17.2
         with:
           languages: javascript
           queries: +security-and-quality
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@e4262713b504983e61c7728f5452be240d9385a7 # version 2.14.3
+        uses: github/codeql-action/analyze@8fcfedf57053e09257688fce7a0beeb18b1b9ae3 # version 2.17.2
         with:
           category: /language:javascript
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - name: Dependency Review
+        uses: actions/dependency-review-action@0c155c5e8556a497adf53f2c18edabf945ed8e70 # version 4.3.2
+        with:
+          config-file: ./.github/dependency_review_config.yml
