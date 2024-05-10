@@ -402,6 +402,7 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
       - name: Validate that PR has changeset
         run: npx changeset status --since origin/${{ github.event.pull_request.base.ref }}
+      - run: git fetch origin
       - name: Validate changeset is not missing packages
         run: npx tsx scripts/check_changeset_completeness.ts ${{ github.event.pull_request.base.ref }}
       - name: Validate that changeset has necessary dependency updates
