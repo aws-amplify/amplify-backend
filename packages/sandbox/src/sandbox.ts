@@ -37,6 +37,13 @@ export type SandboxOptions = {
   format?: ClientConfigFormat;
   profile?: string;
   watchForChanges?: boolean;
+  functionStreamingOptions?: SandboxFunctionStreamingOptions;
+};
+
+export type SandboxFunctionStreamingOptions = {
+  enabled: boolean;
+  functionNames?: string[];
+  streamOutputLocation?: string;
 };
 
 export type SandboxDeleteOptions = {

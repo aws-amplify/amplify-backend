@@ -12,7 +12,11 @@ import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
 import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
-import { Sandbox, SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import {
+  Sandbox,
+  SandboxFunctionStreamingOptions,
+  SandboxSingletonFactory,
+} from '@aws-amplify/sandbox';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
@@ -118,6 +122,9 @@ void describe('sandbox command', () => {
     assert.match(output, /--outputs-format/);
     assert.match(output, /--outputs-out-dir/);
     assert.match(output, /--once/);
+    assert.match(output, /--stream-function-logs/);
+    assert.match(output, /--function-name/);
+    assert.match(output, /--stream-output/);
     assert.equal(mockHandleProfile.mock.callCount(), 0);
   });
 
@@ -341,7 +348,7 @@ void describe('sandbox command', () => {
     );
   });
 
-  void it('--once flag is mutually exclusive with dir-to-watch & exclude', async () => {
+  void it('--once flag is mutually exclusive with dir-to-watch, exclude and stream-function-logs', async () => {
     assert.match(
       await commandRunner.runCommand(
         'sandbox --once --dir-to-watch nonExistentDir'
@@ -351,6 +358,32 @@ void describe('sandbox command', () => {
     assert.match(
       await commandRunner.runCommand('sandbox --once --exclude test'),
       /Arguments once and exclude are mutually exclusive/
+    );
+    assert.match(
+      await commandRunner.runCommand('sandbox --once --stream-function-logs'),
+      /Arguments once and stream-function-logs are mutually exclusive/
+    );
+  });
+
+  void it('fails if --stream-output is provided without enabling --stream-function-logs', async () => {
+    assert.match(
+      await commandRunner.runCommand('sandbox --stream-output someFile'),
+      /Missing dependent arguments:\n stream-output -> stream-function-logs/
+    );
+  });
+
+  void it('starts sandbox with log watching options', async () => {
+    await commandRunner.runCommand(
+      'sandbox --stream-function-logs --function-name func1 --function-name func2 --stream-output someFile'
+    );
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].functionStreamingOptions,
+      {
+        enabled: true,
+        functionNames: ['func1', 'func2'],
+        streamOutputLocation: 'someFile',
+      } as SandboxFunctionStreamingOptions
     );
   });
 });

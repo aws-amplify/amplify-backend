@@ -1,5 +1,6 @@
+import { WriteStream } from 'node:tty';
 import { EOL } from 'os';
-
+import { $ } from 'kleur/colors';
 export type RecordValue = string | number | string[] | Date;
 
 /**
@@ -19,10 +20,19 @@ export class Printer {
    */
   constructor(
     private readonly minimumLogLevel: LogLevel,
-    private readonly stdout: NodeJS.WriteStream = process.stdout,
-    private readonly stderr: NodeJS.WriteStream = process.stderr,
+    private readonly stdout:
+      | WriteStream
+      | NodeJS.WritableStream = process.stdout,
+    private readonly stderr:
+      | WriteStream
+      | NodeJS.WritableStream = process.stderr,
     private readonly refreshRate: number = 500
-  ) {}
+  ) {
+    // if not running in tty, turn off colors
+    if (!this.isTTY()) {
+      $.enabled = false;
+    }
+  }
 
   /**
    * Prints a given message to output stream followed by a newline.
@@ -91,7 +101,7 @@ export class Printer {
    * Checks if the environment is TTY
    */
   private isTTY() {
-    return this.stdout.isTTY;
+    return this.stdout instanceof WriteStream && this.stdout.isTTY;
   }
 
   /**

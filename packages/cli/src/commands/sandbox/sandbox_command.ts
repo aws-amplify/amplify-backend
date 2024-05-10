@@ -2,7 +2,10 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import {
+  SandboxFunctionStreamingOptions,
+  SandboxSingletonFactory,
+} from '@aws-amplify/sandbox';
 import {
   ClientConfigFormat,
   ClientConfigVersion,
@@ -26,6 +29,9 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
     outputsOutDir: string | undefined;
     outputsVersion: string;
     once: boolean | undefined;
+    streamFunctionLogs: boolean | undefined;
+    functionName: string[] | undefined;
+    streamOutput: string | undefined;
   } & SandboxCommandGlobalOptions
 >;
 
@@ -123,12 +129,29 @@ export class SandboxCommand
     }
 
     watchExclusions.push(clientConfigWritePath);
+
+    let functionStreamingOptions: SandboxFunctionStreamingOptions = {
+      enabled: false,
+    };
+    if (args.streamFunctionLogs) {
+      // turn on function logs streaming
+      functionStreamingOptions = {
+        enabled: true,
+        functionNames: args.functionName,
+        streamOutputLocation: args.streamOutput,
+      };
+
+      if (args.streamOutput) {
+        watchExclusions.push(args.streamOutput);
+      }
+    }
     await sandbox.start({
       dir: args.dirToWatch,
       exclude: watchExclusions,
       identifier: args.identifier,
       profile: args.profile,
       watchForChanges: !args.once,
+      functionStreamingOptions,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
@@ -196,6 +219,31 @@ export class SandboxCommand
           boolean: true,
           global: false,
         })
+        .option('stream-function-logs', {
+          describe:
+            'Whether to stream function execution logs. Default: false. Use --function-names to filter for specific functions to stream logs from',
+          boolean: true,
+          global: false,
+          group: 'Options to configure streaming of lambda function logs',
+        })
+        .option('function-name', {
+          describe:
+            'Name of functions to stream execution logs from. Usage --function-name func1 --function-name func2. Default: Stream all functions logs',
+          array: true,
+          type: 'string',
+          group: 'Options to configure streaming of lambda function logs',
+          implies: ['stream-function-logs'],
+          requiresArg: true,
+        })
+        .option('stream-output', {
+          describe:
+            'File to append the function execution logs. The file is created if it does not exist. Default: stdout',
+          array: false,
+          type: 'string',
+          group: 'Options to configure streaming of lambda function logs',
+          implies: ['stream-function-logs'],
+          requiresArg: true,
+        })
         .check(async (argv) => {
           if (argv['dir-to-watch']) {
             await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
@@ -210,7 +258,13 @@ export class SandboxCommand
           }
           return true;
         })
-        .conflicts('once', ['exclude', 'dir-to-watch'])
+        .conflicts('once', [
+          'exclude',
+          'dir-to-watch',
+          'stream-function-logs',
+          'function-name',
+          'stream-output',
+        ])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );
   };

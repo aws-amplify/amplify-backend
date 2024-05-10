@@ -35,6 +35,8 @@ import {
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
 
+import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
+
 export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
 export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
 export const CDK_MIN_BOOTSTRAP_VERSION = 6;
@@ -62,6 +64,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     private readonly backendIdSandboxResolver: BackendIdSandboxResolver,
     private readonly executor: AmplifySandboxExecutor,
     private readonly cfnClient: CloudFormationClient,
+    private readonly functionsLogStreamer: LambdaFunctionLogStreamer,
     private readonly printer: Printer,
     private readonly open = _open
   ) {
@@ -120,6 +123,12 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     await this.printSandboxNameInfo(options.identifier);
 
+    if (options.functionStreamingOptions?.streamOutputLocation) {
+      this.functionsLogStreamer.setOutputLocation(
+        options.functionStreamingOptions.streamOutputLocation
+      );
+    }
+
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
     // introduce a concurrency latch that tracks the state.
     // This way, if file change events arrive when a 'cdk deploy' is still executing,
@@ -137,6 +146,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
+      if (options.functionStreamingOptions?.enabled) {
+        this.functionsLogStreamer.deactivate();
+      }
       await this.deploy(options);
 
       // If latch is still 'deploying' after the 'await', that's fine,
@@ -151,7 +163,15 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         await this.deploy(options);
       }
       latch = 'open';
+
+      // Idle state, let customers know and start streaming function logs if requested
       this.emitWatching();
+      if (options.functionStreamingOptions?.enabled) {
+        await this.functionsLogStreamer.startWatchingLogs(
+          await this.backendIdSandboxResolver(options.identifier),
+          options.functionStreamingOptions?.functionNames
+        );
+      }
     });
 
     if (watchForChanges) {
@@ -196,6 +216,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   stop = async () => {
     this.printer.log(`[Sandbox] Shutting down`, LogLevel.DEBUG);
+    this.functionsLogStreamer?.deactivate();
     // can be undefined if command exits before subscription
     await this.watcherSubscription?.unsubscribe();
   };
@@ -234,6 +255,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // not reset tracker prematurely
         this.shouldValidateAppSources
       );
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
       this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
       this.emit('successfulDeployment', deployResult);
     } catch (error) {

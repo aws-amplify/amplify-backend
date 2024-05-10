@@ -9,6 +9,11 @@ import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { getSecretClient } from '@aws-amplify/backend-secret';
+import { CloudWatchLogsClient } from '@aws-sdk/client-cloudwatch-logs';
+import { LambdaClient } from '@aws-sdk/client-lambda';
+import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
+import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
+import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
 
 /**
  * Factory to create a new sandbox
@@ -43,6 +48,13 @@ export class SandboxSingletonFactory {
           this.printer
         ),
         new CloudFormationClient(),
+        new LambdaFunctionLogStreamer(
+          new LambdaClient(),
+          new CloudFormationClient(),
+          new CloudWatchLogEventMonitor(new CloudWatchLogsClient()),
+          BackendOutputClientFactory.getInstance(),
+          this.printer
+        ),
         this.printer
       );
     }
