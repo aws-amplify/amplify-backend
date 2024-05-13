@@ -44,6 +44,6 @@ if (packagesMissingChangesets.length > 0) {
   throw new Error(
     `The following packages have changes but are not included in any changeset:${EOL}${EOL}${packagesMissingChangesets.join(
       EOL
-    )}${EOL}${EOL}Add a changeset using 'npx changeset add' or 'npx changeset add --empty' if this is a non-functional change.`
+    )}${EOL}${EOL}Add a changeset using 'npx changeset add'.`
   );
 }
