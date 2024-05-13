@@ -700,7 +700,7 @@ export class AmplifyAuth
       );
       result.oAuthMappings[authProvidersList.amazon] =
         external.loginWithAmazon.clientId;
-      result.providersList.push('AMAZON');
+      result.providersList.push('LOGIN_WITH_AMAZON');
     }
     if (external.signInWithApple) {
       result.apple = new cognito.UserPoolIdentityProviderApple(
@@ -723,7 +723,7 @@ export class AmplifyAuth
       );
       result.oAuthMappings[authProvidersList.apple] =
         external.signInWithApple.clientId;
-      result.providersList.push('APPLE');
+      result.providersList.push('SIGN_IN_WITH_APPLE');
     }
     if (external.oidc && external.oidc.length > 0) {
       result.oidc = [];
