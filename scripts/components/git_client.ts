@@ -56,6 +56,16 @@ export class GitClient {
   };
 
   /**
+   * Gets the names of the files that were modified between startRef and endRef
+   * endRef defaults to HEAD
+   */
+  getChangedFiles = async (startRef: string, endRef: string = 'HEAD') => {
+    const { stdout: filenameDiffOutput } = await this
+      .exec`git --no-pager diff --name-only ${startRef} ${endRef}`;
+    return filenameDiffOutput.toString().split(EOL);
+  };
+
+  /**
    * Switches to branchName. Creates the branch if it does not exist.
    */
   switchToBranch = async (branchName: string) => {
