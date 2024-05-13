@@ -25,6 +25,12 @@ export class AmplifyPrompter {
 }
 
 // @public (undocumented)
+export type Color = Colorize;
+
+// @public (undocumented)
+export type ColorName = keyof typeof colors;
+
+// @public (undocumented)
 export const colors: {
     green: print;
     yellow: print;
@@ -39,7 +45,7 @@ export class Format {
     // (undocumented)
     bold: (message: string) => string;
     // (undocumented)
-    color: (message: string, color: Colorize) => string;
+    color: (message: string, color: Color) => string;
     // (undocumented)
     command: (command: string) => string;
     // (undocumented)

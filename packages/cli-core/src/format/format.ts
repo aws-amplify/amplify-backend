@@ -80,8 +80,11 @@ export class Format {
     Object.entries(record)
       .map(([key, value]) => `${key}: ${String(value)}`)
       .join(os.EOL);
-  color = (message: string, color: Colorize) => color(message);
+  color = (message: string, color: Color) => color(message);
 }
+
+export type Color = Colorize;
+export type ColorName = keyof typeof colors;
 
 export const colors = {
   green: green,

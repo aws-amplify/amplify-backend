@@ -40,6 +40,7 @@ export class SandboxSingletonFactory {
         packageManagerControllerFactory.getPackageManagerController(),
         this.format
       );
+      const cfnClient = new CloudFormationClient();
       this.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
         new AmplifySandboxExecutor(
@@ -47,10 +48,10 @@ export class SandboxSingletonFactory {
           getSecretClient(),
           this.printer
         ),
-        new CloudFormationClient(),
+        cfnClient,
         new LambdaFunctionLogStreamer(
           new LambdaClient(),
-          new CloudFormationClient(),
+          cfnClient,
           new CloudWatchLogEventMonitor(new CloudWatchLogsClient()),
           BackendOutputClientFactory.getInstance(),
           this.printer

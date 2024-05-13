@@ -233,8 +233,8 @@ void describe('LambdaFunctionLogStreamer', () => {
     );
   });
 
-  void it('calling deactivate deactivates the log monitor', () => {
-    classUnderTest.deactivate();
+  void it('calling stopWatchingLogs deactivates the log monitor', () => {
+    classUnderTest.stopWatchingLogs();
     assert.strictEqual(cloudWatchLogMonitorMock.deactivate.mock.callCount(), 1);
   });
 

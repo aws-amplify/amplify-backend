@@ -26,7 +26,7 @@ import {
   Printer,
   format,
 } from '@aws-amplify/cli-core';
-import { fileURLToPath } from 'url';
+import { URL, fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
@@ -112,7 +112,7 @@ const openMock = mock.fn(_open, (url: string) => Promise.resolve(url));
 const functionsLogStreamerMock = {
   setOutputLocation: mock.fn(),
   startWatchingLogs: mock.fn(),
-  deactivate: mock.fn(),
+  stopWatchingLogs: mock.fn(),
 };
 
 const testPath = path.join('test', 'location');
@@ -260,7 +260,7 @@ void describe('Sandbox using local project name resolver', () => {
     await sandboxInstance.stop();
 
     // deactivate mock is reset after the sandbox stop
-    functionsLogStreamerMock.deactivate.mock.resetCalls();
+    functionsLogStreamerMock.stopWatchingLogs.mock.resetCalls();
 
     // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
     printer.log.mock.resetCalls();
@@ -945,7 +945,10 @@ void describe('Sandbox using local project name resolver', () => {
       false
     ));
 
-    assert.strictEqual(functionsLogStreamerMock.deactivate.mock.callCount(), 0);
+    assert.strictEqual(
+      functionsLogStreamerMock.stopWatchingLogs.mock.callCount(),
+      0
+    );
     assert.strictEqual(
       functionsLogStreamerMock.startWatchingLogs.mock.callCount(),
       0
@@ -975,7 +978,7 @@ void describe('Sandbox using local project name resolver', () => {
     ));
 
     assert.strictEqual(
-      functionsLogStreamerMock.deactivate.mock.callCount(),
+      functionsLogStreamerMock.stopWatchingLogs.mock.callCount(),
       1 // We deactivate before making any deployment, even the first one.
     );
     assert.strictEqual(
@@ -1024,7 +1027,7 @@ void describe('Sandbox using local project name resolver', () => {
 
     // Initial deployment
     assert.strictEqual(
-      functionsLogStreamerMock.deactivate.mock.callCount(),
+      functionsLogStreamerMock.stopWatchingLogs.mock.callCount(),
       1 // We deactivate before making any deployment, even the first one.
     );
     assert.strictEqual(
@@ -1042,7 +1045,7 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
 
     assert.strictEqual(
-      functionsLogStreamerMock.deactivate.mock.callCount(),
+      functionsLogStreamerMock.stopWatchingLogs.mock.callCount(),
       2 // We deactivated again before starting this second deployment.
     );
     assert.strictEqual(

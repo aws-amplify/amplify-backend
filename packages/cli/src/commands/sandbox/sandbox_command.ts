@@ -224,14 +224,14 @@ export class SandboxCommand
             'Whether to stream function execution logs. Default: false. Use --function-names to filter for specific functions to stream logs from',
           boolean: true,
           global: false,
-          group: 'Options to configure streaming of lambda function logs',
+          group: 'Stream lambda function logs',
         })
         .option('function-name', {
           describe:
             'Name of functions to stream execution logs from. Usage --function-name func1 --function-name func2. Default: Stream all functions logs',
           array: true,
           type: 'string',
-          group: 'Options to configure streaming of lambda function logs',
+          group: 'Stream lambda function logs',
           implies: ['stream-function-logs'],
           requiresArg: true,
         })
@@ -240,7 +240,7 @@ export class SandboxCommand
             'File to append the function execution logs. The file is created if it does not exist. Default: stdout',
           array: false,
           type: 'string',
-          group: 'Options to configure streaming of lambda function logs',
+          group: 'Stream lambda function logs',
           implies: ['stream-function-logs'],
           requiresArg: true,
         })

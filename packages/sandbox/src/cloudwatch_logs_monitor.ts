@@ -13,13 +13,14 @@ import {
 } from '@aws-sdk/client-cloudwatch-logs';
 import fs from 'fs';
 import path from 'path';
+import { ColorName } from '../../cli-core/src/format/format.js';
 
 /**
  * After reading events from all CloudWatch log groups how long should we wait to read more events.
  *
  * If there is some error with reading events (i.e. Throttle) then this is also how long we wait until we try again
  */
-const SLEEP = 2_000;
+const SLEEP_MS = 2_000;
 
 /**
  * Represents a CloudWatch Log Event that will be printed to the terminal
@@ -45,23 +46,16 @@ type CloudWatchLogEvent = {
  * Represents how an event from a CloudWatch Log Group will be displayed
  * Indexed off of logGroupName for easy retrieval during logs even polling
  */
-type CloudWatchEventDisplay = {
-  [logGroupName: string]: {
-    friendlyName: string;
-    color: (typeof colors)[keyof typeof colors];
-  };
+type LogGroupEventDisplay = {
+  friendlyName: string;
+  color: (typeof colors)[keyof typeof colors];
 };
 
-type CloudWatchLogGroupToMonitor = {
+type LogGroupStreamingCursor = {
   /**
    * The name of the log group
    */
   readonly logGroupName: string;
-
-  /**
-   * How to display events for this log group (friendlyName and color)
-   */
-  readonly cloudWatchEventDisplay: CloudWatchEventDisplay;
 
   /**
    * Start time
@@ -84,7 +78,10 @@ export class CloudWatchLogEventMonitor {
   /**
    * Collection of all LogGroups that need to be streamed
    */
-  private readonly allLogGroups: CloudWatchLogGroupToMonitor[] = [];
+  private readonly allLogGroups: LogGroupStreamingCursor[] = [];
+
+  private readonly logGroupEventDisplay: Record<string, LogGroupEventDisplay> =
+    {};
 
   private active = false;
 
@@ -100,7 +97,7 @@ export class CloudWatchLogEventMonitor {
   /**
    * resume writing/printing events
    */
-  public activate = (): void => {
+  activate = (): void => {
     this.active = true;
     this.scheduleNextTick(0);
   };
@@ -114,7 +111,7 @@ export class CloudWatchLogEventMonitor {
    * Also resets the start time to be when the new deployment was triggered
    * and clears the list of tracked log groups
    */
-  public deactivate = (): void => {
+  deactivate = (): void => {
     this.active = false;
     this.startTime = Date.now();
     this.allLogGroups.splice(0, this.allLogGroups.length);
@@ -128,20 +125,15 @@ export class CloudWatchLogEventMonitor {
    * @param friendlyResourceName The friendly name of the resource that is being monitored
    * @param logGroupName The log group to read events from
    */
-  public addLogGroups = (
-    friendlyResourceName: string,
-    logGroupName: string
-  ): void => {
+  addLogGroups = (friendlyResourceName: string, logGroupName: string): void => {
     this.allLogGroups.push({
       logGroupName,
-      cloudWatchEventDisplay: {
-        [logGroupName]: {
-          friendlyName: friendlyResourceName,
-          color: this.getNextColorForLogGroup(),
-        },
-      },
       startTime: this.startTime,
     });
+    this.logGroupEventDisplay[logGroupName] = {
+      friendlyName: friendlyResourceName,
+      color: this.getNextColorForLogGroup(),
+    };
   };
 
   /**
@@ -149,7 +141,7 @@ export class CloudWatchLogEventMonitor {
    * If the file doesn't exist it will be created.
    * @param outputLocation file location
    */
-  public setOutputLocation = (outputLocation: string) => {
+  setOutputLocation = (outputLocation: string) => {
     if (!outputLocation) {
       return;
     }
@@ -168,9 +160,7 @@ export class CloudWatchLogEventMonitor {
   private getNextColorForLogGroup = () => {
     const colorNames = Object.keys(colors);
     return colors[
-      colorNames[
-        this.allLogGroups.length % colorNames.length
-      ] as keyof typeof colors
+      colorNames[this.allLogGroups.length % colorNames.length] as ColorName
     ];
   };
 
@@ -183,49 +173,47 @@ export class CloudWatchLogEventMonitor {
       return;
     }
     try {
-      const events = (await this.readNewEvents()).flat();
+      const events = await this.readNewEvents();
       events.forEach((event: CloudWatchLogEvent) => {
         this.print(event);
       });
     } catch (e) {
       throw new AmplifyFault(
-        'FailedToMonitorCloudWatchFault',
+        'CloudWatchStreamingFault',
         { message: `Error occurred while monitoring logs: %s` },
         e instanceof Error ? e : undefined
       );
     }
 
-    this.scheduleNextTick(SLEEP);
+    this.scheduleNextTick(SLEEP_MS);
   };
 
   /**
    * Reads all new log events from a set of CloudWatch Log Groups in parallel
    */
-  private readNewEvents = async (): Promise<
-    Array<Array<CloudWatchLogEvent>>
-  > => {
+  private readNewEvents = async (): Promise<Array<CloudWatchLogEvent>> => {
     const promises: Array<Promise<Array<CloudWatchLogEvent>>> = [];
-    for (const cloudWatchLogsToMonitor of this.allLogGroups) {
-      promises.push(this.readEventsFromLogGroup(cloudWatchLogsToMonitor));
+    for (const logGroup of this.allLogGroups) {
+      promises.push(this.readEventsFromLogGroup(logGroup));
     }
-    return Promise.all(promises);
+    return (await Promise.all(promises)).flat();
   };
 
   /**
    * Print out one CloudWatch event using the local printer.
    */
   private print = (event: CloudWatchLogEvent): void => {
-    const cloudWatchEventDisplay = this.allLogGroups.find(
-      (logGroup) => logGroup.logGroupName === event.logGroupName
-    )?.cloudWatchEventDisplay;
+    const cloudWatchEventDisplay =
+      this.logGroupEventDisplay[event.logGroupName];
     if (!cloudWatchEventDisplay) {
       return;
     }
-    const friendlyResourceName =
-      cloudWatchEventDisplay[event.logGroupName].friendlyName;
-    const color = cloudWatchEventDisplay[event.logGroupName].color;
+
     this.printer.print(
-      `[${format.color(friendlyResourceName, color)}] ${format.note(
+      `[${format.color(
+        cloudWatchEventDisplay.friendlyName,
+        cloudWatchEventDisplay.color
+      )}] ${format.note(
         event.timestamp.toLocaleTimeString()
       )} ${event.message.trim()}`
     );
@@ -237,7 +225,7 @@ export class CloudWatchLogEventMonitor {
    * when the last event was read on the previous tick
    */
   private readEventsFromLogGroup = async (
-    cloudWatchLogsToMonitor: CloudWatchLogGroupToMonitor
+    cloudWatchLogsToMonitor: LogGroupStreamingCursor
   ): Promise<Array<CloudWatchLogEvent>> => {
     const events: CloudWatchLogEvent[] = [];
 
@@ -283,7 +271,7 @@ export class CloudWatchLogEventMonitor {
         });
       }
     } catch (e) {
-      // with Lambda functions the CloudWatch is not created
+      // with Lambda functions the Log Group is not created
       // until something is logged, so just keep polling until
       // there is something to find
       if (e && e instanceof ResourceNotFoundException) {

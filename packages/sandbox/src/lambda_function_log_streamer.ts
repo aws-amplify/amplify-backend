@@ -29,7 +29,7 @@ export class LambdaFunctionLogStreamer {
     private readonly printer: Printer
   ) {}
 
-  public setOutputLocation = (outputLocation: string) => {
+  setOutputLocation = (outputLocation: string) => {
     this.logsMonitor.setOutputLocation(outputLocation);
   };
 
@@ -38,7 +38,7 @@ export class LambdaFunctionLogStreamer {
    * @param sandboxBackendId The sandbox backend identifier.
    * @param functionNamesToFilter The function names to filter.
    */
-  public startWatchingLogs = async (
+  startWatchingLogs = async (
     sandboxBackendId: BackendIdentifier,
     functionNamesToFilter?: string[]
   ) => {
@@ -108,7 +108,7 @@ export class LambdaFunctionLogStreamer {
     this.logsMonitor?.activate();
   };
 
-  public deactivate = () => {
+  stopWatchingLogs = () => {
     this.printer.log(
       `[Sandbox] Streaming function logs will be paused during the deployment and will be resumed after the deployment is completed.`,
       LogLevel.DEBUG
