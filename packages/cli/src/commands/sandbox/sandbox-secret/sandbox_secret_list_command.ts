@@ -51,7 +51,7 @@ export class SandboxSecretListCommand
     } else {
       printer.print(
         `No sandbox secrets found. To create a secret use ${format.command(
-          'amplify sandbox secret set <secret-name>'
+          'ampx sandbox secret set <secret-name>'
         )}.`
       );
     }
