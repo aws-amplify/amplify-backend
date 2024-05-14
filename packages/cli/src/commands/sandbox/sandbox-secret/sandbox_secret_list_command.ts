@@ -50,8 +50,8 @@ export class SandboxSecretListCommand
       printer.print(format.list(secrets.map((secret) => secret.name)));
     } else {
       printer.print(
-        `No sandbox secrets found. To create a secret use ${format.command(
-          'ampx sandbox secret set <secret-name>'
+        `No sandbox secrets found. To create a secret use ${format.normalizeAmpxCommand(
+          'sandbox secret set <secret-name>'
         )}.`
       );
     }

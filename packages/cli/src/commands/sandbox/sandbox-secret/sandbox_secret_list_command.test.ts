@@ -1,4 +1,3 @@
-import { cyan } from 'kleur/colors';
 import { beforeEach, describe, it, mock } from 'node:test';
 import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
@@ -101,8 +100,8 @@ void describe('sandbox secret list command', () => {
     assert.equal(printMock.mock.callCount(), 1);
     assert.equal(
       printMock.mock.calls[0].arguments[0],
-      `No sandbox secrets found. To create a secret use ${cyan(
-        'ampx sandbox secret set <secret-name>'
+      `No sandbox secrets found. To create a secret use ${format.normalizeAmpxCommand(
+        'sandbox secret set <secret-name>'
       )}.`
     );
   });
