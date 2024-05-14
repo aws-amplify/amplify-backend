@@ -114,7 +114,7 @@ export class DependenciesValidator {
       const validationResult = (
         await this.getPackageVersionDeclarationPredicate(dependencyName)
       )(dependencyVersionUsage.allDeclarations);
-      if (validationResult !== true) {
+      if (typeof validationResult === 'string') {
         errors.push(
           `${validationResult}${EOL}${JSON.stringify(
             dependencyVersionUsage.allDeclarations,
