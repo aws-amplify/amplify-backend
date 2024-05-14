@@ -59,7 +59,12 @@ void describe('ClientConfigLegacyConverter', () => {
           redirect_sign_in_uri: ['http://callback.com', 'http://callback2.com'],
           redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
           response_type: 'code',
-          identity_providers: ['GOOGLE', 'FACEBOOK'],
+          identity_providers: [
+            'GOOGLE',
+            'FACEBOOK',
+            'LOGIN_WITH_AMAZON',
+            'SIGN_IN_WITH_APPLE',
+          ],
         },
       },
     };
@@ -91,7 +96,7 @@ void describe('ClientConfigLegacyConverter', () => {
         redirectSignOut: 'http://logout.com,http://logout2.com',
         responseType: 'code',
       },
-      aws_cognito_social_providers: ['GOOGLE', 'FACEBOOK'],
+      aws_cognito_social_providers: ['GOOGLE', 'FACEBOOK', 'AMAZON', 'APPLE'],
     };
 
     assert.deepStrictEqual(
