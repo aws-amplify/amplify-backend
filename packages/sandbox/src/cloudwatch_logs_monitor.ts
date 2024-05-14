@@ -1,7 +1,8 @@
 import {
+  ColorName,
   LogLevel,
   Printer,
-  colors,
+  colorNames,
   format,
   printer,
 } from '@aws-amplify/cli-core';
@@ -13,7 +14,6 @@ import {
 } from '@aws-sdk/client-cloudwatch-logs';
 import fs from 'fs';
 import path from 'path';
-import { ColorName } from '../../cli-core/src/format/format.js';
 
 /**
  * After reading events from all CloudWatch log groups how long should we wait to read more events.
@@ -48,7 +48,7 @@ type CloudWatchLogEvent = {
  */
 type LogGroupEventDisplay = {
   friendlyName: string;
-  color: (typeof colors)[keyof typeof colors];
+  color: ColorName;
 };
 
 type LogGroupStreamingCursor = {
@@ -158,10 +158,9 @@ export class CloudWatchLogEventMonitor {
    * Pick the next color in the object `colors` in round robin fashion
    */
   private getNextColorForLogGroup = () => {
-    const colorNames = Object.keys(colors);
-    return colors[
-      colorNames[this.allLogGroups.length % colorNames.length] as ColorName
-    ];
+    return colorNames[
+      this.allLogGroups.length % colorNames.length
+    ] as ColorName;
   };
 
   private scheduleNextTick = (sleep: number): void => {

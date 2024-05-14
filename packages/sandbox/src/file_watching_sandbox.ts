@@ -255,7 +255,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // not reset tracker prematurely
         this.shouldValidateAppSources
       );
-      // await new Promise((resolve) => setTimeout(resolve, 1000));
       this.printer.log('[Sandbox] Deployment successful', LogLevel.DEBUG);
       this.emit('successfulDeployment', deployResult);
     } catch (error) {

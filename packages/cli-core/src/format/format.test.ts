@@ -1,7 +1,7 @@
 import * as os from 'node:os';
 import * as assert from 'node:assert';
 import { after, before, beforeEach, describe, it } from 'node:test';
-import { Format, colors, format } from './format.js';
+import { Format, format } from './format.js';
 import { $, blue, bold, cyan, green, red, underline } from 'kleur/colors';
 
 void describe('format', () => {
@@ -166,7 +166,7 @@ void describe('format.color', async () => {
   void it('should format colors as requested', () => {
     const input = 'something to color';
     const expectedOutput = green(input);
-    const actualOutput = format.color(input, colors.green);
+    const actualOutput = format.color(input, 'Green');
     assert.strictEqual(actualOutput, expectedOutput);
     assert.notStrictEqual(actualOutput, red(input)); // confirm that coloring actually works
   });

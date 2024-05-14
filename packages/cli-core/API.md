@@ -6,9 +6,7 @@
 
 /// <reference types="node" />
 
-import { Colorize } from 'kleur/colors';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
-import { print } from 'kleur/colors';
 import { WriteStream } from 'node:tty';
 
 // @public
@@ -25,19 +23,10 @@ export class AmplifyPrompter {
 }
 
 // @public (undocumented)
-export type Color = Colorize;
+export type ColorName = typeof colorNames[number];
 
 // @public (undocumented)
-export type ColorName = keyof typeof colors;
-
-// @public (undocumented)
-export const colors: {
-    green: print;
-    yellow: print;
-    blue: print;
-    magenta: print;
-    cyan: print;
-};
+export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan"];
 
 // @public
 export class Format {
@@ -45,7 +34,7 @@ export class Format {
     // (undocumented)
     bold: (message: string) => string;
     // (undocumented)
-    color: (message: string, color: Color) => string;
+    color: (message: string, colorName: ColorName) => string;
     // (undocumented)
     command: (command: string) => string;
     // (undocumented)

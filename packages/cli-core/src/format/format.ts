@@ -80,18 +80,26 @@ export class Format {
     Object.entries(record)
       .map(([key, value]) => `${key}: ${String(value)}`)
       .join(os.EOL);
-  color = (message: string, color: Color) => color(message);
+  color = (message: string, colorName: ColorName) => colors[colorName](message);
 }
 
-export type Color = Colorize;
-export type ColorName = keyof typeof colors;
-
-export const colors = {
-  green: green,
-  yellow: yellow,
-  blue: blue,
-  magenta: magenta,
-  cyan: cyan,
+// Map to connect colorName to kleur color
+const colors: Record<ColorName, Colorize> = {
+  Green: green,
+  Yellow: yellow,
+  Blue: blue,
+  Magenta: magenta,
+  Cyan: cyan,
 };
+
+export const colorNames = [
+  'Green',
+  'Yellow',
+  'Blue',
+  'Magenta',
+  'Cyan',
+] as const;
+
+export type ColorName = (typeof colorNames)[number];
 
 export const format = new Format();
