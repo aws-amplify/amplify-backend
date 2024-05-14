@@ -19,7 +19,6 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/backend-deployer": "^1.0.0",
-    "@aws-amplify/backend-output-schemas": "^1.1.0",
     "@aws-amplify/backend-secret": "^1.0.0",
     "@aws-amplify/cli-core": "^1.0.0",
     "@aws-amplify/client-config": "^1.0.1",

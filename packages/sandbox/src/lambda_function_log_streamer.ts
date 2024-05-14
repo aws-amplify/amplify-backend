@@ -1,4 +1,3 @@
-import { functionOutputKey } from '@aws-amplify/backend-output-schemas';
 import { LogLevel, Printer } from '@aws-amplify/cli-core';
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 import {
@@ -46,7 +45,7 @@ export class LambdaFunctionLogStreamer {
       await this.backendOutputClient.getOutput(sandboxBackendId);
 
     const definedFunctionsPayload =
-      backendOutput[functionOutputKey]?.payload.definedFunctions;
+      backendOutput['AWS::Amplify::Function']?.payload.definedFunctions;
     const deployedFunctionNames = definedFunctionsPayload
       ? (JSON.parse(definedFunctionsPayload) as string[])
       : [];

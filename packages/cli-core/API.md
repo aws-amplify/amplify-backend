@@ -23,7 +23,7 @@ export class AmplifyPrompter {
 }
 
 // @public (undocumented)
-export type ColorName = typeof colorNames[number];
+export type ColorName = (typeof colorNames)[number];
 
 // @public (undocumented)
 export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan"];

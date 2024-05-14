@@ -17,7 +17,6 @@ import {
 import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
 import { Printer } from '@aws-amplify/cli-core';
 import { BackendIdentifier, BackendOutput } from '@aws-amplify/plugin-types';
-import { functionOutputKey } from '@aws-amplify/backend-output-schemas';
 import { TagName } from '@aws-amplify/platform-core';
 
 void describe('LambdaFunctionLogStreamer', () => {
@@ -70,7 +69,7 @@ void describe('LambdaFunctionLogStreamer', () => {
   const backendOutputClientMock = {
     getOutput: mock.fn(() => {
       return Promise.resolve({
-        [functionOutputKey]: {
+        ['AWS::Amplify::Function']: {
           payload: {
             definedFunctions: customerDefinedFunctions,
           },
