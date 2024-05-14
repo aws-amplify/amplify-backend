@@ -1,5 +1,13 @@
 # @aws-amplify/sandbox
 
+## 1.0.2
+
+### Patch Changes
+
+- 1dc61de: bumping client-config version
+- Updated dependencies [f7b8089]
+  - @aws-amplify/client-config@1.0.2
+
 ## 1.0.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 1.0.2
+
+### Patch Changes
+
+- f7b8089: Correctly generate Gen1 social provider config form Gen2
+
 ## 1.0.1
 
 ### Patch Changes
