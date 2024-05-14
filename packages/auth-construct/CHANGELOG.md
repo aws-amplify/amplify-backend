@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct
 
+## 1.1.1
+
+### Patch Changes
+
+- 147fc86: update amplify_outputs for apple & amazon login method
+
 ## 1.1.0
 
 ### Minor Changes

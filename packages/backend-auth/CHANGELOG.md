@@ -1,5 +1,13 @@
 # @aws-amplify/backend-auth
 
+## 1.0.2
+
+### Patch Changes
+
+- 1dc61de: bumping consumers of auth-construct
+- Updated dependencies [147fc86]
+  - @aws-amplify/auth-construct@1.1.1
+
 ## 1.0.1
 
 ### Patch Changes
