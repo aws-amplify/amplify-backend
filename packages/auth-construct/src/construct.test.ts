@@ -819,9 +819,23 @@ void describe('Auth construct', () => {
           email: true,
         },
         userAttributes: {
-          phoneNumber: { required: true, mutable: true },
-          familyName: { required: false, mutable: true },
-          address: { required: true, mutable: true },
+          address: { required: true },
+          birthdate: { required: true },
+          gender: { required: true },
+          locale: { required: true },
+          middleName: { required: true },
+          nickname: { required: true },
+          phoneNumber: { required: true },
+          profilePicture: { required: true },
+          fullname: { required: true },
+          givenName: { required: true },
+          familyName: { required: true },
+          lastUpdateTime: { required: true },
+          preferredUsername: { required: true },
+          profilePage: { required: true },
+          timezone: { required: true },
+          website: { required: true },
+          email: { required: true, mutable: false },
         },
         outputStorageStrategy: stubBackendOutputStorageStrategy,
       });
@@ -829,7 +843,7 @@ void describe('Auth construct', () => {
 
       assert.equal(
         payload.signupAttributes,
-        '["email","phone_number","address"]'
+        '["email","phone_number","address","birthdate","gender","locale","middle_name","nickname","picture","name","given_name","family_name","updated_at","preferred_username","profile","zoneinfo","website"]'
       );
     });
 

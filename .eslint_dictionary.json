@@ -175,5 +175,6 @@
   "wildcards",
   "workspace",
   "yaml",
-  "yargs"
+  "yargs",
+  "zoneinfo"
 ]
