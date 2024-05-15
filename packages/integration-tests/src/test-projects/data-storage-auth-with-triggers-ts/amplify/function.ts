@@ -34,3 +34,8 @@ export const onUpload = defineFunction({
   name: 'onUpload',
   entry: './func-src/handler.ts',
 });
+
+export const funcWithSsm = defineFunction({
+  name: 'funcWithSsm',
+  entry: './func-src/handler_with_ssm.ts',
+});
