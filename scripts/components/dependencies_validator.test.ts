@@ -130,13 +130,42 @@ void describe('Dependency validator', () => {
       },
       (err: Error) => {
         assert.ok(
-          err.message.includes('is declared using inconsistent versions')
+          err.message.includes(
+            'dependency declarations must all the on the same semver range'
+          )
         );
         assert.ok(err.message.includes('glob'));
         assert.ok(err.message.includes('zod'));
         assert.ok(err.message.includes('yargs'));
         assert.ok(err.message.includes('package1'));
         assert.ok(err.message.includes('package2'));
+        return true;
+      }
+    );
+  });
+
+  void it('can detect inconsistent major versions of repo packages', async () => {
+    const packagePaths = await glob(
+      'scripts/components/test-resources/inter-repo-dependency-version-consistency-test-packages/*'
+    );
+    const validator = await new DependenciesValidator(
+      packagePaths,
+      {},
+      [],
+      execaMock as never
+    );
+
+    await assert.rejects(
+      () => validator.validate(),
+      (err: Error) => {
+        assert.ok(
+          err.message.includes(
+            'dependency declarations must all be on the same major version'
+          )
+        );
+        assert.ok(err.message.includes('package1'));
+        assert.ok(err.message.includes('package2'));
+        assert.ok(err.message.includes('package3'));
         return true;
       }
     );

@@ -1,6 +1,6 @@
 import { execa as _execa } from 'execa';
 import { EOL } from 'os';
-import { readPackageJson } from './package-json/package_json.js';
+import { PackageJson, readPackageJson } from './package-json/package_json.js';
 
 export type DependencyRule =
   | {
@@ -22,6 +22,15 @@ type DependencyViolation = {
   dependencyName: string;
 };
 
+type DependencyDeclaration = {
+  dependentPackageName: string;
+  version: string;
+};
+
+type DependencyVersionPredicate = (
+  declarations: DependencyDeclaration[]
+) => true | string;
+
 /**
  * Validates dependencies.
  *
@@ -33,6 +42,8 @@ type DependencyViolation = {
  * in order to assert consistency.
  */
 export class DependenciesValidator {
+  private repoPackageJsons: PackageJson[] | undefined = undefined;
+  private repoPackageNames: string[] | undefined = undefined;
   /**
    * Creates dependency validator
    * @param packagePaths paths of packages to validate
@@ -61,16 +72,10 @@ export class DependenciesValidator {
    */
   private async validateDependencyVersionsConsistency(): Promise<void> {
     console.log('Checking dependency versions consistency');
-    const packageJsons = await Promise.all(
-      this.packagePaths.map((packagePath) => readPackageJson(packagePath))
-    );
+    const packageJsons = await this.getRepoPackageJsons();
 
     type DependencyVersionsUsage = {
-      allVersions: Set<string>;
-      allDeclarations: Array<{
-        packageName: string;
-        version: string;
-      }>;
+      allDeclarations: DependencyDeclaration[];
     };
 
     const dependencyVersionsUsages: Record<string, DependencyVersionsUsage> =
@@ -80,23 +85,21 @@ export class DependenciesValidator {
         packageJson.dependencies,
         packageJson.devDependencies,
         packageJson.peerDependencies,
-      ].forEach((dependencies) => {
-        if (dependencies) {
-          for (const dependencyName of Object.keys(dependencies)) {
-            const dependencyVersion = dependencies[dependencyName];
+      ].forEach((dependency) => {
+        if (dependency) {
+          for (const dependencyName of Object.keys(dependency)) {
+            const dependencyVersion = dependency[dependencyName];
             let dependencyVersionsUsage =
               dependencyVersionsUsages[dependencyName];
             if (!dependencyVersionsUsage) {
               dependencyVersionsUsage = {
-                allVersions: new Set(),
                 allDeclarations: [],
               };
               dependencyVersionsUsages[dependencyName] =
                 dependencyVersionsUsage;
             }
-            dependencyVersionsUsage.allVersions.add(dependencyVersion);
             dependencyVersionsUsage.allDeclarations.push({
-              packageName: packageJson.name,
+              dependentPackageName: packageJson.name,
               version: dependencyVersion,
             });
           }
@@ -105,20 +108,18 @@ export class DependenciesValidator {
     }
 
     const errors: Array<string> = [];
-    for (const dependencyName of Object.keys(dependencyVersionsUsages)) {
-      const dependencyVersionUsage = dependencyVersionsUsages[dependencyName];
-
-      /**
-       * TODO: This is a temporary fix for execa version inconsistency. Remove this once execa version is fixed.
-       * Issue: https://github.com/aws-amplify/amplify-backend/issues/962
-       */
-      if (
-        dependencyVersionUsage.allVersions.size > 1 /* Issue-962 Start */ &&
-        dependencyName !== 'execa' /* Issue-962 End */
-      ) {
+    for (const [dependencyName, dependencyVersionUsage] of Object.entries(
+      dependencyVersionsUsages
+    )) {
+      const validationResult = (
+        await this.getPackageVersionDeclarationPredicate(dependencyName)
+      )(dependencyVersionUsage.allDeclarations);
+      if (typeof validationResult === 'string') {
         errors.push(
-          `Dependency ${dependencyName} is declared using inconsistent versions ${JSON.stringify(
-            dependencyVersionUsage.allDeclarations
+          `${validationResult}${EOL}${JSON.stringify(
+            dependencyVersionUsage.allDeclarations,
+            null,
+            2
           )}`
         );
       }
@@ -127,7 +128,7 @@ export class DependenciesValidator {
       const allLinkedVersions: Set<string> = new Set();
       for (const dependencyName of linkedDependencySpec) {
         const dependencyVersionUsage = dependencyVersionsUsages[dependencyName];
-        dependencyVersionUsage.allVersions.forEach((version) =>
+        dependencyVersionUsage.allDeclarations.forEach(({ version }) =>
           allLinkedVersions.add(version)
         );
       }
@@ -238,4 +239,70 @@ export class DependenciesValidator {
 
     return dependencies;
   }
+
+  private getPackageVersionDeclarationPredicate = async (
+    packageName: string
+  ): Promise<DependencyVersionPredicate> => {
+    if (packageName === 'execa') {
+      // @aws-amplify/plugin-types can depend on execa@^5.1.1 as a workaround for https://github.com/aws-amplify/amplify-backend/issues/962
+      // all other packages must depend on execa@^8.0.1
+      // this can be removed once execa is patched
+      return (declarations) => {
+        const validationResult = declarations.every(
+          ({ dependentPackageName, version }) =>
+            (dependentPackageName === '@aws-amplify/plugin-types' &&
+              version === '^5.1.1') ||
+            version === '^8.0.1'
+        );
+        return (
+          validationResult ||
+          `${packageName} dependency declarations must depend on version ^8.0.1 except in @aws-amplify/plugin-types where it must depend on ^5.1.1.`
+        );
+      };
+    } else if ((await this.getRepoPackageNames()).includes(packageName)) {
+      // repo packages only need consistent major versions
+      return (declarations) => {
+        if (declarations.length === 0) {
+          return true;
+        }
+        const baselineMajorVersion = declarations
+          .at(0)!
+          .version.split('.')
+          .at(0)!;
+        const validationResult = declarations.every(({ version }) =>
+          version.startsWith(baselineMajorVersion)
+        );
+        return (
+          validationResult ||
+          `${packageName} dependency declarations must all be on the same major version`
+        );
+      };
+    }
+    // default behavior for all other packages is that they must be on the same version
+    return (declarations) => {
+      const versionSet = new Set(declarations.map(({ version }) => version));
+      return (
+        versionSet.size === 1 ||
+        `${packageName} dependency declarations must all the on the same semver range`
+      );
+    };
+  };
+
+  private getRepoPackageJsons = async () => {
+    if (!this.repoPackageJsons) {
+      this.repoPackageJsons = await Promise.all(
+        this.packagePaths.map((packagePath) => readPackageJson(packagePath))
+      );
+    }
+    return this.repoPackageJsons;
+  };
+
+  private getRepoPackageNames = async () => {
+    if (!this.repoPackageNames) {
+      this.repoPackageNames = (await this.getRepoPackageJsons()).map(
+        (packageJson) => packageJson.name
+      );
+    }
+    return this.repoPackageNames;
+  };
 }
