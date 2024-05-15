@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.5.4
+
+### Patch Changes
+
+- 1dc61de: bumping client-config version
+
 ## 0.5.3
 
 ### Patch Changes

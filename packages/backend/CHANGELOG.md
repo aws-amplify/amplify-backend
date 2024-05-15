@@ -1,5 +1,15 @@
 # @aws-amplify/backend
 
+## 1.0.2
+
+### Patch Changes
+
+- 1dc61de: bumping client-config version
+- Updated dependencies [1dc61de]
+- Updated dependencies [f7b8089]
+  - @aws-amplify/backend-auth@1.0.2
+  - @aws-amplify/client-config@1.0.2
+
 ## 1.0.1
 
 ### Patch Changes

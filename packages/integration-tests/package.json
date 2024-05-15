@@ -1,14 +1,14 @@
 {
   "name": "@aws-amplify/integration-tests",
   "private": true,
-  "version": "0.5.3",
+  "version": "0.5.4",
   "type": "module",
   "devDependencies": {
     "@apollo/client": "^3.10.1",
-    "@aws-amplify/auth-construct": "^1.1.0",
-    "@aws-amplify/backend": "^1.0.1",
+    "@aws-amplify/auth-construct": "^1.1.1",
+    "@aws-amplify/backend": "^1.0.2",
     "@aws-amplify/backend-secret": "^1.0.0",
-    "@aws-amplify/client-config": "^1.0.1",
+    "@aws-amplify/client-config": "^1.0.2",
     "@aws-amplify/data-schema": "^1.0.0",
     "@aws-amplify/platform-core": "^1.0.0",
     "@aws-sdk/client-accessanalyzer": "^3.465.0",
