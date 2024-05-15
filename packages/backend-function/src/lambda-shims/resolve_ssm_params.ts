@@ -2,16 +2,14 @@
  * This code loads environment values from SSM and places them in their corresponding environment variables.
  * If there are no SSM environment values for this function, this is a noop.
  */
-import { SSM } from '@aws-sdk/client-ssm';
+import type { SSM } from '@aws-sdk/client-ssm';
 import type { SsmEnvVars } from '../function_env_translator.js';
 
 /**
  * Reads SSM environment context from a known Amplify environment variable,
  * fetches values from SSM and places those values in the corresponding environment variables
  */
-export const internalAmplifyFunctionResolveSsmParams = async (
-  client = new SSM()
-) => {
+export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
   const envPathObject: SsmEnvVars = JSON.parse(
     process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}'
   );
@@ -21,8 +19,16 @@ export const internalAmplifyFunctionResolveSsmParams = async (
     return;
   }
 
+  let actualSsmClient: SSM;
+  if (client) {
+    actualSsmClient = client;
+  } else {
+    const ssmSdk = await import('@aws-sdk/client-ssm');
+    actualSsmClient = new ssmSdk.SSM();
+  }
+
   const resolveSecrets = async (paths: string[]) => {
-    const response = await client.getParameters({
+    const response = await actualSsmClient.getParameters({
       Names: paths,
       WithDecryption: true,
     });

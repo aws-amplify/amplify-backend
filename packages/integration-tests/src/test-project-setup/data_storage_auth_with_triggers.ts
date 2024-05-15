@@ -194,8 +194,15 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       (name) => name.includes('node16Function')
     );
 
+    const funcWithSsm = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Lambda::Function',
+      (name) => name.includes('funcWithSsm')
+    );
+
     assert.equal(defaultNodeLambda.length, 1);
     assert.equal(node16Lambda.length, 1);
+    assert.equal(funcWithSsm.length, 1);
 
     const expectedResponse = {
       s3TestContent: 'this is some test content',
@@ -206,6 +213,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
+    await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
