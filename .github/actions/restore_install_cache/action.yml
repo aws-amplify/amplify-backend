@@ -14,5 +14,5 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}
+        key: ${{ github.sha }}-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}
         fail-on-cache-miss: true
