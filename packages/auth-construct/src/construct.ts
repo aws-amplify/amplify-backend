@@ -14,6 +14,7 @@ import {
   OAuthScope,
   OidcAttributeRequestMethod,
   ProviderAttribute,
+  StandardAttributes,
   UserPool,
   UserPoolClient,
   UserPoolIdentityProviderAmazon,
@@ -894,16 +895,10 @@ export class AmplifyAuth
         this.computedUserPoolProps.standardAttributes
       ).reduce((acc: string[], [attributeName, attribute]) => {
         if (attribute?.required) {
-          const treatedAttributeName = coreAttributeNameMap.find(
-            ({ standardAttributeName }) =>
-              standardAttributeName === attributeName
-          );
-
+          const treatedAttributeName =
+            coreAttributeNameMap[attributeName as keyof StandardAttributes];
           if (treatedAttributeName) {
-            return [
-              ...acc,
-              treatedAttributeName.userpoolAttributeName.toLowerCase(),
-            ];
+            return [...acc, treatedAttributeName];
           }
         }
         return acc;
