@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct
 
+## 1.1.2
+
+### Patch Changes
+
+- a7208ab: update user attributes mapping to have all the attributes
+
 ## 1.1.1
 
 ### Patch Changes
