@@ -10,6 +10,12 @@ import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
+// @public (undocumented)
+export type Cron = `${CronDigit} ${CronDigit} ${CronDigit} ${CronDigit} ${CronDigit}`;
+
+// @public (undocumented)
+export type CronDigit = `*` | `${number}`;
+
 // @public
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;
 
@@ -21,10 +27,20 @@ export type FunctionProps = {
     memoryMB?: number;
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
+    schedule?: TimeInterval | Array<TimeInterval>;
 };
 
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20;
+
+// @public (undocumented)
+export type Rate = `every ${number}${TimeUnit}`;
+
+// @public (undocumented)
+export type TimeInterval = Rate | Cron;
+
+// @public (undocumented)
+export type TimeUnit = 'm' | 'h' | 'd' | 'w' | 'M' | 'y';
 
 // (No @packageDocumentation comment for this package)
 

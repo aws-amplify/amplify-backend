@@ -26,6 +26,7 @@
   "commonjs",
   "corepack",
   "cors",
+  "cron",
   "ctor",
   "darwin",
   "datastore",

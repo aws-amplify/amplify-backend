@@ -31,8 +31,17 @@ import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'url';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import { CronOptions, Rule, Schedule } from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 
 const functionStackType = 'function-Lambda';
+
+export type CronDigit = `*` | `${number}`;
+export type Cron =
+  `${CronDigit} ${CronDigit} ${CronDigit} ${CronDigit} ${CronDigit}`;
+export type TimeUnit = 'm' | 'h' | 'd' | 'w' | 'M' | 'y';
+export type Rate = `every ${number}${TimeUnit}`;
+export type TimeInterval = Rate | Cron;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -87,6 +96,31 @@ export type FunctionProps = {
    * Defaults to the oldest NodeJS LTS version. See https://nodejs.org/en/about/previous-releases
    */
   runtime?: NodeVersion;
+
+  /**
+   * A time interval string to periodically run the function.
+   * This can be either a string of `"every <positive whole number><unit of time>"` or cron expression.
+   * Defaults to no scheduling for the function.
+   *
+   * Valid units of time are:
+   *
+   * m - minute(s)
+   *
+   * h - hour(s)
+   *
+   * d - day(s)
+   *
+   * w - week(s)
+   *
+   * M - month(s)
+   *
+   * y - year(s)
+   * @example
+   * schedule: "every 5m"
+   * @example
+   * schedule: "0 9 * * 2" // every Tuesday at 9am
+   */
+  schedule?: TimeInterval | Array<TimeInterval>;
 };
 
 /**
@@ -131,6 +165,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       memoryMB: this.resolveMemory(),
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
+      schedule: this.resolveSchedule(),
     };
   };
 
@@ -220,6 +255,41 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 
     return this.props.runtime;
   };
+
+  private resolveSchedule = () => {
+    if (!this.props.schedule) {
+      return [];
+    }
+
+    const schedules = Array.isArray(this.props.schedule)
+      ? this.props.schedule
+      : [this.props.schedule];
+
+    schedules.forEach((schedule) => {
+      if (isRate(schedule)) {
+        const { value } = parseRate(schedule);
+
+        if (!isPositiveWholeNumber(value)) {
+          throw new Error(`schedule must be set with a positive whole number`);
+        }
+      } else {
+        const cronArray = schedule.split(' ');
+
+        cronArray.forEach((cronDigit) => {
+          if (
+            cronDigit !== '*' &&
+            !isPositiveWholeNumber(parseInt(cronDigit))
+          ) {
+            throw new Error(
+              `schedule must be set with a positive whole number`
+            );
+          }
+        });
+      }
+    });
+
+    return this.props.schedule;
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -296,7 +366,7 @@ class AmplifyFunction
     // This will be overwritten with the typed file at the end of synthesis
     functionEnvironmentTypeGenerator.generateProcessEnvShim();
 
-    let functionLambda;
+    let functionLambda: NodejsFunction;
     try {
       functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
@@ -317,6 +387,30 @@ class AmplifyFunction
         'NodeJSFunctionConstructInitializationError',
         {
           message: 'Failed to instantiate nodejs function construct',
+          resolution: 'See the underlying error message for more details.',
+        },
+        error as Error
+      );
+    }
+
+    try {
+      const timeIntervals = Array.isArray(props.schedule)
+        ? props.schedule
+        : [props.schedule];
+
+      timeIntervals.forEach((interval, index) => {
+        // Lambda name will be prepended to rule id, so only using index here
+        const rule = new Rule(this, `lambda-schedule${index}`, {
+          schedule: Schedule.cron(translateToCronOptions(interval)),
+        });
+
+        rule.addTarget(new targets.LambdaFunction(functionLambda));
+      });
+    } catch (error) {
+      throw new AmplifyUserError(
+        'NodeJSFunctionScheduleInitializationError',
+        {
+          message: 'Failed to instantiate schedule for nodejs function',
           resolution: 'See the underlying error message for more details.',
         },
         error as Error
@@ -395,4 +489,72 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
+};
+
+const isRate = (timeInterval: TimeInterval): timeInterval is Rate => {
+  return timeInterval.split(' ')[0] === 'every';
+};
+
+const parseRate = (rate: Rate) => {
+  const valueWithUnit = rate.split(' ')[1];
+
+  return {
+    value: parseInt(valueWithUnit.substring(0, valueWithUnit.length - 1)),
+    unit: valueWithUnit.charAt(valueWithUnit.length - 1),
+  };
+};
+
+const isPositiveWholeNumber = (test: number) => test > 0 && test % 1 === 0;
+
+const translateToCronOptions = (timeInterval: TimeInterval): CronOptions => {
+  if (isRate(timeInterval)) {
+    const { value, unit } = parseRate(timeInterval);
+    const currentYear = new Date().getFullYear();
+    switch (unit) {
+      case 'm':
+        return { minute: `*/${value}` };
+      case 'h':
+        return { minute: '0', hour: `*/${value}` };
+      case 'd':
+        return { minute: '0', hour: '0', day: `*/${value}` };
+      case 'w':
+        // TODO: Still need to figure out how to implement weeks
+        return { minute: '0', hour: '0', day: `*/${value * 7}` };
+      case 'M':
+        return { minute: '0', hour: '0', day: '1', month: `*/${value}` };
+      case 'y':
+        return {
+          minute: '0',
+          hour: '0',
+          day: '1',
+          month: '1',
+          year: `${currentYear}/${value}`,
+        };
+      default:
+        // This should never happen with strict types
+        throw new Error('Could not determine the schedule for the function');
+    }
+  } else {
+    const cronArray = timeInterval.split(' ');
+    let result: CronOptions;
+
+    // Branching logic here is because we cannot supply both day and weekDay
+    if (cronArray[2] === '*') {
+      result = {
+        minute: cronArray[0],
+        hour: cronArray[1],
+        month: cronArray[3],
+        weekDay: cronArray[4],
+      };
+    } else {
+      result = {
+        minute: cronArray[0],
+        hour: cronArray[1],
+        day: cronArray[2],
+        month: cronArray[3],
+      };
+    }
+
+    return result;
+  }
 };
