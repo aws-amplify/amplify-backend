@@ -36,11 +36,16 @@ import * as targets from 'aws-cdk-lib/aws-events-targets';
 
 const functionStackType = 'function-Lambda';
 
-export type CronDigit = `*` | `${number}`;
 export type Cron =
-  `${CronDigit} ${CronDigit} ${CronDigit} ${CronDigit} ${CronDigit}`;
-export type TimeUnit = 'm' | 'h' | 'd' | 'w' | 'M' | 'y';
-export type Rate = `every ${number}${TimeUnit}`;
+  | `${string} ${string} ${string} ${string} ${string}`
+  | `${string} ${string} ${string} ${string} ${string} ${string}`;
+export type Rate =
+  | `every ${number}m`
+  | `every ${number}h`
+  | `every day`
+  | `every week`
+  | `every month`
+  | `every year`;
 export type TimeInterval = Rate | Cron;
 
 /**
@@ -99,28 +104,16 @@ export type FunctionProps = {
 
   /**
    * A time interval string to periodically run the function.
-   * This can be either a string of `"every <positive whole number><unit of time>"` or cron expression.
+   * This can be either a string of `"every <positive whole number><m (minute) or h (hour)>"`, `"every day|week|month|year"` or cron expression.
    * Defaults to no scheduling for the function.
-   *
-   * Valid units of time are:
-   *
-   * m - minute(s)
-   *
-   * h - hour(s)
-   *
-   * d - day(s)
-   *
-   * w - week(s)
-   *
-   * M - month(s)
-   *
-   * y - year(s)
    * @example
    * schedule: "every 5m"
    * @example
-   * schedule: "0 9 * * 2" // every Tuesday at 9am
+   * schedule: "every week"
+   * @example
+   * schedule: "0 9 * * 2" // every Monday at 9am
    */
-  schedule?: TimeInterval | Array<TimeInterval>;
+  schedule?: TimeInterval | TimeInterval[];
 };
 
 /**
@@ -269,22 +262,14 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       if (isRate(schedule)) {
         const { value } = parseRate(schedule);
 
-        if (!isPositiveWholeNumber(value)) {
+        if (value && !isPositiveWholeNumber(value)) {
           throw new Error(`schedule must be set with a positive whole number`);
         }
       } else {
-        const cronArray = schedule.split(' ');
-
-        cronArray.forEach((cronDigit) => {
-          if (
-            cronDigit !== '*' &&
-            !isPositiveWholeNumber(parseInt(cronDigit))
-          ) {
-            throw new Error(
-              `schedule must be set with a positive whole number`
-            );
-          }
-        });
+        if (!isValidCron(schedule)) {
+          // TODO: Better error messaging here or throw within each part of isValidCron in order to give more concise error messages
+          throw new Error(`schedule cron expression is not valid`);
+        }
       }
     });
 
@@ -399,7 +384,7 @@ class AmplifyFunction
         : [props.schedule];
 
       timeIntervals.forEach((interval, index) => {
-        // Lambda name will be prepended to rule id, so only using index here
+        // Lambda name will be prepended to rule id, so only using index here for uniqueness
         const rule = new Rule(this, `lambda-schedule${index}`, {
           schedule: Schedule.cron(translateToCronOptions(interval)),
         });
@@ -496,39 +481,113 @@ const isRate = (timeInterval: TimeInterval): timeInterval is Rate => {
 };
 
 const parseRate = (rate: Rate) => {
-  const valueWithUnit = rate.split(' ')[1];
+  const interval = rate.split(' ')[1];
+
+  const regex = /\d/;
+  if (interval.match(regex)) {
+    return {
+      value: parseInt(interval.substring(0, interval.length - 1)),
+      unit: interval.charAt(interval.length - 1),
+    };
+  }
 
   return {
-    value: parseInt(valueWithUnit.substring(0, valueWithUnit.length - 1)),
-    unit: valueWithUnit.charAt(valueWithUnit.length - 1),
+    unit: interval,
   };
 };
 
 const isPositiveWholeNumber = (test: number) => test > 0 && test % 1 === 0;
 
+const isValidCron = (cron: Cron): boolean => {
+  const cronParts = cron.split(' ');
+
+  if (cronParts.length !== 5 && cronParts.length !== 6) {
+    return false;
+  }
+
+  const [minute, hour, dayOfMonth, month, dayOfWeek, year] = cronParts;
+
+  return (
+    isValidCronPart(minute, 0, 59) &&
+    isValidCronPart(hour, 0, 23) &&
+    (dayOfMonth === '?' || isValidCronPart(dayOfMonth, 1, 31)) &&
+    isValidCronPart(month, 1, 12) &&
+    (dayOfWeek === '?' || isValidCronPart(dayOfWeek, 1, 7)) &&
+    (!year || isValidCronPart(year, 1970, 2199))
+  );
+};
+
+const isValidCronPart = (part: string, min: number, max: number): boolean => {
+  if (part === '*') {
+    return true;
+  }
+  if (part.includes('/')) {
+    return isValidStepValue(part, min, max);
+  }
+  if (part.includes('-')) {
+    return isValidRange(part, min, max);
+  }
+  if (part.includes(',')) {
+    return isValidList(part, min, max);
+  }
+
+  return isWholeNumberBetweenInclusive(Number(part), min, max);
+};
+
+const isValidStepValue = (value: string, min: number, max: number): boolean => {
+  const originalBase = value.split('/')[0];
+  const [base, step] = value.split('/').map(Number);
+
+  if (originalBase === '*') {
+    return !isNaN(step) && step > 0;
+  }
+
+  return (
+    !isNaN(base) &&
+    !isNaN(step) &&
+    isWholeNumberBetweenInclusive(base, min, max) &&
+    step > 0
+  );
+};
+
+const isValidRange = (value: string, min: number, max: number): boolean => {
+  const [start, end] = value.split('-').map(Number);
+  return (
+    !isNaN(start) &&
+    !isNaN(end) &&
+    isWholeNumberBetweenInclusive(start, min, max) &&
+    isWholeNumberBetweenInclusive(end, min, max) &&
+    start <= end
+  );
+};
+
+const isValidList = (value: string, min: number, max: number): boolean => {
+  return value
+    .split(',')
+    .every((v) => isWholeNumberBetweenInclusive(Number(v), min, max));
+};
+
 const translateToCronOptions = (timeInterval: TimeInterval): CronOptions => {
   if (isRate(timeInterval)) {
     const { value, unit } = parseRate(timeInterval);
-    const currentYear = new Date().getFullYear();
     switch (unit) {
       case 'm':
         return { minute: `*/${value}` };
       case 'h':
         return { minute: '0', hour: `*/${value}` };
-      case 'd':
-        return { minute: '0', hour: '0', day: `*/${value}` };
-      case 'w':
-        // TODO: Still need to figure out how to implement weeks
-        return { minute: '0', hour: '0', day: `*/${value * 7}` };
-      case 'M':
-        return { minute: '0', hour: '0', day: '1', month: `*/${value}` };
-      case 'y':
+      case 'day':
+        return { minute: '0', hour: '0', day: `*` };
+      case 'week':
+        return { minute: '0', hour: '0', weekDay: `1` };
+      case 'month':
+        return { minute: '0', hour: '0', day: '1', month: `*` };
+      case 'year':
         return {
           minute: '0',
           hour: '0',
           day: '1',
           month: '1',
-          year: `${currentYear}/${value}`,
+          year: `*`,
         };
       default:
         // This should never happen with strict types
@@ -536,23 +595,18 @@ const translateToCronOptions = (timeInterval: TimeInterval): CronOptions => {
     }
   } else {
     const cronArray = timeInterval.split(' ');
-    let result: CronOptions;
+    const result: Record<string, string> = {
+      minute: cronArray[0],
+      hour: cronArray[1],
+      month: cronArray[3],
+      year: cronArray.length === 6 ? cronArray[5] : '*',
+    };
 
     // Branching logic here is because we cannot supply both day and weekDay
     if (cronArray[2] === '*') {
-      result = {
-        minute: cronArray[0],
-        hour: cronArray[1],
-        month: cronArray[3],
-        weekDay: cronArray[4],
-      };
+      result.weekDay = cronArray[4];
     } else {
-      result = {
-        minute: cronArray[0],
-        hour: cronArray[1],
-        day: cronArray[2],
-        month: cronArray[3],
-      };
+      result.day = cronArray[2];
     }
 
     return result;
