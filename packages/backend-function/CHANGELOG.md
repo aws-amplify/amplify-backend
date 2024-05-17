@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.0.2
+
+### Patch Changes
+
+- e008bb3: fix: lazy load ssm client in backend function banner
+
 ## 1.0.1
 
 ### Patch Changes

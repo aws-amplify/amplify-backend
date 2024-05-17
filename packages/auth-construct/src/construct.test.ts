@@ -515,6 +515,41 @@ void describe('Auth construct', () => {
     );
   });
 
+  void it('throws error if sms MFA is not enabled with phone login', () => {
+    assert.throws(
+      () =>
+        new AmplifyAuth(new Stack(new App()), 'test', {
+          loginWith: {
+            phone: true,
+          },
+          multifactor: {
+            mode: 'OPTIONAL',
+            totp: true,
+          },
+        }),
+      {
+        message:
+          'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled',
+      }
+    );
+    assert.throws(
+      () =>
+        new AmplifyAuth(new Stack(new App()), 'test', {
+          loginWith: {
+            phone: true,
+          },
+          multifactor: {
+            mode: 'REQUIRED',
+            totp: true,
+          },
+        }),
+      {
+        message:
+          'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled',
+      }
+    );
+  });
+
   void it('requires email attribute if email is enabled', () => {
     const app = new App();
     const stack = new Stack(app);
