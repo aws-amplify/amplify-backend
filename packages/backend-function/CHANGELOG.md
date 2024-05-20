@@ -1,5 +1,20 @@
 # @aws-amplify/backend-function
 
+## 1.0.2
+
+### Patch Changes
+
+- e008bb3: fix: lazy load ssm client in backend function banner
+
+## 1.0.1
+
+### Patch Changes
+
+- 86b639a: Throw helpful error message when function environment variable is undefined
+- Updated dependencies [15c2b7c]
+  - @aws-amplify/backend-output-schemas@1.1.0
+  - @aws-amplify/backend-output-storage@1.0.1
+
 ## 1.0.0
 
 ### Major Changes

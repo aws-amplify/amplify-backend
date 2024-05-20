@@ -1,5 +1,27 @@
 # @aws-amplify/backend-cli
 
+## 1.0.3
+
+### Patch Changes
+
+- 1dc61de: bumping client-config version
+- 508247a: show `ampx` command instead of `amplify` command in messages to users
+- Updated dependencies [1dc61de]
+- Updated dependencies [f7b8089]
+  - @aws-amplify/sandbox@1.0.2
+  - @aws-amplify/client-config@1.0.2
+
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies [15c2b7c]
+  - @aws-amplify/backend-output-schemas@1.1.0
+  - @aws-amplify/client-config@1.0.1
+  - @aws-amplify/deployed-backend-client@1.0.1
+  - @aws-amplify/model-generator@1.0.1
+  - @aws-amplify/sandbox@1.0.1
+
 ## 1.0.1
 
 ### Patch Changes

@@ -112,7 +112,15 @@ export class ClientConfigLegacyConverter {
       if (clientConfig.auth.oauth) {
         authClientConfig.oauth = {};
         authClientConfig.aws_cognito_social_providers =
-          clientConfig.auth.oauth.identity_providers;
+          clientConfig.auth.oauth.identity_providers.map((provider) => {
+            if (provider === 'SIGN_IN_WITH_APPLE') {
+              return 'APPLE';
+            }
+            if (provider === 'LOGIN_WITH_AMAZON') {
+              return 'AMAZON';
+            }
+            return provider;
+          });
         authClientConfig.oauth.domain = clientConfig.auth.oauth.domain;
         authClientConfig.oauth.scope = clientConfig.auth.oauth.scopes;
         authClientConfig.oauth.redirectSignIn =

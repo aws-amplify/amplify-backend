@@ -1,5 +1,18 @@
 # @aws-amplify/integration-tests
 
+## 0.5.4
+
+### Patch Changes
+
+- 1dc61de: bumping client-config version
+
+## 0.5.3
+
+### Patch Changes
+
+- a723bf4: install, build, unit test, and e2e test using lts/iron & lts/hydrogen
+- c3e0d31: fix: refactoring text Amplify (Gen 2) to Amplify Gen 2
+
 ## 0.5.2
 
 ### Patch Changes

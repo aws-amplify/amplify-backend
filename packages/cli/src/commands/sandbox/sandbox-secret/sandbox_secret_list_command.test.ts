@@ -98,10 +98,11 @@ void describe('sandbox secret list command', () => {
     });
 
     assert.equal(printMock.mock.callCount(), 1);
-    assert.ok(
-      printMock.mock.calls[0].arguments[0].startsWith(
-        'No sandbox secrets found.'
-      )
+    assert.equal(
+      printMock.mock.calls[0].arguments[0],
+      `No sandbox secrets found. To create a secret use ${format.normalizeAmpxCommand(
+        'sandbox secret set <secret-name>'
+      )}.`
     );
   });
 

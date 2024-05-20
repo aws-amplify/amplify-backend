@@ -11,6 +11,7 @@ import {
   CfnUserPoolClient,
   CfnUserPoolGroup,
   Mfa,
+  MfaSecondFactor,
   OAuthScope,
   OidcAttributeRequestMethod,
   ProviderAttribute,
@@ -373,6 +374,16 @@ export class AmplifyAuth
         smsMessage: smsMessage,
       };
     }
+    const mfaType = this.getMFAType(props.multifactor);
+    const mfaMode = this.getMFAMode(props.multifactor);
+
+    // If phone login is enabled along with MFA, cognito requires that mfa SMS type to be enabled.
+    if (phoneEnabled && mfaMode && mfaMode !== 'OFF' && !mfaType?.sms) {
+      throw Error(
+        'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled'
+      );
+    }
+
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -395,16 +406,9 @@ export class AmplifyAuth
         ...(props.userAttributes ? props.userAttributes : {}),
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
-      mfa: this.getMFAMode(props.multifactor),
+      mfa: mfaMode,
       mfaMessage: this.getMFAMessage(props.multifactor),
-      mfaSecondFactor:
-        typeof props.multifactor === 'object' &&
-        props.multifactor.mode !== 'OFF'
-          ? {
-              sms: props.multifactor.sms ? true : false,
-              otp: props.multifactor.totp ? true : false,
-            }
-          : undefined,
+      mfaSecondFactor: mfaType,
       accountRecovery: this.getAccountRecoverySetting(
         emailEnabled,
         phoneEnabled,
@@ -540,10 +544,10 @@ export class AmplifyAuth
   };
 
   /**
-   * Convert user friendly Mfa mode to cognito Mfa type.
+   * Convert user friendly Mfa mode to cognito Mfa Mode.
    * This eliminates the need for users to import cognito.Mfa.
    * @param mfa - MFA settings
-   * @returns cognito MFA enforcement type
+   * @returns cognito MFA enforcement mode
    */
   private getMFAMode = (mfa: AuthProps['multifactor']): Mfa | undefined => {
     if (mfa) {
@@ -557,6 +561,23 @@ export class AmplifyAuth
       }
     }
     return undefined;
+  };
+
+  /**
+   * Convert user friendly Mfa type to cognito Mfa type.
+   * This eliminates the need for users to import cognito.Mfa.
+   * @param mfa - MFA settings
+   * @returns cognito MFA type (sms or totp)
+   */
+  private getMFAType = (
+    mfa: AuthProps['multifactor']
+  ): MfaSecondFactor | undefined => {
+    return typeof mfa === 'object' && mfa.mode !== 'OFF'
+      ? {
+          sms: mfa.sms ? true : false,
+          otp: mfa.totp ? true : false,
+        }
+      : undefined;
   };
 
   /**
@@ -699,7 +720,7 @@ export class AmplifyAuth
       );
       result.oAuthMappings[authProvidersList.amazon] =
         external.loginWithAmazon.clientId;
-      result.providersList.push('AMAZON');
+      result.providersList.push('LOGIN_WITH_AMAZON');
     }
     if (external.signInWithApple) {
       result.apple = new cognito.UserPoolIdentityProviderApple(
@@ -722,7 +743,7 @@ export class AmplifyAuth
       );
       result.oAuthMappings[authProvidersList.apple] =
         external.signInWithApple.clientId;
-      result.providersList.push('APPLE');
+      result.providersList.push('SIGN_IN_WITH_APPLE');
     }
     if (external.oidc && external.oidc.length > 0) {
       result.oidc = [];
@@ -962,19 +983,6 @@ export class AmplifyAuth
       if (requirements.length > 0) {
         output.passwordPolicyRequirements = JSON.stringify(requirements);
       }
-    }
-    const oAuthMappings = this.providerSetupResult.oAuthMappings;
-    if (oAuthMappings[authProvidersList.amazon]) {
-      output.amazonClientId = oAuthMappings[authProvidersList.amazon];
-    }
-    if (oAuthMappings[authProvidersList.facebook]) {
-      output.facebookClientId = oAuthMappings[authProvidersList.facebook];
-    }
-    if (oAuthMappings[authProvidersList.google]) {
-      output.googleClientId = oAuthMappings[authProvidersList.google];
-    }
-    if (oAuthMappings[authProvidersList.apple]) {
-      output.appleClientId = oAuthMappings[authProvidersList.apple];
     }
 
     if (this.providerSetupResult.providersList.length > 0) {

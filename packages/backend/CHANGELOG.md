@@ -1,5 +1,29 @@
 # @aws-amplify/backend
 
+## 1.0.2
+
+### Patch Changes
+
+- 1dc61de: bumping client-config version
+- Updated dependencies [1dc61de]
+- Updated dependencies [f7b8089]
+  - @aws-amplify/backend-auth@1.0.2
+  - @aws-amplify/client-config@1.0.2
+
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [86b639a]
+- Updated dependencies [15c2b7c]
+  - @aws-amplify/backend-function@1.0.1
+  - @aws-amplify/backend-output-schemas@1.1.0
+  - @aws-amplify/backend-data@1.0.1
+  - @aws-amplify/backend-output-storage@1.0.1
+  - @aws-amplify/backend-storage@1.0.1
+  - @aws-amplify/client-config@1.0.1
+  - @aws-amplify/backend-auth@1.0.1
+
 ## 1.0.0
 
 ### Major Changes

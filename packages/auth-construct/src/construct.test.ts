@@ -515,6 +515,41 @@ void describe('Auth construct', () => {
     );
   });
 
+  void it('throws error if sms MFA is not enabled with phone login', () => {
+    assert.throws(
+      () =>
+        new AmplifyAuth(new Stack(new App()), 'test', {
+          loginWith: {
+            phone: true,
+          },
+          multifactor: {
+            mode: 'OPTIONAL',
+            totp: true,
+          },
+        }),
+      {
+        message:
+          'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled',
+      }
+    );
+    assert.throws(
+      () =>
+        new AmplifyAuth(new Stack(new App()), 'test', {
+          loginWith: {
+            phone: true,
+          },
+          multifactor: {
+            mode: 'REQUIRED',
+            totp: true,
+          },
+        }),
+      {
+        message:
+          'Invalid MFA settings. SMS must be enabled in multiFactor if loginWith phone is enabled',
+      }
+    );
+  });
+
   void it('requires email attribute if email is enabled', () => {
     const app = new App();
     const stack = new Stack(app);
@@ -728,7 +763,6 @@ void describe('Auth construct', () => {
               signupAttributes: '["email"]',
               verificationMechanisms: '["email"]',
               usernameAttributes: '["email"]',
-              googleClientId: 'googleClientId',
               oauthClientId: expectedWebClientId, // same thing
               oauthCognitoDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
               oauthScope: '["email","profile"]',
@@ -826,9 +860,23 @@ void describe('Auth construct', () => {
           email: true,
         },
         userAttributes: {
-          phoneNumber: { required: true, mutable: true },
-          familyName: { required: false, mutable: true },
-          address: { required: true, mutable: true },
+          address: { required: true },
+          birthdate: { required: true },
+          gender: { required: true },
+          locale: { required: true },
+          middleName: { required: true },
+          nickname: { required: true },
+          phoneNumber: { required: true },
+          profilePicture: { required: true },
+          fullname: { required: true },
+          givenName: { required: true },
+          familyName: { required: true },
+          lastUpdateTime: { required: true },
+          preferredUsername: { required: true },
+          profilePage: { required: true },
+          timezone: { required: true },
+          website: { required: true },
+          email: { required: true, mutable: false },
         },
         outputStorageStrategy: stubBackendOutputStorageStrategy,
       });
@@ -836,7 +884,7 @@ void describe('Auth construct', () => {
 
       assert.equal(
         payload.signupAttributes,
-        '["email","phone_number","address"]'
+        '["email","phone_number","address","birthdate","gender","locale","middle_name","nickname","picture","name","given_name","family_name","updated_at","preferred_username","profile","zoneinfo","website"]'
       );
     });
 

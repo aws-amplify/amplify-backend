@@ -1,4 +1,5 @@
 import { execa } from 'execa';
+import { GitClient } from './components/git_client.js';
 
 // any files that have an "EXCLUDE" string as a substring of the file path will be excluded from the size check
 // note that gitignored files are already ignored
@@ -20,14 +21,8 @@ if (baseRef === undefined) {
 }
 
 // first collect the names of files that have been changed, so we can filter out excluded files
-const { stdout: filenameDiffOutput } = await execa('git', [
-  '--no-pager',
-  'diff',
-  '--name-only',
-  baseRef,
-  'HEAD',
-]);
-const diffFileList = filenameDiffOutput.toString().split('\n');
+const gitClient = new GitClient();
+const diffFileList = await gitClient.getChangedFiles(baseRef);
 const filteredList = diffFileList.filter(
   (file) => !EXCLUDE.find((e) => file.includes(e))
 );

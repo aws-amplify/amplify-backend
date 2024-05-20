@@ -1,5 +1,11 @@
 # create-amplify
 
+## 1.0.1
+
+### Patch Changes
+
+- c3e0d31: fix: refactoring text Amplify (Gen 2) to Amplify Gen 2
+
 ## 1.0.0
 
 ### Major Changes

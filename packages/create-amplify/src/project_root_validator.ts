@@ -23,7 +23,7 @@ export class ProjectRootValidator {
     const testPath = path.resolve(this.projectRoot, 'amplify');
     if (this.exists(testPath)) {
       throw new Error(
-        `An amplify directory already exists at ${testPath}. If you are trying to run an Amplify (Gen 2) command inside an Amplify (Gen 1) project we recommend creating the project in another directory. Learn more about Amplify's new code-first DX (Gen 2): ${amplifyLearnMoreUrl}`
+        `An amplify directory already exists at ${testPath}. If you are trying to run an Amplify Gen 2 command inside an Amplify Gen 1 project we recommend creating the project in another directory. Learn more about AWS Amplify Gen 2: ${amplifyLearnMoreUrl}`
       );
     }
   };
