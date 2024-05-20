@@ -969,20 +969,10 @@ export class AmplifyAuth
     });
     output.mfaTypes = JSON.stringify(mfaTypes);
 
-    // extract providers from CfnIdentityPool.supportedLoginProviders
-    // see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolclient.html#cfn-cognito-userpoolclient-supportedidentityproviders
-    const cfnUserPoolProviders =
-      this.resources.cfnResources.cfnUserPoolClient.supportedIdentityProviders;
-    if (cfnUserPoolProviders) {
-      const providersToOutput = [];
-      for (const provider of cfnUserPoolProviders) {
-        if (provider !== 'COGNITO') {
-          providersToOutput.push(provider);
-        }
-      }
-      if (providersToOutput.length > 0) {
-        output.socialProviders = JSON.stringify(providersToOutput);
-      }
+    if (this.providerSetupResult.providersList.length > 0) {
+      output.socialProviders = JSON.stringify(
+        this.providerSetupResult.providersList
+      );
     }
 
     //TODO: extract callback URLs from cfn and remove this block below

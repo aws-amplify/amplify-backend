@@ -793,8 +793,7 @@ void describe('Auth construct', () => {
               oauthRedirectSignIn: 'http://callback.com',
               oauthRedirectSignOut: 'http://logout.com',
               oauthResponseType: 'code',
-              // see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolclient.html#cfn-cognito-userpoolclient-supportedidentityproviders
-              socialProviders: `["${googleProvider.providerName}","${facebookProvider.providerName}","${amazonProvider.providerName}","${appleProvider.providerName}","${provider1}","${provider2}","${unnamedProvider}"]`,
+              socialProviders: `["GOOGLE","FACEBOOK","LOGIN_WITH_AMAZON","SIGN_IN_WITH_APPLE","${provider1}","${provider2}","${unnamedProvider}"]`,
               allowUnauthenticatedIdentities: 'true',
               mfaConfiguration: 'OFF',
               mfaTypes: '[]',
