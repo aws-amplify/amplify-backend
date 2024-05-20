@@ -53,7 +53,13 @@ type IdentityProviderSetupResult = {
   oidc?: UserPoolIdentityProviderOidc[];
   saml?: UserPoolIdentityProviderSaml;
 };
-const authProvidersList = {
+type OAuthProviderMapping = {
+  facebook: string;
+  google: string;
+  amazon: string;
+  apple: string;
+};
+const oauthProviderToProviderDomainMap: OAuthProviderMapping = {
   facebook: 'graph.facebook.com',
   google: 'accounts.google.com',
   amazon: 'www.amazon.com',
@@ -673,7 +679,8 @@ export class AmplifyAuth
           scopes: googleProps.scopes,
         }
       );
-      result.oAuthMappings[authProvidersList.google] = external.google.clientId;
+      result.oAuthMappings[oauthProviderToProviderDomainMap.google] =
+        external.google.clientId;
       result.providersList.push('GOOGLE');
     }
     if (external.facebook) {
@@ -695,7 +702,7 @@ export class AmplifyAuth
           },
         }
       );
-      result.oAuthMappings[authProvidersList.facebook] =
+      result.oAuthMappings[oauthProviderToProviderDomainMap.facebook] =
         external.facebook.clientId;
       result.providersList.push('FACEBOOK');
     }
@@ -718,7 +725,7 @@ export class AmplifyAuth
           },
         }
       );
-      result.oAuthMappings[authProvidersList.amazon] =
+      result.oAuthMappings[oauthProviderToProviderDomainMap.amazon] =
         external.loginWithAmazon.clientId;
       result.providersList.push('LOGIN_WITH_AMAZON');
     }
@@ -741,7 +748,7 @@ export class AmplifyAuth
           },
         }
       );
-      result.oAuthMappings[authProvidersList.apple] =
+      result.oAuthMappings[oauthProviderToProviderDomainMap.apple] =
         external.signInWithApple.clientId;
       result.providersList.push('SIGN_IN_WITH_APPLE');
     }
@@ -962,36 +969,26 @@ export class AmplifyAuth
     });
     output.mfaTypes = JSON.stringify(mfaTypes);
 
-    if (this.computedUserPoolProps.passwordPolicy) {
-      output.passwordPolicyMinLength =
-        this.computedUserPoolProps.passwordPolicy.minLength?.toString();
-
-      const requirements = [];
-      if (this.computedUserPoolProps.passwordPolicy.requireDigits) {
-        requirements.push('REQUIRES_NUMBERS');
+    // extract providers from CfnIdentityPool.supportedLoginProviders
+    // see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolclient.html#cfn-cognito-userpoolclient-supportedidentityproviders
+    const cfnUserPoolProviders =
+      this.resources.cfnResources.cfnUserPoolClient.supportedIdentityProviders;
+    if (cfnUserPoolProviders) {
+      const providersToOutput = [];
+      for (const provider of cfnUserPoolProviders) {
+        if (provider !== 'COGNITO') {
+          providersToOutput.push(provider);
+        }
       }
-      if (this.computedUserPoolProps.passwordPolicy.requireLowercase) {
-        requirements.push('REQUIRES_LOWERCASE');
-      }
-      if (this.computedUserPoolProps.passwordPolicy.requireUppercase) {
-        requirements.push('REQUIRES_UPPERCASE');
-      }
-      if (this.computedUserPoolProps.passwordPolicy.requireSymbols) {
-        requirements.push('REQUIRES_SYMBOLS');
-      }
-
-      if (requirements.length > 0) {
-        output.passwordPolicyRequirements = JSON.stringify(requirements);
+      if (providersToOutput.length > 0) {
+        output.socialProviders = JSON.stringify(providersToOutput);
       }
     }
 
-    if (this.providerSetupResult.providersList.length > 0) {
-      output.socialProviders = JSON.stringify(
-        this.providerSetupResult.providersList
-      );
-    }
+    //TODO: extract callback URLs from cfn and remove this block below
     // if callback URLs are configured, we must expose the oauth settings to the output
     if (
+      //cfnUserPoolClient.callbackUrLs
       this.providerSetupResult.oAuthSettings &&
       this.providerSetupResult.oAuthSettings.callbackUrls
     ) {

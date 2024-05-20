@@ -692,7 +692,7 @@ void describe('Auth construct', () => {
       ]);
     });
 
-    void it('stores outputs in platform -  when external provider is present', () => {
+    void it('stores outputs in platform -  when external providers are present', () => {
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -700,6 +700,20 @@ void describe('Auth construct', () => {
             google: {
               clientId: googleClientId,
               clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            facebook: {
+              clientId: facebookClientId,
+              clientSecret: facebookClientSecret,
+            },
+            signInWithApple: {
+              clientId: appleClientId,
+              keyId: appleKeyId,
+              privateKey: applePrivateKey,
+              teamId: appleTeamId,
+            },
+            loginWithAmazon: {
+              clientId: amazonClientId,
+              clientSecret: amazonClientSecret,
             },
             oidc: [
               {
@@ -743,7 +757,17 @@ void describe('Auth construct', () => {
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 2);
       const oidcProviders = authConstruct['providerSetupResult']['oidc'];
-      if (oidcProviders) {
+      const facebookProvider = authConstruct['providerSetupResult']['facebook'];
+      const googleProvider = authConstruct['providerSetupResult']['google'];
+      const appleProvider = authConstruct['providerSetupResult']['apple'];
+      const amazonProvider = authConstruct['providerSetupResult']['amazon'];
+      if (
+        oidcProviders &&
+        facebookProvider &&
+        googleProvider &&
+        appleProvider &&
+        amazonProvider
+      ) {
         const provider1 = oidcProviders[0].providerName;
         const provider2 = oidcProviders[1].providerName;
         const unnamedProvider = oidcProviders[2].providerName;
@@ -769,7 +793,8 @@ void describe('Auth construct', () => {
               oauthRedirectSignIn: 'http://callback.com',
               oauthRedirectSignOut: 'http://logout.com',
               oauthResponseType: 'code',
-              socialProviders: `["GOOGLE","${provider1}","${provider2}","${unnamedProvider}"]`,
+              // see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpoolclient.html#cfn-cognito-userpoolclient-supportedidentityproviders
+              socialProviders: `["${googleProvider.providerName}","${facebookProvider.providerName}","${amazonProvider.providerName}","${appleProvider.providerName}","${provider1}","${provider2}","${unnamedProvider}"]`,
               allowUnauthenticatedIdentities: 'true',
               mfaConfiguration: 'OFF',
               mfaTypes: '[]',
