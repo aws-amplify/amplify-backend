@@ -753,7 +753,10 @@ void describe('Auth construct', () => {
         authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
       ).userPoolClientId;
       const expectedRegion = Stack.of(authConstruct).region;
-
+      const expectedCognitoDomain =
+        authConstruct.resources.userPool.node['_children']['UserPoolDomain'][
+          'domainName'
+        ];
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 2);
       const oidcProviders = authConstruct['providerSetupResult']['oidc'];
@@ -788,8 +791,8 @@ void describe('Auth construct', () => {
               verificationMechanisms: '["email"]',
               usernameAttributes: '["email"]',
               oauthClientId: expectedWebClientId, // same thing
-              oauthCognitoDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
-              oauthScope: '["email","profile"]',
+              oauthCognitoDomain: expectedCognitoDomain,
+              oauthScope: '["email","profile","openid"]',
               oauthRedirectSignIn: 'http://callback.com',
               oauthRedirectSignOut: 'http://logout.com',
               oauthResponseType: 'code',
@@ -831,7 +834,10 @@ void describe('Auth construct', () => {
         authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
       ).userPoolClientId;
       const expectedRegion = Stack.of(authConstruct).region;
-
+      const expectedCognitoDomain =
+        authConstruct.resources.userPool.node['_children']['UserPoolDomain'][
+          'domainName'
+        ];
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 2);
       assert.deepStrictEqual(storeOutputArgs, [
@@ -851,8 +857,8 @@ void describe('Auth construct', () => {
             verificationMechanisms: '["email"]',
             usernameAttributes: '["email"]',
             oauthClientId: expectedWebClientId, // same thing
-            oauthCognitoDomain: `test-prefix.auth.${expectedRegion}.amazoncognito.com`,
-            oauthScope: '["email","profile"]',
+            oauthCognitoDomain: expectedCognitoDomain,
+            oauthScope: '["email","profile","openid"]',
             oauthRedirectSignIn: 'http://callback.com',
             oauthRedirectSignOut: 'http://logout.com',
             oauthResponseType: 'code',
