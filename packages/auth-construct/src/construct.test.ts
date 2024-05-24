@@ -630,6 +630,35 @@ void describe('Auth construct', () => {
     });
   });
 
+  // void describe('storeOutput post synthesis', () => {
+  //   let app: App;
+  //   let stack: Stack;
+  //   void beforeEach(() => {
+  //     app = new App();
+  //     stack = new Stack(app);
+  //   });
+  //   void it('stores output with minimal config', () => {
+  //     const authConstruct = new AmplifyAuth(stack, 'test', {
+  //       loginWith: {
+  //         email: true,
+  //       },
+  //     });
+  //     // POST SYNTHESIS - validate values that require synthesis to be computed
+  //     const template = Template.fromStack(stack);
+  //     const outputs = template['template']['Outputs'];
+
+  //     const expectedPasswordPolicy = (
+  //       (
+  //         authConstruct.resources.cfnResources.cfnUserPool
+  //           .policies as CfnUserPool.PoliciesProperty
+  //       )['passwordPolicy'] as CfnUserPool.PasswordPolicyProperty
+  //     );
+  //     const expectedPasswordPolicyMinLength = expectedPasswordPolicy['minimumLength'];
+  //   });
+  // });
+
+  // Validate output for NON-LAZY values (pre-synthesis)
+  // these properties are NON-LAZY because we don't support overrides for their values
   void describe('storeOutput', () => {
     let app: App;
     let stack: Stack;
@@ -654,42 +683,22 @@ void describe('Auth construct', () => {
         outputStorageStrategy: stubBackendOutputStorageStrategy,
       });
 
-      const expectedUserPoolId = (
-        authConstruct.node.findChild('UserPool') as UserPool
-      ).userPoolId;
-      const expectedIdentityPoolId = (
-        authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
-      ).ref;
-      const expectedWebClientId = (
-        authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
-      ).userPoolClientId;
+      const expectedUserPoolId = authConstruct.resources.userPool.userPoolId;
+      const expectedIdentityPoolId =
+        authConstruct.resources.cfnResources.cfnIdentityPool.ref;
+      const expectedWebClientId =
+        authConstruct.resources.userPoolClient.userPoolClientId;
       const expectedRegion = Stack.of(authConstruct).region;
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 2);
-
-      assert.deepStrictEqual(storeOutputArgs, [
-        authOutputKey,
-        {
-          version: '1',
-          payload: {
-            userPoolId: expectedUserPoolId,
-            webClientId: expectedWebClientId,
-            identityPoolId: expectedIdentityPoolId,
-            authRegion: expectedRegion,
-            passwordPolicyMinLength:
-              DEFAULTS.PASSWORD_POLICY.minLength.toString(),
-            passwordPolicyRequirements:
-              defaultPasswordPolicyCharacterRequirements,
-            signupAttributes: '["email"]',
-            verificationMechanisms: '["email"]',
-            usernameAttributes: '["email"]',
-            allowUnauthenticatedIdentities: 'true',
-            mfaConfiguration: 'OFF',
-            mfaTypes: '[]',
-          },
-        },
-      ]);
+      assert.equal(storeOutputArgs[0], authOutputKey);
+      assert.equal(storeOutputArgs[1]['version'], '1');
+      const payload = storeOutputArgs[1]['payload'];
+      assert.equal(payload['userPoolId'], expectedUserPoolId);
+      assert.equal(payload['identityPoolId'], expectedIdentityPoolId);
+      assert.equal(payload['webClientId'], expectedWebClientId);
+      assert.equal(payload['authRegion'], expectedRegion);
     });
 
     void it('stores outputs in platform -  when external providers are present', () => {
@@ -1253,6 +1262,43 @@ void describe('Auth construct', () => {
         'Policies.PasswordPolicy.MinimumLength',
         10
       );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireLowercase',
+        false
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireNumbers',
+        false
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireSymbols',
+        false
+      );
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.RequireUppercase',
+        false
+      );
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPool', {
+        Policies: {
+          PasswordPolicy: {
+            MinimumLength: 10,
+            RequireLowercase: false,
+            RequireNumbers: false,
+            RequireSymbols: false,
+            RequireUppercase: false,
+          },
+        },
+      });
+    });
+    void it('can override password policy', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      const userPoolResource = auth.resources.cfnResources.cfnUserPool;
+      // this works
+      // userPoolResource['policies']['passwordPolicy']['minimumLength'] = 8;
+      // this does not
       userPoolResource.addPropertyOverride(
         'Policies.PasswordPolicy.RequireLowercase',
         false

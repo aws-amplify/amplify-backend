@@ -1,5 +1,10 @@
 import { Construct } from 'constructs';
-import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import {
+  Lazy,
+  RemovalPolicy,
+  Stack,
+  aws_cognito as cognito,
+} from 'aws-cdk-lib';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -897,138 +902,198 @@ export class AmplifyAuth
       Stack.of(this)
     )
   ): void => {
+    // these properties cannot be overwritten
     const output: AuthOutput['payload'] = {
       userPoolId: this.resources.userPool.userPoolId,
       webClientId: this.resources.userPoolClient.userPoolClientId,
       identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
-      allowUnauthenticatedIdentities:
+    };
+
+    // the properties below this line can be overwritten, so they are exposed via cdk LAZY
+    output.allowUnauthenticatedIdentities = Lazy.string({
+      produce: () =>
         this.resources.cfnResources.cfnIdentityPool
           .allowUnauthenticatedIdentities === true
           ? 'true'
           : 'false',
-      // socialProviders: Lazy.string({
-      //   produce: () => {
-      //     const getProviders = () => {
-
-      //       }
-      //       return undefined;
-      //     };
-      //     return getProviders();
-      //   },
-      // }),
-    };
+    });
 
     const cfnUserPool = this.resources.cfnResources.cfnUserPool;
     // extract signupAttributes from UserPool schema's required attributes
-    const requiredAttributes: string[] = [];
-    if (cfnUserPool.schema) {
-      const schema =
-        cfnUserPool.schema as CfnUserPool.SchemaAttributeProperty[];
-      schema.forEach((attribute) => {
-        if (attribute.required && attribute.name) {
-          requiredAttributes.push(attribute.name);
+    output.signupAttributes = Lazy.string({
+      produce: () => {
+        if (cfnUserPool.schema) {
+          const requiredAttributes: string[] = [];
+          const schema =
+            cfnUserPool.schema as CfnUserPool.SchemaAttributeProperty[];
+          schema.forEach((attribute) => {
+            if (attribute.required && attribute.name) {
+              requiredAttributes.push(attribute.name);
+            }
+          });
+          return JSON.stringify(
+            requiredAttributes.map((attr) => attr.toLowerCase())
+          );
         }
-      });
-      output.signupAttributes = JSON.stringify(
-        requiredAttributes.map((attr) => attr.toLowerCase())
-      );
-      // extract usernameAttributes from UserPool's usernameAttributes
-      const usernameAttributes: string[] = cfnUserPool.usernameAttributes ?? [];
-      output.usernameAttributes = JSON.stringify(
-        usernameAttributes.map((attr) => attr.toLowerCase())
-      );
-      // extract verificationMechanisms from UserPool's autoVerifiedAttributes
-      const verificationMechanism: string[] = [];
-      (cfnUserPool.autoVerifiedAttributes ?? []).forEach((attr) => {
-        verificationMechanism.push(attr);
-      });
-      output.verificationMechanisms = JSON.stringify(verificationMechanism);
-    }
+        return undefined;
+      },
+    });
+
+    // extract usernameAttributes from UserPool's usernameAttributes
+    output.usernameAttributes = Lazy.string({
+      produce: () => {
+        const usernameAttributes: string[] =
+          cfnUserPool.usernameAttributes ?? [];
+        return JSON.stringify(
+          usernameAttributes.map((attr) => attr.toLowerCase())
+        );
+      },
+    });
+
+    // extract verificationMechanisms from UserPool's autoVerifiedAttributes
+    output.verificationMechanisms = Lazy.string({
+      produce: () => {
+        const verificationMechanism: string[] = [];
+        (cfnUserPool.autoVerifiedAttributes ?? []).forEach((attr) => {
+          verificationMechanism.push(attr);
+        });
+        return JSON.stringify(verificationMechanism);
+      },
+    });
 
     // extract the passwordPolicy from the UserPool policies
-    if (cfnUserPool.policies) {
-      const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
-        .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
-      output.passwordPolicyMinLength = policy.minimumLength?.toString();
-      const requirements = [];
-      policy.requireNumbers && requirements.push('REQUIRES_NUMBERS');
-      policy.requireLowercase && requirements.push('REQUIRES_LOWERCASE');
-      policy.requireUppercase && requirements.push('REQUIRES_UPPERCASE');
-      policy.requireSymbols && requirements.push('REQUIRES_SYMBOLS');
-      output.passwordPolicyRequirements = JSON.stringify(requirements);
-    }
+    output.passwordPolicyMinLength = Lazy.string({
+      produce: () => {
+        if (cfnUserPool.policies) {
+          const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
+            .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
+          return policy.minimumLength?.toString();
+        }
+        return undefined;
+      },
+    });
+
+    output.passwordPolicyRequirements = Lazy.string({
+      produce: () => {
+        if (cfnUserPool.policies) {
+          const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
+            .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
+          const requirements = [];
+          policy.requireNumbers && requirements.push('REQUIRES_NUMBERS');
+          policy.requireLowercase && requirements.push('REQUIRES_LOWERCASE');
+          policy.requireUppercase && requirements.push('REQUIRES_UPPERCASE');
+          policy.requireSymbols && requirements.push('REQUIRES_SYMBOLS');
+          return JSON.stringify(requirements);
+        }
+        return undefined;
+      },
+    });
 
     // extract the MFA settings from the UserPool resource
-    output.mfaConfiguration = cfnUserPool.mfaConfiguration ?? 'OFF';
-    const mfaTypes: string[] = [];
-    (cfnUserPool.enabledMfas ?? []).forEach((type) => {
-      if (type === 'SMS_MFA') {
-        mfaTypes.push('SMS');
-      }
-      if (type === 'SOFTWARE_TOKEN_MFA') {
-        mfaTypes.push('TOTP');
-      }
+    output.mfaTypes = Lazy.string({
+      produce: () => {
+        output.mfaConfiguration = cfnUserPool.mfaConfiguration ?? 'OFF';
+        const mfaTypes: string[] = [];
+        (cfnUserPool.enabledMfas ?? []).forEach((type) => {
+          if (type === 'SMS_MFA') {
+            mfaTypes.push('SMS');
+          }
+          if (type === 'SOFTWARE_TOKEN_MFA') {
+            mfaTypes.push('TOTP');
+          }
+        });
+        return JSON.stringify(mfaTypes);
+      },
     });
-    output.mfaTypes = JSON.stringify(mfaTypes);
 
-    const outputProviders = [];
-    const userPoolProviders = this.resources.userPool.identityProviders;
-    if (userPoolProviders) {
-      for (const provider of userPoolProviders) {
-        const providerType =
-          provider.node['_children']['Resource']['providerType'];
+    // extract social providers from UserPool resource
+    output.socialProviders = Lazy.string({
+      produce: () => {
+        const outputProviders = [];
+        const userPoolProviders = this.resources.userPool.identityProviders;
+        if (userPoolProviders) {
+          for (const provider of userPoolProviders) {
+            const providerType =
+              provider.node['_children']['Resource']['providerType'];
 
-        if (providerType === 'Google') {
-          outputProviders.push('GOOGLE');
+            if (providerType === 'Google') {
+              outputProviders.push('GOOGLE');
+            }
+            if (providerType === 'Facebook') {
+              outputProviders.push('FACEBOOK');
+            }
+            if (providerType === 'SignInWithApple') {
+              outputProviders.push('SIGN_IN_WITH_APPLE');
+            }
+            if (providerType === 'LoginWithAmazon') {
+              outputProviders.push('LOGIN_WITH_AMAZON');
+            }
+            if (providerType === 'OIDC') {
+              outputProviders.push(provider.providerName);
+            }
+            if (providerType === 'SAML') {
+              outputProviders.push('SAML');
+            }
+          }
+          if (outputProviders.length > 0) {
+            return JSON.stringify(outputProviders);
+          }
         }
-        if (providerType === 'Facebook') {
-          outputProviders.push('FACEBOOK');
-        }
-        if (providerType === 'SignInWithApple') {
-          outputProviders.push('SIGN_IN_WITH_APPLE');
-        }
-        if (providerType === 'LoginWithAmazon') {
-          outputProviders.push('LOGIN_WITH_AMAZON');
-        }
-        if (providerType === 'OIDC') {
-          outputProviders.push(provider.providerName);
-        }
-        if (providerType === 'SAML') {
-          outputProviders.push('SAML');
-        }
-      }
-      if (outputProviders.length > 0) {
-        output.socialProviders = JSON.stringify(outputProviders);
-      }
-    }
+        return undefined;
+      },
+    });
 
-    //TODO: extract callback URLs from cfn and remove this block below
-    // if callback URLs are configured, we must expose the oauth settings to the output
-    if (
-      this.providerSetupResult.oAuthSettings &&
-      this.providerSetupResult.oAuthSettings.callbackUrls
-    ) {
-      if (this.userPool.node['_children']['UserPoolDomain']) {
-        output.oauthCognitoDomain =
-          this.userPool.node['_children']['UserPoolDomain']['domainName'];
-      }
-      const userPoolClientResource =
-        this.resources.userPoolClient.node['_children']['Resource'];
+    const getUserPoolClientResource = () => {
+      return this.resources.userPoolClient.node['_children']['Resource'];
+    };
 
-      output.oauthScope = JSON.stringify(
-        userPoolClientResource['allowedOAuthScopes'] ?? []
-      );
-      output.oauthRedirectSignIn = userPoolClientResource['callbackUrLs']
-        ? userPoolClientResource['callbackUrLs'].join(',')
-        : '';
-      output.oauthRedirectSignOut = userPoolClientResource['logoutUrLs']
-        ? userPoolClientResource['logoutUrLs'].join(',')
-        : '';
-      output.oauthClientId = this.resources.userPoolClient.userPoolClientId;
-      output.oauthResponseType =
-        userPoolClientResource['allowedOAuthFlows'].join(',');
-    }
+    output.oauthCognitoDomain = Lazy.string({
+      produce: () => {
+        const userPoolDomain =
+          this.resources.userPool.node['_children']['UserPoolDomain'];
+        if (userPoolDomain) {
+          return userPoolDomain['domainName'];
+        }
+        return undefined;
+      },
+    });
+
+    output.oauthScope = Lazy.string({
+      produce: () => {
+        return JSON.stringify(
+          getUserPoolClientResource()['allowedOAuthScopes'] ?? []
+        );
+      },
+    });
+
+    output.oauthRedirectSignIn = Lazy.string({
+      produce: () => {
+        return getUserPoolClientResource()['callbackUrLs']
+          ? getUserPoolClientResource()['callbackUrLs'].join(',')
+          : '';
+      },
+    });
+
+    output.oauthRedirectSignOut = Lazy.string({
+      produce: () => {
+        return getUserPoolClientResource()['logoutUrLs']
+          ? getUserPoolClientResource()['logoutUrLs'].join(',')
+          : '';
+      },
+    });
+
+    output.oauthResponseType = Lazy.string({
+      produce: () => {
+        return getUserPoolClientResource()['allowedOAuthFlows'].join(',');
+      },
+    });
+
+    output.oauthClientId = Lazy.string({
+      produce: () => {
+        return this.resources.userPoolClient.userPoolClientId;
+      },
+    });
 
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
