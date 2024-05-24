@@ -990,10 +990,15 @@ export class AmplifyAuth
       },
     });
 
-    // extract the MFA settings from the UserPool resource
+    // extract the MFA configuration setting from the UserPool resource
+    output.mfaConfiguration = Lazy.string({
+      produce: () => {
+        return cfnUserPool.mfaConfiguration ?? 'OFF';
+      },
+    });
+    // extract the MFA types from the UserPool resource
     output.mfaTypes = Lazy.string({
       produce: () => {
-        output.mfaConfiguration = cfnUserPool.mfaConfiguration ?? 'OFF';
         const mfaTypes: string[] = [];
         (cfnUserPool.enabledMfas ?? []).forEach((type) => {
           if (type === 'SMS_MFA') {
@@ -1030,10 +1035,14 @@ export class AmplifyAuth
               outputProviders.push('LOGIN_WITH_AMAZON');
             }
             if (providerType === 'OIDC') {
-              outputProviders.push(provider.providerName);
+              outputProviders.push(
+                provider.node['_children']['Resource']['providerName']
+              );
             }
             if (providerType === 'SAML') {
-              outputProviders.push('SAML');
+              outputProviders.push(
+                provider.node['_children']['Resource']['providerName']
+              );
             }
           }
           if (outputProviders.length > 0) {

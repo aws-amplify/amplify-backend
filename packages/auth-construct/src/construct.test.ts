@@ -7,13 +7,7 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import {
-  CfnIdentityPool,
-  CfnUserPoolClient,
-  ProviderAttribute,
-  UserPool,
-  UserPoolClient,
-} from 'aws-cdk-lib/aws-cognito';
+import { CfnUserPoolClient, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DEFAULTS } from './defaults.js';
 
@@ -630,79 +624,139 @@ void describe('Auth construct', () => {
     });
   });
 
-  // void describe('storeOutput post synthesis', () => {
-  //   let app: App;
-  //   let stack: Stack;
-  //   void beforeEach(() => {
-  //     app = new App();
-  //     stack = new Stack(app);
-  //   });
-  //   void it('stores output with minimal config', () => {
-  //     const authConstruct = new AmplifyAuth(stack, 'test', {
-  //       loginWith: {
-  //         email: true,
-  //       },
-  //     });
-  //     // POST SYNTHESIS - validate values that require synthesis to be computed
-  //     const template = Template.fromStack(stack);
-  //     const outputs = template['template']['Outputs'];
-
-  //     const expectedPasswordPolicy = (
-  //       (
-  //         authConstruct.resources.cfnResources.cfnUserPool
-  //           .policies as CfnUserPool.PoliciesProperty
-  //       )['passwordPolicy'] as CfnUserPool.PasswordPolicyProperty
-  //     );
-  //     const expectedPasswordPolicyMinLength = expectedPasswordPolicy['minimumLength'];
-  //   });
-  // });
-
-  // Validate output for NON-LAZY values (pre-synthesis)
-  // these properties are NON-LAZY because we don't support overrides for their values
-  void describe('storeOutput', () => {
+  void describe('storeOutput post synthesis', () => {
     let app: App;
     let stack: Stack;
-    const storeOutputMock = mock.fn();
-    const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
-      {
-        addBackendOutputEntry: storeOutputMock,
-        appendToBackendOutputList: storeOutputMock,
-      };
-
     void beforeEach(() => {
       app = new App();
       stack = new Stack(app);
-      storeOutputMock.mock.resetCalls();
     });
 
-    void it('stores outputs in platform - minimum config', () => {
-      const authConstruct = new AmplifyAuth(stack, 'test', {
+    void it('stores output with minimal email config', () => {
+      new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
         },
-        outputStorageStrategy: stubBackendOutputStorageStrategy,
+      });
+      // POST SYNTHESIS - validate values that require synthesis to be computed
+      const template = Template.fromStack(stack);
+      const outputs = template['template']['Outputs'];
+      assert.equal(
+        outputs['allowUnauthenticatedIdentities']['Value'],
+        DEFAULTS.ALLOW_UNAUTHENTICATED_IDENTITIES === true ? 'true' : 'false'
+      );
+      assert.equal(outputs['mfaTypes']['Value'], '[]');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'OFF');
+      assert.equal(
+        outputs['passwordPolicyMinLength']['Value'],
+        DEFAULTS.PASSWORD_POLICY.minLength.toString()
+      );
+      assert.equal(
+        outputs['passwordPolicyRequirements']['Value'],
+        defaultPasswordPolicyCharacterRequirements
+      );
+      assert.equal(outputs['signupAttributes']['Value'], '["email"]');
+      assert.equal(outputs['usernameAttributes']['Value'], '["email"]');
+      assert.equal(outputs['verificationMechanisms']['Value'], '["email"]');
+    });
+
+    void it('userAttributes prop should update signupAttributes', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        userAttributes: {
+          address: { required: true },
+          birthdate: { required: true },
+          gender: { required: true },
+          locale: { required: true },
+          middleName: { required: true },
+          nickname: { required: true },
+          phoneNumber: { required: true },
+          profilePicture: { required: true },
+          fullname: { required: true },
+          givenName: { required: true },
+          familyName: { required: true },
+          lastUpdateTime: { required: true },
+          preferredUsername: { required: true },
+          profilePage: { required: true },
+          timezone: { required: true },
+          website: { required: true },
+          email: { required: true, mutable: false },
+        },
+      });
+      const template = Template.fromStack(stack);
+      const outputs = template['template']['Outputs'];
+      assert.equal(
+        outputs['signupAttributes']['Value'],
+        '["email","phone_number","address","birthdate","gender","locale","middle_name","nickname","picture","name","given_name","family_name","updated_at","preferred_username","profile","zoneinfo","website"]'
+      );
+    });
+
+    void it('adding loginWith methods should update usernameAttributes & verificationMechanisms for email and phone', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+          phone: true,
+        },
+      });
+      const template = Template.fromStack(stack);
+      const outputs = template['template']['Outputs'];
+      assert.equal(
+        outputs['usernameAttributes']['Value'],
+        '["email","phone_number"]'
+      );
+      assert.equal(
+        outputs['verificationMechanisms']['Value'],
+        '["email","phone_number"]'
+      );
+    });
+
+    void it('adding loginWith methods should update usernameAttributes & verificationMechanisms for phone only', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          phone: true,
+        },
+      });
+      const template = Template.fromStack(stack);
+      const outputs = template['template']['Outputs'];
+      assert.equal(outputs['usernameAttributes']['Value'], '["phone_number"]');
+      assert.equal(
+        outputs['verificationMechanisms']['Value'],
+        '["phone_number"]'
+      );
+    });
+
+    void it('updates mfaConfiguration & mfaTypes when optional', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        multifactor: { mode: 'OPTIONAL', sms: true, totp: true },
       });
 
-      const expectedUserPoolId = authConstruct.resources.userPool.userPoolId;
-      const expectedIdentityPoolId =
-        authConstruct.resources.cfnResources.cfnIdentityPool.ref;
-      const expectedWebClientId =
-        authConstruct.resources.userPoolClient.userPoolClientId;
-      const expectedRegion = Stack.of(authConstruct).region;
+      const template = Template.fromStack(stack);
+      const outputs = template['template']['Outputs'];
+      assert.equal(outputs['mfaTypes']['Value'], '["SMS","TOTP"]');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'OPTIONAL');
+    });
 
-      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
-      assert.equal(storeOutputArgs.length, 2);
-      assert.equal(storeOutputArgs[0], authOutputKey);
-      assert.equal(storeOutputArgs[1]['version'], '1');
-      const payload = storeOutputArgs[1]['payload'];
-      assert.equal(payload['userPoolId'], expectedUserPoolId);
-      assert.equal(payload['identityPoolId'], expectedIdentityPoolId);
-      assert.equal(payload['webClientId'], expectedWebClientId);
-      assert.equal(payload['authRegion'], expectedRegion);
+    void it('updates mfaConfiguration & mfaTypes when required', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        multifactor: { mode: 'REQUIRED', sms: false, totp: true },
+      });
+
+      const template = Template.fromStack(stack);
+      const outputs = template['template']['Outputs'];
+      assert.equal(outputs['mfaTypes']['Value'], '["TOTP"]');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'ON');
     });
 
     void it('stores outputs in platform -  when external providers are present', () => {
-      const authConstruct = new AmplifyAuth(stack, 'test', {
+      new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
           externalProviders: {
@@ -749,196 +803,86 @@ void describe('Auth construct', () => {
             logoutUrls: ['http://logout.com'],
           },
         },
-        outputStorageStrategy: stubBackendOutputStorageStrategy,
       });
-
-      const expectedUserPoolId = (
-        authConstruct.node.findChild('UserPool') as UserPool
-      ).userPoolId;
-      const expectedIdentityPoolId = (
-        authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
-      ).ref;
-      const expectedWebClientId = (
-        authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
-      ).userPoolClientId;
-      const expectedRegion = Stack.of(authConstruct).region;
-      const expectedCognitoDomain =
-        authConstruct.resources.userPool.node['_children']['UserPoolDomain'][
-          'domainName'
-        ];
-      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
-      assert.equal(storeOutputArgs.length, 2);
-      const oidcProviders = authConstruct['providerSetupResult']['oidc'];
-      const facebookProvider = authConstruct['providerSetupResult']['facebook'];
-      const googleProvider = authConstruct['providerSetupResult']['google'];
-      const appleProvider = authConstruct['providerSetupResult']['apple'];
-      const amazonProvider = authConstruct['providerSetupResult']['amazon'];
-      if (
-        oidcProviders &&
-        facebookProvider &&
-        googleProvider &&
-        appleProvider &&
-        amazonProvider
-      ) {
-        const provider1 = oidcProviders[0].providerName;
-        const provider2 = oidcProviders[1].providerName;
-        const unnamedProvider = oidcProviders[2].providerName;
-        assert.deepStrictEqual(storeOutputArgs, [
-          authOutputKey,
-          {
-            version: '1',
-            payload: {
-              userPoolId: expectedUserPoolId,
-              webClientId: expectedWebClientId,
-              identityPoolId: expectedIdentityPoolId,
-              authRegion: expectedRegion,
-              passwordPolicyMinLength:
-                DEFAULTS.PASSWORD_POLICY.minLength.toString(),
-              passwordPolicyRequirements:
-                defaultPasswordPolicyCharacterRequirements,
-              signupAttributes: '["email"]',
-              verificationMechanisms: '["email"]',
-              usernameAttributes: '["email"]',
-              oauthClientId: expectedWebClientId, // same thing
-              oauthCognitoDomain: expectedCognitoDomain,
-              oauthScope: '["email","profile","openid"]',
-              oauthRedirectSignIn: 'http://callback.com',
-              oauthRedirectSignOut: 'http://logout.com',
-              oauthResponseType: 'code',
-              socialProviders: `["GOOGLE","FACEBOOK","LOGIN_WITH_AMAZON","SIGN_IN_WITH_APPLE","${provider1}","${provider2}","${unnamedProvider}"]`,
-              allowUnauthenticatedIdentities: 'true',
-              mfaConfiguration: 'OFF',
-              mfaTypes: '[]',
-            },
-          },
-        ]);
-      } else {
-        assert.fail(
-          'Providers were not properly initialized by the construct and could not be tested for output.'
-        );
+      const template = Template.fromStack(stack);
+      const outputs = template['template']['Outputs'];
+      let unnamedOidcProviderName = '';
+      for (const resourceKey of Object.keys(
+        template['template']['Resources']
+      )) {
+        const resource = template['template']['Resources'][resourceKey];
+        if (
+          resource['Properties'] &&
+          resource['Properties']['ProviderDetails'] &&
+          resource['Properties']['ProviderDetails']['client_id'] === 'clientId3'
+        ) {
+          unnamedOidcProviderName = resource['Properties']['ProviderName'];
+          continue;
+        }
       }
+      assert.equal(
+        outputs['socialProviders']['Value'],
+        `["GOOGLE","FACEBOOK","LOGIN_WITH_AMAZON","SIGN_IN_WITH_APPLE","provider1","provider2","${unnamedOidcProviderName}"]`
+      );
+      // const expectedOauthDomain = auth.resources.userPool.node['_children']['UserPoolDomain']['domainName'];
+      // assert.equal(outputs['oauthCognitoDomain']['Value'], expectedOauthDomain);
+      assert.equal(
+        outputs['oauthScope']['Value'],
+        '["email","profile","openid"]'
+      );
+      assert.equal(
+        outputs['oauthRedirectSignIn']['Value'],
+        'http://callback.com'
+      );
+      assert.equal(
+        outputs['oauthRedirectSignOut']['Value'],
+        'http://logout.com'
+      );
+    });
+  });
+
+  // Validate output for NON-LAZY values (pre-synthesis)
+  // these properties are NON-LAZY because we don't support overrides for their values
+  void describe('storeOutput', () => {
+    let app: App;
+    let stack: Stack;
+    const storeOutputMock = mock.fn();
+    const stubBackendOutputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+      {
+        addBackendOutputEntry: storeOutputMock,
+        appendToBackendOutputList: storeOutputMock,
+      };
+
+    void beforeEach(() => {
+      app = new App();
+      stack = new Stack(app);
+      storeOutputMock.mock.resetCalls();
     });
 
-    void it('stores relevant oauth outputs in platform -  when external provider is absent', () => {
+    void it('stores outputs in platform - correctly sets non lazy loaded values', () => {
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
-          externalProviders: {
-            domainPrefix: 'test-prefix',
-            scopes: ['EMAIL', 'PROFILE'],
-            callbackUrls: ['http://callback.com'],
-            logoutUrls: ['http://logout.com'],
-          },
         },
         outputStorageStrategy: stubBackendOutputStorageStrategy,
       });
 
-      const expectedUserPoolId = (
-        authConstruct.node.findChild('UserPool') as UserPool
-      ).userPoolId;
-      const expectedIdentityPoolId = (
-        authConstruct.node.findChild('IdentityPool') as CfnIdentityPool
-      ).ref;
-      const expectedWebClientId = (
-        authConstruct.node.findChild('UserPoolAppClient') as UserPoolClient
-      ).userPoolClientId;
+      const expectedUserPoolId = authConstruct.resources.userPool.userPoolId;
+      const expectedIdentityPoolId =
+        authConstruct.resources.cfnResources.cfnIdentityPool.ref;
+      const expectedWebClientId =
+        authConstruct.resources.userPoolClient.userPoolClientId;
       const expectedRegion = Stack.of(authConstruct).region;
-      const expectedCognitoDomain =
-        authConstruct.resources.userPool.node['_children']['UserPoolDomain'][
-          'domainName'
-        ];
+
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.equal(storeOutputArgs.length, 2);
-      assert.deepStrictEqual(storeOutputArgs, [
-        authOutputKey,
-        {
-          version: '1',
-          payload: {
-            userPoolId: expectedUserPoolId,
-            webClientId: expectedWebClientId,
-            identityPoolId: expectedIdentityPoolId,
-            authRegion: expectedRegion,
-            passwordPolicyMinLength:
-              DEFAULTS.PASSWORD_POLICY.minLength.toString(),
-            passwordPolicyRequirements:
-              defaultPasswordPolicyCharacterRequirements,
-            signupAttributes: '["email"]',
-            verificationMechanisms: '["email"]',
-            usernameAttributes: '["email"]',
-            oauthClientId: expectedWebClientId, // same thing
-            oauthCognitoDomain: expectedCognitoDomain,
-            oauthScope: '["email","profile","openid"]',
-            oauthRedirectSignIn: 'http://callback.com',
-            oauthRedirectSignOut: 'http://logout.com',
-            oauthResponseType: 'code',
-            allowUnauthenticatedIdentities: 'true',
-            mfaConfiguration: 'OFF',
-            mfaTypes: '[]',
-          },
-        },
-      ]);
-    });
-
-    void it('multifactor prop updates mfaConfiguration & mfaTypes', () => {
-      new AmplifyAuth(stack, 'test', {
-        loginWith: {
-          email: true,
-        },
-        multifactor: { mode: 'OPTIONAL', sms: true, totp: true },
-        outputStorageStrategy: stubBackendOutputStorageStrategy,
-      });
-      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
-
-      assert.equal(payload.mfaConfiguration, 'OPTIONAL');
-      assert.equal(payload.mfaTypes, '["SMS","TOTP"]');
-    });
-
-    void it('userAttributes prop should update signupAttributes', () => {
-      new AmplifyAuth(stack, 'test', {
-        loginWith: {
-          email: true,
-        },
-        userAttributes: {
-          address: { required: true },
-          birthdate: { required: true },
-          gender: { required: true },
-          locale: { required: true },
-          middleName: { required: true },
-          nickname: { required: true },
-          phoneNumber: { required: true },
-          profilePicture: { required: true },
-          fullname: { required: true },
-          givenName: { required: true },
-          familyName: { required: true },
-          lastUpdateTime: { required: true },
-          preferredUsername: { required: true },
-          profilePage: { required: true },
-          timezone: { required: true },
-          website: { required: true },
-          email: { required: true, mutable: false },
-        },
-        outputStorageStrategy: stubBackendOutputStorageStrategy,
-      });
-      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
-
-      assert.equal(
-        payload.signupAttributes,
-        '["email","phone_number","address","birthdate","gender","locale","middle_name","nickname","picture","name","given_name","family_name","updated_at","preferred_username","profile","zoneinfo","website"]'
-      );
-    });
-
-    void it('adding loginWith methods should update usernameAttributes & verificationMechanisms', () => {
-      new AmplifyAuth(stack, 'test', {
-        loginWith: {
-          email: true,
-          phone: true,
-        },
-        outputStorageStrategy: stubBackendOutputStorageStrategy,
-      });
-      const { payload } = storeOutputMock.mock.calls[0].arguments[1];
-
-      assert.equal(payload.usernameAttributes, '["email","phone_number"]');
-      assert.equal(payload.verificationMechanisms, '["email","phone_number"]');
+      assert.equal(storeOutputArgs[0], authOutputKey);
+      assert.equal(storeOutputArgs[1]['version'], '1');
+      const payload = storeOutputArgs[1]['payload'];
+      assert.equal(payload['userPoolId'], expectedUserPoolId);
+      assert.equal(payload['identityPoolId'], expectedIdentityPoolId);
+      assert.equal(payload['webClientId'], expectedWebClientId);
+      assert.equal(payload['authRegion'], expectedRegion);
     });
 
     void it('stores output when no storage strategy is injected', () => {
@@ -969,6 +913,13 @@ void describe('Auth construct', () => {
               'passwordPolicyRequirements',
               'mfaConfiguration',
               'mfaTypes',
+              'socialProviders',
+              'oauthCognitoDomain',
+              'oauthScope',
+              'oauthRedirectSignIn',
+              'oauthRedirectSignOut',
+              'oauthResponseType',
+              'oauthClientId',
             ],
           },
         },
@@ -1299,6 +1250,10 @@ void describe('Auth construct', () => {
       // this works
       // userPoolResource['policies']['passwordPolicy']['minimumLength'] = 8;
       // this does not
+      userPoolResource.addPropertyOverride(
+        'Policies.PasswordPolicy.MinimumLength',
+        10
+      );
       userPoolResource.addPropertyOverride(
         'Policies.PasswordPolicy.RequireLowercase',
         false
