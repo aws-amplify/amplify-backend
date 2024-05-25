@@ -236,6 +236,8 @@ export type ActionIam =
   | 'forgetDevice'
   | 'getDevice'
   | 'getUser'
+  | 'listUsers'
+  | 'listUsersInGroup'
   | 'listDevices'
   | 'listGroupsForUser'
   | 'removeUserFromGroup'
