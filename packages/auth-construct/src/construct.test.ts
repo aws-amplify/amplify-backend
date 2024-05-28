@@ -1,6 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
-import { App, SecretValue, Stack } from 'aws-cdk-lib';
+import { App, SecretValue, Stack, aws_cognito } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
@@ -1153,10 +1153,9 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
-        'UsernameConfiguration.CaseSensitive',
-        true
-      );
+      auth.resources.cfnResources.cfnUserPool.usernameConfiguration = {
+        caseSensitive: true,
+      };
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         UsernameConfiguration: {
@@ -1170,10 +1169,9 @@ void describe('Auth construct', () => {
       const auth = new AmplifyAuth(stack, 'test', {
         loginWith: { email: true },
       });
-      auth.resources.cfnResources.cfnUserPool.addPropertyOverride(
-        'UserAttributeUpdateSettings.AttributesRequireVerificationBeforeUpdate',
-        []
-      );
+      auth.resources.cfnResources.cfnUserPool.userAttributeUpdateSettings = {
+        attributesRequireVerificationBeforeUpdate: [],
+      };
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         UserAttributeUpdateSettings: {
@@ -1188,14 +1186,10 @@ void describe('Auth construct', () => {
         loginWith: { email: true },
       });
       const userPoolResource = auth.resources.cfnResources.cfnUserPool;
-      userPoolResource.addPropertyOverride(
-        'DeviceConfiguration.ChallengeRequiredOnNewDevice',
-        true
-      );
-      userPoolResource.addPropertyOverride(
-        'DeviceConfiguration.DeviceOnlyRememberedOnUserPrompt',
-        true
-      );
+      userPoolResource.deviceConfiguration = {
+        challengeRequiredOnNewDevice: true,
+        deviceOnlyRememberedOnUserPrompt: true,
+      };
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         DeviceConfiguration: {
@@ -1204,31 +1198,20 @@ void describe('Auth construct', () => {
         },
       });
     });
-    void it('can override password policy', () => {
+    void it('can override password policy and correctly updates stored output', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
       const userPoolResource = auth.resources.cfnResources.cfnUserPool;
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.MinimumLength',
-        10
-      );
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.RequireLowercase',
-        false
-      );
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.RequireNumbers',
-        false
-      );
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.RequireSymbols',
-        false
-      );
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.RequireUppercase',
-        false
-      );
+      userPoolResource.policies = {
+        passwordPolicy: {
+          minimumLength: 10,
+          requireLowercase: false,
+          requireNumbers: false,
+          requireSymbols: true,
+          requireUppercase: false,
+        },
+      };
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         Policies: {
@@ -1236,52 +1219,17 @@ void describe('Auth construct', () => {
             MinimumLength: 10,
             RequireLowercase: false,
             RequireNumbers: false,
-            RequireSymbols: false,
+            RequireSymbols: true,
             RequireUppercase: false,
           },
         },
       });
-    });
-    void it('can override password policy', () => {
-      const app = new App();
-      const stack = new Stack(app);
-      const auth = new AmplifyAuth(stack, 'test');
-      const userPoolResource = auth.resources.cfnResources.cfnUserPool;
-      // this works
-      // userPoolResource['policies']['passwordPolicy']['minimumLength'] = 8;
-      // this does not
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.MinimumLength',
-        10
+      const outputs = template['template']['Outputs'];
+      assert.equal(outputs['passwordPolicyMinLength']['Value'], '10');
+      assert.equal(
+        outputs['passwordPolicyRequirements']['Value'],
+        '["REQUIRES_SYMBOLS"]'
       );
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.RequireLowercase',
-        false
-      );
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.RequireNumbers',
-        false
-      );
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.RequireSymbols',
-        false
-      );
-      userPoolResource.addPropertyOverride(
-        'Policies.PasswordPolicy.RequireUppercase',
-        false
-      );
-      const template = Template.fromStack(stack);
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        Policies: {
-          PasswordPolicy: {
-            MinimumLength: 10,
-            RequireLowercase: false,
-            RequireNumbers: false,
-            RequireSymbols: false,
-            RequireUppercase: false,
-          },
-        },
-      });
     });
     void it('can override user existence errors', () => {
       const app = new App();
@@ -1296,18 +1244,18 @@ void describe('Auth construct', () => {
         PreventUserExistenceErrors: 'LEGACY',
       });
     });
-    void it('can override guest access setting', () => {
+    void it('can override guest access setting and correctly updates stored output', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      auth.resources.cfnResources.cfnIdentityPool.addPropertyOverride(
-        'AllowUnauthenticatedIdentities',
-        false
-      );
+      auth.resources.cfnResources.cfnIdentityPool.allowUnauthenticatedIdentities =
+        false;
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         AllowUnauthenticatedIdentities: false,
       });
+      const outputs = template['template']['Outputs'];
+      assert.equal(outputs['allowUnauthenticatedIdentities']['Value'], 'false');
     });
     void it('can override token validity period', () => {
       const app = new App();
@@ -1322,6 +1270,39 @@ void describe('Auth construct', () => {
       template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
         AccessTokenValidity: 1,
       });
+    });
+    void it('can add social providers afterwards and correctly updates stored output', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test');
+      new aws_cognito.UserPoolIdentityProviderGoogle(
+        stack,
+        `${stack.stackName}MyGoogleIdP`,
+        {
+          userPool: auth.resources.userPool,
+          clientId: googleClientId,
+          clientSecretValue: SecretValue.unsafePlainText(googleClientSecret),
+          attributeMapping: {
+            email: ProviderAttribute.GOOGLE_EMAIL,
+          },
+          scopes: ['profile'],
+        }
+      );
+      auth.resources.cfnResources.cfnIdentityPool.supportedLoginProviders[
+        'accounts.google.com'
+      ] = googleClientId;
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties(
+        'AWS::Cognito::UserPoolIdentityProvider',
+        ExpectedGoogleIDPProperties
+      );
+      template.hasResourceProperties('AWS::Cognito::IdentityPool', {
+        SupportedLoginProviders: {
+          'accounts.google.com': googleClientId,
+        },
+      });
+      const outputs = template['template']['Outputs'];
+      assert.equal(outputs['socialProviders']['Value'], `["GOOGLE"]`);
     });
   });
 
