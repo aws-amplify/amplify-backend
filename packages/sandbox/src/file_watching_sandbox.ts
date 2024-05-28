@@ -15,10 +15,7 @@ import _open from 'open';
 // EventEmitter is a class name and expected to have PascalCase
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import EventEmitter from 'events';
-import {
-  CloudFormationClient,
-  DescribeStacksCommand,
-} from '@aws-sdk/client-cloudformation';
+import { GetParametersByPathCommand, SSMClient } from '@aws-sdk/client-ssm';
 import {
   AmplifyPrompter,
   LogLevel,
@@ -35,8 +32,9 @@ import {
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
 
-export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
-export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
+// CDK stores bootstrap version in parameter store. Example parameter name looks like /cdk-bootstrap/<hash>/version
+export const CDK_BOOTSTRAP_VERSION_PARAMETER_PREFIX = '/cdk-bootstrap/';
+export const CDK_BOOTSTRAP_VERSION_PARAMETER_SUFFIX = '/version';
 export const CDK_MIN_BOOTSTRAP_VERSION = 6;
 
 /**
@@ -61,7 +59,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   constructor(
     private readonly backendIdSandboxResolver: BackendIdSandboxResolver,
     private readonly executor: AmplifySandboxExecutor,
-    private readonly cfnClient: CloudFormationClient,
+    private readonly ssmClient: SSMClient,
     private readonly printer: Printer,
     private readonly open = _open
   ) {
@@ -109,7 +107,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.'
       );
       // get region from an available sdk client;
-      const region = await this.cfnClient.config.region();
+      const region = await this.ssmClient.config.region();
       await this.open(getBootstrapUrl(region));
       return;
     }
@@ -298,14 +296,15 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   private isBootstrapped = async () => {
     try {
-      const { Stacks: stacks } = await this.cfnClient.send(
-        new DescribeStacksCommand({
-          StackName: CDK_BOOTSTRAP_STACK_NAME,
+      const { Parameters: parameters } = await this.ssmClient.send(
+        new GetParametersByPathCommand({
+          Path: CDK_BOOTSTRAP_VERSION_PARAMETER_PREFIX,
         })
       );
-      const bootstrapVersion = stacks?.[0]?.Outputs?.find(
-        (output) => output.OutputKey === CDK_BOOTSTRAP_VERSION_KEY
-      )?.OutputValue;
+
+      const bootstrapVersion = parameters?.find((parameter) =>
+        parameter?.Name?.endsWith(CDK_BOOTSTRAP_VERSION_PARAMETER_SUFFIX)
+      )?.Value;
       if (
         !bootstrapVersion ||
         Number(bootstrapVersion) < CDK_MIN_BOOTSTRAP_VERSION
