@@ -1062,7 +1062,9 @@ export class AmplifyAuth
         const userPoolDomain =
           this.resources.userPool.node['_children']['UserPoolDomain'];
         if (userPoolDomain) {
-          return userPoolDomain['domainName'];
+          return `${userPoolDomain['domainName']}.auth.${
+            Stack.of(this).region
+          }.amazoncognito.com`;
         }
         return undefined;
       },

@@ -841,10 +841,21 @@ void describe('Auth construct', () => {
       for (const [key] of Object.entries(userPoolDomains)) {
         userPoolDomainRefValue = key;
       }
-      assert.equal(
-        outputs['oauthCognitoDomain']['Value']['Ref'],
-        userPoolDomainRefValue
-      );
+      assert.deepEqual(outputs['oauthCognitoDomain']['Value'], {
+        'Fn::Join': [
+          '',
+          [
+            {
+              Ref: userPoolDomainRefValue,
+            },
+            '.auth.',
+            {
+              Ref: 'AWS::Region',
+            },
+            '.amazoncognito.com',
+          ],
+        ],
+      });
       assert.equal(
         outputs['oauthScope']['Value'],
         '["email","profile","openid"]'
