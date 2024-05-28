@@ -624,7 +624,7 @@ void describe('Auth construct', () => {
     });
   });
 
-  void describe('storeOutput post synthesis', () => {
+  void describe('storeOutput in synthesized template', () => {
     let app: App;
     let stack: Stack;
     void beforeEach(() => {
@@ -632,13 +632,12 @@ void describe('Auth construct', () => {
       stack = new Stack(app);
     });
 
-    void it('stores output with minimal email config', () => {
+    void it('outputs defaults for minimal email config', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
         },
       });
-      // POST SYNTHESIS - validate values that require synthesis to be computed
       const template = Template.fromStack(stack);
       const outputs = template['template']['Outputs'];
       assert.equal(
@@ -660,7 +659,7 @@ void describe('Auth construct', () => {
       assert.equal(outputs['verificationMechanisms']['Value'], '["email"]');
     });
 
-    void it('userAttributes prop should update signupAttributes', () => {
+    void it('updates signupAttributes when userAttributes prop is used', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -693,7 +692,7 @@ void describe('Auth construct', () => {
       );
     });
 
-    void it('adding loginWith methods should update usernameAttributes & verificationMechanisms for email and phone', () => {
+    void it('updates usernameAttributes & verificationMechanisms when both email and phone number login methods are used', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -712,7 +711,7 @@ void describe('Auth construct', () => {
       );
     });
 
-    void it('adding loginWith methods should update usernameAttributes & verificationMechanisms for phone only', () => {
+    void it('updates usernameAttributes & verificationMechanisms for phone number only login method', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           phone: true,
@@ -727,7 +726,7 @@ void describe('Auth construct', () => {
       );
     });
 
-    void it('updates mfaConfiguration & mfaTypes when optional', () => {
+    void it('updates mfaConfiguration & mfaTypes when MFA is set to OPTIONAL', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -741,7 +740,7 @@ void describe('Auth construct', () => {
       assert.equal(outputs['mfaConfiguration']['Value'], 'OPTIONAL');
     });
 
-    void it('updates mfaConfiguration & mfaTypes when required', () => {
+    void it('updates mfaConfiguration & mfaTypes when MFA is set to REQUIRED with only TOTP enabled', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -755,7 +754,7 @@ void describe('Auth construct', () => {
       assert.equal(outputs['mfaConfiguration']['Value'], 'ON');
     });
 
-    void it('stores outputs in platform -  when external providers are present', () => {
+    void it('updates socialProviders and oauth outputs when external providers are present', () => {
       new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
@@ -824,8 +823,28 @@ void describe('Auth construct', () => {
         outputs['socialProviders']['Value'],
         `["GOOGLE","FACEBOOK","LOGIN_WITH_AMAZON","SIGN_IN_WITH_APPLE","provider1","provider2","${unnamedOidcProviderName}"]`
       );
-      // const expectedOauthDomain = auth.resources.userPool.node['_children']['UserPoolDomain']['domainName'];
-      // assert.equal(outputs['oauthCognitoDomain']['Value'], expectedOauthDomain);
+      // domain name requires us to find the generated UserPoolDomain,
+      // and then use that to produce the ref which we will match to the output
+      // since the generated domain name won't be known until after deployment
+      template.hasResourceProperties('AWS::Cognito::UserPoolDomain', {
+        Domain: 'test-prefix',
+      });
+      const userPoolDomains = template.findResources(
+        'AWS::Cognito::UserPoolDomain',
+        {
+          Properties: {
+            Domain: 'test-prefix',
+          },
+        }
+      );
+      let userPoolDomainRefValue = '';
+      for (const [key] of Object.entries(userPoolDomains)) {
+        userPoolDomainRefValue = key;
+      }
+      assert.equal(
+        outputs['oauthCognitoDomain']['Value']['Ref'],
+        userPoolDomainRefValue
+      );
       assert.equal(
         outputs['oauthScope']['Value'],
         '["email","profile","openid"]'
@@ -841,9 +860,7 @@ void describe('Auth construct', () => {
     });
   });
 
-  // Validate output for NON-LAZY values (pre-synthesis)
-  // these properties are NON-LAZY because we don't support overrides for their values
-  void describe('storeOutput', () => {
+  void describe('storeOutput strategy', () => {
     let app: App;
     let stack: Stack;
     const storeOutputMock = mock.fn();
@@ -859,7 +876,7 @@ void describe('Auth construct', () => {
       storeOutputMock.mock.resetCalls();
     });
 
-    void it('stores outputs in platform - correctly sets non lazy loaded values', () => {
+    void it('stores output using custom strategy and basic props', () => {
       const authConstruct = new AmplifyAuth(stack, 'test', {
         loginWith: {
           email: true,
