@@ -299,6 +299,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       const { Parameters: parameters } = await this.ssmClient.send(
         new GetParametersByPathCommand({
           Path: CDK_BOOTSTRAP_VERSION_PARAMETER_PREFIX,
+          Recursive: true,
         })
       );
 
