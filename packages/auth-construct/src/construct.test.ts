@@ -1235,10 +1235,8 @@ void describe('Auth construct', () => {
       const app = new App();
       const stack = new Stack(app);
       const auth = new AmplifyAuth(stack, 'test');
-      auth.resources.cfnResources.cfnUserPoolClient.addPropertyOverride(
-        'PreventUserExistenceErrors',
-        'LEGACY'
-      );
+      auth.resources.cfnResources.cfnUserPoolClient.preventUserExistenceErrors =
+        'LEGACY';
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
         PreventUserExistenceErrors: 'LEGACY',
@@ -1265,7 +1263,7 @@ void describe('Auth construct', () => {
         auth.resources.userPoolClient.node.findChild(
           'Resource'
         ) as CfnUserPoolClient;
-      userPoolClientResource.addPropertyOverride('AccessTokenValidity', 1);
+      userPoolClientResource.accessTokenValidity = 1;
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPoolClient', {
         AccessTokenValidity: 1,
