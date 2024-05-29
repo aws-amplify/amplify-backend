@@ -181,6 +181,16 @@ export class AmplifyAuth
     // Setup UserPool groups
     this.setupUserPoolGroups(props.groups, identityPool);
 
+    const cfnUserPool = this.userPool.node.findChild('Resource') as CfnUserPool;
+    if (!(cfnUserPool instanceof CfnUserPool)) {
+      throw Error('Could not find CfnUserPool resource in stack.');
+    }
+    const cfnUserPoolClient = userPoolClient.node.findChild(
+      'Resource'
+    ) as CfnUserPoolClient;
+    if (!(cfnUserPoolClient instanceof CfnUserPoolClient)) {
+      throw Error('Could not find CfnUserPoolClient resource in stack.');
+    }
     // expose resources
     this.resources = {
       userPool: this.userPool,
@@ -188,10 +198,8 @@ export class AmplifyAuth
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
       cfnResources: {
-        cfnUserPool: this.userPool.node.findChild('Resource') as CfnUserPool,
-        cfnUserPoolClient: userPoolClient.node.findChild(
-          'Resource'
-        ) as CfnUserPoolClient,
+        cfnUserPool,
+        cfnUserPoolClient,
         cfnIdentityPool: identityPool,
         cfnIdentityPoolRoleAttachment: identityPoolRoleAttachment,
       },
@@ -1016,6 +1024,11 @@ export class AmplifyAuth
           const providerResource = provider.node.findChild(
             'Resource'
           ) as CfnUserPoolIdentityProvider;
+          if (!(providerResource instanceof CfnUserPoolIdentityProvider)) {
+            throw Error(
+              'Could not find the CfnUserPoolIdentityProvider resource in the stack.'
+            );
+          }
           const providerType = providerResource.providerType;
           const providerName = providerResource.providerName;
           if (providerType === 'Google') {
@@ -1049,7 +1062,7 @@ export class AmplifyAuth
           return;
         }
         if (!(userPoolDomain instanceof UserPoolDomain)) {
-          throw Error('UserPoolDomain is not of type UserPoolDomain.');
+          throw Error('Could not find UserPoolDomain resource in the stack.');
         }
         return `${userPoolDomain.domainName}.auth.${
           Stack.of(this).region
@@ -1089,7 +1102,7 @@ export class AmplifyAuth
 
     output.oauthClientId = Lazy.string({
       produce: () => {
-        return this.resources.userPoolClient.userPoolClientId;
+        return cfnUserPoolClient.ref;
       },
     });
 
