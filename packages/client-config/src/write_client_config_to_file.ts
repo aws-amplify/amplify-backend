@@ -8,7 +8,7 @@ import {
 } from './client-config-types/client_config.js';
 import { getClientConfigPath } from './paths/index.js';
 import { ClientConfigMobileConverter } from './client-config-writer/client_config_to_mobile_legacy_converter.js';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import * as fsp from 'fs/promises';
 import { ClientConfigFormatterLegacy } from './client-config-writer/client_config_formatter_legacy.js';
 import { ClientConfigFormatterDefault } from './client-config-writer/client_config_formatter_default.js';

@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { CustomResource, Duration } from 'aws-cdk-lib';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import path from 'path';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { AmplifyBranchLinkerCustomResourceProps } from './lambda/branch_linker_types.js';
