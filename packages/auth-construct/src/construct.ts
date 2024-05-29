@@ -1043,15 +1043,17 @@ export class AmplifyAuth
 
     output.oauthCognitoDomain = Lazy.string({
       produce: () => {
-        const userPoolDomain = this.resources.userPool.node.tryFindChild(
-          'UserPoolDomain'
-        ) as UserPoolDomain | undefined;
-        if (userPoolDomain) {
-          return `${userPoolDomain.domainName}.auth.${
-            Stack.of(this).region
-          }.amazoncognito.com`;
+        const userPoolDomain =
+          this.resources.userPool.node.tryFindChild('UserPoolDomain');
+        if (!userPoolDomain) {
+          return;
         }
-        return undefined;
+        if (!(userPoolDomain instanceof UserPoolDomain)) {
+          throw Error('UserPoolDomain is not of type UserPoolDomain.');
+        }
+        return `${userPoolDomain.domainName}.auth.${
+          Stack.of(this).region
+        }.amazoncognito.com`;
       },
     });
 
