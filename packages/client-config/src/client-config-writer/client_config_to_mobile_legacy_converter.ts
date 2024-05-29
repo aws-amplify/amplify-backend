@@ -116,7 +116,7 @@ export class ClientConfigMobileConverter {
             ] = {
               ApiUrl: clientConfig.aws_appsync_graphqlEndpoint,
               Region: clientConfig.aws_appsync_region,
-              AuthMode: clientConfig.aws_appsync_authenticationType,
+              AuthMode: additionalAuthenticationType,
               ApiKey: clientConfig.aws_appsync_apiKey,
               ClientDatabasePrefix: `data_${additionalAuthenticationType}`,
             };
