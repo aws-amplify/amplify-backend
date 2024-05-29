@@ -937,10 +937,9 @@ export class AmplifyAuth
     // extract usernameAttributes from UserPool's usernameAttributes
     output.usernameAttributes = Lazy.string({
       produce: () => {
-        const usernameAttributes: string[] =
-          cfnUserPool.usernameAttributes ?? [];
         return JSON.stringify(
-          usernameAttributes.map((attr) => attr.toLowerCase())
+          cfnUserPool.usernameAttributes?.map((attr) => attr.toLowerCase()) ||
+            []
         );
       },
     });
@@ -948,11 +947,7 @@ export class AmplifyAuth
     // extract verificationMechanisms from UserPool's autoVerifiedAttributes
     output.verificationMechanisms = Lazy.string({
       produce: () => {
-        const verificationMechanism: string[] = [];
-        (cfnUserPool.autoVerifiedAttributes ?? []).forEach((attr) => {
-          verificationMechanism.push(attr);
-        });
-        return JSON.stringify(verificationMechanism);
+        return JSON.stringify(cfnUserPool.autoVerifiedAttributes ?? []);
       },
     });
 
