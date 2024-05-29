@@ -5,6 +5,9 @@ import { extractSubCommands } from './extract_sub_commands.js';
 
 let hasAttachUnhandledExceptionListenersBeenCalled = false;
 
+//Create a Map to store error handling state
+const handledErrors = new Map<Error, boolean>();
+
 type HandleErrorProps = {
   error?: Error;
   printMessagePreamble?: () => void;
@@ -108,6 +111,10 @@ const handleError = async ({
   if (isUserForceClosePromptError(error)) {
     return;
   }
+  //Check if the error has been handled
+  if (error && handledErrors.get(error)) {
+    return;
+  }
 
   printMessagePreamble?.();
 
@@ -131,7 +138,10 @@ const handleError = async ({
       printer.print(`Cause: ${error.cause.message}`);
     }
   }
-
+  // Marking errors handled
+  if (error) {
+    handledErrors.set(error, true);
+  }
   // additional debug logging for the stack traces
   if (error?.stack) {
     printer.log(error.stack, LogLevel.DEBUG);
