@@ -166,7 +166,8 @@ void describe('Auth construct', () => {
       Precedence: 1,
     });
     // validate the generated policies
-    const idpRef = template['template']['Outputs']['identityPoolId']['Value'];
+    const outputs = template.findOutputs('*');
+    const idpRef = outputs['identityPoolId']['Value'];
     // There should be 3 matching roles, one for the auth role,
     // and one for each of the 'admins' and 'managers' roles
     const matchingRoleCount = 3;
@@ -805,12 +806,13 @@ void describe('Auth construct', () => {
         },
       });
       const template = Template.fromStack(stack);
+      const resources = template.findResources(
+        'AWS::Cognito::UserPoolIdentityProvider'
+      );
       const outputs = template.findOutputs('*');
       let unnamedOidcProviderName = '';
-      for (const resourceKey of Object.keys(
-        template['template']['Resources']
-      )) {
-        const resource = template['template']['Resources'][resourceKey];
+      for (const resourceKey of Object.keys(resources)) {
+        const resource = resources[resourceKey];
         if (
           resource['Properties'] &&
           resource['Properties']['ProviderDetails'] &&
@@ -2564,7 +2566,8 @@ void describe('Auth construct', () => {
       },
     });
     const template = Template.fromStack(stack);
-    const resourceNames = Object.keys(template['template']['Resources']);
+    const resources = template['template']['Resources'];
+    const resourceNames = Object.keys(resources);
     resourceNames.map((name) => {
       assert.equal(name.startsWith(expectedPrefix), true);
     });
