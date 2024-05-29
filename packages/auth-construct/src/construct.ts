@@ -923,20 +923,14 @@ export class AmplifyAuth
     // extract signupAttributes from UserPool schema's required attributes
     output.signupAttributes = Lazy.string({
       produce: () => {
-        if (cfnUserPool.schema) {
-          const requiredAttributes: string[] = [];
-          const schema =
-            cfnUserPool.schema as CfnUserPool.SchemaAttributeProperty[];
-          schema.forEach((attribute) => {
-            if (attribute.required && attribute.name) {
-              requiredAttributes.push(attribute.name);
-            }
-          });
-          return JSON.stringify(
-            requiredAttributes.map((attr) => attr.toLowerCase())
-          );
+        if (!cfnUserPool.schema) {
+          return;
         }
-        return undefined;
+        return JSON.stringify(
+          (cfnUserPool.schema as CfnUserPool.SchemaAttributeProperty[])
+            .filter((attribute) => attribute.required && attribute.name)
+            .map((attribute) => attribute.name?.toLowerCase())
+        );
       },
     });
 
