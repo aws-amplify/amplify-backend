@@ -1015,10 +1015,10 @@ export class AmplifyAuth
     // extract social providers from UserPool resource
     output.socialProviders = Lazy.string({
       produce: () => {
-        const outputProviders = [];
+        const outputProviders: string[] = [];
         const userPoolProviders = this.resources.userPool.identityProviders;
         if (!userPoolProviders || userPoolProviders.length === 0) {
-          return;
+          return '';
         }
         for (const provider of userPoolProviders) {
           const providerResource = provider.node.findChild(
@@ -1059,7 +1059,7 @@ export class AmplifyAuth
         const userPoolDomain =
           this.resources.userPool.node.tryFindChild('UserPoolDomain');
         if (!userPoolDomain) {
-          return;
+          return '';
         }
         if (!(userPoolDomain instanceof UserPoolDomain)) {
           throw Error('Could not find UserPoolDomain resource in the stack.');
