@@ -74,16 +74,14 @@ export class ClientConfigMobileConverter {
           },
         },
       };
-      let oauth;
       if (clientConfig.oauth) {
-        oauth = {
+        authConfig.plugins.awsCognitoAuthPlugin.Auth.Default.OAuth = {
           WebDomain: clientConfig.oauth.domain,
           Scopes: clientConfig.oauth.scope,
           SignInRedirectURI: clientConfig.oauth.redirectSignIn,
           SignOutRedirectURI: clientConfig.oauth.redirectSignOut,
           AppClientId: clientConfig.oauth.clientId,
         };
-        authConfig.plugins.awsCognitoAuthPlugin.Auth.Default.OAuth = oauth;
       }
       mobileConfig.auth = authConfig;
     }
