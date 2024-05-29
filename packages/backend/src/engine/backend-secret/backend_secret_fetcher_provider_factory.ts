@@ -5,7 +5,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
 import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { ParameterPathConversions } from '@aws-amplify/platform-core';
 

@@ -2,7 +2,7 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
 import { TestCdkProjectBase } from './test_cdk_project_base.js';
 import { AuthTestCdkProjectCreator } from './auth_cdk_project.js';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import path from 'path';
 import { DeployedResourcesFinder } from '../../find_deployed_resource.js';
 
