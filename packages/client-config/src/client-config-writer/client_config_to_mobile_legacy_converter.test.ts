@@ -185,14 +185,14 @@ void describe('client config converter', () => {
               data_AWS_IAM: {
                 ApiUrl: 'https://test_api_endpoint.amazon.com',
                 Region: 'test_app_sync_region',
-                AuthMode: 'API_KEY',
+                AuthMode: 'AWS_IAM',
                 ApiKey: 'test_api_key',
                 ClientDatabasePrefix: 'data_AWS_IAM',
               },
               data_AMAZON_COGNITO_USER_POOLS: {
                 ApiUrl: 'https://test_api_endpoint.amazon.com',
                 Region: 'test_app_sync_region',
-                AuthMode: 'API_KEY',
+                AuthMode: 'AMAZON_COGNITO_USER_POOLS',
                 ApiKey: 'test_api_key',
                 ClientDatabasePrefix: 'data_AMAZON_COGNITO_USER_POOLS',
               },
