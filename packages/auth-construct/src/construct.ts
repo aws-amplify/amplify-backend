@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Construct } from 'constructs';
 import {
   Lazy,
@@ -15,6 +16,7 @@ import {
   CfnUserPool,
   CfnUserPoolClient,
   CfnUserPoolGroup,
+  CfnUserPoolIdentityProvider,
   Mfa,
   MfaSecondFactor,
   OAuthScope,
@@ -22,6 +24,7 @@ import {
   ProviderAttribute,
   UserPool,
   UserPoolClient,
+  UserPoolDomain,
   UserPoolIdentityProviderAmazon,
   UserPoolIdentityProviderApple,
   UserPoolIdentityProviderFacebook,
@@ -902,24 +905,25 @@ export class AmplifyAuth
       Stack.of(this)
     )
   ): void => {
+    const cfnUserPool = this.resources.cfnResources.cfnUserPool;
+    const cfnUserPoolClient = this.resources.cfnResources.cfnUserPoolClient;
+    const cfnIdentityPool = this.resources.cfnResources.cfnIdentityPool;
     // these properties cannot be overwritten
     const output: AuthOutput['payload'] = {
       userPoolId: this.resources.userPool.userPoolId,
       webClientId: this.resources.userPoolClient.userPoolClientId,
-      identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
+      identityPoolId: cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
     };
 
     // the properties below this line can be overwritten, so they are exposed via cdk LAZY
     output.allowUnauthenticatedIdentities = Lazy.string({
       produce: () =>
-        this.resources.cfnResources.cfnIdentityPool
-          .allowUnauthenticatedIdentities === true
+        cfnIdentityPool.allowUnauthenticatedIdentities === true
           ? 'true'
           : 'false',
     });
 
-    const cfnUserPool = this.resources.cfnResources.cfnUserPool;
     // extract signupAttributes from UserPool schema's required attributes
     output.signupAttributes = Lazy.string({
       produce: () => {
@@ -1010,9 +1014,11 @@ export class AmplifyAuth
           return;
         }
         for (const provider of userPoolProviders) {
-          const providerType =
-            provider.node['_children']['Resource']['providerType'];
-
+          const providerResource = provider.node.findChild(
+            'Resource'
+          ) as CfnUserPoolIdentityProvider;
+          const providerType = providerResource.providerType;
+          const providerName = providerResource.providerName;
           if (providerType === 'Google') {
             outputProviders.push('GOOGLE');
           }
@@ -1026,30 +1032,23 @@ export class AmplifyAuth
             outputProviders.push('LOGIN_WITH_AMAZON');
           }
           if (providerType === 'OIDC') {
-            outputProviders.push(
-              provider.node['_children']['Resource']['providerName']
-            );
+            outputProviders.push(providerName);
           }
           if (providerType === 'SAML') {
-            outputProviders.push(
-              provider.node['_children']['Resource']['providerName']
-            );
+            outputProviders.push(providerName);
           }
         }
         return JSON.stringify(outputProviders);
       },
     });
 
-    const getUserPoolClientResource = () => {
-      return this.resources.userPoolClient.node['_children']['Resource'];
-    };
-
     output.oauthCognitoDomain = Lazy.string({
       produce: () => {
-        const userPoolDomain =
-          this.resources.userPool.node['_children']['UserPoolDomain'];
+        const userPoolDomain = this.resources.userPool.node.tryFindChild(
+          'UserPoolDomain'
+        ) as UserPoolDomain | undefined;
         if (userPoolDomain) {
-          return `${userPoolDomain['domainName']}.auth.${
+          return `${userPoolDomain.domainName}.auth.${
             Stack.of(this).region
           }.amazoncognito.com`;
         }
@@ -1059,31 +1058,31 @@ export class AmplifyAuth
 
     output.oauthScope = Lazy.string({
       produce: () => {
-        return JSON.stringify(
-          getUserPoolClientResource()['allowedOAuthScopes'] ?? []
-        );
+        return JSON.stringify(cfnUserPoolClient.allowedOAuthScopes ?? []);
       },
     });
 
     output.oauthRedirectSignIn = Lazy.string({
       produce: () => {
-        return getUserPoolClientResource()['callbackUrLs']
-          ? getUserPoolClientResource()['callbackUrLs'].join(',')
+        return cfnUserPoolClient.callbackUrLs
+          ? cfnUserPoolClient.callbackUrLs.join(',')
           : '';
       },
     });
 
     output.oauthRedirectSignOut = Lazy.string({
       produce: () => {
-        return getUserPoolClientResource()['logoutUrLs']
-          ? getUserPoolClientResource()['logoutUrLs'].join(',')
+        return cfnUserPoolClient.logoutUrLs
+          ? cfnUserPoolClient.logoutUrLs.join(',')
           : '';
       },
     });
 
     output.oauthResponseType = Lazy.string({
       produce: () => {
-        return getUserPoolClientResource()['allowedOAuthFlows'].join(',');
+        return cfnUserPoolClient.allowedOAuthFlows
+          ? cfnUserPoolClient.allowedOAuthFlows.join(',')
+          : '';
       },
     });
 
