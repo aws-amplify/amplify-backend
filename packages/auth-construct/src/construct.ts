@@ -954,28 +954,28 @@ export class AmplifyAuth
     // extract the passwordPolicy from the UserPool policies
     output.passwordPolicyMinLength = Lazy.string({
       produce: () => {
-        if (cfnUserPool.policies) {
-          const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
-            .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
-          return policy.minimumLength?.toString();
+        if (!cfnUserPool.policies) {
+          return;
         }
-        return undefined;
+        const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
+          .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
+        return policy.minimumLength?.toString();
       },
     });
 
     output.passwordPolicyRequirements = Lazy.string({
       produce: () => {
-        if (cfnUserPool.policies) {
-          const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
-            .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
-          const requirements = [];
-          policy.requireNumbers && requirements.push('REQUIRES_NUMBERS');
-          policy.requireLowercase && requirements.push('REQUIRES_LOWERCASE');
-          policy.requireUppercase && requirements.push('REQUIRES_UPPERCASE');
-          policy.requireSymbols && requirements.push('REQUIRES_SYMBOLS');
-          return JSON.stringify(requirements);
+        if (!cfnUserPool.policies) {
+          return;
         }
-        return undefined;
+        const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
+          .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
+        const requirements = [];
+        policy.requireNumbers && requirements.push('REQUIRES_NUMBERS');
+        policy.requireLowercase && requirements.push('REQUIRES_LOWERCASE');
+        policy.requireUppercase && requirements.push('REQUIRES_UPPERCASE');
+        policy.requireSymbols && requirements.push('REQUIRES_SYMBOLS');
+        return JSON.stringify(requirements);
       },
     });
 
@@ -1006,39 +1006,37 @@ export class AmplifyAuth
       produce: () => {
         const outputProviders = [];
         const userPoolProviders = this.resources.userPool.identityProviders;
-        if (userPoolProviders) {
-          for (const provider of userPoolProviders) {
-            const providerType =
-              provider.node['_children']['Resource']['providerType'];
+        if (!userPoolProviders || userPoolProviders.length === 0) {
+          return;
+        }
+        for (const provider of userPoolProviders) {
+          const providerType =
+            provider.node['_children']['Resource']['providerType'];
 
-            if (providerType === 'Google') {
-              outputProviders.push('GOOGLE');
-            }
-            if (providerType === 'Facebook') {
-              outputProviders.push('FACEBOOK');
-            }
-            if (providerType === 'SignInWithApple') {
-              outputProviders.push('SIGN_IN_WITH_APPLE');
-            }
-            if (providerType === 'LoginWithAmazon') {
-              outputProviders.push('LOGIN_WITH_AMAZON');
-            }
-            if (providerType === 'OIDC') {
-              outputProviders.push(
-                provider.node['_children']['Resource']['providerName']
-              );
-            }
-            if (providerType === 'SAML') {
-              outputProviders.push(
-                provider.node['_children']['Resource']['providerName']
-              );
-            }
+          if (providerType === 'Google') {
+            outputProviders.push('GOOGLE');
           }
-          if (outputProviders.length > 0) {
-            return JSON.stringify(outputProviders);
+          if (providerType === 'Facebook') {
+            outputProviders.push('FACEBOOK');
+          }
+          if (providerType === 'SignInWithApple') {
+            outputProviders.push('SIGN_IN_WITH_APPLE');
+          }
+          if (providerType === 'LoginWithAmazon') {
+            outputProviders.push('LOGIN_WITH_AMAZON');
+          }
+          if (providerType === 'OIDC') {
+            outputProviders.push(
+              provider.node['_children']['Resource']['providerName']
+            );
+          }
+          if (providerType === 'SAML') {
+            outputProviders.push(
+              provider.node['_children']['Resource']['providerName']
+            );
           }
         }
-        return undefined;
+        return JSON.stringify(outputProviders);
       },
     });
 
