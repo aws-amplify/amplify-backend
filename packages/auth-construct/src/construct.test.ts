@@ -639,12 +639,13 @@ void describe('Auth construct', () => {
         },
       });
       const template = Template.fromStack(stack);
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       assert.equal(
         outputs['allowUnauthenticatedIdentities']['Value'],
         DEFAULTS.ALLOW_UNAUTHENTICATED_IDENTITIES === true ? 'true' : 'false'
       );
       assert.equal(outputs['mfaTypes']['Value'], '[]');
+
       assert.equal(outputs['mfaConfiguration']['Value'], 'OFF');
       assert.equal(
         outputs['passwordPolicyMinLength']['Value'],
@@ -685,7 +686,7 @@ void describe('Auth construct', () => {
         },
       });
       const template = Template.fromStack(stack);
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       assert.equal(
         outputs['signupAttributes']['Value'],
         '["email","phone_number","address","birthdate","gender","locale","middle_name","nickname","picture","name","given_name","family_name","updated_at","preferred_username","profile","zoneinfo","website"]'
@@ -700,7 +701,7 @@ void describe('Auth construct', () => {
         },
       });
       const template = Template.fromStack(stack);
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       assert.equal(
         outputs['usernameAttributes']['Value'],
         '["email","phone_number"]'
@@ -718,7 +719,7 @@ void describe('Auth construct', () => {
         },
       });
       const template = Template.fromStack(stack);
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       assert.equal(outputs['usernameAttributes']['Value'], '["phone_number"]');
       assert.equal(
         outputs['verificationMechanisms']['Value'],
@@ -735,7 +736,7 @@ void describe('Auth construct', () => {
       });
 
       const template = Template.fromStack(stack);
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       assert.equal(outputs['mfaTypes']['Value'], '["SMS","TOTP"]');
       assert.equal(outputs['mfaConfiguration']['Value'], 'OPTIONAL');
     });
@@ -749,7 +750,7 @@ void describe('Auth construct', () => {
       });
 
       const template = Template.fromStack(stack);
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       assert.equal(outputs['mfaTypes']['Value'], '["TOTP"]');
       assert.equal(outputs['mfaConfiguration']['Value'], 'ON');
     });
@@ -804,7 +805,7 @@ void describe('Auth construct', () => {
         },
       });
       const template = Template.fromStack(stack);
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       let unnamedOidcProviderName = '';
       for (const resourceKey of Object.keys(
         template['template']['Resources']
@@ -1252,7 +1253,7 @@ void describe('Auth construct', () => {
           },
         },
       });
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       assert.equal(outputs['passwordPolicyMinLength']['Value'], '10');
       assert.equal(
         outputs['passwordPolicyRequirements']['Value'],
@@ -1280,7 +1281,7 @@ void describe('Auth construct', () => {
       template.hasResourceProperties('AWS::Cognito::IdentityPool', {
         AllowUnauthenticatedIdentities: false,
       });
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       assert.equal(outputs['allowUnauthenticatedIdentities']['Value'], 'false');
     });
     void it('can override token validity period', () => {
@@ -1327,7 +1328,7 @@ void describe('Auth construct', () => {
           'accounts.google.com': googleClientId,
         },
       });
-      const outputs = template['template']['Outputs'];
+      const outputs = template.findOutputs('*');
       assert.equal(outputs['socialProviders']['Value'], `["GOOGLE"]`);
     });
   });
