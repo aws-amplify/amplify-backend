@@ -1018,7 +1018,7 @@ export class AmplifyAuth
         const outputProviders: string[] = [];
         const userPoolProviders = this.resources.userPool.identityProviders;
         if (!userPoolProviders || userPoolProviders.length === 0) {
-          return '';
+          return '[]';
         }
         for (const provider of userPoolProviders) {
           const providerResource = provider.node.findChild(
