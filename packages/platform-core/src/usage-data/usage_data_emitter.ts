@@ -1,3 +1,9 @@
+import {
+  CloudWatchClient,
+  Dimension,
+  PutMetricDataCommand,
+  StandardUnit,
+} from '@aws-sdk/client-cloudwatch';
 import { v4 as uuid } from 'uuid';
 import { AccountIdFetcher } from './account_id_fetcher.js';
 import { UsageData } from './usage_data.js';
@@ -10,7 +16,6 @@ import isCI from 'is-ci';
 import { SerializableError } from './serializable_error.js';
 import { UsageDataEmitter } from './usage_data_emitter_factory.js';
 import { AmplifyError } from '../index.js';
-
 /**
  * Entry point for sending usage data metrics
  */
@@ -22,7 +27,8 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     private readonly libraryVersion: string,
     private readonly sessionUuid = uuid(),
     private readonly url = getUrl(),
-    private readonly accountIdFetcher = new AccountIdFetcher()
+    private readonly accountIdFetcher = new AccountIdFetcher(),
+    private readonly cloudWatchClient = new CloudWatchClient()
   ) {}
 
   emitSuccess = async (
@@ -79,7 +85,21 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     };
   };
 
-  private send = (data: UsageData) => {
+  private send = async (data: UsageData) => {
+    await this.cloudWatchClient.send(
+      new PutMetricDataCommand({
+        Namespace: 'amplify-cli-usage-1',
+        MetricData: [
+          {
+            MetricName: data.state,
+            Value: 1,
+            Unit: StandardUnit.Count,
+            Dimensions: this.transformDimension(data),
+            Timestamp: new Date(),
+          },
+        ],
+      })
+    );
     return new Promise<void>((resolve) => {
       const payload: string = JSON.stringify(data);
       const req = https.request({
@@ -132,5 +152,19 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       }
     }
     return { command, plugin: 'Gen2' };
+  };
+
+  private transformDimension = (
+    input: Record<string, object | string | boolean>
+  ): Dimension[] => {
+    return Object.entries(input).map(([key, value]) => {
+      if (typeof value === 'string') {
+        return { Name: key, Value: value };
+      }
+      if (typeof value === 'boolean') {
+        return { Name: key, Value: `${value}` };
+      }
+      return { Name: key, Value: JSON.stringify(value) };
+    });
   };
 }

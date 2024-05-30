@@ -1,5 +1,6 @@
 import { afterEach, describe, mock, test } from 'node:test';
 import assert from 'node:assert';
+import { CloudWatchClient } from '@aws-sdk/client-cloudwatch';
 import { DefaultUsageDataEmitter } from './usage_data_emitter';
 import { v4, validate } from 'uuid';
 import url from 'url';
@@ -133,6 +134,8 @@ void describe('UsageDataEmitter', () => {
         resolve();
       });
     });
+
+    mock.method(CloudWatchClient.prototype, 'send', () => Promise.resolve());
 
     usageDataEmitter = new DefaultUsageDataEmitter(
       testLibraryVersion,
