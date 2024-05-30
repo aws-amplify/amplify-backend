@@ -36,6 +36,13 @@ void describe('generateCommandFailureHandler', () => {
     mockEmitSuccess.mock.resetCalls();
   });
 
+  void it('does not print the same error multiple time', async () => {
+    const error = new Error('test error');
+    await generateCommandFailureHandler(parser, usageDataEmitter)('', error);
+    await generateCommandFailureHandler(parser, usageDataEmitter)('', error);
+    assert.equal(mockPrint.mock.callCount(), 1);
+  });
+
   void it('prints specified message with undefined error', async () => {
     const someMsg = 'some msg';
     // undefined error is encountered with --help option.
