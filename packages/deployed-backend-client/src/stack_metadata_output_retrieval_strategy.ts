@@ -95,12 +95,14 @@ export class StackMetadataBackendOutputRetrievalStrategy
     Object.entries(backendOutputMetadata).forEach(([outputKeyName, entry]) => {
       const outputData = entry.stackOutputs.reduce(
         (accumulator, outputName) => {
+          if (stackOutputRecord[outputName] === undefined) {
+            return {
+              ...accumulator,
+            };
+          }
           return {
             ...accumulator,
-            [outputName]:
-              stackOutputRecord[outputName] === undefined
-                ? ''
-                : stackOutputRecord[outputName],
+            [outputName]: stackOutputRecord[outputName],
           };
         },
         {} as Record<string, string>
