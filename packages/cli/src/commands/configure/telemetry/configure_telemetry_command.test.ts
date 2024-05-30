@@ -97,4 +97,47 @@ void describe('configure command', () => {
       command: 'telemetry',
     });
   });
+
+  void it('if invalid subcommand, should return an error', async () => {
+    const output = await commandRunner.runCommand(`telemetry invalid`);
+    assert.match(output, /Unknown command: invalid/);
+    assert.strictEqual(mockedConfigControllerSet.mock.callCount(), 0);
+    assert.equal(emitFailureMock.mock.callCount(), 1);
+    assert.match(
+      emitFailureMock.mock.calls[0].arguments[0].message,
+      /Unknown command: invalid/
+    );
+    assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
+      command: 'telemetry invalid',
+    });
+  });
+
+  void it('if duplicate subcommand,should return an error', async () => {
+    const output = await commandRunner.runCommand(`telemetry enable enable`);
+    assert.match(output, /Unknown command: enable/);
+    assert.strictEqual(mockedConfigControllerSet.mock.callCount(), 0);
+    assert.equal(emitFailureMock.mock.callCount(), 1);
+
+    assert.match(
+      emitFailureMock.mock.calls[0].arguments[0].message,
+      /Unknown command: enable/
+    );
+    assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
+      command: 'telemetry enable enable',
+    });
+  });
+
+  void it('if empty string, should return an error', async () => {
+    const output = await commandRunner.runCommand(`telemetry ""`);
+    assert.match(output, /Unknown command: ""/);
+    assert.strictEqual(mockedConfigControllerSet.mock.callCount(), 0);
+    assert.equal(emitFailureMock.mock.callCount(), 1);
+    assert.match(
+      emitFailureMock.mock.calls[0].arguments[0].message,
+      /Unknown command: ""/
+    );
+    assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
+      command: 'telemetry ""',
+    });
+  });
 });
