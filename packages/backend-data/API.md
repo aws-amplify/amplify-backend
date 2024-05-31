@@ -30,6 +30,7 @@ export type DataProps = {
     name?: string;
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+    experimentalStackMapping?: Record<string, string>;
 };
 
 // @public
