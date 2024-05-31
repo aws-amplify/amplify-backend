@@ -96,9 +96,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
       const outputData = entry.stackOutputs.reduce(
         (accumulator, outputName) => {
           if (stackOutputRecord[outputName] === undefined) {
-            return {
-              ...accumulator,
-            };
+            return accumulator;
           }
           return {
             ...accumulator,

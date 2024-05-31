@@ -1059,7 +1059,7 @@ export class AmplifyAuth
         const userPoolDomain =
           this.resources.userPool.node.tryFindChild('UserPoolDomain');
         if (!userPoolDomain) {
-          return '';
+          return undefined;
         }
         if (!(userPoolDomain instanceof UserPoolDomain)) {
           throw Error('Could not find UserPoolDomain resource in the stack.');
@@ -1080,7 +1080,7 @@ export class AmplifyAuth
       produce: () => {
         return cfnUserPoolClient.callbackUrLs
           ? cfnUserPoolClient.callbackUrLs.join(',')
-          : '';
+          : undefined;
       },
     });
 
@@ -1088,7 +1088,7 @@ export class AmplifyAuth
       produce: () => {
         return cfnUserPoolClient.logoutUrLs
           ? cfnUserPoolClient.logoutUrLs.join(',')
-          : '';
+          : undefined;
       },
     });
 
@@ -1096,7 +1096,7 @@ export class AmplifyAuth
       produce: () => {
         return cfnUserPoolClient.allowedOAuthFlows
           ? cfnUserPoolClient.allowedOAuthFlows.join(',')
-          : '';
+          : undefined;
       },
     });
 
