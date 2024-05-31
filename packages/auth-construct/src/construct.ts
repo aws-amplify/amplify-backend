@@ -935,7 +935,7 @@ export class AmplifyAuth
     output.signupAttributes = Lazy.string({
       produce: () => {
         if (!cfnUserPool.schema) {
-          return;
+          return '[]';
         }
         return JSON.stringify(
           (cfnUserPool.schema as CfnUserPool.SchemaAttributeProperty[])
@@ -966,7 +966,7 @@ export class AmplifyAuth
     output.passwordPolicyMinLength = Lazy.string({
       produce: () => {
         if (!cfnUserPool.policies) {
-          return;
+          return '';
         }
         const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
           .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
@@ -977,7 +977,7 @@ export class AmplifyAuth
     output.passwordPolicyRequirements = Lazy.string({
       produce: () => {
         if (!cfnUserPool.policies) {
-          return;
+          return '';
         }
         const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
           .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
@@ -1018,7 +1018,7 @@ export class AmplifyAuth
         const outputProviders: string[] = [];
         const userPoolProviders = this.resources.userPool.identityProviders;
         if (!userPoolProviders || userPoolProviders.length === 0) {
-          return '[]';
+          return '';
         }
         for (const provider of userPoolProviders) {
           const providerResource = provider.node.findChild(
@@ -1059,7 +1059,7 @@ export class AmplifyAuth
         const userPoolDomain =
           this.resources.userPool.node.tryFindChild('UserPoolDomain');
         if (!userPoolDomain) {
-          return undefined;
+          return '';
         }
         if (!(userPoolDomain instanceof UserPoolDomain)) {
           throw Error('Could not find UserPoolDomain resource in the stack.');
@@ -1080,7 +1080,7 @@ export class AmplifyAuth
       produce: () => {
         return cfnUserPoolClient.callbackUrLs
           ? cfnUserPoolClient.callbackUrLs.join(',')
-          : undefined;
+          : '';
       },
     });
 
@@ -1088,7 +1088,7 @@ export class AmplifyAuth
       produce: () => {
         return cfnUserPoolClient.logoutUrLs
           ? cfnUserPoolClient.logoutUrLs.join(',')
-          : undefined;
+          : '';
       },
     });
 
@@ -1096,7 +1096,7 @@ export class AmplifyAuth
       produce: () => {
         return cfnUserPoolClient.allowedOAuthFlows
           ? cfnUserPoolClient.allowedOAuthFlows.join(',')
-          : undefined;
+          : '';
       },
     });
 
