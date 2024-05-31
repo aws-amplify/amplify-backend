@@ -95,7 +95,10 @@ export class StackMetadataBackendOutputRetrievalStrategy
     Object.entries(backendOutputMetadata).forEach(([outputKeyName, entry]) => {
       const outputData = entry.stackOutputs.reduce(
         (accumulator, outputName) => {
-          if (stackOutputRecord[outputName] === undefined) {
+          if (
+            stackOutputRecord[outputName] === undefined ||
+            stackOutputRecord[outputName] === ''
+          ) {
             return accumulator;
           }
           return {
