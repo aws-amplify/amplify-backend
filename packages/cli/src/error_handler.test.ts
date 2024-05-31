@@ -2,6 +2,7 @@ import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import {
   attachUnhandledExceptionListeners,
   generateCommandFailureHandler,
+  resetHasError,
 } from './error_handler.js';
 import { Argv } from 'yargs';
 import { LogLevel, printer } from '@aws-amplify/cli-core';
@@ -34,6 +35,7 @@ void describe('generateCommandFailureHandler', () => {
     mockExit.mock.resetCalls();
     mockEmitFailure.mock.resetCalls();
     mockEmitSuccess.mock.resetCalls();
+    resetHasError();
   });
 
   void it('does not print the same error multiple time', async () => {
@@ -168,6 +170,7 @@ void describe(
     beforeEach(() => {
       mockPrint.mock.resetCalls();
       mockEmitFailure.mock.resetCalls();
+      resetHasError();
     });
 
     after(() => {
