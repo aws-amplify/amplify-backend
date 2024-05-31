@@ -5,8 +5,8 @@ import { extractSubCommands } from './extract_sub_commands.js';
 
 let hasAttachUnhandledExceptionListenersBeenCalled = false;
 
-//Create a Map to store error handling state
-const handledErrors = new Map<Error, boolean>();
+//Create a variable to track if the error is handled
+let hasError = false;
 
 type HandleErrorProps = {
   error?: Error;
@@ -14,6 +14,13 @@ type HandleErrorProps = {
   message?: string;
   usageDataEmitter?: UsageDataEmitter;
   command?: string;
+};
+
+/**
+ * Reset the hasError flag
+ */
+export const resetHasError = () => {
+  hasError = false;
 };
 
 /**
@@ -112,7 +119,7 @@ const handleError = async ({
     return;
   }
   //Check if the error has been handled
-  if (error && handledErrors.get(error)) {
+  if (hasError) {
     return;
   }
 
@@ -139,9 +146,7 @@ const handleError = async ({
     }
   }
   // Marking errors handled
-  if (error) {
-    handledErrors.set(error, true);
-  }
+  hasError = true;
   // additional debug logging for the stack traces
   if (error?.stack) {
     printer.log(error.stack, LogLevel.DEBUG);
