@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.0.1
+
+### Patch Changes
+
+- 530bf2c: chore: disambiguate url imports and import from node:url explicitly
+
 ## 1.0.0
 
 ### Major Changes

@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -26,14 +26,14 @@
   "dependencies": {
     "@aws-amplify/data-schema": "^1.0.0",
     "@aws-amplify/backend-auth": "^1.0.2",
-    "@aws-amplify/backend-function": "^1.0.1",
-    "@aws-amplify/backend-data": "^1.0.1",
+    "@aws-amplify/backend-function": "^1.0.3",
+    "@aws-amplify/backend-data": "^1.0.2",
     "@aws-amplify/backend-output-schemas": "^1.1.0",
     "@aws-amplify/backend-output-storage": "^1.0.1",
     "@aws-amplify/backend-secret": "^1.0.0",
-    "@aws-amplify/backend-storage": "^1.0.1",
-    "@aws-amplify/client-config": "^1.0.2",
-    "@aws-amplify/platform-core": "^1.0.0",
+    "@aws-amplify/backend-storage": "^1.0.2",
+    "@aws-amplify/client-config": "^1.0.3",
+    "@aws-amplify/platform-core": "^1.0.1",
     "@aws-amplify/plugin-types": "^1.0.0",
     "@aws-sdk/client-amplify": "^3.465.0",
     "lodash.snakecase": "^4.1.1"
