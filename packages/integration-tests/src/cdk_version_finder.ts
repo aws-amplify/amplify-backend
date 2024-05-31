@@ -1,5 +1,5 @@
 import fsp from 'fs/promises';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import semver from 'semver';
 
 /**

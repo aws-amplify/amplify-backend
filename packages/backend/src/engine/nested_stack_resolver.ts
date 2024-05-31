@@ -1,6 +1,6 @@
 import { NestedStack, Stack } from 'aws-cdk-lib';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Vends stacks for a resource grouping

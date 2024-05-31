@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.5.5
+
+### Patch Changes
+
+- 530bf2c: chore: disambiguate url imports and import from node:url explicitly
+
 ## 0.5.4
 
 ### Patch Changes

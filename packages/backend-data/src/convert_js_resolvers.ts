@@ -3,7 +3,7 @@ import { AmplifyData } from '@aws-amplify/data-construct';
 import { CfnFunctionConfiguration, CfnResolver } from 'aws-cdk-lib/aws-appsync';
 import { JsResolver } from '@aws-amplify/data-schema-types';
 import { resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { Asset } from 'aws-cdk-lib/aws-s3-assets';
 import { resolveEntryPath } from './resolve_entry_path.js';
 

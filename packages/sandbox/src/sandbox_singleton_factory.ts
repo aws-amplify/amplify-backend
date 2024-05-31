@@ -7,7 +7,7 @@ import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { BackendIdSandboxResolver, Sandbox } from './sandbox.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { SSMClient } from '@aws-sdk/client-ssm';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 
 /**
@@ -42,7 +42,7 @@ export class SandboxSingletonFactory {
           getSecretClient(),
           this.printer
         ),
-        new CloudFormationClient(),
+        new SSMClient(),
         this.printer
       );
     }
