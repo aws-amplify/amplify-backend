@@ -15,7 +15,7 @@ import _open from 'open';
 // EventEmitter is a class name and expected to have PascalCase
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import EventEmitter from 'events';
-import { GetParametersByPathCommand, SSMClient } from '@aws-sdk/client-ssm';
+import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 import {
   AmplifyPrompter,
   LogLevel,
@@ -32,9 +32,20 @@ import {
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
 
-// CDK stores bootstrap version in parameter store. Example parameter name looks like /cdk-bootstrap/<hash>/version
-export const CDK_BOOTSTRAP_VERSION_PARAMETER_PREFIX = '/cdk-bootstrap/';
-export const CDK_BOOTSTRAP_VERSION_PARAMETER_SUFFIX = '/version';
+/**
+ * CDK stores bootstrap version in parameter store. Example parameter name looks like /cdk-bootstrap/<qualifier>/version.
+ * The default value for qualifier is hnb659fds, i.e. default parameter path is /cdk-bootstrap/hnb659fds/version.
+ * The default qualifier is hardcoded value without any significance.
+ * Ability to provide custom qualifier is intended for name isolation between automated tests of the CDK itself.
+ * In order to use custom qualifier all stack synthesizers must be programmatically configured to use it.
+ * That makes bootstraps with custom qualifier incompatible with Amplify Backend and we treat that setup as
+ * not bootstrapped.
+ * See: https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html
+ */
+export const CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME =
+  // suppress spell checker, it is triggered by qualifier value.
+  // eslint-disable-next-line spellcheck/spell-checker
+  '/cdk-bootstrap/hnb659fds/version';
 export const CDK_MIN_BOOTSTRAP_VERSION = 6;
 
 /**
@@ -296,16 +307,13 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   private isBootstrapped = async () => {
     try {
-      const { Parameters: parameters } = await this.ssmClient.send(
-        new GetParametersByPathCommand({
-          Path: CDK_BOOTSTRAP_VERSION_PARAMETER_PREFIX,
-          Recursive: true,
+      const { Parameter: parameter } = await this.ssmClient.send(
+        new GetParameterCommand({
+          Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
         })
       );
 
-      const bootstrapVersion = parameters?.find((parameter) =>
-        parameter?.Name?.endsWith(CDK_BOOTSTRAP_VERSION_PARAMETER_SUFFIX)
-      )?.Value;
+      const bootstrapVersion = parameter?.Value;
       if (
         !bootstrapVersion ||
         Number(bootstrapVersion) < CDK_MIN_BOOTSTRAP_VERSION

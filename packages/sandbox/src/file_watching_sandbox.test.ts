@@ -2,8 +2,7 @@ import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import path from 'path';
 import watcher from '@parcel/watcher';
 import {
-  CDK_BOOTSTRAP_VERSION_PARAMETER_PREFIX,
-  CDK_BOOTSTRAP_VERSION_PARAMETER_SUFFIX,
+  CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
   FileWatchingSandbox,
   getBootstrapUrl,
 } from './file_watching_sandbox.js';
@@ -29,7 +28,6 @@ import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { SSMClient } from '@aws-sdk/client-ssm';
-import { randomUUID } from 'node:crypto';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -91,12 +89,10 @@ const ssmClientSendMock = mock.fn();
 mock.method(ssmClientMock, 'send', ssmClientSendMock);
 ssmClientSendMock.mock.mockImplementation(() =>
   Promise.resolve({
-    Parameters: [
-      {
-        Name: `${CDK_BOOTSTRAP_VERSION_PARAMETER_PREFIX}${randomUUID()}${CDK_BOOTSTRAP_VERSION_PARAMETER_SUFFIX}`,
-        Value: '18',
-      },
-    ],
+    Parameter: {
+      Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
+      Value: '18',
+    },
   })
 );
 const openMock = mock.fn(_open, (url: string) => Promise.resolve(url));
@@ -178,12 +174,10 @@ void describe('Sandbox to check if region is bootstrapped', () => {
   void it('when region has bootstrapped, but with a version lower than the minimum (6), then opens console to initiate bootstrap', async () => {
     ssmClientSendMock.mock.mockImplementationOnce(() =>
       Promise.resolve({
-        Parameters: [
-          {
-            Name: `${CDK_BOOTSTRAP_VERSION_PARAMETER_PREFIX}${randomUUID()}${CDK_BOOTSTRAP_VERSION_PARAMETER_SUFFIX}`,
-            Value: '5',
-          },
-        ],
+        Parameter: {
+          Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
+          Value: '5',
+        },
       })
     );
 
