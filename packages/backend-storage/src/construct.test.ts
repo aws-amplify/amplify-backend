@@ -88,6 +88,84 @@ void describe('AmplifyStorage', () => {
     });
   });
 
+  void it('forces SSL', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', { name: 'testName' });
+
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties('AWS::S3::BucketPolicy', {
+      Bucket: { Ref: 'testBucketIdBucket3B30067A' },
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: 's3:*',
+            Condition: {
+              Bool: {
+                'aws:SecureTransport': 'false',
+              },
+            },
+            Effect: 'Deny',
+            Principal: {
+              AWS: '*',
+            },
+            Resource: [
+              {
+                'Fn::GetAtt': ['testBucketIdBucket3B30067A', 'Arn'],
+              },
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': ['testBucketIdBucket3B30067A', 'Arn'],
+                    },
+                    '/*',
+                  ],
+                ],
+              },
+            ],
+          },
+          {
+            Action: [
+              's3:PutBucketPolicy',
+              's3:GetBucket*',
+              's3:List*',
+              's3:DeleteObject*',
+            ],
+            Effect: 'Allow',
+            Principal: {
+              AWS: {
+                'Fn::GetAtt': [
+                  'CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092',
+                  'Arn',
+                ],
+              },
+            },
+            Resource: [
+              {
+                'Fn::GetAtt': ['testBucketIdBucket3B30067A', 'Arn'],
+              },
+              {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': ['testBucketIdBucket3B30067A', 'Arn'],
+                    },
+                    '/*',
+                  ],
+                ],
+              },
+            ],
+          },
+        ],
+        Version: '2012-10-17',
+      },
+    });
+  });
+
   void describe('storeOutput', () => {
     void it('stores output using the provided strategy', () => {
       const app = new App();
