@@ -2,4 +2,4 @@
 '@aws-amplify/backend-data': minor
 ---
 
-enabled stackmpping
+Added experimental option to map data resources to nested stacks
