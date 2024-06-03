@@ -110,6 +110,7 @@ export class AmplifyStorage
       ],
       autoDeleteObjects: true,
       removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
     };
 
     const bucket = new Bucket(this, 'Bucket', bucketProps);
