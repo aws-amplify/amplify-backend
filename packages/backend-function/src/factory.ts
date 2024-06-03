@@ -31,6 +31,7 @@ import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 
 const functionStackType = 'function-Lambda';
 
@@ -38,10 +39,17 @@ const functionStackType = 'function-Lambda';
  * Entry point for defining a function in the Amplify ecosystem
  */
 export const defineFunction = (
-  props: FunctionProps = {}
+  props?: FunctionProps | ((scope: Construct) => lambda.Function)
 ): ConstructFactory<
   ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
-> => new FunctionFactory(props, new Error().stack);
+> => {
+  if (props === undefined || props === null) {
+    return new FunctionFactory({}, new Error().stack);
+  } else if (typeof props === 'function') {
+    return new FunctionFactory({}, new Error().stack, props);
+  }
+  return new FunctionFactory(props, new Error().stack);
+};
 
 export type FunctionProps = {
   /**
@@ -99,7 +107,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
    */
   constructor(
     private readonly props: FunctionProps,
-    private readonly callerStack?: string
+    private readonly callerStack?: string,
+    private readonly callback?: (scope: Construct) => lambda.Function
   ) {}
 
   /**
@@ -113,7 +122,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),
-        outputStorageStrategy
+        outputStorageStrategy,
+        this.callback as (scope: Construct) => lambda.Function
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
@@ -229,7 +239,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: HydratedFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    private readonly callback: (scope: Construct) => lambda.Function
   ) {}
 
   generateContainerEntry = ({
@@ -241,7 +252,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
       this.props.name,
       this.props,
       backendSecretResolver,
-      this.outputStorageStrategy
+      this.outputStorageStrategy,
+      this.callback
     );
   };
 }
@@ -257,7 +269,8 @@ class AmplifyFunction
     id: string,
     props: HydratedFunctionProps,
     backendSecretResolver: BackendSecretResolver,
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    callback: (scope: Construct) => lambda.Function
   ) {
     super(scope, id);
 
@@ -298,20 +311,24 @@ class AmplifyFunction
 
     let functionLambda;
     try {
-      functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
-        entry: props.entry,
-        timeout: Duration.seconds(props.timeoutSeconds),
-        memorySize: props.memoryMB,
-        runtime: nodeVersionMap[props.runtime],
-        bundling: {
-          format: OutputFormat.ESM,
-          banner: bannerCode,
-          inject: shims,
-          loader: {
-            '.node': 'file',
+      if (callback != null) {
+        functionLambda = callback(scope);
+      } else {
+        functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
+          entry: props.entry,
+          timeout: Duration.seconds(props.timeoutSeconds),
+          memorySize: props.memoryMB,
+          runtime: nodeVersionMap[props.runtime],
+          bundling: {
+            format: OutputFormat.ESM,
+            banner: bannerCode,
+            inject: shims,
+            loader: {
+              '.node': 'file',
+            },
           },
-        },
-      });
+        });
+      }
     } catch (error) {
       throw new AmplifyUserError(
         'NodeJSFunctionConstructInitializationError',

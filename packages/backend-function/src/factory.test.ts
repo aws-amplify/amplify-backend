@@ -17,6 +17,7 @@ import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -282,6 +283,20 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
+    void it('sets valid custom lambda function runtime', () => {
+      const lambda = defineFunction((scope) => {
+        return new NodejsFunction(scope, 'customFunction', {
+          entry:
+            './packages/backend-function/src/test-assets/default-lambda/handler.ts',
+        });
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: Runtime.NODEJS_16_X.name,
+      });
+    });
+
     void it('defaults to oldest LTS runtime', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
@@ -413,6 +428,7 @@ void describe('AmplifyFunctionFactory', () => {
       entry: './test-assets/default-lambda/handler.ts',
       name: 'anotherName',
     });
+
     const functionStack = Stack.of(
       functionFactory.getInstance(getInstanceProps).resources.lambda
     );
