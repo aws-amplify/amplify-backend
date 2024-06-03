@@ -1,3 +1,4 @@
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { defaultNodeFunc } from '../function.js';
 import {
   type ClientSchema,
@@ -43,6 +44,13 @@ const schema = a.schema({
     .authorization((allow) => allow.authenticated())
     .handler(a.handler.function('echo')),
 
+  echoCustom: a
+    .query()
+    .arguments({ content: a.string() })
+    .returns(a.ref('EchoResponse'))
+    .authorization((allow) => allow.authenticated())
+    .handler(a.handler.function('echoCustom')),
+
   echoInline: a
     .query()
     .arguments({ content: a.string() })
@@ -52,6 +60,22 @@ const schema = a.schema({
       a.handler.function(
         defineFunction({
           entry: './echo/handler2.ts',
+        })
+      )
+    ),
+
+  echoInlineCustom: a
+    .query()
+    .arguments({ content: a.string() })
+    .returns(a.ref('EchoResponse'))
+    .authorization((allow) => allow.authenticated())
+    .handler(
+      a.handler.function(
+        defineFunction((scope) => {
+          return new NodejsFunction(scope, 'customFunction', {
+            entry:
+              './packages/integration-tests/src/test-projects/data-storage-auth-with-triggers-ts/amplify/data/echo/handler2.ts',
+          });
         })
       )
     ),
@@ -78,6 +102,12 @@ export const data = defineData({
     echo: defineFunction({
       name: 'echoFunc',
       entry: './echo/handler.ts',
+    }),
+    echoCustom: defineFunction((scope) => {
+      return new NodejsFunction(scope, 'customFunction', {
+        entry:
+          './packages/integration-tests/src/test-projects/data-storage-auth-with-triggers-ts/amplify/data/echo/handler.ts',
+      });
     }),
   },
 });
