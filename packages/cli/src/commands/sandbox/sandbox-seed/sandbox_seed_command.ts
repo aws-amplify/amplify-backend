@@ -29,11 +29,8 @@ export class SandboxSeedCommand implements CommandModule<object> {
    * @inheritDoc
    */
   handler = async (): Promise<void> => {
-    const seedTsPath = path.join(process.cwd(), 'amplify', 'seed.ts');
-    const seedJsPath = path.join(process.cwd(), 'amplify', 'seed.js');
-    // TODO is there anyway to not compile? how do we honor tsconfig here?
-    await execa('tsc', [seedTsPath], { cwd: process.cwd() });
-    await import(seedJsPath);
+    const seedPath = path.join('amplify', 'seed.ts');
+    await execa('tsx', [seedPath], { cwd: process.cwd(), stdio: 'inherit' });
     return;
   };
 
