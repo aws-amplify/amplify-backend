@@ -10,6 +10,11 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./docs/iam-actions": {
+      "types": "./lib/docs/iam-actions.d.ts",
+      "import": "./lib/docs/iam-actions.js",
+      "require": "./lib/dos/iam-actions.js"
     }
   },
   "types": "lib/index.d.ts",
