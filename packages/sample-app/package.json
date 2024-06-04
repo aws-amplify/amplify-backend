@@ -1,0 +1,21 @@
+{
+  "name": "@aws-amplify/sample-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "types": "lib/index.d.ts",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.0.3",
+    "@aws-amplify/backend-cli": "^1.0.4",
+    "aws-cdk": "^2.144.0",
+    "aws-cdk-lib": "^2.144.0",
+    "constructs": "^10.3.0",
+    "esbuild": "^0.21.4",
+    "tsx": "^4.11.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "aws-amplify": "^6.3.4"
+  }
+}
