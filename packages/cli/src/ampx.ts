@@ -34,7 +34,21 @@ attachUnhandledExceptionListeners(usageDataEmitter);
 verifyCommandName();
 
 const parser = createMainParser(libraryVersion, usageDataEmitter);
-await parser.parseAsync(hideBin(process.argv));
+
+try {
+  await parser.parseAsync(hideBin(process.argv));
+} catch (e) {
+  if (e instanceof Error) {
+    printer.log(
+      format.error('Failed to parse command line arguments'),
+      LogLevel.DEBUG
+    );
+    printer.log(format.error(e), LogLevel.DEBUG);
+    if (e.stack) {
+      printer.log(e.stack, LogLevel.DEBUG);
+    }
+  }
+}
 
 try {
   const metricDimension: Record<string, string> = {};

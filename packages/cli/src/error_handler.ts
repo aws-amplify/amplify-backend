@@ -5,22 +5,12 @@ import { extractSubCommands } from './extract_sub_commands.js';
 
 let hasAttachUnhandledExceptionListenersBeenCalled = false;
 
-//Create a variable to track if the error is handled
-let hasError = false;
-
 type HandleErrorProps = {
   error?: Error;
   printMessagePreamble?: () => void;
   message?: string;
   usageDataEmitter?: UsageDataEmitter;
   command?: string;
-};
-
-/**
- * Reset the hasError flag
- */
-export const resetHasError = () => {
-  hasError = false;
 };
 
 /**
@@ -118,10 +108,6 @@ const handleError = async ({
   if (isUserForceClosePromptError(error)) {
     return;
   }
-  //Check if the error has been handled
-  if (hasError) {
-    return;
-  }
 
   printMessagePreamble?.();
 
@@ -145,8 +131,7 @@ const handleError = async ({
       printer.print(`Cause: ${error.cause.message}`);
     }
   }
-  // Marking errors handled
-  hasError = true;
+
   // additional debug logging for the stack traces
   if (error?.stack) {
     printer.log(error.stack, LogLevel.DEBUG);
