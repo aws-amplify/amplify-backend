@@ -11,10 +11,10 @@
       "import": "./lib/index.js",
       "require": "./lib/index.js"
     },
-    "./docs/iam-actions": {
-      "types": "./lib/docs/iam-actions.d.ts",
-      "import": "./lib/docs/iam-actions.js",
-      "require": "./lib/dos/iam-actions.js"
+    "./configuration/iam_actions": {
+      "types": "./lib/configuration/iam_actions.d.ts",
+      "import": "./lib/configuration/iam_actions.js",
+      "require": "./lib/configuration/iam_actions.js"
     }
   },
   "types": "lib/index.d.ts",
