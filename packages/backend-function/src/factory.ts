@@ -29,7 +29,7 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 
 const functionStackType = 'function-Lambda';

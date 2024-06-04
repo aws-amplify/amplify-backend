@@ -1,6 +1,8 @@
 import { Options, execa } from 'execa';
 import { runVersion } from './version_runner.js';
 import { NpmClient } from './components/npm_client.js';
+import fs from 'fs';
+import path from 'path';
 
 export type PublishOptions = {
   /**
@@ -52,9 +54,10 @@ export const runPublish = async (props?: PublishOptions, cwd?: string) => {
   }
 
   if (options.snapshotRelease) {
-    // Snapshot releases are not allowed in pre mode.
-    // Exit pre mode. This is no-op if not in pre mode.
-    await execa('changeset', ['pre', 'exit'], execaOptions);
+    if (fs.existsSync(path.join('.changeset', 'pre.json'))) {
+      // Snapshot releases are not allowed in pre mode.
+      await execa('changeset', ['pre', 'exit'], execaOptions);
+    }
     await runVersion(['--snapshot', snapshotTag], cwd);
   }
 

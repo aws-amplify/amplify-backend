@@ -37,6 +37,14 @@ void describe('client config converter', () => {
       ],
       aws_cognito_mfa_configuration: 'test_mfa_configuration',
       aws_cognito_mfa_types: ['test_mfa_type_1', 'test_mfa_type_2'],
+
+      oauth: {
+        clientId: 'test_client_id',
+        domain: 'test_domain',
+        scope: ['test_scope_1', 'test_scope_2'],
+        redirectSignIn: 'test_redirect_sign_in',
+        redirectSignOut: 'test_redirect_sign_out',
+      },
     };
     const expectedMobileConfig: ClientConfigMobile = {
       UserAgent: expectedUserAgent,
@@ -82,6 +90,13 @@ void describe('client config converter', () => {
                   'test_verification_mechanism_1',
                   'test_verification_mechanism_2',
                 ],
+                OAuth: {
+                  WebDomain: 'test_domain',
+                  AppClientId: 'test_client_id',
+                  Scopes: ['test_scope_1', 'test_scope_2'],
+                  SignInRedirectURI: 'test_redirect_sign_in',
+                  SignOutRedirectURI: 'test_redirect_sign_out',
+                },
               },
             },
           },
@@ -185,14 +200,14 @@ void describe('client config converter', () => {
               data_AWS_IAM: {
                 ApiUrl: 'https://test_api_endpoint.amazon.com',
                 Region: 'test_app_sync_region',
-                AuthMode: 'API_KEY',
+                AuthMode: 'AWS_IAM',
                 ApiKey: 'test_api_key',
                 ClientDatabasePrefix: 'data_AWS_IAM',
               },
               data_AMAZON_COGNITO_USER_POOLS: {
                 ApiUrl: 'https://test_api_endpoint.amazon.com',
                 Region: 'test_app_sync_region',
-                AuthMode: 'API_KEY',
+                AuthMode: 'AMAZON_COGNITO_USER_POOLS',
                 ApiKey: 'test_api_key',
                 ClientDatabasePrefix: 'data_AMAZON_COGNITO_USER_POOLS',
               },

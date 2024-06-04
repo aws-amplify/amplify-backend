@@ -76,12 +76,6 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
 
     parseAndAssignObject(
       authClientConfig.auth,
-      'mfa_methods',
-      authOutput.payload.mfaTypes
-    );
-
-    parseAndAssignObject(
-      authClientConfig.auth,
       'standard_required_attributes',
       authOutput.payload.signupAttributes
     );

@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.0.3
+
+### Patch Changes
+
+- 530bf2c: chore: disambiguate url imports and import from node:url explicitly
+
 ## 1.0.2
 
 ### Patch Changes

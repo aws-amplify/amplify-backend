@@ -1,5 +1,5 @@
 import { CommandModule } from 'yargs';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import {
   SandboxCommand,
   SandboxCommandOptionsKebabCase,

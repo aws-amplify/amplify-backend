@@ -1,5 +1,10 @@
 import { Construct } from 'constructs';
-import { RemovalPolicy, Stack, aws_cognito as cognito } from 'aws-cdk-lib';
+import {
+  Lazy,
+  RemovalPolicy,
+  Stack,
+  aws_cognito as cognito,
+} from 'aws-cdk-lib';
 import {
   AuthResources,
   BackendOutputStorageStrategy,
@@ -10,14 +15,15 @@ import {
   CfnUserPool,
   CfnUserPoolClient,
   CfnUserPoolGroup,
+  CfnUserPoolIdentityProvider,
   Mfa,
   MfaSecondFactor,
   OAuthScope,
   OidcAttributeRequestMethod,
   ProviderAttribute,
-  StandardAttributes,
   UserPool,
   UserPoolClient,
+  UserPoolDomain,
   UserPoolIdentityProviderAmazon,
   UserPoolIdentityProviderApple,
   UserPoolIdentityProviderFacebook,
@@ -41,12 +47,10 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
-import { coreAttributeNameMap } from './string_maps.js';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
   oAuthMappings: Record<string, string>;
-  providersList: string[];
   oAuthSettings: cognito.OAuthSettings | undefined;
   google?: UserPoolIdentityProviderGoogle;
   facebook?: UserPoolIdentityProviderFacebook;
@@ -55,7 +59,13 @@ type IdentityProviderSetupResult = {
   oidc?: UserPoolIdentityProviderOidc[];
   saml?: UserPoolIdentityProviderSaml;
 };
-const authProvidersList = {
+type OAuthProviderMapping = {
+  facebook: string;
+  google: string;
+  amazon: string;
+  apple: string;
+};
+const oauthProviderToProviderDomainMap: OAuthProviderMapping = {
   facebook: 'graph.facebook.com',
   google: 'accounts.google.com',
   amazon: 'www.amazon.com',
@@ -171,6 +181,16 @@ export class AmplifyAuth
     // Setup UserPool groups
     this.setupUserPoolGroups(props.groups, identityPool);
 
+    const cfnUserPool = this.userPool.node.findChild('Resource') as CfnUserPool;
+    if (!(cfnUserPool instanceof CfnUserPool)) {
+      throw Error('Could not find CfnUserPool resource in stack.');
+    }
+    const cfnUserPoolClient = userPoolClient.node.findChild(
+      'Resource'
+    ) as CfnUserPoolClient;
+    if (!(cfnUserPoolClient instanceof CfnUserPoolClient)) {
+      throw Error('Could not find CfnUserPoolClient resource in stack.');
+    }
     // expose resources
     this.resources = {
       userPool: this.userPool,
@@ -178,10 +198,8 @@ export class AmplifyAuth
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
       cfnResources: {
-        cfnUserPool: this.userPool.node.findChild('Resource') as CfnUserPool,
-        cfnUserPoolClient: userPoolClient.node.findChild(
-          'Resource'
-        ) as CfnUserPoolClient,
+        cfnUserPool,
+        cfnUserPoolClient,
         cfnIdentityPool: identityPool,
         cfnIdentityPoolRoleAttachment: identityPoolRoleAttachment,
       },
@@ -632,7 +650,6 @@ export class AmplifyAuth
     const shouldMapEmailAttributes = loginOptions.email && !loginOptions.phone;
     const result: IdentityProviderSetupResult = {
       oAuthMappings: {},
-      providersList: [],
       oAuthSettings: {
         flows: DEFAULTS.OAUTH_FLOWS,
       },
@@ -675,8 +692,8 @@ export class AmplifyAuth
           scopes: googleProps.scopes,
         }
       );
-      result.oAuthMappings[authProvidersList.google] = external.google.clientId;
-      result.providersList.push('GOOGLE');
+      result.oAuthMappings[oauthProviderToProviderDomainMap.google] =
+        external.google.clientId;
     }
     if (external.facebook) {
       result.facebook = new cognito.UserPoolIdentityProviderFacebook(
@@ -697,9 +714,8 @@ export class AmplifyAuth
           },
         }
       );
-      result.oAuthMappings[authProvidersList.facebook] =
+      result.oAuthMappings[oauthProviderToProviderDomainMap.facebook] =
         external.facebook.clientId;
-      result.providersList.push('FACEBOOK');
     }
     if (external.loginWithAmazon) {
       result.amazon = new cognito.UserPoolIdentityProviderAmazon(
@@ -720,9 +736,8 @@ export class AmplifyAuth
           },
         }
       );
-      result.oAuthMappings[authProvidersList.amazon] =
+      result.oAuthMappings[oauthProviderToProviderDomainMap.amazon] =
         external.loginWithAmazon.clientId;
-      result.providersList.push('LOGIN_WITH_AMAZON');
     }
     if (external.signInWithApple) {
       result.apple = new cognito.UserPoolIdentityProviderApple(
@@ -743,9 +758,8 @@ export class AmplifyAuth
           },
         }
       );
-      result.oAuthMappings[authProvidersList.apple] =
+      result.oAuthMappings[oauthProviderToProviderDomainMap.apple] =
         external.signInWithApple.clientId;
-      result.providersList.push('SIGN_IN_WITH_APPLE');
     }
     if (external.oidc && external.oidc.length > 0) {
       result.oidc = [];
@@ -785,7 +799,6 @@ export class AmplifyAuth
           }
         );
         result.oidc?.push(generatedProvider);
-        result.providersList.push(generatedProvider.providerName);
       });
     }
     if (external.saml) {
@@ -810,7 +823,6 @@ export class AmplifyAuth
           name: saml.name,
         }
       );
-      result.providersList.push('SAML');
     }
 
     // Always generate a domain prefix if external provider is configured
@@ -900,132 +912,199 @@ export class AmplifyAuth
       Stack.of(this)
     )
   ): void => {
+    const cfnUserPool = this.resources.cfnResources.cfnUserPool;
+    const cfnUserPoolClient = this.resources.cfnResources.cfnUserPoolClient;
+    const cfnIdentityPool = this.resources.cfnResources.cfnIdentityPool;
+    // these properties cannot be overwritten
     const output: AuthOutput['payload'] = {
       userPoolId: this.resources.userPool.userPoolId,
       webClientId: this.resources.userPoolClient.userPoolClientId,
-      identityPoolId: this.resources.cfnResources.cfnIdentityPool.ref,
+      identityPoolId: cfnIdentityPool.ref,
       authRegion: Stack.of(this).region,
-      allowUnauthenticatedIdentities:
-        this.resources.cfnResources.cfnIdentityPool
-          .allowUnauthenticatedIdentities === true
+    };
+
+    // the properties below this line can be overwritten, so they are exposed via cdk LAZY
+    output.allowUnauthenticatedIdentities = Lazy.string({
+      produce: () =>
+        cfnIdentityPool.allowUnauthenticatedIdentities === true
           ? 'true'
           : 'false',
-    };
-    if (this.computedUserPoolProps.standardAttributes) {
-      const signupAttributes = Object.entries(
-        this.computedUserPoolProps.standardAttributes
-      ).reduce((acc: string[], [attributeName, attribute]) => {
-        if (attribute?.required) {
-          const treatedAttributeName =
-            coreAttributeNameMap[attributeName as keyof StandardAttributes];
-          if (treatedAttributeName) {
-            return [...acc, treatedAttributeName];
+    });
+
+    // extract signupAttributes from UserPool schema's required attributes
+    output.signupAttributes = Lazy.string({
+      produce: () => {
+        if (!cfnUserPool.schema) {
+          return '[]';
+        }
+        return JSON.stringify(
+          (cfnUserPool.schema as CfnUserPool.SchemaAttributeProperty[])
+            .filter((attribute) => attribute.required && attribute.name)
+            .map((attribute) => attribute.name?.toLowerCase())
+        );
+      },
+    });
+
+    // extract usernameAttributes from UserPool's usernameAttributes
+    output.usernameAttributes = Lazy.string({
+      produce: () => {
+        return JSON.stringify(
+          cfnUserPool.usernameAttributes?.map((attr) => attr.toLowerCase()) ||
+            []
+        );
+      },
+    });
+
+    // extract verificationMechanisms from UserPool's autoVerifiedAttributes
+    output.verificationMechanisms = Lazy.string({
+      produce: () => {
+        return JSON.stringify(cfnUserPool.autoVerifiedAttributes ?? []);
+      },
+    });
+
+    // extract the passwordPolicy from the UserPool policies
+    output.passwordPolicyMinLength = Lazy.string({
+      produce: () => {
+        if (!cfnUserPool.policies) {
+          return '';
+        }
+        const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
+          .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
+        return policy.minimumLength?.toString();
+      },
+    });
+
+    output.passwordPolicyRequirements = Lazy.string({
+      produce: () => {
+        if (!cfnUserPool.policies) {
+          return '';
+        }
+        const policy = (cfnUserPool.policies as CfnUserPool.PoliciesProperty)
+          .passwordPolicy as CfnUserPool.PasswordPolicyProperty;
+        const requirements = [];
+        policy.requireNumbers && requirements.push('REQUIRES_NUMBERS');
+        policy.requireLowercase && requirements.push('REQUIRES_LOWERCASE');
+        policy.requireUppercase && requirements.push('REQUIRES_UPPERCASE');
+        policy.requireSymbols && requirements.push('REQUIRES_SYMBOLS');
+        return JSON.stringify(requirements);
+      },
+    });
+
+    // extract the MFA configuration setting from the UserPool resource
+    output.mfaConfiguration = Lazy.string({
+      produce: () => {
+        return cfnUserPool.mfaConfiguration ?? 'OFF';
+      },
+    });
+    // extract the MFA types from the UserPool resource
+    output.mfaTypes = Lazy.string({
+      produce: () => {
+        const mfaTypes: string[] = [];
+        (cfnUserPool.enabledMfas ?? []).forEach((type) => {
+          if (type === 'SMS_MFA') {
+            mfaTypes.push('SMS');
+          }
+          if (type === 'SOFTWARE_TOKEN_MFA') {
+            mfaTypes.push('TOTP');
+          }
+        });
+        return JSON.stringify(mfaTypes);
+      },
+    });
+
+    // extract social providers from UserPool resource
+    output.socialProviders = Lazy.string({
+      produce: () => {
+        const outputProviders: string[] = [];
+        const userPoolProviders = this.resources.userPool.identityProviders;
+        if (!userPoolProviders || userPoolProviders.length === 0) {
+          return '';
+        }
+        for (const provider of userPoolProviders) {
+          const providerResource = provider.node.findChild(
+            'Resource'
+          ) as CfnUserPoolIdentityProvider;
+          if (!(providerResource instanceof CfnUserPoolIdentityProvider)) {
+            throw Error(
+              'Could not find the CfnUserPoolIdentityProvider resource in the stack.'
+            );
+          }
+          const providerType = providerResource.providerType;
+          const providerName = providerResource.providerName;
+          if (providerType === 'Google') {
+            outputProviders.push('GOOGLE');
+          }
+          if (providerType === 'Facebook') {
+            outputProviders.push('FACEBOOK');
+          }
+          if (providerType === 'SignInWithApple') {
+            outputProviders.push('SIGN_IN_WITH_APPLE');
+          }
+          if (providerType === 'LoginWithAmazon') {
+            outputProviders.push('LOGIN_WITH_AMAZON');
+          }
+          if (providerType === 'OIDC') {
+            outputProviders.push(providerName);
+          }
+          if (providerType === 'SAML') {
+            outputProviders.push(providerName);
           }
         }
-        return acc;
-      }, []);
-      output.signupAttributes = JSON.stringify(signupAttributes);
-    }
+        return JSON.stringify(outputProviders);
+      },
+    });
 
-    if (this.computedUserPoolProps.signInAliases) {
-      const usernameAttributes = [];
-      if (this.computedUserPoolProps.signInAliases.email) {
-        usernameAttributes.push('email');
-      }
-      if (this.computedUserPoolProps.signInAliases.phone) {
-        usernameAttributes.push('phone_number');
-      }
-      if (
-        this.computedUserPoolProps.signInAliases.preferredUsername ||
-        this.computedUserPoolProps.signInAliases.username
-      ) {
-        usernameAttributes.push('preferred_username');
-      }
-      if (usernameAttributes.length > 0) {
-        output.usernameAttributes = JSON.stringify(usernameAttributes);
-      }
-    }
-
-    if (this.computedUserPoolProps.autoVerify) {
-      const verificationMechanisms = [];
-      if (this.computedUserPoolProps.autoVerify.email) {
-        verificationMechanisms.push('email');
-      }
-      if (this.computedUserPoolProps.autoVerify.phone) {
-        verificationMechanisms.push('phone_number');
-      }
-      if (verificationMechanisms.length > 0) {
-        output.verificationMechanisms = JSON.stringify(verificationMechanisms);
-      }
-    }
-
-    if (this.computedUserPoolProps.passwordPolicy) {
-      output.passwordPolicyMinLength =
-        this.computedUserPoolProps.passwordPolicy.minLength?.toString();
-
-      const requirements = [];
-      if (this.computedUserPoolProps.passwordPolicy.requireDigits) {
-        requirements.push('REQUIRES_NUMBERS');
-      }
-      if (this.computedUserPoolProps.passwordPolicy.requireLowercase) {
-        requirements.push('REQUIRES_LOWERCASE');
-      }
-      if (this.computedUserPoolProps.passwordPolicy.requireUppercase) {
-        requirements.push('REQUIRES_UPPERCASE');
-      }
-      if (this.computedUserPoolProps.passwordPolicy.requireSymbols) {
-        requirements.push('REQUIRES_SYMBOLS');
-      }
-
-      if (requirements.length > 0) {
-        output.passwordPolicyRequirements = JSON.stringify(requirements);
-      }
-    }
-
-    if (this.computedUserPoolProps.mfa) {
-      output.mfaConfiguration = this.computedUserPoolProps.mfa;
-
-      const mfaTypes = [];
-      if (this.computedUserPoolProps.mfaSecondFactor?.otp) {
-        mfaTypes.push('TOTP');
-      }
-      if (this.computedUserPoolProps.mfaSecondFactor?.sms) {
-        mfaTypes.push('SMS');
-      }
-      if (mfaTypes.length > 0) {
-        output.mfaTypes = JSON.stringify(mfaTypes);
-      }
-    }
-
-    if (this.providerSetupResult.providersList.length > 0) {
-      output.socialProviders = JSON.stringify(
-        this.providerSetupResult.providersList
-      );
-    }
-    // if callback URLs are configured, we must expose the oauth settings to the output
-    if (
-      this.providerSetupResult.oAuthSettings &&
-      this.providerSetupResult.oAuthSettings.callbackUrls
-    ) {
-      const oAuthSettings = this.providerSetupResult.oAuthSettings;
-      if (this.domainPrefix) {
-        output.oauthCognitoDomain = `${this.domainPrefix}.auth.${
+    output.oauthCognitoDomain = Lazy.string({
+      produce: () => {
+        const userPoolDomain =
+          this.resources.userPool.node.tryFindChild('UserPoolDomain');
+        if (!userPoolDomain) {
+          return '';
+        }
+        if (!(userPoolDomain instanceof UserPoolDomain)) {
+          throw Error('Could not find UserPoolDomain resource in the stack.');
+        }
+        return `${userPoolDomain.domainName}.auth.${
           Stack.of(this).region
         }.amazoncognito.com`;
-      }
+      },
+    });
 
-      output.oauthScope = JSON.stringify(
-        oAuthSettings.scopes?.map((s) => s.scopeName) ?? []
-      );
-      output.oauthRedirectSignIn = oAuthSettings.callbackUrls
-        ? oAuthSettings.callbackUrls.join(',')
-        : '';
-      output.oauthRedirectSignOut = oAuthSettings.logoutUrls
-        ? oAuthSettings.logoutUrls.join(',')
-        : '';
-      output.oauthClientId = this.resources.userPoolClient.userPoolClientId;
-      output.oauthResponseType = 'code';
-    }
+    output.oauthScope = Lazy.string({
+      produce: () => {
+        return JSON.stringify(cfnUserPoolClient.allowedOAuthScopes ?? []);
+      },
+    });
+
+    output.oauthRedirectSignIn = Lazy.string({
+      produce: () => {
+        return cfnUserPoolClient.callbackUrLs
+          ? cfnUserPoolClient.callbackUrLs.join(',')
+          : '';
+      },
+    });
+
+    output.oauthRedirectSignOut = Lazy.string({
+      produce: () => {
+        return cfnUserPoolClient.logoutUrLs
+          ? cfnUserPoolClient.logoutUrLs.join(',')
+          : '';
+      },
+    });
+
+    output.oauthResponseType = Lazy.string({
+      produce: () => {
+        return cfnUserPoolClient.allowedOAuthFlows
+          ? cfnUserPoolClient.allowedOAuthFlows.join(',')
+          : '';
+      },
+    });
+
+    output.oauthClientId = Lazy.string({
+      produce: () => {
+        return cfnUserPoolClient.ref;
+      },
+    });
 
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
