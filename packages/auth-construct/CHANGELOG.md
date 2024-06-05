@@ -1,5 +1,13 @@
 # @aws-amplify/auth-construct
 
+## 1.1.4
+
+### Patch Changes
+
+- ca9d68d: Update auth construct to use cfn resources for outputs instead of using input properties.
+- ca9d68d: When retrieving stack outputs, if a stack output is undefined and emptry string will be used to construct the output.
+- ca9d68d: Auth outputs now update if properties are modified via overrides.
+
 ## 1.1.3
 
 ### Patch Changes
