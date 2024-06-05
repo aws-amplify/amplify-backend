@@ -43,9 +43,14 @@ const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
 };
 
+const region = 'test-region';
+const cfnClientMock = new CloudFormationClient({ region });
+const cfnClientSendMock = mock.fn();
+
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
-  formatterStub
+  formatterStub,
+  cfnClientMock
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 
@@ -84,9 +89,7 @@ const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
 const backendDeployerDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
-const region = 'test-region';
-const cfnClientMock = new CloudFormationClient({ region });
-const cfnClientSendMock = mock.fn();
+
 mock.method(cfnClientMock, 'send', cfnClientSendMock);
 cfnClientSendMock.mock.mockImplementation(() =>
   Promise.resolve({

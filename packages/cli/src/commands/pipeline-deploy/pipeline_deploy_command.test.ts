@@ -48,7 +48,8 @@ void describe('deploy command', () => {
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub
+      formatterStub,
+      new CloudFormationClient()
     );
     const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
@@ -99,7 +100,8 @@ void describe('deploy command', () => {
   void it('executes backend deployer in CI environments', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub
+      formatterStub,
+      new CloudFormationClient()
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -126,7 +128,8 @@ void describe('deploy command', () => {
   void it('allows --outputs-out-dir argument', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub
+      formatterStub,
+      new CloudFormationClient()
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -162,7 +165,8 @@ void describe('deploy command', () => {
   void it('allows --outputs-version argument to generate legacy config', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub
+      formatterStub,
+      new CloudFormationClient()
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),

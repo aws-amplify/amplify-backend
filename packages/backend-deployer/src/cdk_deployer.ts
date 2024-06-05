@@ -13,10 +13,13 @@ import {
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyUserError,
+  BackendIdentifierConversions,
   BackendLocator,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
 import { dirname } from 'path';
+import { StackActivityMonitor } from './display/deployment_progress.js';
+import { format, printer } from '@aws-amplify/cli-core';
 
 /**
  * Commands that can be invoked
@@ -32,13 +35,15 @@ enum InvokableCommand {
  */
 export class CDKDeployer implements BackendDeployer {
   private readonly relativeCloudAssemblyLocation = '.amplify/artifacts/cdk.out';
+  private deploymentMonitorStarted: boolean;
   /**
    * Instantiates instance of CDKDeployer
    */
   constructor(
     private readonly cdkErrorMapper: CdkErrorMapper,
     private readonly backendLocator: BackendLocator,
-    private readonly packageManagerController: PackageManagerController
+    private readonly packageManagerController: PackageManagerController,
+    private readonly cfnDeploymentMonitor?: StackActivityMonitor
   ) {}
   /**
    * Invokes cdk deploy command
@@ -59,23 +64,59 @@ export class CDKDeployer implements BackendDeployer {
     // first synth with the backend definition but suppress any errors.
     // We want to show errors from the TS compiler rather than the ESBuild as
     // TS errors are more relevant (Library validations are type reliant).
-    const startTime = Date.now();
+    const synthStartTime = Date.now();
     let synthError = undefined;
     try {
-      await this.tryInvokeCdk(
-        InvokableCommand.SYNTH,
-        backendId,
-        this.getAppCommand(),
-        cdkCommandArgs.concat('--quiet') // don't print the CFN template to stdout
-      );
+      const synthCallBack = async () =>
+        await this.tryInvokeCdk(
+          InvokableCommand.SYNTH,
+          backendId,
+          this.getAppCommand(),
+          cdkCommandArgs.concat('--quiet') // don't print the CFN template to stdout
+        );
+      // TBD, rel definition of when to enable fancy
+      if (backendId.type === 'sandbox') {
+        // casting is ok because we don't care about return value here
+        await printer.indicateProgress(
+          'Synthesizing backend',
+          synthCallBack as unknown as () => Promise<void>
+        );
+      } else {
+        await synthCallBack();
+      }
     } catch (e) {
       synthError = e;
     }
     // CDK prints synth time in seconds rounded to 2 decimal places. Here we duplicate that behavior.
-    const synthTimeSeconds = Math.floor((Date.now() - startTime) / 10) / 100;
+    const synthTimeSeconds =
+      Math.floor((Date.now() - synthStartTime) / 10) / 100;
 
+    // TBD, rel definition of when to enable fancy
+    if (backendId.type === 'sandbox') {
+      printer.print(
+        format.success(`✔ Backend synthesized in ${synthTimeSeconds} seconds`)
+      );
+    }
+
+    const typeCheckStartTime = Date.now();
     // then run type checks
-    await this.invokeTsc(deployProps);
+    if (backendId.type === 'sandbox') {
+      // casting is ok because we don't care about return value here
+      await printer.indicateProgress(
+        'Running type checks',
+        async () => await this.invokeTsc(deployProps)
+      );
+    }
+    const typeCheckTimeSeconds =
+      Math.floor((Date.now() - typeCheckStartTime) / 10) / 100;
+
+    if (backendId.type === 'sandbox') {
+      printer.print(
+        format.success(
+          `✔ Type checks completed in ${typeCheckTimeSeconds} seconds`
+        )
+      );
+    }
 
     // If somehow TSC was successful but synth wasn't, we now throw to surface the synth error
     if (synthError) {
@@ -117,7 +158,11 @@ export class CDKDeployer implements BackendDeployer {
    */
   executeCommand = async (
     commandArgs: string[],
-    options: { printStdout: boolean } = { printStdout: true }
+    options: {
+      printStdout: boolean;
+      useFancyOutput?: boolean;
+      stackName?: string;
+    } = { printStdout: true }
   ) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
@@ -138,8 +183,8 @@ export class CDKDeployer implements BackendDeployer {
         stderr: 'pipe',
         // Piping the output by default strips off the color. This is a workaround to
         // preserve the color being piped to parent process.
-        extendEnv: true,
-        env: { FORCE_COLOR: '1' },
+        // extendEnv: true,
+        // env: { FORCE_COLOR: '1' },
       }
     );
 
@@ -151,10 +196,15 @@ export class CDKDeployer implements BackendDeployer {
 
     const cdkOutput = { deploymentTimes: {} };
     if (childProcess.stdout) {
-      await this.populateCDKOutputFromStdout(cdkOutput, childProcess.stdout);
+      this.populateCDKOutputFromStdout(cdkOutput, childProcess.stdout);
     }
 
+    let readInterface;
     try {
+      if (childProcess.stdout && options.useFancyOutput) {
+        readInterface = readline.createInterface(childProcess.stdout);
+        await this.transformCDKOutput(readInterface, options.stackName);
+      }
       await childProcess;
       return cdkOutput;
     } catch (error) {
@@ -163,6 +213,9 @@ export class CDKDeployer implements BackendDeployer {
       // and their exit codes printed while sandbox continue to run). Hence we explicitly don't pass error in the cause
       // rather throw the entire stderr for clients to figure out what to do with it.
       throw new Error(aggregatedStderr);
+    } finally {
+      await this.cfnDeploymentMonitor?.stop();
+      readInterface?.close();
     }
   };
 
@@ -277,27 +330,207 @@ export class CDKDeployer implements BackendDeployer {
       cdkCommandArgs.push(...additionalArguments);
     }
 
-    return await this.executeCommand(cdkCommandArgs);
+    const useFancyOutput =
+      [InvokableCommand.DEPLOY, InvokableCommand.DESTROY].includes(
+        invokableCommand
+      ) && backendId.type === 'sandbox';
+
+    return await this.executeCommand(cdkCommandArgs, {
+      printStdout: false,
+      useFancyOutput,
+      stackName: BackendIdentifierConversions.toStackName(backendId),
+    });
   };
 
-  private populateCDKOutputFromStdout = async (
+  private populateCDKOutputFromStdout = (
     output: DeployResult | DestroyResult,
     stdout: stream.Readable
   ) => {
     const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
-    const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;
     const reader = readline.createInterface(stdout);
+    reader.on('line', (line) => {
+      if (!line.includes('✨')) {
+        return;
+      }
+      // Good chance that it contains timing information
+      const totalTime = line.match(regexTotalTime);
+      if (totalTime && totalTime.length > 1 && !isNaN(+totalTime[1])) {
+        output.deploymentTimes.totalTime = +totalTime[1];
+      }
+    });
+  };
+
+  private transformCDKOutput = async (
+    reader: readline.Interface,
+    stackName: string | undefined
+  ) => {
+    let resolveForAllAssetsToBePublished!: (value: unknown) => void;
+    let resolveForDeploymentToBeStarted!: (value: unknown) => void;
+    let resolveForHotswapDeploymentToBeFinished!: (value: unknown) => void;
+    const hotSwappedChanges: string[] = [];
+    let showingAssetBuildingSpinner = false;
+    let progressIndicatorForDeploymentStartedPromise: Promise<void>;
+    let progressIndicatorForBuildingAssetsPromise: Promise<void>;
+    let progressIndicatorForHotSwappingResources: Promise<void> | undefined;
+
+    const cancelAllIndicators = async () => {
+      resolveForAllAssetsToBePublished?.(true);
+      resolveForDeploymentToBeStarted?.(true);
+      resolveForHotswapDeploymentToBeFinished?.(true);
+
+      await Promise.all([
+        progressIndicatorForDeploymentStartedPromise,
+        progressIndicatorForBuildingAssetsPromise,
+        progressIndicatorForHotSwappingResources,
+      ]);
+    };
+
+    /** 
+     * Flow of CDK
+                                +-------------------+
+                                |   Building Assets |
+                                +-------------------+
+                                          |
+                                          v
+                                +---------------------+
+                                |   Publishing Assets |
+                                +---------------------+
+                                          |
+                                          v
+                                +---------------------+
+                                | Starting Deployment |
+                                +---------------------+
+                                          |
+                  +-----------------------+----------------------+
+                  |                       |                      |
+                  v                       v                      v
+        +-------------------+  +-------------------+  +-------------------+
+        |     No changes    |  |  Can't hotswap    |  |     Can hotswap   |
+        +-------------------+  +-------------------+  +-------------------+
+                  |                      |                       |
+                  v                      v                       v
+        +----------------------+  +-------------------+  +-------------------+
+        | Deployment completed |  | Do CFN deployment |  |   Do hotswap      |
+        |                      |  |   and monitor     |  |   deployment      |
+        +----------------------+  +-------------------+  +-------------------+
+                  |                       |                       |
+                  -------------------------------------------------
+                          |                             |
+                          v                             v
+            +----------------------+            +-------------------+
+            | Deployment completed |            | Deployment failed |
+            +----------------------+            +-------------------+
+     */
     for await (const line of reader) {
-      if (line.includes('✨')) {
-        // Good chance that it contains timing information
-        const totalTime = line.match(regexTotalTime);
-        if (totalTime && totalTime.length > 1 && !isNaN(+totalTime[1])) {
-          output.deploymentTimes.totalTime = +totalTime[1];
+      // eslint-disable-next-line no-console
+      // console.log(line);
+
+      // Publishing Assets
+      if (
+        line.match(
+          /start: Building|success: Built|start: Publishing|success: Published/
+        )
+      ) {
+        if (!showingAssetBuildingSpinner) {
+          progressIndicatorForBuildingAssetsPromise = printer.indicateProgress(
+            'Building and publishing assets',
+            async () => {
+              await new Promise((resolve) => {
+                resolveForAllAssetsToBePublished = resolve;
+              });
+            }
+          );
+          showingAssetBuildingSpinner = true;
         }
-        const synthTime = line.match(regexSynthTime);
-        if (synthTime && synthTime.length > 1 && !isNaN(+synthTime[1])) {
-          output.deploymentTimes.synthesisTime = +synthTime[1];
+      }
+
+      // Publishing assets finished and deployment started
+      if (line.includes('deploying...')) {
+        resolveForAllAssetsToBePublished?.(true);
+        await progressIndicatorForBuildingAssetsPromise!;
+        printer.print(format.success(`✔ Building and publishing assets`));
+        progressIndicatorForDeploymentStartedPromise = printer.indicateProgress(
+          'Evaluating the diff',
+          async () => {
+            await new Promise((resolve) => {
+              resolveForDeploymentToBeStarted = resolve;
+            });;
+          }
+        );
+      }
+
+      // When no changes are found to be deployed
+      if (line.includes('(no changes)')) {
+        resolveForDeploymentToBeStarted?.(true);
+        await progressIndicatorForDeploymentStartedPromise!;
+        printer.print(format.note('No changes detected to deploy'));
+      }
+
+      // when all the changes can be hotswapped, we skip cfn deployment
+      if (line.includes('hotswapping resources')) {
+        resolveForDeploymentToBeStarted?.(true);
+        await progressIndicatorForDeploymentStartedPromise!;
+        progressIndicatorForHotSwappingResources = printer.indicateProgress(
+          'Hot swapping resources',
+          async () => {
+            await new Promise((resolve) => {
+              resolveForHotswapDeploymentToBeFinished = resolve;
+            });
+          }
+        );
+      }
+
+      // Collect all the non hot swappable resources
+      if (line.match(/✨.*hotswapped/)) {
+        const resource = line.match(/✨ (?<resourceName>.+) '.+' hotswapped/)
+          ?.groups?.resourceName;
+        if (resource) {
+          hotSwappedChanges.push(resource);
         }
+      }
+
+      // Can't hotswap, so performing a CFN deployment
+      if (line.includes('Could not perform a hotswap deployment')) {
+        resolveForDeploymentToBeStarted?.(true);
+        await progressIndicatorForDeploymentStartedPromise!;
+        printer.print(format.highlight(`Found non hot-swappable changes.`));
+        printer.print(`Performing a CFN deployment`);
+      }
+
+      // CFN deployment has started, start the progress monitor
+      if (line.match(/(creating|updating) stack.../) && stackName) {
+        this.cfnDeploymentMonitor?.start(stackName);
+        this.deploymentMonitorStarted = true;
+      }
+
+      // CFN deployment failed, End state
+      if (line.includes('❌ Deployment failed')) {
+        if (progressIndicatorForHotSwappingResources) {
+          await cancelAllIndicators();
+        }
+        if (this.deploymentMonitorStarted) {
+          await this.cfnDeploymentMonitor?.stop();
+        }
+        printer.print(format.color(`❌ Deployment failed`, 'Red'));
+      }
+
+      // All types of deployment completed. End state
+      if (line.includes('✨  Deployment time')) {
+        if (progressIndicatorForHotSwappingResources) {
+          await cancelAllIndicators();
+          printer.print(
+            format.success(`✔ Hot swapped resources `) +
+              format.dim(`(${hotSwappedChanges.join(', ')})`)
+          );
+        }
+        if (this.deploymentMonitorStarted) {
+          await this.cfnDeploymentMonitor?.stop();
+        }
+        const deploymentTime = line.match(/Deployment time:\s*(?<time>.*)/)
+          ?.groups?.time;
+        printer.print(
+          format.success(`✔ Deployment completed in ${deploymentTime}`)
+        );
       }
     }
   };

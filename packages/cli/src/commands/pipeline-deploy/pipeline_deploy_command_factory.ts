@@ -33,7 +33,8 @@ export const createPipelineDeployCommand = (): CommandModule<
   const packageManagerControllerFactory = new PackageManagerControllerFactory();
   const backendDeployerFactory = new BackendDeployerFactory(
     packageManagerControllerFactory.getPackageManagerController(),
-    format
+    format,
+    awsClientProvider.getCloudFormationClient()
   );
   const backendDeployer = backendDeployerFactory.getInstance();
   return new PipelineDeployCommand(clientConfigGenerator, backendDeployer);

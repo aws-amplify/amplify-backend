@@ -17,6 +17,7 @@ import {
 } from '@aws-amplify/backend-secret';
 import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
 import { SSMServiceException } from '@aws-sdk/client-ssm';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 const logMock = mock.fn();
 const mockedPrinter = {
@@ -33,7 +34,8 @@ const formatterStub: BackendDeployerOutputFormatter = {
 
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
-  formatterStub
+  formatterStub,
+  new CloudFormationClient()
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 const secretClient = getSecretClient();

@@ -112,13 +112,15 @@ export class Printer {
     let frameIndex = 0;
     this.timerSet = true;
     this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
-    this.timer = setInterval(() => {
+    const animate = (): void => {
       this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
       this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
       const frame = this.spinnerFrames[frameIndex];
       this.stdout.write(`${frame} ${message}`);
       frameIndex = (frameIndex + 1) % this.spinnerFrames.length;
-    }, this.refreshRate);
+      this.timer = setTimeout(animate, this.refreshRate);
+    };
+    animate();
   }
 
   /**

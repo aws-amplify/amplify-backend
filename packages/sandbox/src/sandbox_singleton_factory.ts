@@ -29,11 +29,13 @@ export class SandboxSingletonFactory {
    */
   getInstance = async (): Promise<Sandbox> => {
     if (!this.instance) {
+      const cfnClient = new CloudFormationClient();
       const packageManagerControllerFactory =
         new PackageManagerControllerFactory(process.cwd(), this.printer);
       const backendDeployerFactory = new BackendDeployerFactory(
         packageManagerControllerFactory.getPackageManagerController(),
-        this.format
+        this.format,
+        cfnClient
       );
       this.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,

@@ -6,6 +6,8 @@ import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
 import { BackendDeployerOutputFormatter } from './types.js';
+import { StackActivityMonitor } from './display/deployment_progress.js';
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 
 export type DeployProps = {
   secretLastUpdated?: Date;
@@ -47,7 +49,8 @@ export class BackendDeployerFactory {
    */
   constructor(
     private readonly packageManagerController: PackageManagerController,
-    private readonly formatter: BackendDeployerOutputFormatter
+    private readonly formatter: BackendDeployerOutputFormatter,
+    private readonly cfnClient: CloudFormationClient
   ) {}
 
   /**
@@ -58,7 +61,8 @@ export class BackendDeployerFactory {
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(this.formatter),
         new BackendLocator(),
-        this.packageManagerController
+        this.packageManagerController,
+        new StackActivityMonitor(this.cfnClient)
       );
     }
     return BackendDeployerFactory.instance;

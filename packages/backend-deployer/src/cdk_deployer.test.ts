@@ -49,7 +49,8 @@ void describe('invokeCDKCommand', () => {
   const invoker = new CDKDeployer(
     new CdkErrorMapper(formatterStub),
     backendLocator,
-    packageManagerControllerMock as never
+    packageManagerControllerMock as never,
+    undefined
   );
   const executeCommandMock = mock.method(invoker, 'executeCommand', () =>
     Promise.resolve()

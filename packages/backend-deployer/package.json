@@ -18,10 +18,13 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-amplify/cli-core": "^1.0.0",
     "@aws-amplify/platform-core": "^1.0.0",
     "@aws-amplify/plugin-types": "^1.0.0",
+    "@aws-sdk/client-cloudformation": "^3.565.0",
     "execa": "^8.0.1",
-    "tsx": "^4.6.1"
+    "tsx": "^4.6.1",
+    "wrap-ansi": "^9.0.0"
   },
   "peerDependencies": {
     "aws-cdk": "^2.127.0",
