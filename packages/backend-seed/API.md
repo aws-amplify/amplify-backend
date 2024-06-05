@@ -4,6 +4,12 @@
 
 ```ts
 
+// @public (undocumented)
+export const defineSeed: (seedFunction: SeedFunction) => void;
+
+// @public (undocumented)
+export type SeedFunction = () => Promise<void>;
+
 // (No @packageDocumentation comment for this package)
 
 ```
