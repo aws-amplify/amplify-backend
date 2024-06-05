@@ -329,7 +329,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       if (e instanceof ParameterNotFound) {
         return false;
       }
-      // If we are unable to retrieve boostrap version parameter due to other reasons(AccessDenied), we fail fast.
+      // If we are unable to retrieve bootstrap version parameter due to other reasons(AccessDenied), we fail fast.
       throw e;
     }
   };
