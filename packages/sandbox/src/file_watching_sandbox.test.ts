@@ -155,7 +155,9 @@ void describe('Sandbox to check if region is bootstrapped', () => {
 
   void it('when region has not bootstrapped, then opens console to initiate bootstrap', async () => {
     ssmClientSendMock.mock.mockImplementationOnce(() => {
-      throw new Error('Stack with id CDKToolkit does not exist');
+      const error = new Error('Parameter not found');
+      error.name = 'ParameterNotFound';
+      throw error;
     });
 
     await sandboxInstance.start({

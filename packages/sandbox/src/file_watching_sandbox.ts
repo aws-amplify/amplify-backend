@@ -325,9 +325,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       if (
         e &&
         typeof e === 'object' &&
-        'message' in e &&
-        typeof e.message === 'string' &&
-        e.message.includes('does not exist')
+        'name' in e &&
+        typeof e.name === 'string' &&
+        e.name === 'ParameterNotFound'
       ) {
         return false;
       }
