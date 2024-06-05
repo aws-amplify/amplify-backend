@@ -123,8 +123,8 @@ void describe('sandbox command', () => {
     assert.match(output, /--outputs-out-dir/);
     assert.match(output, /--once/);
     assert.match(output, /--stream-function-logs/);
-    assert.match(output, /--function-name/);
-    assert.match(output, /--stream-output/);
+    assert.match(output, /--logs-filter/);
+    assert.match(output, /--logs-out-file/);
     assert.equal(mockHandleProfile.mock.callCount(), 0);
   });
 
@@ -365,24 +365,24 @@ void describe('sandbox command', () => {
     );
   });
 
-  void it('fails if --stream-output is provided without enabling --stream-function-logs', async () => {
+  void it('fails if --logs-out-file is provided without enabling --stream-function-logs', async () => {
     assert.match(
-      await commandRunner.runCommand('sandbox --stream-output someFile'),
-      /Missing dependent arguments:\n stream-output -> stream-function-logs/
+      await commandRunner.runCommand('sandbox --logs-out-file someFile'),
+      /Missing dependent arguments:\n logs-out-file -> stream-function-logs/
     );
   });
 
   void it('starts sandbox with log watching options', async () => {
     await commandRunner.runCommand(
-      'sandbox --stream-function-logs --function-name func1 --function-name func2 --stream-output someFile'
+      'sandbox --stream-function-logs --logs-filter func1 --logs-filter func2 --logs-out-file someFile'
     );
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       sandboxStartMock.mock.calls[0].arguments[0].functionStreamingOptions,
       {
         enabled: true,
-        functionNames: ['func1', 'func2'],
-        streamOutputLocation: 'someFile',
+        logsFilters: ['func1', 'func2'],
+        logsOutFile: 'someFile',
       } as SandboxFunctionStreamingOptions
     );
   });

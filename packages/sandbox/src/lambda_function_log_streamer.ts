@@ -35,11 +35,11 @@ export class LambdaFunctionLogStreamer {
   /**
    * Starts watching logs in the given sandbox.
    * @param sandboxBackendId The sandbox backend identifier.
-   * @param functionNamesToFilter The function names to filter.
+   * @param logsFilters Glob patterns for function names to filter.
    */
   startWatchingLogs = async (
     sandboxBackendId: BackendIdentifier,
-    functionNamesToFilter?: string[]
+    logsFilters?: string[]
   ) => {
     const backendOutput: BackendOutput =
       await this.backendOutputClient.getOutput(sandboxBackendId);
@@ -82,22 +82,37 @@ export class LambdaFunctionLogStreamer {
         continue;
       }
 
-      if (
-        !functionNamesToFilter ||
-        functionNamesToFilter.includes(friendlyFunctionName)
-      ) {
+      let shouldStreamLogs = false;
+      if (logsFilters) {
+        for (const filter of logsFilters) {
+          const pattern = new RegExp(filter);
+          if (pattern.test(friendlyFunctionName)) {
+            shouldStreamLogs = true;
+            this.printer.log(
+              `[Sandbox] Logs for function ${friendlyFunctionName} will be streamed as it matched filter '${filter}'`,
+              LogLevel.DEBUG
+            );
+            break;
+          }
+        }
+      } else {
+        // No logs filter, means we stream all logs
+        this.printer.log(
+          `[Sandbox] Logs for function ${friendlyFunctionName} will be streamed.`,
+          LogLevel.DEBUG
+        );
+        shouldStreamLogs = true;
+      }
+
+      if (shouldStreamLogs) {
         this.logsMonitor?.addLogGroups(
           friendlyFunctionName,
           // a CW log group is implicitly created for each lambda function with the lambda function's name
           `/aws/lambda/${entry.name}`
         );
-        this.printer.log(
-          `[Sandbox] Logs for function ${friendlyFunctionName} will be streamed.`,
-          LogLevel.DEBUG
-        );
       } else {
         this.printer.log(
-          `[Sandbox] Skipping logs streaming for function ${friendlyFunctionName}. To stream logs for this function, provide its name in --function-name option`,
+          `[Sandbox] Skipping logs streaming for function ${friendlyFunctionName} since it did not match any filters. To stream logs for this function, ensure at least one of your logs-filters match this function name.`,
           LogLevel.DEBUG
         );
       }

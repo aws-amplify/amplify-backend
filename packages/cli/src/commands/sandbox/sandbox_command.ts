@@ -30,8 +30,8 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
     outputsVersion: string;
     once: boolean | undefined;
     streamFunctionLogs: boolean | undefined;
-    functionName: string[] | undefined;
-    streamOutput: string | undefined;
+    logsFilter: string[] | undefined;
+    logsOutFile: string | undefined;
   } & SandboxCommandGlobalOptions
 >;
 
@@ -137,12 +137,12 @@ export class SandboxCommand
       // turn on function logs streaming
       functionStreamingOptions = {
         enabled: true,
-        functionNames: args.functionName,
-        streamOutputLocation: args.streamOutput,
+        logsFilters: args.logsFilter,
+        logsOutFile: args.logsOutFile,
       };
 
-      if (args.streamOutput) {
-        watchExclusions.push(args.streamOutput);
+      if (args.logsOutFile) {
+        watchExclusions.push(args.logsOutFile);
       }
     }
     await sandbox.start({
@@ -224,23 +224,22 @@ export class SandboxCommand
             'Whether to stream function execution logs. Default: false. Use --function-names to filter for specific functions to stream logs from',
           boolean: true,
           global: false,
-          group: 'Stream lambda function logs',
+          group: 'Stream logs',
         })
-        .option('function-name', {
-          describe:
-            'Name of functions to stream execution logs from. Usage --function-name func1 --function-name func2. Default: Stream all functions logs',
+        .option('logs-filter', {
+          describe: `Glob pattern to stream only selected logs. E.g. to stream logs for a function, specify it's name, and to stream logs from all functions starting with auth specify 'auth*' Default: Stream all logs`,
           array: true,
           type: 'string',
-          group: 'Stream lambda function logs',
+          group: 'Stream logs',
           implies: ['stream-function-logs'],
           requiresArg: true,
         })
-        .option('stream-output', {
+        .option('logs-out-file', {
           describe:
-            'File to append the function execution logs. The file is created if it does not exist. Default: stdout',
+            'File to append the streaming logs. The file is created if it does not exist. Default: stdout',
           array: false,
           type: 'string',
-          group: 'Stream lambda function logs',
+          group: 'Stream logs',
           implies: ['stream-function-logs'],
           requiresArg: true,
         })
@@ -262,8 +261,8 @@ export class SandboxCommand
           'exclude',
           'dir-to-watch',
           'stream-function-logs',
-          'function-name',
-          'stream-output',
+          'logs-filter',
+          'logs-out-file',
         ])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );

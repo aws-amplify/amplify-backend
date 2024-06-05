@@ -175,9 +175,9 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(cloudWatchLogMonitorMock.activate.mock.callCount(), 1);
   });
 
-  void it('calls logs monitor with only the functions that matches the provided filter function names', async () => {
+  void it('calls logs monitor with only the functions that matches the provided logs filter', async () => {
     await classUnderTest.startWatchingLogs(testSandboxBackendId, [
-      'func1FriendlyName',
+      'func1', // It's a regex
     ]);
 
     // assert that lambda calls to retrieve tags were with the right function arn
@@ -208,9 +208,50 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(cloudWatchLogMonitorMock.activate.mock.callCount(), 1);
   });
 
-  void it('does not add any log groups to monitor if the provided filter function names match nothing', async () => {
+  void it('calls logs monitor with only the functions that matches the provided logs filter regex', async () => {
     await classUnderTest.startWatchingLogs(testSandboxBackendId, [
-      'functionThatDoesNotExist',
+      'func.?FriendlyName',
+    ]);
+
+    // assert that lambda calls to retrieve tags were with the right function arn
+    // We do it for all customer defined functions, filtering happens after
+    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[0].arguments[0].input.Resource,
+      'arn:aws:lambda:us-west-2:123456789012:function:func1FullName'
+    );
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[1].arguments[0].input.Resource,
+      'arn:aws:lambda:us-west-2:123456789012:function:func2FullName'
+    );
+
+    // assert that logs groups were added to the monitor for only filtered functions and was then called activate
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.addLogGroups.mock.callCount(),
+      2
+    );
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.addLogGroups.mock.calls[0].arguments[0],
+      'func1FriendlyName'
+    );
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.addLogGroups.mock.calls[0].arguments[1],
+      '/aws/lambda/func1FullName'
+    );
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.addLogGroups.mock.calls[1].arguments[0],
+      'func2FriendlyName'
+    );
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.addLogGroups.mock.calls[1].arguments[1],
+      '/aws/lambda/func2FullName'
+    );
+    assert.strictEqual(cloudWatchLogMonitorMock.activate.mock.callCount(), 1);
+  });
+
+  void it('does not add any log groups to monitor if the provided filter matches nothing', async () => {
+    await classUnderTest.startWatchingLogs(testSandboxBackendId, [
+      'filterThatMatchesNothing',
     ]);
 
     // assert that lambda calls to retrieve tags were with the right function arn

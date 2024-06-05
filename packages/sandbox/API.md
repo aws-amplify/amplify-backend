@@ -33,8 +33,8 @@ export type SandboxEvents = 'successfulDeployment' | 'failedDeployment' | 'succe
 // @public (undocumented)
 export type SandboxFunctionStreamingOptions = {
     enabled: boolean;
-    functionNames?: string[];
-    streamOutputLocation?: string;
+    logsFilters?: string[];
+    logsOutFile?: string;
 };
 
 // @public (undocumented)

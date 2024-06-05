@@ -951,8 +951,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         functionStreamingOptions: {
           enabled: true,
-          functionNames: ['func1', 'func2'],
-          streamOutputLocation: 'testFileName',
+          logsFilters: ['func1', 'func2'],
+          logsOutFile: 'testFileName',
         }, // enabling lambda function log watcher
       },
       false
@@ -1000,8 +1000,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         functionStreamingOptions: {
           enabled: true,
-          functionNames: ['func1', 'func2'],
-          streamOutputLocation: 'testFileName',
+          logsFilters: ['func1', 'func2'],
+          logsOutFile: 'testFileName',
         }, // enabling lambda function log watcher
       }
     ));

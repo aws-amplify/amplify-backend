@@ -130,9 +130,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     await this.printSandboxNameInfo(options.identifier);
 
-    if (options.functionStreamingOptions?.streamOutputLocation) {
+    if (options.functionStreamingOptions?.logsOutFile) {
       this.functionsLogStreamer.setOutputLocation(
-        options.functionStreamingOptions.streamOutputLocation
+        options.functionStreamingOptions.logsOutFile
       );
     }
 
@@ -176,7 +176,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       if (options.functionStreamingOptions?.enabled) {
         await this.functionsLogStreamer.startWatchingLogs(
           await this.backendIdSandboxResolver(options.identifier),
-          options.functionStreamingOptions?.functionNames
+          options.functionStreamingOptions?.logsFilters
         );
       }
     });

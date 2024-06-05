@@ -42,8 +42,8 @@ export type SandboxOptions = {
 
 export type SandboxFunctionStreamingOptions = {
   enabled: boolean;
-  functionNames?: string[];
-  streamOutputLocation?: string;
+  logsFilters?: string[];
+  logsOutFile?: string;
 };
 
 export type SandboxDeleteOptions = {
