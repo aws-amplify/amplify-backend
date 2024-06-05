@@ -3,11 +3,11 @@
 import type { backend } from './backend';
 
 import { defineSeed } from '@aws-amplify/backend';
+import type { Schema } from './data/resource';
 
-defineSeed(async () => {
-  console.log('foo');
-});
-
-defineSeed(async () => {
-  console.log('bar');
+defineSeed<Schema>(async (dataClient) => {
+  console.log('Inside seed function');
+  await dataClient.models.Todo.create({
+    content: `Random todo item ${Math.random().toString()}`,
+  });
 });
