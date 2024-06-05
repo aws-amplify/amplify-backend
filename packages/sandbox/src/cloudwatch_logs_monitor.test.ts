@@ -78,6 +78,24 @@ void describe('LambdaFunctionLogStreamer', () => {
     );
   });
 
+  void it('ensures that unmask option is set to fast (default) when calling filterLogEvents API', async () => {
+    cloudWatchClientSendMock.mock.mockImplementation(() => {
+      return Promise.resolve({
+        events: [],
+      });
+    });
+    classUnderTest.addLogGroups('logFriendlyName1', 'logGroupName1');
+    classUnderTest.activate();
+    // wait just a bit to let the logs streamer run before deactivating it
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    classUnderTest.deactivate();
+
+    assert.strictEqual(cloudWatchClientSendMock.mock.calls.length, 1);
+    const filterLogEventsCommand =
+      cloudWatchClientSendMock.mock.calls[0].arguments[0];
+    assert.ok(!filterLogEventsCommand.input.unmask); // unmask should be false
+  });
+
   void it('continue to stream CW logs until deactivated', async () => {
     let timestampOfLatestEventInFirstPoll = 0;
     cloudWatchClientSendMock.mock.mockImplementationOnce(
@@ -132,6 +150,45 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.match(
       mockedWrite.mock.calls[1].arguments[0],
       /\[logFriendlyName1\] .* second text message/
+    );
+  });
+
+  void it('when cloudwatch return 100 results AND a nextToken, asserts that another message is shown to user mentioning that 100 messages limit is hit', async () => {
+    let timestampOfLatestEventInFirstPoll = 0;
+    cloudWatchClientSendMock.mock.mockImplementationOnce(
+      (filterLogEventsCommand: FilterLogEventsCommand) => {
+        timestampOfLatestEventInFirstPoll = filterLogEventsCommand.input
+          .startTime
+          ? filterLogEventsCommand.input.startTime + 1000
+          : Date.now();
+        const events: { message: string; timestamp: number }[] = [];
+        Array(100)
+          .fill(0)
+          .map((_, i) =>
+            events.push({
+              message: `message number ${i}`,
+              timestamp: timestampOfLatestEventInFirstPoll,
+            })
+          );
+        return Promise.resolve({
+          events,
+          nextToken: 'someToken',
+        });
+      },
+      0
+    );
+
+    classUnderTest.addLogGroups('logFriendlyName1', 'logGroupName1');
+    classUnderTest.activate();
+    // wait just a bit to let the logs streamer run before deactivating it
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    classUnderTest.deactivate();
+
+    // 100 events + 1 informational for the user that 100 messages limit is hit
+    assert.strictEqual(mockedWrite.mock.callCount(), 101);
+    assert.match(
+      mockedWrite.mock.calls[100].arguments[0],
+      /\[logFriendlyName1\] .* >>> `sandbox` shows only the first 100 log messages - the rest have been truncated.../
     );
   });
 

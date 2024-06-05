@@ -227,7 +227,7 @@ export class SandboxCommand
           group: 'Stream logs',
         })
         .option('logs-filter', {
-          describe: `Glob pattern to stream only selected logs. E.g. to stream logs for a function, specify it's name, and to stream logs from all functions starting with auth specify 'auth*' Default: Stream all logs`,
+          describe: `Regex pattern to filter logs from only matched functions. E.g. to stream logs for a function, specify it's name, and to stream logs from all functions starting with auth specify 'auth' Default: Stream all logs`,
           array: true,
           type: 'string',
           group: 'Stream logs',
