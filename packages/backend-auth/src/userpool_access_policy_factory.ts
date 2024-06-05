@@ -3,7 +3,7 @@ import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
 import { AuthAction } from './types.js';
-import { iamActionMap } from './configuration/iam_actions.js';
+import { iamActionMap } from './internal/iam_actions.js';
 
 /**
  * Generates IAM policies scoped to a single userpool.
