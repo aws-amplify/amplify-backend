@@ -15,7 +15,11 @@ import _open from 'open';
 // EventEmitter is a class name and expected to have PascalCase
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import EventEmitter from 'events';
-import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
+import {
+  GetParameterCommand,
+  ParameterNotFound,
+  SSMClient,
+} from '@aws-sdk/client-ssm';
 import {
   AmplifyPrompter,
   LogLevel,
@@ -322,13 +326,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       }
       return true;
     } catch (e) {
-      if (
-        e &&
-        typeof e === 'object' &&
-        'name' in e &&
-        typeof e.name === 'string' &&
-        e.name === 'ParameterNotFound'
-      ) {
+      if (e instanceof ParameterNotFound) {
         return false;
       }
       // If we are unable to get the stack info due to other reasons(AccessDenied), we fail fast.
