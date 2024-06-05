@@ -306,7 +306,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   /**
-   * Checks if a given region has been bootstrapped with >= min version using CFN describeStacks with CDKToolKit.
+   * Checks if a given region has been bootstrapped with >= min version using CDK bootstrap version parameter
+   * stored in parameter store.
    * @returns A Boolean that represents if region has been bootstrapped.
    */
   private isBootstrapped = async () => {
