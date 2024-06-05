@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Capture, Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
@@ -86,6 +86,25 @@ void describe('AmplifyStorage', () => {
         Ref: 'testBucketIdBucket3B30067A',
       },
     });
+  });
+
+  void it('forces SSL', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyStorage(stack, 'testBucketId', { name: 'testName' });
+
+    const template = Template.fromStack(stack);
+
+    const policyCapture = new Capture();
+    template.hasResourceProperties('AWS::S3::BucketPolicy', {
+      Bucket: { Ref: 'testBucketIdBucket3B30067A' },
+      PolicyDocument: policyCapture,
+    });
+
+    assert.match(
+      JSON.stringify(policyCapture.asObject()),
+      /"aws:SecureTransport":"false"/
+    );
   });
 
   void describe('storeOutput', () => {

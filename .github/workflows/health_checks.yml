@@ -11,7 +11,12 @@ on:
       - hotfix
       - feature/**
   schedule:
-    - cron: '0 12 * * *' # Every day 12:00 UTC
+    # Every day at At minute 0 past hour 0, 6, 12, and 18 UTC.
+    # This is to make sure that there is at least one workflow run every 24 hours
+    # taking into account that
+    # 1) scheduled runs may not fire at exact prescribed time;
+    # 2) transient failures may happen and auto recover;
+    - cron: '0 0,6,12,18 * * *'
   workflow_dispatch:
 
 jobs:
