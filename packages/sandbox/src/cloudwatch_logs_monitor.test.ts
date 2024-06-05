@@ -153,7 +153,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     );
   });
 
-  void it('when cloudwatch return 100 results AND a nextToken, asserts that another message is shown to user mentioning that 100 messages limit is hit', async () => {
+  void it('when CloudWatch return 100 results AND a nextToken, asserts that another message is shown to user mentioning that 100 messages limit is hit', async () => {
     let timestampOfLatestEventInFirstPoll = 0;
     cloudWatchClientSendMock.mock.mockImplementationOnce(
       (filterLogEventsCommand: FilterLogEventsCommand) => {
