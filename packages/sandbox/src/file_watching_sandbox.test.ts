@@ -28,7 +28,7 @@ import { URL, fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
-import { SSMClient } from '@aws-sdk/client-ssm';
+import { ParameterNotFound, SSMClient } from '@aws-sdk/client-ssm';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -165,7 +165,10 @@ void describe('Sandbox to check if region is bootstrapped', () => {
 
   void it('when region has not bootstrapped, then opens console to initiate bootstrap', async () => {
     ssmClientSendMock.mock.mockImplementationOnce(() => {
-      throw new Error('Stack with id CDKToolkit does not exist');
+      throw new ParameterNotFound({
+        $metadata: {},
+        message: 'Parameter not found',
+      });
     });
 
     await sandboxInstance.start({
