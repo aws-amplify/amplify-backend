@@ -5,6 +5,7 @@ import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SandboxCommandGlobalOptions } from '../option_types.js';
 import { once } from 'events';
+import { ReadStream } from 'node:tty';
 
 /**
  * Command to set sandbox secret.
@@ -27,7 +28,8 @@ export class SandboxSecretSetCommand
    */
   constructor(
     private readonly sandboxIdResolver: SandboxBackendIdResolver,
-    private readonly secretClient: SecretClient
+    private readonly secretClient: SecretClient,
+    private readonly readStream: ReadStream = process.stdin
   ) {
     this.command = 'set <secret-name>';
     this.describe = 'Set a sandbox secret';
@@ -64,19 +66,19 @@ export class SandboxSecretSetCommand
    */
   private readSecretValue = async (): Promise<string> => {
     let secretValue = '';
-    if (process.stdin.isTTY) {
+    if (this.readStream.isTTY) {
       // This input is for interactive mode.
       secretValue = await AmplifyPrompter.secretValue();
     } else {
       // This allows to accept secret value from redirected input `|` and `>`.
-      process.stdin.on('readable', () => {
-        const chunk = process.stdin.read();
+      this.readStream.on('readable', () => {
+        const chunk = this.readStream.read();
         if (chunk !== null) {
           secretValue += chunk;
         }
       });
       // Wait for the end of the input.
-      await once(process.stdin, 'end');
+      await once(this.readStream, 'end');
     }
     return secretValue;
   };

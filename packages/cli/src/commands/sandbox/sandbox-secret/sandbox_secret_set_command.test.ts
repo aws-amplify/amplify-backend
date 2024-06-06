@@ -6,7 +6,8 @@ import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
-import { spawn } from 'node:child_process';
+import { ReadStream } from 'node:tty';
+import { PassThrough } from 'node:stream';
 
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
@@ -99,18 +100,39 @@ void describe('sandbox secret set command', () => {
   });
 
   void it('sets a secret using redirection', async () => {
-    process.stdin.isTTY = false;
-    const echoProcess = spawn('echo', [testSecretValue]);
-    const setSecretProcess = spawn('ampx', [
-      'sandbox',
-      'secret',
-      'set',
+    process.stdin.isTTY = false; // Override isTTY to false
+    const readStream = new PassThrough();
+
+    const sandboxSecretSetCmdWithStream = new SandboxSecretSetCommand(
+      sandboxIdResolver,
+      secretClient,
+      readStream as unknown as ReadStream
+    );
+
+    const parserWithStream = yargs().command(
+      sandboxSecretSetCmdWithStream as unknown as CommandModule
+    );
+
+    const commandRunnerWithStream = new TestCommandRunner(parserWithStream);
+
+    const setCommandPromise = commandRunnerWithStream.runCommand(
+      `set ${testSecretName}`
+    );
+    readStream.write(testSecretValue);
+    readStream.end();
+    await setCommandPromise;
+
+    assert.equal(secretSetMock.mock.callCount(), 1);
+
+    assert.deepStrictEqual(secretSetMock.mock.calls[0].arguments, [
+      {
+        type: 'sandbox',
+        namespace: testBackendId,
+        name: testSandboxName,
+      },
       testSecretName,
+      testSecretValue,
     ]);
-    echoProcess.stdout.pipe(setSecretProcess.stdin);
-    setSecretProcess.on('exit', (code) => {
-      assert.equal(code, 0); // Confirms that the set secret command completes execution successfully
-    });
   });
 
   void it('show --help', async () => {
