@@ -158,7 +158,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
       if (options.functionStreamingOptions?.enabled) {
-        this.functionsLogStreamer.stopWatchingLogs();
+        this.functionsLogStreamer.stopStreamingLogs();
       }
       await this.deploy(options);
 
@@ -178,7 +178,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       // Idle state, let customers know and start streaming function logs if requested
       this.emitWatching();
       if (options.functionStreamingOptions?.enabled) {
-        await this.functionsLogStreamer.startWatchingLogs(
+        await this.functionsLogStreamer.startStreamingLogs(
           await this.backendIdSandboxResolver(options.identifier),
           options.functionStreamingOptions?.logsFilters
         );
@@ -227,7 +227,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   stop = async () => {
     this.printer.log(`[Sandbox] Shutting down`, LogLevel.DEBUG);
-    this.functionsLogStreamer?.stopWatchingLogs();
+    this.functionsLogStreamer?.stopStreamingLogs();
     // can be undefined if command exits before subscription
     await this.watcherSubscription?.unsubscribe();
   };

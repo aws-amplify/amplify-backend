@@ -114,7 +114,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     backendOutputClientMock.getOutput.mock.mockImplementationOnce(() => {
       return Promise.resolve({} as BackendOutput);
     });
-    await classUnderTest.startWatchingLogs(testSandboxBackendId);
+    await classUnderTest.startStreamingLogs(testSandboxBackendId);
 
     // No lambda calls to retrieve tags
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 0);
@@ -131,14 +131,14 @@ void describe('LambdaFunctionLogStreamer', () => {
         },
       } as BackendOutput);
     });
-    await classUnderTest.startWatchingLogs(testSandboxBackendId);
+    await classUnderTest.startStreamingLogs(testSandboxBackendId);
 
     // No lambda calls to retrieve tags
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 0);
   });
 
   void it('calls logs monitor with all the customer defined functions if no function name filter is provided', async () => {
-    await classUnderTest.startWatchingLogs(testSandboxBackendId);
+    await classUnderTest.startStreamingLogs(testSandboxBackendId);
 
     // assert that lambda calls to retrieve tags were with the right function arn
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
@@ -176,7 +176,7 @@ void describe('LambdaFunctionLogStreamer', () => {
   });
 
   void it('calls logs monitor with only the functions that matches the provided logs filter', async () => {
-    await classUnderTest.startWatchingLogs(testSandboxBackendId, [
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, [
       'func1', // It's a regex
     ]);
 
@@ -209,7 +209,7 @@ void describe('LambdaFunctionLogStreamer', () => {
   });
 
   void it('calls logs monitor with only the functions that matches the provided logs filter regex', async () => {
-    await classUnderTest.startWatchingLogs(testSandboxBackendId, [
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, [
       'func.?FriendlyName',
     ]);
 
@@ -250,7 +250,7 @@ void describe('LambdaFunctionLogStreamer', () => {
   });
 
   void it('does not add any log groups to monitor if the provided filter matches nothing', async () => {
-    await classUnderTest.startWatchingLogs(testSandboxBackendId, [
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, [
       'filterThatMatchesNothing',
     ]);
 
@@ -274,7 +274,7 @@ void describe('LambdaFunctionLogStreamer', () => {
   });
 
   void it('calling stopWatchingLogs deactivates the log monitor', () => {
-    classUnderTest.stopWatchingLogs();
+    classUnderTest.stopStreamingLogs();
     assert.strictEqual(cloudWatchLogMonitorMock.deactivate.mock.callCount(), 1);
   });
 

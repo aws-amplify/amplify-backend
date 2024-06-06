@@ -108,7 +108,8 @@ export class CloudWatchLogEventMonitor {
    * and don't want to interweave all the logs together with the CFN
    * deployment logs
    *
-   * Also resets the start time to be when the new deployment was triggered
+   * Also resets the start time to be when the new deployment was triggered so that we
+   * start streaming the logs from when it was deactivated.
    * and clears the list of tracked log groups
    */
   deactivate = (): void => {

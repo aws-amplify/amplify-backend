@@ -101,8 +101,8 @@ const openMock = mock.fn(_open, (url: string) => Promise.resolve(url));
 
 const functionsLogStreamerMock = {
   setOutputLocation: mock.fn(),
-  startWatchingLogs: mock.fn(),
-  stopWatchingLogs: mock.fn(),
+  startStreamingLogs: mock.fn(),
+  stopStreamingLogs: mock.fn(),
 };
 
 const testPath = path.join('test', 'location');
@@ -240,11 +240,11 @@ void describe('Sandbox using local project name resolver', () => {
     subscribeMock.mock.resetCalls();
     ssmClientSendMock.mock.resetCalls();
     functionsLogStreamerMock.setOutputLocation.mock.resetCalls();
-    functionsLogStreamerMock.startWatchingLogs.mock.resetCalls();
+    functionsLogStreamerMock.startStreamingLogs.mock.resetCalls();
     await sandboxInstance.stop();
 
     // deactivate mock is reset after the sandbox stop
-    functionsLogStreamerMock.stopWatchingLogs.mock.resetCalls();
+    functionsLogStreamerMock.stopStreamingLogs.mock.resetCalls();
 
     // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
     printer.log.mock.resetCalls();
@@ -930,11 +930,11 @@ void describe('Sandbox using local project name resolver', () => {
     ));
 
     assert.strictEqual(
-      functionsLogStreamerMock.stopWatchingLogs.mock.callCount(),
+      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
       0
     );
     assert.strictEqual(
-      functionsLogStreamerMock.startWatchingLogs.mock.callCount(),
+      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
       0
     );
     assert.strictEqual(
@@ -962,15 +962,15 @@ void describe('Sandbox using local project name resolver', () => {
     ));
 
     assert.strictEqual(
-      functionsLogStreamerMock.stopWatchingLogs.mock.callCount(),
+      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
       1 // We deactivate before making any deployment, even the first one.
     );
     assert.strictEqual(
-      functionsLogStreamerMock.startWatchingLogs.mock.callCount(),
+      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
       1
     );
     assert.deepStrictEqual(
-      functionsLogStreamerMock.startWatchingLogs.mock.calls[0].arguments[0],
+      functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[0],
       {
         namespace: 'testSandboxId',
         name: 'testSandboxName',
@@ -978,7 +978,7 @@ void describe('Sandbox using local project name resolver', () => {
       }
     );
     assert.deepStrictEqual(
-      functionsLogStreamerMock.startWatchingLogs.mock.calls[0].arguments[1],
+      functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[1],
       ['func1', 'func2']
     );
 
@@ -1011,11 +1011,11 @@ void describe('Sandbox using local project name resolver', () => {
 
     // Initial deployment
     assert.strictEqual(
-      functionsLogStreamerMock.stopWatchingLogs.mock.callCount(),
+      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
       1 // We deactivate before making any deployment, even the first one.
     );
     assert.strictEqual(
-      functionsLogStreamerMock.startWatchingLogs.mock.callCount(),
+      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
       1
     );
     assert.strictEqual(
@@ -1029,11 +1029,11 @@ void describe('Sandbox using local project name resolver', () => {
     ]);
 
     assert.strictEqual(
-      functionsLogStreamerMock.stopWatchingLogs.mock.callCount(),
+      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
       2 // We deactivated again before starting this second deployment.
     );
     assert.strictEqual(
-      functionsLogStreamerMock.startWatchingLogs.mock.callCount(),
+      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
       2 // We resume watching logs after the second deployment is finished.
     );
     assert.strictEqual(

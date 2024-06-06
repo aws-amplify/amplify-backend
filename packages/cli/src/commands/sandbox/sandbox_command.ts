@@ -224,13 +224,13 @@ export class SandboxCommand
             'Whether to stream function execution logs. Default: false. Use --function-names to filter for specific functions to stream logs from',
           boolean: true,
           global: false,
-          group: 'Stream logs',
+          group: 'Logs streaming',
         })
         .option('logs-filter', {
           describe: `Regex pattern to filter logs from only matched functions. E.g. to stream logs for a function, specify it's name, and to stream logs from all functions starting with auth specify 'auth' Default: Stream all logs`,
           array: true,
           type: 'string',
-          group: 'Stream logs',
+          group: 'Logs streaming',
           implies: ['stream-function-logs'],
           requiresArg: true,
         })
@@ -239,7 +239,7 @@ export class SandboxCommand
             'File to append the streaming logs. The file is created if it does not exist. Default: stdout',
           array: false,
           type: 'string',
-          group: 'Stream logs',
+          group: 'Logs streaming',
           implies: ['stream-function-logs'],
           requiresArg: true,
         })

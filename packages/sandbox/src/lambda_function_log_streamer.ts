@@ -33,11 +33,11 @@ export class LambdaFunctionLogStreamer {
   };
 
   /**
-   * Starts watching logs in the given sandbox.
+   * Starts streaming logs in the given sandbox.
    * @param sandboxBackendId The sandbox backend identifier.
    * @param logsFilters Glob patterns for function names to filter.
    */
-  startWatchingLogs = async (
+  startStreamingLogs = async (
     sandboxBackendId: BackendIdentifier,
     logsFilters?: string[]
   ) => {
@@ -122,7 +122,7 @@ export class LambdaFunctionLogStreamer {
     this.logsMonitor?.activate();
   };
 
-  stopWatchingLogs = () => {
+  stopStreamingLogs = () => {
     this.printer.log(
       `[Sandbox] Streaming function logs will be paused during the deployment and will be resumed after the deployment is completed.`,
       LogLevel.DEBUG
