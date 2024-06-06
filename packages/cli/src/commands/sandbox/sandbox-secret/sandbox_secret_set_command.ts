@@ -2,9 +2,9 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
-
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SandboxCommandGlobalOptions } from '../option_types.js';
+import { once } from 'events';
 
 /**
  * Command to set sandbox secret.
@@ -39,11 +39,12 @@ export class SandboxSecretSetCommand
   handler = async (
     args: ArgumentsCamelCase<SecretSetCommandOptionsKebabCase>
   ): Promise<void> => {
-    const secretVal = await AmplifyPrompter.secretValue();
+    const secretValue = await this.readSecretValue();
+
     await this.secretClient.setSecret(
       await this.sandboxIdResolver.resolve(args.identifier),
       args.secretName,
-      secretVal
+      secretValue
     );
   };
 
@@ -56,6 +57,28 @@ export class SandboxSecretSetCommand
       type: 'string',
       demandOption: true,
     });
+  };
+
+  /**
+   * Prompt (or) read secret value from stdin based on terminal interactive mode
+   */
+  private readSecretValue = async (): Promise<string> => {
+    let secretValue = '';
+    if (process.stdin.isTTY) {
+      // This input is for interactive mode.
+      secretValue = await AmplifyPrompter.secretValue();
+    } else {
+      // This allows to accept secret value from redirected input `|` and `>`.
+      process.stdin.on('readable', () => {
+        const chunk = process.stdin.read();
+        if (chunk !== null) {
+          secretValue += chunk;
+        }
+      });
+      // Wait for the end of the input.
+      await once(process.stdin, 'end');
+    }
+    return secretValue;
   };
 }
 

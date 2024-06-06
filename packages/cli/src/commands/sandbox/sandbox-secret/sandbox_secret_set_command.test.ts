@@ -6,6 +6,7 @@ import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
+import { spawn } from 'node:child_process';
 
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
@@ -47,6 +48,8 @@ void describe('sandbox secret set command', () => {
 
   beforeEach(async () => {
     secretSetMock.mock.resetCalls();
+    // Fake a TTY in tests
+    process.stdin.isTTY = true;
   });
 
   void it('sets a secret', async (contextual) => {
@@ -93,6 +96,21 @@ void describe('sandbox secret set command', () => {
       testSecretName,
       testSecretValue,
     ]);
+  });
+
+  void it('sets a secret using redirection', async () => {
+    process.stdin.isTTY = false;
+    const echoProcess = spawn('echo', [testSecretValue]);
+    const setSecretProcess = spawn('ampx', [
+      'sandbox',
+      'secret',
+      'set',
+      testSecretName,
+    ]);
+    echoProcess.stdout.pipe(setSecretProcess.stdin);
+    setSecretProcess.on('exit', (code) => {
+      assert.equal(code, 0); // Confirms that the set secret command completes execution successfully
+    });
   });
 
   void it('show --help', async () => {
