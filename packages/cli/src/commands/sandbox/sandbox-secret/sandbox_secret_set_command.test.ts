@@ -100,7 +100,6 @@ void describe('sandbox secret set command', () => {
   });
 
   void it('sets a secret using redirection', async () => {
-    process.stdin.isTTY = false; // Override isTTY to false
     const readStream = new PassThrough();
 
     const sandboxSecretSetCmdWithStream = new SandboxSecretSetCommand(
