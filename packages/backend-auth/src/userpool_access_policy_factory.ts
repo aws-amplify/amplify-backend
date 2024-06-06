@@ -60,7 +60,7 @@ type IamActionMap = {
   [action in AuthAction]: string[];
 };
 
-const iamActionMap: IamActionMap = {
+export const iamActionMap: IamActionMap = {
   manageUsers: [
     'cognito-idp:AdminConfirmSignUp',
     'cognito-idp:AdminCreateUser',
