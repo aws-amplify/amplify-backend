@@ -36,12 +36,13 @@ void describe('sandbox secret set command', () => {
       }),
   } as SandboxBackendIdResolver;
 
-  const mockReadStream = new ReadStream(0); // ReadStream(fd=0) defaults 'isTTY' to true.
+  const mockReadStream = new PassThrough();
+  (mockReadStream as unknown as ReadStream).isTTY = true; // Fake a TTY in tests
 
   const sandboxSecretSetCmd = new SandboxSecretSetCommand(
     sandboxIdResolver,
     secretClient,
-    mockReadStream
+    mockReadStream as unknown as ReadStream
   );
 
   const parser = yargs().command(
