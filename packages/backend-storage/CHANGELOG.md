@@ -1,5 +1,11 @@
 # @aws-amplify/backend-storage
 
+## 1.0.3
+
+### Patch Changes
+
+- b1e320e: enforce SSl for storage
+
 ## 1.0.2
 
 ### Patch Changes
