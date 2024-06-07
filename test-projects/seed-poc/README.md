@@ -52,7 +52,7 @@ we offer clients to seed backend but customer has to explicitly access them and 
 
 ```typescript
 await new Seeder()
-  .withData()
+  .withData<DataSchema>()
   .withAuth()
   .withStorage('storage1')
   .withStorage('storage2')
@@ -93,3 +93,13 @@ Cons:
 1. The file might be in couple of different formats/schemas.
 2. Must be accomplished through file representation of outputs. Programmatic access to client config can't be used to infer presence - it's typed as superset.
 
+### How do we smuggle API schema into seed functionality?
+
+We seem to have a chicken and egg problem when it comes to generating API client.
+
+1. Schema definition resides in `data/resource.ts` file, but nothing prevents customer to move it somewhere else.
+2. Schema definition seems to be required input to correctly type `V6Client` and this must be available at compile time.
+3. There doesn't seem to be a way to use `amplify_outputs.json` to achieve this, MIS seems to be input to runtime behavior
+   not to compilation or syntax support.
+
+Therefore it seems that seed DX should be redefined in such a way that customer provides schema through import statements.
