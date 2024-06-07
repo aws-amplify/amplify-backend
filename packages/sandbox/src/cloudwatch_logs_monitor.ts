@@ -6,7 +6,6 @@ import {
   format,
   printer,
 } from '@aws-amplify/cli-core';
-import { AmplifyFault } from '@aws-amplify/platform-core';
 import {
   CloudWatchLogsClient,
   FilterLogEventsCommand,
@@ -180,12 +179,15 @@ export class CloudWatchLogEventMonitor {
       events.forEach((event: CloudWatchLogEvent) => {
         this.print(event);
       });
-    } catch (e) {
-      throw new AmplifyFault(
-        'CloudWatchStreamingFault',
-        { message: `Error occurred while monitoring logs: %s` },
-        e instanceof Error ? e : undefined
+    } catch (error) {
+      printer.log(
+        `${format.error(
+          'Error streaming logs from CloudWatch.'
+        )} ${format.error(error)}`,
+        LogLevel.ERROR
       );
+      printer.log('Logs streaming has been paused.');
+      this.pause();
     }
 
     this.scheduleNextTick(SLEEP_MS);

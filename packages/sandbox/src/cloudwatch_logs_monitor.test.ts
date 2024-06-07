@@ -153,6 +153,30 @@ void describe('LambdaFunctionLogStreamer', () => {
     );
   });
 
+  void it('stop streaming logs if an exception happens', async (contextual) => {
+    const mockLog = contextual.mock.method(printer, 'log');
+    cloudWatchClientSendMock.mock.mockImplementationOnce(() => {
+      return Promise.reject(new Error('some cloudWatch error'));
+    }, 0);
+
+    classUnderTest.addLogGroups('logFriendlyName1', 'logGroupName1');
+    classUnderTest.activate();
+    // wait for just over two seconds to let the logs streamer get the first event and ensure it doesn't call CW again
+    await new Promise((resolve) => setTimeout(resolve, 2100));
+    classUnderTest.pause();
+
+    assert.strictEqual(cloudWatchClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(mockLog.mock.callCount(), 2);
+    assert.equal(
+      mockLog.mock.calls[0].arguments[0],
+      'Error streaming logs from CloudWatch. Error: some cloudWatch error'
+    );
+    assert.equal(
+      mockLog.mock.calls[1].arguments[0],
+      'Logs streaming has been paused.'
+    );
+  });
+
   void it('when CloudWatch return 100 results AND a nextToken, asserts that another message is shown to user mentioning that 100 messages limit is hit', async () => {
     let timestampOfLatestEventInFirstPoll = 0;
     cloudWatchClientSendMock.mock.mockImplementationOnce(
