@@ -6,6 +6,7 @@ import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
 import { AuthClient, AuthUser, SeedFunction } from './types.js';
 import { DefaultAuthClient } from './auth_client.js';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 
 export { AuthClient, AuthUser, SeedFunction };
 
@@ -23,14 +24,18 @@ process.once('beforeExit', async () => {
   ).resolve();
   const clientConfig = await generateClientConfig(backendId, '0');
   Amplify.configure(clientConfig);
-  console.log(clientConfig);
   const dataClient = generateClient<Record<any, any>>();
-  const authClient = new DefaultAuthClient();
+  const authClient = new DefaultAuthClient(
+    new CognitoIdentityProviderClient(),
+    clientConfig['auth']
+  );
   try {
     for (const seedFunction of seedFunctions) {
       await seedFunction(dataClient, authClient);
     }
   } catch (e) {
     console.log(e);
+  } finally {
+    console.log('after seed functions');
   }
 });

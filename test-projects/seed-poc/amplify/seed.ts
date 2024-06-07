@@ -12,7 +12,7 @@ defineSeed<Schema>(async (dataClient, authClient) => {
   });
 
   await authClient.createUser(
-    `user${Math.random().toString()}`,
-    `password${Math.random().toString()}`
+    `user${Math.random().toString()}@amazon.com`,
+    `P@ssword${Math.random().toString()}`
   );
 });
