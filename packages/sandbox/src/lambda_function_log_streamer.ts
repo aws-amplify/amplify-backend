@@ -10,8 +10,8 @@ import {
   DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
 import { LambdaClient, ListTagsCommand } from '@aws-sdk/client-lambda';
-import { Arn, ArnFormat } from 'aws-cdk-lib';
 import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
+import { build as buildArn, parse as parseArn } from '@aws-sdk/util-arn-parser';
 
 /**
  * Logs streamer for customer defined lambda functions in a sandbox.
@@ -127,7 +127,7 @@ export class LambdaFunctionLogStreamer {
       `[Sandbox] Streaming function logs will be paused during the deployment and will be resumed after the deployment is completed.`,
       LogLevel.DEBUG
     );
-    this.logsMonitor?.deactivate();
+    this.logsMonitor?.pause();
   };
 
   /**
@@ -160,22 +160,17 @@ export class LambdaFunctionLogStreamer {
       return;
     }
 
-    const stackArnComponents = Arn.split(
-      rootStackResources.Stacks[0].StackId,
-      ArnFormat.SLASH_RESOURCE_NAME
-    );
+    const arnParts = parseArn(rootStackResources.Stacks[0].StackId);
 
     return functionNames.map((name) => {
       return {
         name,
-        arn: Arn.format({
-          resource: 'function',
+        arn: buildArn({
+          resource: `function:${name}`,
           service: 'lambda',
-          account: stackArnComponents.account,
-          arnFormat: ArnFormat.COLON_RESOURCE_NAME,
-          partition: stackArnComponents.partition,
-          region: stackArnComponents.region,
-          resourceName: name,
+          accountId: arnParts.accountId,
+          partition: arnParts.partition,
+          region: arnParts.region,
         }),
       };
     });

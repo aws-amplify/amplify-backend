@@ -105,7 +105,7 @@ export class CloudWatchLogEventMonitor {
   };
 
   /**
-   * deactivates the monitor so no new events are read
+   * Pause the monitor so no new events are read
    * use case for this is when we are in the middle of performing a deployment
    * and don't want to interweave all the logs together with the CFN
    * deployment logs
@@ -114,7 +114,7 @@ export class CloudWatchLogEventMonitor {
    * start streaming the logs from when it was deactivated.
    * and clears the list of tracked log groups
    */
-  deactivate = (): void => {
+  pause = (): void => {
     this.active = false;
     this.startTime = Date.now();
     this.allLogGroups.splice(0, this.allLogGroups.length);

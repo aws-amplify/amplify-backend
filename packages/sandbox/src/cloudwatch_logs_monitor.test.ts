@@ -57,7 +57,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     classUnderTest.activate();
     // wait just a bit to let the logs streamer run before deactivating it
     await new Promise((resolve) => setTimeout(resolve, 100));
-    classUnderTest.deactivate();
+    classUnderTest.pause();
 
     assert.strictEqual(mockedWrite.mock.callCount(), 4);
     assert.match(
@@ -88,7 +88,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     classUnderTest.activate();
     // wait just a bit to let the logs streamer run before deactivating it
     await new Promise((resolve) => setTimeout(resolve, 100));
-    classUnderTest.deactivate();
+    classUnderTest.pause();
 
     assert.strictEqual(cloudWatchClientSendMock.mock.calls.length, 1);
     const filterLogEventsCommand =
@@ -140,7 +140,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     classUnderTest.activate();
     // wait for just over two seconds to let the logs streamer get both the events before deactivating it
     await new Promise((resolve) => setTimeout(resolve, 2100));
-    classUnderTest.deactivate();
+    classUnderTest.pause();
 
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
     assert.match(
@@ -182,7 +182,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     classUnderTest.activate();
     // wait just a bit to let the logs streamer run before deactivating it
     await new Promise((resolve) => setTimeout(resolve, 100));
-    classUnderTest.deactivate();
+    classUnderTest.pause();
 
     // 100 events + 1 informational for the user that 100 messages limit is hit
     assert.strictEqual(mockedWrite.mock.callCount(), 101);
@@ -228,7 +228,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     classUnderTest.activate();
     // wait for just a bit to only let the logs streamer get get the first event before deactivating it
     await new Promise((resolve) => setTimeout(resolve, 100));
-    classUnderTest.deactivate();
+    classUnderTest.pause();
 
     // wait for some time before restarting it back
     await new Promise((resolve) => setTimeout(resolve, 3000));
@@ -236,7 +236,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     // activate it again and it should fetch the second event now
     classUnderTest.activate();
     await new Promise((resolve) => setTimeout(resolve, 100));
-    classUnderTest.deactivate();
+    classUnderTest.pause();
 
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
     assert.match(

@@ -2,7 +2,6 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import assert from 'node:assert';
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
-import { Arn, ArnFormat } from 'aws-cdk-lib';
 
 import {
   CloudFormationClient,
@@ -18,6 +17,7 @@ import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
 import { Printer } from '@aws-amplify/cli-core';
 import { BackendIdentifier, BackendOutput } from '@aws-amplify/plugin-types';
 import { TagName } from '@aws-amplify/platform-core';
+import { parse as parseArn } from '@aws-sdk/util-arn-parser';
 
 void describe('LambdaFunctionLogStreamer', () => {
   const region = 'test-region';
@@ -51,10 +51,9 @@ void describe('LambdaFunctionLogStreamer', () => {
   const lambdaClientSendMock = mock.fn((listTagsCommand: ListTagsCommand) => {
     return Promise.resolve({
       Tags: {
-        [TagName.FRIENDLY_NAME]: Arn.split(
-          listTagsCommand.input.Resource ?? '',
-          ArnFormat.COLON_RESOURCE_NAME
-        ).resourceName?.replace('FullName', 'FriendlyName'),
+        [TagName.FRIENDLY_NAME]: parseArn(listTagsCommand.input.Resource ?? '')
+          .resource?.split(':')[1]
+          .replace('FullName', 'FriendlyName'),
       } as unknown as ListTagsCommandOutput,
     });
   });
@@ -86,7 +85,7 @@ void describe('LambdaFunctionLogStreamer', () => {
 
   const cloudWatchLogMonitorMock = {
     activate: mock.fn(),
-    deactivate: mock.fn(),
+    pause: mock.fn(),
     addLogGroups: mock.fn(),
     setOutputLocation: mock.fn(),
   };
@@ -105,7 +104,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     lambdaClientSendMock.mock.resetCalls();
     backendOutputClientMock.getOutput.mock.resetCalls();
     cloudWatchLogMonitorMock.activate.mock.resetCalls();
-    cloudWatchLogMonitorMock.deactivate.mock.resetCalls();
+    cloudWatchLogMonitorMock.pause.mock.resetCalls();
     cloudWatchLogMonitorMock.addLogGroups.mock.resetCalls();
     cloudWatchLogMonitorMock.setOutputLocation.mock.resetCalls();
   });
@@ -275,7 +274,7 @@ void describe('LambdaFunctionLogStreamer', () => {
 
   void it('calling stopWatchingLogs deactivates the log monitor', () => {
     classUnderTest.stopStreamingLogs();
-    assert.strictEqual(cloudWatchLogMonitorMock.deactivate.mock.callCount(), 1);
+    assert.strictEqual(cloudWatchLogMonitorMock.pause.mock.callCount(), 1);
   });
 
   void it('sets output location in the log monitor when asked', () => {
