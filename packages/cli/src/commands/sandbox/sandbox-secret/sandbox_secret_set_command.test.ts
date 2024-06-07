@@ -36,9 +36,12 @@ void describe('sandbox secret set command', () => {
       }),
   } as SandboxBackendIdResolver;
 
+  const mockReadStream = new ReadStream(0); // ReadStream(fd=0) defaults 'isTTY' to true.
+
   const sandboxSecretSetCmd = new SandboxSecretSetCommand(
     sandboxIdResolver,
-    secretClient
+    secretClient,
+    mockReadStream
   );
 
   const parser = yargs().command(
@@ -49,8 +52,6 @@ void describe('sandbox secret set command', () => {
 
   beforeEach(async () => {
     secretSetMock.mock.resetCalls();
-    // Fake a TTY in tests
-    process.stdin.isTTY = true;
   });
 
   void it('sets a secret', async (contextual) => {
@@ -100,7 +101,7 @@ void describe('sandbox secret set command', () => {
   });
 
   void it('sets a secret using redirection', async () => {
-    const readStream = new PassThrough();
+    const readStream = new PassThrough(); // 'isTTY' flag doesn't exist on PassThrough stream.
 
     const sandboxSecretSetCmdWithStream = new SandboxSecretSetCommand(
       sandboxIdResolver,
