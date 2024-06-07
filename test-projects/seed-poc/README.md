@@ -4,6 +4,10 @@
 
 This is a prototype of seed functionality described https://github.com/aws-amplify/amplify-backend/issues/875.
 
+## Sample seed file
+
+Can be seen here https://github.com/aws-amplify/amplify-backend/blob/seed-poc/test-projects/seed-poc/amplify/seed.ts.
+
 ## Local setup
 
 ```shell
