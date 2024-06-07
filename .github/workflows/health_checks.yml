@@ -187,7 +187,10 @@ jobs:
         with:
           ref: ${{ steps.get_baseline_commit_sha.outputs.baseline_commit_sha }}
       - uses: ./.github/actions/setup_node
-      - uses: ./.github/actions/restore_build_cache
+      - name: Install and build baseline version
+        run: |
+          npm ci
+          npm run build
       - name: Move baseline version
         id: move_baseline_version
         run: |
