@@ -5,9 +5,14 @@ import type { backend } from './backend';
 import { defineSeed } from '@aws-amplify/backend';
 import type { Schema } from './data/resource';
 
-defineSeed<Schema>(async (dataClient) => {
+defineSeed<Schema>(async (dataClient, authClient) => {
   console.log('Inside seed function');
   await dataClient.models.Todo.create({
     content: `Random todo item ${Math.random().toString()}`,
   });
+
+  await authClient.createUser(
+    `user${Math.random().toString()}`,
+    `password${Math.random().toString()}`
+  );
 });

@@ -4,13 +4,10 @@ import { LocalNamespaceResolver } from './local_namespace_resolver.js';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
-import { V6Client } from '@aws-amplify/api-graphql';
+import { AuthClient, AuthUser, SeedFunction } from './types.js';
+import { DefaultAuthClient } from './auth_client.js';
 
-// TODO is there a better way to bring in schema typings? It must come from customer project.
-export type SeedFunction<SchemaType extends Record<any, any>> = (
-  // TODO how can data client dynamically typed here?
-  dataClient: V6Client<SchemaType>
-) => Promise<void>;
+export { AuthClient, AuthUser, SeedFunction };
 
 const seedFunctions: Array<SeedFunction<Record<any, any>>> = [];
 
@@ -27,10 +24,11 @@ process.once('beforeExit', async () => {
   const clientConfig = await generateClientConfig(backendId, '0');
   Amplify.configure(clientConfig);
   console.log(clientConfig);
-  const dataClient = generateClient();
+  const dataClient = generateClient<Record<any, any>>();
+  const authClient = new DefaultAuthClient();
   try {
     for (const seedFunction of seedFunctions) {
-      await seedFunction(dataClient);
+      await seedFunction(dataClient, authClient);
     }
   } catch (e) {
     console.log(e);
