@@ -87,6 +87,8 @@ export class CloudWatchLogEventMonitor {
 
   private printer = printer; // default stdout
 
+  private enableColors = true; // show colors on console but not while writing to files
+
   /**
    * Initializes the start time to be `now`
    */
@@ -153,6 +155,7 @@ export class CloudWatchLogEventMonitor {
       LogLevel.INFO,
       fs.createWriteStream(targetPath, { flags: 'a', autoClose: true })
     );
+    this.enableColors = false;
   };
 
   /**
@@ -209,14 +212,22 @@ export class CloudWatchLogEventMonitor {
       return;
     }
 
-    this.printer.print(
-      `[${format.color(
-        cloudWatchEventDisplay.friendlyName,
-        cloudWatchEventDisplay.color
-      )}] ${format.note(
-        event.timestamp.toLocaleTimeString()
-      )} ${event.message.trim()}`
-    );
+    if (this.enableColors) {
+      this.printer.print(
+        `[${format.color(
+          cloudWatchEventDisplay.friendlyName,
+          cloudWatchEventDisplay.color
+        )}] ${format.note(
+          event.timestamp.toLocaleTimeString()
+        )} ${event.message.trim()}`
+      );
+    } else {
+      this.printer.print(
+        `[${
+          cloudWatchEventDisplay.friendlyName
+        }] ${event.timestamp.toLocaleTimeString()} ${event.message.trim()}`
+      );
+    }
   };
 
   /**

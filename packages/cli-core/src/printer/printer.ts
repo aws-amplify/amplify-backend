@@ -1,6 +1,5 @@
 import { WriteStream } from 'node:tty';
 import { EOL } from 'os';
-import { $ } from 'kleur/colors';
 export type RecordValue = string | number | string[] | Date;
 
 /**
@@ -27,12 +26,7 @@ export class Printer {
       | WriteStream
       | NodeJS.WritableStream = process.stderr,
     private readonly refreshRate: number = 500
-  ) {
-    // if not running in tty, turn off colors
-    if (!this.isTTY()) {
-      $.enabled = false;
-    }
-  }
+  ) {}
 
   /**
    * Prints a given message to output stream followed by a newline.
