@@ -28,7 +28,8 @@ export class DefaultAuthClient implements AuthClient {
    * made in single transaction. This is because that library maintains global state,
    * for example auth session.
    */
-  private readonly lock: AsyncLock = new AsyncLock(60 * 1000);
+    // TODO setting timeout makes node process delay exit until that promise resolves, it should be handled somehow.
+  private readonly lock: AsyncLock = new AsyncLock();
 
   private readonly userPoolId: string;
   private readonly userPoolClientId: string;
