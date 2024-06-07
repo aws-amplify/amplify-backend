@@ -4,11 +4,24 @@
 
 ```ts
 
-// @public (undocumented)
-export const defineSeed: (seedFunction: SeedFunction) => void;
+import { V6Client } from '@aws-amplify/api-graphql';
 
 // @public (undocumented)
-export type SeedFunction = () => Promise<void>;
+export type AuthClient = {
+    createUser: (username: string, password: string) => Promise<AuthUser>;
+};
+
+// @public (undocumented)
+export type AuthUser = {
+    username: string;
+    password: string;
+};
+
+// @public (undocumented)
+export const defineSeed: <SchemaType extends Record<any, any>>(seedFunction: SeedFunction<SchemaType>) => void;
+
+// @public (undocumented)
+export type SeedFunction<SchemaType extends Record<any, any>> = (dataClient: V6Client<SchemaType>, authClient: AuthClient) => Promise<void>;
 
 // (No @packageDocumentation comment for this package)
 
