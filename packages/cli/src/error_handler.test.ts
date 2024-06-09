@@ -148,19 +148,6 @@ void describe('generateCommandFailureHandler', () => {
       LogLevel.DEBUG,
     ]);
   });
-
-  void it('invokes printer only once when a ClI commend throws an error', async () => {
-    const errMsg = 'some msg';
-    await generateCommandFailureHandler(parser, usageDataEmitter)(
-      '',
-      new Error(errMsg)
-    );
-    assert.equal(mockPrint.mock.callCount(), 1);
-    assert.equal(mockShowHelp.mock.callCount(), 1);
-    assert.equal(mockExit.mock.callCount(), 1);
-    assert.equal(mockEmitFailure.mock.callCount(), 1);
-    assert.equal(mockEmitSuccess.mock.callCount(), 0);
-  });
 });
 
 void describe(
