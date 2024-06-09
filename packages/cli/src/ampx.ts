@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-
-import { hideBin } from 'yargs/helpers';
 import { createMainParser } from './main_parser_factory.js';
 import { attachUnhandledExceptionListeners } from './error_handler.js';
 import { extractSubCommands } from './extract_sub_commands.js';
@@ -12,6 +10,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { verifyCommandName } from './verify_command_name.js';
+import { parseAsyncSafe } from './parse_async_safe.js';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
@@ -35,18 +34,7 @@ verifyCommandName();
 
 const parser = createMainParser(libraryVersion, usageDataEmitter);
 
-try {
-  await parser.parseAsync(hideBin(process.argv));
-  //Yargs invoke the command failure handler before rethrowing the error.This prevents it from propagating to unhandled exception handler and being printed again.
-} catch (e) {
-  if (e instanceof Error) {
-    printer.log(format.error('Failed to execute command'), LogLevel.DEBUG);
-    printer.log(format.error(e), LogLevel.DEBUG);
-    if (e.stack) {
-      printer.log(e.stack, LogLevel.DEBUG);
-    }
-  }
-}
+await parseAsyncSafe(parser);
 
 try {
   const metricDimension: Record<string, string> = {};
