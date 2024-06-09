@@ -1,5 +1,14 @@
 # @aws-amplify/client-config
 
+## 1.0.4
+
+### Patch Changes
+
+- ca9d68d: When retrieving stack outputs, if a stack output is undefined and emptry string will be used to construct the output.
+- ca9d68d: Auth outputs now update if properties are modified via overrides.
+- Updated dependencies [ca9d68d]
+  - @aws-amplify/deployed-backend-client@1.0.2
+
 ## 1.0.3
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # @aws-amplify/sandbox
 
+## 1.0.4
+
+### Patch Changes
+
+- 4dd9d5a: Fix case when CDK boostrap parameter is not found
+- Updated dependencies [ca9d68d]
+- Updated dependencies [ca9d68d]
+  - @aws-amplify/deployed-backend-client@1.0.2
+  - @aws-amplify/client-config@1.0.4
+
 ## 1.0.3
 
 ### Patch Changes
