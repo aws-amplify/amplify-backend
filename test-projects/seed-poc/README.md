@@ -81,6 +81,7 @@ Cons:
 2. An attempt to execute `seed.ts` might be out of sync with deployment state.
 3. Inferring verticals presence from `defineBackend` return type is complicated.
    1. Customer may use arbitrary names, i.e. `defineBackend({ myData, myAuth})`, so these can't be used for inference.
+      Additionally, verticals passed to `defineBackend` can be in any arbitrary order.
    2. Construct factories must expose some (presumably) public property that carries information about vertical.
       1. This will create coupling between pre and post deployment packages outside of our `client-config` abstraction.
       2. It should be validated that this approach solves cases where same vertical type appears multiple times, e.g. storage.
