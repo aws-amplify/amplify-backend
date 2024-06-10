@@ -13,7 +13,9 @@ const mockHandleProfile = mock.method(
 );
 
 const mockParser: Argv = {
-  parseAsync: () => Promise.resolve(null),
+  parseAsync: () => {
+    throw new Error('Mock parser error');
+  },
 } as unknown as Argv;
 
 void describe('execute parseAsyncSafe', () => {
