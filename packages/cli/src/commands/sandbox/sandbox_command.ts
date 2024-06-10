@@ -221,7 +221,7 @@ export class SandboxCommand
         })
         .option('stream-function-logs', {
           describe:
-            'Whether to stream function execution logs. Default: false. Use --function-names to filter for specific functions to stream logs from',
+            'Whether to stream function execution logs. Default: false. Use --logs-filter in addition to this flag to stream specific function logs',
           boolean: true,
           global: false,
           group: 'Logs streaming',

@@ -97,8 +97,22 @@ export class CloudWatchLogEventMonitor {
 
   /**
    * resume writing/printing events
+   * If output location file is specified, the logs will be appended to that file.
+   * If the file doesn't exist it will be created.
+   * @param outputLocation file location
    */
-  activate = (): void => {
+  activate = (outputLocation?: string): void => {
+    if (outputLocation) {
+      const targetPath = path.isAbsolute(outputLocation)
+        ? outputLocation
+        : path.resolve(process.cwd(), outputLocation);
+      this.printer = new Printer(
+        LogLevel.INFO,
+        fs.createWriteStream(targetPath, { flags: 'a', autoClose: true })
+      );
+      this.enableColors = false;
+    }
+
     this.active = true;
     this.scheduleNextTick(0);
   };
@@ -136,25 +150,6 @@ export class CloudWatchLogEventMonitor {
       friendlyName: friendlyResourceName,
       color: this.getNextColorForLogGroup(),
     };
-  };
-
-  /**
-   * If output location file is specified, the logs will be appended to that file.
-   * If the file doesn't exist it will be created.
-   * @param outputLocation file location
-   */
-  setOutputLocation = (outputLocation: string) => {
-    if (!outputLocation) {
-      return;
-    }
-    const targetPath = path.isAbsolute(outputLocation)
-      ? outputLocation
-      : path.resolve(process.cwd(), outputLocation);
-    this.printer = new Printer(
-      LogLevel.INFO,
-      fs.createWriteStream(targetPath, { flags: 'a', autoClose: true })
-    );
-    this.enableColors = false;
   };
 
   /**

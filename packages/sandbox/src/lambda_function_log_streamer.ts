@@ -12,11 +12,13 @@ import {
 import { LambdaClient, ListTagsCommand } from '@aws-sdk/client-lambda';
 import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
 import { build as buildArn, parse as parseArn } from '@aws-sdk/util-arn-parser';
+import { SandboxFunctionStreamingOptions } from './sandbox.js';
 
 /**
  * Logs streamer for customer defined lambda functions in a sandbox.
  */
 export class LambdaFunctionLogStreamer {
+  private enabled: boolean = false;
   /**
    * Creates an instance of LambdaFunctionLogStreamer
    */
@@ -28,19 +30,21 @@ export class LambdaFunctionLogStreamer {
     private readonly printer: Printer
   ) {}
 
-  setOutputLocation = (outputLocation: string) => {
-    this.logsMonitor.setOutputLocation(outputLocation);
-  };
-
   /**
    * Starts streaming logs in the given sandbox.
    * @param sandboxBackendId The sandbox backend identifier.
-   * @param logsFilters Glob patterns for function names to filter.
+   * @param streamingOptions Options to configure the log streaming.
    */
   startStreamingLogs = async (
     sandboxBackendId: BackendIdentifier,
-    logsFilters?: string[]
+    streamingOptions?: SandboxFunctionStreamingOptions
   ) => {
+    if (streamingOptions?.enabled) {
+      this.enabled = true;
+    } else {
+      return;
+    }
+
     const backendOutput: BackendOutput =
       await this.backendOutputClient.getOutput(sandboxBackendId);
 
@@ -83,8 +87,8 @@ export class LambdaFunctionLogStreamer {
       }
 
       let shouldStreamLogs = false;
-      if (logsFilters) {
-        for (const filter of logsFilters) {
+      if (streamingOptions.logsFilters) {
+        for (const filter of streamingOptions.logsFilters) {
           const pattern = new RegExp(filter);
           if (pattern.test(friendlyFunctionName)) {
             shouldStreamLogs = true;
@@ -119,10 +123,13 @@ export class LambdaFunctionLogStreamer {
     }
 
     // finally start listening
-    this.logsMonitor?.activate();
+    this.logsMonitor?.activate(streamingOptions.logsOutFile);
   };
 
   stopStreamingLogs = () => {
+    if (!this.enabled) {
+      return;
+    }
     this.printer.log(
       `[Sandbox] Streaming function logs will be paused during the deployment and will be resumed after the deployment is completed.`,
       LogLevel.DEBUG

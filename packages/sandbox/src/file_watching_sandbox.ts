@@ -134,12 +134,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     await this.printSandboxNameInfo(options.identifier);
 
-    if (options.functionStreamingOptions?.logsOutFile) {
-      this.functionsLogStreamer.setOutputLocation(
-        options.functionStreamingOptions.logsOutFile
-      );
-    }
-
     // Since 'cdk deploy' is a relatively slow operation for a 'watch' process,
     // introduce a concurrency latch that tracks the state.
     // This way, if file change events arrive when a 'cdk deploy' is still executing,
@@ -157,9 +151,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
-      if (options.functionStreamingOptions?.enabled) {
-        this.functionsLogStreamer.stopStreamingLogs();
-      }
+
+      // Stop streaming the logs so that deployment logs don't get mixed up
+      this.functionsLogStreamer.stopStreamingLogs();
+
       await this.deploy(options);
 
       // If latch is still 'deploying' after the 'await', that's fine,
@@ -175,14 +170,12 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       }
       latch = 'open';
 
-      // Idle state, let customers know and start streaming function logs if requested
+      // Idle state, let customers know and start streaming function logs
       this.emitWatching();
-      if (options.functionStreamingOptions?.enabled) {
-        await this.functionsLogStreamer.startStreamingLogs(
-          await this.backendIdSandboxResolver(options.identifier),
-          options.functionStreamingOptions?.logsFilters
-        );
-      }
+      await this.functionsLogStreamer.startStreamingLogs(
+        await this.backendIdSandboxResolver(options.identifier),
+        options.functionStreamingOptions
+      );
     });
 
     if (watchForChanges) {

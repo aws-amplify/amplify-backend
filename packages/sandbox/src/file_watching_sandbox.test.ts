@@ -100,7 +100,6 @@ ssmClientSendMock.mock.mockImplementation(() =>
 const openMock = mock.fn(_open, (url: string) => Promise.resolve(url));
 
 const functionsLogStreamerMock = {
-  setOutputLocation: mock.fn(),
   startStreamingLogs: mock.fn(),
   stopStreamingLogs: mock.fn(),
 };
@@ -239,7 +238,6 @@ void describe('Sandbox using local project name resolver', () => {
     backendDeployerDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     ssmClientSendMock.mock.resetCalls();
-    functionsLogStreamerMock.setOutputLocation.mock.resetCalls();
     functionsLogStreamerMock.startStreamingLogs.mock.resetCalls();
     await sandboxInstance.stop();
 
@@ -917,7 +915,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(subscribeMock.mock.callCount(), 0);
   });
 
-  void it('does not start lambda function log watcher if not explicitly asked to in sandbox options', async () => {
+  void it('start lambda function log watcher regardless if asked to in sandbox options', async () => {
     ({ sandboxInstance } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
@@ -929,17 +927,18 @@ void describe('Sandbox using local project name resolver', () => {
       false
     ));
 
+    // Lambda function log streamer is expected to turn itself off if enabled
     assert.strictEqual(
       functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
-      0
+      1
     );
     assert.strictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
-      0
+      1
     );
     assert.strictEqual(
-      functionsLogStreamerMock.setOutputLocation.mock.callCount(),
-      0
+      functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[1],
+      undefined
     );
   });
 
@@ -979,16 +978,11 @@ void describe('Sandbox using local project name resolver', () => {
     );
     assert.deepStrictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[1],
-      ['func1', 'func2']
-    );
-
-    assert.strictEqual(
-      functionsLogStreamerMock.setOutputLocation.mock.callCount(),
-      1
-    );
-    assert.strictEqual(
-      functionsLogStreamerMock.setOutputLocation.mock.calls[0].arguments[0],
-      'testFileName'
+      {
+        enabled: true,
+        logsFilters: ['func1', 'func2'],
+        logsOutFile: 'testFileName',
+      }
     );
   });
 
@@ -1018,10 +1012,6 @@ void describe('Sandbox using local project name resolver', () => {
       functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
       1
     );
-    assert.strictEqual(
-      functionsLogStreamerMock.setOutputLocation.mock.callCount(),
-      1
-    );
 
     // Make another deployment
     await fileChangeEventCallback(null, [
@@ -1035,10 +1025,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
       2 // We resume watching logs after the second deployment is finished.
-    );
-    assert.strictEqual(
-      functionsLogStreamerMock.setOutputLocation.mock.callCount(),
-      1 // Set output location is only called once at the beginning
     );
   });
 });

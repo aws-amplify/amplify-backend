@@ -87,7 +87,6 @@ void describe('LambdaFunctionLogStreamer', () => {
     activate: mock.fn(),
     pause: mock.fn(),
     addLogGroups: mock.fn(),
-    setOutputLocation: mock.fn(),
   };
 
   const classUnderTest = new LambdaFunctionLogStreamer(
@@ -106,14 +105,24 @@ void describe('LambdaFunctionLogStreamer', () => {
     cloudWatchLogMonitorMock.activate.mock.resetCalls();
     cloudWatchLogMonitorMock.pause.mock.resetCalls();
     cloudWatchLogMonitorMock.addLogGroups.mock.resetCalls();
-    cloudWatchLogMonitorMock.setOutputLocation.mock.resetCalls();
+  });
+
+  void it('return early if streaming is disabled', async () => {
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: false,
+    });
+
+    // No lambda calls to retrieve tags
+    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 0);
   });
 
   void it('return early if no function category is found in the backend', async () => {
     backendOutputClientMock.getOutput.mock.mockImplementationOnce(() => {
       return Promise.resolve({} as BackendOutput);
     });
-    await classUnderTest.startStreamingLogs(testSandboxBackendId);
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: true,
+    });
 
     // No lambda calls to retrieve tags
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 0);
@@ -130,14 +139,18 @@ void describe('LambdaFunctionLogStreamer', () => {
         },
       } as BackendOutput);
     });
-    await classUnderTest.startStreamingLogs(testSandboxBackendId);
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: true,
+    });
 
     // No lambda calls to retrieve tags
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 0);
   });
 
   void it('calls logs monitor with all the customer defined functions if no function name filter is provided', async () => {
-    await classUnderTest.startStreamingLogs(testSandboxBackendId);
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: true,
+    });
 
     // assert that lambda calls to retrieve tags were with the right function arn
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
@@ -175,9 +188,12 @@ void describe('LambdaFunctionLogStreamer', () => {
   });
 
   void it('calls logs monitor with only the functions that matches the provided logs filter', async () => {
-    await classUnderTest.startStreamingLogs(testSandboxBackendId, [
-      'func1', // It's a regex
-    ]);
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: true,
+      logsFilters: [
+        'func1', // It's a regex
+      ],
+    });
 
     // assert that lambda calls to retrieve tags were with the right function arn
     // We do it for all customer defined functions, filtering happens after
@@ -208,9 +224,10 @@ void describe('LambdaFunctionLogStreamer', () => {
   });
 
   void it('calls logs monitor with only the functions that matches the provided logs filter regex', async () => {
-    await classUnderTest.startStreamingLogs(testSandboxBackendId, [
-      'func.?FriendlyName',
-    ]);
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: true,
+      logsFilters: ['func.?FriendlyName'],
+    });
 
     // assert that lambda calls to retrieve tags were with the right function arn
     // We do it for all customer defined functions, filtering happens after
@@ -249,9 +266,10 @@ void describe('LambdaFunctionLogStreamer', () => {
   });
 
   void it('does not add any log groups to monitor if the provided filter matches nothing', async () => {
-    await classUnderTest.startStreamingLogs(testSandboxBackendId, [
-      'filterThatMatchesNothing',
-    ]);
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: true,
+      logsFilters: ['filterThatMatchesNothing'],
+    });
 
     // assert that lambda calls to retrieve tags were with the right function arn
     // We do it for all customer defined functions, filtering happens after
@@ -272,20 +290,20 @@ void describe('LambdaFunctionLogStreamer', () => {
     );
   });
 
+  void it('calls logs monitor with the output file location set', async () => {
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: true,
+      logsOutFile: 'someFileName',
+    });
+    assert.strictEqual(cloudWatchLogMonitorMock.activate.mock.callCount(), 1);
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.activate.mock.calls[0].arguments[0],
+      'someFileName'
+    );
+  });
+
   void it('calling stopWatchingLogs deactivates the log monitor', () => {
     classUnderTest.stopStreamingLogs();
     assert.strictEqual(cloudWatchLogMonitorMock.pause.mock.callCount(), 1);
-  });
-
-  void it('sets output location in the log monitor when asked', () => {
-    classUnderTest.setOutputLocation('someFileName');
-    assert.strictEqual(
-      cloudWatchLogMonitorMock.setOutputLocation.mock.callCount(),
-      1
-    );
-    assert.strictEqual(
-      cloudWatchLogMonitorMock.setOutputLocation.mock.calls[0].arguments[0],
-      'someFileName'
-    );
   });
 });
