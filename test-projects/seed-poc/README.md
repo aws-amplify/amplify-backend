@@ -110,3 +110,13 @@ We seem to have a chicken and egg problem when it comes to generating API client
 
 Therefore it seems that seed DX might need re-definition in such a way that customer provides schema through import statements.
 This is in case no way is found to pass schema type through defineData return types.
+
+### Should seed be part of `@aws-amplify/backend` ?
+
+Potential problems:
+
+1. How do we preview this functionality?
+   1. Do we want to preview this?
+   2. Should this be separate extra dependency for the time of preview or experimental api?
+      (Feasibility of inferring types from `backend.ts` might affect this)
+2. If we end up using `V6Client` and JS libs for auth we might clash with frontend deps.
