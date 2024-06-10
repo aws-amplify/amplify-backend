@@ -77,6 +77,7 @@ Cons:
       1. This could be suppressed by instrumenting `cdk.App` creation in Gen2 backend internals.
       2. Suppression will most likely come in a form of environment variable. Side effect of that is
          that attempt to execute `seed.ts` without CLI involvement (if it's kept standalone) will result in synth errors.
+      3. An alternative to suppression would be to disable auto synth and have backend deployer enable it via env vars or cdk context.
 2. An attempt to execute `seed.ts` might be out of sync with deployment state.
 3. Inferring verticals presence from `defineBackend` return type is complicated.
    1. Customer may use arbitrary names, i.e. `defineBackend({ myData, myAuth})`, so these can't be used for inference.
@@ -106,4 +107,5 @@ We seem to have a chicken and egg problem when it comes to generating API client
 3. There doesn't seem to be a way to use `amplify_outputs.json` to achieve this, MIS seems to be input to runtime behavior
    not to compilation or syntax support.
 
-Therefore it seems that seed DX should be redefined in such a way that customer provides schema through import statements.
+Therefore it seems that seed DX might need re-definition in such a way that customer provides schema through import statements.
+This is in case no way is found to pass schema type through defineData return types.
