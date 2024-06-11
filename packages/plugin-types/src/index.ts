@@ -20,3 +20,11 @@ export * from './deep_partial.js';
 export * from './stable_backend_identifiers.js';
 export * from './resource_name_validator.js';
 export * from './aws_client_provider.js';
+
+export type Seedable<T extends string> = {
+  seedableAs: T;
+};
+
+export type SchemaSeedable<T extends string, TSchema> = Seedable<T> & {
+  schema: TSchema;
+};

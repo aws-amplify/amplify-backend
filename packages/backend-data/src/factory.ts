@@ -8,6 +8,7 @@ import {
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
   ResourceProvider,
+  SchemaSeedable,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyData,
@@ -17,7 +18,7 @@ import {
 } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
-import { AmplifyDataError, DataProps } from './types.js';
+import { AmplifyDataError, DataProps, DataSchemaInput } from './types.js';
 import {
   combineCDKSchemas,
   convertSchemaToCDK,
@@ -51,7 +52,9 @@ import {
  *
  * Exported for testing purpose only & should NOT be exported out of the package.
  */
-export class DataFactory implements ConstructFactory<AmplifyData> {
+export class DataFactory<T extends DataSchemaInput = DataSchemaInput>
+  implements ConstructFactory<AmplifyData & SchemaSeedable<'data', T>>
+{
   // publicly accessible for testing purpose only.
   static factoryCount = 0;
 
@@ -77,7 +80,9 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
   /**
    * Gets an instance of the Data construct
    */
-  getInstance = (props: ConstructFactoryGetInstanceProps): AmplifyData => {
+  getInstance = (
+    props: ConstructFactoryGetInstanceProps
+  ): AmplifyData & SchemaSeedable<'data', T> => {
     const {
       constructContainer,
       outputStorageStrategy,
@@ -106,7 +111,8 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
         outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyData;
+    return constructContainer.getOrCompute(this.generator) as AmplifyData &
+      SchemaSeedable<'data', T>;
   };
 }
 
@@ -320,5 +326,7 @@ class ReplaceTableUponGsiUpdateOverrideAspect implements IAspect {
 /**
  * Creates a factory that implements ConstructFactory<AmplifyGraphqlApi>
  */
-export const defineData = (props: DataProps): ConstructFactory<AmplifyData> =>
+export const defineData = <T extends DataSchemaInput = DataSchemaInput>(
+  props: DataProps<T>
+): ConstructFactory<AmplifyData & SchemaSeedable<'data', T>> =>
   new DataFactory(props, new Error().stack);
