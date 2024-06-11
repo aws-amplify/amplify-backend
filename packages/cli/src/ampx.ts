@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-
-import { hideBin } from 'yargs/helpers';
 import { createMainParser } from './main_parser_factory.js';
 import { attachUnhandledExceptionListeners } from './error_handler.js';
 import { extractSubCommands } from './extract_sub_commands.js';
@@ -12,6 +10,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { verifyCommandName } from './verify_command_name.js';
+import { parseAsyncSafely } from './parse_async_safely.js';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
@@ -34,7 +33,8 @@ attachUnhandledExceptionListeners(usageDataEmitter);
 verifyCommandName();
 
 const parser = createMainParser(libraryVersion, usageDataEmitter);
-await parser.parseAsync(hideBin(process.argv));
+
+await parseAsyncSafely(parser);
 
 try {
   const metricDimension: Record<string, string> = {};
