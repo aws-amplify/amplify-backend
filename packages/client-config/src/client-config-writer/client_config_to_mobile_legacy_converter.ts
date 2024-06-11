@@ -74,6 +74,15 @@ export class ClientConfigMobileConverter {
           },
         },
       };
+      if (clientConfig.oauth) {
+        authConfig.plugins.awsCognitoAuthPlugin.Auth.Default.OAuth = {
+          WebDomain: clientConfig.oauth.domain,
+          Scopes: clientConfig.oauth.scope,
+          SignInRedirectURI: clientConfig.oauth.redirectSignIn,
+          SignOutRedirectURI: clientConfig.oauth.redirectSignOut,
+          AppClientId: clientConfig.oauth.clientId,
+        };
+      }
       mobileConfig.auth = authConfig;
     }
 
@@ -116,7 +125,7 @@ export class ClientConfigMobileConverter {
             ] = {
               ApiUrl: clientConfig.aws_appsync_graphqlEndpoint,
               Region: clientConfig.aws_appsync_region,
-              AuthMode: clientConfig.aws_appsync_authenticationType,
+              AuthMode: additionalAuthenticationType,
               ApiKey: clientConfig.aws_appsync_apiKey,
               ClientDatabasePrefix: `data_${additionalAuthenticationType}`,
             };

@@ -1,5 +1,18 @@
 # @aws-amplify/backend-cli
 
+## 1.0.4
+
+### Patch Changes
+
+- 530bf2c: chore: disambiguate url imports and import from node:url explicitly
+- Updated dependencies [1146bbd]
+- Updated dependencies [530bf2c]
+- Updated dependencies [925f97d]
+- Updated dependencies [5b5c15c]
+  - @aws-amplify/client-config@1.0.3
+  - @aws-amplify/platform-core@1.0.1
+  - @aws-amplify/sandbox@1.0.3
+
 ## 1.0.3
 
 ### Patch Changes

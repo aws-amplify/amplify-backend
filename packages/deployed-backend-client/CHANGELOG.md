@@ -1,5 +1,11 @@
 # @aws-amplify/deployed-backend-client
 
+## 1.0.2
+
+### Patch Changes
+
+- ca9d68d: When retrieving stack outputs, if a stack output is undefined and emptry string will be used to construct the output.
+
 ## 1.0.1
 
 ### Patch Changes

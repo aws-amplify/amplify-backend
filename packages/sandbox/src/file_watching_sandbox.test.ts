@@ -2,8 +2,7 @@ import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import path from 'path';
 import watcher from '@parcel/watcher';
 import {
-  CDK_BOOTSTRAP_STACK_NAME,
-  CDK_BOOTSTRAP_VERSION_KEY,
+  CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
   FileWatchingSandbox,
   getBootstrapUrl,
 } from './file_watching_sandbox.js';
@@ -15,7 +14,6 @@ import {
 } from '@aws-amplify/backend-deployer';
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import _open from 'open';
 import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
 import { Sandbox, SandboxOptions } from './sandbox.js';
@@ -29,6 +27,7 @@ import {
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { ParameterNotFound, SSMClient } from '@aws-sdk/client-ssm';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -85,24 +84,15 @@ const backendDeployerDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
 );
 const region = 'test-region';
-const cfnClientMock = new CloudFormationClient({ region });
-const cfnClientSendMock = mock.fn();
-mock.method(cfnClientMock, 'send', cfnClientSendMock);
-cfnClientSendMock.mock.mockImplementation(() =>
+const ssmClientMock = new SSMClient({ region });
+const ssmClientSendMock = mock.fn();
+mock.method(ssmClientMock, 'send', ssmClientSendMock);
+ssmClientSendMock.mock.mockImplementation(() =>
   Promise.resolve({
-    Stacks: [
-      {
-        Name: CDK_BOOTSTRAP_STACK_NAME,
-        Outputs: [
-          {
-            Description:
-              'The version of the bootstrap resources that are currently mastered in this stack',
-            OutputKey: CDK_BOOTSTRAP_VERSION_KEY,
-            OutputValue: '18',
-          },
-        ],
-      },
-    ],
+    Parameter: {
+      Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
+      Value: '18',
+    },
   })
 );
 const openMock = mock.fn(_open, (url: string) => Promise.resolve(url));
@@ -140,19 +130,19 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     sandboxInstance = new FileWatchingSandbox(
       async () => testSandboxBackendId,
       sandboxExecutor,
-      cfnClientMock,
+      ssmClientMock,
       printer as unknown as Printer,
       openMock as never
     );
 
-    cfnClientSendMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
     openMock.mock.resetCalls();
     backendDeployerDestroyMock.mock.resetCalls();
     backendDeployerDeployMock.mock.resetCalls();
   });
 
   afterEach(async () => {
-    cfnClientSendMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
     openMock.mock.resetCalls();
     backendDeployerDestroyMock.mock.resetCalls();
     backendDeployerDeployMock.mock.resetCalls();
@@ -164,8 +154,11 @@ void describe('Sandbox to check if region is bootstrapped', () => {
   });
 
   void it('when region has not bootstrapped, then opens console to initiate bootstrap', async () => {
-    cfnClientSendMock.mock.mockImplementationOnce(() => {
-      throw new Error('Stack with id CDKToolkit does not exist');
+    ssmClientSendMock.mock.mockImplementationOnce(() => {
+      throw new ParameterNotFound({
+        $metadata: {},
+        message: 'Parameter not found',
+      });
     });
 
     await sandboxInstance.start({
@@ -173,7 +166,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       exclude: ['exclude1', 'exclude2'],
     });
 
-    assert.strictEqual(cfnClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
     assert.strictEqual(openMock.mock.callCount(), 1);
     assert.strictEqual(
       openMock.mock.calls[0].arguments[0],
@@ -182,21 +175,12 @@ void describe('Sandbox to check if region is bootstrapped', () => {
   });
 
   void it('when region has bootstrapped, but with a version lower than the minimum (6), then opens console to initiate bootstrap', async () => {
-    cfnClientSendMock.mock.mockImplementationOnce(() =>
+    ssmClientSendMock.mock.mockImplementationOnce(() =>
       Promise.resolve({
-        Stacks: [
-          {
-            Name: CDK_BOOTSTRAP_STACK_NAME,
-            Outputs: [
-              {
-                Description:
-                  'The version of the bootstrap resources that are currently mastered in this stack',
-                OutputKey: CDK_BOOTSTRAP_VERSION_KEY,
-                OutputValue: '5',
-              },
-            ],
-          },
-        ],
+        Parameter: {
+          Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
+          Value: '5',
+        },
       })
     );
 
@@ -205,7 +189,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       exclude: ['exclude1', 'exclude2'],
     });
 
-    assert.strictEqual(cfnClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
     assert.strictEqual(openMock.mock.callCount(), 1);
     assert.strictEqual(
       openMock.mock.calls[0].arguments[0],
@@ -219,7 +203,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       exclude: ['exclude1', 'exclude2'],
     });
 
-    assert.strictEqual(cfnClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
     assert.strictEqual(openMock.mock.callCount(), 0);
   });
 });
@@ -244,7 +228,7 @@ void describe('Sandbox using local project name resolver', () => {
     backendDeployerDestroyMock.mock.resetCalls();
     backendDeployerDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
     await sandboxInstance.stop();
 
     // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
@@ -256,7 +240,7 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       undefined,
       false
@@ -279,7 +263,7 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       {
         // imaginary dir does not have any ts files
@@ -309,7 +293,7 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       {
         dir: testDir,
@@ -335,7 +319,7 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       {
         dir: 'testDir',
@@ -364,13 +348,13 @@ void describe('Sandbox using local project name resolver', () => {
         validateAppSources: true,
       },
     ]);
-    assert.strictEqual(cfnClientSendMock.mock.callCount(), 0);
+    assert.strictEqual(ssmClientSendMock.mock.callCount(), 0);
   });
 
   void it('calls watcher subscribe with the default "./amplify" if no `dir` specified', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
@@ -383,7 +367,7 @@ void describe('Sandbox using local project name resolver', () => {
   void it('calls BackendDeployer only once when multiple file changes are present', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test2.ts' },
@@ -403,7 +387,7 @@ void describe('Sandbox using local project name resolver', () => {
   void it('skips type checking if no typescript change is detected', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test2.txt' },
@@ -423,7 +407,7 @@ void describe('Sandbox using local project name resolver', () => {
   void it('calls BackendDeployer once when multiple file changes are within few milliseconds (debounce)', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     // Not awaiting for this file event to be processed and submitting another one right away
     const firstFileChange = fileChangeEventCallback(null, [
@@ -449,7 +433,7 @@ void describe('Sandbox using local project name resolver', () => {
   void it('waits for file changes after completing a deployment and deploys again', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test5.ts' },
@@ -479,7 +463,7 @@ void describe('Sandbox using local project name resolver', () => {
   void it('queues deployment if a file change is detected during an ongoing deployment', async () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     // Mimic BackendDeployer taking 200 ms.
     backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
@@ -524,7 +508,7 @@ void describe('Sandbox using local project name resolver', () => {
   void it('calls BackendDeployer destroy when delete is called', async () => {
     ({ sandboxInstance } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     await sandboxInstance.delete({});
 
@@ -541,7 +525,7 @@ void describe('Sandbox using local project name resolver', () => {
     const mockListener = mock.fn();
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     sandboxInstance.on('successfulDeployment', mockListener);
     const contextualBackendDeployerMock = contextual.mock.method(
@@ -578,7 +562,7 @@ void describe('Sandbox using local project name resolver', () => {
   void it('handles UpdateNotSupported error while deploying and offers to reset sandbox and customer says yes', async (contextual) => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
@@ -621,7 +605,7 @@ void describe('Sandbox using local project name resolver', () => {
   void it('handles UpdateNotSupported error while deploying and offers to reset sandbox and customer says no, continues running sandbox', async (contextual) => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
@@ -669,7 +653,7 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       {
         dir: 'testDir',
@@ -694,7 +678,7 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       { identifier: 'customSandboxName' }
     ));
@@ -724,7 +708,7 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       { identifier: 'customSandboxName' }
     ));
@@ -759,7 +743,7 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       {
         exclude: ['customer_exclude1', 'customer_exclude2'],
@@ -804,7 +788,7 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       {
         exclude: ['customer_exclude1', 'customer_exclude2'],
@@ -836,7 +820,7 @@ void describe('Sandbox using local project name resolver', () => {
     const mockListener = mock.fn();
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
 
     sandboxInstance.on('successfulDeployment', mockListener);
@@ -852,7 +836,7 @@ void describe('Sandbox using local project name resolver', () => {
     const mockListener = mock.fn();
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
-      cfnClient: cfnClientMock,
+      ssmClient: ssmClientMock,
     }));
 
     sandboxInstance.on('successfulDeletion', mockListener);
@@ -866,7 +850,7 @@ void describe('Sandbox using local project name resolver', () => {
     await setupAndStartSandbox(
       {
         executor: sandboxExecutor,
-        cfnClient: cfnClientMock,
+        ssmClient: ssmClientMock,
       },
       { watchForChanges: false }
     );
@@ -894,7 +878,7 @@ const setupAndStartSandbox = async (
       type: 'sandbox',
     }),
     testData.executor,
-    testData.cfnClient,
+    testData.ssmClient,
     printer as unknown as Printer,
     testData.open ?? _open
   );
@@ -909,7 +893,7 @@ const setupAndStartSandbox = async (
     // Reset all the calls to avoid extra startup call
     backendDeployerDestroyMock.mock.resetCalls();
     backendDeployerDeployMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
+    ssmClientSendMock.mock.resetCalls();
     listSecretMock.mock.resetCalls();
   }
 
@@ -946,6 +930,6 @@ type SandboxTestData = {
   // To instantiate sandbox
   sandboxName?: string;
   executor: AmplifySandboxExecutor;
-  cfnClient: CloudFormationClient;
+  ssmClient: SSMClient;
   open?: typeof _open;
 };

@@ -32,6 +32,16 @@ export type ClientConfigMobileAppsyncAuth = {
   ClientDatabasePrefix: string | undefined;
 };
 
+// Reference: https://github.com/aws-amplify/amplify-cli/blob/80a596498584d3f9bfeb0ffbde4a0d4256f971eb/packages/amplify-frontend-ios/lib/frontend-config-creator.js#L243-L255
+// Note that AppClientSecret is not here since we don't collect it in Gen2
+export type ClientConfigMobileAuthOAuthConfig = {
+  WebDomain: string | undefined;
+  Scopes: Array<string> | undefined;
+  SignInRedirectURI: string | undefined;
+  SignOutRedirectURI: string | undefined;
+  AppClientId: string | undefined;
+};
+
 export type ClientConfigMobileAuth = {
   plugins: {
     awsCognitoAuthPlugin: {
@@ -64,6 +74,7 @@ export type ClientConfigMobileAuth = {
           signupAttributes: Array<string>;
           usernameAttributes: Array<string>;
           verificationMechanisms: Array<string>;
+          OAuth?: ClientConfigMobileAuthOAuthConfig;
         };
       };
       AppSync?: {

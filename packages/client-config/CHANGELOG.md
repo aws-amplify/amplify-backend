@@ -1,5 +1,24 @@
 # @aws-amplify/client-config
 
+## 1.0.4
+
+### Patch Changes
+
+- ca9d68d: When retrieving stack outputs, if a stack output is undefined and emptry string will be used to construct the output.
+- ca9d68d: Auth outputs now update if properties are modified via overrides.
+- Updated dependencies [ca9d68d]
+  - @aws-amplify/deployed-backend-client@1.0.2
+
+## 1.0.3
+
+### Patch Changes
+
+- 1146bbd: fix: add oauth client config for legacy mobile config
+- 530bf2c: chore: disambiguate url imports and import from node:url explicitly
+- 925f97d: fix: use correct auth mode in data config for legacy mobile client config
+- Updated dependencies [530bf2c]
+  - @aws-amplify/platform-core@1.0.1
+
 ## 1.0.2
 
 ### Patch Changes
