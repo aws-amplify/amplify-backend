@@ -54,11 +54,25 @@ The major difference is that backend definition is available pre-deployment and 
 Below are some pros and cons of both approaches. But perhaps conclusion might be to seek alternative designs where
 we offer clients to seed backend but customer has to explicitly access them and use resource names. Something like:
 
+Update 6/11:
+It seems to be possible to dynamically infer verticals from backend.ts by using "marker-mixin type/interface" in `defineX` return types.
+But this approach seems to make schema type smuggling impossible to achieve.
+
 ```typescript
 await new Seeder()
   .withData<DataSchema>()
   .withAuth()
   .withStorage('storage1')
+  .withStorage('storage2')
+  .seed((dataClient, authClient, storage1Client, storage2Client) => {});
+```
+
+Or perhaps we should do
+```typescript
+await new Seeder<typeof backend>() // to infer verticals, i.e. infer which `withX` are possible
+  .withData<DataSchema>() // to infer schema
+  .withAuth()
+  .withStorage('storage1') // this could be used to infer schemas for storage should these store JSONs
   .withStorage('storage2')
   .seed((dataClient, authClient, storage1Client, storage2Client) => {});
 ```
@@ -108,8 +122,13 @@ We seem to have a chicken and egg problem when it comes to generating API client
 3. There doesn't seem to be a way to use `amplify_outputs.json` to achieve this, MIS seems to be input to runtime behavior
    not to compilation or syntax support.
 
-Therefore it seems that seed DX might need re-definition in such a way that customer provides schema through import statements.
+Therefore, it seems that seed DX might need re-definition in such a way that customer provides schema through import statements.
 This is in case no way is found to pass schema type through defineData return types.
+
+Update 6/11:
+It seems possible to make `defineData` return type to smuggle schema type definition to `backend`.
+However, this combined with dynamic inference of verticals overloads compiler and would also require data-schema to expose
+base types of ModelSchema. The compiler problem seems to be a blocker.
 
 ### Should seed be part of `@aws-amplify/backend` ?
 

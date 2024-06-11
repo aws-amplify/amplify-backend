@@ -21,10 +21,18 @@ export * from './stable_backend_identifiers.js';
 export * from './resource_name_validator.js';
 export * from './aws_client_provider.js';
 
+// This seems to work to dynamically type "seedable verticals" in defineSeed callback.
 export type Seedable<T extends string> = {
   seedableAs: T;
 };
 
+// This attempt to smuggle schema type didn't work with compiler eventually throwing
+// packages/backend-seed/src/index.ts:54:11 - error TS2589: Type instantiation is excessively deep and possibly infinite.
+//
+// 54         : V6Client<ClientSchema<TSchema>>;
+//              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//
+// For this to work data-schema would also need to expose base types for ModelSchema typings.
 export type SchemaSeedable<T extends string, TSchema> = Seedable<T> & {
   schema: TSchema;
 };
