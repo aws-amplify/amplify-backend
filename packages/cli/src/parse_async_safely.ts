@@ -7,7 +7,7 @@ import { hideBin } from 'yargs/helpers';
  @param parser - The parser object to parse the command line arguments.
  @returns - A promise that resolves when the command execution is complete.
  */
-export const parseAsyncSafe = async (parser: Argv): Promise<void> => {
+export const parseAsyncSafely = async (parser: Argv): Promise<void> => {
   try {
     await parser.parseAsync(hideBin(process.argv));
     // Yargs invoke the command failure handler before rethrowing the error.This prevents it from propagating to unhandled exception handler and being printed again.

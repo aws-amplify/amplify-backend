@@ -10,7 +10,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { verifyCommandName } from './verify_command_name.js';
-import { parseAsyncSafe } from './parse_async_safe.js';
+import { parseAsyncSafely } from './parse_async_safely.js';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
@@ -34,7 +34,7 @@ verifyCommandName();
 
 const parser = createMainParser(libraryVersion, usageDataEmitter);
 
-await parseAsyncSafe(parser);
+await parseAsyncSafely(parser);
 
 try {
   const metricDimension: Record<string, string> = {};
