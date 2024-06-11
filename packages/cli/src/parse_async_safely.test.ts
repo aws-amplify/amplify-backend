@@ -11,6 +11,6 @@ const mockParser: Argv = {
 void describe('execute parseAsyncSafely', () => {
   void it('parseAsyncSafely should not throw an error', async () => {
     await parseAsyncSafely(mockParser);
-    //not throw
+    //no throw
   });
 });
