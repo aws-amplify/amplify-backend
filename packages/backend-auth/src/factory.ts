@@ -41,6 +41,7 @@ export type AmplifyAuthProps = Expand<
     loginWith: Expand<AuthLoginWithFactoryProps>;
     /**
      * Configure custom auth triggers
+     * @see https://docs.amplify.aws/react/build-a-backend/auth/customize-auth-lifecycle/triggers/
      */
     triggers?: Partial<
       Record<
@@ -49,10 +50,12 @@ export type AmplifyAuthProps = Expand<
       >
     >;
     /**
-     * !EXPERIMENTAL!
-     *
-     * Access control is under active development and is subject to change without notice.
-     * Use at your own risk and do not use in production
+     * Configure access to auth for other Amplify resources
+     * @see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/
+     * @example
+     * access: (allow) => [allow.resource(postConfirmation).to(["addUserToGroup"])]
+     * @example
+     * access: (allow) => [allow.resource(groupManager).to(["manageGroups"])]
      */
     access?: AuthAccessGenerator;
   }
