@@ -8,12 +8,12 @@ import { BackendSecret } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export const defineFunction: (props?: FunctionProps | ((scope: Construct) => lambda.Function) | undefined) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;
+export const defineFunction: (props?: FunctionProps | ((scope: Construct) => IFunction)) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;
 
 // @public (undocumented)
 export type FunctionProps = {
