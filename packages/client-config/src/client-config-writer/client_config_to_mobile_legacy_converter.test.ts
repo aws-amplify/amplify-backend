@@ -77,7 +77,7 @@ void describe('client config converter', () => {
                   'test_signup_attribute_1',
                   'test_signup_attribute_2',
                 ],
-                socialProviders: [],
+                socialProviders: ['GOOGLE', 'FACEBOOK', 'AMAZON', 'APPLE'],
                 usernameAttributes: [
                   'test_username_attribute_1',
                   'test_username_attribute_2',
