@@ -35,7 +35,7 @@ void describe('client config converter', () => {
         'test_verification_mechanism_1',
         'test_verification_mechanism_2',
       ],
-      aws_cognito_mfa_configuration: 'test_mfa_configuration',
+      aws_cognito_mfa_configuration: 'OFF',
       aws_cognito_mfa_types: ['test_mfa_type_1', 'test_mfa_type_2'],
 
       oauth: {

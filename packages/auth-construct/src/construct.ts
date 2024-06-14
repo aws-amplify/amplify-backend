@@ -995,7 +995,8 @@ export class AmplifyAuth
       produce: () => {
         return cfnUserPool.mfaConfiguration ?? 'OFF';
       },
-    });
+      // cast type as Lazy.string does not lift the inferred type (i.e. a narrow string)
+    }) as AuthOutput['payload']['mfaConfiguration'];
     // extract the MFA types from the UserPool resource
     output.mfaTypes = Lazy.string({
       produce: () => {
