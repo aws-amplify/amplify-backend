@@ -77,6 +77,7 @@ void describe('client config converter', () => {
                   'test_signup_attribute_1',
                   'test_signup_attribute_2',
                 ],
+                socialProviders: [],
                 usernameAttributes: [
                   'test_username_attribute_1',
                   'test_username_attribute_2',
@@ -180,6 +181,7 @@ void describe('client config converter', () => {
                 mfaConfiguration: undefined,
                 mfaTypes: undefined,
                 signupAttributes: [],
+                socialProviders: [],
                 usernameAttributes: [],
                 passwordProtectionSettings: {
                   passwordPolicyCharacters: [],

@@ -69,6 +69,8 @@ export class ClientConfigMobileConverter {
                   clientConfig.aws_cognito_username_attributes ?? [],
                 verificationMechanisms:
                   clientConfig.aws_cognito_verification_mechanisms ?? [],
+                socialProviders:
+                  clientConfig.aws_cognito_social_providers ?? [],
               },
             },
           },

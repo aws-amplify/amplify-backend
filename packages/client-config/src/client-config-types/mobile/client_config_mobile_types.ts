@@ -72,6 +72,7 @@ export type ClientConfigMobileAuth = {
             passwordPolicyCharacters: Array<string>;
           };
           signupAttributes: Array<string>;
+          socialProviders: Array<string>;
           usernameAttributes: Array<string>;
           verificationMechanisms: Array<string>;
           OAuth?: ClientConfigMobileAuthOAuthConfig;
