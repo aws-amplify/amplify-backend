@@ -37,6 +37,7 @@ void describe('client config converter', () => {
       ],
       aws_cognito_mfa_configuration: 'test_mfa_configuration',
       aws_cognito_mfa_types: ['test_mfa_type_1', 'test_mfa_type_2'],
+      aws_cognito_social_providers: ['GOOGLE', 'FACEBOOK', 'AMAZON', 'APPLE'],
 
       oauth: {
         domain: 'test_domain',
@@ -151,6 +152,7 @@ void describe('client config converter', () => {
       aws_appsync_authenticationType: 'API_KEY',
       aws_appsync_additionalAuthenticationTypes:
         'AMAZON_COGNITO_USER_POOLS,AWS_IAM',
+      aws_cognito_social_providers: ['GOOGLE', 'FACEBOOK', 'AMAZON', 'APPLE'],
     };
     const expectedMobileConfig: ClientConfigMobile = {
       UserAgent: expectedUserAgent,
@@ -181,7 +183,7 @@ void describe('client config converter', () => {
                 mfaConfiguration: undefined,
                 mfaTypes: undefined,
                 signupAttributes: [],
-                socialProviders: [],
+                socialProviders: ['GOOGLE', 'FACEBOOK', 'AMAZON', 'APPLE'],
                 usernameAttributes: [],
                 passwordProtectionSettings: {
                   passwordPolicyCharacters: [],
