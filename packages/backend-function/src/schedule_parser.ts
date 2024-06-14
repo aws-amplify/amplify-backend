@@ -17,10 +17,24 @@ export class ScheduleParser {
   ) {
     this.timeIntervals.forEach((interval, index) => {
       if (isRate(interval)) {
-        const { value } = parseRate(interval);
+        const { value, unit } = parseRate(interval);
 
         if (value && !isPositiveWholeNumber(value)) {
           throw new Error(`schedule must be set with a positive whole number`);
+        }
+
+        if (
+          value &&
+          lambda.timeout &&
+          unit === 'm' &&
+          value < lambda.timeout.toMinutes()
+        ) {
+          const timeoutInMinutes = lambda.timeout.toMinutes();
+          throw new Error(
+            `schedule must be greater than the timeout of ${timeoutInMinutes} ${
+              timeoutInMinutes > 1 ? 'minutes' : 'minute'
+            }`
+          );
         }
       } else {
         if (!isValidCron(interval)) {

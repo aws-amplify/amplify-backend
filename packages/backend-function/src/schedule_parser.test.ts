@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { App, Stack } from 'aws-cdk-lib';
+import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { ScheduleParser } from './schedule_parser.js';
 import { TimeInterval } from './factory.js';
@@ -187,6 +187,20 @@ void describe('ScheduleParser', () => {
       }
     );
   });
+
+  void it('throws if schedule will invoke function before timeout', () => {
+    const timeInterval: TimeInterval[] = ['every 1m'];
+    const testLambda = getTestLambda();
+
+    assert.throws(
+      () => {
+        new ScheduleParser(testLambda, timeInterval);
+      },
+      {
+        message: `schedule must be greater than the timeout of 2 minutes`,
+      }
+    );
+  });
 });
 
 const getTestLambda = () =>
@@ -194,4 +208,5 @@ const getTestLambda = () =>
     code: Code.fromInline('test code'),
     runtime: Runtime.NODEJS_20_X,
     handler: 'handler',
+    timeout: Duration.minutes(2),
   });
