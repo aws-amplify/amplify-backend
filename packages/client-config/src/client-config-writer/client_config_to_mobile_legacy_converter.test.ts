@@ -39,7 +39,6 @@ void describe('client config converter', () => {
       aws_cognito_mfa_types: ['test_mfa_type_1', 'test_mfa_type_2'],
 
       oauth: {
-        clientId: 'test_client_id',
         domain: 'test_domain',
         scope: ['test_scope_1', 'test_scope_2'],
         redirectSignIn: 'test_redirect_sign_in',
@@ -92,7 +91,7 @@ void describe('client config converter', () => {
                 ],
                 OAuth: {
                   WebDomain: 'test_domain',
-                  AppClientId: 'test_client_id',
+                  AppClientId: 'test_user_pool_app_client_id',
                   Scopes: ['test_scope_1', 'test_scope_2'],
                   SignInRedirectURI: 'test_redirect_sign_in',
                   SignOutRedirectURI: 'test_redirect_sign_out',
