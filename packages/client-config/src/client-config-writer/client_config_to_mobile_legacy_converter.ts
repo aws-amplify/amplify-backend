@@ -82,7 +82,9 @@ export class ClientConfigMobileConverter {
           Scopes: clientConfig.oauth.scope,
           SignInRedirectURI: clientConfig.oauth.redirectSignIn,
           SignOutRedirectURI: clientConfig.oauth.redirectSignOut,
-          AppClientId: clientConfig.aws_user_pools_web_client_id,
+          AppClientId:
+            clientConfig.oauth.clientId ||
+            clientConfig.aws_user_pools_web_client_id,
         };
       }
       mobileConfig.auth = authConfig;

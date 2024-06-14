@@ -40,6 +40,7 @@ void describe('client config converter', () => {
       aws_cognito_social_providers: ['GOOGLE', 'FACEBOOK', 'AMAZON', 'APPLE'],
 
       oauth: {
+        clientId: '',
         domain: 'test_domain',
         scope: ['test_scope_1', 'test_scope_2'],
         redirectSignIn: 'test_redirect_sign_in',
