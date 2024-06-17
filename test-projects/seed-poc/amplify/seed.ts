@@ -3,8 +3,13 @@
 import type { backend } from './backend';
 
 import { defineSeed } from '@aws-amplify/backend';
-import type { Schema } from './data/resource';
-import { defineSeed2, KeysByType, PickByType } from '@aws-amplify/backend-seed';
+import type { Schema, schema } from './data/resource';
+import {
+  defineSeed2,
+  defineSeed3,
+  KeysByType,
+  PickByType,
+} from '@aws-amplify/backend-seed';
 import { SchemaSeedable, Seedable } from '@aws-amplify/plugin-types';
 
 defineSeed<Schema>(async (dataClient, authClient) => {
@@ -29,6 +34,16 @@ defineSeed2<typeof backend, Schema>(async (clients) => {
     `user${Math.random().toString()}@amazon.com`,
     `P@ssword${Math.random().toString()}`
   );
+});
+
+/**
+ * This seems to work.
+ */
+defineSeed3<typeof backend, typeof schema>(async (clients) => {
+  console.log('Inside seed function 3');
+  await clients.data.models.Todo.create({
+    content: `Random todo item ${Math.random().toString()}`,
+  });
 });
 
 let foo: PickByType<typeof backend, Seedable<'auth'>>;

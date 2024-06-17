@@ -10,4 +10,10 @@ export const backend = defineBackend({
   data,
 });
 
-le
+/**
+ * IDE hints:
+ * let dataSchema: ModelSchema<{   types: {     Todo: ModelType<SetTypeSubArg<{       fields: {         content: ModelField<Nullable<string>, never, undefined>       }       identifier: 'id'[]       secondaryIndexes: []       authorization: []     }, 'authorization', (Authorization<...> & {})[]>, 'authorization'>
+ *
+ * This means that schema type can be passed through defineData -> backend -> access backend props.
+ */
+let dataSchema = backend.data.schema;

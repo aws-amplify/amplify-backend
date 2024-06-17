@@ -10,6 +10,13 @@ import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-
 import { SchemaSeedable, Seedable } from '@aws-amplify/plugin-types';
 import { V6Client } from '@aws-amplify/api-graphql';
 import { ClientSchema } from '@aws-amplify/data-schema';
+import {
+  // TODO these types were hackily exposed in node modules dir
+  CombinedModelSchema,
+  GenericModelSchema,
+  ModelSchema,
+  ModelSchemaParamShape,
+} from '@aws-amplify/data-schema';
 
 export { AuthClient, AuthUser, SeedFunction };
 
@@ -53,6 +60,25 @@ export const defineSeed2 = <
   ) => Promise<void>
 ): void => {
   seedFunctions2.push(seedFunction);
+};
+
+/**
+ * Todo
+ * Is it possible to:
+ * - Generate client keys matching backend verticals?
+ * - How do we access types using custom keys?
+ */
+export const defineSeed3 = <T extends object, TSchema extends ModelSchema<ModelSchemaParamShape>>(
+  seedFunction: (
+    clients: OmitNever<{
+      data: KeysByType<T, Seedable<'data'>> extends never
+        ? never
+        : V6Client<ClientSchema<TSchema>>;
+      auth: KeysByType<T, Seedable<'auth'>> extends never ? never : AuthClient;
+    }>
+  ) => Promise<void>
+): void => {
+  // todo
 };
 
 process.once('beforeExit', async () => {

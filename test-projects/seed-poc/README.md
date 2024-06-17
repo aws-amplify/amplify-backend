@@ -58,6 +58,9 @@ Update 6/11:
 It seems to be possible to dynamically infer verticals from backend.ts by using "marker-mixin type/interface" in `defineX` return types.
 But this approach seems to make schema type smuggling impossible to achieve.
 
+Update 6/17
+Smuggling schema type appears to be unrelated to verticals, it was due to typing model schema with any.
+
 ```typescript
 await new Seeder()
   .withData<DataSchema>()
@@ -129,6 +132,9 @@ Update 6/11:
 It seems possible to make `defineData` return type to smuggle schema type definition to `backend`.
 However, this combined with dynamic inference of verticals overloads compiler and would also require data-schema to expose
 base types of ModelSchema. The compiler problem seems to be a blocker.
+
+Update 6/17
+Smuggling schema type appears to be unrelated to verticals, it was due to typing model schema with any.
 
 ### Should seed be part of `@aws-amplify/backend` ?
 
