@@ -21,6 +21,7 @@ import { AmplifyDataError, DataProps } from './types.js';
 import {
   combineCDKSchemas,
   convertSchemaToCDK,
+  extractImportedModels,
   isCombinedSchema,
   isDataSchema,
 } from './convert_schema.js';
@@ -121,6 +122,17 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {
     this.name = props.name ?? 'amplifyData';
+    const { importedModels, importedAmplifyDynamoDBTableMap } = props;
+    if (importedAmplifyDynamoDBTableMap && !importedModels) {
+      throw new Error(
+        'importedAmplifyDynamoDBTableMap is defined but importedModels is not defined.'
+      );
+    }
+    if (!importedAmplifyDynamoDBTableMap && importedModels) {
+      throw new Error(
+        'importedModels is defined but importedAmplifyDynamoDBTableMap is not defined.'
+      );
+    }
   }
 
   generateContainerEntry = ({
@@ -141,7 +153,24 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         ? this.props.schema.schemas
         : [this.props.schema];
 
-      schemas.forEach((schema) => {
+      const splitSchemas = schemas.flatMap((schema) => {
+        // data schema not supported for import
+        if (!isDataSchema(schema)) {
+          const { importedSchema, nonImportedSchema } = extractImportedModels(
+            schema,
+            this.props.importedModels
+          );
+          if (importedSchema.length > 0) {
+            return [
+              { isImported: true, schema: importedSchema },
+              { isImported: false, schema: nonImportedSchema },
+            ];
+          }
+        }
+        return [{ isImported: false, schema }];
+      });
+
+      splitSchemas.forEach(({ isImported, schema }) => {
         if (isDataSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
             schema.transform();
@@ -157,7 +186,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           convertSchemaToCDK(
             schema,
             backendSecretResolver,
-            stableBackendIdentifiers
+            stableBackendIdentifiers,
+            isImported
           )
         );
       });
@@ -251,6 +281,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           allowDestructiveGraphqlSchemaUpdates: true,
           _provisionHotswapFriendlyResources: isSandboxDeployment,
         },
+        // TODO: remove ignore
+        // @ts-expect-error requires new release of data construct
+        importedAmplifyDynamoDBTableMap:
+          this.props.importedAmplifyDynamoDBTableMap,
       });
     } catch (error) {
       throw new AmplifyUserError(
