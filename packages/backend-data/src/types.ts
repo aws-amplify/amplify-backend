@@ -139,6 +139,16 @@ export type DataProps = {
    * Functions invokable by the API. The specific input type of the function is subject to change or removal.
    */
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+
+  /**
+   * Mapping of model name to existing DynamoDB table that should be used as the data source.
+   */
+  importedAmplifyDynamoDBTableMap?: Record<string, string>;
+
+  /**
+   * List of models that should be imported.
+   */
+  importedModels?: string[];
 };
 
 export type AmplifyDataError =
