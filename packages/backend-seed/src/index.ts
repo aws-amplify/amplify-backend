@@ -68,7 +68,10 @@ export const defineSeed2 = <
  * - Generate client keys matching backend verticals?
  * - How do we access types using custom keys?
  */
-export const defineSeed3 = <T extends object, TSchema extends ModelSchema<ModelSchemaParamShape>>(
+export const defineSeed3 = <
+  T extends object,
+  TSchema extends ModelSchema<ModelSchemaParamShape>
+>(
   seedFunction: (
     clients: OmitNever<{
       data: KeysByType<T, Seedable<'data'>> extends never
@@ -82,29 +85,34 @@ export const defineSeed3 = <T extends object, TSchema extends ModelSchema<ModelS
 };
 
 process.once('beforeExit', async () => {
-  const backendId = await new SandboxBackendIdResolver(
-    new LocalNamespaceResolver(new PackageJsonReader())
-  ).resolve();
-  const clientConfig = await generateClientConfig(backendId, '0');
-  Amplify.configure(clientConfig);
-  const dataClient = generateClient<Record<any, any>>();
-  const authClient = new DefaultAuthClient(
-    new CognitoIdentityProviderClient(),
-    clientConfig['auth']
-  );
-  try {
-    for (const seedFunction of seedFunctions) {
-      await seedFunction(dataClient, authClient);
+  if (
+    (seedFunctions && seedFunctions.length > 0) ||
+    (seedFunctions2 && seedFunctions2.length > 0)
+  ) {
+    const backendId = await new SandboxBackendIdResolver(
+      new LocalNamespaceResolver(new PackageJsonReader())
+    ).resolve();
+    const clientConfig = await generateClientConfig(backendId, '0');
+    Amplify.configure(clientConfig);
+    const dataClient = generateClient<Record<any, any>>();
+    const authClient = new DefaultAuthClient(
+      new CognitoIdentityProviderClient(),
+      clientConfig['auth']
+    );
+    try {
+      for (const seedFunction of seedFunctions) {
+        await seedFunction(dataClient, authClient);
+      }
+      for (const seedFunction2 of seedFunctions2) {
+        await seedFunction2.call(this, {
+          data: dataClient,
+          auth: authClient,
+        });
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      console.log('after seed functions');
     }
-    for (const seedFunction2 of seedFunctions2) {
-      await seedFunction2.call(this, {
-        data: dataClient,
-        auth: authClient,
-      });
-    }
-  } catch (e) {
-    console.log(e);
-  } finally {
-    console.log('after seed functions');
   }
 });
