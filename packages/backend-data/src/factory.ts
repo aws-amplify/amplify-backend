@@ -24,6 +24,7 @@ import { AmplifyDataError, DataProps } from './types.js';
 import {
   combineCDKSchemas,
   convertSchemaToCDK,
+  extractImportedModels,
   isCombinedSchema,
   isDataSchema,
 } from './convert_schema.js';
@@ -45,6 +46,7 @@ import { Aspects, IAspect, RemovalPolicy, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
+  DerivedModelSchema,
   FunctionSchemaAccess,
   JsResolver,
 } from '@aws-amplify/data-schema-types';
@@ -129,6 +131,18 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {
     this.name = props.name ?? defaultName;
+    const { importedModels, importedAmplifyDynamoDBTableMap } = props;
+    if (importedAmplifyDynamoDBTableMap && !importedModels) {
+      throw new Error(
+        'importedAmplifyDynamoDBTableMap is defined but importedModels is not defined.'
+      );
+    }
+    if (!importedAmplifyDynamoDBTableMap && importedModels) {
+      throw new Error(
+        'importedModels is defined but importedAmplifyDynamoDBTableMap is not defined.'
+      );
+    }
+    // TODO: add importedModels validation
   }
 
   generateContainerEntry = ({
@@ -149,7 +163,31 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         ? this.props.schema.schemas
         : [this.props.schema];
 
-      schemas.forEach((schema) => {
+      const splitSchemas: {
+        schema: string | DerivedModelSchema;
+        importedTableName?: string;
+      }[] = schemas.flatMap((schema) => {
+        // data schema not supported for import
+        if (!isDataSchema(schema)) {
+          const { importedSchemas, nonImportedSchema } = extractImportedModels(
+            schema,
+            this.props.importedModels,
+            this.props.importedAmplifyDynamoDBTableMap
+          );
+          if (importedSchemas.length > 0) {
+            return [
+              ...importedSchemas.map(({ schema, importedTableName }) => ({
+                schema,
+                importedTableName,
+              })),
+              ...(nonImportedSchema ? [{ schema: nonImportedSchema }] : []),
+            ];
+          }
+        }
+        return [{ schema }];
+      });
+
+      splitSchemas.forEach(({ schema, importedTableName }) => {
         if (isDataSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
             schema.transform();
@@ -165,7 +203,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           convertSchemaToCDK(
             schema,
             backendSecretResolver,
-            stableBackendIdentifiers
+            stableBackendIdentifiers,
+            importedTableName
           )
         );
       });
