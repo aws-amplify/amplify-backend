@@ -31,6 +31,7 @@
     "@aws-amplify/backend-output-schemas": "^1.1.0",
     "@aws-amplify/data-construct": "^1.8.0",
     "@aws-amplify/plugin-types": "^1.0.0",
-    "@aws-amplify/data-schema-types": "^1.0.0"
+    "@aws-amplify/data-schema-types": "^1.0.0",
+    "graphql": "^15.5.0"
   }
 }
