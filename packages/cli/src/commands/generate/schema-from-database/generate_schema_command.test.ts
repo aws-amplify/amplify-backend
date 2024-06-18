@@ -54,7 +54,7 @@ void describe('generate graphql-client-code command', () => {
   secretClientGetSecret.mock.mockImplementation(() => {
     return Promise.resolve({
       name: 'CONN_STRING',
-      value: 'FAKE_CONN_STRING_VALUE',
+      value: 'FAKE_SECRET_VALUE',
       lastUpdated: new Date(),
       version: '1',
     });
@@ -77,6 +77,44 @@ void describe('generate graphql-client-code command', () => {
     );
 
     assert.equal(schemaGeneratorGenerateMethod.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      schemaGeneratorGenerateMethod.mock.calls[0].arguments[0],
+      {
+        connectionUri: {
+          secretName: 'CONN_STRING',
+          value: 'FAKE_SECRET_VALUE',
+        },
+        out: 'schema.rds.ts',
+      }
+    );
+  });
+
+  void it('uses sandbox by default with custom ssl certificate', async () => {
+    await commandRunner.runCommand(
+      'schema-from-database --connection-uri-secret CONN_STRING --out schema.rds.ts --ssl-cert-secret SSL_CERT'
+    );
+
+    assert.equal(
+      (secretClientGetSecret.mock.calls[0].arguments[0] as BackendIdentifier)
+        .name,
+      fakeSandboxId
+    );
+
+    assert.equal(schemaGeneratorGenerateMethod.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      schemaGeneratorGenerateMethod.mock.calls[0].arguments[0],
+      {
+        connectionUri: {
+          secretName: 'CONN_STRING',
+          value: 'FAKE_SECRET_VALUE',
+        },
+        sslCert: {
+          secretName: 'SSL_CERT',
+          value: 'FAKE_SECRET_VALUE',
+        },
+        out: 'schema.rds.ts',
+      }
+    );
   });
 
   void it('generates and writes schema for stack', async () => {
@@ -88,7 +126,7 @@ void describe('generate graphql-client-code command', () => {
     assert.deepEqual(schemaGeneratorGenerateMethod.mock.calls[0].arguments[0], {
       connectionUri: {
         secretName: 'CONN_STRING',
-        value: 'FAKE_CONN_STRING_VALUE',
+        value: 'FAKE_SECRET_VALUE',
       },
       out: 'schema.rds.ts',
     });
@@ -103,7 +141,7 @@ void describe('generate graphql-client-code command', () => {
     assert.deepEqual(schemaGeneratorGenerateMethod.mock.calls[0].arguments[0], {
       connectionUri: {
         secretName: 'CONN_STRING',
-        value: 'FAKE_CONN_STRING_VALUE',
+        value: 'FAKE_SECRET_VALUE',
       },
       out: 'schema.rds.ts',
     });
