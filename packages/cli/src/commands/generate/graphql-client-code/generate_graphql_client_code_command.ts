@@ -169,63 +169,53 @@ export class GenerateGraphqlClientCodeCommand
         description: 'Adds key/index details to iOS models',
         type: 'boolean',
         array: false,
-        hidden: true,
       })
       .option('model-emit-auth-provider', {
         description: 'Adds auth provider details to iOS models',
         type: 'boolean',
         array: false,
-        hidden: true,
       })
       .option('model-respect-primary-key-attributes-on-connection-field', {
         description:
           'If enabled, Datastore queries will respect the primary + sort key fields, rather than a default id field',
         type: 'boolean',
         array: false,
-        hidden: true,
       })
       .option('model-generate-models-for-lazy-load-and-custom-selection-set', {
         description:
           'Generates lazy model type definitions, required or amplify-js v5+',
         type: 'boolean',
         array: false,
-        hidden: true,
       })
       .option('model-add-timestamp-fields', {
         description: 'Add read-only timestamp fields in modelgen.',
         type: 'boolean',
         array: false,
-        hidden: true,
       })
       .option('model-handle-list-nullability-transparently', {
         description:
           'Configure the nullability of the List and List components in Datastore Models generation',
         type: 'boolean',
         array: false,
-        hidden: true,
       })
       .option('statement-max-depth', {
         description:
           'Determines how deeply nested to generate graphql statements.',
         type: 'number',
         array: false,
-        hidden: true,
       })
       .option('statement-typename-introspection', {
         description:
           'Determines whether to include default __typename for all generated statements',
         type: 'boolean',
         array: false,
-        hidden: true,
       })
       .option('type-multiple-swift-files', {
         description:
           'Determines whether or not to generate a single API.swift, or multiple per-model swift files.',
         type: 'boolean',
         array: false,
-        hidden: true,
-      })
-      .showHidden('all');
+      });
   };
 
   /**
