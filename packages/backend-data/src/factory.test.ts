@@ -750,6 +750,43 @@ void describe('Destructive Schema Updates & Replace tables upon GSI updates', ()
   });
 });
 
+void describe('Table Import', () => {
+  beforeEach(() => {
+    resetFactoryCount();
+  });
+
+  void it('split imported models from non-imported models', () => {
+    const schema = /* GraphQL */ `
+      type Blog @model {
+        title: String
+        content: String
+        authors: [String]
+      }
+
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      importedAmplifyDynamoDBTableMap: {
+        ImportedModel: 'ImportedModel-1234-dev',
+      },
+      importedModels: ['ImportedModel'],
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: true,
+    });
+    dataFactory.getInstance(getInstanceProps);
+    // TODO: add assertions
+  });
+
+  // TODO: add tests for error cases
+  // 1. importedModels or importedAmplifyDynamoDBTableMap not supplied
+  // 2. models missing in schema
+  // 3. models missing in table map
+});
+
 const resetFactoryCount = () => {
   DataFactory.factoryCount = 0;
 };
