@@ -24,6 +24,7 @@ import { AmplifyDataError, DataProps } from './types.js';
 import {
   combineCDKSchemas,
   convertSchemaToCDK,
+  extractImportedModels,
   isCombinedSchema,
   isDataSchema,
 } from './convert_schema.js';
@@ -45,6 +46,7 @@ import { Aspects, IAspect, RemovalPolicy, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
+  DerivedModelSchema,
   FunctionSchemaAccess,
   JsResolver,
 } from '@aws-amplify/data-schema-types';
@@ -70,7 +72,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
    */
   constructor(
     private readonly props: DataProps,
-    private readonly importStack = new Error().stack,
+    private readonly importStack = new Error().stack
   ) {
     if (DataFactory.factoryCount > 0) {
       throw new AmplifyUserError('MultipleSingletonResourcesError', {
@@ -95,7 +97,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'data', 'resource'),
-      'Amplify Data must be defined in amplify/data/resource.ts',
+      'Amplify Data must be defined in amplify/data/resource.ts'
     );
     if (this.props.name) {
       resourceNameValidator?.validate(this.props.name);
@@ -108,10 +110,10 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
             .getConstructFactory<
               ResourceProvider<AuthResources | ReferenceAuthResources>
             >('AuthResources')
-            ?.getInstance(props),
+            ?.getInstance(props)
         ),
         props,
-        outputStorageStrategy,
+        outputStorageStrategy
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyData;
@@ -126,9 +128,21 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly props: DataProps,
     private readonly providedAuthConfig: ProvidedAuthConfig | undefined,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>,
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {
     this.name = props.name ?? defaultName;
+    const { importedModels, importedAmplifyDynamoDBTableMap } = props;
+    if (importedAmplifyDynamoDBTableMap && !importedModels) {
+      throw new Error(
+        'importedAmplifyDynamoDBTableMap is defined but importedModels is not defined.'
+      );
+    }
+    if (!importedAmplifyDynamoDBTableMap && importedModels) {
+      throw new Error(
+        'importedModels is defined but importedAmplifyDynamoDBTableMap is not defined.'
+      );
+    }
+    // TODO: add importedModels validation
   }
 
   generateContainerEntry = ({
@@ -149,7 +163,31 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         ? this.props.schema.schemas
         : [this.props.schema];
 
-      schemas.forEach((schema) => {
+      const splitSchemas: {
+        schema: string | DerivedModelSchema;
+        importedTableName?: string;
+      }[] = schemas.flatMap((schema) => {
+        // data schema not supported for import
+        if (!isDataSchema(schema)) {
+          const { importedSchemas, nonImportedSchema } = extractImportedModels(
+            schema,
+            this.props.importedModels,
+            this.props.importedAmplifyDynamoDBTableMap
+          );
+          if (importedSchemas.length > 0) {
+            return [
+              ...importedSchemas.map(({ schema, importedTableName }) => ({
+                schema,
+                importedTableName,
+              })),
+              ...(nonImportedSchema ? [{ schema: nonImportedSchema }] : []),
+            ];
+          }
+        }
+        return [{ schema }];
+      });
+
+      splitSchemas.forEach(({ schema, importedTableName }) => {
         if (isDataSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
             schema.transform();
@@ -166,7 +204,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
             schema,
             backendSecretResolver,
             stableBackendIdentifiers,
-          ),
+            importedTableName
+          )
         );
       });
     } catch (error) {
@@ -180,7 +219,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           resolution:
             'Check your data schema definition for syntax and type errors.',
         },
-        error instanceof Error ? error : undefined,
+        error instanceof Error ? error : undefined
       );
     }
 
@@ -189,7 +228,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       authorizationModes = convertAuthorizationModesToCDK(
         this.getInstanceProps,
         this.providedAuthConfig,
-        this.props.authorizationModes,
+        this.props.authorizationModes
       );
     } catch (error) {
       if (AmplifyError.isAmplifyError(error)) {
@@ -204,14 +243,14 @@ class DataGenerator implements ConstructContainerEntryGenerator {
               : 'Failed to parse authorization modes.',
           resolution: 'Ensure the auth rules on your schema are valid.',
         },
-        error instanceof Error ? error : undefined,
+        error instanceof Error ? error : undefined
       );
     }
 
     try {
       validateAuthorizationModes(
         this.props.authorizationModes,
-        authorizationModes,
+        authorizationModes
       );
     } catch (error) {
       throw new AmplifyUserError<AmplifyDataError>(
@@ -223,13 +262,13 @@ class DataGenerator implements ConstructContainerEntryGenerator {
               : 'Failed to validate authorization modes',
           resolution: 'Ensure the auth rules on your schema are valid.',
         },
-        error instanceof Error ? error : undefined,
+        error instanceof Error ? error : undefined
       );
     }
 
     const sandboxModeEnabled = isUsingDefaultApiKeyAuth(
       this.providedAuthConfig,
-      this.props.authorizationModes,
+      this.props.authorizationModes
     );
 
     const propsFunctions = this.props.functions ?? {};
@@ -245,7 +284,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
 
     const cdkLoggingOptions = convertLoggingOptionsToCDK(
-      this.props.logging ?? undefined,
+      this.props.logging ?? undefined
     );
 
     try {
@@ -279,7 +318,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           message: 'Failed to instantiate data construct',
           resolution: 'See the underlying error message for more details.',
         },
-        error as Error,
+        error as Error
       );
     }
 
@@ -290,7 +329,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         enforceSSL: true,
         autoDeleteObjects: true,
         removalPolicy: RemovalPolicy.DESTROY,
-      },
+      }
     );
     new BucketDeployment(scope, 'modelIntrospectionSchemaBucketDeployment', {
       // See https://github.com/aws-amplify/amplify-category-api/pull/1939
@@ -343,12 +382,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     const policyGenerator = new AppSyncPolicyGenerator(
       amplifyApi.resources.graphqlApi,
-      `${modelIntrospectionSchemaBucket.bucketArn}/${modelIntrospectionSchemaKey}`,
+      `${modelIntrospectionSchemaBucket.bucketArn}/${modelIntrospectionSchemaKey}`
     );
 
     schemasFunctionSchemaAccess.forEach((accessDefinition) => {
       const policy = policyGenerator.generateGraphqlAccessPolicy(
-        accessDefinition.actions,
+        accessDefinition.actions
       );
       accessDefinition.resourceProvider
         .getInstance(this.getInstanceProps)
@@ -374,7 +413,7 @@ class ReplaceTableUponGsiUpdateOverrideAspect implements IAspect {
       // Need to use the property override to escape the hatch
       scope.addPropertyOverride(
         REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME,
-        true,
+        true
       );
     }
   }
