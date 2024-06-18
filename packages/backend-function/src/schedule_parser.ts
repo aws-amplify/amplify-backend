@@ -27,12 +27,13 @@ export class ScheduleParser {
           value &&
           lambda.timeout &&
           unit === 'm' &&
-          value < lambda.timeout.toMinutes()
+          value * 60 < lambda.timeout.toSeconds()
         ) {
-          const timeoutInMinutes = lambda.timeout.toMinutes();
+          const timeout = lambda.timeout.toSeconds();
+
           throw new Error(
-            `schedule must be greater than the timeout of ${timeoutInMinutes} ${
-              timeoutInMinutes > 1 ? 'minutes' : 'minute'
+            `schedule must be greater than the timeout of ${timeout} ${
+              timeout > 1 ? 'seconds' : 'second'
             }`
           );
         }

@@ -188,7 +188,7 @@ void describe('ScheduleParser', () => {
     );
   });
 
-  void it('throws if schedule will invoke function before timeout', () => {
+  void it('throws if schedule will invoke function again before timeout', () => {
     const timeInterval: TimeInterval[] = ['every 1m'];
     const testLambda = getTestLambda();
 
@@ -197,7 +197,7 @@ void describe('ScheduleParser', () => {
         new ScheduleParser(testLambda, timeInterval);
       },
       {
-        message: `schedule must be greater than the timeout of 2 minutes`,
+        message: `schedule must be greater than the timeout of 120 seconds`,
       }
     );
   });
@@ -208,5 +208,5 @@ const getTestLambda = () =>
     code: Code.fromInline('test code'),
     runtime: Runtime.NODEJS_20_X,
     handler: 'handler',
-    timeout: Duration.minutes(2),
+    timeout: Duration.seconds(120), // 2 minutes
   });
