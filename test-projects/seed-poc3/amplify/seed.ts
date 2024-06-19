@@ -14,7 +14,7 @@ Amplify.configure(outputs);
 
 // TODO typings for outputs could be better?
 // This is really kind-of auth admin api SDK
-const authClient = getAuthClient(outputs['auth'] as never);
+const authClient = getAuthClient(outputs);
 
 const dataClient = generateClient<Schema>();
 

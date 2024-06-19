@@ -20,8 +20,11 @@ import {
 
 export { AuthClient, AuthUser, SeedFunction };
 
-export const getAuthClient = (authConfig: never): AuthClient => {
-  return new DefaultAuthClient(new CognitoIdentityProviderClient(), authConfig);
+export const getAuthClient = (outputs: any): AuthClient => {
+  return new DefaultAuthClient(
+    new CognitoIdentityProviderClient(),
+    outputs['auth']
+  );
 };
 
 const seedFunctions: Array<SeedFunction<Record<any, any>>> = [];
