@@ -14,7 +14,20 @@ Can be seen here https://github.com/aws-amplify/amplify-backend/blob/seed-poc/te
 git checkout seed-poc
 npm run clean
 npm run setup:local
+
 cd test-projects/seed-poc/
+npx ampx sandbox --once
+npx ampx sandbox seed
+
+cd ../..
+
+cd test-projects/seed-poc2/
+npx ampx sandbox --once
+npx ampx sandbox seed
+
+cd ../..
+
+cd test-projects/seed-poc3/
 npx ampx sandbox --once
 npx ampx sandbox seed
 ```
@@ -145,3 +158,14 @@ Potential problems:
    2. Should this be separate extra dependency for the time of preview or experimental api?
       (Feasibility of inferring types from `backend.ts` might affect this)
 2. If we end up using `V6Client` and JS libs for auth we might clash with frontend deps.
+
+## Update 6/19
+
+Two additional POCs has been built:
+1. `seed-poc2` where only interaction with auth is somewhat abstracted.
+2. `seed-poc3` where script looks like frontend code and uses outputs. High level "auth administration" client was provided.
+
+It seems that `seed-poc3` might not be a bad idea because:
+1. It makes outputs integration point with backend, there's no work required in backend-X packages
+2. Except "admin auth" the coding style matches what customers do in their frontend app.
+3. There's no need to re-invent "clients", we can just use frontend libs to hydrate backend. (except admin auth).
