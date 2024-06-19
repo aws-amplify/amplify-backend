@@ -69,6 +69,8 @@ export class ClientConfigMobileConverter {
                   clientConfig.aws_cognito_username_attributes ?? [],
                 verificationMechanisms:
                   clientConfig.aws_cognito_verification_mechanisms ?? [],
+                socialProviders:
+                  clientConfig.aws_cognito_social_providers ?? [],
               },
             },
           },
@@ -80,7 +82,9 @@ export class ClientConfigMobileConverter {
           Scopes: clientConfig.oauth.scope,
           SignInRedirectURI: clientConfig.oauth.redirectSignIn,
           SignOutRedirectURI: clientConfig.oauth.redirectSignOut,
-          AppClientId: clientConfig.oauth.clientId,
+          AppClientId:
+            clientConfig.oauth.clientId ||
+            clientConfig.aws_user_pools_web_client_id,
         };
       }
       mobileConfig.auth = authConfig;
