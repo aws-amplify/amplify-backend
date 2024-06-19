@@ -91,6 +91,12 @@ export class DefaultAuthClient implements AuthClient {
         password,
       };
     } finally {
+      try {
+        // sign out to leave ok state;
+        await auth.signOut();
+      } catch (e) {
+        // eat it
+      }
       console.log(`user ${username} created`);
       this.lock.release();
     }
