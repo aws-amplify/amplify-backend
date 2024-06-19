@@ -4,9 +4,12 @@
 
 This is a prototype of seed functionality described https://github.com/aws-amplify/amplify-backend/issues/875.
 
-## Sample seed file
+## Sample seed files
 
-Can be seen here https://github.com/aws-amplify/amplify-backend/blob/seed-poc/test-projects/seed-poc/amplify/seed.ts.
+Can be seen here
+1. https://github.com/aws-amplify/amplify-backend/blob/seed-poc/test-projects/seed-poc/amplify/seed.ts.
+2. https://github.com/aws-amplify/amplify-backend/blob/seed-poc/test-projects/seed-poc2/amplify/seed.ts.
+3. https://github.com/aws-amplify/amplify-backend/blob/seed-poc/test-projects/seed-poc3/amplify/seed.ts.
 
 ## Local setup
 
