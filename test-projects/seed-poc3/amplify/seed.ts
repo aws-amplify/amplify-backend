@@ -2,10 +2,12 @@ import type { Schema } from './data/resource';
 import { getAuthClient } from '@aws-amplify/backend-seed';
 import { Amplify } from 'aws-amplify';
 import * as auth from 'aws-amplify/auth';
+import * as storage from 'aws-amplify/storage';
 import { generateClient } from 'aws-amplify/api';
 
 // TSX eats this but the compiler is unhappy about going up the directory hierarchy.
 // Perhaps seed should live closer to outputs and frontend code rather than backend.
+// @ts-ignore
 import outputs from '../amplify_outputs.json';
 
 Amplify.configure(outputs);
@@ -66,10 +68,30 @@ if (response.errors && response.errors.length > 0) {
   throw response.errors;
 }
 
+const uploadTask = storage.uploadData({
+  data: `Some Content ${Math.random().toString()}`,
+  path: `foo/${Math.random().toString()}`,
+});
+
+await uploadTask.result;
+
+const s3Items = await storage.list({
+  path: 'foo/',
+  options: {
+    pageSize: 1000,
+  },
+});
+
+console.log('######## S3 Items ########');
+console.log(s3Items.items);
+console.log('##########################');
+
 await auth.signOut();
 
 const todos = await dataClient.models.Todo.list({
   limit: 1000,
 });
 
+console.log('####### Data Items #######');
 console.log(todos.data);
+console.log('##########################');
