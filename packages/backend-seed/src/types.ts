@@ -14,4 +14,8 @@ export type AuthUser = {
 
 export type AuthClient = {
   createUser: (username: string, password: string) => Promise<AuthUser>;
+  executeAsUser: (
+    authUser: AuthUser,
+    callback: () => Promise<void>
+  ) => Promise<void>;
 };

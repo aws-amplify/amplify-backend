@@ -28,7 +28,7 @@ export class DefaultAuthClient implements AuthClient {
    * made in single transaction. This is because that library maintains global state,
    * for example auth session.
    */
-    // TODO setting timeout makes node process delay exit until that promise resolves, it should be handled somehow.
+  // TODO setting timeout makes node process delay exit until that promise resolves, it should be handled somehow.
   private readonly lock: AsyncLock = new AsyncLock();
 
   private readonly userPoolId: string;
@@ -92,6 +92,26 @@ export class DefaultAuthClient implements AuthClient {
       };
     } finally {
       console.log(`user ${username} created`);
+      this.lock.release();
+    }
+  };
+
+  executeAsUser = async (authUser: AuthUser, callback: () => Promise<void>) => {
+    await this.lock.acquire();
+    try {
+      // in case there's already signed user in the session.
+      await auth.signOut();
+      await auth.signIn({
+        username: authUser.username,
+        password: authUser.password,
+      });
+
+      try {
+        await callback();
+      } finally {
+        await auth.signOut();
+      }
+    } finally {
       this.lock.release();
     }
   };

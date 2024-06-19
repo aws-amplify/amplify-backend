@@ -20,9 +20,15 @@ import {
 
 export { AuthClient, AuthUser, SeedFunction };
 
+export const getAuthClient = (authConfig: never): AuthClient => {
+  return new DefaultAuthClient(new CognitoIdentityProviderClient(), authConfig);
+};
+
 const seedFunctions: Array<SeedFunction<Record<any, any>>> = [];
 
 const seedFunctions2: Array<Function> = [];
+
+const seedFunctions4: Array<Function> = [];
 
 export const defineSeed = <SchemaType extends Record<any, any>>(
   seedFunction: SeedFunction<SchemaType>
@@ -84,10 +90,17 @@ export const defineSeed3 = <
   // todo
 };
 
+export const defineSeed4 = (
+  seedFunction: (auth: AuthClient | undefined) => Promise<void>
+): void => {
+  seedFunctions4.push(seedFunction);
+};
+
 process.once('beforeExit', async () => {
   if (
     (seedFunctions && seedFunctions.length > 0) ||
-    (seedFunctions2 && seedFunctions2.length > 0)
+    (seedFunctions2 && seedFunctions2.length > 0) ||
+    (seedFunctions4 && seedFunctions4.length > 0)
   ) {
     const backendId = await new SandboxBackendIdResolver(
       new LocalNamespaceResolver(new PackageJsonReader())
@@ -108,6 +121,9 @@ process.once('beforeExit', async () => {
           data: dataClient,
           auth: authClient,
         });
+      }
+      for (const seedFunction4 of seedFunctions4) {
+        await seedFunction4.call(this, authClient);
       }
     } catch (e) {
       console.log(e);
