@@ -1,3 +1,4 @@
+export { type MainStackProps } from './engine/amplify_stack.js';
 export { defineBackend } from './backend_factory.js';
 export * from './backend.js';
 export * from './secret.js';

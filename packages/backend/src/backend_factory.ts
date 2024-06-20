@@ -27,6 +27,7 @@ import {
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
 import { ObjectAccumulator } from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
+import { MainStackProps } from './engine/amplify_stack.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -55,7 +56,15 @@ export class BackendFactory<
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
    * If no CDK App is specified a new one is created
    */
-  constructor(constructFactories: T, stack: Stack = createDefaultStack()) {
+  constructor(
+    constructFactories: T,
+    stack?: Stack,
+    mainStackProps?: MainStackProps
+  ) {
+    if (stack === undefined) {
+      stack = createDefaultStack(undefined, mainStackProps);
+    }
+
     new AttributionMetadataStorage().storeAttributionMetadata(
       stack,
       rootStackTypeIdentifier,
@@ -150,9 +159,14 @@ export class BackendFactory<
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
  */
 export const defineBackend = <T extends DefineBackendProps>(
-  constructFactories: T
+  constructFactories: T,
+  mainStackProps?: MainStackProps
 ): Backend<T> => {
-  const backend = new BackendFactory(constructFactories);
+  const backend = new BackendFactory(
+    constructFactories,
+    undefined,
+    mainStackProps
+  );
   return {
     ...backend.resources,
     createStack: backend.createStack,
