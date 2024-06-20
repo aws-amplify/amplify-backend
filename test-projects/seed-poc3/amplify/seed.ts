@@ -1,5 +1,8 @@
 import type { Schema } from './data/resource';
+
+// This would be @aws-amplify/auth-admin-client in real implementation.
 import { getAuthClient } from '@aws-amplify/backend-seed';
+
 import { Amplify } from 'aws-amplify';
 import * as auth from 'aws-amplify/auth';
 import * as storage from 'aws-amplify/storage';
@@ -43,6 +46,7 @@ let response = await dataClient.models.Todo.create(
   },
   {
     authMode: 'userPool',
+    authToken
   }
 );
 if (response.errors && response.errors.length > 0) {
