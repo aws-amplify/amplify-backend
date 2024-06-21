@@ -30,6 +30,7 @@ import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
+import { execa } from 'execa';
 
 const testProjectCreators = getTestProjectCreators();
 const testCdkProjectCreators = getTestCdkProjectCreators();
@@ -107,6 +108,14 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
               format
             );
           }
+
+          // test deployed backend client outputs
+          await execa('tsx', ['verify_outputs.ts'], {
+            cwd: testProject.projectDirPath,
+            env: {
+              backendIdentifier: JSON.stringify(branchBackendIdentifier),
+            },
+          });
         });
       });
     });

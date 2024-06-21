@@ -1,0 +1,20 @@
+import { execa } from 'execa';
+import * as fs from 'fs/promises';
+import path from 'path';
+
+/**
+ * Configures package.json and file for testing the specified project directory with the version of deployed-backend-client on npm
+ */
+export const setupDeployedBackendClient = async (
+  projectRootDirPath: string
+) => {
+  await execa('npm', ['install', '@aws-amplify/deployed-backend-client'], {
+    cwd: projectRootDirPath,
+  });
+
+  // copy file that sets up and gets metadata using deployed-backend-client from npm
+  await fs.copyFile(
+    '../verify_outputs.ts',
+    path.join(projectRootDirPath, 'verify_outputs.ts')
+  );
+};

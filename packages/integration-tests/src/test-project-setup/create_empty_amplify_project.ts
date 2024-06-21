@@ -2,12 +2,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import { shortUuid } from '../short_uuid.js';
 import { setupDirAsEsmModule } from './setup_dir_as_esm_module.js';
+import { setupDeployedBackendClient } from './setup_deployed_backend_client.js';
 
 const TEST_PROJECT_PREFIX = 'test-project';
 
 /**
  * Creates an empty Amplify project directory within the specified parent
- * The project contains an empty `amplify` directory and a package.json file with a name
+ * The project contains empty `amplify` and `.amplify` directories, a package.json file with a name, and a script to verify backend client outputs
  */
 export const createEmptyAmplifyProject = async (
   projectDirName: string,
@@ -32,6 +33,8 @@ export const createEmptyAmplifyProject = async (
   await fs.mkdir(projectDotAmplifyDir);
 
   await setupDirAsEsmModule(projectAmplifyDir);
+
+  await setupDeployedBackendClient(projectRoot);
 
   return { projectName, projectRoot, projectAmplifyDir, projectDotAmplifyDir };
 };
