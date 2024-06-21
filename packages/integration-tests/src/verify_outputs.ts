@@ -1,10 +1,14 @@
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { e2eToolingClientConfig } from './e2e_tooling_client_config.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import * as fs from 'fs/promises';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 
-const { region, credentials } = e2eToolingClientConfig;
+const region = process.env.AWS_REGION;
+const credentials = {
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? '',
+  sessionToken: process.env.AWS_SESSION_TOKEN ?? '',
+};
 
 const cloudFormationClient = new CloudFormationClient({
   region,
