@@ -1,6 +1,7 @@
 import { execa } from 'execa';
 import * as fs from 'fs/promises';
 import path from 'path';
+import { setupDirAsEsmModule } from './setup_dir_as_esm_module.js';
 
 /**
  * Configures package.json and file for testing the specified project directory with the version of deployed-backend-client on npm
@@ -13,7 +14,6 @@ export const setupDeployedBackendClient = async (
   });
 
   // copy file that sets up and gets metadata using deployed-backend-client from npm
-  console.log();
   await fs.copyFile(
     path.join(
       process.cwd(),
@@ -22,4 +22,6 @@ export const setupDeployedBackendClient = async (
     ),
     path.join(projectRootDirPath, 'verify_outputs.js')
   );
+
+  await setupDirAsEsmModule(projectRootDirPath);
 };
