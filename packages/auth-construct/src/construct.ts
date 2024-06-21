@@ -993,7 +993,13 @@ export class AmplifyAuth
     // extract the MFA configuration setting from the UserPool resource
     output.mfaConfiguration = Lazy.string({
       produce: () => {
-        return cfnUserPool.mfaConfiguration ?? 'OFF';
+        switch (cfnUserPool.mfaConfiguration) {
+          case undefined:
+          case 'OFF':
+            return 'NONE';
+          default:
+            return cfnUserPool.mfaConfiguration;
+        }
       },
     });
     // extract the MFA types from the UserPool resource

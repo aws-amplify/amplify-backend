@@ -647,7 +647,7 @@ void describe('Auth construct', () => {
       );
       assert.equal(outputs['mfaTypes']['Value'], '[]');
 
-      assert.equal(outputs['mfaConfiguration']['Value'], 'OFF');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'NONE');
       assert.equal(
         outputs['passwordPolicyMinLength']['Value'],
         DEFAULTS.PASSWORD_POLICY.minLength.toString()
@@ -659,6 +659,21 @@ void describe('Auth construct', () => {
       assert.equal(outputs['signupAttributes']['Value'], '["email"]');
       assert.equal(outputs['usernameAttributes']['Value'], '["email"]');
       assert.equal(outputs['verificationMechanisms']['Value'], '["email"]');
+    });
+
+    void it('outputs NONE when mfa is explicitly disabled', () => {
+      new AmplifyAuth(stack, 'test', {
+        loginWith: {
+          email: true,
+        },
+        multifactor: {
+          mode: 'OFF',
+        },
+      });
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      assert.equal(outputs['mfaTypes']['Value'], '[]');
+      assert.equal(outputs['mfaConfiguration']['Value'], 'NONE');
     });
 
     void it('updates signupAttributes when userAttributes prop is used', () => {
