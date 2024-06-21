@@ -46,7 +46,6 @@ let response = await dataClient.models.Todo.create(
   },
   {
     authMode: 'userPool',
-    authToken
   }
 );
 if (response.errors && response.errors.length > 0) {
