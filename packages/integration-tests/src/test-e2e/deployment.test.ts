@@ -110,7 +110,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
           }
 
           // test deployed backend client outputs
-          await execa('tsx', ['verify_outputs.ts'], {
+          await execa('node', ['verify_outputs.js'], {
             cwd: testProject.projectDirPath,
             env: {
               backendIdentifier: JSON.stringify(branchBackendIdentifier),
