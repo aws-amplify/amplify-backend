@@ -20,6 +20,7 @@ import { format, printer } from '@aws-amplify/cli-core';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { SandboxSeedCommand } from './sandbox-seed/sandbox_seed_command.js';
 
 /**
  * Creates wired sandbox command.
@@ -63,7 +64,11 @@ export const createSandboxCommand = (): CommandModule<
   const commandMiddleWare = new CommandMiddleware(printer);
   return new SandboxCommand(
     sandboxFactory,
-    [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
+    [
+      new SandboxDeleteCommand(sandboxFactory),
+      createSandboxSecretCommand(),
+      new SandboxSeedCommand(),
+    ],
     clientConfigGeneratorAdapter,
     commandMiddleWare,
     eventHandlerFactory.getSandboxEventHandlers
