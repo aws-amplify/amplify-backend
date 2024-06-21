@@ -15,7 +15,7 @@ export const authOutputSchema = z.object({
     signupAttributes: z.string().optional(), // JSON array as string
     passwordPolicyMinLength: z.string().optional(),
     passwordPolicyRequirements: z.string().optional(), // JSON array as string
-    mfaConfiguration: z.enum(['OFF', 'OPTIONAL', 'ON']).optional(),
+    mfaConfiguration: z.string().optional(),
     mfaTypes: z.string().optional(), // JSON array as string
     verificationMechanisms: z.string().optional(), // JSON array as string
 

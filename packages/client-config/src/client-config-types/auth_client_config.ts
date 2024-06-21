@@ -11,7 +11,7 @@ export type AuthClientConfig = {
 
   aws_cognito_username_attributes?: string[];
   aws_cognito_signup_attributes?: string[];
-  aws_cognito_mfa_configuration?: 'OFF' | 'OPTIONAL' | 'ON';
+  aws_cognito_mfa_configuration?: string;
   aws_cognito_mfa_types?: string[];
   aws_cognito_password_protection_settings?: {
     passwordPolicyMinLength?: number;
