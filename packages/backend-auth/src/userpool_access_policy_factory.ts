@@ -109,6 +109,8 @@ const iamActionMap: IamActionMap = {
   getDevice: ['cognito-idp:AdminGetDevice'],
   getGroup: ['cognito-idp:GetGroup'],
   getUser: ['cognito-idp:AdminGetUser'],
+  listUsers: ['cognito-idp:ListUsers'],
+  listUsersInGroup: ['cognito-idp:ListUsersInGroup'],
   listDevices: ['cognito-idp:AdminListDevices'],
   listGroups: ['cognito-idp:ListGroups'],
   listGroupsForUser: ['cognito-idp:AdminListGroupsForUser'],

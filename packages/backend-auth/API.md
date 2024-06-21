@@ -23,7 +23,7 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct';
 
 // @public
-export type ActionIam = 'addUserToGroup' | 'createGroup' | 'createUser' | 'deleteGroup' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getGroup' | 'getUser' | 'listGroups' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateGroup' | 'updateUserAttributes';
+export type ActionIam = 'addUserToGroup' | 'createGroup' | 'createUser' | 'deleteGroup' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getGroup' | 'getUser' | 'listUsers' | 'listUsersInGroup' | 'listGroups' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateGroup' | 'updateUserAttributes';
 
 // @public
 export type ActionMeta = 'manageUsers' | 'manageGroups' | 'manageGroupMembership' | 'manageUserDevices' | 'managePasswordRecovery';
