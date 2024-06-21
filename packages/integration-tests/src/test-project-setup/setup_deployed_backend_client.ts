@@ -15,7 +15,11 @@ export const setupDeployedBackendClient = async (
   // copy file that sets up and gets metadata using deployed-backend-client from npm
   console.log();
   await fs.copyFile(
-    `${process.cwd()}/verify_outputs.js`,
+    path.join(
+      process.cwd(),
+      'packages/integration-tests/lib',
+      'verify_outputs.js'
+    ),
     path.join(projectRootDirPath, 'verify_outputs.js')
   );
 };
