@@ -228,16 +228,20 @@ export type ActionMeta =
  */
 export type ActionIam =
   | 'addUserToGroup'
+  | 'createGroup'
   | 'createUser'
+  | 'deleteGroup'
   | 'deleteUser'
   | 'deleteUserAttributes'
   | 'disableUser'
   | 'enableUser'
   | 'forgetDevice'
   | 'getDevice'
+  | 'getGroup'
   | 'getUser'
   | 'listUsers'
   | 'listUsersInGroup'
+  | 'listGroups'
   | 'listDevices'
   | 'listGroupsForUser'
   | 'removeUserFromGroup'
@@ -246,4 +250,5 @@ export type ActionIam =
   | 'setUserPassword'
   | 'setUserSettings'
   | 'updateDeviceStatus'
+  | 'updateGroup'
   | 'updateUserAttributes';

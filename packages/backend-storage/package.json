@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-storage",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.3",
-    "@aws-amplify/platform-core": "^1.0.0"
+    "@aws-amplify/platform-core": "^1.0.1"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.127.0",

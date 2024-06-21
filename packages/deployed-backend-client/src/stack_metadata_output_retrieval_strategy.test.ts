@@ -259,7 +259,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       );
     });
 
-    void it('throws on missing output', async () => {
+    void it('does not throw on missing output', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
           if (command instanceof GetTemplateSummaryCommand) {
@@ -298,9 +298,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
         stackNameResolverMock
       );
 
-      await assert.rejects(retrievalStrategy.fetchBackendOutput(), {
-        message: 'Output testName2 not found in stack',
-      });
+      await assert.doesNotReject(retrievalStrategy.fetchBackendOutput());
     });
 
     void it('returns expected BackendOutput', async () => {

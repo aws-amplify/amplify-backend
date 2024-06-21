@@ -1,4 +1,4 @@
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Regex that pulls out the path from a stack trace line. Works for both unix and windows paths and cjs and esm loaders

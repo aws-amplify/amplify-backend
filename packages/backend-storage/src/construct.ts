@@ -22,7 +22,7 @@ import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
 
@@ -110,6 +110,7 @@ export class AmplifyStorage
       ],
       autoDeleteObjects: true,
       removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
     };
 
     const bucket = new Bucket(this, 'Bucket', bucketProps);

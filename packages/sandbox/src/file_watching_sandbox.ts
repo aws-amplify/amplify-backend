@@ -16,9 +16,10 @@ import _open from 'open';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import EventEmitter from 'events';
 import {
-  CloudFormationClient,
-  DescribeStacksCommand,
-} from '@aws-sdk/client-cloudformation';
+  GetParameterCommand,
+  ParameterNotFound,
+  SSMClient,
+} from '@aws-sdk/client-ssm';
 import {
   AmplifyPrompter,
   LogLevel,
@@ -35,8 +36,20 @@ import {
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
 
-export const CDK_BOOTSTRAP_STACK_NAME = 'CDKToolkit';
-export const CDK_BOOTSTRAP_VERSION_KEY = 'BootstrapVersion';
+/**
+ * CDK stores bootstrap version in parameter store. Example parameter name looks like /cdk-bootstrap/<qualifier>/version.
+ * The default value for qualifier is hnb659fds, i.e. default parameter path is /cdk-bootstrap/hnb659fds/version.
+ * The default qualifier is hardcoded value without any significance.
+ * Ability to provide custom qualifier is intended for name isolation between automated tests of the CDK itself.
+ * In order to use custom qualifier all stack synthesizers must be programmatically configured to use it.
+ * That makes bootstraps with custom qualifier incompatible with Amplify Backend and we treat that setup as
+ * not bootstrapped.
+ * See: https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html
+ */
+export const CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME =
+  // suppress spell checker, it is triggered by qualifier value.
+  // eslint-disable-next-line spellcheck/spell-checker
+  '/cdk-bootstrap/hnb659fds/version';
 export const CDK_MIN_BOOTSTRAP_VERSION = 6;
 
 /**
@@ -61,7 +74,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   constructor(
     private readonly backendIdSandboxResolver: BackendIdSandboxResolver,
     private readonly executor: AmplifySandboxExecutor,
-    private readonly cfnClient: CloudFormationClient,
+    private readonly ssmClient: SSMClient,
     private readonly printer: Printer,
     private readonly open = _open
   ) {
@@ -109,7 +122,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.'
       );
       // get region from an available sdk client;
-      const region = await this.cfnClient.config.region();
+      const region = await this.ssmClient.config.region();
       await this.open(getBootstrapUrl(region));
       return;
     }
@@ -293,19 +306,19 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   /**
-   * Checks if a given region has been bootstrapped with >= min version using CFN describeStacks with CDKToolKit.
+   * Checks if a given region has been bootstrapped with >= min version using CDK bootstrap version parameter
+   * stored in parameter store.
    * @returns A Boolean that represents if region has been bootstrapped.
    */
   private isBootstrapped = async () => {
     try {
-      const { Stacks: stacks } = await this.cfnClient.send(
-        new DescribeStacksCommand({
-          StackName: CDK_BOOTSTRAP_STACK_NAME,
+      const { Parameter: parameter } = await this.ssmClient.send(
+        new GetParameterCommand({
+          Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
         })
       );
-      const bootstrapVersion = stacks?.[0]?.Outputs?.find(
-        (output) => output.OutputKey === CDK_BOOTSTRAP_VERSION_KEY
-      )?.OutputValue;
+
+      const bootstrapVersion = parameter?.Value;
       if (
         !bootstrapVersion ||
         Number(bootstrapVersion) < CDK_MIN_BOOTSTRAP_VERSION
@@ -314,16 +327,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       }
       return true;
     } catch (e) {
-      if (
-        e &&
-        typeof e === 'object' &&
-        'message' in e &&
-        typeof e.message === 'string' &&
-        e.message.includes('does not exist')
-      ) {
+      if (e instanceof ParameterNotFound) {
         return false;
       }
-      // If we are unable to get the stack info due to other reasons(AccessDenied), we fail fast.
+      // If we are unable to retrieve bootstrap version parameter due to other reasons(AccessDenied), we fail fast.
       throw e;
     }
   };
