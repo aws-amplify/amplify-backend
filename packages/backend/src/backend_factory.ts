@@ -39,6 +39,9 @@ const rootStackTypeIdentifier = 'root';
 const DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT =
   ClientConfigVersionOption.V1;
 
+// Stricter Omit for constructor overloading
+type ExplicitOmit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
+
 /**
  * Factory that collects and instantiates all the Amplify backend constructs
  */
@@ -55,6 +58,19 @@ export class BackendFactory<
 
   private readonly stackResolver: StackResolver;
   private readonly customOutputsAccumulator: CustomOutputsAccumulator;
+
+  /**
+   *
+   */
+  constructor(
+    constructFactories: T,
+    stack: Stack,
+    props?: ExplicitOmit<DefineBackendProps, 'mainStackProps'>
+  );
+  /**
+   *
+   */
+  constructor(constructFactories: T, stack?: never, props?: DefineBackendProps);
 
   /**
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
