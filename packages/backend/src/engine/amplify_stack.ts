@@ -8,7 +8,7 @@ import { Construct, IConstruct } from 'constructs';
  * @see {@link https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.StackProps.html | AWS documentation for aws-cdk-lib.StackProps}
  *
  * Props are picked to ensure explicit addition of new StackProps is required.
- * Props incompatible with Amplify's intended Stack hierarchy, build or deployment processes are ommited:
+ * Props incompatible with Amplify's intended Stack hierarchy, build or deployment processes should always be ommited:
  * - stackName: Conflicts with dynamic resource naming.
  * - synthesizer: Conflicts with managed deployments and resource references.
  * - terminationProtection: Conflicts with sandbox/app delete.
@@ -24,15 +24,7 @@ import { Construct, IConstruct } from 'constructs';
  * })
  * ```
  */
-export type MainStackProps = Pick<
-  StackProps,
-  | 'description'
-  | 'env'
-  | 'tags'
-  | 'analyticsReporting'
-  | 'crossRegionReferences'
-  | 'suppressTemplateIndentation'
->;
+export type MainStackProps = Pick<StackProps, 'env' | 'crossRegionReferences'>;
 
 /**
  * Amplify-specific Stack implementation to handle cross-cutting concerns for all Amplify stacks
