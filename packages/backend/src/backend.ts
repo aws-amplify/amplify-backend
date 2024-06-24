@@ -24,7 +24,7 @@ export type DefineBackendConstructFactories = Record<
 > & { [K in keyof BackendBase]?: never };
 
 export type DefineBackendProps = {
-  mainStackProps: MainStackProps;
+  mainStackProps?: MainStackProps;
 };
 
 /**
