@@ -257,7 +257,6 @@ void describe('auth client config contributor v1', () => {
     };
 
     const expected = {
-      version: '1' as const,
       auth: {
         user_pool_id: 'testUserPoolId',
         user_pool_client_id: 'testWebClientId',
@@ -284,7 +283,7 @@ void describe('auth client config contributor v1', () => {
           response_type: 'code',
         },
       },
-    } as Pick<clientConfigTypesV1.AWSAmplifyBackendOutputs, 'version' | 'auth'>;
+    } as Pick<clientConfigTypesV1.AWSAmplifyBackendOutputs, 'auth'>;
 
     void it('returns translated config when mfa is disabled', () => {
       const contributor = new AuthClientConfigContributor();
