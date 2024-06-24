@@ -31,7 +31,7 @@ void describe('ClientConfigLegacyConverter', () => {
     );
   });
 
-  void it('returns translated legacy config for auth', () => {
+  void describe('returns translated legacy config for auth', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
@@ -99,10 +99,33 @@ void describe('ClientConfigLegacyConverter', () => {
       aws_cognito_social_providers: ['GOOGLE', 'FACEBOOK', 'AMAZON', 'APPLE'],
     };
 
-    assert.deepStrictEqual(
-      converter.convertToLegacyConfig(v1Config),
-      expectedLegacyConfig
-    );
+    void it('when mfa is disabled', () => {
+      v1Config.auth!.mfa_configuration = 'NONE';
+      expectedLegacyConfig.aws_cognito_mfa_configuration = 'OFF';
+
+      const config = converter.convertToLegacyConfig(v1Config);
+      assert.deepStrictEqual(config, expectedLegacyConfig);
+    });
+
+    void it('when mfa is optional', () => {
+      v1Config.auth!.mfa_configuration = 'OPTIONAL';
+      expectedLegacyConfig.aws_cognito_mfa_configuration = 'OPTIONAL';
+
+      assert.deepStrictEqual(
+        converter.convertToLegacyConfig(v1Config),
+        expectedLegacyConfig
+      );
+    });
+
+    void it('when mfa is required', () => {
+      v1Config.auth!.mfa_configuration = 'REQUIRED';
+      expectedLegacyConfig.aws_cognito_mfa_configuration = 'ON';
+
+      assert.deepStrictEqual(
+        converter.convertToLegacyConfig(v1Config),
+        expectedLegacyConfig
+      );
+    });
   });
 
   void it('returns translated legacy config for data', () => {

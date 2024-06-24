@@ -93,8 +93,19 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
     );
 
     if (authOutput.payload.mfaConfiguration) {
-      authClientConfig.auth.mfa_configuration = authOutput.payload
-        .mfaConfiguration as 'NONE' | 'OPTIONAL' | 'REQUIRED';
+      switch (authOutput.payload.mfaConfiguration) {
+        case 'OFF': {
+          authClientConfig.auth.mfa_configuration = 'NONE';
+          break;
+        }
+        case 'OPTIONAL': {
+          authClientConfig.auth.mfa_configuration = 'OPTIONAL';
+          break;
+        }
+        case 'ON': {
+          authClientConfig.auth.mfa_configuration = 'REQUIRED';
+        }
+      }
     }
 
     if (
