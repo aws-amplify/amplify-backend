@@ -6,7 +6,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import { ClientConfig } from '@aws-amplify/client-config';
-import { MainStackProps } from './index.internal.js';
+import { MainStackProps } from './engine/amplify_stack.js';
 
 export type BackendBase = {
   createStack: (name: string) => Stack;
