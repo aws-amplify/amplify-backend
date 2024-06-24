@@ -96,7 +96,7 @@ export { GenerateContainerEntryProps }
 export { ImportPathVerifier }
 
 // @public
-export type MainStackProps = Pick<StackProps, 'description' | 'env' | 'tags' | 'analyticsReporting' | 'crossRegionReferences' | 'suppressTemplateIndentation'>;
+export type MainStackProps = Pick<StackProps, 'env' | 'crossRegionReferences'>;
 
 export { ResourceProvider }
 
