@@ -42,7 +42,7 @@ export { AuthResources }
 export { AuthRoleName }
 
 // @public
-export type Backend<T extends DefineBackendProps> = BackendBase & {
+export type Backend<T extends DefineBackendConstructFactories> = BackendBase & {
     [K in keyof T]: Omit<ReturnType<T[K]['getInstance']>, keyof ResourceAccessAcceptorFactory>;
 };
 
@@ -71,11 +71,16 @@ export { ConstructFactoryGetInstanceProps }
 export { defineAuth }
 
 // @public
-export const defineBackend: <T extends DefineBackendProps>(constructFactories: T, mainStackProps?: MainStackProps) => Backend<T>;
+export const defineBackend: <T extends DefineBackendConstructFactories>(constructFactories: T, props?: DefineBackendProps) => Backend<T>;
 
 // @public (undocumented)
-export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {
+export type DefineBackendConstructFactories = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {
     [K in keyof BackendBase]?: never;
+};
+
+// @public (undocumented)
+export type DefineBackendProps = {
+    mainStackProps: MainStackProps;
 };
 
 export { defineData }

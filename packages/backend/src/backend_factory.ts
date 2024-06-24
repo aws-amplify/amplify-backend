@@ -18,7 +18,11 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'node:url';
-import { Backend, DefineBackendProps } from './backend.js';
+import {
+  Backend,
+  DefineBackendConstructFactories,
+  DefineBackendProps,
+} from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 import {
   ClientConfig,
@@ -27,7 +31,6 @@ import {
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
 import { ObjectAccumulator } from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
-import { MainStackProps } from './engine/amplify_stack.js';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -52,6 +55,7 @@ export class BackendFactory<
 
   private readonly stackResolver: StackResolver;
   private readonly customOutputsAccumulator: CustomOutputsAccumulator;
+
   /**
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
    * If no CDK App is specified a new one is created
@@ -59,10 +63,10 @@ export class BackendFactory<
   constructor(
     constructFactories: T,
     stack?: Stack,
-    mainStackProps?: MainStackProps
+    props?: DefineBackendProps
   ) {
     if (stack === undefined) {
-      stack = createDefaultStack(undefined, mainStackProps);
+      stack = createDefaultStack(undefined, props?.mainStackProps);
     }
 
     new AttributionMetadataStorage().storeAttributionMetadata(
@@ -158,15 +162,11 @@ export class BackendFactory<
  * Creates a new Amplify backend instance and returns it
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
  */
-export const defineBackend = <T extends DefineBackendProps>(
+export const defineBackend = <T extends DefineBackendConstructFactories>(
   constructFactories: T,
-  mainStackProps?: MainStackProps
+  props?: DefineBackendProps
 ): Backend<T> => {
-  const backend = new BackendFactory(
-    constructFactories,
-    undefined,
-    mainStackProps
-  );
+  const backend = new BackendFactory(constructFactories, undefined, props);
   return {
     ...backend.resources,
     createStack: backend.createStack,
