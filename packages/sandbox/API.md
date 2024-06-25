@@ -31,6 +31,13 @@ export type SandboxDeleteOptions = {
 export type SandboxEvents = 'successfulDeployment' | 'failedDeployment' | 'successfulDeletion';
 
 // @public (undocumented)
+export type SandboxFunctionStreamingOptions = {
+    enabled: boolean;
+    logsFilters?: string[];
+    logsOutFile?: string;
+};
+
+// @public (undocumented)
 export type SandboxOptions = {
     dir?: string;
     exclude?: string[];
@@ -38,6 +45,7 @@ export type SandboxOptions = {
     format?: ClientConfigFormat;
     profile?: string;
     watchForChanges?: boolean;
+    functionStreamingOptions?: SandboxFunctionStreamingOptions;
 };
 
 // @public

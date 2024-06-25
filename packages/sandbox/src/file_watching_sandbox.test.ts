@@ -24,9 +24,10 @@ import {
   Printer,
   format,
 } from '@aws-amplify/cli-core';
-import { fileURLToPath } from 'url';
+import { URL, fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import { ParameterNotFound, SSMClient } from '@aws-sdk/client-ssm';
 
 // Watcher mocks
@@ -95,9 +96,16 @@ ssmClientSendMock.mock.mockImplementation(() =>
     },
   })
 );
+
 const openMock = mock.fn(_open, (url: string) => Promise.resolve(url));
 
+const functionsLogStreamerMock = {
+  startStreamingLogs: mock.fn(),
+  stopStreamingLogs: mock.fn(),
+};
+
 const testPath = path.join('test', 'location');
+
 mock.method(fs, 'lstatSync', (path: string) => {
   if (path === testPath || path === `${process.cwd()}/${testPath}`) {
     return { isFile: () => false, isDir: () => true };
@@ -131,6 +139,7 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       async () => testSandboxBackendId,
       sandboxExecutor,
       ssmClientMock,
+      functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       printer as unknown as Printer,
       openMock as never
     );
@@ -229,7 +238,11 @@ void describe('Sandbox using local project name resolver', () => {
     backendDeployerDeployMock.mock.resetCalls();
     subscribeMock.mock.resetCalls();
     ssmClientSendMock.mock.resetCalls();
+    functionsLogStreamerMock.startStreamingLogs.mock.resetCalls();
     await sandboxInstance.stop();
+
+    // deactivate mock is reset after the sandbox stop
+    functionsLogStreamerMock.stopStreamingLogs.mock.resetCalls();
 
     // Printer mocks are reset after the sandbox stop to reset the "Shutting down" call as well.
     printer.log.mock.resetCalls();
@@ -241,6 +254,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       undefined,
       false
@@ -264,6 +279,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       {
         // imaginary dir does not have any ts files
@@ -294,6 +311,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       {
         dir: testDir,
@@ -320,6 +339,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       {
         dir: 'testDir',
@@ -355,6 +376,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test1.ts' },
@@ -368,6 +391,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test2.ts' },
@@ -388,6 +413,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test2.txt' },
@@ -408,6 +435,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     // Not awaiting for this file event to be processed and submitting another one right away
     const firstFileChange = fileChangeEventCallback(null, [
@@ -434,6 +463,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     await fileChangeEventCallback(null, [
       { type: 'update', path: 'foo/test5.ts' },
@@ -464,6 +495,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     // Mimic BackendDeployer taking 200 ms.
     backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
@@ -509,6 +542,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     await sandboxInstance.delete({});
 
@@ -526,6 +561,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     sandboxInstance.on('successfulDeployment', mockListener);
     const contextualBackendDeployerMock = contextual.mock.method(
@@ -563,6 +600,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
@@ -606,6 +645,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
     const contextualBackendDeployerMock = contextual.mock.method(
       backendDeployer,
@@ -654,6 +695,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       {
         dir: 'testDir',
@@ -679,6 +722,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       { identifier: 'customSandboxName' }
     ));
@@ -709,6 +754,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       { identifier: 'customSandboxName' }
     ));
@@ -744,6 +791,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       {
         exclude: ['customer_exclude1', 'customer_exclude2'],
@@ -789,6 +838,8 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       {
         exclude: ['customer_exclude1', 'customer_exclude2'],
@@ -821,6 +872,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
 
     sandboxInstance.on('successfulDeployment', mockListener);
@@ -837,6 +890,8 @@ void describe('Sandbox using local project name resolver', () => {
     ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox({
       executor: sandboxExecutor,
       ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
     }));
 
     sandboxInstance.on('successfulDeletion', mockListener);
@@ -851,11 +906,126 @@ void describe('Sandbox using local project name resolver', () => {
       {
         executor: sandboxExecutor,
         ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       },
       { watchForChanges: false }
     );
 
     assert.strictEqual(subscribeMock.mock.callCount(), 0);
+  });
+
+  void it('start lambda function log watcher regardless if asked to in sandbox options', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      },
+      {}, // not enabling lambda function log watcher
+      false
+    ));
+
+    // Lambda function log streamer is expected to turn itself off if enabled
+    assert.strictEqual(
+      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
+      1
+    );
+    assert.strictEqual(
+      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
+      1
+    );
+    assert.strictEqual(
+      functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[1],
+      undefined
+    );
+  });
+
+  void it('starts lambda function log watcher if explicitly asked to in sandbox options', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      },
+      {
+        functionStreamingOptions: {
+          enabled: true,
+          logsFilters: ['func1', 'func2'],
+          logsOutFile: 'testFileName',
+        }, // enabling lambda function log watcher
+      },
+      false
+    ));
+
+    assert.strictEqual(
+      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
+      1 // We deactivate before making any deployment, even the first one.
+    );
+    assert.strictEqual(
+      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
+      1
+    );
+    assert.deepStrictEqual(
+      functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[0],
+      {
+        namespace: 'testSandboxId',
+        name: 'testSandboxName',
+        type: 'sandbox',
+      }
+    );
+    assert.deepStrictEqual(
+      functionsLogStreamerMock.startStreamingLogs.mock.calls[0].arguments[1],
+      {
+        enabled: true,
+        logsFilters: ['func1', 'func2'],
+        logsOutFile: 'testFileName',
+      }
+    );
+  });
+
+  void it('pauses log monitor during a deployment and restarts after it is finished', async () => {
+    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      },
+      {
+        functionStreamingOptions: {
+          enabled: true,
+          logsFilters: ['func1', 'func2'],
+          logsOutFile: 'testFileName',
+        }, // enabling lambda function log watcher
+      }
+    ));
+
+    // Initial deployment
+    assert.strictEqual(
+      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
+      1 // We deactivate before making any deployment, even the first one.
+    );
+    assert.strictEqual(
+      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
+      1
+    );
+
+    // Make another deployment
+    await fileChangeEventCallback(null, [
+      { type: 'update', path: 'foo/test1.ts' },
+    ]);
+
+    assert.strictEqual(
+      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
+      2 // We deactivated again before starting this second deployment.
+    );
+    assert.strictEqual(
+      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
+      2 // We resume watching logs after the second deployment is finished.
+    );
   });
 });
 
@@ -879,6 +1049,7 @@ const setupAndStartSandbox = async (
     }),
     testData.executor,
     testData.ssmClient,
+    testData.functionsLogStreamer,
     printer as unknown as Printer,
     testData.open ?? _open
   );
@@ -931,5 +1102,6 @@ type SandboxTestData = {
   sandboxName?: string;
   executor: AmplifySandboxExecutor;
   ssmClient: SSMClient;
+  functionsLogStreamer: LambdaFunctionLogStreamer;
   open?: typeof _open;
 };

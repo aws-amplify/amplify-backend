@@ -2,7 +2,10 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import {
+  SandboxFunctionStreamingOptions,
+  SandboxSingletonFactory,
+} from '@aws-amplify/sandbox';
 import {
   ClientConfigFormat,
   ClientConfigVersion,
@@ -26,6 +29,9 @@ export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
     outputsOutDir: string | undefined;
     outputsVersion: string;
     once: boolean | undefined;
+    streamFunctionLogs: boolean | undefined;
+    logsFilter: string[] | undefined;
+    logsOutFile: string | undefined;
   } & SandboxCommandGlobalOptions
 >;
 
@@ -123,12 +129,29 @@ export class SandboxCommand
     }
 
     watchExclusions.push(clientConfigWritePath);
+
+    let functionStreamingOptions: SandboxFunctionStreamingOptions = {
+      enabled: false,
+    };
+    if (args.streamFunctionLogs) {
+      // turn on function logs streaming
+      functionStreamingOptions = {
+        enabled: true,
+        logsFilters: args.logsFilter,
+        logsOutFile: args.logsOutFile,
+      };
+
+      if (args.logsOutFile) {
+        watchExclusions.push(args.logsOutFile);
+      }
+    }
     await sandbox.start({
       dir: args.dirToWatch,
       exclude: watchExclusions,
       identifier: args.identifier,
       profile: args.profile,
       watchForChanges: !args.once,
+      functionStreamingOptions,
     });
     process.once('SIGINT', () => void this.sigIntHandler());
   };
@@ -196,6 +219,30 @@ export class SandboxCommand
           boolean: true,
           global: false,
         })
+        .option('stream-function-logs', {
+          describe:
+            'Whether to stream function execution logs. Default: false. Use --logs-filter in addition to this flag to stream specific function logs',
+          boolean: true,
+          global: false,
+          group: 'Logs streaming',
+        })
+        .option('logs-filter', {
+          describe: `Regex pattern to filter logs from only matched functions. E.g. to stream logs for a function, specify it's name, and to stream logs from all functions starting with auth specify 'auth' Default: Stream all logs`,
+          array: true,
+          type: 'string',
+          group: 'Logs streaming',
+          implies: ['stream-function-logs'],
+          requiresArg: true,
+        })
+        .option('logs-out-file', {
+          describe:
+            'File to append the streaming logs. The file is created if it does not exist. Default: stdout',
+          array: false,
+          type: 'string',
+          group: 'Logs streaming',
+          implies: ['stream-function-logs'],
+          requiresArg: true,
+        })
         .check(async (argv) => {
           if (argv['dir-to-watch']) {
             await this.validateDirectory('dir-to-watch', argv['dir-to-watch']);
@@ -210,7 +257,13 @@ export class SandboxCommand
           }
           return true;
         })
-        .conflicts('once', ['exclude', 'dir-to-watch'])
+        .conflicts('once', [
+          'exclude',
+          'dir-to-watch',
+          'stream-function-logs',
+          'logs-filter',
+          'logs-out-file',
+        ])
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );
   };

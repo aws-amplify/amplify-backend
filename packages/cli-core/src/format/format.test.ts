@@ -1,10 +1,14 @@
 import * as os from 'node:os';
 import * as assert from 'node:assert';
-import { after, before, describe, it } from 'node:test';
+import { after, before, beforeEach, describe, it } from 'node:test';
 import { Format, format } from './format.js';
 import { $, blue, bold, cyan, green, red, underline } from 'kleur/colors';
 
 void describe('format', () => {
+  beforeEach(() => {
+    $.enabled = true;
+  });
+
   void it('should format ampx command with yarn', { concurrency: 1 }, () => {
     const formatter = new Format('yarn');
     assert.strictEqual(
@@ -155,5 +159,15 @@ void describe('format when terminal colors disabled', async () => {
       'Color codes should not be present'
     );
     assert.strictEqual(coloredMessage, 'npx ampx hello');
+  });
+});
+
+void describe('format.color', async () => {
+  void it('should format colors as requested', () => {
+    const input = 'something to color';
+    const expectedOutput = green(input);
+    const actualOutput = format.color(input, 'Green');
+    assert.strictEqual(actualOutput, expectedOutput);
+    assert.notStrictEqual(actualOutput, red(input)); // confirm that coloring actually works
   });
 });
