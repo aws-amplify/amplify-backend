@@ -20,7 +20,7 @@ import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'node:url';
 import {
   Backend,
-  DefineBackendConstructFactories,
+  DefineBackendOptions,
   DefineBackendProps,
 } from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
@@ -60,17 +60,21 @@ export class BackendFactory<
   private readonly customOutputsAccumulator: CustomOutputsAccumulator;
 
   /**
-   *
+   * stack and props.mainStackProps are mutually exclusive
    */
   constructor(
     constructFactories: T,
     stack: Stack,
-    props?: ExplicitOmit<DefineBackendProps, 'mainStackProps'>
+    props?: ExplicitOmit<DefineBackendOptions, 'mainStackProps'>
   );
   /**
    *
    */
-  constructor(constructFactories: T, stack?: never, props?: DefineBackendProps);
+  constructor(
+    constructFactories: T,
+    stack?: never,
+    props?: DefineBackendOptions
+  );
 
   /**
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
@@ -79,7 +83,7 @@ export class BackendFactory<
   constructor(
     constructFactories: T,
     stack?: Stack,
-    props?: DefineBackendProps
+    props?: DefineBackendOptions
   ) {
     if (stack === undefined) {
       stack = createDefaultStack(undefined, props?.mainStackProps);
@@ -178,9 +182,9 @@ export class BackendFactory<
  * Creates a new Amplify backend instance and returns it
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
  */
-export const defineBackend = <T extends DefineBackendConstructFactories>(
+export const defineBackend = <T extends DefineBackendProps>(
   constructFactories: T,
-  props?: DefineBackendProps
+  props?: DefineBackendOptions
 ): Backend<T> => {
   const backend = new BackendFactory(constructFactories, undefined, props);
   return {

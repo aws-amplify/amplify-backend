@@ -16,14 +16,14 @@ export type BackendBase = {
 };
 
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers
-export type DefineBackendConstructFactories = Record<
+export type DefineBackendProps = Record<
   string,
   ConstructFactory<
     ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>
   >
 > & { [K in keyof BackendBase]?: never };
 
-export type DefineBackendProps = {
+export type DefineBackendOptions = {
   mainStackProps?: MainStackProps;
 };
 
@@ -32,7 +32,7 @@ export type DefineBackendProps = {
  * This object has the Amplify BackendBase methods on it for interacting with the backend.
  * It also has dynamic properties based on the resources passed into `defineBackend`
  */
-export type Backend<T extends DefineBackendConstructFactories> = BackendBase & {
+export type Backend<T extends DefineBackendProps> = BackendBase & {
   [K in keyof T]: Omit<
     ReturnType<T[K]['getInstance']>,
     keyof ResourceAccessAcceptorFactory
