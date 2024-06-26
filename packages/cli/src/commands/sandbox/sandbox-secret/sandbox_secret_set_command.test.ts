@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
@@ -26,6 +26,7 @@ void describe('sandbox secret set command', () => {
     'setSecret',
     (): Promise<SecretIdentifier> => Promise.resolve(testSecretIdentifier)
   );
+  const printMock = mock.method(printer, 'print');
 
   const sandboxIdResolver: SandboxBackendIdResolver = {
     resolve: (identifier?: string) =>
@@ -53,6 +54,7 @@ void describe('sandbox secret set command', () => {
 
   beforeEach(async () => {
     secretSetMock.mock.resetCalls();
+    printMock.mock.resetCalls();
   });
 
   void it('sets a secret', async (contextual) => {
@@ -75,6 +77,10 @@ void describe('sandbox secret set command', () => {
       testSecretName,
       testSecretValue,
     ]);
+    assert.equal(
+      printMock.mock.calls[0].arguments[0],
+      `Successfully created version ${testSecretIdentifier.version} of secret ${testSecretIdentifier.name}`
+    );
   });
 
   void it('sets a secret in a named sandbox', async (contextual) => {
