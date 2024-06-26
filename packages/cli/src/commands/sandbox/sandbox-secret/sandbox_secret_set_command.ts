@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SandboxCommandGlobalOptions } from '../option_types.js';
 import { once } from 'events';
@@ -43,10 +43,13 @@ export class SandboxSecretSetCommand
   ): Promise<void> => {
     const secretValue = await this.readSecretValue();
 
-    await this.secretClient.setSecret(
+    const secretIdentifier = await this.secretClient.setSecret(
       await this.sandboxIdResolver.resolve(args.identifier),
       args.secretName,
       secretValue
+    );
+    printer.print(
+      `Successfully created version ${secretIdentifier.version} of secret ${secretIdentifier.name}`
     );
   };
 
