@@ -146,10 +146,14 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       authOutput.payload.oauthRedirectSignIn &&
       authOutput.payload.oauthRedirectSignOut
     ) {
+      let socialProviders = authOutput.payload.socialProviders
+        ? JSON.parse(authOutput.payload.socialProviders)
+        : [];
+      if (Array.isArray(socialProviders)) {
+        socialProviders = socialProviders.filter(this.isValidIdentityProvider);
+      }
       authClientConfig.auth.oauth = {
-        identity_providers: authOutput.payload.socialProviders
-          ? JSON.parse(authOutput.payload.socialProviders)
-          : [],
+        identity_providers: socialProviders,
         redirect_sign_in_uri: authOutput.payload.oauthRedirectSignIn.split(','),
         redirect_sign_out_uri:
           authOutput.payload.oauthRedirectSignOut.split(','),
@@ -167,6 +171,16 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
     }
 
     return authClientConfig;
+  };
+
+  // Define a type guard function to check if a value is a valid IdentityProvider
+  isValidIdentityProvider = (identityProvider: string): boolean => {
+    return [
+      'GOOGLE',
+      'FACEBOOK',
+      'LOGIN_WITH_AMAZON',
+      'SIGN_IN_WITH_APPLE',
+    ].includes(identityProvider);
   };
 }
 

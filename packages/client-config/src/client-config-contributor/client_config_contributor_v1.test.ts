@@ -129,7 +129,7 @@ void describe('auth client config contributor v1', () => {
             oauthRedirectSignIn: 'http://callback.com,http://callback2.com',
             oauthRedirectSignOut: 'http://logout.com,http://logout2.com',
             oauthResponseType: 'code',
-            socialProviders: `["GOOGLE","FACEBOOK"]`,
+            socialProviders: `["GOOGLE","FACEBOOK","SIGN_IN_WITH_APPLE","LOGIN_WITH_AMAZON","GITHUB","DISCORD"]`,
           },
         },
       }),
@@ -152,7 +152,12 @@ void describe('auth client config contributor v1', () => {
           username_attributes: ['email'],
           user_verification_types: ['email', 'phone_number'],
           oauth: {
-            identity_providers: ['GOOGLE', 'FACEBOOK'],
+            identity_providers: [
+              'GOOGLE',
+              'FACEBOOK',
+              'SIGN_IN_WITH_APPLE',
+              'LOGIN_WITH_AMAZON',
+            ], //Only first class supported idp providers
             domain: 'testDomain',
             scopes: ['email', 'profile'],
             redirect_sign_in_uri: [
