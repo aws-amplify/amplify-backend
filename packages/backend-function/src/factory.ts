@@ -31,8 +31,21 @@ import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import { ScheduleParser } from './schedule_parser.js';
 
 const functionStackType = 'function-Lambda';
+
+export type Cron =
+  | `${string} ${string} ${string} ${string} ${string}`
+  | `${string} ${string} ${string} ${string} ${string} ${string}`;
+export type Rate =
+  | `every ${number}m`
+  | `every ${number}h`
+  | `every day`
+  | `every week`
+  | `every month`
+  | `every year`;
+export type TimeInterval = Rate | Cron;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -87,6 +100,19 @@ export type FunctionProps = {
    * Defaults to the oldest NodeJS LTS version. See https://nodejs.org/en/about/previous-releases
    */
   runtime?: NodeVersion;
+
+  /**
+   * A time interval string to periodically run the function.
+   * This can be either a string of `"every <positive whole number><m (minute) or h (hour)>"`, `"every day|week|month|year"` or cron expression.
+   * Defaults to no scheduling for the function.
+   * @example
+   * schedule: "every 5m"
+   * @example
+   * schedule: "every week"
+   * @example
+   * schedule: "0 9 * * 2" // every Monday at 9am
+   */
+  schedule?: TimeInterval | TimeInterval[];
 };
 
 /**
@@ -131,6 +157,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       memoryMB: this.resolveMemory(),
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
+      schedule: this.resolveSchedule(),
     };
   };
 
@@ -219,6 +246,18 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
 
     return this.props.runtime;
+  };
+
+  private resolveSchedule = () => {
+    if (!this.props.schedule) {
+      return [];
+    }
+
+    const schedules = Array.isArray(this.props.schedule)
+      ? this.props.schedule
+      : [this.props.schedule];
+
+    return schedules;
   };
 }
 
@@ -323,6 +362,12 @@ class AmplifyFunction
         error as Error
       );
     }
+
+    const schedules = Array.isArray(props.schedule)
+      ? props.schedule
+      : [props.schedule];
+
+    new ScheduleParser(functionLambda, schedules);
 
     Tags.of(functionLambda).add(TagName.FRIENDLY_NAME, id);
 
