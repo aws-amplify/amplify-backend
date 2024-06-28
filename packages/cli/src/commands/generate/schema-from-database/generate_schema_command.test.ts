@@ -18,8 +18,7 @@ void describe('generate graphql-client-code command', () => {
   const defaultResolver = new AppBackendIdentifierResolver(namespaceResolver);
   const sandboxIdResolver = new SandboxBackendIdResolver(namespaceResolver);
   const fakeSandboxId = 'my-fake-app-my-fake-username';
-  const mockedSandboxIdResolver = mock.method(sandboxIdResolver, 'resolve');
-  mockedSandboxIdResolver.mock.mockImplementation(() => ({
+  mock.method(sandboxIdResolver, 'resolve', () => ({
     name: fakeSandboxId,
   }));
 
@@ -33,11 +32,11 @@ void describe('generate graphql-client-code command', () => {
   const schemaGenerator = new SchemaGenerator();
   const schemaGeneratorGenerateMethod = mock.method(
     schemaGenerator,
-    'generate'
+    'generate',
+    () => {
+      return 'TYPESCRIPT_DATA_SCHEMA';
+    }
   );
-  schemaGeneratorGenerateMethod.mock.mockImplementation(() => {
-    return 'TYPESCRIPT_DATA_SCHEMA';
-  });
 
   const generateSchemaCommand = new GenerateSchemaCommand(
     backendIdentifierResolver,
@@ -50,8 +49,7 @@ void describe('generate graphql-client-code command', () => {
   );
   const commandRunner = new TestCommandRunner(parser);
 
-  const secretClientGetSecret = mock.method(secretClient, 'getSecret');
-  secretClientGetSecret.mock.mockImplementation(() => {
+  const secretClientGetSecret = mock.method(secretClient, 'getSecret', () => {
     return Promise.resolve({
       name: 'CONN_STRING',
       value: 'FAKE_SECRET_VALUE',
