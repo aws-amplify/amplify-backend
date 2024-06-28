@@ -73,7 +73,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
       const writeFileMock = mock.fn(async (...args) => {
-        if (args) return;
+        if (args.length > 0) return;
         return;
       });
       fsMock.mock.mockImplementation(async () => ({

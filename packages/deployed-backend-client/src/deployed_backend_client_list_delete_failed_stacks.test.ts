@@ -68,16 +68,16 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
   const listStacksMockFn = mock.fn((input) => {
     if (input) return listStacksMock;
     return {
-        NextToken: 'abc',
-        StackSummaries: [
-          {
-            StackName: 'amplify-123-name-branch-testHash',
-            StackStatus: StackStatus.DELETE_FAILED,
-            CreationTime: new Date(0),
-            LastUpdatedTime: new Date(1),
-          },
-        ],
-      };
+      NextToken: 'abc',
+      StackSummaries: [
+        {
+          StackName: 'amplify-123-name-branch-testHash',
+          StackStatus: StackStatus.DELETE_FAILED,
+          CreationTime: new Date(0),
+          LastUpdatedTime: new Date(1),
+        },
+      ],
+    };
   });
   const mockBackendOutputClient = new DefaultBackendOutputClient(
     mockCfnClient,

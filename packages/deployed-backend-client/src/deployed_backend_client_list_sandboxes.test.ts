@@ -67,19 +67,18 @@ void describe('Deployed Backend Client list sandboxes', () => {
   let deployedBackendClient: DefaultDeployedBackendClient;
   const listStacksMockFn = mock.fn((input) => {
     if (input) return listStacksMock;
-    
-      return {
-        NextToken: 'abc',
-        StackSummaries: [
-          {
-            StackName: 'amplify-test-name-sandbox-testHash',
-            StackStatus: StackStatus.CREATE_COMPLETE,
-            CreationTime: new Date(0),
-            LastUpdatedTime: new Date(1),
-          },
-        ],
-      };
-    
+
+    return {
+      NextToken: 'abc',
+      StackSummaries: [
+        {
+          StackName: 'amplify-test-name-sandbox-testHash',
+          StackStatus: StackStatus.CREATE_COMPLETE,
+          CreationTime: new Date(0),
+          LastUpdatedTime: new Date(1),
+        },
+      ],
+    };
   });
   const mockBackendOutputClient = new DefaultBackendOutputClient(
     mockCfnClient,
