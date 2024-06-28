@@ -22,7 +22,6 @@ import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { readFileSync } from 'fs';
-import { EOL } from 'os';
 import {
   FunctionOutput,
   functionOutputKey,
@@ -31,6 +30,7 @@ import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import * as uglifyJs from 'uglify-js';
 
 const functionStackType = 'function-Lambda';
 
@@ -280,14 +280,14 @@ class AmplifyFunction
     );
 
     /**
-     * This code concatenates the contents of the ssm resolver and invoker into a single line that can be used as the esbuild banner content
+     * This code concatenates the contents of the ssm resolver and invoker into a minified js that can be used as the esbuild banner content
      * This banner is responsible for resolving the customer's SSM parameters at runtime
      */
-    const bannerCode = readFileSync(ssmResolverFile, 'utf-8')
-      .concat(readFileSync(invokeSsmResolverFile, 'utf-8'))
-      .split(new RegExp(`${EOL}|\n|\r`, 'g'))
-      .map((line) => line.replace(/\/\/.*$/, '')) // strip out inline comments because the banner is going to be flattened into a single line
-      .join('');
+    const bannerCode = uglifyJs.minify(
+      readFileSync(ssmResolverFile, 'utf-8').concat(
+        readFileSync(invokeSsmResolverFile, 'utf-8')
+      )
+    ).code;
 
     const functionEnvironmentTypeGenerator =
       new FunctionEnvironmentTypeGenerator(id);
@@ -310,6 +310,8 @@ class AmplifyFunction
           loader: {
             '.node': 'file',
           },
+          minify: true,
+          sourceMap: true,
         },
       });
     } catch (error) {
