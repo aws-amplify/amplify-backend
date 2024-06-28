@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-output-storage",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -23,6 +23,6 @@
     "@aws-amplify/platform-core": "^1.0.0"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.127.0"
+    "aws-cdk-lib": "^2.132.0"
   }
 }
