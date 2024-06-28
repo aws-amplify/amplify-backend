@@ -6,6 +6,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import { ClientConfig } from '@aws-amplify/client-config';
+import { MainStackProps } from './engine/amplify_stack.js';
 
 export type BackendBase = {
   createStack: (name: string) => Stack;
@@ -21,6 +22,10 @@ export type DefineBackendProps = Record<
     ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>
   >
 > & { [K in keyof BackendBase]?: never };
+
+export type DefineBackendOptions = {
+  mainStackProps?: MainStackProps;
+};
 
 /**
  * Use `defineBackend` to create an instance of this type.

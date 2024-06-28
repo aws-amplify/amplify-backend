@@ -1,7 +1,30 @@
 import { AmplifyFault } from '@aws-amplify/platform-core';
-import { Aspects, CfnElement, IAspect, Stack } from 'aws-cdk-lib';
+import { Aspects, CfnElement, IAspect, Stack, StackProps } from 'aws-cdk-lib';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { Construct, IConstruct } from 'constructs';
+
+/**
+ * Props for root CDK Stack
+ * @see {@link https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.StackProps.html | AWS documentation for aws-cdk-lib.StackProps}
+ *
+ * Props are picked to ensure explicit addition of new StackProps is required.
+ * Props incompatible with Amplify's intended Stack hierarchy, build or deployment processes should always be ommited:
+ * - stackName: Conflicts with dynamic resource naming.
+ * - synthesizer: Conflicts with managed deployments and resource references.
+ * - terminationProtection: Conflicts with sandbox/app delete.
+ * - permissionsBoundary: Conflicts with single root Stack ethos (i.e. Unable to create Role prior to `defineBackend`).
+ *
+ * Props are passed down from `defineBackend`:
+ * @example <caption>Set explicit region (e.g. for `new cloudfront.experimental.EdgeFunction`)</caption>
+ * ```
+ * defineBackend({}, {
+ *   env:
+ *     region: 'us-east-1' // Any valid AWS region
+ *   }
+ * })
+ * ```
+ */
+export type MainStackProps = Pick<StackProps, 'env' | 'crossRegionReferences'>;
 
 /**
  * Amplify-specific Stack implementation to handle cross-cutting concerns for all Amplify stacks
@@ -10,8 +33,8 @@ export class AmplifyStack extends Stack {
   /**
    * Default constructor
    */
-  constructor(scope: Construct, id: string) {
-    super(scope, id);
+  constructor(scope: Construct, id: string, props?: MainStackProps) {
+    super(scope, id, props);
     Aspects.of(this).add(new CognitoRoleTrustPolicyValidator());
   }
   /**
