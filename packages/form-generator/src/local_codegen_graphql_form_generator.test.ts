@@ -72,11 +72,31 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       );
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
-      const writeFileMock = mock.fn();
+      const writeFileMock = mock.fn(async (...args) => {
+        if (args) return;
+      });
       fsMock.mock.mockImplementation(async () => ({
-        writeFile: writeFileMock,
-        stat: async () => ({}),
+        appendFile: mock.fn(),
+        chmod: mock.fn(),
+        chown: mock.fn(),
         close: async () => undefined,
+        createReadStream: mock.fn(),
+        createWriteStream: mock.fn(),
+        datasync: mock.fn(),
+        fd: 0,
+        read: mock.fn(),
+        readableWebStream: mock.fn(),
+        readFile: mock.fn(),
+        readLines: mock.fn(),
+        readv: mock.fn(),
+        stat: mock.fn(),
+        sync: mock.fn(),
+        truncate: mock.fn(),
+        utimes: mock.fn(),
+        write: mock.fn(),
+        writeFile: writeFileMock,
+        writev: mock.fn(),
+        [Symbol.asyncDispose]: mock.fn(),
       }));
       const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
@@ -121,9 +141,27 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
       fsMock.mock.mockImplementation(async () => ({
-        writeFile: async () => undefined,
-        stat: async () => ({}),
+        appendFile: mock.fn(),
+        chmod: mock.fn(),
+        chown: mock.fn(),
         close: async () => undefined,
+        createReadStream: mock.fn(),
+        createWriteStream: mock.fn(),
+        datasync: mock.fn(),
+        fd: 0,
+        read: mock.fn(),
+        readableWebStream: mock.fn(),
+        readFile: mock.fn(),
+        readLines: mock.fn(),
+        readv: mock.fn(),
+        stat: mock.fn(),
+        sync: mock.fn(),
+        truncate: mock.fn(),
+        utimes: mock.fn(),
+        write: mock.fn(),
+        writeFile: async () => undefined,
+        writev: mock.fn(),
+        [Symbol.asyncDispose]: mock.fn(),
       }));
       const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
@@ -161,9 +199,27 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
       fsMock.mock.mockImplementation(async () => ({
-        writeFile: async () => undefined,
-        stat: async () => ({}),
+        appendFile: mock.fn(),
+        chmod: mock.fn(),
+        chown: mock.fn(),
         close: async () => undefined,
+        createReadStream: mock.fn(),
+        createWriteStream: mock.fn(),
+        datasync: mock.fn(),
+        fd: 0,
+        read: mock.fn(),
+        readableWebStream: mock.fn(),
+        readFile: mock.fn(),
+        readLines: mock.fn(),
+        readv: mock.fn(),
+        stat: mock.fn(),
+        sync: mock.fn(),
+        truncate: mock.fn(),
+        utimes: mock.fn(),
+        write: mock.fn(),
+        writeFile: async () => undefined,
+        writev: mock.fn(),
+        [Symbol.asyncDispose]: mock.fn(),
       }));
       const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
@@ -194,9 +250,27 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
       fsMock.mock.mockImplementation(async () => ({
-        writeFile: async () => undefined,
-        stat: async () => ({}),
+        appendFile: mock.fn(),
+        chmod: mock.fn(),
+        chown: mock.fn(),
         close: async () => undefined,
+        createReadStream: mock.fn(),
+        createWriteStream: mock.fn(),
+        datasync: mock.fn(),
+        fd: 0,
+        read: mock.fn(),
+        readableWebStream: mock.fn(),
+        readFile: mock.fn(),
+        readLines: mock.fn(),
+        readv: mock.fn(),
+        stat: mock.fn(),
+        sync: mock.fn(),
+        truncate: mock.fn(),
+        utimes: mock.fn(),
+        write: mock.fn(),
+        writeFile: async () => undefined,
+        writev: mock.fn(),
+        [Symbol.asyncDispose]: mock.fn(),
       }));
       await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
@@ -221,9 +295,27 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const output = await l.generateForms({ models: [] });
       const fsMock = mock.method(fs, 'open');
       fsMock.mock.mockImplementation(async () => ({
-        writeFile: async () => undefined,
-        stat: async () => ({}),
+        appendFile: mock.fn(),
+        chmod: mock.fn(),
+        chown: mock.fn(),
         close: async () => undefined,
+        createReadStream: mock.fn(),
+        createWriteStream: mock.fn(),
+        datasync: mock.fn(),
+        fd: 0,
+        read: mock.fn(),
+        readableWebStream: mock.fn(),
+        readFile: mock.fn(),
+        readLines: mock.fn(),
+        readv: mock.fn(),
+        stat: mock.fn(),
+        sync: mock.fn(),
+        truncate: mock.fn(),
+        utimes: mock.fn(),
+        write: mock.fn(),
+        writeFile: async () => undefined,
+        writev: mock.fn(),
+        [Symbol.asyncDispose]: mock.fn(),
       }));
       await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
@@ -248,9 +340,27 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const output = await l.generateForms({ models });
       const fsMock = mock.method(fs, 'open');
       fsMock.mock.mockImplementation(async () => ({
-        writeFile: async () => undefined,
-        stat: async () => ({}),
+        appendFile: mock.fn(),
+        chmod: mock.fn(),
+        chown: mock.fn(),
         close: async () => undefined,
+        createReadStream: mock.fn(),
+        createWriteStream: mock.fn(),
+        datasync: mock.fn(),
+        fd: 0,
+        read: mock.fn(),
+        readableWebStream: mock.fn(),
+        readFile: mock.fn(),
+        readLines: mock.fn(),
+        readv: mock.fn(),
+        stat: mock.fn(),
+        sync: mock.fn(),
+        truncate: mock.fn(),
+        utimes: mock.fn(),
+        write: mock.fn(),
+        writeFile: async () => undefined,
+        writev: mock.fn(),
+        [Symbol.asyncDispose]: mock.fn(),
       }));
       await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
@@ -274,9 +384,27 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const output = await l.generateForms({ models: ['Author'] });
       const fsMock = mock.method(fs, 'open');
       fsMock.mock.mockImplementation(async () => ({
-        writeFile: async () => undefined,
-        stat: async () => ({}),
+        appendFile: mock.fn(),
+        chmod: mock.fn(),
+        chown: mock.fn(),
         close: async () => undefined,
+        createReadStream: mock.fn(),
+        createWriteStream: mock.fn(),
+        datasync: mock.fn(),
+        fd: 0,
+        read: mock.fn(),
+        readableWebStream: mock.fn(),
+        readFile: mock.fn(),
+        readLines: mock.fn(),
+        readv: mock.fn(),
+        stat: mock.fn(),
+        sync: mock.fn(),
+        truncate: mock.fn(),
+        utimes: mock.fn(),
+        write: mock.fn(),
+        writeFile: async () => undefined,
+        writev: mock.fn(),
+        [Symbol.asyncDispose]: mock.fn(),
       }));
       await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) =>
@@ -309,8 +437,9 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
     const schema = createMockSchema(['Post']);
     assert('id' in schema.models.Post.fields);
     const resultGenerationSpy = mock.fn<ResultBuilder>();
+    const generateGraphqlToFileResult = { filesWritten: [''] };
     resultGenerationSpy.mock.mockImplementation(() => ({
-      writeToDirectory: async () => undefined,
+      writeToDirectory: async () => generateGraphqlToFileResult,
     }));
     const l = new LocalGraphqlFormGenerator(
       async () => schema as unknown as GenericDataSchema,
@@ -333,8 +462,9 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
     assert('createdAt' in schema.models.Post.fields);
     assert('updatedAt' in schema.models.Post.fields);
     const resultGenerationSpy = mock.fn<ResultBuilder>();
+    const generateGraphqlToFileResult = { filesWritten: [''] };
     resultGenerationSpy.mock.mockImplementation(() => ({
-      writeToDirectory: async () => undefined,
+      writeToDirectory: async () => generateGraphqlToFileResult,
     }));
     const l = new LocalGraphqlFormGenerator(
       async () => schema as unknown as GenericDataSchema,
@@ -358,8 +488,9 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const schema = createMockSchema(['Post']);
 
       const resultGenerationSpy = mock.fn<ResultBuilder>();
+      const generateGraphqlToFileResult = { filesWritten: [''] };
       resultGenerationSpy.mock.mockImplementation(() => ({
-        writeToDirectory: async () => undefined,
+        writeToDirectory: async () => generateGraphqlToFileResult,
       }));
       const l = new LocalGraphqlFormGenerator(
         async () => schema as unknown as GenericDataSchema,
