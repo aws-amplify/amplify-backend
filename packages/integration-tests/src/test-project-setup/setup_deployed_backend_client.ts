@@ -16,7 +16,9 @@ export const setupDeployedBackendClient = async (
   await fs.copyFile(
     path.join(
       process.cwd(),
-      'packages/integration-tests/lib',
+      'packages',
+      'integration-tests',
+      'lib',
       'verify_outputs.js'
     ),
     path.join(projectRootDirPath, 'verify_outputs.js')
