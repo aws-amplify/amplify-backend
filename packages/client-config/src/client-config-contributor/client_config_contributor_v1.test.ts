@@ -129,7 +129,7 @@ void describe('auth client config contributor v1', () => {
             oauthRedirectSignIn: 'http://callback.com,http://callback2.com',
             oauthRedirectSignOut: 'http://logout.com,http://logout2.com',
             oauthResponseType: 'code',
-            socialProviders: `["GOOGLE","FACEBOOK"]`,
+            socialProviders: `["GOOGLE","FACEBOOK","SIGN_IN_WITH_APPLE","LOGIN_WITH_AMAZON","GITHUB","DISCORD"]`,
           },
         },
       }),
@@ -152,7 +152,12 @@ void describe('auth client config contributor v1', () => {
           username_attributes: ['email'],
           user_verification_types: ['email', 'phone_number'],
           oauth: {
-            identity_providers: ['GOOGLE', 'FACEBOOK'],
+            identity_providers: [
+              'GOOGLE',
+              'FACEBOOK',
+              'SIGN_IN_WITH_APPLE',
+              'LOGIN_WITH_AMAZON',
+            ], //Only first class supported idp providers
             domain: 'testDomain',
             scopes: ['email', 'profile'],
             redirect_sign_in_uri: [
@@ -228,6 +233,98 @@ void describe('auth client config contributor v1', () => {
         },
       } as Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs>
     );
+  });
+
+  void describe('auth outputs with mfa', () => {
+    const contribution = {
+      version: '1' as const,
+      payload: {
+        identityPoolId: 'testIdentityPoolId',
+        userPoolId: 'testUserPoolId',
+        webClientId: 'testWebClientId',
+        authRegion: 'testRegion',
+        passwordPolicyMinLength: '15',
+        passwordPolicyRequirements:
+          '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
+        mfaTypes: '["SMS","TOTP"]',
+        mfaConfiguration: 'OPTIONAL',
+        verificationMechanisms: '["email","phone_number"]',
+        usernameAttributes: '["email"]',
+        signupAttributes: '["email"]',
+        allowUnauthenticatedIdentities: 'true',
+        oauthClientId: 'testWebClientId', // same as webClientId
+        oauthCognitoDomain: 'testDomain',
+        oauthScope: '["email","profile"]',
+        oauthRedirectSignIn: 'http://callback.com,http://callback2.com',
+        oauthRedirectSignOut: 'http://logout.com,http://logout2.com',
+        oauthResponseType: 'code',
+      },
+    };
+
+    const expected = {
+      auth: {
+        user_pool_id: 'testUserPoolId',
+        user_pool_client_id: 'testWebClientId',
+        aws_region: 'testRegion',
+        identity_pool_id: 'testIdentityPoolId',
+        unauthenticated_identities_enabled: true,
+        mfa_configuration: 'OPTIONAL',
+        mfa_methods: ['SMS', 'TOTP'],
+        password_policy: {
+          require_lowercase: true,
+          require_numbers: true,
+          require_uppercase: true,
+          min_length: 15,
+        },
+        standard_required_attributes: ['email'],
+        username_attributes: ['email'],
+        user_verification_types: ['email', 'phone_number'],
+        oauth: {
+          identity_providers: [],
+          domain: 'testDomain',
+          scopes: ['email', 'profile'],
+          redirect_sign_in_uri: ['http://callback.com', 'http://callback2.com'],
+          redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
+          response_type: 'code',
+        },
+      },
+    } as Pick<clientConfigTypesV1.AWSAmplifyBackendOutputs, 'auth'>;
+
+    void it('returns translated config when mfa is disabled', () => {
+      const contributor = new AuthClientConfigContributor();
+
+      contribution.payload.mfaConfiguration = 'OFF';
+      expected.auth!.mfa_configuration = 'NONE';
+
+      assert.deepStrictEqual(
+        contributor.contribute({ [authOutputKey]: contribution }),
+        expected
+      );
+    });
+
+    void it('returns translated config when mfa is optional', () => {
+      const contributor = new AuthClientConfigContributor();
+
+      contribution.payload.mfaConfiguration = 'OPTIONAL';
+      expected.auth!.mfa_configuration = 'OPTIONAL';
+
+      assert.deepStrictEqual(
+        contributor.contribute({ [authOutputKey]: contribution }),
+        expected
+      );
+    });
+
+    void it('returns translated config when mfa is required', () => {
+      const contributor = new AuthClientConfigContributor();
+
+      contribution.payload.mfaConfiguration = 'ON';
+      expected.auth!.mfa_configuration = 'REQUIRED';
+
+      assert.deepStrictEqual(
+        contributor.contribute({ [authOutputKey]: contribution }),
+        expected
+      );
+    });
   });
 });
 

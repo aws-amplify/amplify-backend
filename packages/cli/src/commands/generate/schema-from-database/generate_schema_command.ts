@@ -17,6 +17,7 @@ type GenerateSchemaCommandOptionsCamelCase = {
   branch: string | undefined;
   out: string | undefined;
   connectionUriSecret: string | undefined;
+  sslCertSecret: string | undefined;
 };
 
 /**
@@ -63,21 +64,38 @@ export class GenerateSchemaCommand
       });
     }
 
-    const secretName = args.connectionUriSecret as string;
+    const connectionUriSecretName = args.connectionUriSecret as string;
     const outputFile = args.out as string;
 
     const connectionUriSecret = await this.secretClient.getSecret(
       backendIdentifier as BackendIdentifier,
       {
-        name: secretName,
+        name: connectionUriSecretName,
       }
     );
 
+    const sslCertSecretName = args.sslCertSecret as string;
+    let sslCertSecret;
+    if (sslCertSecretName) {
+      sslCertSecret = await this.secretClient.getSecret(
+        backendIdentifier as BackendIdentifier,
+        {
+          name: sslCertSecretName,
+        }
+      );
+    }
+
     await this.schemaGenerator.generate({
       connectionUri: {
-        secretName,
+        secretName: connectionUriSecretName,
         value: connectionUriSecret.value,
       },
+      ...(sslCertSecret && {
+        sslCert: {
+          secretName: sslCertSecretName,
+          value: sslCertSecret.value,
+        },
+      }),
       out: outputFile,
     });
   };
@@ -123,6 +141,13 @@ export class GenerateSchemaCommand
         array: false,
         group: 'Schema Generation',
         demandOption: true,
+      })
+      .option('ssl-cert-secret', {
+        describe: 'Amplify secret name for the ssl certificate',
+        type: 'string',
+        array: false,
+        group: 'Schema Generation',
+        demandOption: false,
       });
   };
 }

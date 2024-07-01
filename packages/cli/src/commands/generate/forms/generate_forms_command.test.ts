@@ -44,10 +44,13 @@ void describe('generate forms command', () => {
         .method(fakedBackendOutputClient, 'getOutput')
         .mock.mockImplementation(async () => ({
           [graphqlOutputKey]: {
+            version: '1',
             payload: {
+              awsAppsyncRegion: 'us-west-1',
+              awsAppsyncApiEndpoint: 'test_endpoint',
+              awsAppsyncAuthenticationType: 'API_KEY',
               awsAppsyncApiId: 'test_api_id',
               amplifyApiModelSchemaS3Uri: 'test_schema',
-              awsAppsyncApiEndpoint: 'test_endpoint',
             },
           },
         }));
@@ -88,10 +91,13 @@ void describe('generate forms command', () => {
         .method(fakedBackendOutputClient, 'getOutput')
         .mock.mockImplementation(async () => ({
           [graphqlOutputKey]: {
+            version: '1',
             payload: {
+              awsAppsyncRegion: 'us-west-1',
+              awsAppsyncApiEndpoint: 'test_endpoint',
+              awsAppsyncAuthenticationType: 'API_KEY',
               awsAppsyncApiId: 'test_api_id',
               amplifyApiModelSchemaS3Uri: 'test_schema',
-              awsAppsyncApiEndpoint: 'test_endpoint',
             },
           },
         }));
@@ -132,10 +138,13 @@ void describe('generate forms command', () => {
         .method(fakedBackendOutputClient, 'getOutput')
         .mock.mockImplementation(async () => ({
           [graphqlOutputKey]: {
+            version: '1',
             payload: {
+              awsAppsyncRegion: 'us-west-1',
+              awsAppsyncApiEndpoint: 'test_endpoint',
+              awsAppsyncAuthenticationType: 'API_KEY',
               awsAppsyncApiId: 'test_api_id',
               amplifyApiModelSchemaS3Uri: 'test_schema',
-              awsAppsyncApiEndpoint: 'test_endpoint',
             },
           },
         }));
@@ -164,7 +173,13 @@ void describe('generate forms command', () => {
     const fakeSandboxId = 'my-fake-app-my-fake-username';
 
     const sandboxIdResolver = mock.method(mockedSandboxIdResolver, 'resolve');
-    sandboxIdResolver.mock.mockImplementation(() => fakeSandboxId);
+    sandboxIdResolver.mock.mockImplementation(() =>
+      Promise.resolve({
+        namespace: fakeSandboxId,
+        name: fakeSandboxId,
+        type: 'sandbox',
+      })
+    );
 
     const backendIdResolver = new BackendIdentifierResolverWithFallback(
       defaultResolver,
@@ -189,10 +204,13 @@ void describe('generate forms command', () => {
       .method(fakedBackendOutputClient, 'getOutput')
       .mock.mockImplementation(async () => ({
         [graphqlOutputKey]: {
+          version: '1',
           payload: {
+            awsAppsyncRegion: 'us-west-1',
+            awsAppsyncApiEndpoint: 'test_endpoint',
+            awsAppsyncAuthenticationType: 'API_KEY',
             awsAppsyncApiId: 'test_api_id',
             amplifyApiModelSchemaS3Uri: 'test_schema',
-            awsAppsyncApiEndpoint: 'test_endpoint',
           },
         },
       }));
@@ -203,7 +221,11 @@ void describe('generate forms command', () => {
     await commandRunner.runCommand('forms');
     assert.deepEqual(
       generationMock.mock.calls[0].arguments[0].backendIdentifier,
-      fakeSandboxId
+      {
+        namespace: fakeSandboxId,
+        name: fakeSandboxId,
+        type: 'sandbox',
+      }
     );
   });
 });

@@ -3,6 +3,7 @@ import { SecretClient } from '@aws-amplify/backend-secret';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SandboxCommandGlobalOptions } from '../option_types.js';
+import { printer } from '@aws-amplify/cli-core';
 
 /**
  * Command to remove sandbox secret.
@@ -44,6 +45,8 @@ export class SandboxSecretRemoveCommand
       sandboxBackendIdentifier,
       args.secretName
     );
+
+    printer.print(`Successfully removed secret ${args.secretName}`);
   };
 
   /**

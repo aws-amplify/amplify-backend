@@ -10,7 +10,7 @@ import {
 } from '../config/local_configuration_controller_factory';
 
 void describe('UsageDataEmitterFactory', () => {
-  const configControllerGet = mock.fn();
+  const configControllerGet = mock.fn((value?: boolean) => value);
   const mockedConfigController: ConfigurationController = {
     get: configControllerGet,
   } as unknown as ConfigurationController;

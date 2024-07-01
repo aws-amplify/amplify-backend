@@ -346,6 +346,7 @@ class AmplifyFunction
           bundling: {
             format: OutputFormat.ESM,
             banner: bannerCode,
+            bundleAwsSDK: true,
             inject: shims,
             loader: {
               '.node': 'file',

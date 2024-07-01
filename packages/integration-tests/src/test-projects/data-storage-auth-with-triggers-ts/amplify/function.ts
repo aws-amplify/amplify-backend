@@ -39,3 +39,8 @@ export const funcWithSsm = defineFunction({
   name: 'funcWithSsm',
   entry: './func-src/handler_with_ssm.ts',
 });
+
+export const funcWithAwsSdk = defineFunction({
+  name: 'funcWithAwsSdk',
+  entry: './func-src/handler_with_aws_sdk.ts',
+});

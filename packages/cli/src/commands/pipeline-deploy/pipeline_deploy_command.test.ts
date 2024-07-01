@@ -20,6 +20,7 @@ import {
 } from '@aws-amplify/cli-core';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import {
+  ClientConfigFormat,
   ClientConfigVersionOption,
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
@@ -156,6 +157,7 @@ void describe('deploy command', () => {
       },
       DEFAULT_CLIENT_CONFIG_VERSION,
       'src',
+      undefined,
     ]);
   });
 
@@ -192,6 +194,44 @@ void describe('deploy command', () => {
       },
       ClientConfigVersionOption.V0,
       undefined,
+      undefined,
+    ]);
+  });
+
+  void it('allows --outputs-format argument', async () => {
+    const backendDeployerFactory = new BackendDeployerFactory(
+      packageManagerControllerFactory.getPackageManagerController(),
+      formatterStub
+    );
+    const mockDeploy = mock.method(
+      backendDeployerFactory.getInstance(),
+      'deploy',
+      () => Promise.resolve()
+    );
+    await getCommandRunner(true).runCommand(
+      'pipeline-deploy --app-id abc --branch test-branch --outputs-format dart'
+    );
+    assert.strictEqual(mockDeploy.mock.callCount(), 1);
+    assert.deepStrictEqual(mockDeploy.mock.calls[0].arguments, [
+      {
+        name: 'test-branch',
+        namespace: 'abc',
+        type: 'branch',
+      },
+      {
+        validateAppSources: true,
+      },
+    ]);
+    assert.equal(generateClientConfigMock.mock.callCount(), 1);
+    assert.deepStrictEqual(generateClientConfigMock.mock.calls[0].arguments, [
+      {
+        name: 'test-branch',
+        namespace: 'abc',
+        type: 'branch',
+      },
+      DEFAULT_CLIENT_CONFIG_VERSION,
+      undefined,
+      ClientConfigFormat.DART,
     ]);
   });
 });

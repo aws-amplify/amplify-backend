@@ -23,92 +23,89 @@ void describe('listDeployedResources', () => {
     arnGeneratorMock,
     arnParserMock
   );
-  const cfnClientSendMock = mock.fn();
   const mockCfnClient = new CloudFormation();
 
+  const mockRootStackResourcesPage1: StackResourceSummary[] = [
+    {
+      ResourceType: 'AWS::CloudFormation::Stack',
+      PhysicalResourceId:
+        'arn:aws:{service}:{region}:{account}:stack/apiStack/{additionalFields}',
+      LogicalResourceId:
+        'arn:aws:{service}:{region}:{account}:stack/apiStack/{additionalFields}',
+      ResourceStatus: 'CREATE_COMPLETE',
+      ResourceStatusReason: undefined,
+      LastUpdatedTimestamp: new Date(1),
+    },
+    {
+      ResourceType: 'AWS::CloudFormation::Stack',
+      PhysicalResourceId:
+        'arn:aws:{service}:{region}:{account}:stack/authStack/{additionalFields}',
+      LogicalResourceId:
+        'arn:aws:{service}:{region}:{account}:stack/authStack/{additionalFields}',
+      ResourceStatus: 'CREATE_COMPLETE',
+      ResourceStatusReason: undefined,
+      LastUpdatedTimestamp: new Date(1),
+    },
+  ];
+
+  const mockRootStackResourcesPage2: StackResourceSummary[] = [
+    {
+      ResourceType: 'AWS::IAM::Role',
+      PhysicalResourceId: 'rootStackIamRolePhysicalResourceId',
+      LogicalResourceId: 'rootStackIamRoleLogicalResourceId',
+      ResourceStatus: 'CREATE_COMPLETE',
+      ResourceStatusReason: undefined,
+      LastUpdatedTimestamp: new Date(1),
+    },
+  ];
+
+  const mockAuthStackResources: StackResourceSummary[] = [
+    {
+      ResourceType: 'AWS::Cognito::UserPool',
+      PhysicalResourceId: 'authStackUserPoolPhysicalResourceId',
+      LogicalResourceId: 'authStackUserPoolLogicalResourceId',
+      ResourceStatus: 'CREATE_COMPLETE',
+      ResourceStatusReason: undefined,
+      LastUpdatedTimestamp: new Date(1),
+    },
+  ];
+
+  const mockApiStackResources: StackResourceSummary[] = [
+    {
+      ResourceType: 'AWS::CloudFormation::Stack',
+      PhysicalResourceId:
+        'arn:aws:{service}:{region}:{account}:stack/apiStackSubStack/{additionalFields}',
+      LogicalResourceId:
+        'arn:aws:{service}:{region}:{account}:stack/apiStackSubStack/{additionalFields}',
+      ResourceStatus: 'CREATE_COMPLETE',
+      ResourceStatusReason: undefined,
+      LastUpdatedTimestamp: new Date(1),
+    },
+    {
+      ResourceType: 'AWS::Cognito::UserPool',
+      PhysicalResourceId: 'apiStackUserPoolPhysicalResourceId',
+      LogicalResourceId: 'apiStackUserPoolLogicalResourceId',
+      ResourceStatus: 'CREATE_COMPLETE',
+      ResourceStatusReason: undefined,
+      LastUpdatedTimestamp: new Date(1),
+    },
+  ];
+
+  const mockApiSubStackResources: StackResourceSummary[] = [
+    {
+      ResourceType: 'AWS::AppSync::API',
+      PhysicalResourceId: 'apiSubStackAppSyncPhysicalResourceId',
+      LogicalResourceId: 'apiSubStackAppSyncLogicalResourceId',
+      ResourceStatus: 'CREATE_COMPLETE',
+      ResourceStatusReason: undefined,
+      LastUpdatedTimestamp: new Date(1),
+    },
+  ];
+
   beforeEach(() => {
-    mock.method(mockCfnClient, 'send', cfnClientSendMock);
-  });
-
-  void it('Recursively fetches resources for all stacks', async () => {
-    const mockRootStackResourcesPage1: StackResourceSummary[] = [
-      {
-        ResourceType: 'AWS::CloudFormation::Stack',
-        PhysicalResourceId:
-          'arn:aws:{service}:{region}:{account}:stack/apiStack/{additionalFields}',
-        LogicalResourceId:
-          'arn:aws:{service}:{region}:{account}:stack/apiStack/{additionalFields}',
-        ResourceStatus: 'CREATE_COMPLETE',
-        ResourceStatusReason: undefined,
-        LastUpdatedTimestamp: new Date(1),
-      },
-      {
-        ResourceType: 'AWS::CloudFormation::Stack',
-        PhysicalResourceId:
-          'arn:aws:{service}:{region}:{account}:stack/authStack/{additionalFields}',
-        LogicalResourceId:
-          'arn:aws:{service}:{region}:{account}:stack/authStack/{additionalFields}',
-        ResourceStatus: 'CREATE_COMPLETE',
-        ResourceStatusReason: undefined,
-        LastUpdatedTimestamp: new Date(1),
-      },
-    ];
-
-    const mockRootStackResourcesPage2: StackResourceSummary[] = [
-      {
-        ResourceType: 'AWS::IAM::Role',
-        PhysicalResourceId: 'rootStackIamRolePhysicalResourceId',
-        LogicalResourceId: 'rootStackIamRoleLogicalResourceId',
-        ResourceStatus: 'CREATE_COMPLETE',
-        ResourceStatusReason: undefined,
-        LastUpdatedTimestamp: new Date(1),
-      },
-    ];
-
-    const mockAuthStackResources: StackResourceSummary[] = [
-      {
-        ResourceType: 'AWS::Cognito::UserPool',
-        PhysicalResourceId: 'authStackUserPoolPhysicalResourceId',
-        LogicalResourceId: 'authStackUserPoolLogicalResourceId',
-        ResourceStatus: 'CREATE_COMPLETE',
-        ResourceStatusReason: undefined,
-        LastUpdatedTimestamp: new Date(1),
-      },
-    ];
-
-    const mockApiStackResources: StackResourceSummary[] = [
-      {
-        ResourceType: 'AWS::CloudFormation::Stack',
-        PhysicalResourceId:
-          'arn:aws:{service}:{region}:{account}:stack/apiStackSubStack/{additionalFields}',
-        LogicalResourceId:
-          'arn:aws:{service}:{region}:{account}:stack/apiStackSubStack/{additionalFields}',
-        ResourceStatus: 'CREATE_COMPLETE',
-        ResourceStatusReason: undefined,
-        LastUpdatedTimestamp: new Date(1),
-      },
-      {
-        ResourceType: 'AWS::Cognito::UserPool',
-        PhysicalResourceId: 'apiStackUserPoolPhysicalResourceId',
-        LogicalResourceId: 'apiStackUserPoolLogicalResourceId',
-        ResourceStatus: 'CREATE_COMPLETE',
-        ResourceStatusReason: undefined,
-        LastUpdatedTimestamp: new Date(1),
-      },
-    ];
-
-    const mockApiSubStackResources: StackResourceSummary[] = [
-      {
-        ResourceType: 'AWS::AppSync::API',
-        PhysicalResourceId: 'apiSubStackAppSyncPhysicalResourceId',
-        LogicalResourceId: 'apiSubStackAppSyncLogicalResourceId',
-        ResourceStatus: 'CREATE_COMPLETE',
-        ResourceStatusReason: undefined,
-        LastUpdatedTimestamp: new Date(1),
-      },
-    ];
-
-    cfnClientSendMock.mock.mockImplementation(
+    mock.method(
+      mockCfnClient,
+      'send',
       (listStackResourcesCommand: ListStackResourcesCommand) => {
         switch (listStackResourcesCommand.input.StackName) {
           case 'testRootStack': {
@@ -136,6 +133,9 @@ void describe('listDeployedResources', () => {
         }
       }
     );
+  });
+
+  void it('Recursively fetches resources for all stacks', async () => {
     const deployedResources =
       await deployedResourcesEnumerator.listDeployedResources(
         mockCfnClient,

@@ -42,8 +42,7 @@ void describe('generate graphql-client-code command', () => {
   const defaultResolver = new AppBackendIdentifierResolver(namespaceResolver);
   const sandboxIdResolver = new SandboxBackendIdResolver(namespaceResolver);
   const fakeSandboxId = 'my-fake-app-my-fake-username';
-  const mockedSandboxIdResolver = mock.method(sandboxIdResolver, 'resolve');
-  mockedSandboxIdResolver.mock.mockImplementation(() => ({
+  mock.method(sandboxIdResolver, 'resolve', () => ({
     name: fakeSandboxId,
   }));
 
@@ -162,22 +161,6 @@ void describe('generate graphql-client-code command', () => {
     assert.match(output, /--type-target/);
     assert.match(output, /--model-target/);
     assert.match(output, /--out/);
-    assert.match(output, /--all/);
-  });
-
-  void it('shows all available options in help output', async () => {
-    const output = await commandRunner.runCommand(
-      'graphql-client-code --help --all'
-    );
-    assert.match(output, /--stack/);
-    assert.match(output, /--app-id/);
-    assert.match(output, /--branch/);
-    assert.match(output, /--format/);
-    assert.match(output, /--statement-target/);
-    assert.match(output, /--type-target/);
-    assert.match(output, /--model-target/);
-    assert.match(output, /--out/);
-    assert.match(output, /--all/);
     assert.match(output, /--model-generate-index-rules/);
     assert.match(output, /--model-emit-auth-provider/);
     assert.match(output, /--model-add-timestamp-fields/);

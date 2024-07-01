@@ -75,7 +75,7 @@ export type StorageActionBuilder = {
    * Specify which actions an entity will be able to perform on objects in the S3 bucket.
    *
    * 'read' is mutually exclusive with 'get' and 'list'
-   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#available-actions
+   * @see https://docs.amplify.aws/gen2/build-a-backend/storage/authorization/#available-actions
    * @param actions A list of allowed actions
    */
   to: (

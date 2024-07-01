@@ -7,6 +7,10 @@ export type SchemaGeneratorConfig = {
     secretName: string;
     value: string;
   };
+  sslCert?: {
+    secretName: string;
+    value: string;
+  };
   out: string;
 };
 
@@ -25,6 +29,11 @@ export class SchemaGenerator {
       const schema = await TypescriptDataSchemaGenerator.generate({
         ...dbConfig,
         connectionUriSecretName: props.connectionUri.secretName,
+        ...(props.sslCert &&
+          props.sslCert.secretName && {
+            sslCertificateSecretName: props.sslCert.secretName,
+            sslCertificate: props.sslCert.value,
+          }),
       });
       await fs.writeFile(props.out, schema);
     } catch (err) {

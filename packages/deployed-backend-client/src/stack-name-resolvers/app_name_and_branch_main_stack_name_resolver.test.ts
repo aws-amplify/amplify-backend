@@ -8,7 +8,11 @@ import assert from 'node:assert';
 
 void describe('AppNameAndBranchMainStackNameResolver', () => {
   const amplifyClientMock = new AmplifyClient({ region: 'test-region' });
-  const amplifyClientSendMock = mock.fn();
+  const amplifyClientSendMock = mock.fn(() =>
+    Promise.resolve({
+      apps: [{}],
+    })
+  );
   mock.method(amplifyClientMock, 'send', amplifyClientSendMock);
 
   const appNameAndBranch: AppNameAndBranchBackendIdentifier = {

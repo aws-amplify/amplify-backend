@@ -5,6 +5,7 @@ import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
+import { printer } from '@aws-amplify/cli-core';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
@@ -17,6 +18,7 @@ void describe('sandbox secret remove command', () => {
     'removeSecret',
     (): Promise<void> => Promise.resolve()
   );
+  const printMock = mock.method(printer, 'print');
 
   const sandboxIdResolver: SandboxBackendIdResolver = {
     resolve: (identifier?: string) =>
@@ -40,6 +42,7 @@ void describe('sandbox secret remove command', () => {
 
   beforeEach(async () => {
     secretRemoveMock.mock.resetCalls();
+    printMock.mock.resetCalls();
   });
 
   void it('remove a secret', async () => {
@@ -53,6 +56,10 @@ void describe('sandbox secret remove command', () => {
       },
       testSecretName,
     ]);
+    assert.equal(
+      printMock.mock.calls[0].arguments,
+      `Successfully removed secret ${testSecretName}`
+    );
   });
 
   void it('removes secret from named sandbox', async () => {

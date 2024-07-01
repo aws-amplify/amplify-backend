@@ -1,5 +1,20 @@
 # @aws-amplify/backend-auth
 
+## 1.1.0
+
+### Minor Changes
+
+- 1f4c6e0: add: listUsers and listUsersInGroup actions to iamAction
+
+### Patch Changes
+
+- 4ec7cd8: Expose individual iam actions for ManageGroups so they can be used in auth access.
+- 0200d11: Bump baseline CDK version to 2.132.0 to support AWS SDK bundling
+- Updated dependencies [0200d11]
+  - @aws-amplify/backend-output-storage@1.0.2
+  - @aws-amplify/auth-construct@1.1.5
+  - @aws-amplify/plugin-types@1.0.1
+
 ## 1.0.2
 
 ### Patch Changes

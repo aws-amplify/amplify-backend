@@ -1,5 +1,22 @@
 # @aws-amplify/auth-construct
 
+## 1.1.5
+
+### Patch Changes
+
+- 0200d11: Bump baseline CDK version to 2.132.0 to support AWS SDK bundling
+- Updated dependencies [0200d11]
+  - @aws-amplify/backend-output-storage@1.0.2
+  - @aws-amplify/plugin-types@1.0.1
+
+## 1.1.4
+
+### Patch Changes
+
+- ca9d68d: Update auth construct to use cfn resources for outputs instead of using input properties.
+- ca9d68d: When retrieving stack outputs, if a stack output is undefined and emptry string will be used to construct the output.
+- ca9d68d: Auth outputs now update if properties are modified via overrides.
+
 ## 1.1.3
 
 ### Patch Changes

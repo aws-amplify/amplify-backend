@@ -33,8 +33,7 @@ void describe('generate outputs command', () => {
 
   const sandboxIdResolver = new SandboxBackendIdResolver(namespaceResolver);
   const fakeSandboxId = 'my-fake-app-my-fake-username';
-  const mockedSandboxIdResolver = mock.method(sandboxIdResolver, 'resolve');
-  mockedSandboxIdResolver.mock.mockImplementation(() => fakeSandboxId);
+  mock.method(sandboxIdResolver, 'resolve', () => fakeSandboxId);
 
   const backendIdResolver = new BackendIdentifierResolverWithFallback(
     defaultResolver,

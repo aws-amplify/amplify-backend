@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 1.0.1
+
+### Patch Changes
+
+- 0200d11: Bump baseline CDK version to 2.132.0 to support AWS SDK bundling
+- Updated dependencies [0200d11]
+  - @aws-amplify/plugin-types@1.0.1
+
 ## 1.0.0
 
 ### Major Changes

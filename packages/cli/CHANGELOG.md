@@ -1,5 +1,29 @@
 # @aws-amplify/backend-cli
 
+## 1.1.0
+
+### Minor Changes
+
+- 0ba7450: add possibility to specify output format in pipeline-deploy command
+- 15aaab7: Add custom SSL certificate support to generate SQL schema command.
+- e684646: Add support to input secret value using redirection
+
+### Patch Changes
+
+- c93357c: Fixed the issue where an error message is printed twice
+- 67da33d: chore: add success messaging when setting and removing sandbox secrets
+- cd9808a: Show all options in output of `generate graphql-client-code --help`
+- 122fc0d: fix error message formatting when amplify outputs cannot be generated
+- Updated dependencies [8968cf4]
+- Updated dependencies [4b249ed]
+- Updated dependencies [15aaab7]
+- Updated dependencies [0200d11]
+- Updated dependencies [20bf679]
+  - @aws-amplify/client-config@1.0.5
+  - @aws-amplify/schema-generator@1.1.0
+  - @aws-amplify/backend-deployer@1.0.1
+  - @aws-amplify/sandbox@1.0.5
+
 ## 1.0.4
 
 ### Patch Changes

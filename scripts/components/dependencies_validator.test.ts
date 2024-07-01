@@ -7,7 +7,11 @@ import { fileURLToPath } from 'url';
 import { glob } from 'glob';
 
 void describe('Dependency validator', () => {
-  const execaMock = mock.fn();
+  const execaMock = mock.fn(() => {
+    return {
+      stdout: '',
+    } as unknown as ExecaChildProcess;
+  });
 
   before(async () => {
     const testNpmOutputFilePath = fileURLToPath(

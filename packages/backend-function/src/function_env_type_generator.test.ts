@@ -7,14 +7,9 @@ import { pathToFileURL } from 'url';
 
 void describe('FunctionEnvironmentTypeGenerator', () => {
   void it('generates a type definition file', () => {
-    const fdCloseMock = mock.fn();
     const fsOpenSyncMock = mock.method(fs, 'openSync');
     const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);
-    fsOpenSyncMock.mock.mockImplementation(() => {
-      return {
-        close: fdCloseMock,
-      };
-    });
+    fsOpenSyncMock.mock.mockImplementation(() => 0);
     const functionEnvironmentTypeGenerator =
       new FunctionEnvironmentTypeGenerator('testFunction');
     const sampleStaticEnv = '_HANDLER: string;';
@@ -37,14 +32,9 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
   });
 
   void it('generates a type definition file with Amplify backend environment variables', () => {
-    const fdCloseMock = mock.fn();
     const fsOpenSyncMock = mock.method(fs, 'openSync');
     const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);
-    fsOpenSyncMock.mock.mockImplementation(() => {
-      return {
-        close: fdCloseMock,
-      };
-    });
+    fsOpenSyncMock.mock.mockImplementation(() => 0);
     const functionEnvironmentTypeGenerator =
       new FunctionEnvironmentTypeGenerator('testFunction');
     const sampleStaticEnv = 'TEST_ENV: string;';

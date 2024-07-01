@@ -7,7 +7,7 @@ void describe('config controller', () => {
   const mockedFsReadFile = mock.method(fs, 'readFile');
   const mockedFsWriteFile = mock.method(fs, 'writeFile');
   const mockedFsOpen = mock.method(fs, 'open');
-  const mockedFdClose = mock.fn();
+  const mockedFdClose = mock.fn(async () => {});
 
   beforeEach(() => {
     mockedFsReadFile.mock.resetCalls();
@@ -19,11 +19,28 @@ void describe('config controller', () => {
   void it('if config has not been cached, read from fs', async () => {
     mockedFsOpen.mock.mockImplementationOnce(() => {
       return Promise.resolve({
+        appendFile: mock.fn(),
+        chmod: mock.fn(),
+        chown: mock.fn(),
         close: mockedFdClose,
+        createReadStream: mock.fn(),
+        createWriteStream: mock.fn(),
+        datasync: mock.fn(),
+        fd: 0,
+        read: mock.fn(),
+        readableWebStream: mock.fn(),
+        readFile: mock.fn(),
+        readLines: mock.fn(),
+        readv: mock.fn(),
+        stat: mock.fn(),
+        sync: mock.fn(),
+        truncate: mock.fn(),
+        utimes: mock.fn(),
+        write: mock.fn(),
+        writeFile: mock.fn(),
+        writev: mock.fn(),
+        [Symbol.asyncDispose]: mock.fn(),
       });
-    });
-    mockedFsReadFile.mock.mockImplementationOnce(function () {
-      return Promise.resolve('{"hello": 123}');
     });
     const controller = new LocalConfigurationController();
     const resolvedValue = await controller.get('hello.world');

@@ -61,8 +61,19 @@ export class ClientConfigLegacyConverter {
       }
 
       if (clientConfig.auth.mfa_configuration) {
-        authClientConfig.aws_cognito_mfa_configuration =
-          clientConfig.auth.mfa_configuration;
+        switch (clientConfig.auth.mfa_configuration) {
+          case 'NONE': {
+            authClientConfig.aws_cognito_mfa_configuration = 'OFF';
+            break;
+          }
+          case 'OPTIONAL': {
+            authClientConfig.aws_cognito_mfa_configuration = 'OPTIONAL';
+            break;
+          }
+          case 'REQUIRED': {
+            authClientConfig.aws_cognito_mfa_configuration = 'ON';
+          }
+        }
       }
 
       if (clientConfig.auth.standard_required_attributes) {

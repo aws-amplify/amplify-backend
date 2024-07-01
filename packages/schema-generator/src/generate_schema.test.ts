@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import { SchemaGenerator, parseDatabaseUrl } from './generate_schema.js';
 import assert from 'node:assert';
 import {
@@ -16,6 +16,11 @@ TypescriptDataSchemaGenerator.generate = mockGenerateMethod;
 
 const mockFsWriteFileSync = mock.method(fs, 'writeFile', () => null);
 
+beforeEach(() => {
+  mockGenerateMethod.mock.resetCalls();
+  mockFsWriteFileSync.mock.resetCalls();
+});
+
 void describe('SchemaGenerator', () => {
   void it('should generate schema', async () => {
     const schemaGenerator = new SchemaGenerator();
@@ -28,6 +33,45 @@ void describe('SchemaGenerator', () => {
     });
     assert.strictEqual(mockGenerateMethod.mock.calls.length, 1);
     assert.strictEqual(mockFsWriteFileSync.mock.calls.length, 1);
+    assert.strictEqual(mockGenerateMethod.mock.calls[0].arguments.length, 1);
+    assert.deepStrictEqual(mockGenerateMethod.mock.calls[0].arguments[0], {
+      engine: 'mysql',
+      username: 'user',
+      password: 'password',
+      database: 'db',
+      host: 'hostname',
+      port: 3306,
+      connectionUriSecretName: 'FAKE_SECRET_NAME',
+    });
+  });
+
+  void it('should generate schema with ssl certificate', async () => {
+    const schemaGenerator = new SchemaGenerator();
+    await schemaGenerator.generate({
+      connectionUri: {
+        secretName: 'FAKE_SECRET_NAME',
+        value: 'mysql://user:password@hostname:3306/db',
+      },
+      sslCert: {
+        secretName: 'FAKE_SSL_CERT_SECRET_NAME',
+        value: 'FAKE_SSL_CERT',
+      },
+      out: 'schema.ts',
+    });
+    assert.strictEqual(mockGenerateMethod.mock.calls.length, 1);
+    assert.strictEqual(mockFsWriteFileSync.mock.calls.length, 1);
+    assert.strictEqual(mockGenerateMethod.mock.calls[0].arguments.length, 1);
+    assert.deepStrictEqual(mockGenerateMethod.mock.calls[0].arguments[0], {
+      engine: 'mysql',
+      username: 'user',
+      password: 'password',
+      database: 'db',
+      host: 'hostname',
+      port: 3306,
+      connectionUriSecretName: 'FAKE_SECRET_NAME',
+      sslCertificateSecretName: 'FAKE_SSL_CERT_SECRET_NAME',
+      sslCertificate: 'FAKE_SSL_CERT',
+    });
   });
 
   void it('should parse database url correctly', async () => {

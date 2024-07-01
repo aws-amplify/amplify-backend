@@ -6,7 +6,7 @@ import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
-  'https://docs.amplify.aws/gen2/reference/telemetry';
+  'https://docs.amplify.aws/react/reference/telemetry';
 
 /**
  * Orchestration class that sets up a new Amplify project
@@ -106,7 +106,7 @@ export class AmplifyProjectCreator {
 
     printer.log(
       format.note(
-        `Amplify Gen 2 collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${format.normalizeAmpxCommand(
+        `Amplify collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${format.normalizeAmpxCommand(
           'configure telemetry disable'
         )}. To learn more about telemetry, visit ${format.link(
           LEARN_MORE_USAGE_DATA_TRACKING_LINK

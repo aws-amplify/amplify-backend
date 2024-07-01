@@ -95,11 +95,11 @@ export class StackMetadataBackendOutputRetrievalStrategy
     Object.entries(backendOutputMetadata).forEach(([outputKeyName, entry]) => {
       const outputData = entry.stackOutputs.reduce(
         (accumulator, outputName) => {
-          if (stackOutputRecord[outputName] === undefined) {
-            throw new BackendOutputClientError(
-              BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
-              `Output ${outputName} not found in stack`
-            );
+          if (
+            stackOutputRecord[outputName] === undefined ||
+            stackOutputRecord[outputName] === ''
+          ) {
+            return accumulator;
           }
           return {
             ...accumulator,

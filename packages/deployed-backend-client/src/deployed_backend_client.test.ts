@@ -23,6 +23,7 @@ import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnGenerator } from './deployed-backend-client/arn_generator.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
+import { BackendOutput } from '@aws-amplify/plugin-types';
 
 /* eslint-disable spellcheck/spell-checker */
 const validTestBranchName = 'amplify-test-testBranch-branch-5c6fa1ef9a';
@@ -99,23 +100,27 @@ const listStackResourcesMock = {
   ],
 };
 
-const getOutputMockResponse = {
+const getOutputMockResponse: BackendOutput = {
   [platformOutputKey]: {
+    version: '1',
     payload: {
       deploymentType: 'branch',
     },
   },
   [authOutputKey]: {
+    version: '1',
     payload: {
       userPoolId: 'testUserPoolId',
     },
   },
   [storageOutputKey]: {
+    version: '1',
     payload: {
       bucketName: 'testBucketName',
     },
   },
   [graphqlOutputKey]: {
+    version: '1',
     payload: {
       awsAppsyncApiEndpoint: 'testAwsAppsyncApiEndpoint',
       amplifyApiModelSchemaS3Uri: 's3://bucketName/model-schema.graphql',
@@ -123,6 +128,7 @@ const getOutputMockResponse = {
     },
   },
   [functionOutputKey]: {
+    version: '1',
     payload: {
       definedFunctions: JSON.stringify([
         function1PhysicalResourceId,
@@ -165,16 +171,8 @@ void describe('Deployed Backend Client', () => {
   );
   const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
   let deployedBackendClient: DefaultDeployedBackendClient;
-  const cfnClientSendMock = mock.fn();
-
-  beforeEach(() => {
-    getOutputMock.mock.resetCalls();
-    cfnClientSendMock.mock.resetCalls();
-    getOutputMock.mock.mockImplementation(() => {
-      return getOutputMockResponse;
-    });
-    mock.method(mockCfnClient, 'send', cfnClientSendMock);
-    const mockSend = (
+  const cfnClientSendMock = mock.fn(
+    (
       request:
         | DescribeStacksCommand
         | DeleteStackCommand
@@ -193,8 +191,16 @@ void describe('Deployed Backend Client', () => {
       if (request instanceof ListStackResourcesCommand)
         return listStackResourcesMock;
       throw request;
-    };
-    cfnClientSendMock.mock.mockImplementation(mockSend);
+    }
+  );
+
+  beforeEach(() => {
+    getOutputMock.mock.resetCalls();
+    cfnClientSendMock.mock.resetCalls();
+    getOutputMock.mock.mockImplementation(async () => {
+      return Promise.resolve(getOutputMockResponse);
+    });
+    mock.method(mockCfnClient, 'send', cfnClientSendMock);
 
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),

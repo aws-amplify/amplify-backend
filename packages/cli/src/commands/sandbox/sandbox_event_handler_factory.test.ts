@@ -174,12 +174,9 @@ void describe('sandbox_event_handler_factory', () => {
 
     assert.deepStrictEqual(
       printMock.mock.calls[0].arguments[0],
-      format.error('Amplify configuration could not be generated.')
-    );
-
-    assert.deepStrictEqual(
-      printMock.mock.calls[1].arguments[0],
-      format.error(new Error('test error message'))
+      `${format.error(
+        'Amplify outputs could not be generated.'
+      )} ${format.error(new Error('test error message'))}`
     );
 
     assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments, [
