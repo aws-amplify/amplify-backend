@@ -17,7 +17,7 @@ import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
-import { CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { CfnFunction, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { Policy } from 'aws-cdk-lib/aws-iam';
@@ -38,10 +38,12 @@ const functionStackType = 'function-Lambda';
  * Entry point for defining a function in the Amplify ecosystem
  */
 export const defineFunction = (
-  props: FunctionProps = {}
+  props: FunctionProps | ((scope: Construct) => IFunction) = {}
 ): ConstructFactory<
   ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
-> => new FunctionFactory(props, new Error().stack);
+> => {
+  return new FunctionFactory(props, new Error().stack);
+};
 
 export type FunctionProps = {
   /**
@@ -98,7 +100,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
    * Create a new AmplifyFunctionFactory
    */
   constructor(
-    private readonly props: FunctionProps,
+    private readonly props: FunctionProps | ((scope: Construct) => IFunction),
     private readonly callerStack?: string
   ) {}
 
@@ -113,7 +115,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),
-        outputStorageStrategy
+        outputStorageStrategy,
+        typeof this.props === 'function' ? this.props : undefined
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
@@ -129,7 +132,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
-      environment: this.props.environment ?? {},
+      environment:
+        typeof this.props === 'function' ? {} : this.props.environment ?? {},
       runtime: this.resolveRuntime(),
     };
   };
@@ -139,9 +143,12 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (this.props.name) {
       return this.props.name;
     }
-    // If entry is set, use the basename of the entry path
-    if (this.props.entry) {
-      return path.parse(this.props.entry).name;
+
+    if (typeof this.props != 'function') {
+      // If entry is set, use the basename of the entry path
+      if (this.props.entry) {
+        return path.parse(this.props.entry).name;
+      }
     }
 
     // Otherwise, use the directory name where the function is defined
@@ -149,76 +156,98 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveEntry = () => {
-    // if entry is not set, default to handler.ts
-    if (!this.props.entry) {
+    if (typeof this.props != 'function') {
+      // if entry is not set, default to handler.ts
+      if (!this.props.entry) {
+        return path.join(getCallerDirectory(this.callerStack), 'handler.ts');
+      }
+
+      // if entry is absolute use that
+      if (path.isAbsolute(this.props.entry)) {
+        return this.props.entry;
+      }
+
+      // if entry is relative, compute with respect to the caller directory
+      return path.join(getCallerDirectory(this.callerStack), this.props.entry);
+    } 
       return path.join(getCallerDirectory(this.callerStack), 'handler.ts');
-    }
-
-    // if entry is absolute use that
-    if (path.isAbsolute(this.props.entry)) {
-      return this.props.entry;
-    }
-
-    // if entry is relative, compute with respect to the caller directory
-    return path.join(getCallerDirectory(this.callerStack), this.props.entry);
+    
   };
 
   private resolveTimeout = () => {
     const timeoutMin = 1;
     const timeoutMax = 60 * 15; // 15 minutes in seconds
     const timeoutDefault = 3;
-    if (this.props.timeoutSeconds === undefined) {
-      return timeoutDefault;
-    }
+    if (typeof this.props != 'function') {
+      if (this.props.timeoutSeconds === undefined) {
+        return timeoutDefault;
+      }
 
-    if (
-      !isWholeNumberBetweenInclusive(
-        this.props.timeoutSeconds,
-        timeoutMin,
-        timeoutMax
-      )
-    ) {
-      throw new Error(
-        `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
-      );
-    }
-    return this.props.timeoutSeconds;
+      if (
+        !isWholeNumberBetweenInclusive(
+          this.props.timeoutSeconds,
+          timeoutMin,
+          timeoutMax
+        )
+      ) {
+        throw new Error(
+          `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
+        );
+      }
+
+      return this.props.timeoutSeconds;
+    } 
+      return timeoutDefault;
+    
   };
 
   private resolveMemory = () => {
     const memoryMin = 128;
     const memoryMax = 10240;
     const memoryDefault = 512;
-    if (this.props.memoryMB === undefined) {
+    if (typeof this.props != 'function') {
+      if (this.props.memoryMB === undefined) {
+        return memoryDefault;
+      }
+      if (
+        !isWholeNumberBetweenInclusive(
+          this.props.memoryMB,
+          memoryMin,
+          memoryMax
+        )
+      ) {
+        throw new Error(
+          `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
+        );
+      }
+
+      return this.props.memoryMB;
+    } 
       return memoryDefault;
-    }
-    if (
-      !isWholeNumberBetweenInclusive(this.props.memoryMB, memoryMin, memoryMax)
-    ) {
-      throw new Error(
-        `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
-      );
-    }
-    return this.props.memoryMB;
+    
   };
 
   private resolveRuntime = () => {
     const runtimeDefault = 18;
 
     // if runtime is not set, default to the oldest LTS
-    if (!this.props.runtime) {
+    if (typeof this.props != 'function') {
+      if (!this.props.runtime) {
+        return runtimeDefault;
+      }
+
+      if (!(this.props.runtime in nodeVersionMap)) {
+        throw new Error(
+          `runtime must be one of the following: ${Object.keys(
+            nodeVersionMap
+          ).join(', ')}`
+        );
+      }
+
+      return this.props.runtime;
+    } 
       return runtimeDefault;
-    }
-
-    if (!(this.props.runtime in nodeVersionMap)) {
-      throw new Error(
-        `runtime must be one of the following: ${Object.keys(
-          nodeVersionMap
-        ).join(', ')}`
-      );
-    }
-
-    return this.props.runtime;
+    
   };
 }
 
@@ -229,7 +258,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: HydratedFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    private readonly callback?: ((scope: Construct) => IFunction) | undefined
   ) {}
 
   generateContainerEntry = ({
@@ -239,9 +269,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     return new AmplifyFunction(
       scope,
       this.props.name,
-      this.props,
+      typeof this.props === 'function' ? this.props : this.props,
       backendSecretResolver,
-      this.outputStorageStrategy
+      this.outputStorageStrategy,
+      this.callback
     );
   };
 }
@@ -257,7 +288,8 @@ class AmplifyFunction
     id: string,
     props: HydratedFunctionProps,
     backendSecretResolver: BackendSecretResolver,
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    callback: ((scope: Construct) => IFunction) | undefined
   ) {
     super(scope, id);
 
@@ -289,30 +321,48 @@ class AmplifyFunction
       .map((line) => line.replace(/\/\/.*$/, '')) // strip out inline comments because the banner is going to be flattened into a single line
       .join('');
 
-    const functionEnvironmentTypeGenerator =
-      new FunctionEnvironmentTypeGenerator(id);
+    let functionEnvironmentTypeGenerator:
+      | FunctionEnvironmentTypeGenerator
+      | undefined;
 
-    // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
-    // This will be overwritten with the typed file at the end of synthesis
-    functionEnvironmentTypeGenerator.generateProcessEnvShim();
+    if (!callback) {
+      functionEnvironmentTypeGenerator = new FunctionEnvironmentTypeGenerator(
+        id
+      );
+
+      // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
+      // This will be overwritten with the typed file at the end of synthesis
+      functionEnvironmentTypeGenerator.generateProcessEnvShim();
+    }
 
     let functionLambda;
     try {
-      functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
-        entry: props.entry,
-        timeout: Duration.seconds(props.timeoutSeconds),
-        memorySize: props.memoryMB,
-        runtime: nodeVersionMap[props.runtime],
-        bundling: {
-          format: OutputFormat.ESM,
-          banner: bannerCode,
-          bundleAwsSDK: true,
-          inject: shims,
-          loader: {
-            '.node': 'file',
+      if (!callback) {
+        functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
+          entry: props.entry,
+          timeout: Duration.seconds(props.timeoutSeconds),
+          memorySize: props.memoryMB,
+          runtime: nodeVersionMap[props.runtime],
+          bundling: {
+            format: OutputFormat.ESM,
+            banner: bannerCode,
+            bundleAwsSDK: true,
+            inject: shims,
+            loader: {
+              '.node': 'file',
+            },
           },
-        },
-      });
+        });
+      } else {
+        functionLambda = callback(scope);
+      }
+
+      this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
+        functionLambda as NodejsFunction,
+        props.environment,
+        backendSecretResolver,
+        functionEnvironmentTypeGenerator
+      );
     } catch (error) {
       throw new AmplifyUserError(
         'NodeJSFunctionConstructInitializationError',
@@ -325,13 +375,6 @@ class AmplifyFunction
     }
 
     Tags.of(functionLambda).add(TagName.FRIENDLY_NAME, id);
-
-    this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
-      functionLambda,
-      props.environment,
-      backendSecretResolver,
-      functionEnvironmentTypeGenerator
-    );
 
     this.resources = {
       lambda: functionLambda,

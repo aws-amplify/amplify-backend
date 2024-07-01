@@ -28,7 +28,7 @@ export class FunctionEnvironmentTranslator {
     private readonly lambda: NodejsFunction, // we need to use a specific type here so that we have all the method goodies
     private readonly functionEnvironmentProp: Required<FunctionProps>['environment'],
     private readonly backendSecretResolver: BackendSecretResolver,
-    private readonly functionEnvironmentTypeGenerator: FunctionEnvironmentTypeGenerator
+    private readonly functionEnvironmentTypeGenerator?: FunctionEnvironmentTypeGenerator
   ) {
     for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
       if (key === this.amplifySsmEnvConfigKey) {
@@ -42,11 +42,15 @@ export class FunctionEnvironmentTranslator {
           resolution: `Ensure that all defineFunction environment variables are defined.`,
         });
       } else if (typeof value === 'string') {
-        this.lambda.addEnvironment(key, value);
+        if (functionEnvironmentTypeGenerator) {
+          this.lambda.addEnvironment(key, value);
+        }
       } else {
         const { branchSecretPath, sharedSecretPath } =
           this.backendSecretResolver.resolvePath(value);
-        this.lambda.addEnvironment(key, this.ssmValuePlaceholderText);
+        if (functionEnvironmentTypeGenerator) {
+          this.lambda.addEnvironment(key, this.ssmValuePlaceholderText);
+        }
         this.ssmEnvVars[branchSecretPath] = {
           name: key,
           sharedPath: sharedSecretPath,
@@ -57,12 +61,14 @@ export class FunctionEnvironmentTranslator {
     }
 
     // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
-    this.lambda.addEnvironment(
-      this.amplifySsmEnvConfigKey,
-      Lazy.string({
-        produce: () => JSON.stringify(this.ssmEnvVars),
-      })
-    );
+    if (functionEnvironmentTypeGenerator) {
+      this.lambda.addEnvironment(
+        this.amplifySsmEnvConfigKey,
+        Lazy.string({
+          produce: () => JSON.stringify(this.ssmEnvVars),
+        })
+      );
+    }
 
     this.lambda.node.addValidation({
       validate: () => {
@@ -93,9 +99,11 @@ export class FunctionEnvironmentTranslator {
     // Using CDK validation mechanism as a way to generate a typed process.env shim file at the end of synthesis
     this.lambda.node.addValidation({
       validate: (): string[] => {
-        this.functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(
-          this.amplifyBackendEnvVarNames
-        );
+        if (this.functionEnvironmentTypeGenerator) {
+          this.functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(
+            this.amplifyBackendEnvVarNames
+          );
+        }
         return [];
       },
     });
