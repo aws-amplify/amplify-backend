@@ -56,7 +56,7 @@ void describe('client config writer', () => {
     const format = ClientConfigFormat.MJS;
     const formattedContent = randomUUID().toString();
 
-    pathResolverMock.mock.mockImplementation(() => targetFile);
+    pathResolverMock.mock.mockImplementation(() => Promise.resolve(targetFile));
     nameResolverMock.mock.mockImplementation(
       () => ClientConfigFileBaseName.LEGACY
     );
@@ -102,7 +102,7 @@ void describe('client config writer', () => {
     const format = ClientConfigFormat.MJS;
     const formattedContent = randomUUID().toString();
 
-    pathResolverMock.mock.mockImplementation(() => targetFile);
+    pathResolverMock.mock.mockImplementation(() => Promise.resolve(targetFile));
     nameResolverMock.mock.mockImplementation(
       () => ClientConfigFileBaseName.DEFAULT
     );
@@ -147,7 +147,7 @@ void describe('client config writer', () => {
     const targetFile = '/foo/bar/baz';
     const formattedContent = randomUUID().toString();
 
-    pathResolverMock.mock.mockImplementation(() => targetFile);
+    pathResolverMock.mock.mockImplementation(() => Promise.resolve(targetFile));
     nameResolverMock.mock.mockImplementation(
       () => ClientConfigFileBaseName.DEFAULT
     );

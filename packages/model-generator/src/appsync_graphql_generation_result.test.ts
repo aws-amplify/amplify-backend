@@ -7,8 +7,8 @@ import assert from 'assert';
 void describe('AppsyncGraphqlDocumentGenerationResult', () => {
   void it('writes a map of files to disk', async () => {
     const writeFileMock = mock.method(fs, 'writeFile');
-    mock.method(fs, 'mkdir').mock.mockImplementation(async () => null);
-    writeFileMock.mock.mockImplementation(async () => null);
+    mock.method(fs, 'mkdir').mock.mockImplementation(async () => {});
+    writeFileMock.mock.mockImplementation(async () => {});
     const filePathWithDir = path.join('a-third', 'fake-file', '.type');
     const files: Record<string, string> = {
       'fake-file': 'my \n fake file \n contents',

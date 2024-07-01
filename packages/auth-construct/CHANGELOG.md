@@ -1,5 +1,14 @@
 # @aws-amplify/auth-construct
 
+## 1.1.5
+
+### Patch Changes
+
+- 0200d11: Bump baseline CDK version to 2.132.0 to support AWS SDK bundling
+- Updated dependencies [0200d11]
+  - @aws-amplify/backend-output-storage@1.0.2
+  - @aws-amplify/plugin-types@1.0.1
+
 ## 1.1.4
 
 ### Patch Changes

@@ -51,8 +51,15 @@ void describe('invokeCDKCommand', () => {
     backendLocator,
     packageManagerControllerMock as never
   );
-  const executeCommandMock = mock.method(invoker, 'executeCommand', () =>
-    Promise.resolve()
+  const executeCommandMock = mock.method(
+    invoker,
+    'executeCommand',
+    (commandArgs: string[]) => {
+      if (commandArgs.includes('abc')) {
+        return Promise.reject(new Error());
+      }
+      return Promise.resolve();
+    }
   );
 
   beforeEach(() => {
@@ -446,7 +453,7 @@ void describe('invokeCDKCommand', () => {
       if (commandArgs.includes('tsc') && commandArgs.includes('--noEmit')) {
         throw new Error('some tsc error');
       }
-      return;
+      return Promise.resolve();
     });
 
     await assert.rejects(

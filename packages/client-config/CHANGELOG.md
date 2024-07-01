@@ -1,5 +1,13 @@
 # @aws-amplify/client-config
 
+## 1.0.5
+
+### Patch Changes
+
+- 8968cf4: fix: Only first class supported idp providers should be present in the client config
+- 4b249ed: fix mfa output value
+- 20bf679: add AppClientId to OAuth lagecy config
+
 ## 1.0.4
 
 ### Patch Changes
