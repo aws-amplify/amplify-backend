@@ -25,9 +25,16 @@ const backendOutputClient = BackendOutputClientFactory.getInstance({
   getCloudFormationClient: () => cloudFormationClient,
 });
 
-const backendIdentifier = process.env.backendIdentifier ?? '{}';
-const outputs = await backendOutputClient.getOutput(
-  JSON.parse(backendIdentifier)
-);
+if (!process.env.backendIdentifier) {
+  throw new Error('Unable to get backendIdentifier');
+}
+try {
+  const outputs = await backendOutputClient.getOutput(
+    JSON.parse(process.env.backendIdentifier)
+  );
 
-await fs.writeFile('outputs.json', JSON.stringify(outputs));
+  await fs.writeFile('outputs.json', JSON.stringify(outputs));
+} catch (e) {
+  const errorMessage = e instanceof Error ? e.message : '';
+  throw new Error(`Failed to get backend outputs. ${errorMessage}`);
+}
