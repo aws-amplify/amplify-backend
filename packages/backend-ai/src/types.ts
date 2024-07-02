@@ -28,15 +28,15 @@ export type Prompt = {
 };
 
 export type ContentBlock =
-  | TextMember
-  | ImageMember
-  | DocumentMember
-  | ToolUseMember
-  | ToolResultMember
-  | GuardContentMember
-  | $UnknownMember;
+  | TextContent
+  | ImageContent
+  | DocumentContent
+  | ToolUseContent
+  | ToolResultContent
+  | GuardContentContent
+  | $UnknownContent;
 
-type TextMember = {
+type TextContent = {
   text: string;
   image?: never;
   document?: never;
@@ -46,7 +46,7 @@ type TextMember = {
   $unknown?: never;
 };
 
-type ImageMember = {
+type ImageContent = {
   text?: never;
   image: ImageBlock;
   document?: never;
@@ -56,7 +56,7 @@ type ImageMember = {
   $unknown?: never;
 };
 
-type DocumentMember = {
+type DocumentContent = {
   text?: never;
   image?: never;
   document: DocumentBlock;
@@ -66,7 +66,7 @@ type DocumentMember = {
   $unknown?: never;
 };
 
-type ToolUseMember = {
+type ToolUseContent = {
   text?: never;
   image?: never;
   document?: never;
@@ -76,7 +76,7 @@ type ToolUseMember = {
   $unknown?: never;
 };
 
-type ToolResultMember = {
+type ToolResultContent = {
   text?: never;
   image?: never;
   document?: never;
@@ -86,7 +86,7 @@ type ToolResultMember = {
   $unknown?: never;
 };
 
-type GuardContentMember = {
+type GuardContentContent = {
   text?: never;
   image?: never;
   document?: never;
@@ -95,7 +95,7 @@ type GuardContentMember = {
   guardContent: GuardrailConverseContentBlock;
   $unknown?: never;
 };
-type $UnknownMember = {
+type $UnknownContent = {
   text?: never;
   image?: never;
   document?: never;
@@ -161,7 +161,7 @@ export type Tool = {
   description?: string;
   use?: (
     args: JSONLike
-  ) => Promise<TextMember | ImageMember | ToolResultMember>;
+  ) => Promise<TextContent | ImageContent | ToolResultContent>;
 };
 
 export type GetMessageInput = {
