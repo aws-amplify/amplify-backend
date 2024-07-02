@@ -1,4 +1,4 @@
-export type JSONLike =
+type JSONLike =
   | string
   | number
   | boolean
@@ -6,7 +6,7 @@ export type JSONLike =
   | { [key: string]: JSONLike }
   | JSONLike[];
 
-export type JSONSchema = {
+type JSONSchema = {
   type: string;
   properties?: Record<string, JSONSchema>;
   required?: string[];
@@ -36,7 +36,7 @@ export type ContentBlock =
   | GuardContentMember
   | $UnknownMember;
 
-export type TextMember = {
+type TextMember = {
   text: string;
   image?: never;
   document?: never;
@@ -46,7 +46,7 @@ export type TextMember = {
   $unknown?: never;
 };
 
-export type ImageMember = {
+type ImageMember = {
   text?: never;
   image: ImageBlock;
   document?: never;
@@ -56,7 +56,7 @@ export type ImageMember = {
   $unknown?: never;
 };
 
-export type DocumentMember = {
+type DocumentMember = {
   text?: never;
   image?: never;
   document: DocumentBlock;
@@ -66,7 +66,7 @@ export type DocumentMember = {
   $unknown?: never;
 };
 
-export type ToolUseMember = {
+type ToolUseMember = {
   text?: never;
   image?: never;
   document?: never;
@@ -76,7 +76,7 @@ export type ToolUseMember = {
   $unknown?: never;
 };
 
-export type ToolResultMember = {
+type ToolResultMember = {
   text?: never;
   image?: never;
   document?: never;
@@ -86,7 +86,7 @@ export type ToolResultMember = {
   $unknown?: never;
 };
 
-export type GuardContentMember = {
+type GuardContentMember = {
   text?: never;
   image?: never;
   document?: never;
@@ -95,8 +95,7 @@ export type GuardContentMember = {
   guardContent: GuardrailConverseContentBlock;
   $unknown?: never;
 };
-
-export type $UnknownMember = {
+type $UnknownMember = {
   text?: never;
   image?: never;
   document?: never;
