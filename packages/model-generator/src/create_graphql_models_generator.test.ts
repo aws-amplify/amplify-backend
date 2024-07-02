@@ -68,7 +68,6 @@ void describe('models generator factory', () => {
 
     void it('uses passed in s3 client', async () => {
       const mockS3Client = new S3();
-      const s3ClientSendMock = mock.method(mockS3Client, 'send');
       const mockGraphqlSchema = `
       type Notification @model @auth(rules: [{allow: public, provider: iam},
         {allow: private, provider: iam}])
@@ -78,7 +77,7 @@ void describe('models generator factory', () => {
         expirationTime: Int
       }
       `;
-      s3ClientSendMock.mock.mockImplementation(() => ({
+      const s3ClientSendMock = mock.method(mockS3Client, 'send', () => ({
         Body: {
           transformToString: () => mockGraphqlSchema,
         },

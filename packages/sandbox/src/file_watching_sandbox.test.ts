@@ -85,9 +85,7 @@ const backendDeployerDestroyMock = mock.method(backendDeployer, 'destroy', () =>
 );
 const region = 'test-region';
 const ssmClientMock = new SSMClient({ region });
-const ssmClientSendMock = mock.fn();
-mock.method(ssmClientMock, 'send', ssmClientSendMock);
-ssmClientSendMock.mock.mockImplementation(() =>
+const ssmClientSendMock = mock.fn(() =>
   Promise.resolve({
     Parameter: {
       Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
@@ -95,6 +93,7 @@ ssmClientSendMock.mock.mockImplementation(() =>
     },
   })
 );
+mock.method(ssmClientMock, 'send', ssmClientSendMock);
 const openMock = mock.fn(_open, (url: string) => Promise.resolve(url));
 
 const testPath = path.join('test', 'location');
@@ -468,7 +467,7 @@ void describe('Sandbox using local project name resolver', () => {
     // Mimic BackendDeployer taking 200 ms.
     backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
-      return { stdout: '', stderr: '' };
+      return { deploymentTimes: {}, stdout: '', stderr: '' };
     });
 
     // Not awaiting so we can push another file change while deployment is ongoing
