@@ -3,22 +3,13 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import * as fs from 'fs/promises';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 
-const region = process.env.AWS_REGION;
-const credentials = {
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? '',
-  sessionToken: process.env.AWS_SESSION_TOKEN ?? '',
-};
+const outputsFile = new URL('./outputs.json', import.meta.url);
 
-const cloudFormationClient = new CloudFormationClient({
-  region,
-  credentials,
-});
+const e2eToolingClientConfig = JSON.parse(process.argv[2]);
 
-const amplifyClient = new AmplifyClient({
-  region,
-  credentials,
-});
+const cloudFormationClient = new CloudFormationClient(e2eToolingClientConfig);
+
+const amplifyClient = new AmplifyClient(e2eToolingClientConfig);
 
 const backendOutputClient = BackendOutputClientFactory.getInstance({
   getAmplifyClient: () => amplifyClient,
@@ -33,7 +24,7 @@ try {
     JSON.parse(process.env.backendIdentifier)
   );
 
-  await fs.writeFile('outputs.json', JSON.stringify(outputs));
+  await fs.writeFile(outputsFile, JSON.stringify(outputs, null, 2));
 } catch (e) {
   const errorMessage = e instanceof Error ? e.message : '';
   throw new Error(`Failed to get backend outputs. ${errorMessage}`);

@@ -20,6 +20,8 @@ import {
 import fsp from 'fs/promises';
 import assert from 'node:assert';
 import { CopyDefinition } from '../process-controller/types.js';
+import { execa } from 'execa';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -143,5 +145,21 @@ export abstract class TestProjectBase {
     );
 
     assert.ok(clientConfigStats.isFile());
+  }
+
+  /**
+   * Verify deployed client outputs
+   */
+  async assertDeployedClientOutputs(backendId: BackendIdentifier) {
+    await execa(
+      'node',
+      ['verify_outputs.js', JSON.stringify(e2eToolingClientConfig)],
+      {
+        cwd: this.projectDirPath,
+        env: {
+          backendIdentifier: JSON.stringify(backendId),
+        },
+      }
+    );
   }
 }

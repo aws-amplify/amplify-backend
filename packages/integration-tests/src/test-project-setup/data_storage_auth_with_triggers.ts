@@ -16,6 +16,10 @@ import {
 } from '../shared_secret.js';
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
+import { execa } from 'execa';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -254,6 +258,33 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
 
     assert.ok(typedShimStats.isFile());
+  }
+
+  override async assertDeployedClientOutputs(
+    backendId: BackendIdentifier
+  ): Promise<void> {
+    await execa(
+      'node',
+      ['verify_outputs.js', JSON.stringify(e2eToolingClientConfig)],
+      {
+        cwd: this.projectDirPath,
+        env: {
+          backendIdentifier: JSON.stringify(backendId),
+        },
+      }
+    );
+
+    const outputsContent = await fs.readFile('./outputs.json', 'utf-8');
+    const releasedOutputs = JSON.parse(outputsContent);
+
+    const backendOutputClient = BackendOutputClientFactory.getInstance({
+      getAmplifyClient: () => new AmplifyClient(e2eToolingClientConfig),
+      getCloudFormationClient: () => this.cfnClient,
+    });
+
+    const currentOutputs = await backendOutputClient.getOutput(backendId);
+
+    assert.deepStrictEqual(releasedOutputs, currentOutputs);
   }
 
   private getUpdateReplacementDefinition = (suffix: string) => ({
