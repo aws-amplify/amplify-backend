@@ -19,7 +19,7 @@ import {
  * @param params.systemPrompts - System prompts to guide the AI's behavior.
  * @param params.messages - The conversation history.
  * @param params.modelId - The ID of the AI model to use.
- * @param [params.tools] - Optional tools that the AI can use.
+ * @param params.tools - Optional tools that the AI can use.
  * @returns The AI's response and associated metadata.
  * @throws Throws an error if the AI's response does not contain a message.
  */
