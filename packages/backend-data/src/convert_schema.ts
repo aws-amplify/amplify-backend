@@ -3,6 +3,7 @@ import type {
   DataSourceConfiguration,
   DerivedCombinedSchema,
   DerivedModelSchema as DerivedDataSchema,
+  SchemaConfiguration,
 } from '@aws-amplify/data-schema-types';
 import {
   AmplifyDataDefinition,
@@ -74,7 +75,8 @@ const SQL_DB_TYPES = {
 export const convertSchemaToCDK = (
   schema: DataSchema,
   backendSecretResolver: BackendSecretResolver,
-  stableBackendIdentifiers: StableBackendIdentifiers
+  stableBackendIdentifiers: StableBackendIdentifiers,
+  schemaConfiguration?: SchemaConfiguration
 ): IAmplifyDataDefinition => {
   if (isDataSchema(schema)) {
     /**
@@ -125,6 +127,19 @@ export const convertSchemaToCDK = (
           })
         ) || [],
     };
+  } else if (
+    schemaConfiguration &&
+    schemaConfiguration?.database.engine != 'dynamodb'
+  ) {
+    const provisionStrategyName =
+      stableBackendIdentifiers.getStableBackendHash();
+    const dbStrategy = convertDatabaseConfigurationToDataSourceStrategy(
+      schemaConfiguration.database,
+      [],
+      backendSecretResolver,
+      provisionStrategyName
+    );
+    return AmplifyDataDefinition.fromString(schema, dbStrategy);
   }
 
   return AmplifyDataDefinition.fromString(schema, DYNAMO_DATA_SOURCE_STRATEGY);
