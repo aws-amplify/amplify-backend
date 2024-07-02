@@ -14,14 +14,13 @@ import {
 /**
  * Sends a message to the AI model and retrieves a response.
  * This function leverages ConverseCommand (https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/bedrock-runtime/command/ConverseCommand/)
- * @async
  * @param params - The parameters for the message.
  * @param params.systemPrompts - System prompts to guide the AI's behavior.
  * @param params.messages - The conversation history.
  * @param params.modelId - The ID of the AI model to use.
  * @param [params.tools] - Optional tools that the AI can use.
  * @returns The AI's response and associated metadata.
- * @throws {Error} Throws an error if the AI's response does not contain a message.
+ * @throws Throws an error if the AI's response does not contain a message.
  */
 export const getMessage = async ({
   systemPrompts,

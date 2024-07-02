@@ -1,4 +1,4 @@
-type JSONLike =
+export type JSONLike =
   | string
   | number
   | boolean
@@ -6,7 +6,7 @@ type JSONLike =
   | { [key: string]: JSONLike }
   | JSONLike[];
 
-type JSONSchema = {
+export type JSONSchema = {
   type: string;
   properties?: Record<string, JSONSchema>;
   required?: string[];
@@ -36,7 +36,7 @@ export type ContentBlock =
   | GuardContentContent
   | $UnknownContent;
 
-type TextContent = {
+export type TextContent = {
   text: string;
   image?: never;
   document?: never;
@@ -46,7 +46,7 @@ type TextContent = {
   $unknown?: never;
 };
 
-type ImageContent = {
+export type ImageContent = {
   text?: never;
   image: ImageBlock;
   document?: never;
@@ -56,7 +56,7 @@ type ImageContent = {
   $unknown?: never;
 };
 
-type DocumentContent = {
+export type DocumentContent = {
   text?: never;
   image?: never;
   document: DocumentBlock;
@@ -66,7 +66,7 @@ type DocumentContent = {
   $unknown?: never;
 };
 
-type ToolUseContent = {
+export type ToolUseContent = {
   text?: never;
   image?: never;
   document?: never;
@@ -76,7 +76,7 @@ type ToolUseContent = {
   $unknown?: never;
 };
 
-type ToolResultContent = {
+export type ToolResultContent = {
   text?: never;
   image?: never;
   document?: never;
@@ -86,7 +86,7 @@ type ToolResultContent = {
   $unknown?: never;
 };
 
-type GuardContentContent = {
+export type GuardContentContent = {
   text?: never;
   image?: never;
   document?: never;
@@ -95,7 +95,7 @@ type GuardContentContent = {
   guardContent: GuardrailConverseContentBlock;
   $unknown?: never;
 };
-type $UnknownContent = {
+export type $UnknownContent = {
   text?: never;
   image?: never;
   document?: never;
