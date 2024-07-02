@@ -106,7 +106,7 @@ export type $UnknownContent = {
 };
 
 export type ImageBlock = {
-  format: 'png' | 'jpeg' | 'gif' | 'webp';
+  format: 'png' | 'jpeg' | 'gif' | 'webp'; // eslint-disable-line spellcheck/spell-checker
   source: {
     bytes: Uint8Array;
   };

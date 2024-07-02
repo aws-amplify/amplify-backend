@@ -1,37 +1,54 @@
 import { getMessage } from './get_message.js';
 import { ContentBlock, GetMessageInput } from './types.js';
-import { before, describe, it } from 'node:test';
+import { before, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import * as awsMoc from 'aws-sdk-mock';
-import * as aWS from 'aws-sdk';
+import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
+
+let mockBedrockRuntimeClient: BedrockRuntimeClient;
 
 before(() => {
-  // Set the AWS region environment variable
-  process.env.AWS_REGION = 'us-east-1';
-
-  // Mock the AWS SDK
-  awsMoc.default.default.setSDKInstance(aWS);
-
-  // Mock BedrockRuntime client
-  awsMoc.default.default.mock(
-    'BedrockRuntime',
-    'invoke',
-    (params, callback) => {
-      callback(null, {
-        StatusCode: 200,
-        Payload: JSON.stringify({
-          output: {
-            message: {
-              role: 'assistant',
-              content: [{ text: 'This is a mocked response' }],
-            },
-            stopReason: 'end_of_conversation',
-            usage: { tokens: 10 },
-            metrics: { latency: 50 },
+  mockBedrockRuntimeClient = {
+    send: mock.fn(async () => ({
+      body: new TextEncoder().encode(
+        JSON.stringify({
+          content: [{ text: 'This is a mock response from Bedrock.' }],
+          stop_reason: 'stop_sequence',
+          usage: {
+            input_tokens: 10,
+            output_tokens: 20,
           },
-        }),
-      });
-    }
+        })
+      ),
+    })),
+    config: {},
+    destroy: () => {},
+    middlewareStack: {
+      use: () => {},
+      addRelativeTo: () => {},
+      clone: () => ({
+        use: () => {},
+        addRelativeTo: () => {},
+        clone: () => {},
+      }),
+      remove: () => {},
+      removeByTag: () => {},
+      concat: () => ({
+        use: () => {},
+        addRelativeTo: () => {},
+        clone: () => {},
+      }),
+      identify: () => '',
+      resolve: async () => ({ handler: async () => ({}) }),
+      add: () => {},
+    },
+    getDefaultHttpAuthSchemeParametersProvider: () => () => Promise.resolve({}),
+    getIdentityProviderConfigProvider: () => () => Promise.resolve({}),
+  } as unknown as BedrockRuntimeClient;
+
+  mock.method(
+    BedrockRuntimeClient.prototype,
+    'send',
+    mockBedrockRuntimeClient.send
   );
 });
 

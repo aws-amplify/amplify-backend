@@ -13,13 +13,7 @@
     }
   },
   "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.602.0",
-    "aws-cdk-lib": "^2.132.0",
-    "aws-sdk": "^2.1652.0"
-  },
-  "peerDependencies": {
-    "aws-cdk-lib": "^2.132.0",
-    "constructs": "^10.0.0"
+    "@aws-sdk/client-bedrock-runtime": "^3.602.0"
   },
   "types": "lib/index.d.ts",
   "scripts": {
@@ -27,6 +21,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "aws-sdk-mock": "^6.0.4"
+    "@types/json-schema": "^7.0.15"
   }
 }

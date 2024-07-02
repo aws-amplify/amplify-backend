@@ -2,6 +2,7 @@ import {
   BedrockRuntimeClient,
   ConverseCommand,
   ConverseCommandInput,
+  ConverseCommandOutput,
   Message,
 } from '@aws-sdk/client-bedrock-runtime';
 import {
@@ -48,7 +49,7 @@ export const getMessage = async ({
   };
 
   const command = new ConverseCommand(input);
-  const output = await client.send(command);
+  const output: ConverseCommandOutput = await client.send(command);
 
   if (!output.output?.message) {
     throw new Error('No message in ConverseCommandOutput');
@@ -76,27 +77,39 @@ export const getMessage = async ({
 
 const convertContentBlock = (block: ContentBlock): ContentBlock => {
   const result: Partial<ContentBlock> = {};
+  let isValidBlock = false;
 
   if ('text' in block && typeof block.text === 'string') {
     result.text = block.text;
+    isValidBlock = true;
   }
   if ('image' in block && block.image) {
     result.image = block.image;
+    isValidBlock = true;
   }
   if ('document' in block && block.document) {
     result.document = block.document;
+    isValidBlock = true;
   }
   if ('toolUse' in block && block.toolUse) {
     result.toolUse = block.toolUse;
+    isValidBlock = true;
   }
   if ('toolResult' in block && block.toolResult) {
     result.toolResult = block.toolResult;
+    isValidBlock = true;
   }
   if ('guardContent' in block && block.guardContent) {
     result.guardContent = block.guardContent;
+    isValidBlock = true;
   }
   if ('$unknown' in block && block.$unknown) {
     result.$unknown = block.$unknown;
+    isValidBlock = true;
+  }
+
+  if (!isValidBlock) {
+    throw new Error('Invalid ContentBlock: No valid properties found');
   }
 
   return result as ContentBlock;
@@ -107,9 +120,7 @@ const convertTool = (tool: Tool) => {
     toolSpec: {
       name: tool.name,
       description: tool.description,
-      inputSchema: {
-        json: tool.inputSchema.json,
-      },
+      inputSchema: tool.inputSchema,
     },
   };
 };
