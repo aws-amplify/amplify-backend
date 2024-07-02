@@ -13,6 +13,11 @@
     },
     "./types/platform": {
       "types": "./lib/types/platform.d.ts"
+    },
+    "./ai": {
+      "types": "./lib/ai.d.ts",
+      "import": "./lib/ai.js",
+      "require": "./lib/ai.js"
     }
   },
   "imports": {
@@ -24,6 +29,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-amplify/backend-ai": "^1.0.0",
     "@aws-amplify/data-schema": "^1.0.0",
     "@aws-amplify/backend-auth": "^1.1.0",
     "@aws-amplify/backend-function": "^1.1.0",
