@@ -52,6 +52,10 @@ export type AmazonPinpointChannels =
  */
 export interface AWSAmplifyBackendOutputs {
   /**
+   * JSON schema
+   */
+  $schema?: string;
+  /**
    * Version of this schema
    */
   version: '1';
@@ -63,7 +67,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * AWS Region of Amazon Pinpoint resources
        */
-      aws_region: AwsRegion;
+      aws_region: string;
       app_id: string;
     };
   };
@@ -74,7 +78,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * AWS Region of Amazon Cognito resources
      */
-    aws_region: AwsRegion;
+    aws_region: string;
     /**
      * Cognito User Pool ID
      */
@@ -122,13 +126,13 @@ export interface AWSAmplifyBackendOutputs {
        *
        * @minItems 1
        */
-      redirect_sign_in_uri: string[];
+      redirect_sign_in_uri: [string, ...string[]];
       /**
        * URIs used to redirect after signing out
        *
        * @minItems 1
        */
-      redirect_sign_out_uri: string[];
+      redirect_sign_out_uri: [string, ...string[]];
       response_type: 'code' | 'token';
     };
     /**
@@ -142,7 +146,10 @@ export interface AWSAmplifyBackendOutputs {
      *
      * @minItems 1
      */
-    username_attributes?: ('email' | 'phone_number' | 'username')[];
+    username_attributes?: [
+      'email' | 'phone_number' | 'username',
+      ...('email' | 'phone_number' | 'username')[]
+    ];
     user_verification_types?: ('email' | 'phone_number')[];
     unauthenticated_identities_enabled?: boolean;
     mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
@@ -174,7 +181,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * AWS Region of Amazon Location Service resources
      */
-    aws_region: AwsRegion;
+    aws_region: string;
     /**
      * Maps from Amazon Location Service
      */
@@ -188,14 +195,20 @@ export interface AWSAmplifyBackendOutputs {
      * Location search (search by places, addresses, coordinates)
      */
     search_indices?: {
-      items: string[];
+      /**
+       * @minItems 1
+       */
+      items: [string, ...string[]];
       default: string;
     };
     /**
      * Geofencing (visualize virtual perimeters)
      */
     geofence_collections?: {
-      items: string[];
+      /**
+       * @minItems 1
+       */
+      items: [string, ...string[]];
       default: string;
     };
   };
@@ -208,7 +221,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * @minItems 1
      */
-    channels: AmazonPinpointChannels[];
+    channels: [AmazonPinpointChannels, ...AmazonPinpointChannels[]];
   };
   /**
    * Outputs generated from defineStorage
@@ -229,10 +242,6 @@ export interface AWSAmplifyBackendOutputs {
  * via the `patternProperty` ".*".
  */
 export interface AmazonLocationServiceConfig {
-  /**
-   * Map resource name
-   */
-  name?: string;
   /**
    * Map style
    */
