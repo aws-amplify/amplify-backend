@@ -6,6 +6,7 @@
     { "path": "../backend" },
     { "path": "../backend-secret" },
     { "path": "../client-config" },
+    { "path": "../deployed-backend-client" },
     { "path": "../platform-core" },
     { "path": "./src/test-projects/data-storage-auth-with-triggers-ts" }
   ],
