@@ -4,55 +4,37 @@ import { before, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 
-let mockBedrockRuntimeClient: BedrockRuntimeClient;
-
-before(() => {
-  mockBedrockRuntimeClient = {
-    send: mock.fn(async () => ({
-      body: new TextEncoder().encode(
-        JSON.stringify({
-          content: [{ text: 'This is a mock response from Bedrock.' }],
-          stop_reason: 'stop_sequence',
-          usage: {
-            input_tokens: 10,
-            output_tokens: 20,
-          },
-        })
-      ),
-    })),
-    config: {},
-    destroy: () => {},
-    middlewareStack: {
-      use: () => {},
-      addRelativeTo: () => {},
-      clone: () => ({
-        use: () => {},
-        addRelativeTo: () => {},
-        clone: () => {},
-      }),
-      remove: () => {},
-      removeByTag: () => {},
-      concat: () => ({
-        use: () => {},
-        addRelativeTo: () => {},
-        clone: () => {},
-      }),
-      identify: () => '',
-      resolve: async () => ({ handler: async () => ({}) }),
-      add: () => {},
-    },
-    getDefaultHttpAuthSchemeParametersProvider: () => () => Promise.resolve({}),
-    getIdentityProviderConfigProvider: () => () => Promise.resolve({}),
-  } as unknown as BedrockRuntimeClient;
-
-  mock.method(
-    BedrockRuntimeClient.prototype,
-    'send',
-    mockBedrockRuntimeClient.send
-  );
-});
-
 void describe('getMessage', async () => {
+  let mockBedrockRuntimeClient: BedrockRuntimeClient;
+
+  before(() => {
+    mockBedrockRuntimeClient = {
+      send: mock.fn(async () => ({
+        output: {
+          message: {
+            role: 'assistant',
+            content: [{ text: 'This is a mock response from Bedrock.' }],
+          },
+        },
+        stopReason: 'stop_sequence',
+        usage: {
+          inputTokens: 10,
+          outputTokens: 20,
+          totalTokens: 30,
+        },
+        metrics: {
+          latencyMs: 100,
+        },
+      })),
+    } as unknown as BedrockRuntimeClient;
+
+    mock.method(
+      BedrockRuntimeClient.prototype,
+      'send',
+      mockBedrockRuntimeClient.send
+    );
+  });
+
   void it('should accept valid input and return output of the correct shape', async () => {
     const input: GetMessageInput = {
       systemPrompts: [{ text: 'You are a helpful assistant.' }],
@@ -97,6 +79,56 @@ void describe('getMessage', async () => {
   });
 
   void it('should handle different types of content correctly', async () => {
+    mock.method(
+      BedrockRuntimeClient.prototype,
+      'send',
+      mock.fn(async () => ({
+        output: {
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                text: "To calculate the square root of 16, I'll use the calculator tool.",
+              },
+              {
+                toolUse: {
+                  toolUseId: '1',
+                  name: 'calculator',
+                  input: JSON.stringify({
+                    operation: 'square_root',
+                    operands: [16],
+                  }),
+                },
+              },
+              {
+                toolResult: {
+                  toolUseId: '1',
+                  content: [
+                    {
+                      text: 'The result is 4',
+                    },
+                  ],
+                  status: 'success',
+                },
+              },
+              {
+                text: 'The square root of 16 is 4.',
+              },
+            ],
+          },
+        },
+        stopReason: 'stop_sequence',
+        usage: {
+          inputTokens: 15,
+          outputTokens: 30,
+          totalTokens: 45,
+        },
+        metrics: {
+          latencyMs: 150,
+        },
+      }))
+    );
+
     const input: GetMessageInput = {
       systemPrompts: [{ text: 'You are a helpful assistant.' }],
       messages: [
@@ -159,7 +191,11 @@ void describe('getMessage', async () => {
 
     assert.ok(
       hasToolUse || hasToolResult,
-      'Response should include tool use or tool result'
+      `Response should include tool use or tool result, Content: ${JSON.stringify(
+        result.output.message.content,
+        null,
+        2
+      )}`
     );
   });
 

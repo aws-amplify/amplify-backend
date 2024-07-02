@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-ai",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
