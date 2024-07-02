@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.1.1
+
+### Patch Changes
+
+- 90ac407: Minify lambda function code and add source maps
+
 ## 1.1.0
 
 ### Minor Changes
