@@ -274,7 +274,10 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       }
     );
 
-    const outputsContent = await fs.readFile('./outputs.json', 'utf-8');
+    const outputsContent = await fs.readFile(
+      path.join(this.projectDirPath, 'outputs.json'),
+      'utf-8'
+    );
     const releasedOutputs = JSON.parse(outputsContent);
 
     const backendOutputClient = BackendOutputClientFactory.getInstance({
