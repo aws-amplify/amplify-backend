@@ -1,7 +1,39 @@
 import { getMessage } from './get_message.js';
 import { ContentBlock, GetMessageInput } from './types.js';
-import { describe, it } from 'node:test';
+import { before, describe, it } from 'node:test';
 import assert from 'node:assert';
+import * as awsMoc from 'aws-sdk-mock';
+import * as aWS from 'aws-sdk';
+
+before(() => {
+  // Set the AWS region environment variable
+  process.env.AWS_REGION = 'us-east-1';
+
+  // Mock the AWS SDK
+  awsMoc.default.default.setSDKInstance(aWS);
+
+  // Mock BedrockRuntime client
+  awsMoc.default.default.mock(
+    'BedrockRuntime',
+    'invoke',
+    (params, callback) => {
+      callback(null, {
+        StatusCode: 200,
+        Payload: JSON.stringify({
+          output: {
+            message: {
+              role: 'assistant',
+              content: [{ text: 'This is a mocked response' }],
+            },
+            stopReason: 'end_of_conversation',
+            usage: { tokens: 10 },
+            metrics: { latency: 50 },
+          },
+        }),
+      });
+    }
+  );
+});
 
 void describe('getMessage', async () => {
   void it('should accept valid input and return output of the correct shape', async () => {

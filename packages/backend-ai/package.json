@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-ai",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-bedrock-runtime": "^3.602.0",
-    "aws-cdk-lib": "^2.132.0"
+    "aws-cdk-lib": "^2.132.0",
+    "aws-sdk": "^2.1652.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.132.0",
@@ -24,5 +25,8 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "aws-sdk-mock": "^6.0.4"
+  }
 }

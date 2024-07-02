@@ -3,4 +3,4 @@
 '@aws-amplify/backend': major
 ---
 
-Added ai subpath under backend directory to include ai helper functions
+Added ai subpath under backend directory for ai helper functions
