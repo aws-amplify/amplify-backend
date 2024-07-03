@@ -378,7 +378,7 @@ class AmplifyFunction
     outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
       version: '1',
       payload: {
-        // definedFunctions: this.resources.lambda.functionName,
+        definedFunctions: this.resources.lambda.functionName,
       },
     });
   };

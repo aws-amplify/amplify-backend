@@ -353,36 +353,36 @@ void describe('AmplifyFunctionFactory', () => {
     });
   });
 
-  // void describe('storeOutput', () => {
-  //   void it('stores output using the provided strategy', () => {
-  //     const functionFactory = defineFunction({
-  //       entry: './test-assets/default-lambda/handler.ts',
-  //       name: 'testLambdaName',
-  //     });
-  //     functionFactory.getInstance(getInstanceProps);
-  //     const template = Template.fromStack(rootStack);
-  //     // Getting output value is messy due to usage of Lazy to defer output value
-  //     const outputValue =
-  //       template.findOutputs('definedFunctions').definedFunctions.Value;
-  //     assert.deepStrictEqual(outputValue, {
-  //       ['Fn::Join']: [
-  //         '',
-  //         [
-  //           '["',
-  //           {
-  //             ['Fn::GetAtt']: [
-  //               /* eslint-disable spellcheck/spell-checker */
-  //               'functionNestedStackfunctionNestedStackResource1351588B',
-  //               'Outputs.functiontestLambdaNamelambda36106226Ref',
-  //               /* eslint-enable spellcheck/spell-checker */
-  //             ],
-  //           },
-  //           '"]',
-  //         ],
-  //       ],
-  //     });
-  //   });
-  // });
+  void describe('storeOutput', () => {
+    void it('stores output using the provided strategy', () => {
+      const functionFactory = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        name: 'testLambdaName',
+      });
+      functionFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(rootStack);
+      // Getting output value is messy due to usage of Lazy to defer output value
+      const outputValue =
+        template.findOutputs('definedFunctions').definedFunctions.Value;
+      assert.deepStrictEqual(outputValue, {
+        ['Fn::Join']: [
+          '',
+          [
+            '["',
+            {
+              ['Fn::GetAtt']: [
+                /* eslint-disable spellcheck/spell-checker */
+                'functionNestedStackfunctionNestedStackResource1351588B',
+                'Outputs.functiontestLambdaNamelambda36106226Ref',
+                /* eslint-enable spellcheck/spell-checker */
+              ],
+            },
+            '"]',
+          ],
+        ],
+      });
+    });
+  });
 
   void describe('function overrides', () => {
     void it('can override function properties', () => {
