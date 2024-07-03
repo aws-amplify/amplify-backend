@@ -20,7 +20,6 @@ import {
 import fsp from 'fs/promises';
 import assert from 'node:assert';
 import { CopyDefinition } from '../process-controller/types.js';
-import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { BackendOutputClientFactory as CurrentCodebaseBackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import path from 'path';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
@@ -60,7 +59,8 @@ export abstract class TestProjectBase {
     readonly name: string,
     readonly projectDirPath: string,
     readonly projectAmplifyDirPath: string,
-    protected readonly cfnClient: CloudFormationClient
+    protected readonly cfnClient: CloudFormationClient,
+    protected readonly amplifyClient: AmplifyClient
   ) {}
 
   /**
@@ -168,16 +168,14 @@ export abstract class TestProjectBase {
         ).toString()
       );
 
-    const amplifyClient = new AmplifyClient(e2eToolingClientConfig);
-
     const currentCodebaseBackendOutputClient =
       CurrentCodebaseBackendOutputClientFactory.getInstance({
-        getAmplifyClient: () => amplifyClient,
+        getAmplifyClient: () => this.amplifyClient,
         getCloudFormationClient: () => this.cfnClient,
       });
 
     const npmBackendOutputClient = npmBackendOutputClientFactory.getInstance({
-      getAmplifyClient: () => amplifyClient,
+      getAmplifyClient: () => this.amplifyClient,
       getCloudFormationClient: () => this.cfnClient,
     });
 

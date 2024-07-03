@@ -16,6 +16,7 @@ import {
 } from '../shared_secret.js';
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -30,6 +31,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient,
+    private readonly amplifyClient: AmplifyClient,
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
     private readonly s3Client: S3Client,
@@ -46,6 +48,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       projectRoot,
       projectAmplifyDir,
       this.cfnClient,
+      this.amplifyClient,
       this.secretClient,
       this.lambdaClient,
       this.s3Client,
@@ -114,13 +117,20 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     projectDirPath: string,
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
+    amplifyClient: AmplifyClient,
     private readonly secretClient: SecretClient,
     private readonly lambdaClient: LambdaClient,
     private readonly s3Client: S3Client,
     private readonly iamClient: IAMClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
-    super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
+    super(
+      name,
+      projectDirPath,
+      projectAmplifyDirPath,
+      cfnClient,
+      amplifyClient
+    );
   }
 
   /**
