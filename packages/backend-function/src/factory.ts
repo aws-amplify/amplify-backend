@@ -320,6 +320,8 @@ class AmplifyFunction
           loader: {
             '.node': 'file',
           },
+          minify: true,
+          sourceMap: true,
         },
       });
     } catch (error) {

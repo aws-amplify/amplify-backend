@@ -8,6 +8,7 @@ import {
   AmplifyDataDefinition,
   type IAmplifyDataDefinition,
   type ModelDataSourceStrategy,
+  type SslCertSsmPathConfig,
   type VpcConfig,
 } from '@aws-amplify/data-construct';
 import type { DataSchema, DataSchemaInput } from './types.js';
@@ -174,17 +175,29 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
 
   const { branchSecretPath, sharedSecretPath } =
     backendSecretResolver.resolvePath(configuration.connectionUri);
-  return {
+
+  let sslCertConfig: SslCertSsmPathConfig | undefined;
+  if (configuration.sslCert) {
+    const { branchSecretPath, sharedSecretPath } =
+      backendSecretResolver.resolvePath(configuration.sslCert);
+    sslCertConfig = {
+      ssmPath: [branchSecretPath, sharedSecretPath],
+    };
+  }
+  const strategy: ModelDataSourceStrategy = {
     dbType,
     name:
       provisionStrategyName +
       (configuration.identifier ?? configuration.engine),
     dbConnectionConfig: {
       connectionUriSsmPath: [branchSecretPath, sharedSecretPath],
+      ...(sslCertConfig ? { sslCertConfig } : undefined),
     },
     vpcConfiguration,
     customSqlStatements,
   };
+
+  return strategy;
 };
 
 /**
