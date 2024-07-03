@@ -155,7 +155,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         replacements: [this.getUpdateReplacementDefinition('data/resource.ts')],
         deployThresholdSec: {
           onWindows: 40,
-          onOther: 60,
+          onOther: 30,
         },
       },
       {
@@ -165,7 +165,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         ],
         deployThresholdSec: {
           onWindows: 40,
-          onOther: 60,
+          onOther: 30,
         },
       },
     ];
