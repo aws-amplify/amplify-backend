@@ -20,8 +20,10 @@ import {
 import fsp from 'fs/promises';
 import assert from 'node:assert';
 import { CopyDefinition } from '../process-controller/types.js';
-import { execa } from 'execa';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { BackendOutputClientFactory as CurrentCodebaseBackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
+import path from 'path';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -151,15 +153,33 @@ export abstract class TestProjectBase {
    * Verify deployed client outputs
    */
   async assertDeployedClientOutputs(backendId: BackendIdentifier) {
-    await execa(
-      'node',
-      ['verify_outputs.js', JSON.stringify(e2eToolingClientConfig)],
-      {
-        cwd: this.projectDirPath,
-        env: {
-          backendIdentifier: JSON.stringify(backendId),
-        },
-      }
-    );
+    const { BackendOutputClientFactory: npmBackendOutputClientFactory } =
+      await import(
+        path.join(
+          this.projectDirPath,
+          'node_modules',
+          '@aws-amplify',
+          'deployed-backend-client'
+        )
+      );
+
+    const amplifyClient = new AmplifyClient(e2eToolingClientConfig);
+
+    const currentCodebaseBackendOutputClient =
+      CurrentCodebaseBackendOutputClientFactory.getInstance({
+        getAmplifyClient: () => amplifyClient,
+        getCloudFormationClient: () => this.cfnClient,
+      });
+
+    const npmBackendOutputClient = npmBackendOutputClientFactory.getInstance({
+      getAmplifyClient: () => amplifyClient,
+      getCloudFormationClient: () => this.cfnClient,
+    });
+
+    const currentCodebaseOutputs =
+      await currentCodebaseBackendOutputClient.getOutput(backendId);
+    const npmOutputs = await npmBackendOutputClient.getOutput(backendId);
+
+    assert.deepStrictEqual(currentCodebaseOutputs, npmOutputs);
   }
 }

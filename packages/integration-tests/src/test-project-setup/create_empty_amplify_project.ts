@@ -8,7 +8,7 @@ const TEST_PROJECT_PREFIX = 'test-project';
 
 /**
  * Creates an empty Amplify project directory within the specified parent
- * The project contains empty `amplify` and `.amplify` directories, a package.json file with a name, and a script to verify backend client outputs
+ * The project contains empty `amplify` and `.amplify` directories and a package.json file
  */
 export const createEmptyAmplifyProject = async (
   projectDirName: string,
