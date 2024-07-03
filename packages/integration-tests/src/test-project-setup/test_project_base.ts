@@ -24,6 +24,7 @@ import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { BackendOutputClientFactory as CurrentCodebaseBackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
 import path from 'path';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { pathToFileURL } from 'url';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -155,14 +156,16 @@ export abstract class TestProjectBase {
   async assertDeployedClientOutputs(backendId: BackendIdentifier) {
     const { BackendOutputClientFactory: npmBackendOutputClientFactory } =
       await import(
-        path.join(
-          this.projectDirPath,
-          'node_modules',
-          '@aws-amplify',
-          'deployed-backend-client',
-          'lib',
-          'backend_output_client_factory.js'
-        )
+        pathToFileURL(
+          path.join(
+            this.projectDirPath,
+            'node_modules',
+            '@aws-amplify',
+            'deployed-backend-client',
+            'lib',
+            'backend_output_client_factory.js'
+          )
+        ).toString()
       );
 
     const amplifyClient = new AmplifyClient(e2eToolingClientConfig);
