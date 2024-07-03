@@ -2,30 +2,36 @@ import { getMessage } from './get_message.js';
 import { ContentBlock, GetMessageInput } from './types.js';
 import { before, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
+import {
+  BedrockRuntimeClient,
+  ConverseCommandOutput,
+} from '@aws-sdk/client-bedrock-runtime';
 
 void describe('getMessage', async () => {
   let mockBedrockRuntimeClient: BedrockRuntimeClient;
 
   before(() => {
+    const mockResponse: ConverseCommandOutput = {
+      output: {
+        message: {
+          role: 'assistant',
+          content: [{ text: 'This is a mock response from Bedrock.' }],
+        },
+      },
+      stopReason: 'stop_sequence',
+      usage: {
+        inputTokens: 10,
+        outputTokens: 20,
+        totalTokens: 30,
+      },
+      metrics: {
+        latencyMs: 100,
+      },
+      $metadata: {},
+    };
+
     mockBedrockRuntimeClient = {
-      send: mock.fn(async () => ({
-        output: {
-          message: {
-            role: 'assistant',
-            content: [{ text: 'This is a mock response from Bedrock.' }],
-          },
-        },
-        stopReason: 'stop_sequence',
-        usage: {
-          inputTokens: 10,
-          outputTokens: 20,
-          totalTokens: 30,
-        },
-        metrics: {
-          latencyMs: 100,
-        },
-      })),
+      send: mock.fn(async () => mockResponse),
     } as unknown as BedrockRuntimeClient;
 
     mock.method(
@@ -79,54 +85,57 @@ void describe('getMessage', async () => {
   });
 
   void it('should handle different types of content correctly', async () => {
+    const mockResponse: ConverseCommandOutput = {
+      output: {
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              text: "To calculate the square root of 16, I'll use the calculator tool.",
+            },
+            {
+              toolUse: {
+                toolUseId: '1',
+                name: 'calculator',
+                input: JSON.stringify({
+                  operation: 'square_root',
+                  operands: [16],
+                }),
+              },
+            },
+            {
+              toolResult: {
+                toolUseId: '1',
+                content: [
+                  {
+                    text: 'The result is 4',
+                  },
+                ],
+                status: 'success',
+              },
+            },
+            {
+              text: 'The square root of 16 is 4.',
+            },
+          ],
+        },
+      },
+      stopReason: 'stop_sequence',
+      usage: {
+        inputTokens: 15,
+        outputTokens: 30,
+        totalTokens: 45,
+      },
+      metrics: {
+        latencyMs: 150,
+      },
+      $metadata: {},
+    };
+
     mock.method(
       BedrockRuntimeClient.prototype,
       'send',
-      mock.fn(async () => ({
-        output: {
-          message: {
-            role: 'assistant',
-            content: [
-              {
-                text: "To calculate the square root of 16, I'll use the calculator tool.",
-              },
-              {
-                toolUse: {
-                  toolUseId: '1',
-                  name: 'calculator',
-                  input: JSON.stringify({
-                    operation: 'square_root',
-                    operands: [16],
-                  }),
-                },
-              },
-              {
-                toolResult: {
-                  toolUseId: '1',
-                  content: [
-                    {
-                      text: 'The result is 4',
-                    },
-                  ],
-                  status: 'success',
-                },
-              },
-              {
-                text: 'The square root of 16 is 4.',
-              },
-            ],
-          },
-        },
-        stopReason: 'stop_sequence',
-        usage: {
-          inputTokens: 15,
-          outputTokens: 30,
-          totalTokens: 45,
-        },
-        metrics: {
-          latencyMs: 150,
-        },
-      }))
+      mock.fn(async (): Promise<ConverseCommandOutput> => mockResponse)
     );
 
     const input: GetMessageInput = {

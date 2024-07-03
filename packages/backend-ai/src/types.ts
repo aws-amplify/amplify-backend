@@ -186,12 +186,12 @@ export type GetMessageOutput = {
     | 'guardrail_intervened'
     | 'content_filtered';
   usage: {
-    inputTokens: number;
-    outputTokens: number;
-    totalTokens: number;
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
   };
   metrics: {
-    latencyMs: number;
+    latencyMs?: number;
   };
   additionalModelResponseFields?: JSONLike;
 };

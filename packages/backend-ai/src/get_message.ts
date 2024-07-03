@@ -64,12 +64,12 @@ export const getMessage = async ({
     },
     stopReason: output.stopReason as GetMessageOutput['stopReason'],
     usage: {
-      inputTokens: output.usage?.inputTokens ?? 0,
-      outputTokens: output.usage?.outputTokens ?? 0,
-      totalTokens: output.usage?.totalTokens ?? 0,
+      inputTokens: output.usage?.inputTokens,
+      outputTokens: output.usage?.outputTokens,
+      totalTokens: output.usage?.totalTokens,
     },
     metrics: {
-      latencyMs: output.metrics?.latencyMs ?? 0,
+      latencyMs: output.metrics?.latencyMs,
     },
     additionalModelResponseFields: output.additionalModelResponseFields,
   };
