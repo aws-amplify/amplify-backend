@@ -10,8 +10,13 @@ import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
+// @public (undocumented)
+export type AddEnvironmentFactory = {
+    addEnvironment: (key: string, value: string | BackendSecret) => void;
+};
+
 // @public
-export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;
+export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory>;
 
 // @public (undocumented)
 export type FunctionProps = {

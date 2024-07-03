@@ -152,6 +152,25 @@ void describe('AmplifyFunctionFactory', () => {
     assert.ok(lambdaLogicalId.includes('lambdawithdependencies'));
   });
 
+  void it('allows adding environment variables after defining the function', () => {
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'myCoolLambda',
+    });
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    lambda.addEnvironment('key1', 'value1');
+    const stack = Stack.of(lambda.resources.lambda);
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Environment: {
+        Variables: {
+          key1: 'value1',
+        },
+      },
+    });
+  });
+
   void describe('timeout property', () => {
     void it('sets valid timeout', () => {
       const lambda = defineFunction({
