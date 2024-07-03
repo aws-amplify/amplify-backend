@@ -159,7 +159,9 @@ export abstract class TestProjectBase {
           this.projectDirPath,
           'node_modules',
           '@aws-amplify',
-          'deployed-backend-client'
+          'deployed-backend-client',
+          'lib',
+          'backend_output_client_factory.js'
         )
       );
 
