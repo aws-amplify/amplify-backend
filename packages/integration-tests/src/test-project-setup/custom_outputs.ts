@@ -34,7 +34,7 @@ export class CustomOutputsTestProjectCreator implements TestProjectCreator {
       this.cfnClient
     );
     await fsp.cp(
-      project.sourceProjectAmplifyDirPath,
+      project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
@@ -52,7 +52,7 @@ class CustomOutputsTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
-  readonly sourceProjectAmplifyDirPath: URL = new URL(
+  readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
     import.meta.url
   );

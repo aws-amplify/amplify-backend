@@ -394,4 +394,124 @@ void describe('convertSchemaToCDK', () => {
       }
     );
   });
+
+  void it('produces expected definition for MySQL schema with custom SSL cert', () => {
+    const schema = configure({
+      database: {
+        engine: 'mysql',
+        connectionUri: new TestBackendSecret('SQL_CONNECTION_STRING'),
+        sslCert: new TestBackendSecret('CUSTOM_SSL_CERT'),
+      },
+    }).schema({
+      post: a
+        .model({
+          id: a.integer().required(),
+          title: a.string(),
+        })
+        .identifier(['id'])
+        .authorization((allow) => allow.publicApiKey()),
+    });
+
+    const modified = schema.addQueries({
+      oddList: a
+        .query()
+        .handler(a.handler.inlineSql('SELECT * from post where id % 2 = 1;'))
+        .returns(a.ref('post'))
+        .authorization((allow) => allow.publicApiKey()),
+    });
+
+    const convertedDefinition = convertSchemaToCDK(
+      modified,
+      secretResolver,
+      stableBackendIdentifiers
+    );
+
+    assert.equal(
+      Object.values(convertedDefinition.dataSourceStrategies).length,
+      1
+    );
+    assert.deepEqual(
+      Object.values(convertedDefinition.dataSourceStrategies)[0],
+      {
+        customSqlStatements: {},
+        /* eslint-disable spellcheck/spell-checker */
+        dbConnectionConfig: {
+          connectionUriSsmPath: [
+            '/amplify/testBackendId/testBranchName-branch-e482a1c36f/SQL_CONNECTION_STRING',
+            '/amplify/shared/testBackendId/SQL_CONNECTION_STRING',
+          ],
+          sslCertConfig: {
+            ssmPath: [
+              '/amplify/testBackendId/testBranchName-branch-e482a1c36f/CUSTOM_SSL_CERT',
+              '/amplify/shared/testBackendId/CUSTOM_SSL_CERT',
+            ],
+          },
+        },
+        dbType: 'MYSQL',
+        name: '00034dcf3444861c3ca5mysql',
+        vpcConfiguration: undefined,
+        /* eslint-enable spellcheck/spell-checker */
+      }
+    );
+  });
+
+  void it('produces expected definition for Postgresql schema with custom SSL cert', () => {
+    const schema = configure({
+      database: {
+        engine: 'postgresql',
+        connectionUri: new TestBackendSecret('SQL_CONNECTION_STRING'),
+        sslCert: new TestBackendSecret('CUSTOM_SSL_CERT'),
+      },
+    }).schema({
+      post: a
+        .model({
+          id: a.integer().required(),
+          title: a.string(),
+        })
+        .identifier(['id'])
+        .authorization((allow) => allow.publicApiKey()),
+    });
+
+    const modified = schema.addQueries({
+      oddList: a
+        .query()
+        .handler(a.handler.inlineSql('SELECT * from post where id % 2 = 1;'))
+        .returns(a.ref('post'))
+        .authorization((allow) => allow.publicApiKey()),
+    });
+
+    const convertedDefinition = convertSchemaToCDK(
+      modified,
+      secretResolver,
+      stableBackendIdentifiers
+    );
+
+    assert.equal(
+      Object.values(convertedDefinition.dataSourceStrategies).length,
+      1
+    );
+    assert.deepEqual(
+      Object.values(convertedDefinition.dataSourceStrategies)[0],
+      {
+        customSqlStatements: {},
+        /* eslint-disable spellcheck/spell-checker */
+        dbConnectionConfig: {
+          connectionUriSsmPath: [
+            '/amplify/testBackendId/testBranchName-branch-e482a1c36f/SQL_CONNECTION_STRING',
+            '/amplify/shared/testBackendId/SQL_CONNECTION_STRING',
+          ],
+          sslCertConfig: {
+            ssmPath: [
+              '/amplify/testBackendId/testBranchName-branch-e482a1c36f/CUSTOM_SSL_CERT',
+              '/amplify/shared/testBackendId/CUSTOM_SSL_CERT',
+            ],
+          },
+        },
+        dbType: 'POSTGRES',
+        name: '00034dcf3444861c3ca5postgresql',
+        vpcConfiguration: undefined,
+        /* eslint-enable spellcheck/spell-checker */
+      }
+    );
+  });
 });

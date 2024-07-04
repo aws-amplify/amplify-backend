@@ -89,6 +89,7 @@
   "macos",
   "matchers",
   "mfas",
+  "minify",
   "mkdtemp",
   "modelgen",
   "multifactor",

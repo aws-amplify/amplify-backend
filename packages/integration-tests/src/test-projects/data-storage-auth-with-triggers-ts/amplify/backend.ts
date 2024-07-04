@@ -1,4 +1,5 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { dataStorageAuthWithTriggers } from './test_factories.js';
 
-defineBackend(dataStorageAuthWithTriggers);
+const backend = defineBackend(dataStorageAuthWithTriggers);
+backend.defaultNodeFunc.addEnvironment('newKey', 'newValue');

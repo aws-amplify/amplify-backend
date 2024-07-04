@@ -34,13 +34,17 @@ import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 
 const functionStackType = 'function-Lambda';
 
+export type AddEnvironmentFactory = {
+  addEnvironment: (key: string, value: string | BackendSecret) => void;
+};
+
 /**
  * Entry point for defining a function in the Amplify ecosystem
  */
 export const defineFunction = (
   props: FunctionProps | ((scope: Construct) => IFunction) = {}
 ): ConstructFactory<
-  ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
+  ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory
 > => {
   return new FunctionFactory(props, new Error().stack);
 };
@@ -279,7 +283,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
 class AmplifyFunction
   extends Construct
-  implements ResourceProvider<FunctionResources>, ResourceAccessAcceptorFactory
+  implements
+    ResourceProvider<FunctionResources>,
+    ResourceAccessAcceptorFactory,
+    AddEnvironmentFactory
 {
   readonly resources: FunctionResources;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
@@ -351,6 +358,8 @@ class AmplifyFunction
             loader: {
               '.node': 'file',
             },
+            minify: true,
+            sourceMap: true,
           },
         });
       } else {
@@ -391,6 +400,10 @@ class AmplifyFunction
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
   }
+
+  addEnvironment = (key: string, value: string | BackendSecret) => {
+    this.functionEnvironmentTranslator.addEnvironmentEntry(key, value);
+  };
 
   getResourceAccessAcceptor = () => ({
     identifier: `${this.node.id}LambdaResourceAccessAcceptor`,

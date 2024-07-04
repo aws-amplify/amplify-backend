@@ -12,8 +12,13 @@ import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
+// @public (undocumented)
+export type AddEnvironmentFactory = {
+    addEnvironment: (key: string, value: string | BackendSecret) => void;
+};
+
 // @public
-export const defineFunction: (props?: FunctionProps | ((scope: Construct) => IFunction)) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory>;
+export const defineFunction: (props?: FunctionProps | ((scope: Construct) => IFunction)) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory>;
 
 // @public (undocumented)
 export type FunctionProps = {
