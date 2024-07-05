@@ -1,3 +1,23 @@
+import type {
+  ContentBlock,
+  ToolChoice,
+  ToolResultContentBlock,
+  ToolSpecification,
+} from '@aws-sdk/client-bedrock-runtime';
+
+// eslint-disable-next-line  @typescript-eslint/no-explicit-any
+export type DistributiveOmit<T, K extends keyof T> = T extends any
+  ? Omit<T, K>
+  : never;
+
+export type SupportedMessageContentBlock = DistributiveOmit<
+  | ContentBlock.TextMember
+  | ContentBlock.ImageMember
+  | ContentBlock.ToolResultMember
+  | ContentBlock.ToolUseMember,
+  '$unknown' | 'document' | 'guardContent'
+>;
+
 export type JSONLike =
   | string
   | number
@@ -27,107 +47,18 @@ export type Prompt = {
   text: string;
 };
 
-export type ContentBlock =
-  | TextContent
-  | ImageContent
-  | DocumentContent
-  | ToolUseContent
-  | ToolResultContent
-  | GuardContentContent
-  | $UnknownContent;
-
-export type TextContent = {
-  text: string;
-  image?: never;
-  document?: never;
-  toolUse?: never;
-  toolResult?: never;
-  guardContent?: never;
-  $unknown?: never;
-};
-
-export type ImageContent = {
-  text?: never;
-  image: ImageBlock;
-  document?: never;
-  toolUse?: never;
-  toolResult?: never;
-  guardContent?: never;
-  $unknown?: never;
-};
-
-export type DocumentContent = {
-  text?: never;
-  image?: never;
-  document: DocumentBlock;
-  toolUse?: never;
-  toolResult?: never;
-  guardContent?: never;
-  $unknown?: never;
-};
-
-export type ToolUseContent = {
-  text?: never;
-  image?: never;
-  document?: never;
-  toolUse: ToolUseBlock;
-  toolResult?: never;
-  guardContent?: never;
-  $unknown?: never;
-};
-
-export type ToolResultContent = {
-  text?: never;
-  image?: never;
-  document?: never;
-  toolUse?: never;
-  toolResult: ToolResultBlock;
-  guardContent?: never;
-  $unknown?: never;
-};
-
-export type GuardContentContent = {
-  text?: never;
-  image?: never;
-  document?: never;
-  toolUse?: never;
-  toolResult?: never;
-  guardContent: GuardrailConverseContentBlock;
-  $unknown?: never;
-};
-export type $UnknownContent = {
-  text?: never;
-  image?: never;
-  document?: never;
-  toolUse?: never;
-  toolResult?: never;
-  guardContent?: never;
-  $unknown?: [string];
-};
-
-export type ImageBlock = {
-  format: 'png' | 'jpeg' | 'gif' | 'webp'; // eslint-disable-line spellcheck/spell-checker
-  source: {
-    bytes: Uint8Array;
-  };
-};
-
-export type DocumentBlock = {
-  format:
-    | 'pdf'
-    | 'csv'
-    | 'doc'
-    | 'docx'
-    | 'xls'
-    | 'xlsx'
-    | 'html'
-    | 'txt'
-    | 'md';
-  name: string;
-  source: {
-    bytes: Uint8Array;
-  };
-};
+export type SupportedToolResultsTextContent = Pick<
+  ToolResultContentBlock.TextMember,
+  'text'
+>;
+export type SupportedToolResultsImageContent = Pick<
+  ToolResultContentBlock.ImageMember,
+  'image'
+>;
+export type SupportedToolResultsJsonContent = Pick<
+  ToolResultContentBlock.JsonMember,
+  'json'
+>;
 
 export type ToolUseBlock = {
   toolUseId: string;
@@ -135,47 +66,51 @@ export type ToolUseBlock = {
   input: JSONLike;
 };
 
-export type ToolResultBlock = {
-  toolUseId: string;
-  content: ContentBlock[];
-  status?: 'success' | 'error';
-};
-
-export type GuardrailConverseContentBlock = {
-  text: {
-    text: string;
-  };
-};
-
 export type Message = {
   role: 'user' | 'assistant';
-  content: ContentBlock[];
+  content: SupportedMessageContentBlock[];
 };
 
-export type Tool = {
-  name: string;
+export type Tool = ToolSpecification & {
   type: 'custom' | 'ui';
-  inputSchema: {
-    json: JSONSchema;
-  };
-  description?: string;
-  use?: (
+  use: (
     args: JSONLike
-  ) => Promise<TextContent | ImageContent | ToolResultContent>;
+  ) => Promise<
+    (
+      | SupportedToolResultsTextContent
+      | SupportedToolResultsImageContent
+      | SupportedToolResultsJsonContent
+    )[]
+  >;
 };
+
+export type ToolUseStrategy =
+  | {
+      strategy: 'any';
+    }
+  | {
+      strategy: 'specific';
+      name: string;
+    };
+
+export type SupportedToolChoice = DistributiveOmit<
+  ToolChoice.AnyMember | ToolChoice.AutoMember | ToolChoice.ToolMember,
+  '$unknown'
+>;
 
 export type GetMessageInput = {
   systemPrompts: Prompt[];
   messages: Message[];
   modelId: string;
   tools?: Tool[];
+  toolUseStrategy?: ToolUseStrategy;
 };
 
 export type GetMessageOutput = {
   output: {
     message: {
       role: 'user' | 'assistant';
-      content: ContentBlock[];
+      content: SupportedMessageContentBlock[];
     };
   };
   stopReason:
