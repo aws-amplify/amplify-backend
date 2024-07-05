@@ -246,6 +246,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
            * The CI/CD check should take the responsibility to validate if any tables are being replaced and determine whether to execute the changeset
            */
           allowDestructiveGraphqlSchemaUpdates: true,
+          _allowGen1Patterns: false,
         },
       });
     } catch (error) {

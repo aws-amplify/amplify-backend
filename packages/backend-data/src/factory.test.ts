@@ -470,6 +470,26 @@ void describe('DataFactory', () => {
     );
   });
 
+  void it('throws on gen 1 patterns', () => {
+    resetFactoryCount();
+    const schema = `
+      type Profile @model {
+        author: Author @belongsTo
+      }
+      type Author @model {
+        profileID: ID
+        profile: Profile @hasOne(fields: ["profileID"])
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+    });
+    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
+      message:
+        'fields argument on @hasOne is disallowed. Modify Author.profile to use references instead.',
+    });
+  });
+
   void describe('function access', () => {
     beforeEach(() => {
       resetFactoryCount();
