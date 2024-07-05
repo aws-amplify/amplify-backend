@@ -485,8 +485,7 @@ void describe('DataFactory', () => {
       schema,
     });
     assert.throws(() => dataFactory.getInstance(getInstanceProps), {
-      message:
-        'fields argument on @hasOne is disallowed. Modify Author.profile to use references instead.',
+      message: 'Failed to instantiate data construct',
     });
   });
 
