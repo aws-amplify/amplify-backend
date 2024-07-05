@@ -10,7 +10,57 @@ import {
   GetMessageOutput,
   SupportedMessageContentBlock,
   Tool,
+  ToolUseStrategy,
 } from './types.js';
+
+/**
+ * Converts a tool to the format expected by the Bedrock API.
+ * @param tool - The tool to convert.
+ * @returns The converted tool specification.
+ */
+export const convertTool = (tool: Tool) => {
+  const { name, description, inputSchema } = tool;
+  return {
+    toolSpec: {
+      name,
+      description,
+      inputSchema,
+    },
+  };
+};
+
+/**
+ * Handles the tool use strategy for the input.
+ * @param toolUseStrategy - The strategy for using tools.
+ * @param tools - The available tools.
+ * @param input - The input for the Converse command.
+ */
+export const handleToolUseStrategy = (
+  toolUseStrategy: ToolUseStrategy,
+  tools: Tool[],
+  input: ConverseCommandInput
+) => {
+  if (!input.toolConfig) {
+    return;
+  }
+
+  if (toolUseStrategy.strategy === 'any') {
+    input.toolConfig.toolChoice = { any: {} };
+    return;
+  }
+
+  if (toolUseStrategy.strategy === 'specific') {
+    const specificTool = tools.find(
+      (tool) => tool.name === toolUseStrategy.name
+    );
+    if (!specificTool) {
+      throw new Error(
+        `Specific Tool ${toolUseStrategy.name} not found in provided tools`
+      );
+    }
+    input.toolConfig.toolChoice = { tool: { name: specificTool.name } };
+  }
+};
 
 /**
  * A class to handle message interactions with the AI model.
@@ -49,100 +99,55 @@ export class BedrockMessageHandler {
       modelId,
       messages: messages.map((msg) => ({
         role: msg.role,
-        content: msg.content.map(this.convertContentBlock),
+        content: msg.content,
       })) as Message[],
       system: systemPrompts,
+      toolConfig: {
+        tools: [],
+      },
     };
 
     if (tools && tools.length > 0) {
       input.toolConfig = {
-        tools: tools.map(this.convertTool),
+        tools: tools.map(convertTool),
       };
       if (toolUseStrategy) {
-        if (toolUseStrategy.strategy === 'any') {
-          input.toolConfig.toolChoice = { any: {} };
-        } else if (toolUseStrategy.strategy === 'specific') {
-          const specificTool = tools.find(
-            (tool) => tool.name === toolUseStrategy.name
-          );
-          if (specificTool) {
-            input.toolConfig.toolChoice = { tool: { name: specificTool.name } };
-          } else {
-            throw new Error(
-              `Specific Tool ${toolUseStrategy.name} not found in provided tools`
-            );
-          }
-        }
+        handleToolUseStrategy(toolUseStrategy, tools, input);
       }
-    } else if (!tools && toolUseStrategy) {
+    } else if (toolUseStrategy) {
       throw new Error('Cannot use toolUseStrategy without tools');
     }
 
     const command = new ConverseCommand(input);
-    const output: ConverseCommandOutput = await this.client.send(command);
+    const {
+      additionalModelResponseFields,
+      metrics,
+      output,
+      stopReason,
+      usage,
+    }: ConverseCommandOutput = await this.client.send(command);
 
-    if (!output.output?.message) {
+    if (!output?.message) {
       throw new Error('No message in ConverseCommandOutput');
     }
 
     return {
       output: {
         message: {
-          role: output.output.message.role as 'user' | 'assistant',
-          content: output.output.message
-            .content as SupportedMessageContentBlock[],
+          role: output.message.role as 'user' | 'assistant',
+          content: output.message.content as SupportedMessageContentBlock[],
         },
       },
-      stopReason: output.stopReason as GetMessageOutput['stopReason'],
+      stopReason: stopReason as GetMessageOutput['stopReason'],
       usage: {
-        inputTokens: output.usage?.inputTokens,
-        outputTokens: output.usage?.outputTokens,
-        totalTokens: output.usage?.totalTokens,
+        inputTokens: usage?.inputTokens,
+        outputTokens: usage?.outputTokens,
+        totalTokens: usage?.totalTokens,
       },
       metrics: {
-        latencyMs: output.metrics?.latencyMs,
+        latencyMs: metrics?.latencyMs,
       },
-      additionalModelResponseFields: output.additionalModelResponseFields,
-    };
-  };
-
-  private convertContentBlock = (
-    block: SupportedMessageContentBlock
-  ): SupportedMessageContentBlock => {
-    const result: Partial<SupportedMessageContentBlock> = {};
-    let isValidBlock = false;
-
-    if ('text' in block && typeof block.text === 'string') {
-      result.text = block.text;
-      isValidBlock = true;
-    }
-    if ('image' in block && block.image) {
-      result.image = block.image;
-      isValidBlock = true;
-    }
-    if ('toolUse' in block && block.toolUse) {
-      result.toolUse = block.toolUse;
-      isValidBlock = true;
-    }
-    if ('toolResult' in block && block.toolResult) {
-      result.toolResult = block.toolResult;
-      isValidBlock = true;
-    }
-
-    if (!isValidBlock) {
-      throw new Error('Invalid ContentBlock: No valid properties found');
-    }
-
-    return result as SupportedMessageContentBlock;
-  };
-
-  private convertTool = (tool: Tool) => {
-    return {
-      toolSpec: {
-        name: tool.name,
-        description: tool.description,
-        inputSchema: tool.inputSchema,
-      },
+      additionalModelResponseFields: additionalModelResponseFields,
     };
   };
 }

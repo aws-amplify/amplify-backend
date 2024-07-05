@@ -1,5 +1,6 @@
 import type {
   ContentBlock,
+  SystemContentBlock,
   ToolChoice,
   ToolResultContentBlock,
   ToolSpecification,
@@ -43,9 +44,10 @@ export type JSONSchema = {
   additionalProperties?: boolean | JSONSchema;
 };
 
-export type Prompt = {
-  text: string;
-};
+export type SystemPromptContent = Omit<
+  SystemContentBlock.TextMember,
+  '$unknown' | 'guardContent'
+>;
 
 export type SupportedToolResultsTextContent = Pick<
   ToolResultContentBlock.TextMember,
@@ -99,7 +101,7 @@ export type SupportedToolChoice = DistributiveOmit<
 >;
 
 export type GetMessageInput = {
-  systemPrompts: Prompt[];
+  systemPrompts: SystemPromptContent[];
   messages: Message[];
   modelId: string;
   tools?: Tool[];
