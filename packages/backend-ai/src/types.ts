@@ -70,7 +70,9 @@ export type ToolUseBlock = {
 
 export type Message = {
   role: 'user' | 'assistant';
+  id: string;
   content: SupportedMessageContentBlock[];
+  sessionId: string;
 };
 
 export type Tool = ToolSpecification & {

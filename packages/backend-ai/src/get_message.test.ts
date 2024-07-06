@@ -39,7 +39,14 @@ void describe('getMessage', async () => {
     overrides: Partial<GetMessageInput> = {}
   ): GetMessageInput => ({
     systemPrompts: [{ text: 'You are a helpful assistant.' }],
-    messages: [{ role: 'user', content: [{ text: 'Hello' }] }],
+    messages: [
+      {
+        role: 'user',
+        content: [{ text: 'Hello' }],
+        id: 'helloId',
+        sessionId: 'helloSessionId',
+      },
+    ],
     modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
     ...overrides,
   });
@@ -221,6 +228,8 @@ void describe('getMessage', async () => {
               },
             },
           ],
+          id: 'helloId',
+          sessionId: 'helloSessionId',
         },
       ],
     });
@@ -304,12 +313,24 @@ void describe('getMessage', async () => {
 
     const input = createInput({
       messages: [
-        { role: 'user', content: [{ text: 'Hello' }] },
+        {
+          role: 'user',
+          content: [{ text: 'Hello' }],
+          id: 'helloId',
+          sessionId: 'helloSessionId',
+        },
         {
           role: 'assistant',
           content: [{ text: 'Hi there! How can I help you?' }],
+          id: 'helloId1',
+          sessionId: 'helloSessionId1',
         },
-        { role: 'user', content: [{ text: "What's the weather like?" }] },
+        {
+          role: 'user',
+          content: [{ text: "What's the weather like?" }],
+          id: 'helloId2',
+          sessionId: 'helloSessionId2',
+        },
       ],
     });
 
@@ -330,7 +351,7 @@ void describe('getMessage', async () => {
     mockClient.send = mockSend;
 
     const input = createInput({
-      messages: [{ role: 'user', content: [] }],
+      messages: [{ role: 'user', content: [], id: '', sessionId: '' }],
     });
 
     await assert.doesNotReject(
@@ -345,7 +366,14 @@ void describe('getMessage', async () => {
 
     const largeText = 'a'.repeat(100000);
     const input = createInput({
-      messages: [{ role: 'user', content: [{ text: largeText }] }],
+      messages: [
+        {
+          role: 'user',
+          content: [{ text: largeText }],
+          id: 'helloId',
+          sessionId: 'helloSessionId',
+        },
+      ],
     });
 
     await assert.doesNotReject(
