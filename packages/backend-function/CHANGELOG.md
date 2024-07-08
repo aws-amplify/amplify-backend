@@ -1,5 +1,15 @@
 # @aws-amplify/backend-function
 
+## 1.2.0
+
+### Minor Changes
+
+- 63a881f: Add the ability to add function environment variables after defining the function
+
+### Patch Changes
+
+- 90ac407: Minify lambda function code and add source maps
+
 ## 1.1.0
 
 ### Minor Changes
