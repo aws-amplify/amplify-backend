@@ -1,4 +1,4 @@
-import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
+import { after, before, describe, it } from 'node:test';
 import { getTestProjectCreators } from '../test-project-setup/test_project_creator.js';
 import {
   createTestDirectory,
@@ -39,16 +39,16 @@ void describe(
         let sandboxBackendIdentifier: BackendIdentifier;
         let testProject: TestProjectBase;
 
-        beforeEach(async () => {
+        before(async () => {
           testProject = await testProjectCreator.createProject(rootTestDir);
           sandboxBackendIdentifier = {
             namespace: testProject.name,
-            name: userInfo().username,
+            name: userInfo().username + '1',
             type: 'sandbox',
           };
         });
 
-        afterEach(async () => {
+        after(async () => {
           await testProject.tearDown(sandboxBackendIdentifier);
         });
 
