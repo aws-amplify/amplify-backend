@@ -25,45 +25,32 @@ void describe(
   'backend output tests',
   { concurrency: testConcurrencyLevel },
   () => {
+    const testProjectCreator = testProjectCreators[0];
+    let sandboxBackendIdentifier: BackendIdentifier;
+    let testProject: TestProjectBase;
+
     before(async () => {
       await createTestDirectory(rootTestDir);
+      testProject = await testProjectCreator.createProject(rootTestDir);
+      sandboxBackendIdentifier = {
+        namespace: testProject.name,
+        name: userInfo().username + '1',
+        type: 'sandbox',
+      };
     });
     after(async () => {
+      await testProject.tearDown(sandboxBackendIdentifier);
       await deleteTestDirectory(rootTestDir);
     });
 
-    void describe('amplify deploys', async () => {
-      const testProjectCreator = testProjectCreators[0];
+    void it('deploys fully and stack outputs are readable by backend client', async () => {
+      const sharedSecretsEnv = {
+        [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
+      };
+      await testProject.deploy(sandboxBackendIdentifier, sharedSecretsEnv);
+      await testProject.assertPostDeployment(sandboxBackendIdentifier);
 
-      void describe(`sandbox deploys ${testProjectCreator.name}`, () => {
-        let sandboxBackendIdentifier: BackendIdentifier;
-        let testProject: TestProjectBase;
-
-        before(async () => {
-          testProject = await testProjectCreator.createProject(rootTestDir);
-          sandboxBackendIdentifier = {
-            namespace: testProject.name,
-            name: userInfo().username + '1',
-            type: 'sandbox',
-          };
-        });
-
-        after(async () => {
-          await testProject.tearDown(sandboxBackendIdentifier);
-        });
-
-        void it('deploys fully and stack outputs are readable by backend client', async () => {
-          const sharedSecretsEnv = {
-            [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
-          };
-          await testProject.deploy(sandboxBackendIdentifier, sharedSecretsEnv);
-          await testProject.assertPostDeployment(sandboxBackendIdentifier);
-
-          await testProject.assertDeployedClientOutputs(
-            sandboxBackendIdentifier
-          );
-        });
-      });
+      await testProject.assertDeployedClientOutputs(sandboxBackendIdentifier);
     });
   }
 );
