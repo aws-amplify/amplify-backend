@@ -107,10 +107,6 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
               format
             );
           }
-
-          await testProject.assertDeployedClientOutputs(
-            branchBackendIdentifier
-          );
         });
       });
     });

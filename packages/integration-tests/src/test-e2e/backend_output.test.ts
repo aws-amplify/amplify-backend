@@ -9,6 +9,10 @@ import { testConcurrencyLevel } from './test_concurrency.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { TestProjectBase } from '../test-project-setup/test_project_base.js';
 import { userInfo } from 'node:os';
+import {
+  amplifySharedSecretNameKey,
+  createAmplifySharedSecretName,
+} from '../shared_secret.js';
 
 const testProjectCreators = getTestProjectCreators();
 
@@ -49,7 +53,10 @@ void describe(
         });
 
         void it('deploys fully and stack outputs are readable by backend client', async () => {
-          await testProject.deploy(sandboxBackendIdentifier);
+          const sharedSecretsEnv = {
+            [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
+          };
+          await testProject.deploy(sandboxBackendIdentifier, sharedSecretsEnv);
           await testProject.assertPostDeployment(sandboxBackendIdentifier);
 
           await testProject.assertDeployedClientOutputs(
