@@ -8,11 +8,11 @@ import { fileURLToPath } from 'node:url';
 import { testConcurrencyLevel } from './test_concurrency.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { TestProjectBase } from '../test-project-setup/test_project_base.js';
-import { userInfo } from 'node:os';
 import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
+import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
 
 const testProjectCreators = getTestProjectCreators();
 
@@ -26,20 +26,22 @@ void describe(
   { concurrency: testConcurrencyLevel },
   () => {
     const testProjectCreator = testProjectCreators[0];
-    let sandboxBackendIdentifier: BackendIdentifier;
+    let branchBackendIdentifier: BackendIdentifier;
+    let testBranch: TestBranch;
     let testProject: TestProjectBase;
 
     before(async () => {
       await createTestDirectory(rootTestDir);
       testProject = await testProjectCreator.createProject(rootTestDir);
-      sandboxBackendIdentifier = {
-        namespace: testProject.name,
-        name: userInfo().username,
-        type: 'sandbox',
+      testBranch = await amplifyAppPool.createTestBranch();
+      branchBackendIdentifier = {
+        namespace: testBranch.appId,
+        name: testBranch.branchName,
+        type: 'branch',
       };
     });
     after(async () => {
-      await testProject.tearDown(sandboxBackendIdentifier);
+      await testProject.tearDown(branchBackendIdentifier);
       await deleteTestDirectory(rootTestDir);
     });
 
@@ -47,10 +49,10 @@ void describe(
       const sharedSecretsEnv = {
         [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
       };
-      await testProject.deploy(sandboxBackendIdentifier, sharedSecretsEnv);
-      await testProject.assertPostDeployment(sandboxBackendIdentifier);
+      await testProject.deploy(branchBackendIdentifier, sharedSecretsEnv);
+      await testProject.assertPostDeployment(branchBackendIdentifier);
 
-      await testProject.assertDeployedClientOutputs(sandboxBackendIdentifier);
+      await testProject.assertDeployedClientOutputs(branchBackendIdentifier);
     });
   }
 );
