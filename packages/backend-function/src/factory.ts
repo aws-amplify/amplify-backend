@@ -35,6 +35,10 @@ import { ScheduleParser } from './schedule_parser.js';
 
 const functionStackType = 'function-Lambda';
 
+export type AddEnvironmentFactory = {
+  addEnvironment: (key: string, value: string | BackendSecret) => void;
+};
+
 export type Cron =
   | `${string} ${string} ${string} ${string} ${string}`
   | `${string} ${string} ${string} ${string} ${string} ${string}`;
@@ -53,7 +57,9 @@ export type TimeInterval = Rate | Cron;
 export const defineFunction = (
   props: FunctionProps = {}
 ): ConstructFactory<
-  ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory
+  ResourceProvider<FunctionResources> &
+    ResourceAccessAcceptorFactory &
+    AddEnvironmentFactory
 > => new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {
@@ -287,7 +293,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
 class AmplifyFunction
   extends Construct
-  implements ResourceProvider<FunctionResources>, ResourceAccessAcceptorFactory
+  implements
+    ResourceProvider<FunctionResources>,
+    ResourceAccessAcceptorFactory,
+    AddEnvironmentFactory
 {
   readonly resources: FunctionResources;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
@@ -345,10 +354,13 @@ class AmplifyFunction
         bundling: {
           format: OutputFormat.ESM,
           banner: bannerCode,
+          bundleAwsSDK: true,
           inject: shims,
           loader: {
             '.node': 'file',
           },
+          minify: true,
+          sourceMap: true,
         },
       });
     } catch (error) {
@@ -392,6 +404,10 @@ class AmplifyFunction
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
   }
+
+  addEnvironment = (key: string, value: string | BackendSecret) => {
+    this.functionEnvironmentTranslator.addEnvironmentEntry(key, value);
+  };
 
   getResourceAccessAcceptor = () => ({
     identifier: `${this.node.id}LambdaResourceAccessAcceptor`,

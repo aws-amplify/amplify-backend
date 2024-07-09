@@ -1,5 +1,20 @@
 # @aws-amplify/backend-data
 
+## 1.1.0
+
+### Minor Changes
+
+- f5eeb67: support custom SSL certificates in SQL data sources
+
+## 1.0.3
+
+### Patch Changes
+
+- 0200d11: Bump baseline CDK version to 2.132.0 to support AWS SDK bundling
+- Updated dependencies [0200d11]
+  - @aws-amplify/backend-output-storage@1.0.2
+  - @aws-amplify/plugin-types@1.0.1
+
 ## 1.0.2
 
 ### Patch Changes

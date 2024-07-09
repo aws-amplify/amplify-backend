@@ -88,7 +88,7 @@ export class AccessTestingProjectTestProjectCreator
       this.stsClient
     );
     await fs.cp(
-      project.sourceProjectAmplifyDirPath,
+      project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
@@ -113,7 +113,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
-  readonly sourceProjectAmplifyDirPath: URL = new URL(
+  readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
     import.meta.url
   );

@@ -16,6 +16,10 @@ export type SchemaGeneratorConfig = {
         secretName: string;
         value: string;
     };
+    sslCert?: {
+        secretName: string;
+        value: string;
+    };
     out: string;
 };
 

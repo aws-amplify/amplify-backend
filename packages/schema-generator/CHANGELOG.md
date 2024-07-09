@@ -1,5 +1,17 @@
 # @aws-amplify/schema-generator
 
+## 1.2.0
+
+### Minor Changes
+
+- f5eeb67: support custom SSL certificates in SQL data sources
+
+## 1.1.0
+
+### Minor Changes
+
+- 15aaab7: Add custom SSL certificate support to generate SQL schema command.
+
 ## 1.0.0
 
 ### Major Changes

@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/sandbox",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -18,10 +18,10 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/backend-deployer": "^1.0.0",
+    "@aws-amplify/backend-deployer": "^1.0.1",
     "@aws-amplify/backend-secret": "^1.0.0",
     "@aws-amplify/cli-core": "^1.0.0",
-    "@aws-amplify/client-config": "^1.0.4",
+    "@aws-amplify/client-config": "^1.0.5",
     "@aws-amplify/deployed-backend-client": "^1.0.2",
     "@aws-amplify/platform-core": "^1.0.1",
     "@aws-sdk/client-cloudformation": "^3.465.0",
@@ -39,6 +39,6 @@
     "@types/parse-gitignore": "^1.0.0"
   },
   "peerDependencies": {
-    "aws-cdk": "^2.127.0"
+    "aws-cdk": "^2.132.0"
   }
 }

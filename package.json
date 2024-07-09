@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "tsc --build packages/* && tsc --build scripts",
+    "build": "tsc --build packages/* scripts",
     "check:api": "npm run update:api && tsx scripts/check_api_extract.ts",
     "check:dependencies": "tsx scripts/check_dependencies.ts",
     "check:package-lock": "tsx scripts/check_package_lock.ts",

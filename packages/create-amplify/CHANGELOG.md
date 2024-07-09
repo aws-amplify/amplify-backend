@@ -1,5 +1,13 @@
 # create-amplify
 
+## 1.0.2
+
+### Patch Changes
+
+- d52c833: Remove "Gen 2" wording from telemetry message
+- Updated dependencies [0200d11]
+  - @aws-amplify/plugin-types@1.0.1
+
 ## 1.0.1
 
 ### Patch Changes
