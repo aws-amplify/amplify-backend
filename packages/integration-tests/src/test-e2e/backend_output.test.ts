@@ -18,7 +18,7 @@ const testProjectCreators = getTestProjectCreators();
 
 // Different root test dir to avoid race conditions with e2e deployment tests
 const rootTestDir = fileURLToPath(
-  new URL('./e2e-outputs-tests', import.meta.url)
+  new URL('../e2e-outputs-tests', import.meta.url)
 );
 
 void describe(
