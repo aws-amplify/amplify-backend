@@ -34,7 +34,7 @@ void describe(
       testProject = await testProjectCreator.createProject(rootTestDir);
       sandboxBackendIdentifier = {
         namespace: testProject.name,
-        name: userInfo().username + '1',
+        name: userInfo().username,
         type: 'sandbox',
       };
     });
