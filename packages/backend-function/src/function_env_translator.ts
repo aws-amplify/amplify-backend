@@ -1,4 +1,7 @@
-import { BackendSecretResolver } from '@aws-amplify/plugin-types';
+import {
+  BackendSecret,
+  BackendSecretResolver,
+} from '@aws-amplify/plugin-types';
 import { Arn, Lazy, Stack } from 'aws-cdk-lib';
 import { FunctionProps } from './factory.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -31,29 +34,7 @@ export class FunctionEnvironmentTranslator {
     private readonly functionEnvironmentTypeGenerator: FunctionEnvironmentTypeGenerator
   ) {
     for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
-      if (key === this.amplifySsmEnvConfigKey) {
-        throw new Error(
-          `${this.amplifySsmEnvConfigKey} is a reserved environment variable name`
-        );
-      }
-      if (typeof value === 'undefined') {
-        throw new AmplifyUserError('InvalidFunctionConfiguration', {
-          message: `The value of environment variable ${key} is undefined.`,
-          resolution: `Ensure that all defineFunction environment variables are defined.`,
-        });
-      } else if (typeof value === 'string') {
-        this.lambda.addEnvironment(key, value);
-      } else {
-        const { branchSecretPath, sharedSecretPath } =
-          this.backendSecretResolver.resolvePath(value);
-        this.lambda.addEnvironment(key, this.ssmValuePlaceholderText);
-        this.ssmEnvVars[branchSecretPath] = {
-          name: key,
-          sharedPath: sharedSecretPath,
-        };
-        this.ssmPaths.push(branchSecretPath, sharedSecretPath);
-      }
-      this.amplifyBackendEnvVarNames.push(key);
+      this.addEnvironmentEntry(key, value);
     }
 
     // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
@@ -100,6 +81,39 @@ export class FunctionEnvironmentTranslator {
       },
     });
   }
+
+  /**
+   * Adds an environment variable to the lambda to be used at runtime
+   * @param key The environment variable name
+   * @param value envVar value that can be a plain text or a secret
+   */
+  addEnvironmentEntry = (key: string, value: string | BackendSecret) => {
+    {
+      if (key === this.amplifySsmEnvConfigKey) {
+        throw new Error(
+          `${this.amplifySsmEnvConfigKey} is a reserved environment variable name`
+        );
+      }
+      if (typeof value === 'undefined') {
+        throw new AmplifyUserError('InvalidFunctionConfiguration', {
+          message: `The value of environment variable ${key} is undefined.`,
+          resolution: `Ensure that all defineFunction environment variables are defined.`,
+        });
+      } else if (typeof value === 'string') {
+        this.lambda.addEnvironment(key, value);
+      } else {
+        const { branchSecretPath, sharedSecretPath } =
+          this.backendSecretResolver.resolvePath(value);
+        this.lambda.addEnvironment(key, this.ssmValuePlaceholderText);
+        this.ssmEnvVars[branchSecretPath] = {
+          name: key,
+          sharedPath: sharedSecretPath,
+        };
+        this.ssmPaths.push(branchSecretPath, sharedSecretPath);
+      }
+      this.amplifyBackendEnvVarNames.push(key);
+    }
+  };
 
   /**
    * Adds an environment variable to the lambda whose value will be fetched from SSM at runtime

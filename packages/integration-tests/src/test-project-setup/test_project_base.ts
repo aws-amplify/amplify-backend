@@ -50,7 +50,7 @@ export type TestProjectUpdate = {
  * The base abstract class for test project.
  */
 export abstract class TestProjectBase {
-  abstract readonly sourceProjectAmplifyDirPath: URL;
+  abstract readonly sourceProjectAmplifyDirURL: URL;
 
   /**
    * The base test project class constructor.

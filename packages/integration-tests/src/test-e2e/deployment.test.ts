@@ -190,7 +190,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
         // any project is fine
         testProject = await testProjectCreators[0].createProject(rootTestDir);
         await fs.cp(
-          testProject.sourceProjectAmplifyDirPath,
+          testProject.sourceProjectAmplifyDirURL,
           testProject.projectAmplifyDirPath,
           {
             recursive: true,
