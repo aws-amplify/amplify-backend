@@ -1,5 +1,4 @@
 import { after, before, describe, it } from 'node:test';
-import { getTestProjectCreators } from '../test-project-setup/test_project_creator.js';
 import {
   createTestDirectory,
   deleteTestDirectory,
@@ -13,8 +12,15 @@ import {
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
-
-const testProjectCreators = getTestProjectCreators();
+import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { getSecretClient } from '@aws-amplify/backend-secret';
+import { LambdaClient } from '@aws-sdk/client-lambda';
+import { S3Client } from '@aws-sdk/client-s3';
+import { IAMClient } from '@aws-sdk/client-iam';
+import { DeployedResourcesFinder } from '../find_deployed_resource.js';
+import { DataStorageAuthWithTriggerTestProjectCreator } from '../test-project-setup/data_storage_auth_with_triggers.js';
 
 // Different root test dir to avoid race conditions with e2e deployment tests
 const rootTestDir = fileURLToPath(
@@ -25,14 +31,34 @@ void describe(
   'backend output tests',
   { concurrency: testConcurrencyLevel },
   () => {
-    const testProjectCreator = testProjectCreators[0];
+    const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
+    const amplifyClient = new AmplifyClient(e2eToolingClientConfig);
+    const secretClient = getSecretClient(e2eToolingClientConfig);
+    const lambdaClient = new LambdaClient(e2eToolingClientConfig);
+    const s3Client = new S3Client(e2eToolingClientConfig);
+    const iamClient = new IAMClient(e2eToolingClientConfig);
+    const resourceFinder = new DeployedResourcesFinder(cfnClient);
+    const dataStorageAuthWithTriggerTestProjectCreator =
+      new DataStorageAuthWithTriggerTestProjectCreator(
+        cfnClient,
+        amplifyClient,
+        secretClient,
+        lambdaClient,
+        s3Client,
+        iamClient,
+        resourceFinder
+      );
+
     let branchBackendIdentifier: BackendIdentifier;
     let testBranch: TestBranch;
     let testProject: TestProjectBase;
 
     before(async () => {
       await createTestDirectory(rootTestDir);
-      testProject = await testProjectCreator.createProject(rootTestDir);
+      testProject =
+        await dataStorageAuthWithTriggerTestProjectCreator.createProject(
+          rootTestDir
+        );
       testBranch = await amplifyAppPool.createTestBranch();
       branchBackendIdentifier = {
         namespace: testBranch.appId,
