@@ -1,7 +1,7 @@
 {
   "name": "@aws-amplify/integration-tests",
   "private": true,
-  "version": "0.5.5",
+  "version": "0.5.6",
   "type": "module",
   "devDependencies": {
     "@apollo/client": "^3.10.1",

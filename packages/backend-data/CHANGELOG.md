@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 1.1.0
+
+### Minor Changes
+
+- f5eeb67: support custom SSL certificates in SQL data sources
+
 ## 1.0.3
 
 ### Patch Changes
