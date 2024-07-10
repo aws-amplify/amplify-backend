@@ -7,9 +7,15 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import { CfnUserPoolClient, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
+import {
+  CfnUserPoolClient,
+  CustomAttributeConfig,
+  ICustomAttribute,
+  ProviderAttribute,
+} from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DEFAULTS } from './defaults.js';
+import { CustomAttributes } from './types';
 
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
@@ -601,6 +607,18 @@ void describe('Auth construct', () => {
         familyName: {
           required: true,
         },
+        'custom:display_name': {
+          dataType: 'String',
+          mutable: true,
+          maxLen: 100,
+          minLen: 0,
+        },
+        'custom:tenant_id': {
+          dataType: 'Number',
+          mutable: false,
+          max: 66,
+          min: 1,
+        },
       },
     });
     const template = Template.fromStack(stack);
@@ -620,6 +638,24 @@ void describe('Auth construct', () => {
           Mutable: true,
           Name: 'family_name',
           Required: true,
+        },
+        {
+          AttributeDataType: 'String',
+          Name: 'display_name',
+          Mutable: true,
+          StringAttributeConstraints: {
+            MaxLength: '100',
+            MinLength: '0',
+          },
+        },
+        {
+          AttributeDataType: 'Number',
+          Name: 'tenant_id',
+          Mutable: false,
+          NumberAttributeConstraints: {
+            MaxValue: '66',
+            MinValue: '1',
+          },
         },
       ],
     });
@@ -2570,6 +2606,107 @@ void describe('Auth construct', () => {
     const resourceNames = Object.keys(resources);
     resourceNames.map((name) => {
       assert.equal(name.startsWith(expectedPrefix), true);
+    });
+  });
+
+  void describe('bindCustomAttribute', () => {
+    let auth: AmplifyAuth;
+    void beforeEach(() => {
+      const app = new App();
+      const stack = new Stack(app);
+      auth = new AmplifyAuth(stack, 'test');
+    });
+
+    void it('should bind string attribute correctly', () => {
+      const key = 'test_string';
+      const attribute: CustomAttributes = {
+        dataType: 'String',
+        mutable: true,
+        minLen: 3,
+        maxLen: 10,
+      };
+      const expected: Omit<CustomAttributeConfig & ICustomAttribute, 'bind'> = {
+        dataType: 'String',
+        mutable: true,
+        stringConstraints: {
+          minLen: 3,
+          maxLen: 10,
+        },
+        numberConstraints: undefined,
+      };
+      const result = auth.bindCustomAttribute(key, attribute);
+      assert.deepEqual(result, { ...expected, bind: result.bind });
+      // Test bind function separately
+      const bindResult = result.bind();
+      assert.deepEqual(bindResult, expected);
+    });
+
+    void it('should bind number attribute correctly', () => {
+      const key = 'test_number';
+      const attribute: CustomAttributes = {
+        dataType: 'Number',
+        mutable: false,
+        min: 1,
+        max: 100,
+      };
+      const expected: Omit<CustomAttributeConfig & ICustomAttribute, 'bind'> = {
+        dataType: 'Number',
+        mutable: false,
+        stringConstraints: undefined,
+        numberConstraints: {
+          min: 1,
+          max: 100,
+        },
+      };
+      const result = auth.bindCustomAttribute(key, attribute);
+      assert.deepEqual(result, { ...expected, bind: result.bind });
+      // Test bind function separately
+      const bindResult = result.bind();
+      assert.deepEqual(bindResult, expected);
+    });
+
+    void it('should handle missing constraints correctly', () => {
+      const key = 'test_string_no_constraints';
+      const attribute: CustomAttributes = {
+        dataType: 'String',
+        mutable: true,
+      };
+      const expected: Omit<CustomAttributeConfig & ICustomAttribute, 'bind'> = {
+        dataType: 'String',
+        mutable: true,
+        stringConstraints: {
+          minLen: undefined,
+          maxLen: undefined,
+        },
+        numberConstraints: undefined,
+      };
+      const result = auth.bindCustomAttribute(key, attribute);
+      assert.deepEqual(result, { ...expected, bind: result.bind });
+      // Test bind function separately
+      const bindResult = result.bind();
+      assert.deepEqual(bindResult, expected);
+    });
+
+    void it('should set mutable to true when not defined', () => {
+      const key = 'test_string_no_mutable';
+      const attribute: CustomAttributes = {
+        dataType: 'String',
+      };
+      const expected: Omit<CustomAttributeConfig & ICustomAttribute, 'bind'> = {
+        dataType: 'String',
+        mutable: true,
+        stringConstraints: {
+          minLen: undefined,
+          maxLen: undefined,
+        },
+        numberConstraints: undefined,
+      };
+      const result = auth.bindCustomAttribute(key, attribute);
+      assert.deepEqual(result, { ...expected, bind: result.bind });
+
+      // Test bind function separately
+      const bindResult = result.bind();
+      assert.deepEqual(bindResult, expected);
     });
   });
 });
