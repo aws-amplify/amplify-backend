@@ -414,7 +414,7 @@ export type AuthProps = {
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
    * @default - email/phone will be added as required user attributes if they are included as login methods
    */
-  userAttributes?: StandardAttributes;
+  userAttributes?: UserAttributes;
   /**
    * Configure whether users can or are required to use multifactor (MFA) to sign in.
    */
