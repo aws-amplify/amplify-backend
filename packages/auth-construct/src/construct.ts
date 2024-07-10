@@ -16,11 +16,14 @@ import {
   CfnUserPoolClient,
   CfnUserPoolGroup,
   CfnUserPoolIdentityProvider,
+  CustomAttributeConfig,
+  ICustomAttribute,
   Mfa,
   MfaSecondFactor,
   OAuthScope,
   OidcAttributeRequestMethod,
   ProviderAttribute,
+  StandardAttribute,
   UserPool,
   UserPoolClient,
   UserPoolDomain,
@@ -38,6 +41,7 @@ import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
   AttributeMapping,
   AuthProps,
+  CustomAttributes,
   EmailLoginSettings,
   ExternalProviderOptions,
 } from './types.js';
@@ -213,6 +217,37 @@ export class AmplifyAuth
       path.resolve(__dirname, '..', 'package.json')
     );
   }
+
+  /**
+   * Define bindCustomAttribute to meet requirements of the Cognito API to call the bind method
+   */
+  public bindCustomAttribute = (
+    key: string,
+    attribute: CustomAttributes
+  ): CustomAttributeConfig & ICustomAttribute => {
+    const config: CustomAttributeConfig = {
+      dataType: attribute.dataType,
+      mutable: attribute.mutable ?? true,
+      stringConstraints:
+        attribute.dataType === 'String'
+          ? {
+              minLen: attribute.minLen,
+              maxLen: attribute.maxLen,
+            }
+          : undefined,
+      numberConstraints:
+        attribute.dataType === 'Number'
+          ? {
+              min: attribute.min,
+              max: attribute.max,
+            }
+          : undefined,
+    };
+    return {
+      ...config,
+      bind: () => config,
+    };
+  };
 
   /**
    * Create Auth/UnAuth Roles
@@ -423,7 +458,39 @@ export class AmplifyAuth
       standardAttributes: {
         email: DEFAULTS.IS_REQUIRED_ATTRIBUTE.email(emailEnabled),
         phoneNumber: DEFAULTS.IS_REQUIRED_ATTRIBUTE.phoneNumber(phoneEnabled),
-        ...(props.userAttributes ? props.userAttributes : {}),
+        ...(props.userAttributes
+          ? Object.entries(props.userAttributes).reduce(
+              (acc: { [key: string]: StandardAttribute }, [key, value]) => {
+                if (!key.startsWith('custom:')) {
+                  acc[key] = value;
+                }
+                return acc;
+              },
+              {}
+            )
+          : {}),
+      },
+      customAttributes: {
+        ...(props.userAttributes
+          ? Object.entries(props.userAttributes).reduce(
+              (
+                acc: {
+                  [key: string]: CustomAttributeConfig & ICustomAttribute;
+                },
+                [key, value]
+              ) => {
+                if (key.startsWith('custom:')) {
+                  const attributeKey = key.replace(/^(custom:|User\.?)/i, '');
+                  acc[attributeKey] = this.bindCustomAttribute(
+                    attributeKey,
+                    value
+                  );
+                }
+                return acc;
+              },
+              {}
+            )
+          : {}),
       },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
