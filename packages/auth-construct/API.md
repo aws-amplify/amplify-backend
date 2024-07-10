@@ -43,7 +43,7 @@ export type AuthProps = {
         phone?: PhoneNumberLogin;
         externalProviders?: ExternalProviderOptions;
     };
-    userAttributes?: StandardAttributes;
+    userAttributes?: UserAttributes;
     multifactor?: MFA;
     accountRecovery?: keyof typeof aws_cognito.AccountRecovery;
     groups?: string[];
