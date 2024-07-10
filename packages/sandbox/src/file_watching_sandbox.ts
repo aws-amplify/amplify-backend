@@ -19,6 +19,7 @@ import {
   GetParameterCommand,
   ParameterNotFound,
   SSMClient,
+  SSMServiceException,
 } from '@aws-sdk/client-ssm';
 import {
   AmplifyPrompter,
@@ -330,7 +331,22 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       if (e instanceof ParameterNotFound) {
         return false;
       }
-      // If we are unable to retrieve bootstrap version parameter due to other reasons(AccessDenied), we fail fast.
+      if (
+        e instanceof SSMServiceException &&
+        [
+          'UnrecognizedClientException',
+          'AccessDeniedException',
+          'NotAuthorized',
+        ].includes(e.name)
+      ) {
+        throw new AmplifyUserError('SSMCredentialsError', {
+          message: `${e.name}: ${e.message}`,
+          resolution:
+            'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
+        });
+      }
+
+      // If we are unable to retrieve bootstrap version parameter due to other reasons, we fail fast.
       throw e;
     }
   };
