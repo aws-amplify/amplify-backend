@@ -13,6 +13,7 @@ import { AccessTestingProjectTestProjectCreator } from './access_testing_project
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { STSClient } from '@aws-sdk/client-sts';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -26,6 +27,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   const testProjectCreators: TestProjectCreator[] = [];
 
   const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
+  const amplifyClient = new AmplifyClient(e2eToolingClientConfig);
   const cognitoIdentityClient = new CognitoIdentityClient(
     e2eToolingClientConfig
   );
@@ -41,16 +43,18 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   testProjectCreators.push(
     new DataStorageAuthWithTriggerTestProjectCreator(
       cfnClient,
+      amplifyClient,
       secretClient,
       lambdaClient,
       s3Client,
       iamClient,
       resourceFinder
     ),
-    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient),
-    new CustomOutputsTestProjectCreator(cfnClient),
+    new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient, amplifyClient),
+    new CustomOutputsTestProjectCreator(cfnClient, amplifyClient),
     new AccessTestingProjectTestProjectCreator(
       cfnClient,
+      amplifyClient,
       cognitoIdentityClient,
       cognitoIdentityProviderClient,
       stsClient

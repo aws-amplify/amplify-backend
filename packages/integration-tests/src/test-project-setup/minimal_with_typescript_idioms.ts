@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 /**
  * Creates minimal test projects with typescript idioms.
@@ -15,7 +16,10 @@ export class MinimalWithTypescriptIdiomTestProjectCreator
   /**
    * Creates project creator.
    */
-  constructor(private readonly cfnClient: CloudFormationClient) {}
+  constructor(
+    private readonly cfnClient: CloudFormationClient,
+    private readonly amplifyClient: AmplifyClient
+  ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
     const { projectName, projectRoot, projectAmplifyDir } =
@@ -25,7 +29,8 @@ export class MinimalWithTypescriptIdiomTestProjectCreator
       projectName,
       projectRoot,
       projectAmplifyDir,
-      this.cfnClient
+      this.cfnClient,
+      this.amplifyClient
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
@@ -61,8 +66,15 @@ class MinimalWithTypescriptIdiomTestProject extends TestProjectBase {
     name: string,
     projectDirPath: string,
     projectAmplifyDirPath: string,
-    cfnClient: CloudFormationClient
+    cfnClient: CloudFormationClient,
+    amplifyClient: AmplifyClient
   ) {
-    super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
+    super(
+      name,
+      projectDirPath,
+      projectAmplifyDirPath,
+      cfnClient,
+      amplifyClient
+    );
   }
 }

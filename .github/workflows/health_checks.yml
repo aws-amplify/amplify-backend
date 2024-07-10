@@ -262,6 +262,35 @@ jobs:
           aws-region: us-west-2
       - name: Run e2e deployment tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js
+  e2e_backend_output:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - do_include_e2e
+      - build
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/setup_node
+      - uses: ./.github/actions/restore_build_cache
+      - run: cd packages/cli && npm link
+      - name: Configure test tooling credentials
+        uses: ./.github/actions/setup_profile
+        with:
+          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          aws-region: us-west-2
+          profile-name: e2e-tooling
+      - name: Configure test execution credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
+        with:
+          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          aws-region: us-west-2
+      - name: Run e2e backend output tests
+        run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
   e2e_create_amplify:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
