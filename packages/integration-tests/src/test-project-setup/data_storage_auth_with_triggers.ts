@@ -235,7 +235,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
-    await this.checkLambdaResponse(funcWithSchedule[0], expectedResponse);
+    await this.checkLambdaResponse(funcWithSchedule[0], 'It is working');
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
