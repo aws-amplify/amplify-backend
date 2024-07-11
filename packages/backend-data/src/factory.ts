@@ -43,6 +43,7 @@ import { Aspects, IAspect, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
+  DerivedModelSchema,
   FunctionSchemaAccess,
   JsResolver,
 } from '@aws-amplify/data-schema-types';
@@ -133,6 +134,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         'importedModels is defined but importedAmplifyDynamoDBTableMap is not defined.'
       );
     }
+    // TODO: add importedModels validation
   }
 
   generateContainerEntry = ({
@@ -153,24 +155,31 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         ? this.props.schema.schemas
         : [this.props.schema];
 
-      const splitSchemas = schemas.flatMap((schema) => {
+      const splitSchemas: {
+        schema: string | DerivedModelSchema;
+        importedTableName?: string;
+      }[] = schemas.flatMap((schema) => {
         // data schema not supported for import
         if (!isDataSchema(schema)) {
-          const { importedSchema, nonImportedSchema } = extractImportedModels(
+          const { importedSchemas, nonImportedSchema } = extractImportedModels(
             schema,
-            this.props.importedModels
+            this.props.importedModels,
+            this.props.importedAmplifyDynamoDBTableMap
           );
-          if (importedSchema.length > 0) {
+          if (importedSchemas.length > 0) {
             return [
-              { isImported: true, schema: importedSchema },
-              { isImported: false, schema: nonImportedSchema },
+              ...importedSchemas.map(({ schema, importedTableName }) => ({
+                schema,
+                importedTableName,
+              })),
+              { schema: nonImportedSchema },
             ];
           }
         }
-        return [{ isImported: false, schema }];
+        return [{ schema }];
       });
 
-      splitSchemas.forEach(({ isImported, schema }) => {
+      splitSchemas.forEach(({ schema, importedTableName }) => {
         if (isDataSchema(schema)) {
           const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
             schema.transform();
@@ -187,7 +196,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
             schema,
             backendSecretResolver,
             stableBackendIdentifiers,
-            isImported
+            importedTableName
           )
         );
       });
@@ -281,10 +290,6 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           allowDestructiveGraphqlSchemaUpdates: true,
           _provisionHotswapFriendlyResources: isSandboxDeployment,
         },
-        // TODO: remove ignore
-        // @ts-expect-error requires new release of data construct
-        importedAmplifyDynamoDBTableMap:
-          this.props.importedAmplifyDynamoDBTableMap,
       });
     } catch (error) {
       throw new AmplifyUserError(
