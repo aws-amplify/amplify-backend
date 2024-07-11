@@ -18,7 +18,7 @@ import type {
 } from '@aws-amplify/plugin-types';
 import { resolveEntryPath } from './resolve_entry_path.js';
 import { readFileSync } from 'fs';
-import { parse, print } from 'graphql';
+import { ObjectTypeDefinitionNode, parse, print } from 'graphql';
 
 /**
  * Determine if the input schema is a derived typed schema object (data-schema), and perform type narrowing.
@@ -78,14 +78,14 @@ const SQL_DB_TYPES = {
  * @param schema TS schema builder definition or string GraphQL schema
  * @param backendSecretResolver secret resolver
  * @param stableBackendIdentifiers backend identifiers
- * @param isImportedStrategy if the schema should use imported strategy
+ * @param importedTableName table name to use for imported models. If not defined the model is not imported.
  * @returns the cdk graphql definition interface
  */
 export const convertSchemaToCDK = (
   schema: DataSchema,
   backendSecretResolver: BackendSecretResolver,
   stableBackendIdentifiers: StableBackendIdentifiers,
-  isImportedStrategy: boolean = false
+  importedTableName?: string
 ): IAmplifyDataDefinition => {
   if (isDataSchema(schema)) {
     /**
@@ -109,7 +109,7 @@ export const convertSchemaToCDK = (
       customSqlDataSourceStrategies,
       backendSecretResolver,
       provisionStrategyName,
-      isImportedStrategy
+      importedTableName
     );
 
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
@@ -139,12 +139,15 @@ export const convertSchemaToCDK = (
     };
   }
 
-  if (isImportedStrategy) {
+  if (importedTableName) {
     return AmplifyDataDefinition.fromString(
       schema,
       // TODO: remove ignore
-      // @ts-expect-error requires new release of data construct
-      IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY
+      {
+        ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
+        // @ts-expect-error requires new release of data construct
+        tableName: importedTableName,
+      }
     );
   }
   return AmplifyDataDefinition.fromString(schema, DYNAMO_DATA_SOURCE_STRATEGY);
@@ -171,13 +174,16 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
   customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[] = [],
   backendSecretResolver: BackendSecretResolver,
   provisionStrategyName: string,
-  isImportedStrategy: boolean = false
+  importedTableName?: string
 ): ModelDataSourceStrategy => {
   if (configuration.engine === 'dynamodb') {
-    if (isImportedStrategy) {
+    if (importedTableName) {
       // TODO: remove ignore
-      // @ts-expect-error requires new release of data construct
-      return IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY;
+      return {
+        ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
+        // @ts-expect-error requires new release of data construct
+        tableName: importedTableName,
+      };
     }
     return DYNAMO_DATA_SOURCE_STRATEGY;
   }
@@ -250,13 +256,18 @@ const customSqlStatementsFromStrategies = (
 /**
  * Extracts the imported models from non-imported models in a single string schema.
  * @param schema String GraphQL schema
- * @param importedModels Models that should be extracted
+ * @param importedModels Models that should be extracted.
+ * @param importedAmplifyDynamoDBTableMap Table names for the models that should be extracted.
  * @returns a schema split into imported models and non-imported models
  */
 export const extractImportedModels = (
   schema: string,
-  importedModels: string[] | undefined
-): { importedSchema: string; nonImportedSchema: string } => {
+  importedModels: string[] | undefined,
+  importedAmplifyDynamoDBTableMap: Record<string, string> | undefined
+): {
+  importedSchemas: { schema: string; importedTableName: string }[];
+  nonImportedSchema: string;
+} => {
   if (importedModels?.length) {
     // TODO: maybe provide exported function from construct
     const parsedSchema = parse(schema);
@@ -269,21 +280,36 @@ export const extractImportedModels = (
         );
       }
     );
-    const parsedImportedSchema = {
-      definitions: importedDefinitionNodes,
-      kind: 'Document' as const,
-    };
-    const parsedNonImportedSchema = {
-      definitions: nonImportedDefinitionNodes,
-      kind: 'Document' as const,
-    };
+
     return {
-      importedSchema: print(parsedImportedSchema),
-      nonImportedSchema: print(parsedNonImportedSchema),
+      // ok to cast as ObjectTypeDefinitionNode because the type was checked in the partition function
+      importedSchemas: (
+        importedDefinitionNodes as ObjectTypeDefinitionNode[]
+      ).map((definitionNode) => {
+        const importedTableName = (importedAmplifyDynamoDBTableMap ?? {})[
+          definitionNode.name.value
+        ];
+        if (!importedTableName) {
+          throw new Error(
+            `No table found for imported model ${definitionNode.name.value}.`
+          );
+        }
+        return {
+          schema: print({
+            definitions: [definitionNode],
+            kind: 'Document' as const,
+          }),
+          importedTableName,
+        };
+      }),
+      nonImportedSchema: print({
+        definitions: nonImportedDefinitionNodes,
+        kind: 'Document' as const,
+      }),
     };
   }
   return {
-    importedSchema: '',
+    importedSchemas: [],
     nonImportedSchema: schema,
   };
 };
