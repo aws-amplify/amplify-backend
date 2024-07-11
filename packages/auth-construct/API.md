@@ -55,13 +55,30 @@ export type AuthProps = {
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "CustomAttributeString" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "CustomAttributeNumber" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "CustomAttributeBoolean" needs to be exported by the entry point index.d.ts
-// Warning: (ae-forgotten-export) The symbol "CustomAttributeDateTime" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "CustomAttributeBase" needs to be exported by the entry point index.d.ts
 //
 // @public
+export type CustomAttributeBoolean = CustomAttributeBase & {
+    dataType: 'Boolean';
+};
+
+// @public
+export type CustomAttributeDateTime = CustomAttributeBase & {
+    dataType: 'DateTime';
+};
+
+// @public
+export type CustomAttributeNumber = CustomAttributeBase & NumberAttributeConstraints & {
+    dataType: 'Number';
+};
+
+// @public
 export type CustomAttributes = CustomAttributeString | CustomAttributeNumber | CustomAttributeBoolean | CustomAttributeDateTime;
+
+// @public
+export type CustomAttributeString = CustomAttributeBase & StringAttributeConstraints & {
+    dataType: 'String';
+};
 
 // @public
 export type EmailLogin = true | EmailLoginSettings;
