@@ -178,23 +178,28 @@ void describe('Sandbox to check if region is bootstrapped', () => {
   });
 
   void it('when user does not have proper credentials throw user error', async () => {
+    const error = new SSMServiceException({
+      name: 'UnrecognizedClientException',
+      $fault: 'client',
+      $metadata: {},
+      message: 'The security token included in the request is invalid.',
+    });
     ssmClientSendMock.mock.mockImplementationOnce(() => {
-      throw new SSMServiceException({
-        name: 'UnrecognizedClientException',
-        $fault: 'client',
-        $metadata: {},
-        message: 'The security token included in the request is invalid.',
-      });
+      throw error;
     });
 
     await assert.rejects(
       () => sandboxInstance.start({}),
-      new AmplifyUserError('SSMCredentialsError', {
-        message:
-          'UnrecognizedClientException: The security token included in the request is invalid.',
-        resolution:
-          'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
-      })
+      new AmplifyUserError(
+        'SSMCredentialsError',
+        {
+          message:
+            'UnrecognizedClientException: The security token included in the request is invalid.',
+          resolution:
+            'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
+        },
+        error
+      )
     );
   });
 

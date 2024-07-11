@@ -340,11 +340,15 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           'ExpiredTokenException',
         ].includes(e.name)
       ) {
-        throw new AmplifyUserError('SSMCredentialsError', {
-          message: `${e.name}: ${e.message}`,
-          resolution:
-            'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
-        });
+        throw new AmplifyUserError(
+          'SSMCredentialsError',
+          {
+            message: `${e.name}: ${e.message}`,
+            resolution:
+              'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
+          },
+          e
+        );
       }
 
       // If we are unable to retrieve bootstrap version parameter due to other reasons, we fail fast.
