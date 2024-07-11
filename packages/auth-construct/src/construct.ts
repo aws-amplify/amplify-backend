@@ -41,7 +41,7 @@ import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
   AttributeMapping,
   AuthProps,
-  CustomAttributes,
+  CustomAttribute,
   EmailLoginSettings,
   ExternalProviderOptions,
 } from './types.js';
@@ -219,37 +219,6 @@ export class AmplifyAuth
   }
 
   /**
-   * Define bindCustomAttribute to meet requirements of the Cognito API to call the bind method
-   */
-  public bindCustomAttribute = (
-    key: string,
-    attribute: CustomAttributes
-  ): CustomAttributeConfig & ICustomAttribute => {
-    const config: CustomAttributeConfig = {
-      dataType: attribute.dataType,
-      mutable: attribute.mutable ?? true,
-      stringConstraints:
-        attribute.dataType === 'String'
-          ? {
-              minLen: attribute.minLen,
-              maxLen: attribute.maxLen,
-            }
-          : undefined,
-      numberConstraints:
-        attribute.dataType === 'Number'
-          ? {
-              min: attribute.min,
-              max: attribute.max,
-            }
-          : undefined,
-    };
-    return {
-      ...config,
-      bind: () => config,
-    };
-  };
-
-  /**
    * Create Auth/UnAuth Roles
    * @returns DefaultRoles
    */
@@ -379,6 +348,37 @@ export class AmplifyAuth
       identityPool,
       identityPoolRoleAttachment,
       roles,
+    };
+  };
+
+  /**
+   * Define bindCustomAttribute to meet requirements of the Cognito API to call the bind method
+   */
+  private bindCustomAttribute = (
+    key: string,
+    attribute: CustomAttribute
+  ): CustomAttributeConfig & ICustomAttribute => {
+    const config: CustomAttributeConfig = {
+      dataType: attribute.dataType,
+      mutable: attribute.mutable ?? true,
+      stringConstraints:
+        attribute.dataType === 'String'
+          ? {
+              minLen: attribute.minLen,
+              maxLen: attribute.maxLen,
+            }
+          : undefined,
+      numberConstraints:
+        attribute.dataType === 'Number'
+          ? {
+              min: attribute.min,
+              max: attribute.max,
+            }
+          : undefined,
+    };
+    return {
+      ...config,
+      bind: () => config,
     };
   };
 
