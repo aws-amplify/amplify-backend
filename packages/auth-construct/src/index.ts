@@ -20,7 +20,7 @@ export {
   IdentityProviderProps,
   AttributeMapping,
   UserAttributes,
-  CustomAttributes,
+  CustomAttribute,
   CustomAttributeString,
   CustomAttributeNumber,
   CustomAttributeBoolean,
