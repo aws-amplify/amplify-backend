@@ -337,6 +337,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           'UnrecognizedClientException',
           'AccessDeniedException',
           'NotAuthorized',
+          'ExpiredTokenException',
         ].includes(e.name)
       ) {
         throw new AmplifyUserError('SSMCredentialsError', {

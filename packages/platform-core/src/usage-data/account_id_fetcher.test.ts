@@ -26,7 +26,7 @@ void describe('AccountIdFetcher', async () => {
     const accountIdFetcher = new AccountIdFetcher(new STSClient({}));
     const accountId = await accountIdFetcher.fetch();
 
-    assert.strictEqual(accountId, '000000000000');
+    assert.strictEqual(accountId, 'NO_ACCOUNT_ID');
     mockSend.mock.resetCalls();
   });
 

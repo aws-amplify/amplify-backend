@@ -1,6 +1,6 @@
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 
-const NO_ACCOUNT_ID = '000000000000';
+const NO_ACCOUNT_ID = 'NO_ACCOUNT_ID';
 /**
  * Retrieves the account ID of the user
  */
