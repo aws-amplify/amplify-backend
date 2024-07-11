@@ -367,7 +367,7 @@ export type CustomAttributeDateTime = CustomAttributeBase & {
 /**
  * CustomAttributes is a union type that represents all the different types of custom attributes.
  */
-export type CustomAttributes =
+export type CustomAttribute =
   | CustomAttributeString
   | CustomAttributeNumber
   | CustomAttributeBoolean
@@ -377,7 +377,7 @@ export type CustomAttributes =
  * standard attributes and any number of custom attributes defined with a 'custom:' prefix.
  */
 export type UserAttributes = StandardAttributes &
-  Record<`custom:${string}`, CustomAttributes>;
+  Record<`custom:${string}`, CustomAttribute>;
 
 /**
  * Input props for the AmplifyAuth construct
