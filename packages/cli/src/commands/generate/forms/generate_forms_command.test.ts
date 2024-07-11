@@ -239,7 +239,7 @@ void describe('generate forms command', () => {
     );
   });
 
-  void it('if neither branch nor stack are provided, the sandbox id is used by default', async () => {
+  void it('throws user error if the stack deployment is currently in progress', async () => {
     const fakeSandboxId = 'my-fake-app-my-fake-username';
     const backendIdResolver = {
       resolve: mock.fn(() =>
