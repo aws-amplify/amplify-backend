@@ -9,9 +9,13 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
+import { CustomAttributeConfig } from 'aws-cdk-lib/aws-cognito';
+import { ICustomAttribute } from 'aws-cdk-lib/aws-cognito';
+import { NumberAttributeConstraints } from 'aws-cdk-lib/aws-cognito';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
+import { StringAttributeConstraints } from 'aws-cdk-lib/aws-cognito';
 import { UserPoolIdentityProviderSamlMetadata } from 'aws-cdk-lib/aws-cognito';
 
 // @public
@@ -20,6 +24,8 @@ export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazo
 // @public
 export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
+    // Warning: (ae-forgotten-export) The symbol "CustomAttributes" needs to be exported by the entry point index.d.ts
+    bindCustomAttribute: (key: string, attribute: CustomAttributes) => CustomAttributeConfig & ICustomAttribute;
     readonly resources: AuthResources;
 }
 
@@ -43,7 +49,7 @@ export type AuthProps = {
         phone?: PhoneNumberLogin;
         externalProviders?: ExternalProviderOptions;
     };
-    userAttributes?: StandardAttributes;
+    userAttributes?: UserAttributes;
     multifactor?: MFA;
     accountRecovery?: keyof typeof aws_cognito.AccountRecovery;
     groups?: string[];
@@ -135,6 +141,9 @@ export type TriggerEvent = (typeof triggerEvents)[number];
 
 // @public
 export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
+
+// @public
+export type UserAttributes = StandardAttributes & Record<`custom:${string}`, CustomAttributes>;
 
 // @public (undocumented)
 export type VerificationEmailWithCode = {
