@@ -21,6 +21,10 @@ export {
   AttributeMapping,
   UserAttributes,
   CustomAttributes,
+  CustomAttributeString,
+  CustomAttributeNumber,
+  CustomAttributeBoolean,
+  CustomAttributeDateTime,
 } from './types.js';
 export { AmplifyAuth } from './construct.js';
 export { triggerEvents } from './trigger_events.js';
