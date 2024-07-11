@@ -14,7 +14,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
-  StorageOutput,
+  // StorageOutput,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
@@ -47,7 +47,10 @@ export type AmplifyStorageProps = {
    * @default false
    */
   versioned?: boolean;
-  outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+  outputStorageStrategy?: BackendOutputStorageStrategy<{
+    version: '1';
+    payload: Record<string, string>;
+  }>;
   /**
    * S3 event trigger configuration
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#configure-storage-triggers
@@ -153,10 +156,10 @@ export class AmplifyStorage
    * Store storage outputs using provided strategy
    */
   private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput> = new StackMetadataBackendOutputStorageStrategy(
-      Stack.of(this)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ) as any,
+    outputStorageStrategy: BackendOutputStorageStrategy<{
+      version: '1';
+      payload: Record<string, string>;
+    }> = new StackMetadataBackendOutputStorageStrategy(Stack.of(this)),
     isDefault: boolean = false
   ): void => {
     const num = isDefault ? '' : Math.floor(Math.random() * 100);
@@ -165,8 +168,7 @@ export class AmplifyStorage
       payload: {
         [`storageRegion${num}`]: Stack.of(this).region,
         [`bucketName${num}`]: this.resources.bucket.bucketName,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any,
+      },
     });
   };
 }

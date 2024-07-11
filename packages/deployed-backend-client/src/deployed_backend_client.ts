@@ -163,9 +163,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
 
     try {
-      const backendOutput: BackendOutput =
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (await this.backendOutputClient.getOutput(backendIdentifier)) as any;
+      const backendOutput: BackendOutput<
+        Record<string, string | Record<string, string>[]>
+      > = await this.backendOutputClient.getOutput(backendIdentifier);
 
       return backendOutput[platformOutputKey].payload
         .deploymentType as DeploymentType;
@@ -210,9 +210,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       stackName,
     };
 
-    const backendOutput: BackendOutput =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (await this.backendOutputClient.getOutput(stackBackendIdentifier)) as any;
+    const backendOutput: BackendOutput<
+      Record<string, string | Record<string, string>[]>
+    > = await this.backendOutputClient.getOutput(stackBackendIdentifier);
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );
@@ -309,9 +309,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     if (apiStack) {
-      const additionalAuthTypesString =
-        backendOutput[graphqlOutputKey]?.payload
-          .awsAppsyncAdditionalAuthenticationTypes;
+      const additionalAuthTypesString = backendOutput[graphqlOutputKey]?.payload
+        .awsAppsyncAdditionalAuthenticationTypes as string;
       const additionalAuthTypes = additionalAuthTypesString
         ? (additionalAuthTypesString.split(',') as ApiAuthType[])
         : [];
@@ -342,7 +341,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       const definedFunctionsString =
         backendOutput[functionOutputKey]?.payload.definedFunctions;
       const customerFunctionNames = definedFunctionsString
-        ? (JSON.parse(definedFunctionsString) as string[])
+        ? (JSON.parse(definedFunctionsString as string) as string[])
         : [];
 
       customerFunctionNames.forEach((functionName) => {
