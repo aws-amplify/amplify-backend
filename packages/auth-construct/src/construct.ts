@@ -439,6 +439,32 @@ export class AmplifyAuth
       );
     }
 
+    const { standardAttributes, customAttributes } = Object.entries(
+      props.userAttributes ?? {}
+    ).reduce(
+      (
+        acc: {
+          standardAttributes: { [key: string]: StandardAttribute };
+          customAttributes: {
+            [key: string]: CustomAttributeConfig & ICustomAttribute;
+          };
+        },
+        [key, value]
+      ) => {
+        if (key.startsWith('custom:')) {
+          const attributeKey = key.replace(/^(custom:|User\.?)/i, '');
+          acc.customAttributes[attributeKey] = this.bindCustomAttribute(
+            attributeKey,
+            value
+          );
+        } else {
+          acc.standardAttributes[key] = value;
+        }
+        return acc;
+      },
+      { standardAttributes: {}, customAttributes: {} }
+    );
+
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -458,39 +484,10 @@ export class AmplifyAuth
       standardAttributes: {
         email: DEFAULTS.IS_REQUIRED_ATTRIBUTE.email(emailEnabled),
         phoneNumber: DEFAULTS.IS_REQUIRED_ATTRIBUTE.phoneNumber(phoneEnabled),
-        ...(props.userAttributes
-          ? Object.entries(props.userAttributes).reduce(
-              (acc: { [key: string]: StandardAttribute }, [key, value]) => {
-                if (!key.startsWith('custom:')) {
-                  acc[key] = value;
-                }
-                return acc;
-              },
-              {}
-            )
-          : {}),
+        ...standardAttributes,
       },
       customAttributes: {
-        ...(props.userAttributes
-          ? Object.entries(props.userAttributes).reduce(
-              (
-                acc: {
-                  [key: string]: CustomAttributeConfig & ICustomAttribute;
-                },
-                [key, value]
-              ) => {
-                if (key.startsWith('custom:')) {
-                  const attributeKey = key.replace(/^(custom:|User\.?)/i, '');
-                  acc[attributeKey] = this.bindCustomAttribute(
-                    attributeKey,
-                    value
-                  );
-                }
-                return acc;
-              },
-              {}
-            )
-          : {}),
+        ...customAttributes,
       },
 
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
