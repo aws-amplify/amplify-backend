@@ -1,5 +1,7 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
 import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
   BackendOutputClientFactory,
   DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
@@ -11,6 +13,7 @@ import { GraphqlTypesGenerator } from './model_generator.js';
 import { AWSClientProvider } from '@aws-amplify/plugin-types';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type GraphqlTypesGeneratorFactoryParams = {
   backendIdentifier: DeployedBackendIdentifier;
@@ -37,7 +40,25 @@ export const createGraphqlTypesGenerator = ({
   const fetchSchema = async () => {
     const backendOutputClient =
       BackendOutputClientFactory.getInstance(awsClientProvider);
-    const output = await backendOutputClient.getOutput(backendIdentifier);
+    let output;
+    try {
+      output = await backendOutputClient.getOutput(backendIdentifier);
+    } catch (error) {
+      if (
+        error instanceof BackendOutputClientError &&
+        error.code === BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS
+      ) {
+        throw new AmplifyUserError(
+          'DeploymentInProgressError',
+          {
+            message: 'Deployment is currently in progress.',
+            resolution: 'Re-run this command once the deployment completes.',
+          },
+          error
+        );
+      }
+      throw error;
+    }
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
       throw new Error(`Unable to determine AppSync API ID.`);
