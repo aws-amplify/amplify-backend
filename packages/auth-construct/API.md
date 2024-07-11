@@ -9,8 +9,6 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { CustomAttributeConfig } from 'aws-cdk-lib/aws-cognito';
-import { ICustomAttribute } from 'aws-cdk-lib/aws-cognito';
 import { NumberAttributeConstraints } from 'aws-cdk-lib/aws-cognito';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
@@ -24,7 +22,6 @@ export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazo
 // @public
 export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
-    bindCustomAttribute: (key: string, attribute: CustomAttributes) => CustomAttributeConfig & ICustomAttribute;
     readonly resources: AuthResources;
 }
 
@@ -56,6 +53,9 @@ export type AuthProps = {
 };
 
 // @public
+export type CustomAttribute = CustomAttributeString | CustomAttributeNumber | CustomAttributeBoolean | CustomAttributeDateTime;
+
+// @public
 export type CustomAttributeBase = {
     mutable?: boolean;
 };
@@ -74,9 +74,6 @@ export type CustomAttributeDateTime = CustomAttributeBase & {
 export type CustomAttributeNumber = CustomAttributeBase & NumberAttributeConstraints & {
     dataType: 'Number';
 };
-
-// @public
-export type CustomAttributes = CustomAttributeString | CustomAttributeNumber | CustomAttributeBoolean | CustomAttributeDateTime;
 
 // @public
 export type CustomAttributeString = CustomAttributeBase & StringAttributeConstraints & {
@@ -170,7 +167,7 @@ export type TriggerEvent = (typeof triggerEvents)[number];
 export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
 
 // @public
-export type UserAttributes = StandardAttributes & Record<`custom:${string}`, CustomAttributes>;
+export type UserAttributes = StandardAttributes & Record<`custom:${string}`, CustomAttribute>;
 
 // @public (undocumented)
 export type VerificationEmailWithCode = {
