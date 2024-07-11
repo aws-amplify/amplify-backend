@@ -55,8 +55,11 @@ export type AuthProps = {
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "CustomAttributeBase" needs to be exported by the entry point index.d.ts
-//
+// @public
+export type CustomAttributeBase = {
+    mutable?: boolean;
+};
+
 // @public
 export type CustomAttributeBoolean = CustomAttributeBase & {
     dataType: 'Boolean';
