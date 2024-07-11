@@ -24,7 +24,6 @@ export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazo
 // @public
 export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
-    // Warning: (ae-forgotten-export) The symbol "CustomAttributes" needs to be exported by the entry point index.d.ts
     bindCustomAttribute: (key: string, attribute: CustomAttributes) => CustomAttributeConfig & ICustomAttribute;
     readonly resources: AuthResources;
 }
@@ -55,6 +54,14 @@ export type AuthProps = {
     groups?: string[];
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
 };
+
+// Warning: (ae-forgotten-export) The symbol "CustomAttributeString" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "CustomAttributeNumber" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "CustomAttributeBoolean" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "CustomAttributeDateTime" needs to be exported by the entry point index.d.ts
+//
+// @public
+export type CustomAttributes = CustomAttributeString | CustomAttributeNumber | CustomAttributeBoolean | CustomAttributeDateTime;
 
 // @public
 export type EmailLogin = true | EmailLoginSettings;
