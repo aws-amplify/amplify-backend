@@ -48,8 +48,10 @@ export const generateClientConfig = async <T extends ClientConfigVersion>(
   const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
     awsClientProvider
   );
-  return new ClientConfigGeneratorFactory(() =>
-    backendOutputClient.getOutput(backendIdentifier)
+  return new ClientConfigGeneratorFactory(
+    () =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      backendOutputClient.getOutput(backendIdentifier) as any
   )
     .getInstance(modelSchemaAdapter, version)
     .generateClientConfig() as Promise<ClientConfigVersionTemplateType<T>>;

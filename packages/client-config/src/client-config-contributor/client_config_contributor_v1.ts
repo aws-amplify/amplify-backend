@@ -254,7 +254,9 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,
       bucket_name: storageOutput.payload.bucketName,
-    };
+      all_buckets: storageOutput.payload.allBuckets,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
 
     return config;
   };

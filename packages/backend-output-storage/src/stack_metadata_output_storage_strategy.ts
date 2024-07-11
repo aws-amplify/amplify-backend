@@ -36,9 +36,19 @@ export class StackMetadataBackendOutputStorageStrategy
       new CfnOutput(this.stack, key, { value });
     });
 
+    const metadataValue =
+      this.stack.templateOptions.metadata &&
+      this.stack.templateOptions.metadata[keyName]
+        ? this.stack.templateOptions.metadata[keyName]
+        : { stackOutputs: [] };
+
     this.stack.addMetadata(keyName, {
+      ...metadataValue,
       version: backendOutputEntry.version,
-      stackOutputs: Object.keys(backendOutputEntry.payload),
+      stackOutputs: [
+        ...metadataValue.stackOutputs,
+        ...Object.keys(backendOutputEntry.payload),
+      ],
     });
   };
 

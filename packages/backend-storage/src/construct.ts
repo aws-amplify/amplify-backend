@@ -33,6 +33,11 @@ export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 export type AmplifyStorageProps = {
   /**
+   * Whether this storage resource is the default storage resource for the backend
+   * @default false
+   */
+  isDefault?: boolean;
+  /**
    * Friendly name that will be used to derive the S3 Bucket name
    */
   name: string;
@@ -124,6 +129,8 @@ export class AmplifyStorage
 
     this.storeOutput(props.outputStorageStrategy);
 
+    this.storeOutput(props.outputStorageStrategy, props.isDefault || false);
+
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       storageStackType,
@@ -148,14 +155,18 @@ export class AmplifyStorage
   private storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput> = new StackMetadataBackendOutputStorageStrategy(
       Stack.of(this)
-    )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any,
+    isDefault: boolean = false
   ): void => {
+    const num = isDefault ? '' : Math.floor(Math.random() * 100);
     outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
       version: '1',
       payload: {
-        storageRegion: Stack.of(this).region,
-        bucketName: this.resources.bucket.bucketName,
-      },
+        [`storageRegion${num}`]: Stack.of(this).region,
+        [`bucketName${num}`]: this.resources.bucket.bucketName,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
     });
   };
 }

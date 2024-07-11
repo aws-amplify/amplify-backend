@@ -63,9 +63,15 @@ export class StorageAccessPolicyFactory {
       });
     }
 
-    return new Policy(this.stack, `${this.namePrefix}${this.policyCount++}`, {
-      statements,
-    });
+    return new Policy(
+      this.stack,
+      `${this.bucket.bucketName.slice(0, 6)}${Math.floor(
+        Math.random() * 1000
+      )}`,
+      {
+        statements,
+      }
+    );
   };
 
   private getStatement = (

@@ -164,7 +164,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
     try {
       const backendOutput: BackendOutput =
-        await this.backendOutputClient.getOutput(backendIdentifier);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (await this.backendOutputClient.getOutput(backendIdentifier)) as any;
 
       return backendOutput[platformOutputKey].payload
         .deploymentType as DeploymentType;
@@ -210,7 +211,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
 
     const backendOutput: BackendOutput =
-      await this.backendOutputClient.getOutput(stackBackendIdentifier);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (await this.backendOutputClient.getOutput(stackBackendIdentifier)) as any;
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );

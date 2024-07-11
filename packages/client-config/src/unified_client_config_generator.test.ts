@@ -77,7 +77,8 @@ void describe('UnifiedClientConfigGenerator', () => {
         modelSchemaAdapter
       ).getContributors('1');
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
-        outputRetrieval,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        outputRetrieval as any,
         configContributors
       );
       const result = await clientConfigGenerator.generateClientConfig();
@@ -151,7 +152,8 @@ void describe('UnifiedClientConfigGenerator', () => {
       ).getContributors('1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
-        outputRetrieval,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        outputRetrieval as any,
         configContributors
       );
       await assert.rejects(
