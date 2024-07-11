@@ -20,6 +20,7 @@ export {
   IdentityProviderProps,
   AttributeMapping,
   UserAttributes,
+  CustomAttributes,
 } from './types.js';
 export { AmplifyAuth } from './construct.js';
 export { triggerEvents } from './trigger_events.js';
