@@ -53,16 +53,11 @@ export type AuthProps = {
 };
 
 // @public
-export type CustomAttribute = CustomAttributeString | CustomAttributeNumber | CustomAttributeBoolean | CustomAttributeDateTime;
+export type CustomAttribute = CustomAttributeString | CustomAttributeNumber | CustomAttributesBoolean | CustomAttributeDateTime;
 
 // @public
 export type CustomAttributeBase = {
     mutable?: boolean;
-};
-
-// @public
-export type CustomAttributeBoolean = CustomAttributeBase & {
-    dataType: 'Boolean';
 };
 
 // @public
@@ -73,6 +68,11 @@ export type CustomAttributeDateTime = CustomAttributeBase & {
 // @public
 export type CustomAttributeNumber = CustomAttributeBase & NumberAttributeConstraints & {
     dataType: 'Number';
+};
+
+// @public
+export type CustomAttributesBoolean = CustomAttributeBase & {
+    dataType: 'Boolean';
 };
 
 // @public
