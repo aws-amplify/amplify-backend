@@ -98,12 +98,20 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     return undefined;
   };
 
-  static fromError = (error: unknown): AmplifyError<'UnknownFault'> => {
+  static fromError = (
+    error: unknown
+  ): AmplifyError<'UnknownFault' | 'CredentialsError'> => {
     const errorMessage =
       error instanceof Error
         ? `${error.name}: ${error.message}`
         : 'An unknown error happened. Check downstream error';
 
+    if (error instanceof Error && isCredentialsError(error)) {
+      return new AmplifyUserError('CredentialsError', {
+        message: errorMessage,
+        resolution: '',
+      });
+    }
     return new AmplifyFault(
       'UnknownFault',
       {
@@ -113,6 +121,10 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     );
   };
 }
+
+const isCredentialsError = (err?: Error): boolean => {
+  return !!err && err?.name === 'CredentialsProviderError';
+};
 
 /**
  * Amplify exception classifications
