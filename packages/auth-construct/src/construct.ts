@@ -358,30 +358,48 @@ export class AmplifyAuth
     key: string,
     attribute: CustomAttribute
   ): CustomAttributeConfig & ICustomAttribute => {
-    const config: CustomAttributeConfig = {
+    const baseConfig: CustomAttributeConfig = {
       dataType: attribute.dataType,
+
       mutable: attribute.mutable ?? true,
-      stringConstraints:
-        attribute.dataType === 'String'
-          ? {
-              minLen: attribute.minLen,
-              maxLen: attribute.maxLen,
-            }
-          : undefined,
-      numberConstraints:
-        attribute.dataType === 'Number'
-          ? {
-              min: attribute.min,
-              max: attribute.max,
-            }
-          : undefined,
     };
+
+    let constraints = {};
+    // Conditionally add constraint properties based on dataType.
+    if (attribute.dataType === 'String') {
+      constraints = {
+        ...constraints,
+
+        stringConstraints: {
+          minLen: attribute.minLen,
+
+          maxLen: attribute.maxLen,
+        },
+      };
+    } else if (attribute.dataType === 'Number') {
+      constraints = {
+        ...constraints,
+
+        numberConstraints: {
+          min: attribute.min,
+
+          max: attribute.max,
+        },
+      };
+    }
+    //The final config object includes baseConfig and conditionally added constraint properties.
+    const config = {
+      ...baseConfig,
+
+      ...constraints,
+    };
+
     return {
       ...config,
+
       bind: () => config,
     };
   };
-
   /**
    * Process props into UserPoolProps (set defaults if needed)
    */
