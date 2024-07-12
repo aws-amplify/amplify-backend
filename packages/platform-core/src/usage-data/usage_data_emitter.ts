@@ -29,24 +29,34 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     metrics?: Record<string, number>,
     dimensions?: Record<string, string>
   ) => {
-    const data = await this.getUsageData({
-      state: 'SUCCEEDED',
-      metrics,
-      dimensions,
-    });
-    await this.send(data);
+    try {
+      const data = await this.getUsageData({
+        state: 'SUCCEEDED',
+        metrics,
+        dimensions,
+      });
+      await this.send(data);
+      // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+    } catch {
+      // Don't propagate errors related to not being able to send telemetry
+    }
   };
 
   emitFailure = async (
     error: AmplifyError,
     dimensions?: Record<string, string>
   ) => {
-    const data = await this.getUsageData({
-      state: 'FAILED',
-      error,
-      dimensions,
-    });
-    await this.send(data);
+    try {
+      const data = await this.getUsageData({
+        state: 'FAILED',
+        error,
+        dimensions,
+      });
+      await this.send(data);
+      // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+    } catch {
+      // Don't propagate errors related to not being able to send telemetry
+    }
   };
 
   private getUsageData = async (options: {
@@ -58,7 +68,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     return {
       accountId: await this.accountIdFetcher.fetch(),
       sessionUuid: this.sessionUuid,
-      installationUuid: await getInstallationUuid(),
+      installationUuid: getInstallationUuid(),
       amplifyCliVersion: this.libraryVersion,
       timestamp: new Date().toISOString(),
       error: options.error ? new SerializableError(options.error) : undefined,

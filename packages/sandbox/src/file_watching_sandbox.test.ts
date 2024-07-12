@@ -27,7 +27,11 @@ import {
 import { fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { ParameterNotFound, SSMClient } from '@aws-sdk/client-ssm';
+import {
+  ParameterNotFound,
+  SSMClient,
+  SSMServiceException,
+} from '@aws-sdk/client-ssm';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -170,6 +174,32 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     assert.strictEqual(
       openMock.mock.calls[0].arguments[0],
       getBootstrapUrl(region)
+    );
+  });
+
+  void it('when user does not have proper credentials throw user error', async () => {
+    const error = new SSMServiceException({
+      name: 'UnrecognizedClientException',
+      $fault: 'client',
+      $metadata: {},
+      message: 'The security token included in the request is invalid.',
+    });
+    ssmClientSendMock.mock.mockImplementationOnce(() => {
+      throw error;
+    });
+
+    await assert.rejects(
+      () => sandboxInstance.start({}),
+      new AmplifyUserError(
+        'SSMCredentialsError',
+        {
+          message:
+            'UnrecognizedClientException: The security token included in the request is invalid.',
+          resolution:
+            'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
+        },
+        error
+      )
     );
   });
 
