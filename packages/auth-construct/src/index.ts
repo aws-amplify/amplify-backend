@@ -23,7 +23,7 @@ export {
   CustomAttribute,
   CustomAttributeString,
   CustomAttributeNumber,
-  CustomAttributesBoolean,
+  CustomAttributeBoolean,
   CustomAttributeDateTime,
   CustomAttributeBase,
 } from './types.js';

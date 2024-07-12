@@ -355,7 +355,7 @@ export type CustomAttributeNumber = CustomAttributeBase &
 /**
  * CustomAttributeBoolean represents a custom attribute of type boolean.
  */
-export type CustomAttributesBoolean = CustomAttributeBase & {
+export type CustomAttributeBoolean = CustomAttributeBase & {
   dataType: 'Boolean';
 };
 /**
@@ -370,7 +370,7 @@ export type CustomAttributeDateTime = CustomAttributeBase & {
 export type CustomAttribute =
   | CustomAttributeString
   | CustomAttributeNumber
-  | CustomAttributesBoolean
+  | CustomAttributeBoolean
   | CustomAttributeDateTime;
 /**
  * UserAttributes represents the combined attributes of a user, including
