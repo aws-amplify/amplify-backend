@@ -114,7 +114,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         {
           message: errorMessage,
           resolution:
-            'Ensure your AWS credentials are correctly set and if required refreshed.',
+            'Ensure your AWS credentials are correctly set and refreshed.',
         },
         error
       );
