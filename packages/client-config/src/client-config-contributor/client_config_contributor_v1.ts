@@ -12,7 +12,7 @@ import {
   clientConfigTypesV1,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.js';
+import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.1.js';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)

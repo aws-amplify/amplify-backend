@@ -8,7 +8,7 @@ import { AnalyticsClientConfig } from './analytics_client_config.js';
 import { NotificationsClientConfig } from './notifications_client_config.js';
 
 // Versions of new unified config schemas
-import * as clientConfigTypesV1 from '../client-config-schema/client_config_v1.js';
+import * as clientConfigTypesV1 from '../client-config-schema/client_config_v1.1.js';
 
 /**
  * Merged type of all category client config legacy types
