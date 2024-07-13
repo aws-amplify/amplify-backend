@@ -368,8 +368,6 @@ export class AmplifyAuth
     // Conditionally add constraint properties based on dataType.
     if (attribute.dataType === 'String') {
       constraints = {
-        ...constraints,
-
         stringConstraints: {
           minLen: attribute.minLen,
 
@@ -378,8 +376,6 @@ export class AmplifyAuth
       };
     } else if (attribute.dataType === 'Number') {
       constraints = {
-        ...constraints,
-
         numberConstraints: {
           min: attribute.min,
 
@@ -470,7 +466,7 @@ export class AmplifyAuth
         [key, value]
       ) => {
         if (key.startsWith('custom:')) {
-          const attributeKey = key.replace(/^(custom:|User\.?)/i, '');
+          const attributeKey = key.replace(/^custom:/i, '');
           acc.customAttributes[attributeKey] = this.bindCustomAttribute(
             attributeKey,
             value
