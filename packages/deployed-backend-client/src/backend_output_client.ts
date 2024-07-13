@@ -28,10 +28,9 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
       Object.keys(output['AWS::Amplify::Storage'].payload).length >= 4
     ) {
       const payload = output['AWS::Amplify::Storage'].payload;
-      const allBuckets: {
+      const buckets: {
         bucketName: string;
         storageRegion: string;
-        friendlyName: string;
       }[] = [];
       Object.keys(payload)
         .filter((key) => key.startsWith('bucketName'))
@@ -39,12 +38,10 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
           const postfix = key.replace('bucketName', '');
           const bucketName = payload[`bucketName${postfix}`];
           const storageRegion = payload[`storageRegion${postfix}`];
-          const friendlyName = payload[`friendlyName${postfix}`];
-          allBuckets.push({ bucketName, storageRegion, friendlyName });
+          buckets.push({ bucketName, storageRegion });
           if (postfix) {
             delete payload[bucketName];
             delete payload[storageRegion];
-            delete payload[friendlyName];
           }
         });
 
@@ -52,7 +49,7 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
         ...output,
         'AWS::Amplify::Storage': {
           ...output['AWS::Amplify::Storage'],
-          payload: { ...payload, allBuckets },
+          payload: { ...payload, buckets },
         },
       });
     }
