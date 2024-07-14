@@ -14,7 +14,6 @@ import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
@@ -23,9 +22,13 @@ export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorag
 
 // @public (undocumented)
 export type AmplifyStorageProps = {
+    isDefault?: boolean;
     name: string;
     versioned?: boolean;
-    outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
+    outputStorageStrategy?: BackendOutputStorageStrategy<{
+        version: '1';
+        payload: Record<string, string>;
+    }>;
     triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
 
