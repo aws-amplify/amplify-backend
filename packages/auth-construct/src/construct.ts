@@ -466,7 +466,11 @@ export class AmplifyAuth
         [key, value]
       ) => {
         if (key.startsWith('custom:')) {
-          acc.customAttributes[key] = this.bindCustomAttribute(key, value);
+          const attributeKey = key.replace(/^custom:/i, '');
+          acc.customAttributes[attributeKey] = this.bindCustomAttribute(
+            attributeKey,
+            value
+          );
         } else {
           acc.standardAttributes[key] = value;
         }
