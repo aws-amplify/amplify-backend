@@ -1,6 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { TestCommandRunner } from './test-utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from './test-utils/command_runner.js';
 import { createMainParser } from './main_parser_factory.js';
 import { version } from '#package.json';
 
@@ -20,16 +23,29 @@ void describe('main parser', { concurrency: false }, () => {
   });
 
   void it('prints help if command is not provided', async () => {
-    const output = await commandRunner.runCommand('');
-    assert.match(output, /Commands:/);
-    assert.match(output, /Not enough non-option arguments:/);
+    await assert.rejects(
+      () => commandRunner.runCommand(''),
+      (err) => {
+        assert(err instanceof TestCommandError);
+        assert.match(err.output, /Commands:/);
+        assert.match(err.error.message, /Not enough non-option arguments:/);
+        return true;
+      }
+    );
   });
 
   void it('errors and prints help if invalid option is given', async () => {
-    const output = await commandRunner.runCommand(
-      'sandbox --non-existing-option 1'
+    await assert.rejects(
+      () => commandRunner.runCommand('sandbox --non-existing-option 1'),
+      (err) => {
+        assert(err instanceof TestCommandError);
+        assert.match(err.output, /Commands:/);
+        assert.match(
+          err.error.message,
+          /Unknown arguments: non-existing-option/
+        );
+        return true;
+      }
     );
-    assert.match(output, /Commands:/);
-    assert.match(output, /Unknown arguments: non-existing-option/);
   });
 });

@@ -1,5 +1,12 @@
 # @aws-amplify/platform-core
 
+## 1.0.2
+
+### Patch Changes
+
+- 44ca7d7: refactor top level cli error handling
+- ca92f23: wrap yargs validation errors in AmplifyUserError
+
 ## 1.0.1
 
 ### Patch Changes

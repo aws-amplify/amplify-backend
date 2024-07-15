@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-cli",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "ampx": "lib/ampx.js",
@@ -38,8 +38,8 @@
     "@aws-amplify/deployed-backend-client": "^1.0.1",
     "@aws-amplify/form-generator": "^1.0.0",
     "@aws-amplify/model-generator": "^1.0.1",
-    "@aws-amplify/platform-core": "^1.0.1",
-    "@aws-amplify/sandbox": "^1.0.5",
+    "@aws-amplify/platform-core": "^1.0.2",
+    "@aws-amplify/sandbox": "^1.0.6",
     "@aws-amplify/schema-generator": "^1.1.0",
     "@aws-sdk/client-amplify": "^3.465.0",
     "@aws-sdk/client-cloudformation": "^3.465.0",

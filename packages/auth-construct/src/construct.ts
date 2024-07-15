@@ -1056,8 +1056,9 @@ export class AmplifyAuth
 
     output.oauthCognitoDomain = Lazy.string({
       produce: () => {
-        const userPoolDomain =
-          this.resources.userPool.node.tryFindChild('UserPoolDomain');
+        const userPoolDomain = this.resources.userPool.node.tryFindChild(
+          `${this.name}UserPoolDomain`
+        );
         if (!userPoolDomain) {
           return '';
         }

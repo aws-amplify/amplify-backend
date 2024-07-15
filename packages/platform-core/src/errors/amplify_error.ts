@@ -98,12 +98,37 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     return undefined;
   };
 
-  static fromError = (error: unknown): AmplifyError<'UnknownFault'> => {
+  static fromError = (
+    error: unknown
+  ): AmplifyError<
+    'UnknownFault' | 'CredentialsError' | 'InvalidCommandInputError'
+  > => {
     const errorMessage =
       error instanceof Error
         ? `${error.name}: ${error.message}`
         : 'An unknown error happened. Check downstream error';
 
+    if (error instanceof Error && isCredentialsError(error)) {
+      return new AmplifyUserError(
+        'CredentialsError',
+        {
+          message: errorMessage,
+          resolution:
+            'Ensure your AWS credentials are correctly set and refreshed.',
+        },
+        error
+      );
+    }
+    if (error instanceof Error && isYargsValidationError(error)) {
+      return new AmplifyUserError(
+        'InvalidCommandInputError',
+        {
+          message: errorMessage,
+          resolution: 'Please see the underlying error message for resolution.',
+        },
+        error
+      );
+    }
     return new AmplifyFault(
       'UnknownFault',
       {
@@ -113,6 +138,27 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     );
   };
 }
+
+const isCredentialsError = (err?: Error): boolean => {
+  return !!err && err?.name === 'CredentialsProviderError';
+};
+
+// These validation messages are taken from https://github.com/yargs/yargs/blob/0c95f9c79e1810cf9c8964fbf7d139009412f7e7/lib/validation.ts
+const isYargsValidationError = (err?: Error): boolean => {
+  return (
+    !!err &&
+    ([
+      'Unknown command',
+      'Unknown argument',
+      'Did you mean',
+      'Not enough non-option arguments',
+      'Too many non-option arguments',
+      'Missing required argument',
+      'Invalid values:',
+    ].some((message) => err.message.startsWith(message)) ||
+      err.message.endsWith('are mutually exclusive'))
+  );
+};
 
 /**
  * Amplify exception classifications
