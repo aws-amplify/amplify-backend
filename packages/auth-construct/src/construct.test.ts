@@ -833,23 +833,74 @@ void describe('Auth construct', () => {
         Domain: 'test-prefix',
       });
       const userPoolDomains = template.findResources(
-        'AWS::Cognito::UserPoolDomain',
-        {
-          Properties: {
-            Domain: 'test-prefix',
-          },
-        }
+        'AWS::Cognito::UserPoolDomain'
       );
-      let userPoolDomainRefValue = '';
-      for (const [key] of Object.entries(userPoolDomains)) {
-        userPoolDomainRefValue = key;
-      }
+      assert.equal(Object.entries(userPoolDomains).length, 1);
+      const [userPoolDomainRefValue] = Object.entries(userPoolDomains)[0];
       assert.deepEqual(outputs['oauthCognitoDomain']['Value'], {
         'Fn::Join': [
           '',
           [
             {
               Ref: userPoolDomainRefValue,
+            },
+            '.auth.',
+            {
+              Ref: 'AWS::Region',
+            },
+            '.amazoncognito.com',
+          ],
+        ],
+      });
+      assert.equal(
+        outputs['oauthScope']['Value'],
+        '["email","profile","openid"]'
+      );
+      assert.equal(
+        outputs['oauthRedirectSignIn']['Value'],
+        'http://callback.com'
+      );
+      assert.equal(
+        outputs['oauthRedirectSignOut']['Value'],
+        'http://logout.com'
+      );
+    });
+
+    void it('correctly outputs domain when name property is provided with domainPrefix', () => {
+      new AmplifyAuth(stack, 'test', {
+        name: 'myName',
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            domainPrefix: 'test-prefix',
+            scopes: ['EMAIL', 'PROFILE'],
+            callbackUrls: ['http://callback.com'],
+            logoutUrls: ['http://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      assert.equal(outputs['socialProviders']['Value'], `["GOOGLE"]`);
+      // make sure domain prefix property is set
+      template.hasResourceProperties('AWS::Cognito::UserPoolDomain', {
+        Domain: 'test-prefix',
+      });
+      // make sure we only generated 1 domain
+      const domains = template.findResources('AWS::Cognito::UserPoolDomain');
+      assert.equal(Object.entries(domains).length, 1);
+      const [key] = Object.entries(domains)[0];
+      // make sure that output for domain URL is correct
+      assert.deepEqual(outputs['oauthCognitoDomain']['Value'], {
+        'Fn::Join': [
+          '',
+          [
+            {
+              Ref: key,
             },
             '.auth.',
             {
