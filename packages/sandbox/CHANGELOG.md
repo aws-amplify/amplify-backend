@@ -1,5 +1,14 @@
 # @aws-amplify/sandbox
 
+## 1.0.6
+
+### Patch Changes
+
+- 44ca7d7: refactor top level cli error handling
+- Updated dependencies [44ca7d7]
+- Updated dependencies [ca92f23]
+  - @aws-amplify/platform-core@1.0.2
+
 ## 1.0.5
 
 ### Patch Changes
