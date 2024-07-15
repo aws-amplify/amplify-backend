@@ -21,7 +21,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     // (undocumented)
     readonly details?: string;
     // (undocumented)
-    static fromError: (error: unknown) => AmplifyError<'UnknownFault'>;
+    static fromError: (error: unknown) => AmplifyError<'UnknownFault' | 'CredentialsError'>;
     // (undocumented)
     static fromStderr: (_stderr: string) => AmplifyError | undefined;
     // (undocumented)
