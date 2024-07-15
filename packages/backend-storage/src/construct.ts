@@ -130,8 +130,6 @@ export class AmplifyStorage
       },
     };
 
-    this.storeOutput(props.outputStorageStrategy);
-
     this.storeOutput(props.outputStorageStrategy, props.isDefault || false);
 
     new AttributionMetadataStorage().storeAttributionMetadata(
