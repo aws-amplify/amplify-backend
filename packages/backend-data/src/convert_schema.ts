@@ -140,15 +140,10 @@ export const convertSchemaToCDK = (
   }
 
   if (importedTableName) {
-    return AmplifyDataDefinition.fromString(
-      schema,
-      // TODO: remove ignore
-      {
-        ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
-        // @ts-expect-error requires new release of data construct
-        tableName: importedTableName,
-      }
-    );
+    return AmplifyDataDefinition.fromString(schema, {
+      ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
+      tableName: importedTableName,
+    });
   }
   return AmplifyDataDefinition.fromString(schema, DYNAMO_DATA_SOURCE_STRATEGY);
 };
@@ -178,10 +173,8 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
 ): ModelDataSourceStrategy => {
   if (configuration.engine === 'dynamodb') {
     if (importedTableName) {
-      // TODO: remove ignore
       return {
         ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
-        // @ts-expect-error requires new release of data construct
         tableName: importedTableName,
       };
     }
