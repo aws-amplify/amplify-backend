@@ -350,7 +350,7 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets valid schedule - cron', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
-        schedule: '0 1 * * *',
+        schedule: '0 1 * * ?',
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(Stack.of(lambda.resources.lambda));
 
@@ -362,7 +362,7 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets valid schedule array', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
-        schedule: ['0 1 * * *', 'every 5m'],
+        schedule: ['0 1 * * ?', 'every 5m'],
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(Stack.of(lambda.resources.lambda));
 
