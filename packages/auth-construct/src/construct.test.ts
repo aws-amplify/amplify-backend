@@ -613,7 +613,15 @@ void describe('Auth construct', () => {
           max: 66,
           min: 1,
         },
-        'custom:member_year': {
+        'custom:register_date': {
+          dataType: 'DateTime',
+          mutable: true,
+        },
+        'custom:is_member': {
+          dataType: 'Boolean',
+          mutable: false,
+        },
+        'custom:year_as_member': {
           dataType: 'Number',
           max: 90,
           min: 0,
@@ -661,8 +669,18 @@ void describe('Auth construct', () => {
           },
         },
         {
+          AttributeDataType: 'DateTime',
+          Name: 'register_date',
+          Mutable: true,
+        },
+        {
+          AttributeDataType: 'Boolean',
+          Name: 'is_member',
+          Mutable: false,
+        },
+        {
           AttributeDataType: 'Number',
-          Name: 'member_year',
+          Name: 'year_as_member',
           Mutable: true,
           NumberAttributeConstraints: {
             MaxValue: '90',
