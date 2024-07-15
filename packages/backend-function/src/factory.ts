@@ -31,7 +31,9 @@ import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
-import { ScheduleParser } from './schedule_parser.js';
+import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { Rule } from 'aws-cdk-lib/aws-events';
 
 const functionStackType = 'function-Lambda';
 
@@ -39,17 +41,17 @@ export type AddEnvironmentFactory = {
   addEnvironment: (key: string, value: string | BackendSecret) => void;
 };
 
-export type Cron =
+export type CronSchedule =
   | `${string} ${string} ${string} ${string} ${string}`
   | `${string} ${string} ${string} ${string} ${string} ${string}`;
-export type Rate =
+export type TimeInterval =
   | `every ${number}m`
   | `every ${number}h`
   | `every day`
   | `every week`
   | `every month`
   | `every year`;
-export type TimeInterval = Rate | Cron;
+export type FunctionSchedule = TimeInterval | CronSchedule;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -118,7 +120,7 @@ export type FunctionProps = {
    * @example
    * schedule: "0 9 * * 2" // every Monday at 9am
    */
-  schedule?: TimeInterval | TimeInterval[];
+  schedule?: FunctionSchedule | FunctionSchedule[];
 };
 
 /**
@@ -344,7 +346,7 @@ class AmplifyFunction
     // This will be overwritten with the typed file at the end of synthesis
     functionEnvironmentTypeGenerator.generateProcessEnvShim();
 
-    let functionLambda;
+    let functionLambda: NodejsFunction;
     try {
       functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
@@ -374,11 +376,35 @@ class AmplifyFunction
       );
     }
 
-    const schedules = Array.isArray(props.schedule)
+    const timeIntervals = Array.isArray(props.schedule)
       ? props.schedule
       : [props.schedule];
 
-    new ScheduleParser(functionLambda, schedules);
+    try {
+      const schedules = convertFunctionSchedulesToRuleSchedules(
+        functionLambda,
+        timeIntervals
+      );
+      const lambdaTarget = new targets.LambdaFunction(functionLambda);
+
+      schedules.forEach((schedule, index) => {
+        // Lambda name will be prepended to rule id, so only using index here for uniqueness
+        const rule = new Rule(functionLambda, `schedule${index}`, {
+          schedule,
+        });
+
+        rule.addTarget(lambdaTarget);
+      });
+    } catch (error) {
+      throw new AmplifyUserError(
+        'NodeJSFunctionScheduleInitializationError',
+        {
+          message: 'Failed to instantiate schedule for nodejs function',
+          resolution: 'See the underlying error message for more details.',
+        },
+        error as Error
+      );
+    }
 
     Tags.of(functionLambda).add(TagName.FRIENDLY_NAME, id);
 

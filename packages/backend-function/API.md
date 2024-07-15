@@ -16,7 +16,7 @@ export type AddEnvironmentFactory = {
 };
 
 // @public (undocumented)
-export type Cron = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
+export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
 
 // @public
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory>;
@@ -29,17 +29,17 @@ export type FunctionProps = {
     memoryMB?: number;
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
-    schedule?: TimeInterval | TimeInterval[];
+    schedule?: FunctionSchedule | FunctionSchedule[];
 };
+
+// @public (undocumented)
+export type FunctionSchedule = TimeInterval | CronSchedule;
 
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20;
 
 // @public (undocumented)
-export type Rate = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;
-
-// @public (undocumented)
-export type TimeInterval = Rate | Cron;
+export type TimeInterval = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;
 
 // (No @packageDocumentation comment for this package)
 

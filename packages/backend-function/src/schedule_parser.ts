@@ -1,159 +1,267 @@
-import { CronOptions, Rule, Schedule } from 'aws-cdk-lib/aws-events';
+import { CronOptions, Schedule } from 'aws-cdk-lib/aws-events';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
-import type { Cron, Rate, TimeInterval } from './factory.js';
+import type {
+  CronSchedule,
+  FunctionSchedule,
+  TimeInterval,
+} from './factory.js';
+import os from 'os';
+
+type CronPart =
+  | 'minutes'
+  | 'hours'
+  | 'day-of-month'
+  | 'month'
+  | 'day-of-week'
+  | 'year';
 
 /**
  * Parses function schedule props in order to create EventBridge rules.
  */
-export class ScheduleParser {
-  /**
-   * Initialize EventBridge rules
-   */
-  constructor(
-    private readonly lambda: NodejsFunction,
-    private readonly timeIntervals: TimeInterval[]
-  ) {
-    this.timeIntervals.forEach((interval, index) => {
-      if (isRate(interval)) {
-        const { value, unit } = parseRate(interval);
+export const convertFunctionSchedulesToRuleSchedules = (
+  lambda: NodejsFunction,
+  schedules: FunctionSchedule[]
+) => {
+  const errors: string[] = [];
+  const ruleSchedules: Schedule[] = [];
 
-        if (value && !isPositiveWholeNumber(value)) {
-          throw new Error(`schedule must be set with a positive whole number`);
-        }
+  schedules.forEach((schedule) => {
+    let hasError = false;
+    if (isTimeInterval(schedule)) {
+      const { value, unit } = parseTimeInterval(schedule);
 
-        if (
-          value &&
-          lambda.timeout &&
-          unit === 'm' &&
-          value * 60 < lambda.timeout.toSeconds()
-        ) {
-          const timeout = lambda.timeout.toSeconds();
-
-          throw new Error(
-            `schedule must be greater than the timeout of ${timeout} ${
-              timeout > 1 ? 'seconds' : 'second'
-            }`
-          );
-        }
-      } else {
-        if (!isValidCron(interval)) {
-          // TODO: Better error messaging here or throw within each part of isValidCron in order to give more concise error messages
-          throw new Error(`schedule cron expression is not valid`);
-        }
-      }
-
-      try {
-        // Lambda name will be prepended to rule id, so only using index here for uniqueness
-        const rule = new Rule(this.lambda, `lambda-schedule${index}`, {
-          schedule: Schedule.cron(translateToCronOptions(interval)),
-        });
-
-        rule.addTarget(new targets.LambdaFunction(this.lambda));
-      } catch (error) {
-        throw new AmplifyUserError(
-          'NodeJSFunctionScheduleInitializationError',
-          {
-            message: 'Failed to instantiate schedule for nodejs function',
-            resolution: 'See the underlying error message for more details.',
-          },
-          error as Error
+      if (value && !isPositiveWholeNumber(value)) {
+        hasError = true;
+        errors.push(
+          'Function schedule rate must be set with a positive whole number'
+        );
+      } else if (
+        value &&
+        lambda.timeout &&
+        unit === 'm' &&
+        value * 60 < lambda.timeout.toSeconds()
+      ) {
+        hasError = true;
+        const timeout = lambda.timeout.toSeconds();
+        errors.push(
+          `Function schedule rate must be greater than the function timeout of ${timeout} ${
+            timeout > 1 ? 'seconds' : 'second'
+          }`
         );
       }
-    });
-  }
-}
+    } else {
+      const cronErrors = validateCron(schedule);
 
-const isRate = (timeInterval: TimeInterval): timeInterval is Rate => {
-  return timeInterval.split(' ')[0] === 'every';
+      if (cronErrors.length > 0) {
+        hasError = true;
+        errors.push(...cronErrors);
+      }
+    }
+
+    if (!hasError) {
+      ruleSchedules.push(Schedule.cron(translateToCronOptions(schedule)));
+    }
+  });
+
+  if (errors.length > 0) {
+    throw new Error(errors.join(os.EOL));
+  }
+
+  return ruleSchedules;
 };
 
-const parseRate = (rate: Rate) => {
-  const interval = rate.split(' ')[1];
+const isTimeInterval = (
+  schedule: FunctionSchedule
+): schedule is TimeInterval => {
+  const parts = schedule.split(' ');
 
-  const regex = /\d/;
-  if (interval.match(regex)) {
-    return {
-      value: Number(interval.substring(0, interval.length - 1)),
-      unit: interval.charAt(interval.length - 1),
-    };
-  }
+  return (
+    parts[0] === 'every' &&
+    ['m', 'h', 'day', 'week', 'month', 'year'].some((a) =>
+      parts[1].endsWith(a)
+    ) &&
+    parts.length === 2
+  );
+};
+
+const parseTimeInterval = (timeInterval: TimeInterval) => {
+  const part = timeInterval.split(' ')[1];
+  const value = part.match(/-?\d+\.?\d*/);
+  const unit = part.match(/[a-zA-Z]+/);
 
   return {
-    unit: interval,
+    value: value ? Number(value[0]) : undefined,
+    unit: unit ? unit[0] : undefined,
   };
 };
 
 const isPositiveWholeNumber = (test: number) => test > 0 && test % 1 === 0;
 
-const isValidCron = (cron: Cron): boolean => {
+const validateCron = (cron: CronSchedule) => {
+  const errors: string[] = [];
   const cronParts = cron.split(' ');
-
-  if (cronParts.length !== 5 && cronParts.length !== 6) {
-    return false;
-  }
 
   const [minute, hour, dayOfMonth, month, dayOfWeek, year] = cronParts;
 
-  return (
-    isValidCronPart(minute, 0, 59) &&
-    isValidCronPart(hour, 0, 23) &&
-    (dayOfMonth === '?' || isValidCronPart(dayOfMonth, 1, 31)) &&
-    isValidCronPart(month, 1, 12) &&
-    (dayOfWeek === '?' || isValidCronPart(dayOfWeek, 1, 7)) &&
-    (!year || isValidCronPart(year, 1970, 2199))
+  const minuteValidationErrors = validateCronPart('minutes', minute, 0, 59);
+  const hourValidationErrors = validateCronPart('hours', hour, 0, 23);
+  const dayOfMonthValidationErrors =
+    dayOfMonth === '?'
+      ? []
+      : validateCronPart('day-of-month', dayOfMonth, 1, 31);
+  const monthValidationErrors = validateCronPart('month', month, 1, 12);
+  const dayOfWeekValidationErrors =
+    dayOfWeek === '?' ? [] : validateCronPart('day-of-week', dayOfWeek, 1, 7);
+  const yearValidationErrors = year
+    ? validateCronPart('year', year, 1970, 2199)
+    : [];
+
+  errors.push(
+    ...minuteValidationErrors,
+    ...hourValidationErrors,
+    ...dayOfMonthValidationErrors,
+    ...monthValidationErrors,
+    ...dayOfWeekValidationErrors,
+    ...yearValidationErrors
   );
+
+  if (dayOfMonth !== '?' && dayOfWeek !== '?') {
+    errors.push(
+      'Cron expressions cannot have both day-of-month and day-of-week defined, you must use a ? in one of the fields'
+    );
+  }
+
+  return errors;
 };
 
-const isValidCronPart = (part: string, min: number, max: number): boolean => {
-  if (part === '*') {
-    return true;
-  }
-  if (part.includes('/')) {
-    return isValidStepValue(part, min, max);
-  }
-  if (part.includes('-')) {
-    return isValidRange(part, min, max);
-  }
-  if (part.includes(',')) {
-    return isValidList(part, min, max);
+const validateCronPart = (
+  cronPart: CronPart,
+  value: string,
+  min: number,
+  max: number
+) => {
+  const errors: string[] = [];
+
+  if (value === '*') {
+    return errors;
   }
 
-  return isWholeNumberBetweenInclusive(Number(part), min, max);
+  const hasStep = value.includes('/');
+  const hasRange = value.includes('-');
+  const hasList = value.includes(',');
+
+  if (hasList) {
+    const listError = validateList(cronPart, value, min, max);
+
+    if (listError) {
+      errors.push(listError);
+    }
+    const listItems = value.split(',');
+
+    listItems.forEach((listItem) => {
+      if (listItem.includes('/')) {
+        const stepError = validateStepValue(cronPart, listItem, min, max);
+
+        if (stepError) {
+          errors.push(stepError);
+        }
+      } else if (listItem.includes('-')) {
+        const rangeError = validateRange(cronPart, listItem, min, max);
+
+        if (rangeError) {
+          errors.push(rangeError);
+        }
+      }
+    });
+  } else if (hasStep) {
+    const stepError = validateStepValue(cronPart, value, min, max);
+
+    if (stepError) {
+      errors.push(stepError);
+    }
+  } else if (hasRange) {
+    const rangeError = validateRange(cronPart, value, min, max);
+
+    if (rangeError) {
+      errors.push(rangeError);
+    }
+  }
+
+  if (
+    !hasStep &&
+    !hasRange &&
+    !hasList &&
+    !isWholeNumberBetweenInclusive(Number(value), min, max)
+  ) {
+    errors.push(
+      `Cron field for ${cronPart} must be a whole number between ${min} and ${max}`
+    );
+  }
+
+  return errors;
 };
 
-const isValidStepValue = (value: string, min: number, max: number): boolean => {
+const validateStepValue = (
+  cronPart: CronPart,
+  value: string,
+  min: number,
+  max: number
+) => {
   const originalBase = value.split('/')[0];
   const [base, step] = value.split('/').map(Number);
 
   if (originalBase === '*') {
-    return !isNaN(step) && step > 0;
+    if (isNaN(step) || step <= 0 || !isPositiveWholeNumber(step)) {
+      return `Cron step values for ${cronPart} must be positive whole numbers`;
+    }
+  } else if (
+    isNaN(base) ||
+    isNaN(step) ||
+    !isWholeNumberBetweenInclusive(base, min, max) ||
+    step <= 0
+  ) {
+    return `Cron step values for ${cronPart} must be whole numbers between ${min} and ${max}`;
   }
 
-  return (
-    !isNaN(base) &&
-    !isNaN(step) &&
-    isWholeNumberBetweenInclusive(base, min, max) &&
-    step > 0
-  );
+  return;
 };
 
-const isValidRange = (value: string, min: number, max: number): boolean => {
+const validateRange = (
+  cronPart: CronPart,
+  value: string,
+  min: number,
+  max: number
+) => {
   const [start, end] = value.split('-').map(Number);
-  return (
-    !isNaN(start) &&
-    !isNaN(end) &&
-    isWholeNumberBetweenInclusive(start, min, max) &&
-    isWholeNumberBetweenInclusive(end, min, max) &&
-    start <= end
-  );
+
+  if (
+    isNaN(start) ||
+    isNaN(end) ||
+    !isWholeNumberBetweenInclusive(start, min, max) ||
+    !isWholeNumberBetweenInclusive(end, min, max) ||
+    start > end
+  ) {
+    return `Cron range for ${cronPart} must be whole numbers between ${min} and ${max}`;
+  }
+
+  return;
 };
 
-const isValidList = (value: string, min: number, max: number): boolean => {
-  return value
-    .split(',')
-    .every((v) => isWholeNumberBetweenInclusive(Number(v), min, max));
+const validateList = (
+  cronPart: CronPart,
+  value: string,
+  min: number,
+  max: number
+) => {
+  if (
+    !value
+      .split(',')
+      .every((v) => isWholeNumberBetweenInclusive(Number(v), min, max))
+  ) {
+    return `Cron list for ${cronPart} must contain whole numbers between ${min} and ${max}`;
+  }
+
+  return;
 };
 
 const isWholeNumberBetweenInclusive = (
@@ -162,9 +270,9 @@ const isWholeNumberBetweenInclusive = (
   max: number
 ) => min <= test && test <= max && test % 1 === 0;
 
-const translateToCronOptions = (timeInterval: TimeInterval): CronOptions => {
-  if (isRate(timeInterval)) {
-    const { value, unit } = parseRate(timeInterval);
+const translateToCronOptions = (schedule: FunctionSchedule): CronOptions => {
+  if (isTimeInterval(schedule)) {
+    const { value, unit } = parseTimeInterval(schedule);
     switch (unit) {
       case 'm':
         return { minute: `*/${value}` };
@@ -186,10 +294,12 @@ const translateToCronOptions = (timeInterval: TimeInterval): CronOptions => {
         };
       default:
         // This should never happen with strict types
-        throw new Error('Could not determine the schedule for the function');
+        throw new Error(
+          'Could not determine the schedule rate for the function'
+        );
     }
   } else {
-    const cronArray = timeInterval.split(' ');
+    const cronArray = schedule.split(' ');
     const result: Record<string, string> = {
       minute: cronArray[0],
       hour: cronArray[1],
