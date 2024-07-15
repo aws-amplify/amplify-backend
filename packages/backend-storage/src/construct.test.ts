@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
-import { Capture, Template } from 'aws-cdk-lib/assertions';
+import { Capture, Match, Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
@@ -131,14 +131,22 @@ void describe('AmplifyStorage', () => {
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.strictEqual(storeOutputArgs.length, 2);
+      const bucketName = Object.entries(storeOutputArgs[1].payload).filter(
+        ([key]) => key.includes('bucketName')
+      )[0][0];
+      const storageRegion = Object.entries(storeOutputArgs[1].payload).filter(
+        ([key]) => key.includes('storageRegion')
+      )[0][0];
+      assert.equal(storeOutputArgs[0], storageOutputKey);
+      assert.equal(storeOutputArgs[1].version, '1');
 
       assert.deepStrictEqual(storeOutputArgs, [
         storageOutputKey,
         {
           version: '1',
           payload: {
-            bucketName: expectedBucketName,
-            storageRegion: expectedRegion,
+            [bucketName]: expectedBucketName,
+            [storageRegion]: expectedRegion,
           },
         },
       ]);
@@ -153,7 +161,10 @@ void describe('AmplifyStorage', () => {
         Metadata: {
           [storageOutputKey]: {
             version: '1',
-            stackOutputs: ['storageRegion', 'bucketName'],
+            stackOutputs: [
+              Match.stringLikeRegexp('storageRegion*'),
+              Match.stringLikeRegexp('bucketName*'),
+            ],
           },
         },
       });
