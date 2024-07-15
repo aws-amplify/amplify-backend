@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct
 
+## 1.1.6
+
+### Patch Changes
+
+- 157175a: Fix a case where domain is not included in outputs if name property is specified
+
 ## 1.1.5
 
 ### Patch Changes
