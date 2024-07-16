@@ -13,10 +13,7 @@ import {
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import {
-  // StorageOutput,
-  storageOutputKey,
-} from '@aws-amplify/backend-output-schemas';
+import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   AttributionMetadataStorage,

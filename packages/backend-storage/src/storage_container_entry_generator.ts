@@ -34,8 +34,7 @@ export class StorageContainerEntryGenerator
   }: GenerateContainerEntryProps) => {
     const amplifyStorage = new AmplifyStorage(scope, this.props.name, {
       ...this.props,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      outputStorageStrategy: this.getInstanceProps.outputStorageStrategy as any,
+      outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     });
 
     Tags.of(amplifyStorage).add(TagName.FRIENDLY_NAME, this.props.name);
