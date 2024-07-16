@@ -17,6 +17,7 @@ import {
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { numInvocationsKey } from '../constants.js';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -140,11 +141,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       amplifySharedSecretNameKey in environment
         ? environment[amplifySharedSecretNameKey]
         : createAmplifySharedSecretName();
-    const sharedSecretEnvObject = {
+    const env = {
       [amplifySharedSecretNameKey]: this.amplifySharedSecret,
+      [numInvocationsKey]: '0',
     };
     await this.setUpDeployEnvironment(backendIdentifier);
-    await super.deploy(backendIdentifier, sharedSecretEnvObject);
+    await super.deploy(backendIdentifier, env);
   }
 
   /**
@@ -235,7 +237,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
-    await this.checkLambdaResponse(funcWithSchedule[0], 'It is working');
+    await this.checkLambdaResponse(funcWithSchedule[0], 1);
+
+    // wait 1 minute and 10 seconds for schedule to invoke lambda again
+    await new Promise((resolve) => setTimeout(resolve, 1000 * 70));
+
+    await this.checkLambdaResponse(funcWithSchedule[0], 3);
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,

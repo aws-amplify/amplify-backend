@@ -344,6 +344,14 @@ void describe('AmplifyFunctionFactory', () => {
 
       template.hasResourceProperties('AWS::Events::Rule', {
         ScheduleExpression: 'cron(*/5 * * * ? *)',
+        Targets: [
+          {
+            Arn: {
+              'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+            },
+            Id: 'Target0',
+          },
+        ],
       });
     });
 
@@ -356,6 +364,14 @@ void describe('AmplifyFunctionFactory', () => {
 
       template.hasResourceProperties('AWS::Events::Rule', {
         ScheduleExpression: 'cron(0 1 * * ? *)',
+        Targets: [
+          {
+            Arn: {
+              'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+            },
+            Id: 'Target0',
+          },
+        ],
       });
     });
 

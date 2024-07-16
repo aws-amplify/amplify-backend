@@ -47,6 +47,6 @@ export const funcWithAwsSdk = defineFunction({
 
 export const funcWithSchedule = defineFunction({
   name: 'funcWithSchedule',
-  entry: './func-src/handler_with_ssm.ts',
-  schedule: 'every day',
+  entry: './func-src/handler_with_counter.ts',
+  schedule: '* * * * ?',
 });
