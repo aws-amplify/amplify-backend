@@ -4,7 +4,7 @@ import {
   BackendIdentifierConversions,
   TagName,
 } from '@aws-amplify/platform-core';
-import { BackendIdentifier, BackendOutput } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
   CloudFormationClient,
   DescribeStacksCommand,
@@ -45,8 +45,9 @@ export class LambdaFunctionLogStreamer {
       return;
     }
 
-    const backendOutput: BackendOutput =
-      await this.backendOutputClient.getOutput(sandboxBackendId);
+    const backendOutput = await this.backendOutputClient.getOutput(
+      sandboxBackendId
+    );
 
     const definedFunctionsPayload =
       backendOutput['AWS::Amplify::Function']?.payload.definedFunctions;
