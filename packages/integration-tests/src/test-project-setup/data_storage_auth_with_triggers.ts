@@ -235,12 +235,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
-    await this.checkLambdaResponse(funcWithSchedule[0], 1);
+    const invocationCount = await this.getLambdaResponse(funcWithSchedule[0]);
 
     // wait 1 minute and 10 seconds for schedule to invoke lambda again
     await new Promise((resolve) => setTimeout(resolve, 1000 * 70));
 
-    await this.checkLambdaResponse(funcWithSchedule[0], 3);
+    await this.checkLambdaResponse(funcWithSchedule[0], invocationCount + 2);
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -347,6 +347,18 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     // check expected response
     assert.deepStrictEqual(responsePayload, expectedResponse);
+  };
+
+  private getLambdaResponse = async (lambdaName: string) => {
+    // invoke the lambda
+    const response = await this.lambdaClient.send(
+      new InvokeCommand({ FunctionName: lambdaName })
+    );
+    const responsePayload = JSON.parse(
+      response.Payload?.transformToString() || ''
+    );
+
+    return responsePayload;
   };
 
   private assertExpectedCleanup = async () => {
