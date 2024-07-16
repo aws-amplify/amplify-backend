@@ -7,6 +7,7 @@
 /// <reference types="node" />
 
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { WriteStream } from 'node:tty';
 
 // @public
 export class AmplifyPrompter {
@@ -21,11 +22,19 @@ export class AmplifyPrompter {
     }) => Promise<boolean>;
 }
 
+// @public (undocumented)
+export type ColorName = (typeof colorNames)[number];
+
+// @public (undocumented)
+export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan"];
+
 // @public
 export class Format {
     constructor(packageManagerRunnerName?: string);
     // (undocumented)
     bold: (message: string) => string;
+    // (undocumented)
+    color: (message: string, colorName: ColorName) => string;
     // (undocumented)
     command: (command: string) => string;
     // (undocumented)
@@ -73,7 +82,7 @@ export class PackageManagerControllerFactory {
 
 // @public
 export class Printer {
-    constructor(minimumLogLevel: LogLevel, stdout?: NodeJS.WriteStream, stderr?: NodeJS.WriteStream, refreshRate?: number);
+    constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number);
     indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
     log(message: string, level?: LogLevel): void;
     print: (message: string) => void;
