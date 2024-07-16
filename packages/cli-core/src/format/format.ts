@@ -1,6 +1,5 @@
 import * as os from 'node:os';
 import {
-  $,
   Colorize,
   blue,
   bold,
@@ -13,7 +12,6 @@ import {
   underline,
   yellow,
 } from 'kleur/colors';
-import supportColors from 'color-support';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 import { getPackageManagerRunnerName } from '../package-manager-controller/get_package_manager_name.js';
 
@@ -26,11 +24,7 @@ export class Format {
    */
   constructor(
     private readonly packageManagerRunnerName = getPackageManagerRunnerName()
-  ) {
-    if (!supportColors()) {
-      $.enabled = false;
-    }
-  }
+  ) {}
   normalizeAmpxCommand = (command: string) => {
     if (command.length === 0) {
       throw new AmplifyFault('InvalidFormatFault', {

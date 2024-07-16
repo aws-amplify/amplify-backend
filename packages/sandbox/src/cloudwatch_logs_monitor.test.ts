@@ -62,19 +62,19 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(mockedWrite.mock.callCount(), 4);
     assert.match(
       mockedWrite.mock.calls[0].arguments[0],
-      /\[logFriendlyName1\] .* text message for logGroupName1 some useful text/
+      /logFriendlyName1.* text message for logGroupName1 some useful text/
     );
     assert.match(
       mockedWrite.mock.calls[1].arguments[0],
-      /\[logFriendlyName1\] .* json message for logGroupName1 {\n {2}"key1": "value1",\n {2}"key2": "value2"\n}/
+      /logFriendlyName1.* json message for logGroupName1 {\n {2}"key1": "value1",\n {2}"key2": "value2"\n}/
     );
     assert.match(
       mockedWrite.mock.calls[2].arguments[0],
-      /\[logFriendlyName2\] .* text message for logGroupName2 some useful text/
+      /logFriendlyName2.* text message for logGroupName2 some useful text/
     );
     assert.match(
       mockedWrite.mock.calls[3].arguments[0],
-      /\[logFriendlyName2\] .* json message for logGroupName2 {\n {2}"key1": "value1",\n {2}"key2": "value2"\n}/
+      /logFriendlyName2.* json message for logGroupName2 {\n {2}"key1": "value1",\n {2}"key2": "value2"\n}/
     );
   });
 
@@ -145,11 +145,11 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
     assert.match(
       mockedWrite.mock.calls[0].arguments[0],
-      /\[logFriendlyName1\] .* first text message/
+      /logFriendlyName1.* first text message/
     );
     assert.match(
       mockedWrite.mock.calls[1].arguments[0],
-      /\[logFriendlyName1\] .* second text message/
+      /logFriendlyName1.* second text message/
     );
   });
 
@@ -167,9 +167,9 @@ void describe('LambdaFunctionLogStreamer', () => {
 
     assert.strictEqual(cloudWatchClientSendMock.mock.callCount(), 1);
     assert.strictEqual(mockLog.mock.callCount(), 2);
-    assert.equal(
+    assert.match(
       mockLog.mock.calls[0].arguments[0],
-      'Error streaming logs from CloudWatch. Error: some cloudWatch error'
+      /Error streaming logs from CloudWatch/
     );
     assert.equal(
       mockLog.mock.calls[1].arguments[0],
@@ -212,7 +212,7 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(mockedWrite.mock.callCount(), 101);
     assert.match(
       mockedWrite.mock.calls[100].arguments[0],
-      /\[logFriendlyName1\] .* >>> `sandbox` shows only the first 100 log messages - the rest have been truncated.../
+      /logFriendlyName1.* >>> `sandbox` shows only the first 100 log messages - the rest have been truncated.../
     );
   });
 
@@ -265,11 +265,11 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(mockedWrite.mock.callCount(), 2);
     assert.match(
       mockedWrite.mock.calls[0].arguments[0],
-      /\[logFriendlyName1\] .* first text message/
+      /logFriendlyName1.* first text message/
     );
     assert.match(
       mockedWrite.mock.calls[1].arguments[0],
-      /\[logFriendlyName1\] .* second text message/
+      /logFriendlyName1.* second text message/
     );
   });
 });
