@@ -261,10 +261,15 @@ export const extractImportedModels = (
   importedSchemas: { schema: string; importedTableName: string }[];
   nonImportedSchema: string;
 } => {
-  if (importedAmplifyDynamoDBTableMap && Object.keys(importedAmplifyDynamoDBTableMap).length) {
+  if (
+    importedAmplifyDynamoDBTableMap &&
+    Object.keys(importedAmplifyDynamoDBTableMap).length
+  ) {
     Object.keys(importedAmplifyDynamoDBTableMap).forEach((modelName) => {
       if (!importedModels?.includes(modelName)) {
-        throw new Error(`Imported table defined in importedAmplifyDynamoDBTableMap not found in importedModels list: ${modelName}`);
+        throw new Error(
+          `Imported table defined in importedAmplifyDynamoDBTableMap not found in importedModels list: ${modelName}`
+        );
       }
     });
   }
@@ -281,33 +286,38 @@ export const extractImportedModels = (
       }
     );
     // ok to cast as ObjectTypeDefinitionNode because the type was checked in the partition function
-    const importedObjectTypeDefinitionNodes = importedDefinitionNodes as ObjectTypeDefinitionNode[];
+    const importedObjectTypeDefinitionNodes =
+      importedDefinitionNodes as ObjectTypeDefinitionNode[];
 
     importedModels.forEach((modelName) => {
-      if (!importedObjectTypeDefinitionNodes.some((definitionNode) => definitionNode.name.value === modelName)) {
-        throw new Error(`Imported model not found in schema: ${modelName}`)
+      if (
+        !importedObjectTypeDefinitionNodes.some(
+          (definitionNode) => definitionNode.name.value === modelName
+        )
+      ) {
+        throw new Error(`Imported model not found in schema: ${modelName}`);
       }
     });
 
-    const importedSchemas =
-      importedObjectTypeDefinitionNodes
-    .map((definitionNode) => {
-      const importedTableName = (importedAmplifyDynamoDBTableMap ?? {})[
-        definitionNode.name.value
-      ];
-      if (!importedTableName) {
-        throw new Error(
-          `No table found for imported model ${definitionNode.name.value}.`
-        );
+    const importedSchemas = importedObjectTypeDefinitionNodes.map(
+      (definitionNode) => {
+        const importedTableName = (importedAmplifyDynamoDBTableMap ?? {})[
+          definitionNode.name.value
+        ];
+        if (!importedTableName) {
+          throw new Error(
+            `No table found for imported model ${definitionNode.name.value}.`
+          );
+        }
+        return {
+          schema: print({
+            definitions: [definitionNode],
+            kind: 'Document' as const,
+          }),
+          importedTableName,
+        };
       }
-      return {
-        schema: print({
-          definitions: [definitionNode],
-          kind: 'Document' as const,
-        }),
-        importedTableName,
-      };
-    });
+    );
 
     return {
       importedSchemas,

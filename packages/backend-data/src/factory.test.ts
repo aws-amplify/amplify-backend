@@ -814,7 +814,8 @@ void describe('Table Import', () => {
       isSandboxMode: true,
     });
     assert.throws(() => dataFactory.getInstance(getInstanceProps), {
-      message: 'importedAmplifyDynamoDBTableMap is defined but importedModels is not defined.',
+      message:
+        'importedAmplifyDynamoDBTableMap is defined but importedModels is not defined.',
     });
   });
 
@@ -838,7 +839,8 @@ void describe('Table Import', () => {
       isSandboxMode: true,
     });
     assert.throws(() => dataFactory.getInstance(getInstanceProps), {
-      message: 'importedModels is defined but importedAmplifyDynamoDBTableMap is not defined.',
+      message:
+        'importedModels is defined but importedAmplifyDynamoDBTableMap is not defined.',
     });
   });
 
@@ -893,10 +895,10 @@ void describe('Table Import', () => {
       isSandboxMode: true,
     });
     assert.throws(() => dataFactory.getInstance(getInstanceProps), {
-      message: 'Imported table defined in importedAmplifyDynamoDBTableMap not found in importedModels list: ImportedModel',
+      message:
+        'Imported table defined in importedAmplifyDynamoDBTableMap not found in importedModels list: ImportedModel',
     });
   });
-
 
   void it('throws when model missing in imported models map', () => {
     const schema = /* GraphQL */ `
@@ -912,8 +914,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      importedAmplifyDynamoDBTableMap: {
-      },
+      importedAmplifyDynamoDBTableMap: {},
       importedModels: ['ImportedModel'],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
