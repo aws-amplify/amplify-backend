@@ -105,6 +105,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private testBucketName: string;
   private testRoleNames: string[];
 
+  private checkInvocationCount: boolean = true;
+
   /**
    * Create a test project instance.
    */
@@ -235,12 +237,18 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
-    const invocationCount = await this.getLambdaResponse(funcWithSchedule[0]);
 
-    // wait 1 minute and 10 seconds for schedule to invoke lambda again
-    await new Promise((resolve) => setTimeout(resolve, 1000 * 70));
+    // test schedule function event trigger once
+    if (this.checkInvocationCount) {
+      const invocationCount = await this.getLambdaResponse(funcWithSchedule[0]);
 
-    await this.checkLambdaResponse(funcWithSchedule[0], invocationCount + 2);
+      // wait 1 minute and 10 seconds for schedule to invoke lambda again
+      await new Promise((resolve) => setTimeout(resolve, 1000 * 70));
+
+      await this.checkLambdaResponse(funcWithSchedule[0], invocationCount + 2);
+
+      this.checkInvocationCount = false;
+    }
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
