@@ -160,6 +160,10 @@ export class AmplifyStorage
     }> = new StackMetadataBackendOutputStorageStrategy(Stack.of(this)),
     isDefault: boolean = false
   ): void => {
+    /* The following code can guarantee there's only one `isDefault`
+     * because if we can only create one construct with the same `storageRegion` and `bucketName` name.
+     * The default bucket takes the `storageRegion` and `bucketName` name without a number post-fix.
+     */
     const num = isDefault ? '' : Math.floor(Math.random() * 100);
     outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
       version: '1',
