@@ -6,6 +6,7 @@ import assert from 'node:assert';
 import {
   CloudWatchLogsClient,
   FilterLogEventsCommand,
+  FilterLogEventsCommandInput,
 } from '@aws-sdk/client-cloudwatch-logs';
 import { printer } from '@aws-amplify/cli-core';
 
@@ -17,15 +18,13 @@ void describe('LambdaFunctionLogStreamer', () => {
 
   // CW default implementation, return test events for each log group
   const cloudWatchClientMock = new CloudWatchLogsClient({ region });
-  const cloudWatchClientSendMock = mock.fn();
-  mock.method(cloudWatchClientMock, 'send', cloudWatchClientSendMock);
+  const cloudWatchClientSendMock = mock.method(cloudWatchClientMock, 'send');
 
   let classUnderTest: CloudWatchLogEventMonitor;
 
   beforeEach(() => {
     classUnderTest = new CloudWatchLogEventMonitor(cloudWatchClientMock);
     mockedWrite.mock.resetCalls();
-    cloudWatchClientSendMock.mock.restore();
     cloudWatchClientSendMock.mock.resetCalls();
   });
 
@@ -79,7 +78,7 @@ void describe('LambdaFunctionLogStreamer', () => {
   });
 
   void it('ensures that unmask option is set to fast (default) when calling filterLogEvents API', async () => {
-    cloudWatchClientSendMock.mock.mockImplementation(() => {
+    cloudWatchClientSendMock.mock.mockImplementationOnce(() => {
       return Promise.resolve({
         events: [],
       });
@@ -91,9 +90,9 @@ void describe('LambdaFunctionLogStreamer', () => {
     classUnderTest.pause();
 
     assert.strictEqual(cloudWatchClientSendMock.mock.calls.length, 1);
-    const filterLogEventsCommand =
-      cloudWatchClientSendMock.mock.calls[0].arguments[0];
-    assert.ok(!filterLogEventsCommand.input.unmask); // unmask should be false
+    const filterLogEventsCommand = cloudWatchClientSendMock.mock.calls[0]
+      .arguments[0] as FilterLogEventsCommandInput;
+    assert.ok(!filterLogEventsCommand.unmask); // unmask should be false
   });
 
   void it('continue to stream CW logs until deactivated', async () => {
