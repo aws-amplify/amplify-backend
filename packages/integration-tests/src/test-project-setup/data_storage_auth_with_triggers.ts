@@ -105,7 +105,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private testBucketName: string;
   private testRoleNames: string[];
 
-  private checkInvocationCount: boolean = true;
+  private checkInvocationCount: boolean;
 
   /**
    * Create a test project instance.
@@ -129,6 +129,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       cfnClient,
       amplifyClient
     );
+
+    this.checkInvocationCount = true;
   }
 
   /**
