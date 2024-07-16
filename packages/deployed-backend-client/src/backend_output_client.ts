@@ -24,10 +24,7 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
     ).getStrategy(backendIdentifier);
     const output = await outputFetcher.fetchBackendOutput();
 
-    if (
-      output['AWS::Amplify::Storage'] &&
-      Object.keys(output['AWS::Amplify::Storage'].payload).length >= 4
-    ) {
+    if (output['AWS::Amplify::Storage']) {
       const payload = output['AWS::Amplify::Storage'].payload;
       const buckets: {
         bucketName: string;
@@ -37,7 +34,7 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
         key.startsWith('bucketName')
       );
       const hasDefaultBucket = bucketNames.includes('bucketName');
-      if (!hasDefaultBucket) {
+      if (!hasDefaultBucket && bucketNames.length > 1) {
         throw new AmplifyUserError('NoDefaultBucketError', {
           message: 'No default bucket set in the Amplify project.',
           resolution:
@@ -53,8 +50,12 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
         const storageRegion = payload[`storageRegion${postfix}`];
         buckets.push({ bucketName, storageRegion });
         if (postfix) {
-          delete payload[bucketName];
-          delete payload[storageRegion];
+          delete payload[`bucketName${postfix}`];
+          delete payload[`storageRegion${postfix}`];
+          if (!hasDefaultBucket && bucketNames.length === 1) {
+            payload.bucketName = bucketName;
+            payload.storageRegion = storageRegion;
+          }
         }
       });
 
