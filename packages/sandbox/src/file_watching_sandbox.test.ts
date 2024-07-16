@@ -28,7 +28,11 @@ import { URL, fileURLToPath } from 'url';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
-import { ParameterNotFound, SSMClient } from '@aws-sdk/client-ssm';
+import {
+  ParameterNotFound,
+  SSMClient,
+  SSMServiceException,
+} from '@aws-sdk/client-ssm';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -86,9 +90,7 @@ const backendDeployerDestroyMock = mock.method(backendDeployer, 'destroy', () =>
 );
 const region = 'test-region';
 const ssmClientMock = new SSMClient({ region });
-const ssmClientSendMock = mock.fn();
-mock.method(ssmClientMock, 'send', ssmClientSendMock);
-ssmClientSendMock.mock.mockImplementation(() =>
+const ssmClientSendMock = mock.fn(() =>
   Promise.resolve({
     Parameter: {
       Name: CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
@@ -97,6 +99,7 @@ ssmClientSendMock.mock.mockImplementation(() =>
   })
 );
 
+mock.method(ssmClientMock, 'send', ssmClientSendMock);
 const openMock = mock.fn(_open, (url: string) => Promise.resolve(url));
 
 const functionsLogStreamerMock = {
@@ -180,6 +183,32 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     assert.strictEqual(
       openMock.mock.calls[0].arguments[0],
       getBootstrapUrl(region)
+    );
+  });
+
+  void it('when user does not have proper credentials throw user error', async () => {
+    const error = new SSMServiceException({
+      name: 'UnrecognizedClientException',
+      $fault: 'client',
+      $metadata: {},
+      message: 'The security token included in the request is invalid.',
+    });
+    ssmClientSendMock.mock.mockImplementationOnce(() => {
+      throw error;
+    });
+
+    await assert.rejects(
+      () => sandboxInstance.start({}),
+      new AmplifyUserError(
+        'SSMCredentialsError',
+        {
+          message:
+            'UnrecognizedClientException: The security token included in the request is invalid.',
+          resolution:
+            'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
+        },
+        error
+      )
     );
   });
 
@@ -501,7 +530,7 @@ void describe('Sandbox using local project name resolver', () => {
     // Mimic BackendDeployer taking 200 ms.
     backendDeployerDeployMock.mock.mockImplementationOnce(async () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
-      return { stdout: '', stderr: '' };
+      return { deploymentTimes: {}, stdout: '', stderr: '' };
     });
 
     // Not awaiting so we can push another file change while deployment is ongoing

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-
-import { hideBin } from 'yargs/helpers';
 import { createMainParser } from './main_parser_factory.js';
-import { attachUnhandledExceptionListeners } from './error_handler.js';
+import {
+  attachUnhandledExceptionListeners,
+  generateCommandFailureHandler,
+} from './error_handler.js';
 import { extractSubCommands } from './extract_sub_commands.js';
 import {
   AmplifyFault,
@@ -10,8 +11,9 @@ import {
   UsageDataEmitterFactory,
 } from '@aws-amplify/platform-core';
 import { fileURLToPath } from 'node:url';
-import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { verifyCommandName } from './verify_command_name.js';
+import { hideBin } from 'yargs/helpers';
+import { format } from '@aws-amplify/cli-core';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
@@ -33,10 +35,11 @@ attachUnhandledExceptionListeners(usageDataEmitter);
 
 verifyCommandName();
 
-const parser = createMainParser(libraryVersion, usageDataEmitter);
-await parser.parseAsync(hideBin(process.argv));
+const parser = createMainParser(libraryVersion);
+const errorHandler = generateCommandFailureHandler(parser, usageDataEmitter);
 
 try {
+  await parser.parseAsync(hideBin(process.argv));
   const metricDimension: Record<string, string> = {};
   const subCommands = extractSubCommands(parser);
 
@@ -47,10 +50,6 @@ try {
   await usageDataEmitter.emitSuccess({}, metricDimension);
 } catch (e) {
   if (e instanceof Error) {
-    printer.log(format.error('Failed to emit usage metrics'), LogLevel.DEBUG);
-    printer.log(format.error(e), LogLevel.DEBUG);
-    if (e.stack) {
-      printer.log(e.stack, LogLevel.DEBUG);
-    }
+    await errorHandler(format.error(e), e);
   }
 }

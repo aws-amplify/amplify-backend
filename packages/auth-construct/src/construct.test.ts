@@ -872,6 +872,54 @@ void describe('Auth construct', () => {
         'http://logout.com'
       );
     });
+
+    void it('updates oauth domain when name is present', () => {
+      new AmplifyAuth(stack, 'test', {
+        name: 'test_name',
+        loginWith: {
+          email: true,
+          externalProviders: {
+            google: {
+              clientId: googleClientId,
+              clientSecret: SecretValue.unsafePlainText(googleClientSecret),
+            },
+            domainPrefix: 'test-prefix',
+            scopes: ['EMAIL', 'PROFILE'],
+            callbackUrls: ['http://callback.com'],
+            logoutUrls: ['http://logout.com'],
+          },
+        },
+      });
+      const template = Template.fromStack(stack);
+      const outputs = template.findOutputs('*');
+      const userPoolDomains = template.findResources(
+        'AWS::Cognito::UserPoolDomain',
+        {
+          Properties: {
+            Domain: 'test-prefix',
+          },
+        }
+      );
+      let userPoolDomainRefValue = '';
+      for (const [key] of Object.entries(userPoolDomains)) {
+        userPoolDomainRefValue = key;
+      }
+      assert.deepEqual(outputs['oauthCognitoDomain']['Value'], {
+        'Fn::Join': [
+          '',
+          [
+            {
+              Ref: userPoolDomainRefValue,
+            },
+            '.auth.',
+            {
+              Ref: 'AWS::Region',
+            },
+            '.amazoncognito.com',
+          ],
+        ],
+      });
+    });
   });
 
   void describe('storeOutput strategy', () => {

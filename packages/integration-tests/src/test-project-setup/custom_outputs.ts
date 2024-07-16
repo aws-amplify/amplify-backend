@@ -11,6 +11,7 @@ import {
   getClientConfigPath,
 } from '@aws-amplify/client-config';
 import assert from 'node:assert';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 /**
  * Creates minimal test projects with custom outputs.
@@ -21,7 +22,10 @@ export class CustomOutputsTestProjectCreator implements TestProjectCreator {
   /**
    * Creates project creator.
    */
-  constructor(private readonly cfnClient: CloudFormationClient) {}
+  constructor(
+    private readonly cfnClient: CloudFormationClient,
+    private readonly amplifyClient: AmplifyClient
+  ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
     const { projectName, projectRoot, projectAmplifyDir } =
@@ -31,10 +35,11 @@ export class CustomOutputsTestProjectCreator implements TestProjectCreator {
       projectName,
       projectRoot,
       projectAmplifyDir,
-      this.cfnClient
+      this.cfnClient,
+      this.amplifyClient
     );
     await fsp.cp(
-      project.sourceProjectAmplifyDirPath,
+      project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
@@ -52,7 +57,7 @@ class CustomOutputsTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
-  readonly sourceProjectAmplifyDirPath: URL = new URL(
+  readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
     import.meta.url
   );
@@ -64,9 +69,16 @@ class CustomOutputsTestProject extends TestProjectBase {
     name: string,
     projectDirPath: string,
     projectAmplifyDirPath: string,
-    cfnClient: CloudFormationClient
+    cfnClient: CloudFormationClient,
+    amplifyClient: AmplifyClient
   ) {
-    super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
+    super(
+      name,
+      projectDirPath,
+      projectAmplifyDirPath,
+      cfnClient,
+      amplifyClient
+    );
   }
 
   assertPostDeployment = async (

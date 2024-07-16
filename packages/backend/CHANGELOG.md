@@ -1,5 +1,26 @@
 # @aws-amplify/backend
 
+## 1.0.4
+
+### Patch Changes
+
+- 0200d11: Bump baseline CDK version to 2.132.0 to support AWS SDK bundling
+- Updated dependencies [4ec7cd8]
+- Updated dependencies [545f61d]
+- Updated dependencies [8968cf4]
+- Updated dependencies [4b249ed]
+- Updated dependencies [0200d11]
+- Updated dependencies [1f4c6e0]
+- Updated dependencies [0200d11]
+- Updated dependencies [20bf679]
+  - @aws-amplify/backend-auth@1.1.0
+  - @aws-amplify/backend-storage@1.0.4
+  - @aws-amplify/client-config@1.0.5
+  - @aws-amplify/backend-function@1.1.0
+  - @aws-amplify/backend-output-storage@1.0.2
+  - @aws-amplify/backend-data@1.0.3
+  - @aws-amplify/plugin-types@1.0.1
+
 ## 1.0.3
 
 ### Patch Changes

@@ -15,6 +15,8 @@ export class FunctionEnvironmentTypeGenerator {
 
   private typeDefFilePath: string;
 
+  private indentation: string = '  ';
+
   /**
    * Initialize typed process.env shim file name and location
    */
@@ -39,8 +41,8 @@ export class FunctionEnvironmentTypeGenerator {
     );
     declarations.push(`type ${lambdaEnvVarTypeName} = {`);
     for (const key in staticEnvironmentVariables) {
-      const comment = `/** ${staticEnvironmentVariables[key]} */`;
-      const declaration = `${key}: string;`;
+      const comment = `${this.indentation}/** ${staticEnvironmentVariables[key]} */`;
+      const declaration = `${this.indentation}${key}: string;`;
 
       declarations.push(comment + EOL + declaration + EOL);
     }
@@ -56,7 +58,7 @@ export class FunctionEnvironmentTypeGenerator {
     );
     declarations.push(`type ${amplifyBackendEnvVarTypeName} = {`);
     amplifyBackendEnvVars.forEach((envName) => {
-      const declaration = `${envName}: string;`;
+      const declaration = `${this.indentation}${envName}: string;`;
 
       declarations.push(declaration);
     });

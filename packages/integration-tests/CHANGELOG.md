@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.5.6
+
+### Patch Changes
+
+- 63a881f: Add the ability to add function environment variables after defining the function
+
 ## 0.5.5
 
 ### Patch Changes

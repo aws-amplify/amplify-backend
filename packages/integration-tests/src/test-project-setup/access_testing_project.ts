@@ -44,6 +44,7 @@ import { gql } from 'graphql-tag';
 import { IamCredentials } from '../types.js';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
 import { SemVer } from 'semver';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -69,6 +70,7 @@ export class AccessTestingProjectTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient,
+    private readonly amplifyClient: AmplifyClient,
     private readonly cognitoIdentityClient: CognitoIdentityClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
     private readonly stsClient: STSClient
@@ -83,12 +85,13 @@ export class AccessTestingProjectTestProjectCreator
       projectRoot,
       projectAmplifyDir,
       this.cfnClient,
+      this.amplifyClient,
       this.cognitoIdentityClient,
       this.cognitoIdentityProviderClient,
       this.stsClient
     );
     await fs.cp(
-      project.sourceProjectAmplifyDirPath,
+      project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
@@ -113,7 +116,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
-  readonly sourceProjectAmplifyDirPath: URL = new URL(
+  readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
     import.meta.url
   );
@@ -126,11 +129,18 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     projectDirPath: string,
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
+    amplifyClient: AmplifyClient,
     private readonly cognitoIdentityClient: CognitoIdentityClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
     private readonly stsClient: STSClient
   ) {
-    super(name, projectDirPath, projectAmplifyDirPath, cfnClient);
+    super(
+      name,
+      projectDirPath,
+      projectAmplifyDirPath,
+      cfnClient,
+      amplifyClient
+    );
   }
 
   override async assertPostDeployment(

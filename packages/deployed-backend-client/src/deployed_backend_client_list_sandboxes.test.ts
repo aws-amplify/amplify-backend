@@ -45,14 +45,62 @@ const getOutputMockResponse = {
 void describe('Deployed Backend Client list sandboxes', () => {
   const mockCfnClient = new CloudFormation();
   const mockS3Client = new S3();
-  const cfnClientSendMock = mock.method(mockCfnClient, 'send');
+  const cfnClientSendMock = mock.method(
+    mockCfnClient,
+    'send',
+    (request: ListStacksCommand | DescribeStacksCommand) => {
+      if (request instanceof ListStacksCommand) {
+        return listStacksMockFn(request.input);
+      }
+      if (request instanceof DescribeStacksCommand) {
+        const matchingStack = listStacksMock.StackSummaries.find((stack) => {
+          return stack.StackName === request.input.StackName;
+        });
+        const stack = matchingStack;
+        return {
+          Stacks: [stack],
+        };
+      }
+      throw request;
+    }
+  );
   let deployedBackendClient: DefaultDeployedBackendClient;
-  const listStacksMockFn = mock.fn();
+  const listStacksMockFn = mock.fn((input) => {
+    if (input) return listStacksMock;
+
+    return {
+      NextToken: 'abc',
+      StackSummaries: [
+        {
+          StackName: 'amplify-test-name-sandbox-testHash',
+          StackStatus: StackStatus.CREATE_COMPLETE,
+          CreationTime: new Date(0),
+          LastUpdatedTime: new Date(1),
+        },
+      ],
+    };
+  });
   const mockBackendOutputClient = new DefaultBackendOutputClient(
     mockCfnClient,
     new AmplifyClient()
   );
-  const getOutputMock = mock.method(mockBackendOutputClient, 'getOutput');
+  const getOutputMock = mock.method(
+    mockBackendOutputClient,
+    'getOutput',
+    (backendIdentifier: StackIdentifier) => {
+      if (backendIdentifier.stackName === 'amplify-test-not-a-sandbox') {
+        return {
+          ...getOutputMockResponse,
+          [platformOutputKey]: {
+            payload: {
+              deploymentType: 'branch',
+            },
+          },
+        };
+      }
+      return getOutputMockResponse;
+    }
+  );
   const returnedSandboxes = [
     {
       deploymentType: 'sandbox',
@@ -69,45 +117,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
   ];
 
   beforeEach(() => {
-    getOutputMock.mock.mockImplementation(
-      (backendIdentifier: StackIdentifier) => {
-        if (backendIdentifier.stackName === 'amplify-test-not-a-sandbox') {
-          return {
-            ...getOutputMockResponse,
-            [platformOutputKey]: {
-              payload: {
-                deploymentType: 'branch',
-              },
-            },
-          };
-        }
-        return getOutputMockResponse;
-      }
-    );
-
     getOutputMock.mock.resetCalls();
     listStacksMockFn.mock.resetCalls();
-    listStacksMockFn.mock.mockImplementation(() => {
-      return listStacksMock;
-    });
     cfnClientSendMock.mock.resetCalls();
-    const mockSend = (request: ListStacksCommand | DescribeStacksCommand) => {
-      if (request instanceof ListStacksCommand) {
-        return listStacksMockFn(request.input);
-      }
-      if (request instanceof DescribeStacksCommand) {
-        const matchingStack = listStacksMock.StackSummaries.find((stack) => {
-          return stack.StackName === request.input.StackName;
-        });
-        const stack = matchingStack;
-        return {
-          Stacks: [stack],
-        };
-      }
-      throw request;
-    };
-
-    cfnClientSendMock.mock.mockImplementation(mockSend);
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
       new ArnGenerator(),
@@ -157,11 +169,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
   void it('paginates listBackends when one page contains sandboxes, but it gets filtered due to deleted status', async () => {
     listStacksMockFn.mock.mockImplementationOnce(() => {
       return {
-        StackSummaries: [
-          {
-            StackStatus: StackStatus.DELETE_COMPLETE,
-          },
-        ],
+        StackSummaries: [],
         NextToken: 'abc',
       };
     });
@@ -182,6 +190,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         StackSummaries: [
           {
             StackName: 'amplify-test-not-a-sandbox',
+            StackStatus: StackStatus.CREATE_COMPLETE,
+            CreationTime: new Date(0),
+            LastUpdatedTime: new Date(1),
           },
         ],
         NextToken: 'abc',
@@ -210,6 +221,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         StackSummaries: [
           {
             StackName: 'amplify-test-name-sandbox-testHash',
+            StackStatus: StackStatus.CREATE_COMPLETE,
+            CreationTime: new Date(0),
+            LastUpdatedTime: new Date(1),
           },
         ],
         NextToken: 'abc',
@@ -235,6 +249,9 @@ void describe('Deployed Backend Client list sandboxes', () => {
         StackSummaries: [
           {
             StackName: 'amplify-test-name-sandbox-testHash',
+            StackStatus: StackStatus.CREATE_COMPLETE,
+            CreationTime: new Date(0),
+            LastUpdatedTime: new Date(1),
           },
         ],
         NextToken: 'abc',

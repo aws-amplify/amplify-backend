@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.0.1
+
+### Patch Changes
+
+- 0200d11: Bump baseline CDK version to 2.132.0 to support AWS SDK bundling
+
 ## 1.0.0
 
 ### Major Changes

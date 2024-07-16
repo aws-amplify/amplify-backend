@@ -45,9 +45,10 @@ export class SandboxEventHandlerFactory {
           } catch (error) {
             // Don't crash sandbox if config cannot be generated, but print the error message
             printer.print(
-              format.error('Amplify configuration could not be generated.')
+              `${format.error(
+                'Amplify outputs could not be generated.'
+              )} ${format.error(error)}`
             );
-            printer.print(format.error(error));
           }
         },
       ],

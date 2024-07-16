@@ -5,6 +5,7 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
+  ClientConfigFormat,
   ClientConfigVersion,
   ClientConfigVersionOption,
   DEFAULT_CLIENT_CONFIG_VERSION,
@@ -16,6 +17,7 @@ export type PipelineDeployCommandOptions =
 type PipelineDeployCommandOptionsCamelCase = {
   branch: string;
   appId: string;
+  outputsFormat: ClientConfigFormat | undefined;
   outputsVersion: string;
   outputsOutDir?: string;
 };
@@ -72,7 +74,8 @@ export class PipelineDeployCommand
     await this.clientConfigGenerator.generateClientConfigToFile(
       backendId,
       args.outputsVersion as ClientConfigVersion,
-      args.outputsOutDir
+      args.outputsOutDir,
+      args.outputsFormat
     );
   };
 
@@ -104,6 +107,12 @@ export class PipelineDeployCommand
         array: false,
         choices: Object.values(ClientConfigVersionOption),
         default: DEFAULT_CLIENT_CONFIG_VERSION,
+      })
+      .option('outputs-format', {
+        describe: 'amplify_outputs file format',
+        type: 'string',
+        array: false,
+        choices: Object.values(ClientConfigFormat),
       });
   };
 }

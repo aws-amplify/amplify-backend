@@ -20,6 +20,10 @@ import {
 import fsp from 'fs/promises';
 import assert from 'node:assert';
 import { CopyDefinition } from '../process-controller/types.js';
+import { BackendOutputClientFactory as CurrentCodebaseBackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
+import path from 'path';
+import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { pathToFileURL } from 'url';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -46,7 +50,7 @@ export type TestProjectUpdate = {
  * The base abstract class for test project.
  */
 export abstract class TestProjectBase {
-  abstract readonly sourceProjectAmplifyDirPath: URL;
+  abstract readonly sourceProjectAmplifyDirURL: URL;
 
   /**
    * The base test project class constructor.
@@ -55,7 +59,8 @@ export abstract class TestProjectBase {
     readonly name: string,
     readonly projectDirPath: string,
     readonly projectAmplifyDirPath: string,
-    protected readonly cfnClient: CloudFormationClient
+    protected readonly cfnClient: CloudFormationClient,
+    protected readonly amplifyClient: AmplifyClient
   ) {}
 
   /**
@@ -143,5 +148,41 @@ export abstract class TestProjectBase {
     );
 
     assert.ok(clientConfigStats.isFile());
+  }
+
+  /**
+   * Verify deployed client outputs
+   */
+  async assertDeployedClientOutputs(backendId: BackendIdentifier) {
+    const { BackendOutputClientFactory: npmBackendOutputClientFactory } =
+      await import(
+        pathToFileURL(
+          path.join(
+            this.projectDirPath,
+            'node_modules',
+            '@aws-amplify',
+            'deployed-backend-client',
+            'lib',
+            'backend_output_client_factory.js'
+          )
+        ).toString()
+      );
+
+    const currentCodebaseBackendOutputClient =
+      CurrentCodebaseBackendOutputClientFactory.getInstance({
+        getAmplifyClient: () => this.amplifyClient,
+        getCloudFormationClient: () => this.cfnClient,
+      });
+
+    const npmBackendOutputClient = npmBackendOutputClientFactory.getInstance({
+      getAmplifyClient: () => this.amplifyClient,
+      getCloudFormationClient: () => this.cfnClient,
+    });
+
+    const currentCodebaseOutputs =
+      await currentCodebaseBackendOutputClient.getOutput(backendId);
+    const npmOutputs = await npmBackendOutputClient.getOutput(backendId);
+
+    assert.deepStrictEqual(currentCodebaseOutputs, npmOutputs);
   }
 }
