@@ -1,13 +1,16 @@
 import * as os from 'node:os';
 import {
+  Colorize,
   blue,
   bold,
   cyan,
   dim,
   green,
   grey,
+  magenta,
   red,
   underline,
+  yellow,
 } from 'kleur/colors';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 import { getPackageManagerRunnerName } from '../package-manager-controller/get_package_manager_name.js';
@@ -71,6 +74,26 @@ export class Format {
     Object.entries(record)
       .map(([key, value]) => `${key}: ${String(value)}`)
       .join(os.EOL);
+  color = (message: string, colorName: ColorName) => colors[colorName](message);
 }
+
+// Map to connect colorName to kleur color
+const colors: Record<ColorName, Colorize> = {
+  Green: green,
+  Yellow: yellow,
+  Blue: blue,
+  Magenta: magenta,
+  Cyan: cyan,
+};
+
+export const colorNames = [
+  'Green',
+  'Yellow',
+  'Blue',
+  'Magenta',
+  'Cyan',
+] as const;
+
+export type ColorName = (typeof colorNames)[number];
 
 export const format = new Format();

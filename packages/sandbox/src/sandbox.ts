@@ -37,6 +37,13 @@ export type SandboxOptions = {
   format?: ClientConfigFormat;
   profile?: string;
   watchForChanges?: boolean;
+  functionStreamingOptions?: SandboxFunctionStreamingOptions;
+};
+
+export type SandboxFunctionStreamingOptions = {
+  enabled: boolean;
+  logsFilters?: string[];
+  logsOutFile?: string;
 };
 
 export type SandboxDeleteOptions = {
