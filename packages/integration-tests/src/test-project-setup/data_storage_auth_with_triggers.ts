@@ -17,7 +17,6 @@ import {
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { numInvocationsKey } from '../constants.js';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -141,12 +140,11 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       amplifySharedSecretNameKey in environment
         ? environment[amplifySharedSecretNameKey]
         : createAmplifySharedSecretName();
-    const env = {
+    const sharedSecretsEnv = {
       [amplifySharedSecretNameKey]: this.amplifySharedSecret,
-      [numInvocationsKey]: '0',
     };
     await this.setUpDeployEnvironment(backendIdentifier);
-    await super.deploy(backendIdentifier, env);
+    await super.deploy(backendIdentifier, sharedSecretsEnv);
   }
 
   /**

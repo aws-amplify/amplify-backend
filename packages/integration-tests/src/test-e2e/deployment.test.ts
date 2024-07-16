@@ -30,7 +30,6 @@ import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
-import { numInvocationsKey } from '../constants.js';
 
 const testProjectCreators = getTestProjectCreators();
 const testCdkProjectCreators = getTestCdkProjectCreators();
@@ -131,12 +130,14 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
         });
 
         void describe('in sequence', { concurrency: false }, () => {
-          const env = {
+          const sharedSecretsEnv = {
             [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
-            [numInvocationsKey]: '0',
           };
           void it(`[${testProjectCreator.name}] deploys fully`, async () => {
-            await testProject.deploy(sandboxBackendIdentifier, env);
+            await testProject.deploy(
+              sandboxBackendIdentifier,
+              sharedSecretsEnv
+            );
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
 
@@ -145,7 +146,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
               ['sandbox', '--once'],
               testProject.projectDirPath,
               {
-                env,
+                env: sharedSecretsEnv,
               }
             );
             await processController
@@ -160,7 +161,7 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
               ['sandbox', '--dirToWatch', 'amplify'],
               testProject.projectDirPath,
               {
-                env,
+                env: sharedSecretsEnv,
               }
             );
 

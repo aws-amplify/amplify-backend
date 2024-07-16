@@ -347,6 +347,7 @@ void describe('AmplifyFunctionFactory', () => {
         Targets: [
           {
             Arn: {
+              // eslint-disable-next-line spellcheck/spell-checker
               'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
             },
             Id: 'Target0',
@@ -367,6 +368,7 @@ void describe('AmplifyFunctionFactory', () => {
         Targets: [
           {
             Arn: {
+              // eslint-disable-next-line spellcheck/spell-checker
               'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
             },
             Id: 'Target0',
