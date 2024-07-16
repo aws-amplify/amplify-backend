@@ -472,6 +472,9 @@ void describe('storage client config contributor v1', () => {
           payload: {
             bucketName: 'testBucketName',
             storageRegion: 'testRegion',
+            buckets: [
+              { bucket_name: 'testBucketName', aws_region: 'testRegion' },
+            ],
           },
         },
       }),
@@ -479,6 +482,9 @@ void describe('storage client config contributor v1', () => {
         storage: {
           aws_region: 'testRegion',
           bucket_name: 'testBucketName',
+          buckets: [
+            { bucket_name: 'testBucketName', aws_region: 'testRegion' },
+          ],
         },
       } as Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs>
     );
