@@ -62,30 +62,24 @@ export type SupportedToolResultsJsonContent = Pick<
   'json'
 >;
 
-export type ToolUseBlock = {
-  toolUseId: string;
-  name: string;
-  input: JSONLike;
+export type SupportedToolResultContentBlock =
+  | SupportedToolResultsTextContent
+  | SupportedToolResultsImageContent
+  | SupportedToolResultsJsonContent;
+
+export type AIMessage = {
+  role: 'user' | 'assistant';
+  content: SupportedMessageContentBlock[];
 };
 
-export type Message = {
-  role: 'user' | 'assistant';
+export type ConversationMessage = AIMessage & {
   id: string;
-  content: SupportedMessageContentBlock[];
   sessionId: string;
 };
 
 export type Tool = ToolSpecification & {
   type: 'custom' | 'ui';
-  use: (
-    args: JSONLike
-  ) => Promise<
-    (
-      | SupportedToolResultsTextContent
-      | SupportedToolResultsImageContent
-      | SupportedToolResultsJsonContent
-    )[]
-  >;
+  use: (args: JSONLike) => Promise<SupportedToolResultContentBlock[]>;
 };
 
 export type ToolUseStrategy =
@@ -102,15 +96,17 @@ export type SupportedToolChoice = DistributiveOmit<
   '$unknown'
 >;
 
-export type GetMessageInput = {
+export type GetConversationMessageWithoutResolvingToolUsageInput = {
   systemPrompts: SystemPromptContent[];
-  messages: Message[];
+  messages: Omit<AIMessage[], 'id' | 'sessionId'>;
   modelId: string;
-  tools?: Tool[];
-  toolUseStrategy?: ToolUseStrategy;
+  toolConfiguration?: {
+    tools?: Tool[];
+    toolUseStrategy?: ToolUseStrategy;
+  };
 };
 
-export type GetMessageOutput = {
+export type GetConversationMessageWithoutResolvingToolUsageOutput = {
   output: {
     message: {
       role: 'user' | 'assistant';
@@ -133,4 +129,16 @@ export type GetMessageOutput = {
     latencyMs?: number;
   };
   additionalModelResponseFields?: JSONLike;
+};
+
+export type GetConversationMessageInput = {
+  systemPrompts: SystemPromptContent[];
+  messages: AIMessage[];
+  modelId: string;
+  onToolUseMessage?: (message: AIMessage) => Promise<void>;
+  onToolResultMessage?: (message: AIMessage) => Promise<void>;
+  toolConfiguration: {
+    tools?: Tool[];
+    toolUseStrategy?: ToolUseStrategy;
+  };
 };

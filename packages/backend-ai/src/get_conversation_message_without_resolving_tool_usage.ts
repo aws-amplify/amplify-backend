@@ -6,8 +6,8 @@ import {
   Message,
 } from '@aws-sdk/client-bedrock-runtime';
 import {
-  GetMessageInput,
-  GetMessageOutput,
+  GetConversationMessageWithoutResolvingToolUsageInput,
+  GetConversationMessageWithoutResolvingToolUsageOutput,
   SupportedMessageContentBlock,
   Tool,
   ToolUseStrategy,
@@ -83,8 +83,7 @@ export class BedrockMessageHandler {
    * @param input.modelId - The ID of the AI model to use for generating a response.
    * @param input.messages - The list of message objects to send to the AI model.
    * @param input.systemPrompts - The list of system prompts to include with the request.
-   * @param input.tools - The list of optional tools to use for generating a response.
-   * @param input.toolUseStrategy - The strategy to use for using optional tools.
+   * @param input.toolConfiguration - The list of optional tools and strategies to use and for generating a response.
    * @returns The response from the AI model.
    * @throws Eror If the response from the AI model does not contain a message.
    */
@@ -92,9 +91,8 @@ export class BedrockMessageHandler {
     systemPrompts,
     messages,
     modelId,
-    tools,
-    toolUseStrategy,
-  }: GetMessageInput): Promise<GetMessageOutput> => {
+    toolConfiguration,
+  }: GetConversationMessageWithoutResolvingToolUsageInput): Promise<GetConversationMessageWithoutResolvingToolUsageOutput> => {
     const input: ConverseCommandInput = {
       modelId,
       messages: messages.map((msg) => ({
@@ -107,14 +105,18 @@ export class BedrockMessageHandler {
       },
     };
 
-    if (tools && tools.length > 0) {
+    if (toolConfiguration?.tools && toolConfiguration.tools.length > 0) {
       input.toolConfig = {
-        tools: tools.map(convertTool),
+        tools: toolConfiguration.tools.map(convertTool),
       };
-      if (toolUseStrategy) {
-        handleToolUseStrategy(toolUseStrategy, tools, input);
+      if (toolConfiguration.toolUseStrategy) {
+        handleToolUseStrategy(
+          toolConfiguration.toolUseStrategy,
+          toolConfiguration.tools,
+          input
+        );
       }
-    } else if (toolUseStrategy) {
+    } else if (toolConfiguration?.toolUseStrategy) {
       throw new Error('Cannot use toolUseStrategy without tools');
     }
 
@@ -138,7 +140,8 @@ export class BedrockMessageHandler {
           content: output.message.content as SupportedMessageContentBlock[],
         },
       },
-      stopReason: stopReason as GetMessageOutput['stopReason'],
+      stopReason:
+        stopReason as GetConversationMessageWithoutResolvingToolUsageOutput['stopReason'],
       usage: {
         inputTokens: usage?.inputTokens,
         outputTokens: usage?.outputTokens,
@@ -160,8 +163,8 @@ const bedrockMessageHandler = new BedrockMessageHandler(
  * @param input - The input parameters for the function.
  * @returns The response from the AI model.
  */
-export const getMessage = (
-  input: GetMessageInput
-): Promise<GetMessageOutput> => {
+export const getConversationMessageWithoutResolvingToolUsage = (
+  input: GetConversationMessageWithoutResolvingToolUsageInput
+): Promise<GetConversationMessageWithoutResolvingToolUsageOutput> => {
   return bedrockMessageHandler.getMessage(input);
 };

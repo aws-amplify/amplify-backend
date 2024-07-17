@@ -1,5 +1,8 @@
-import { BedrockMessageHandler } from './get_message.js';
-import { GetMessageInput, Tool } from './types.js';
+import { BedrockMessageHandler } from './get_conversation_message_without_resolving_tool_usage.js';
+import {
+  GetConversationMessageWithoutResolvingToolUsageInput,
+  Tool,
+} from './types.js';
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import {
@@ -36,15 +39,13 @@ void describe('getMessage', async () => {
     $metadata: {},
   };
   const createInput = (
-    overrides: Partial<GetMessageInput> = {}
-  ): GetMessageInput => ({
+    overrides: Partial<GetConversationMessageWithoutResolvingToolUsageInput> = {}
+  ): GetConversationMessageWithoutResolvingToolUsageInput => ({
     systemPrompts: [{ text: 'You are a helpful assistant.' }],
     messages: [
       {
         role: 'user',
         content: [{ text: 'Hello' }],
-        id: 'helloId',
-        sessionId: 'helloSessionId',
       },
     ],
     modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
@@ -105,7 +106,9 @@ void describe('getMessage', async () => {
   void it('should throw error when toolUseStrategy is provided without tools', async () => {
     setupTest();
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    const input = createInput({ toolUseStrategy: { strategy: 'any' } });
+    const input = createInput({
+      toolConfiguration: { toolUseStrategy: { strategy: 'any' } },
+    });
 
     await assert.rejects(
       () => handler.getMessage(input),
@@ -125,8 +128,10 @@ void describe('getMessage', async () => {
     mockClient.send = mockSend;
 
     const input = createInput({
-      tools: [createTool('calculator')],
-      toolUseStrategy: { strategy: 'any' },
+      toolConfiguration: {
+        tools: [createTool('calculator')],
+        toolUseStrategy: { strategy: 'any' },
+      },
     });
 
     await handler.getMessage(input);
@@ -160,8 +165,10 @@ void describe('getMessage', async () => {
     mockClient.send = mockSend;
 
     const input = createInput({
-      tools: [createTool('calculator'), createTool('weatherApp')],
-      toolUseStrategy: { strategy: 'specific', name: 'weatherApp' },
+      toolConfiguration: {
+        tools: [createTool('calculator'), createTool('weatherApp')],
+        toolUseStrategy: { strategy: 'specific', name: 'weatherApp' },
+      },
     });
 
     await handler.getMessage(input);
@@ -181,8 +188,10 @@ void describe('getMessage', async () => {
   void it('should throw error when specific tool is not found', async () => {
     setupTest();
     const input = createInput({
-      tools: [createTool('calculator')],
-      toolUseStrategy: { strategy: 'specific', name: 'nonexistentTool' },
+      toolConfiguration: {
+        tools: [createTool('calculator')],
+        toolUseStrategy: { strategy: 'specific', name: 'nonexistentTool' },
+      },
     });
 
     await assert.rejects(
@@ -228,8 +237,6 @@ void describe('getMessage', async () => {
               },
             },
           ],
-          id: 'helloId',
-          sessionId: 'helloSessionId',
         },
       ],
     });
@@ -316,20 +323,14 @@ void describe('getMessage', async () => {
         {
           role: 'user',
           content: [{ text: 'Hello' }],
-          id: 'helloId',
-          sessionId: 'helloSessionId',
         },
         {
           role: 'assistant',
           content: [{ text: 'Hi there! How can I help you?' }],
-          id: 'helloId1',
-          sessionId: 'helloSessionId1',
         },
         {
           role: 'user',
           content: [{ text: "What's the weather like?" }],
-          id: 'helloId2',
-          sessionId: 'helloSessionId2',
         },
       ],
     });
@@ -351,7 +352,7 @@ void describe('getMessage', async () => {
     mockClient.send = mockSend;
 
     const input = createInput({
-      messages: [{ role: 'user', content: [], id: '', sessionId: '' }],
+      messages: [{ role: 'user', content: [] }],
     });
 
     await assert.doesNotReject(
@@ -370,8 +371,6 @@ void describe('getMessage', async () => {
         {
           role: 'user',
           content: [{ text: largeText }],
-          id: 'helloId',
-          sessionId: 'helloSessionId',
         },
       ],
     });
