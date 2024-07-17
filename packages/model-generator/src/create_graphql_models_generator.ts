@@ -1,6 +1,4 @@
 import {
-  BackendOutputClientError,
-  BackendOutputClientErrorType,
   BackendOutputClientFactory,
   DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
@@ -14,7 +12,7 @@ import { AWSClientProvider } from '@aws-amplify/plugin-types';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { getBackendOutputWithErrorHandling } from './get_backend_output_with_error_handling.js';
 
 export type GraphqlModelsGeneratorFactoryParams =
   | {
@@ -113,25 +111,10 @@ const getModelSchema = async (
 ): Promise<string> => {
   const backendOutputClient =
     BackendOutputClientFactory.getInstance(awsClientProvider);
-  let output;
-  try {
-    output = await backendOutputClient.getOutput(backendIdentifier);
-  } catch (error) {
-    if (
-      error instanceof BackendOutputClientError &&
-      error.code === BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS
-    ) {
-      throw new AmplifyUserError(
-        'DeploymentInProgressError',
-        {
-          message: 'Deployment is currently in progress.',
-          resolution: 'Re-run this command once the deployment completes.',
-        },
-        error
-      );
-    }
-    throw error;
-  }
+  const output = await getBackendOutputWithErrorHandling(
+    backendOutputClient,
+    backendIdentifier
+  );
   const modelSchemaS3Uri =
     output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
   if (!modelSchemaS3Uri) {
