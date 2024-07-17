@@ -26,12 +26,10 @@ export const convertFunctionSchedulesToRuleSchedules = (
   const ruleSchedules: Schedule[] = [];
 
   schedules.forEach((schedule) => {
-    let hasError = false;
     if (isTimeInterval(schedule)) {
       const { value, unit } = parseTimeInterval(schedule);
 
       if (value && !isPositiveWholeNumber(value)) {
-        hasError = true;
         errors.push(
           'Function schedule rate must be set with a positive whole number'
         );
@@ -41,7 +39,6 @@ export const convertFunctionSchedulesToRuleSchedules = (
         unit === 'm' &&
         value * 60 < lambda.timeout.toSeconds()
       ) {
-        hasError = true;
         const timeout = lambda.timeout.toSeconds();
         errors.push(
           `Function schedule rate must be greater than the function timeout of ${timeout} ${
@@ -53,12 +50,11 @@ export const convertFunctionSchedulesToRuleSchedules = (
       const cronErrors = validateCron(schedule);
 
       if (cronErrors.length > 0) {
-        hasError = true;
         errors.push(...cronErrors);
       }
     }
 
-    if (!hasError) {
+    if (errors.length === 0) {
       ruleSchedules.push(Schedule.cron(translateToCronOptions(schedule)));
     }
   });
