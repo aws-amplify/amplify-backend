@@ -91,11 +91,11 @@ export interface AWSAmplifyBackendOutputs {
      * Cognito User Pool password policy
      */
     password_policy?: {
-      min_length?: number;
-      require_numbers?: boolean;
-      require_lowercase?: boolean;
-      require_uppercase?: boolean;
-      require_symbols?: boolean;
+      min_length: number;
+      require_numbers: boolean;
+      require_lowercase: boolean;
+      require_uppercase: boolean;
+      require_symbols: boolean;
     };
     oauth?: {
       /**
