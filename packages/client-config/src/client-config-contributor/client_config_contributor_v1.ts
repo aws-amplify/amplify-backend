@@ -112,7 +112,13 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       authOutput.payload.passwordPolicyMinLength ||
       authOutput.payload.passwordPolicyRequirements
     ) {
-      authClientConfig.auth.password_policy = {};
+      authClientConfig.auth.password_policy = {
+        min_length: 8, // This is the default.
+        require_lowercase: false,
+        require_numbers: false,
+        require_symbols: false,
+        require_uppercase: false,
+      };
       if (authOutput.payload.passwordPolicyMinLength) {
         authClientConfig.auth.password_policy.min_length = Number.parseInt(
           authOutput.payload.passwordPolicyMinLength
