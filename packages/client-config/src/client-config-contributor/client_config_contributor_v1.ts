@@ -113,7 +113,9 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       authOutput.payload.passwordPolicyRequirements
     ) {
       authClientConfig.auth.password_policy = {
-        min_length: 8, // This is the default.
+        min_length: 8, // This is the default that is matching what construct defines.
+        // Values below are set to false instead of being undefined as libraries expect defined values.
+        // They are overridden below with construct outputs (default or not) if applicable.
         require_lowercase: false,
         require_numbers: false,
         require_symbols: false,
