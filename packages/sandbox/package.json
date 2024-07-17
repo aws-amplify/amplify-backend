@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/sandbox",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -20,8 +20,8 @@
   "dependencies": {
     "@aws-amplify/backend-deployer": "^1.0.1",
     "@aws-amplify/backend-secret": "^1.0.0",
-    "@aws-amplify/cli-core": "^1.0.0",
-    "@aws-amplify/client-config": "^1.0.5",
+    "@aws-amplify/cli-core": "^1.1.0",
+    "@aws-amplify/client-config": "^1.1.0",
     "@aws-amplify/deployed-backend-client": "^1.0.2",
     "@aws-amplify/platform-core": "^1.0.2",
     "@aws-sdk/client-cloudformation": "^3.465.0",
