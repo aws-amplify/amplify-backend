@@ -16,11 +16,14 @@ import {
   CfnUserPoolClient,
   CfnUserPoolGroup,
   CfnUserPoolIdentityProvider,
+  CustomAttributeConfig,
+  ICustomAttribute,
   Mfa,
   MfaSecondFactor,
   OAuthScope,
   OidcAttributeRequestMethod,
   ProviderAttribute,
+  StandardAttribute,
   UserPool,
   UserPoolClient,
   UserPoolDomain,
@@ -38,6 +41,7 @@ import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
   AttributeMapping,
   AuthProps,
+  CustomAttribute,
   EmailLoginSettings,
   ExternalProviderOptions,
 } from './types.js';
@@ -348,6 +352,51 @@ export class AmplifyAuth
   };
 
   /**
+   * Define bindCustomAttribute to meet requirements of the Cognito API to call the bind method
+   */
+  private bindCustomAttribute = (
+    key: string,
+    attribute: CustomAttribute
+  ): CustomAttributeConfig & ICustomAttribute => {
+    const baseConfig: CustomAttributeConfig = {
+      dataType: attribute.dataType,
+
+      mutable: attribute.mutable ?? true,
+    };
+
+    let constraints = {};
+    // Conditionally add constraint properties based on dataType.
+    if (attribute.dataType === 'String') {
+      constraints = {
+        stringConstraints: {
+          minLen: attribute.minLen,
+
+          maxLen: attribute.maxLen,
+        },
+      };
+    } else if (attribute.dataType === 'Number') {
+      constraints = {
+        numberConstraints: {
+          min: attribute.min,
+
+          max: attribute.max,
+        },
+      };
+    }
+    //The final config object includes baseConfig and conditionally added constraint properties.
+    const config = {
+      ...baseConfig,
+
+      ...constraints,
+    };
+
+    return {
+      ...config,
+
+      bind: () => config,
+    };
+  };
+  /**
    * Process props into UserPoolProps (set defaults if needed)
    */
   private getUserPoolProps = (props: AuthProps): UserPoolProps => {
@@ -404,6 +453,32 @@ export class AmplifyAuth
       );
     }
 
+    const { standardAttributes, customAttributes } = Object.entries(
+      props.userAttributes ?? {}
+    ).reduce(
+      (
+        acc: {
+          standardAttributes: { [key: string]: StandardAttribute };
+          customAttributes: {
+            [key: string]: CustomAttributeConfig & ICustomAttribute;
+          };
+        },
+        [key, value]
+      ) => {
+        if (key.startsWith('custom:')) {
+          const attributeKey = key.replace(/^custom:/i, '');
+          acc.customAttributes[attributeKey] = this.bindCustomAttribute(
+            attributeKey,
+            value
+          );
+        } else {
+          acc.standardAttributes[key] = value;
+        }
+        return acc;
+      },
+      { standardAttributes: {}, customAttributes: {} }
+    );
+
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -423,8 +498,12 @@ export class AmplifyAuth
       standardAttributes: {
         email: DEFAULTS.IS_REQUIRED_ATTRIBUTE.email(emailEnabled),
         phoneNumber: DEFAULTS.IS_REQUIRED_ATTRIBUTE.phoneNumber(phoneEnabled),
-        ...(props.userAttributes ? props.userAttributes : {}),
+        ...standardAttributes,
       },
+      customAttributes: {
+        ...customAttributes,
+      },
+
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
       mfaMessage: this.getMFAMessage(props.multifactor),
@@ -1056,8 +1135,9 @@ export class AmplifyAuth
 
     output.oauthCognitoDomain = Lazy.string({
       produce: () => {
-        const userPoolDomain =
-          this.resources.userPool.node.tryFindChild('UserPoolDomain');
+        const userPoolDomain = this.resources.userPool.node.tryFindChild(
+          `${this.name}UserPoolDomain`
+        );
         if (!userPoolDomain) {
           return '';
         }

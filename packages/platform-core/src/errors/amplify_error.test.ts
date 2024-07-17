@@ -148,3 +148,25 @@ and some after the error message
     assert.deepStrictEqual(actual?.resolution, 'test resolution');
   });
 });
+
+void describe('AmplifyError.fromError', async () => {
+  void it('wraps Yargs validation errors in AmplifyUserError', () => {
+    const yargsErrors = [
+      new Error('Unknown command: asd'),
+      new Error('Unknown arguments: a,b,c'),
+      new Error('Missing required argument: d'),
+      new Error('Did you mean sandbox'),
+      new Error('Not enough non-option arguments: got 2, need at least 4'),
+      new Error('Invalid values: Arguments: a, Given: n, Choices: [b, c, d]'),
+      new Error('Arguments a and b are mutually exclusive'),
+    ];
+    yargsErrors.forEach((error) => {
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        actual instanceof AmplifyError &&
+          actual.name === 'InvalidCommandInputError',
+        `Failed the test for error ${error.message}`
+      );
+    });
+  });
+});

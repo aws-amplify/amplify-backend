@@ -19,6 +19,7 @@ import {
   GetParameterCommand,
   ParameterNotFound,
   SSMClient,
+  SSMServiceException,
 } from '@aws-sdk/client-ssm';
 import {
   AmplifyPrompter,
@@ -35,7 +36,7 @@ import {
   AmplifyUserError,
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
-
+import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 /**
  * CDK stores bootstrap version in parameter store. Example parameter name looks like /cdk-bootstrap/<qualifier>/version.
  * The default value for qualifier is hnb659fds, i.e. default parameter path is /cdk-bootstrap/hnb659fds/version.
@@ -75,6 +76,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     private readonly backendIdSandboxResolver: BackendIdSandboxResolver,
     private readonly executor: AmplifySandboxExecutor,
     private readonly ssmClient: SSMClient,
+    private readonly functionsLogStreamer: LambdaFunctionLogStreamer,
     private readonly printer: Printer,
     private readonly open = _open
   ) {
@@ -150,6 +152,10 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     const deployAndWatch = debounce(async () => {
       latch = 'deploying';
+
+      // Stop streaming the logs so that deployment logs don't get mixed up
+      this.functionsLogStreamer.stopStreamingLogs();
+
       await this.deploy(options);
 
       // If latch is still 'deploying' after the 'await', that's fine,
@@ -164,7 +170,13 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         await this.deploy(options);
       }
       latch = 'open';
+
+      // Idle state, let customers know and start streaming function logs
       this.emitWatching();
+      await this.functionsLogStreamer.startStreamingLogs(
+        await this.backendIdSandboxResolver(options.identifier),
+        options.functionStreamingOptions
+      );
     });
 
     if (watchForChanges) {
@@ -209,6 +221,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    */
   stop = async () => {
     this.printer.log(`[Sandbox] Shutting down`, LogLevel.DEBUG);
+    this.functionsLogStreamer?.stopStreamingLogs();
     // can be undefined if command exits before subscription
     await this.watcherSubscription?.unsubscribe();
   };
@@ -330,7 +343,27 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       if (e instanceof ParameterNotFound) {
         return false;
       }
-      // If we are unable to retrieve bootstrap version parameter due to other reasons(AccessDenied), we fail fast.
+      if (
+        e instanceof SSMServiceException &&
+        [
+          'UnrecognizedClientException',
+          'AccessDeniedException',
+          'NotAuthorized',
+          'ExpiredTokenException',
+        ].includes(e.name)
+      ) {
+        throw new AmplifyUserError(
+          'SSMCredentialsError',
+          {
+            message: `${e.name}: ${e.message}`,
+            resolution:
+              'Make sure your AWS credentials are set up correctly and have permissions to call SSM:GetParameter',
+          },
+          e
+        );
+      }
+
+      // If we are unable to retrieve bootstrap version parameter due to other reasons, we fail fast.
       throw e;
     }
   };

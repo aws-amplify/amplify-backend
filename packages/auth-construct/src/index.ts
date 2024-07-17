@@ -19,6 +19,13 @@ export {
   TriggerEvent,
   IdentityProviderProps,
   AttributeMapping,
+  UserAttributes,
+  CustomAttribute,
+  CustomAttributeString,
+  CustomAttributeNumber,
+  CustomAttributeBoolean,
+  CustomAttributeDateTime,
+  CustomAttributeBase,
 } from './types.js';
 export { AmplifyAuth } from './construct.js';
 export { triggerEvents } from './trigger_events.js';
