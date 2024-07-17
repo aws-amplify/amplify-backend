@@ -1,11 +1,14 @@
-import { unifiedBackendOutputSchema } from '@aws-amplify/backend-output-schemas';
+import {
+  storageOutputKey,
+  unifiedBackendOutputSchema,
+} from '@aws-amplify/backend-output-schemas';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { BackendOutputFetcherFactory } from './backend_output_fetcher_factory.js';
 import { DeployedBackendIdentifier } from './index.js';
 import { BackendOutputClient } from './backend_output_client_factory.js';
-import { BackendOutput } from '@aws-amplify/plugin-types';
+import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 
 /**
  * Simplifies the retrieval of all backend output values
@@ -25,20 +28,23 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
     ).getStrategy(backendIdentifier);
     const output = await outputFetcher.fetchBackendOutput();
 
-    if (output['AWS::Amplify::Storage']) {
-      return this.parseStorageOutput(output);
-    }
-
-    return unifiedBackendOutputSchema.parse(output);
+    return unifiedBackendOutputSchema.parse({
+      ...output,
+      ...(output[storageOutputKey] && {
+        [storageOutputKey]: this.parseStorageOutput(output[storageOutputKey]),
+      }),
+    });
   };
 
   /**
-   * Parses the storage output from the backend output.
-   * @param output The backend output.
-   * @returns The parsed storage output.
+   * Parses the storage output and returns the modified backend output.
+   * @param storageOutput The storage output to parse.
+   * @returns The modified backend output.
    */
-  private parseStorageOutput(output: BackendOutput) {
-    const payload = output['AWS::Amplify::Storage'].payload;
+  private parseStorageOutput(
+    storageOutput: BackendOutputEntry<Record<string, string>>
+  ): BackendOutputEntry<Record<string, string | Record<string, string>[]>> {
+    const payload = storageOutput.payload;
     const buckets: {
       bucketName: string;
       storageRegion: string;
@@ -73,12 +79,12 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
       }
     });
 
-    return unifiedBackendOutputSchema.parse({
-      ...output,
-      'AWS::Amplify::Storage': {
-        ...output['AWS::Amplify::Storage'],
-        payload: { ...payload, buckets },
+    return {
+      ...storageOutput,
+      payload: {
+        ...payload,
+        buckets,
       },
-    });
+    };
   }
 }
