@@ -397,7 +397,7 @@ class AmplifyFunction
       });
     } catch (error) {
       throw new AmplifyUserError(
-        'NodeJSFunctionScheduleInitializationError',
+        'FunctionScheduleInitializationError',
         {
           message: 'Failed to instantiate schedule for nodejs function',
           resolution: 'See the underlying error message for more details.',
