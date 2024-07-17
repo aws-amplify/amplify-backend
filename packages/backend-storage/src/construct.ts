@@ -162,7 +162,7 @@ export class AmplifyStorage
      * The default bucket takes the `storageRegion` and `bucketName` name without a number post-fix.
      */
     const num = isDefault ? '' : Math.floor(Math.random() * 100);
-    outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
+    outputStorageStrategy.appendToBackendOutputList(storageOutputKey, {
       version: '1',
       payload: {
         [`storageRegion${num}`]: Stack.of(this).region,
