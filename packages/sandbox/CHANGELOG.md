@@ -1,5 +1,18 @@
 # @aws-amplify/sandbox
 
+## 1.1.0
+
+### Minor Changes
+
+- 8f23287: feat: add support for function logs streaming to sandbox
+
+### Patch Changes
+
+- Updated dependencies [8f23287]
+- Updated dependencies [ebbbb60]
+  - @aws-amplify/cli-core@1.1.0
+  - @aws-amplify/client-config@1.1.0
+
 ## 1.0.6
 
 ### Patch Changes

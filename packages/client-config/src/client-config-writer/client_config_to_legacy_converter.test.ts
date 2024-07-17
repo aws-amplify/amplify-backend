@@ -45,6 +45,7 @@ void describe('ClientConfigLegacyConverter', () => {
           min_length: 15,
           require_lowercase: true,
           require_numbers: true,
+          require_symbols: false,
           require_uppercase: true,
         },
         mfa_methods: ['SMS', 'TOTP'],

@@ -601,6 +601,35 @@ void describe('Auth construct', () => {
         familyName: {
           required: true,
         },
+        'custom:display_name': {
+          dataType: 'String',
+          mutable: true,
+          maxLen: 100,
+          minLen: 0,
+        },
+        'custom:tenant_id': {
+          dataType: 'Number',
+          mutable: false,
+          max: 66,
+          min: 1,
+        },
+        'custom:register_date': {
+          dataType: 'DateTime',
+          mutable: true,
+        },
+        'custom:is_member': {
+          dataType: 'Boolean',
+          mutable: false,
+        },
+        'custom:year_as_member': {
+          dataType: 'Number',
+          max: 90,
+          min: 0,
+        },
+        'custom:favorite_song': {
+          dataType: 'String',
+          mutable: true,
+        },
       },
     });
     const template = Template.fromStack(stack);
@@ -620,6 +649,48 @@ void describe('Auth construct', () => {
           Mutable: true,
           Name: 'family_name',
           Required: true,
+        },
+        {
+          AttributeDataType: 'String',
+          Name: 'display_name',
+          Mutable: true,
+          StringAttributeConstraints: {
+            MaxLength: '100',
+            MinLength: '0',
+          },
+        },
+        {
+          AttributeDataType: 'Number',
+          Name: 'tenant_id',
+          Mutable: false,
+          NumberAttributeConstraints: {
+            MaxValue: '66',
+            MinValue: '1',
+          },
+        },
+        {
+          AttributeDataType: 'DateTime',
+          Name: 'register_date',
+          Mutable: true,
+        },
+        {
+          AttributeDataType: 'Boolean',
+          Name: 'is_member',
+          Mutable: false,
+        },
+        {
+          AttributeDataType: 'Number',
+          Name: 'year_as_member',
+          Mutable: true,
+          NumberAttributeConstraints: {
+            MaxValue: '90',
+            MinValue: '0',
+          },
+        },
+        {
+          AttributeDataType: 'String',
+          Name: 'favorite_song',
+          Mutable: true,
         },
       ],
     });

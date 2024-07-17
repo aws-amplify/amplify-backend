@@ -1,5 +1,13 @@
 # create-amplify
 
+## 1.0.3
+
+### Patch Changes
+
+- 8f23287: feat: add support for function logs streaming to sandbox
+- Updated dependencies [8f23287]
+  - @aws-amplify/cli-core@1.1.0
+
 ## 1.0.2
 
 ### Patch Changes

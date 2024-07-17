@@ -3,7 +3,9 @@ import { triggerEvents } from './trigger_events.js';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import {
+  NumberAttributeConstraints,
   StandardAttributes,
+  StringAttributeConstraints,
   UserPoolIdentityProviderSamlMetadata,
 } from 'aws-cdk-lib/aws-cognito';
 export type VerificationEmailWithLink = {
@@ -328,6 +330,56 @@ export type ExternalProviderOptions = {
 export type TriggerEvent = (typeof triggerEvents)[number];
 
 /**
+ * CustomAttributeBase is a type that represents the base properties for a custom attribute
+ */
+export type CustomAttributeBase = {
+  /**
+   * @default {true}
+   */
+  mutable?: boolean;
+};
+/**
+ * CustomAttributeString represents a custom attribute of type string.
+ */
+export type CustomAttributeString = CustomAttributeBase &
+  StringAttributeConstraints & {
+    dataType: 'String';
+  };
+/**
+ * CustomAttributeNumber represents a custom attribute of type number.
+ */
+export type CustomAttributeNumber = CustomAttributeBase &
+  NumberAttributeConstraints & {
+    dataType: 'Number';
+  };
+/**
+ * CustomAttributeBoolean represents a custom attribute of type boolean.
+ */
+export type CustomAttributeBoolean = CustomAttributeBase & {
+  dataType: 'Boolean';
+};
+/**
+ * CustomAttributeDateTime represents a custom attribute of type dataTime.
+ */
+export type CustomAttributeDateTime = CustomAttributeBase & {
+  dataType: 'DateTime';
+};
+/**
+ * CustomAttributes is a union type that represents all the different types of custom attributes.
+ */
+export type CustomAttribute =
+  | CustomAttributeString
+  | CustomAttributeNumber
+  | CustomAttributeBoolean
+  | CustomAttributeDateTime;
+/**
+ * UserAttributes represents the combined attributes of a user, including
+ * standard attributes and any number of custom attributes defined with a 'custom:' prefix.
+ */
+export type UserAttributes = StandardAttributes &
+  Record<`custom:${string}`, CustomAttribute>;
+
+/**
  * Input props for the AmplifyAuth construct
  */
 export type AuthProps = {
@@ -362,7 +414,7 @@ export type AuthProps = {
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
    * @default - email/phone will be added as required user attributes if they are included as login methods
    */
-  userAttributes?: StandardAttributes;
+  userAttributes?: UserAttributes;
   /**
    * Configure whether users can or are required to use multifactor (MFA) to sign in.
    */
