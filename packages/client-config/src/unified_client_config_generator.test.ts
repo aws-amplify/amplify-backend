@@ -97,6 +97,7 @@ void describe('UnifiedClientConfigGenerator', () => {
             min_length: 8,
             require_lowercase: true,
             require_numbers: true,
+            require_symbols: false,
             require_uppercase: true,
           },
 

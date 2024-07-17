@@ -76,11 +76,11 @@ interface AWSAmplifyBackendOutputs {
         user_pool_client_id: string;
         identity_pool_id?: string;
         password_policy?: {
-            min_length?: number;
-            require_numbers?: boolean;
-            require_lowercase?: boolean;
-            require_uppercase?: boolean;
-            require_symbols?: boolean;
+            min_length: number;
+            require_numbers: boolean;
+            require_lowercase: boolean;
+            require_uppercase: boolean;
+            require_symbols: boolean;
         };
         oauth?: {
             identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];

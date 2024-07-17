@@ -103,6 +103,73 @@ void describe('auth client config contributor v1', () => {
     );
   });
 
+  void it('returns default password length if not specified but other policies are provided', () => {
+    const contributor = new AuthClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [authOutputKey]: {
+          version: '1',
+          payload: {
+            identityPoolId: 'testIdentityPoolId',
+            userPoolId: 'testUserPoolId',
+            webClientId: 'testWebClientId',
+            authRegion: 'testRegion',
+            passwordPolicyRequirements:
+              '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_SYMBOLS","REQUIRES_UPPERCASE"]',
+          },
+        },
+      }),
+      {
+        auth: {
+          user_pool_id: 'testUserPoolId',
+          user_pool_client_id: 'testWebClientId',
+          aws_region: 'testRegion',
+          identity_pool_id: 'testIdentityPoolId',
+          password_policy: {
+            min_length: 8,
+            require_lowercase: true,
+            require_numbers: true,
+            require_symbols: true,
+            require_uppercase: true,
+          },
+        },
+      } as Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs>
+    );
+  });
+
+  void it('returns default password policies if only password length policy is provided', () => {
+    const contributor = new AuthClientConfigContributor();
+    assert.deepStrictEqual(
+      contributor.contribute({
+        [authOutputKey]: {
+          version: '1',
+          payload: {
+            identityPoolId: 'testIdentityPoolId',
+            userPoolId: 'testUserPoolId',
+            webClientId: 'testWebClientId',
+            authRegion: 'testRegion',
+            passwordPolicyMinLength: '42',
+          },
+        },
+      }),
+      {
+        auth: {
+          user_pool_id: 'testUserPoolId',
+          user_pool_client_id: 'testWebClientId',
+          aws_region: 'testRegion',
+          identity_pool_id: 'testIdentityPoolId',
+          password_policy: {
+            min_length: 42,
+            require_lowercase: false,
+            require_numbers: false,
+            require_symbols: false,
+            require_uppercase: false,
+          },
+        },
+      } as Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs>
+    );
+  });
+
   void it('returns translated config when output has auth with zero-config attributes', () => {
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
@@ -145,6 +212,7 @@ void describe('auth client config contributor v1', () => {
           password_policy: {
             require_lowercase: true,
             require_numbers: true,
+            require_symbols: false,
             require_uppercase: true,
             min_length: 15,
           },
@@ -213,6 +281,7 @@ void describe('auth client config contributor v1', () => {
           password_policy: {
             require_lowercase: true,
             require_numbers: true,
+            require_symbols: false,
             require_uppercase: true,
             min_length: 15,
           },
@@ -273,6 +342,7 @@ void describe('auth client config contributor v1', () => {
         password_policy: {
           require_lowercase: true,
           require_numbers: true,
+          require_symbols: false,
           require_uppercase: true,
           min_length: 15,
         },
