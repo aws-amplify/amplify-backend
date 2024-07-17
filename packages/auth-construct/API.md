@@ -9,9 +9,11 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
+import { NumberAttributeConstraints } from 'aws-cdk-lib/aws-cognito';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
+import { StringAttributeConstraints } from 'aws-cdk-lib/aws-cognito';
 import { UserPoolIdentityProviderSamlMetadata } from 'aws-cdk-lib/aws-cognito';
 
 // @public
@@ -43,11 +45,39 @@ export type AuthProps = {
         phone?: PhoneNumberLogin;
         externalProviders?: ExternalProviderOptions;
     };
-    userAttributes?: StandardAttributes;
+    userAttributes?: UserAttributes;
     multifactor?: MFA;
     accountRecovery?: keyof typeof aws_cognito.AccountRecovery;
     groups?: string[];
     outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
+};
+
+// @public
+export type CustomAttribute = CustomAttributeString | CustomAttributeNumber | CustomAttributeBoolean | CustomAttributeDateTime;
+
+// @public
+export type CustomAttributeBase = {
+    mutable?: boolean;
+};
+
+// @public
+export type CustomAttributeBoolean = CustomAttributeBase & {
+    dataType: 'Boolean';
+};
+
+// @public
+export type CustomAttributeDateTime = CustomAttributeBase & {
+    dataType: 'DateTime';
+};
+
+// @public
+export type CustomAttributeNumber = CustomAttributeBase & NumberAttributeConstraints & {
+    dataType: 'Number';
+};
+
+// @public
+export type CustomAttributeString = CustomAttributeBase & StringAttributeConstraints & {
+    dataType: 'String';
 };
 
 // @public
@@ -135,6 +165,9 @@ export type TriggerEvent = (typeof triggerEvents)[number];
 
 // @public
 export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "defineAuthChallenge", "postAuthentication", "postConfirmation", "preAuthentication", "preSignUp", "preTokenGeneration", "userMigration", "verifyAuthChallengeResponse"];
+
+// @public
+export type UserAttributes = StandardAttributes & Record<`custom:${string}`, CustomAttribute>;
 
 // @public (undocumented)
 export type VerificationEmailWithCode = {
