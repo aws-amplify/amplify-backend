@@ -261,11 +261,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       return [];
     }
 
-    const schedules = Array.isArray(this.props.schedule)
-      ? this.props.schedule
-      : [this.props.schedule];
-
-    return schedules;
+    return this.props.schedule;
   };
 }
 
@@ -376,14 +372,10 @@ class AmplifyFunction
       );
     }
 
-    const timeIntervals = Array.isArray(props.schedule)
-      ? props.schedule
-      : [props.schedule];
-
     try {
       const schedules = convertFunctionSchedulesToRuleSchedules(
         functionLambda,
-        timeIntervals
+        props.schedule
       );
       const lambdaTarget = new targets.LambdaFunction(functionLambda);
 

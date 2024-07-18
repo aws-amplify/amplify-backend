@@ -20,10 +20,14 @@ type CronPart =
  */
 export const convertFunctionSchedulesToRuleSchedules = (
   lambda: NodejsFunction,
-  schedules: FunctionSchedule[]
+  functionSchedules: FunctionSchedule | FunctionSchedule[]
 ) => {
   const errors: string[] = [];
   const ruleSchedules: Schedule[] = [];
+
+  const schedules = Array.isArray(functionSchedules)
+    ? functionSchedules
+    : [functionSchedules];
 
   schedules.forEach((schedule) => {
     if (isTimeInterval(schedule)) {

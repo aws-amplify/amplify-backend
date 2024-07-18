@@ -240,11 +240,13 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
 
-    // test schedule function event trigger once
+    // Test schedule function event trigger on first deployment in order to do the following:
+    // 1. reduce flakiness on subsequent deployments (ex. sandbox updates)
+    // 2. reduce deployment e2e testing time as we are only waiting for 70 seconds one time per deployment
     if (this.checkInvocationCount) {
       const invocationCount = await this.getLambdaResponse(funcWithSchedule[0]);
 
-      // wait 1 minute and 10 seconds for schedule to invoke lambda again
+      // wait 70 seconds for schedule to invoke lambda again
       await new Promise((resolve) => setTimeout(resolve, 1000 * 70));
 
       await this.checkLambdaResponse(funcWithSchedule[0], invocationCount + 2);
