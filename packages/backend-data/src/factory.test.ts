@@ -484,9 +484,18 @@ void describe('DataFactory', () => {
     const dataFactory = defineData({
       schema,
     });
-    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
-      message: 'Failed to instantiate data construct',
-    });
+    assert.throws(
+      () => dataFactory.getInstance(getInstanceProps),
+      (err: AmplifyUserError<AmplifyDataError>) => {
+        assert.strictEqual(err.message, 'Failed to instantiate data construct');
+        assert.ok(err.cause);
+        assert.strictEqual(
+          err.cause.message,
+          'fields argument on @hasOne is disallowed. Modify Author.profile to use references instead.'
+        );
+        return true;
+      }
+    );
   });
 
   void describe('function access', () => {
