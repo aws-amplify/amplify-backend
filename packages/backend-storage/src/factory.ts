@@ -8,6 +8,7 @@ import * as path from 'path';
 import { AmplifyStorage, StorageResources } from './construct.js';
 import { AmplifyStorageFactoryProps } from './types.js';
 import { StorageContainerEntryGenerator } from './storage_container_entry_generator.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
@@ -15,6 +16,8 @@ import { StorageContainerEntryGenerator } from './storage_container_entry_genera
 class AmplifyStorageFactory
   implements ConstructFactory<ResourceProvider<StorageResources>>
 {
+  static hasDefault = false;
+  static factoryCounter = 0;
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -23,7 +26,18 @@ class AmplifyStorageFactory
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
     private readonly importStack = new Error().stack
-  ) {}
+  ) {
+    AmplifyStorageFactory.factoryCounter++;
+    if (this.props.isDefault && !AmplifyStorageFactory.hasDefault) {
+      AmplifyStorageFactory.hasDefault = true;
+    } else if (this.props.isDefault && AmplifyStorageFactory.hasDefault) {
+      throw new AmplifyUserError('MultipleDefaultBucketError', {
+        message: 'More than one default buckets set in the Amplify project.',
+        resolution:
+          'Remove one `isDefault: true` from one of the buckets `defineStorage` in the Amplify project.',
+      });
+    }
+  }
 
   /**
    * Get a singleton instance of the Bucket
