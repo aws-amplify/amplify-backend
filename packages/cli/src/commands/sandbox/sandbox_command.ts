@@ -1,7 +1,12 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import fs from 'fs';
 import fsp from 'fs/promises';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import {
+  AmplifyPrompter,
+  format,
+  getPackageManagerName,
+  printer,
+} from '@aws-amplify/cli-core';
 import {
   SandboxFunctionStreamingOptions,
   SandboxSingletonFactory,
@@ -269,6 +274,16 @@ export class SandboxCommand
   };
 
   sigIntHandler = async () => {
+    if (getPackageManagerName() === 'yarn-classic') {
+      // We currently don't support Yarn@1.x with CTRL-C as Yarn doesn't respect the SIGINT life cycle and exits
+      // immediately leaving the node process hanging. See: https://github.com/yarnpkg/yarn/issues/8895
+      printer.print(
+        `Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
+          'sandbox delete'
+        )}`
+      );
+      return;
+    }
     const answer = await AmplifyPrompter.yesOrNo({
       message:
         'Would you like to delete all the resources in your sandbox environment (This cannot be undone)?',

@@ -232,6 +232,43 @@ void describe('sandbox command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 0);
   });
 
+  void it('Does not prompt for deleting the sandbox if command was run by yarn@1.x', async (contextual) => {
+    const existingPackageManager = process.env.npm_config_user_agent;
+    process.env.npm_config_user_agent = 'yarn/1.22.21';
+    try {
+      // Mock process and extract the sigint handler after calling the sandbox command
+      const processSignal = contextual.mock.method(process, 'on', () => {
+        /* no op */
+      });
+      const sandboxStartMock = contextual.mock.method(
+        sandbox,
+        'start',
+        async () => Promise.resolve()
+      );
+
+      const printerMock = contextual.mock.method(printer, 'print', () => {});
+
+      await commandRunner.runCommand('sandbox');
+
+      // Similar to the previous test's 0ms timeout. Without this tests in github action are failing
+      // but working locally
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
+      if (sigIntHandlerFn) sigIntHandlerFn();
+
+      assert.equal(sandboxStartMock.mock.callCount(), 1);
+      assert.equal(printerMock.mock.callCount(), 1);
+      assert.equal(
+        printerMock.mock.calls[0].arguments[0],
+        `Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
+          'sandbox delete'
+        )}`
+      );
+    } finally {
+      process.env.npm_config_user_agent = existingPackageManager;
+    }
+  });
+
   void it('starts sandbox with user provided invalid AWS profile', async () => {
     const profileErr = new Error('some profile error');
     mockHandleProfile.mock.mockImplementationOnce(() => {
