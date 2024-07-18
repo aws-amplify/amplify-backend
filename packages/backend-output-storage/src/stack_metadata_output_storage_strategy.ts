@@ -1,6 +1,7 @@
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  StorageOutputPayloadToStore,
 } from '@aws-amplify/plugin-types';
 import { CfnOutput, Lazy, Stack } from 'aws-cdk-lib';
 
@@ -12,7 +13,10 @@ type OutputKey = string;
  * Implementation of BackendOutputStorageStrategy that stores config data in stack metadata and outputs
  */
 export class StackMetadataBackendOutputStorageStrategy
-  implements BackendOutputStorageStrategy<BackendOutputEntry>
+  implements
+    BackendOutputStorageStrategy<
+      BackendOutputEntry<StorageOutputPayloadToStore>
+    >
 {
   private lazyListValueMap: Map<MetadataKey, Map<OutputKey, string[]>> =
     new Map();

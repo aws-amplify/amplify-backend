@@ -8,7 +8,10 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { BackendOutputFetcherFactory } from './backend_output_fetcher_factory.js';
 import { DeployedBackendIdentifier } from './index.js';
 import { BackendOutputClient } from './backend_output_client_factory.js';
-import { BackendOutputEntry } from '@aws-amplify/plugin-types';
+import {
+  BackendOutputEntry,
+  StorageOutputPayloadToStore,
+} from '@aws-amplify/plugin-types';
 
 /**
  * Simplifies the retrieval of all backend output values
@@ -42,8 +45,11 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
    * @returns The modified backend output.
    */
   private parseStorageOutput(
-    storageOutput: BackendOutputEntry<Record<string, string>>
-  ): BackendOutputEntry<Record<string, string | Record<string, string>[]>> {
+    storageOutput: BackendOutputEntry<StorageOutputPayloadToStore>
+  ): BackendOutputEntry<
+    | Record<'bucketName' | 'storageRegion', string>
+    | { buckets: { bucketName: string; storageRegion: string }[] }
+  > {
     const payload = storageOutput.payload;
     const buckets: {
       bucketName: string;
