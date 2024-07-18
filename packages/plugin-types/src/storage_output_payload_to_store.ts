@@ -1,4 +1,4 @@
 export type StorageOutputPayloadToStore = Record<
-  `storageRegion${string}` | `bucketName${string}`,
+  `name${string}` | `storageRegion${string}` | `bucketName${string}`,
   string
 >;

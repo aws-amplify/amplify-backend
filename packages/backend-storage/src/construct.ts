@@ -130,7 +130,7 @@ export class AmplifyStorage
       },
     };
 
-    this.storeOutput(props.outputStorageStrategy, props.isDefault || false);
+    this.storeOutput(props.outputStorageStrategy, props.isDefault, props.name);
 
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
@@ -157,7 +157,8 @@ export class AmplifyStorage
     outputStorageStrategy: BackendOutputStorageStrategy<
       BackendOutputEntry<StorageOutputPayloadToStore>
     > = new StackMetadataBackendOutputStorageStrategy(Stack.of(this)),
-    isDefault: boolean = false
+    isDefault: boolean = false,
+    name: string = ''
   ): void => {
     /*
      * The default bucket takes the `storageRegion` and `bucketName` name without a number post-fix.
@@ -168,6 +169,7 @@ export class AmplifyStorage
     outputStorageStrategy.appendToBackendOutputList(storageOutputKey, {
       version: '1',
       payload: {
+        [`name${postfix}`]: name,
         [`storageRegion${postfix}`]: Stack.of(this).region,
         [`bucketName${postfix}`]: this.resources.bucket.bucketName,
       },

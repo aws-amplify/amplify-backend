@@ -52,6 +52,7 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
   > {
     const payload = storageOutput.payload;
     const buckets: {
+      name: string;
       bucketName: string;
       storageRegion: string;
     }[] = [];
@@ -72,15 +73,18 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
         return;
       }
       const postfix = key.replace('bucketName', '');
+      const name = payload[`name${postfix}`];
       const bucketName = payload[`bucketName${postfix}`];
       const storageRegion = payload[`storageRegion${postfix}`];
-      buckets.push({ bucketName, storageRegion });
+      buckets.push({ name, bucketName, storageRegion });
       if (postfix) {
         delete payload[`bucketName${postfix}`];
         delete payload[`storageRegion${postfix}`];
+        delete payload[`name${postfix}`];
         if (!hasDefaultBucket && bucketNames.length === 1) {
           payload.bucketName = bucketName;
           payload.storageRegion = storageRegion;
+          payload.name = name;
         }
       }
     });
