@@ -24,6 +24,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { AmplifyStorageFactory } from './factory.js';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
@@ -158,16 +159,17 @@ export class AmplifyStorage
     > = new StackMetadataBackendOutputStorageStrategy(Stack.of(this)),
     isDefault: boolean = false
   ): void => {
-    /* The following code can guarantee there's only one `isDefault`
-     * because if we can only create one construct with the same `storageRegion` and `bucketName` name.
+    /*
      * The default bucket takes the `storageRegion` and `bucketName` name without a number post-fix.
      */
-    const num = isDefault ? '' : Math.floor(Math.random() * 100);
+    const postfix = isDefault
+      ? ''
+      : AmplifyStorageFactory.factoryCounter.toString();
     outputStorageStrategy.appendToBackendOutputList(storageOutputKey, {
       version: '1',
       payload: {
-        [`storageRegion${num}`]: Stack.of(this).region,
-        [`bucketName${num}`]: this.resources.bucket.bucketName,
+        [`storageRegion${postfix}`]: Stack.of(this).region,
+        [`bucketName${postfix}`]: this.resources.bucket.bucketName,
       },
     });
   };
