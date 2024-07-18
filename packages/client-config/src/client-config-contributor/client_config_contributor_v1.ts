@@ -12,10 +12,7 @@ import {
   clientConfigTypesV1,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-import {
-  AmplifyStorageBucket,
-  AwsAppsyncAuthorizationType,
-} from '../client-config-schema/client_config_v1.1.js';
+import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.1.js';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
@@ -265,8 +262,13 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,
       bucket_name: storageOutput.payload.bucketName,
-      buckets: storageOutput.payload
-        .buckets as unknown as AmplifyStorageBucket[],
+      buckets: storageOutput.payload.buckets?.map(
+        ({ bucketName, storageRegion, name }) => ({
+          name,
+          bucket_name: bucketName,
+          aws_region: storageRegion,
+        })
+      ),
     };
 
     return config;

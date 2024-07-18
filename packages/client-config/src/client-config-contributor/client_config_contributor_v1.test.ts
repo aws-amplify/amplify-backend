@@ -545,8 +545,8 @@ void describe('storage client config contributor v1', () => {
             buckets: [
               {
                 name: 'testName',
-                bucket_name: 'testBucketName',
-                aws_region: 'testRegion',
+                bucketName: 'testBucketName',
+                storageRegion: 'testRegion',
               },
             ],
           },
@@ -564,7 +564,7 @@ void describe('storage client config contributor v1', () => {
             },
           ],
         },
-      } as Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs>
+      }
     );
   });
 });

@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 const bucketSchema = z.object({
   name: z.string(),
-  bucket_name: z.string(),
-  aws_region: z.string(),
+  bucketName: z.string(),
+  storageRegion: z.string(),
 });
 
 export const storageOutputSchema = z.object({
