@@ -38,6 +38,8 @@ void describe('Env Info', () => {
         installed: '0.0.0',
         wanted: '0.0.0',
       },
+      empty: {},
+      '%name%': '0.0.0',
     },
   };
 

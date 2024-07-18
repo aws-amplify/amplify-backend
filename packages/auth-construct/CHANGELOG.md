@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct
 
+## 1.2.0
+
+### Minor Changes
+
+- 10955d9: Add customAttributes into userAttributes
+
 ## 1.1.6
 
 ### Patch Changes
