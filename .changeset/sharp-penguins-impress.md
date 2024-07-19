@@ -5,6 +5,7 @@
 '@aws-amplify/backend-storage': minor
 '@aws-amplify/client-config': minor
 '@aws-amplify/plugin-types': minor
+'@aws-amplify/backend': minor
 ---
 
-add support for multi-buckets
+support adding more than one bucket
