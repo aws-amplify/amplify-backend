@@ -13,7 +13,6 @@ import {
   ConstructFactory,
   FunctionResources,
   ResourceProvider,
-  StorageOutputPayloadToStore,
 } from '@aws-amplify/plugin-types';
 import {
   StorageOutput,
@@ -50,9 +49,7 @@ export type AmplifyStorageProps = {
    * @default false
    */
   versioned?: boolean;
-  outputStorageStrategy?: BackendOutputStorageStrategy<
-    BackendOutputEntry<StorageOutputPayloadToStore>
-  >;
+  outputStorageStrategy?: BackendOutputStorageStrategy<BackendOutputEntry>;
   /**
    * S3 event trigger configuration
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#configure-storage-triggers
