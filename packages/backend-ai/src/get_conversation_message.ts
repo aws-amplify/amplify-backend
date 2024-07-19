@@ -1,4 +1,4 @@
-import { getConversationMessageWithoutResolvingToolUsage as originalGetConversationMessageWithoutResolvingToolUsage } from './get_conversation_message_without_resolving_tool_usage.js';
+import { getConversationMessageWithoutResolvingToolUsage } from './get_conversation_message_without_resolving_tool_usage.js';
 import { ToolResultBlock, ToolUseBlock } from '@aws-sdk/client-bedrock-runtime';
 import {
   AIMessage,
@@ -32,7 +32,7 @@ export class ConversationMessageHandler {
   constructor(
     getConversationMessageWithoutResolvingToolUsage: (
       input: GetConversationMessageWithoutResolvingToolUsageInput
-    ) => Promise<GetConversationMessageWithoutResolvingToolUsageOutput> = originalGetConversationMessageWithoutResolvingToolUsage
+    ) => Promise<GetConversationMessageWithoutResolvingToolUsageOutput>
   ) {
     this.getConversationMessageWithoutResolvingToolUsage =
       getConversationMessageWithoutResolvingToolUsage;
@@ -145,7 +145,7 @@ export const getConversationMessage = (
   input: GetConversationMessageInput
 ): Promise<GetConversationMessageWithoutResolvingToolUsageOutput> => {
   const handler = new ConversationMessageHandler(
-    originalGetConversationMessageWithoutResolvingToolUsage
+    getConversationMessageWithoutResolvingToolUsage
   );
   return handler.getConversationMessage(input);
 };
