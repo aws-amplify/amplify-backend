@@ -23,9 +23,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
    * Provide a reference to how this config generator should retrieve backend output
    */
   constructor(
-    private readonly fetchOutput: () => Promise<
-      BackendOutput<Record<string, string | Record<string, string>[]>>
-    >,
+    private readonly fetchOutput: () => Promise<BackendOutput>,
     private readonly clientConfigContributors: ClientConfigContributor[]
   ) {}
 

@@ -163,9 +163,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     };
 
     try {
-      const backendOutput: BackendOutput<
-        Record<string, string | Record<string, string>[]>
-      > = await this.backendOutputClient.getOutput(backendIdentifier);
+      const backendOutput: BackendOutput =
+        await this.backendOutputClient.getOutput(backendIdentifier);
 
       return backendOutput[platformOutputKey].payload
         .deploymentType as DeploymentType;
@@ -210,9 +209,8 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       stackName,
     };
 
-    const backendOutput: BackendOutput<
-      Record<string, string | Record<string, string>[]>
-    > = await this.backendOutputClient.getOutput(stackBackendIdentifier);
+    const backendOutput: BackendOutput =
+      await this.backendOutputClient.getOutput(stackBackendIdentifier);
     const stackDescription = await this.cfnClient.send(
       new DescribeStacksCommand({ StackName: stackName })
     );

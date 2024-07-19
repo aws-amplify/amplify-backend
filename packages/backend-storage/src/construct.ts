@@ -15,7 +15,10 @@ import {
   ResourceProvider,
   StorageOutputPayloadToStore,
 } from '@aws-amplify/plugin-types';
-import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
+import {
+  StorageOutput,
+  storageOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
 import {
   AttributionMetadataStorage,
@@ -24,7 +27,6 @@ import {
 import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
-import { AmplifyStorageFactory } from './factory.js';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
@@ -154,24 +156,25 @@ export class AmplifyStorage
    * Store storage outputs using provided strategy
    */
   private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<
-      BackendOutputEntry<StorageOutputPayloadToStore>
-    > = new StackMetadataBackendOutputStorageStrategy(Stack.of(this)),
+    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput> = new StackMetadataBackendOutputStorageStrategy(
+      Stack.of(this)
+    ),
     isDefault: boolean = false,
     name: string = ''
   ): void => {
     /*
      * The default bucket takes the `storageRegion` and `bucketName` name without a number post-fix.
      */
-    const postfix = isDefault
-      ? ''
-      : AmplifyStorageFactory.factoryCounter.toString();
     outputStorageStrategy.appendToBackendOutputList(storageOutputKey, {
       version: '1',
       payload: {
-        [`name${postfix}`]: name,
-        [`storageRegion${postfix}`]: Stack.of(this).region,
-        [`bucketName${postfix}`]: this.resources.bucket.bucketName,
+        storageRegion: isDefault ? Stack.of(this).region : '',
+        bucketName: isDefault ? this.resources.bucket.bucketName : '',
+        buckets: JSON.stringify({
+          name,
+          bucketName: this.resources.bucket.bucketName,
+          storageRegion: Stack.of(this).region,
+        }),
       },
     });
   };

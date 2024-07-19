@@ -11,6 +11,6 @@ export const storageOutputSchema = z.object({
   payload: z.object({
     bucketName: z.string(),
     storageRegion: z.string(),
-    buckets: z.array(bucketSchema).optional(),
+    buckets: z.string(z.array(bucketSchema)).optional(), // JSON stringified array of bucketSchema
   }),
 });

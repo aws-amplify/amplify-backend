@@ -258,17 +258,17 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
       return {};
     }
     const config: Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs> = {};
-
+    const bucketsStringArray = JSON.parse(
+      storageOutput.payload.buckets ?? '[]'
+    );
     config.storage = {
-      aws_region: storageOutput.payload.storageRegion,
-      bucket_name: storageOutput.payload.bucketName,
-      buckets: storageOutput.payload.buckets?.map(
-        ({ bucketName, storageRegion, name }) => ({
-          name,
-          bucket_name: bucketName,
-          aws_region: storageRegion,
-        })
-      ),
+      aws_region: JSON.parse(storageOutput.payload.storageRegion).filter(
+        (el: string) => el
+      )[0],
+      bucket_name: JSON.parse(storageOutput.payload.bucketName).filter(
+        (el: string) => el
+      )[0],
+      buckets: bucketsStringArray.map((b: string) => JSON.parse(b)),
     };
 
     return config;

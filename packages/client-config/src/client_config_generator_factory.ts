@@ -12,11 +12,7 @@ export class ClientConfigGeneratorFactory {
   /**
    * Provide the factory with AWS credentials. These credentials will be used to configure underlying SDK clients for resolving backend output.
    */
-  constructor(
-    private readonly fetchOutput: () => Promise<
-      BackendOutput<Record<string, string | Record<string, string>[]>>
-    >
-  ) {}
+  constructor(private readonly fetchOutput: () => Promise<BackendOutput>) {}
 
   /**
    * Returns a ClientConfigGenerator for the given BackendIdentifier type
