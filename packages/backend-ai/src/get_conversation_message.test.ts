@@ -1,60 +1,54 @@
-import { beforeEach, describe, test } from 'node:test';
+import { describe, mock, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getConversationMessage } from './get_conversation_message.js';
+import { ConversationMessageHandler } from './get_conversation_message.js';
 import {
-  AIMessage,
+  GetConversationMessageInput,
   GetConversationMessageWithoutResolvingToolUsageOutput,
   SupportedMessageContentBlock,
   Tool,
-  ToolUseStrategy,
 } from './types.js';
-import { ToolInputSchema, ToolUseBlock } from '@aws-sdk/client-bedrock-runtime';
 
 // Mock the imported function
 /* eslint-disable @typescript-eslint/no-explicit-any */
-let mockGetConversationMessageWithoutResolvingToolUsage: any;
-void describe('getConversationMessage', () => {
-  const mockToolSchema: ToolInputSchema = {
-    json: {
-      type: 'object',
-      properties: {
-        query: { type: 'string' },
-      },
-      required: ['query'],
-    },
-  };
-  const mockTool: Tool = {
-    name: 'testTool',
-    description: 'A test tool',
-    inputSchema: mockToolSchema,
-    type: 'custom',
-    use: async () => [{ text: 'Tool result' }],
-  };
-  const baseInput = {
-    messages: [{ role: 'user', content: [{ text: 'Hello' }] }] as AIMessage[],
-    modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
-    systemPrompts: [{ text: 'You are a helpful assistant.' }],
-    toolConfiguration: {
-      tools: [mockTool],
-    },
-  };
+void describe('ConversationMessageHandler', () => {
+  void test('should return final response when no tool use is required', async () => {
+    const mockResponse: GetConversationMessageWithoutResolvingToolUsageOutput =
+      {
+        output: {
+          message: {
+            role: 'assistant',
+            content: [
+              { text: 'Hello, how can I help you?' },
+            ] as SupportedMessageContentBlock[],
+          },
+        },
+        stopReason: 'end_turn',
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
+        metrics: { latencyMs: 100 },
+      };
 
-  beforeEach(() => {
-    // Reset the mock function before each test
-    mockGetConversationMessageWithoutResolvingToolUsage = (() => {
-      const mock: any = async (...args: any[]) => {
-        mock.calls.push(args);
-        const result = mock.results.shift();
-        return result instanceof Function ? result(...args) : result;
-      };
-      mock.calls = [];
-      mock.results = [];
-      mock.mockResolvedValueOnce = (value: any) => {
-        mock.results.push(value);
-        return mock;
-      };
-      return mock;
-    })();
+    const mockGetConversationMessageWithoutResolvingToolUsage = mock.fn(
+      async () => mockResponse
+    );
+
+    const handler = new ConversationMessageHandler(
+      mockGetConversationMessageWithoutResolvingToolUsage
+    );
+
+    const input: GetConversationMessageInput = {
+      messages: [{ role: 'user', content: [{ text: 'Hello' }] }],
+      modelId: 'test-model',
+      systemPrompts: [{ text: 'You are a helpful assistant.' }],
+      toolConfiguration: { tools: [] },
+    };
+
+    const result = await handler.getConversationMessage(input);
+
+    assert.deepStrictEqual(result, mockResponse);
+    assert.equal(
+      mockGetConversationMessageWithoutResolvingToolUsage.mock.calls.length,
+      1
+    );
   });
 
   void test('should handle tool use and return final response', async () => {
@@ -69,14 +63,14 @@ void describe('getConversationMessage', () => {
                   toolUseId: 'test-id',
                   name: 'testTool',
                   input: { query: 'test' },
-                } as ToolUseBlock,
+                },
               },
             ] as SupportedMessageContentBlock[],
           },
         },
         stopReason: 'tool_use',
-        usage: {},
-        metrics: {},
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
+        metrics: { latencyMs: 100 },
       };
 
     const finalResponse: GetConversationMessageWithoutResolvingToolUsageOutput =
@@ -85,143 +79,292 @@ void describe('getConversationMessage', () => {
           message: {
             role: 'assistant',
             content: [
-              { text: 'Here is the result.' },
+              { text: 'Here is the result of using the tool.' },
             ] as SupportedMessageContentBlock[],
           },
         },
         stopReason: 'end_turn',
-        usage: {},
-        metrics: {},
+        usage: { inputTokens: 15, outputTokens: 25, totalTokens: 40 },
+        metrics: { latencyMs: 150 },
       };
 
-    mockGetConversationMessageWithoutResolvingToolUsage
-      .mockResolvedValueOnce(toolUseResponse)
-      .mockResolvedValueOnce(finalResponse);
+    let callCount = 0;
+    const mockGetConversationMessageWithoutResolvingToolUsage = mock.fn(
+      async () => {
+        callCount++;
+        return callCount === 1 ? toolUseResponse : finalResponse;
+      }
+    );
 
-    const onToolUseMessage = async () => {};
-    const onToolResultMessage = async () => {};
+    const handler = new ConversationMessageHandler(
+      mockGetConversationMessageWithoutResolvingToolUsage
+    );
 
-    const result = await getConversationMessage({
-      ...baseInput,
-      onToolUseMessage,
-      onToolResultMessage,
-    });
+    const testTool: Tool = {
+      name: 'testTool',
+      type: 'custom',
+      inputSchema: { json: { type: 'object' } },
+      description: 'A test tool',
+      use: async () => [{ text: 'Tool result' }],
+    };
 
-    // Check the structure of the result
-    assert.equal(typeof result, 'object');
-    assert.equal(result.stopReason, 'end_turn');
-
-    // Check output message structure
-    assert.equal(typeof result.output, 'object');
-    assert.equal(typeof result.output.message, 'object');
-    assert.equal(result.output.message.role, 'assistant');
-    assert.ok(Array.isArray(result.output.message.content));
-    assert.ok(result.output.message.content.length > 0);
-    assert.equal(typeof result.output.message.content[0].text, 'string');
-
-    // Check usage and metrics existence
-    assert.equal(typeof result.usage, 'object');
-    assert.equal(typeof result.metrics, 'object');
-
-    // Check additional fields
-    assert.equal(result.additionalModelResponseFields, undefined);
-  });
-
-  void test('should handle multiple tool uses before final response', async () => {
-    const toolUseResponse1: GetConversationMessageWithoutResolvingToolUsageOutput =
-      {
-        output: {
-          message: {
-            role: 'assistant',
-            content: [
-              {
-                toolUse: {
-                  toolUseId: 'test-id-1',
-                  name: 'testTool',
-                  input: { query: 'test1' },
-                } as ToolUseBlock,
-              },
-            ] as SupportedMessageContentBlock[],
-          },
-        },
-        stopReason: 'tool_use',
-        usage: {},
-        metrics: {},
-      };
-
-    const toolUseResponse2: GetConversationMessageWithoutResolvingToolUsageOutput =
-      {
-        output: {
-          message: {
-            role: 'assistant',
-            content: [
-              {
-                toolUse: {
-                  toolUseId: 'test-id-2',
-                  name: 'testTool',
-                  input: { query: 'test2' },
-                } as ToolUseBlock,
-              },
-            ] as SupportedMessageContentBlock[],
-          },
-        },
-        stopReason: 'tool_use',
-        usage: {},
-        metrics: {},
-      };
-
-    const finalResponse: GetConversationMessageWithoutResolvingToolUsageOutput =
-      {
-        output: {
-          message: {
-            role: 'assistant',
-            content: [
-              { text: 'Final result after multiple tool uses.' },
-            ] as SupportedMessageContentBlock[],
-          },
-        },
-        stopReason: 'end_turn',
-        usage: {},
-        metrics: {},
-      };
-
-    mockGetConversationMessageWithoutResolvingToolUsage
-      .mockResolvedValueOnce(toolUseResponse1)
-      .mockResolvedValueOnce(toolUseResponse2)
-      .mockResolvedValueOnce(finalResponse);
-
-    const result = await getConversationMessage(baseInput);
-
-    assert.equal(result.stopReason, 'end_turn');
-    assert.equal(result.output.message.role, 'assistant');
-    assert.ok(Array.isArray(result.output.message.content));
-    assert.ok(result.output.message.content.length > 0);
-    assert.equal(typeof result.output.message.content[0].text, 'string');
-
-    // Check that usage and metrics exist
-    assert.ok(result.usage);
-    assert.ok(typeof result.usage.inputTokens === 'number');
-    assert.ok(typeof result.usage.outputTokens === 'number');
-    assert.ok(typeof result.usage.totalTokens === 'number');
-
-    assert.ok(result.metrics);
-    assert.ok(typeof result.metrics.latencyMs === 'number');
-  });
-
-  void test('should throw error when toolUseStrategy is provided without tools', async () => {
-    const baseInput = {
-      messages: [{ role: 'user', content: [{ text: 'Hello' }] }] as AIMessage[],
-      modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+    const input: GetConversationMessageInput = {
+      messages: [{ role: 'user', content: [{ text: 'Use the testTool' }] }],
+      modelId: 'test-model',
       systemPrompts: [{ text: 'You are a helpful assistant.' }],
-      toolConfiguration: {
-        toolUseStrategy: {
-          strategy: 'any',
-        } as ToolUseStrategy,
+      toolConfiguration: { tools: [testTool] },
+    };
+
+    const result = await handler.getConversationMessage(input);
+
+    assert.deepStrictEqual(result, finalResponse);
+    assert.equal(
+      mockGetConversationMessageWithoutResolvingToolUsage.mock.calls.length,
+      2
+    );
+  });
+
+  void test('should throw error when tool is not found', async () => {
+    const toolUseResponse: GetConversationMessageWithoutResolvingToolUsageOutput =
+      {
+        output: {
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                toolUse: {
+                  toolUseId: 'test-id',
+                  name: 'nonExistentTool',
+                  input: { query: 'test' },
+                },
+              },
+            ] as SupportedMessageContentBlock[],
+          },
+        },
+        stopReason: 'tool_use',
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
+        metrics: { latencyMs: 100 },
+      };
+
+    const mockGetConversationMessageWithoutResolvingToolUsage = mock.fn(
+      async () => toolUseResponse
+    );
+
+    const handler = new ConversationMessageHandler(
+      mockGetConversationMessageWithoutResolvingToolUsage
+    );
+
+    const input: GetConversationMessageInput = {
+      messages: [{ role: 'user', content: [{ text: 'Use a tool' }] }],
+      modelId: 'test-model',
+      systemPrompts: [{ text: 'You are a helpful assistant.' }],
+      toolConfiguration: { tools: [] },
+    };
+
+    await assert.rejects(() => handler.getConversationMessage(input), {
+      message: 'Tool nonExistentTool not found',
+    });
+  });
+  void test('should call onToolUseMessage and onToolResultMessage callbacks', async () => {
+    const toolUseResponse: GetConversationMessageWithoutResolvingToolUsageOutput =
+      {
+        output: {
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                toolUse: {
+                  toolUseId: 'test-id',
+                  name: 'testTool',
+                  input: { query: 'test' },
+                },
+              },
+            ] as SupportedMessageContentBlock[],
+          },
+        },
+        stopReason: 'tool_use',
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
+        metrics: { latencyMs: 100 },
+      };
+
+    const finalResponse: GetConversationMessageWithoutResolvingToolUsageOutput =
+      {
+        output: {
+          message: {
+            role: 'assistant',
+            content: [
+              { text: 'Here is the result of using the tool.' },
+            ] as SupportedMessageContentBlock[],
+          },
+        },
+        stopReason: 'end_turn',
+        usage: { inputTokens: 15, outputTokens: 25, totalTokens: 40 },
+        metrics: { latencyMs: 150 },
+      };
+
+    let callCount = 0;
+    const mockGetConversationMessageWithoutResolvingToolUsage = mock.fn(
+      async () => {
+        callCount++;
+        return callCount === 1 ? toolUseResponse : finalResponse;
+      }
+    );
+
+    const handler = new ConversationMessageHandler(
+      mockGetConversationMessageWithoutResolvingToolUsage
+    );
+
+    const testTool: Tool = {
+      name: 'testTool',
+      type: 'custom',
+      inputSchema: { json: { type: 'object' } },
+      description: 'A test tool',
+      use: async () => [{ text: 'Tool result' }],
+    };
+
+    let onToolUseMessageCalled = false;
+    let onToolResultMessageCalled = false;
+
+    const input: GetConversationMessageInput = {
+      messages: [{ role: 'user', content: [{ text: 'Use the testTool' }] }],
+      modelId: 'test-model',
+      systemPrompts: [{ text: 'You are a helpful assistant.' }],
+      toolConfiguration: { tools: [testTool] },
+      onToolUseMessage: async () => {
+        onToolUseMessageCalled = true;
+      },
+      onToolResultMessage: async () => {
+        onToolResultMessageCalled = true;
       },
     };
 
-    await assert.rejects(() => getConversationMessage(baseInput), {
-      message: 'Cannot use toolUseStrategy without tools',
+    await handler.getConversationMessage(input);
+
+    assert.ok(
+      onToolUseMessageCalled,
+      'onToolUseMessage should have been called'
+    );
+    assert.ok(
+      onToolResultMessageCalled,
+      'onToolResultMessage should have been called'
+    );
+  });
+  void test('should throw error when tool use content is not found in response', async () => {
+    const invalidToolUseResponse: GetConversationMessageWithoutResolvingToolUsageOutput =
+      {
+        output: {
+          message: {
+            role: 'assistant',
+            content: [
+              { text: 'This is a response without tool use content' },
+            ] as SupportedMessageContentBlock[],
+          },
+        },
+        stopReason: 'tool_use', // This triggers the tool use logic
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
+        metrics: { latencyMs: 100 },
+      };
+
+    const mockGetConversationMessageWithoutResolvingToolUsage = mock.fn(
+      async () => invalidToolUseResponse
+    );
+
+    const handler = new ConversationMessageHandler(
+      mockGetConversationMessageWithoutResolvingToolUsage
+    );
+
+    const input: GetConversationMessageInput = {
+      messages: [{ role: 'user', content: [{ text: 'Use a tool' }] }],
+      modelId: 'test-model',
+      systemPrompts: [{ text: 'You are a helpful assistant.' }],
+      toolConfiguration: { tools: [] },
+    };
+
+    await assert.rejects(() => handler.getConversationMessage(input), {
+      name: 'Error',
+      message: 'Expected tool use content not found in response',
     });
+
+    // Verify that the mock function was called
+    assert.equal(
+      mockGetConversationMessageWithoutResolvingToolUsage.mock.calls.length,
+      1
+    );
+  });
+  void test('should handle tool use with undefined input', async () => {
+    const toolUseResponse: GetConversationMessageWithoutResolvingToolUsageOutput =
+      {
+        output: {
+          message: {
+            role: 'assistant',
+            content: [
+              {
+                toolUse: {
+                  toolUseId: 'test-id',
+                  name: 'testTool',
+                  input: undefined, // This is the key part
+                },
+              },
+            ] as SupportedMessageContentBlock[],
+          },
+        },
+        stopReason: 'tool_use',
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 },
+        metrics: { latencyMs: 100 },
+      };
+
+    const finalResponse: GetConversationMessageWithoutResolvingToolUsageOutput =
+      {
+        output: {
+          message: {
+            role: 'assistant',
+            content: [
+              { text: 'Tool used with empty input.' },
+            ] as SupportedMessageContentBlock[],
+          },
+        },
+        stopReason: 'end_turn',
+        usage: { inputTokens: 15, outputTokens: 25, totalTokens: 40 },
+        metrics: { latencyMs: 150 },
+      };
+
+    let callCount = 0;
+    const mockGetConversationMessageWithoutResolvingToolUsage = mock.fn(
+      async () => {
+        callCount++;
+        return callCount === 1 ? toolUseResponse : finalResponse;
+      }
+    );
+
+    const handler = new ConversationMessageHandler(
+      mockGetConversationMessageWithoutResolvingToolUsage
+    );
+
+    const testTool: Tool = {
+      name: 'testTool',
+      type: 'custom',
+      inputSchema: { json: { type: 'object' } },
+      description: 'A test tool',
+      use: async (input) => {
+        // This assertion checks that the input is an empty object when toolUse.input is undefined
+        assert.deepStrictEqual(input, {}, 'Input should be an empty object');
+        return [{ text: 'Tool result with empty input' }];
+      },
+    };
+
+    const input: GetConversationMessageInput = {
+      messages: [{ role: 'user', content: [{ text: 'Use the testTool' }] }],
+      modelId: 'test-model',
+      systemPrompts: [{ text: 'You are a helpful assistant.' }],
+      toolConfiguration: { tools: [testTool] },
+    };
+
+    const result = await handler.getConversationMessage(input);
+
+    assert.deepStrictEqual(result, finalResponse);
+    assert.equal(
+      mockGetConversationMessageWithoutResolvingToolUsage.mock.calls.length,
+      2
+    );
   });
 });

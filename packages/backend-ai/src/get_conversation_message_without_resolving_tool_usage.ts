@@ -87,7 +87,7 @@ export class BedrockMessageHandler {
    * @returns The response from the AI model.
    * @throws Eror If the response from the AI model does not contain a message.
    */
-  getMessage = async ({
+  getConversationMessageWithoutResolvingToolUsage = async ({
     systemPrompts,
     messages,
     modelId,
@@ -160,11 +160,13 @@ const bedrockMessageHandler = new BedrockMessageHandler(
 
 /**
  * Sends a message to the AI model and retrieves a response.
- * @param input - The input parameters for the function.
+ * @param input - The input parameters are GetConversationMessageWithoutResolvingToolUsageInput.
  * @returns The response from the AI model.
  */
 export const getConversationMessageWithoutResolvingToolUsage = (
   input: GetConversationMessageWithoutResolvingToolUsageInput
 ): Promise<GetConversationMessageWithoutResolvingToolUsageOutput> => {
-  return bedrockMessageHandler.getMessage(input);
+  return bedrockMessageHandler.getConversationMessageWithoutResolvingToolUsage(
+    input
+  );
 };

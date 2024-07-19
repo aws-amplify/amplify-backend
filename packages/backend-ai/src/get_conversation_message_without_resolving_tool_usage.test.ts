@@ -69,7 +69,9 @@ void describe('getMessage', async () => {
     });
     mockClient.send = mockSend;
 
-    await handler.getMessage(createInput());
+    await handler.getConversationMessageWithoutResolvingToolUsage(
+      createInput()
+    );
 
     assert.equal(mockSend.mock.calls.length, 1);
 
@@ -111,7 +113,7 @@ void describe('getMessage', async () => {
     });
 
     await assert.rejects(
-      () => handler.getMessage(input),
+      () => handler.getConversationMessageWithoutResolvingToolUsage(input),
       /Cannot use toolUseStrategy without tools/
     );
   });
@@ -134,7 +136,7 @@ void describe('getMessage', async () => {
       },
     });
 
-    await handler.getMessage(input);
+    await handler.getConversationMessageWithoutResolvingToolUsage(input);
 
     assert.ok(capturedInput.toolConfig, 'Tool config should be present');
     assert.equal(
@@ -171,7 +173,7 @@ void describe('getMessage', async () => {
       },
     });
 
-    await handler.getMessage(input);
+    await handler.getConversationMessageWithoutResolvingToolUsage(input);
 
     assert.ok(capturedInput.toolConfig, 'Tool config should be present');
     assert.equal(
@@ -195,7 +197,7 @@ void describe('getMessage', async () => {
     });
 
     await assert.rejects(
-      () => handler.getMessage(input),
+      () => handler.getConversationMessageWithoutResolvingToolUsage(input),
       /Specific Tool nonexistentTool not found in provided tools/
     );
   });
@@ -241,7 +243,7 @@ void describe('getMessage', async () => {
       ],
     });
 
-    await handler.getMessage(input);
+    await handler.getConversationMessageWithoutResolvingToolUsage(input);
 
     const sentMessage = capturedInput.messages[0];
     assert.equal(
@@ -269,7 +271,8 @@ void describe('getMessage', async () => {
     mockClient.send = mockSend;
 
     await assert.rejects(
-      () => handler.getMessage(createInput()),
+      () =>
+        handler.getConversationMessageWithoutResolvingToolUsage(createInput()),
       /No message in ConverseCommandOutput/
     );
   });
@@ -279,7 +282,10 @@ void describe('getMessage', async () => {
     const mockSend = mock.fn(() => Promise.resolve(defaultMockResponse));
     mockClient.send = mockSend;
 
-    const result = await handler.getMessage(createInput());
+    const result =
+      await handler.getConversationMessageWithoutResolvingToolUsage(
+        createInput()
+      );
 
     assert.ok(result.output, 'Result should have an output');
     assert.ok(result.output.message, 'Output should have a message');
@@ -335,7 +341,7 @@ void describe('getMessage', async () => {
       ],
     });
 
-    await handler.getMessage(input);
+    await handler.getConversationMessageWithoutResolvingToolUsage(input);
 
     assert.equal(
       capturedInput.messages.length,
@@ -356,7 +362,7 @@ void describe('getMessage', async () => {
     });
 
     await assert.doesNotReject(
-      () => handler.getMessage(input),
+      () => handler.getConversationMessageWithoutResolvingToolUsage(input),
       'Should not throw an error for empty content'
     );
   });
@@ -376,7 +382,7 @@ void describe('getMessage', async () => {
     });
 
     await assert.doesNotReject(
-      () => handler.getMessage(input),
+      () => handler.getConversationMessageWithoutResolvingToolUsage(input),
       'Should not throw an error for very large inputs'
     );
   });
@@ -395,7 +401,10 @@ void describe('getMessage', async () => {
     );
     mockClient.send = mockSend;
 
-    const result = await handler.getMessage(createInput());
+    const result =
+      await handler.getConversationMessageWithoutResolvingToolUsage(
+        createInput()
+      );
     assert.equal(
       result.usage.inputTokens,
       undefined,
