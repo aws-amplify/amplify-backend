@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
-import { Capture, Match, Template } from 'aws-cdk-lib/assertions';
+import { Capture, Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
@@ -121,6 +121,7 @@ void describe('AmplifyStorage', () => {
 
       const storageConstruct = new AmplifyStorage(stack, 'test', {
         name: 'testName',
+        isDefault: true,
         outputStorageStrategy: storageStrategy,
       });
 
@@ -147,6 +148,11 @@ void describe('AmplifyStorage', () => {
           payload: {
             [bucketName]: expectedBucketName,
             [storageRegion]: expectedRegion,
+            buckets: JSON.stringify({
+              name: 'testName',
+              bucketName: expectedBucketName,
+              storageRegion: expectedRegion,
+            }),
           },
         },
       ]);
@@ -161,10 +167,7 @@ void describe('AmplifyStorage', () => {
         Metadata: {
           [storageOutputKey]: {
             version: '1',
-            stackOutputs: [
-              Match.stringLikeRegexp('storageRegion*'),
-              Match.stringLikeRegexp('bucketName*'),
-            ],
+            stackOutputs: ['buckets'],
           },
         },
       });
