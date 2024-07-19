@@ -5,15 +5,37 @@
 ```ts
 
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
+import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnBucket } from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { EventType } from 'aws-cdk-lib/aws-s3';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+
+// @public
+export class AmplifyStorage extends Construct implements ResourceProvider<StorageResources> {
+    constructor(scope: Construct, id: string, props: AmplifyStorageProps);
+    addTrigger: (events: EventType[], handler: IFunction) => void;
+    // (undocumented)
+    readonly resources: StorageResources;
+}
+
+// @public
+export class AmplifyStorageFactory implements ConstructFactory<ResourceProvider<StorageResources>> {
+    constructor(props: AmplifyStorageFactoryProps, importStack?: string | undefined);
+    // (undocumented)
+    static factoryCounter: number;
+    getInstance: (getInstanceProps: ConstructFactoryGetInstanceProps) => AmplifyStorage;
+    // (undocumented)
+    static hasDefault: boolean;
+}
 
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
@@ -25,10 +47,7 @@ export type AmplifyStorageProps = {
     isDefault?: boolean;
     name: string;
     versioned?: boolean;
-    outputStorageStrategy?: BackendOutputStorageStrategy<{
-        version: '1';
-        payload: Record<string, string>;
-    }>;
+    outputStorageStrategy?: BackendOutputStorageStrategy<BackendOutputEntry>;
     triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
 
