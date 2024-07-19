@@ -64,9 +64,6 @@ export class Format {
 // @public (undocumented)
 export const format: Format;
 
-// @public
-export const getPackageManagerName: () => string;
-
 // @public (undocumented)
 export enum LogLevel {
     // (undocumented)

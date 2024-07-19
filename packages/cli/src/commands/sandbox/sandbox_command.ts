@@ -1,12 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import fs from 'fs';
 import fsp from 'fs/promises';
-import {
-  AmplifyPrompter,
-  format,
-  getPackageManagerName,
-  printer,
-} from '@aws-amplify/cli-core';
+import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
 import {
   SandboxFunctionStreamingOptions,
   SandboxSingletonFactory,
@@ -25,6 +20,7 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { CommandMiddleware } from '../../command_middleware.js';
 import { SandboxCommandGlobalOptions } from './option_types.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
+import { PackageManagerController } from '@aws-amplify/plugin-types';
 
 export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
   {
@@ -83,6 +79,7 @@ export class SandboxCommand
     private readonly sandboxSubCommands: CommandModule[],
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
     private commandMiddleware: CommandMiddleware,
+    private readonly packageManagerController: PackageManagerController,
     private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
@@ -274,9 +271,7 @@ export class SandboxCommand
   };
 
   sigIntHandler = async () => {
-    if (getPackageManagerName() === 'yarn-classic') {
-      // We currently don't support Yarn@1.x with CTRL-C as Yarn doesn't respect the SIGINT life cycle and exits
-      // immediately leaving the node process hanging. See: https://github.com/yarnpkg/yarn/issues/8895
+    if (!this.packageManagerController.allowsSignalPropagation()) {
       printer.print(
         `Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
           'sandbox delete'
