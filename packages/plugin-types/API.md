@@ -181,6 +181,7 @@ export type PackageManagerController = {
     installDependencies: (packageNames: string[], type: 'dev' | 'prod') => Promise<void>;
     runWithPackageManager: (args: string[] | undefined, dir: string, options?: Options<'utf8'>) => ExecaChildProcess;
     getCommand: (args: string[]) => string;
+    allowsSignalPropagation: () => boolean;
 };
 
 // @public (undocumented)
