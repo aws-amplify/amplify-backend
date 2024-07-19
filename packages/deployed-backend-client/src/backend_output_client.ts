@@ -4,7 +4,6 @@ import {
 } from '@aws-amplify/backend-output-schemas';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { BackendOutputFetcherFactory } from './backend_output_fetcher_factory.js';
 import { DeployedBackendIdentifier } from './index.js';
 import { BackendOutputClient } from './backend_output_client_factory.js';
@@ -60,13 +59,6 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
       key.startsWith('bucketName')
     );
     const hasDefaultBucket = bucketNames.includes('bucketName');
-    if (!hasDefaultBucket && bucketNames.length > 1) {
-      throw new AmplifyUserError('NoDefaultBucketError', {
-        message: 'No default bucket set in the Amplify project.',
-        resolution:
-          'Add `isDefault: true` to one of the buckets `defineStorage` in the Amplify project.',
-      });
-    }
 
     bucketNames.forEach((key) => {
       if (!key.startsWith('bucketName')) {
