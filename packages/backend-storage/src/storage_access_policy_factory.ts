@@ -4,6 +4,7 @@ import { Stack } from 'aws-cdk-lib';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 import { StorageAction, StoragePath } from './types.js';
 import { InternalStorageAction } from './private_types.js';
+import { AmplifyStorageFactory } from './factory.js';
 
 export type Permission = {
   actions: StorageAction[];
@@ -65,9 +66,8 @@ export class StorageAccessPolicyFactory {
 
     return new Policy(
       this.stack,
-      `${this.bucket.bucketName.slice(0, 6)}${Math.floor(
-        Math.random() * 1000
-      )}`,
+      `${this.namePrefix}${AmplifyStorageFactory.factoryCounter}${this
+        .policyCount++}`,
       {
         statements,
       }
