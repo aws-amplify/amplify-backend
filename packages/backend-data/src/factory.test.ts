@@ -792,6 +792,34 @@ void describe('Table Import', () => {
     blogStack.hasResource(CUSTOM_DDB_CFN_TYPE, {});
   });
 
+  void it('allows only imported models', () => {
+    const schema = /* GraphQL */ `
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      importedAmplifyDynamoDBTableMap: {
+        ImportedModel: 'ImportedModel-1234-dev',
+      },
+      importedModels: ['ImportedModel'],
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: true,
+    });
+    const instance = dataFactory.getInstance(getInstanceProps);
+    const importedModelStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['ImportedModel'])
+    );
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      isImported: true,
+      tableName: 'ImportedModel-1234-dev',
+    });
+  });
+
+
+
   void it('fails when importedModels is not supplied', () => {
     const schema = /* GraphQL */ `
       type Blog @model {

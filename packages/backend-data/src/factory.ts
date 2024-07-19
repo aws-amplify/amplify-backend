@@ -172,7 +172,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
                 schema,
                 importedTableName,
               })),
-              { schema: nonImportedSchema },
+              ...(nonImportedSchema ? [{ schema: nonImportedSchema }] : []),
             ];
           }
         }

@@ -259,7 +259,7 @@ export const extractImportedModels = (
   importedAmplifyDynamoDBTableMap: Record<string, string> | undefined
 ): {
   importedSchemas: { schema: string; importedTableName: string }[];
-  nonImportedSchema: string;
+  nonImportedSchema: string | undefined;
 } => {
   if (
     importedAmplifyDynamoDBTableMap &&
@@ -319,12 +319,13 @@ export const extractImportedModels = (
       }
     );
 
+    const nonImportedSchema = nonImportedDefinitionNodes.length ? print({
+      definitions: nonImportedDefinitionNodes,
+      kind: 'Document' as const,
+    }) : undefined;
     return {
       importedSchemas,
-      nonImportedSchema: print({
-        definitions: nonImportedDefinitionNodes,
-        kind: 'Document' as const,
-      }),
+      nonImportedSchema,
     };
   }
   return {
