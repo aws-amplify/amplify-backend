@@ -156,7 +156,7 @@ export class AmplifyStorage
    */
   private storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<
-      StorageOutput | StorageBucketsPayload
+      StorageOutput
     > = new StackMetadataBackendOutputStorageStrategy(Stack.of(this)),
     isDefault: boolean = false,
     name: string = ''

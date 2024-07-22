@@ -1,6 +1,7 @@
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
+  DeepPartial
 } from '@aws-amplify/plugin-types';
 import { CfnOutput, Lazy, Stack } from 'aws-cdk-lib';
 
@@ -47,7 +48,7 @@ export class StackMetadataBackendOutputStorageStrategy
    */
   appendToBackendOutputList = (
     keyName: string,
-    backendOutputEntry: BackendOutputEntry
+    backendOutputEntry: DeepPartial<BackendOutputEntry>
   ): void => {
     const version = backendOutputEntry.version;
     let listsMap = this.lazyListValueMap.get(keyName);
@@ -70,7 +71,10 @@ export class StackMetadataBackendOutputStorageStrategy
       });
     }
 
-    Object.entries(backendOutputEntry.payload).forEach(([listName, value]) => {
+    Object.entries(backendOutputEntry.payload ?? []).forEach(([listName, value]) => {
+      if (!value) {
+        return;
+      }
       if (!listsMap) {
         listsMap = new Map();
         this.lazyListValueMap.set(keyName, listsMap);
