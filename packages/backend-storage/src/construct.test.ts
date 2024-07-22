@@ -132,12 +132,6 @@ void describe('AmplifyStorage', () => {
 
       const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
       assert.strictEqual(storeOutputArgs.length, 2);
-      const bucketName = Object.entries(storeOutputArgs[1].payload).filter(
-        ([key]) => key.includes('bucketName')
-      )[0][0];
-      const storageRegion = Object.entries(storeOutputArgs[1].payload).filter(
-        ([key]) => key.includes('storageRegion')
-      )[0][0];
       assert.equal(storeOutputArgs[0], storageOutputKey);
       assert.equal(storeOutputArgs[1].version, '1');
 
@@ -146,13 +140,8 @@ void describe('AmplifyStorage', () => {
         {
           version: '1',
           payload: {
-            [bucketName]: expectedBucketName,
-            [storageRegion]: expectedRegion,
-            buckets: JSON.stringify({
-              name: 'testName',
-              bucketName: expectedBucketName,
-              storageRegion: expectedRegion,
-            }),
+            bucketName: expectedBucketName,
+            storageRegion: expectedRegion,
           },
         },
       ]);
