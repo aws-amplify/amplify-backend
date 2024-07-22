@@ -14,7 +14,6 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
-  StorageBucketsPayload,
   StorageOutput,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
@@ -49,9 +48,7 @@ export type AmplifyStorageProps = {
    * @default false
    */
   versioned?: boolean;
-  outputStorageStrategy?: BackendOutputStorageStrategy<
-    StorageOutput | StorageBucketsPayload
-  >;
+  outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
   /**
    * S3 event trigger configuration
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#configure-storage-triggers
@@ -155,9 +152,9 @@ export class AmplifyStorage
    * Store storage outputs using provided strategy
    */
   private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<
-      StorageOutput
-    > = new StackMetadataBackendOutputStorageStrategy(Stack.of(this)),
+    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput> = new StackMetadataBackendOutputStorageStrategy(
+      Stack.of(this)
+    ),
     isDefault: boolean = false,
     name: string = ''
   ): void => {
