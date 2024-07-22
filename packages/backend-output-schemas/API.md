@@ -66,14 +66,32 @@ export type GraphqlOutput = z.infer<typeof versionedGraphqlOutputSchema>;
 // @public
 export const graphqlOutputKey = "AWS::Amplify::GraphQL";
 
+// @public (undocumented)
+export type PickPayload<T extends {
+    payload: object;
+}, K extends keyof T['payload']> = {
+    payload: Pick<T['payload'], K>;
+};
+
 // @public
 export const platformOutputKey = "AWS::Amplify::Platform";
+
+// @public (undocumented)
+export type StorageBucketsPayload = TransformType<StorageOutput, 'buckets'>;
 
 // @public (undocumented)
 export type StorageOutput = z.infer<typeof versionedStorageOutputSchema>;
 
 // @public
 export const storageOutputKey = "AWS::Amplify::Storage";
+
+// @public (undocumented)
+export type TransformType<T extends {
+    version: string;
+    payload: object;
+}, K extends keyof T['payload']> = PickPayload<T, K> & {
+    version: T['version'];
+};
 
 // @public
 export type UnifiedBackendOutput = z.infer<typeof unifiedBackendOutputSchema>;

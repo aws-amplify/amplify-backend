@@ -5,7 +5,6 @@
 ```ts
 
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
-import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
@@ -18,6 +17,8 @@ import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { StorageBucketsPayload } from '@aws-amplify/backend-output-schemas';
+import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public
 export class AmplifyStorage extends Construct implements ResourceProvider<StorageResources> {
@@ -47,7 +48,7 @@ export type AmplifyStorageProps = {
     isDefault?: boolean;
     name: string;
     versioned?: boolean;
-    outputStorageStrategy?: BackendOutputStorageStrategy<BackendOutputEntry>;
+    outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput | StorageBucketsPayload>;
     triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
 };
 

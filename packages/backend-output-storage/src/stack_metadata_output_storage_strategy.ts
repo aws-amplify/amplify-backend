@@ -71,9 +71,6 @@ export class StackMetadataBackendOutputStorageStrategy
     }
 
     Object.entries(backendOutputEntry.payload).forEach(([listName, value]) => {
-      if (!value) {
-        return;
-      }
       if (!listsMap) {
         listsMap = new Map();
         this.lazyListValueMap.set(keyName, listsMap);

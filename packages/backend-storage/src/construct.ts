@@ -8,13 +8,13 @@ import {
   IBucket,
 } from 'aws-cdk-lib/aws-s3';
 import {
-  BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructFactory,
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
+  StorageBucketsPayload,
   StorageOutput,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
@@ -49,7 +49,9 @@ export type AmplifyStorageProps = {
    * @default false
    */
   versioned?: boolean;
-  outputStorageStrategy?: BackendOutputStorageStrategy<BackendOutputEntry>;
+  outputStorageStrategy?: BackendOutputStorageStrategy<
+    StorageOutput | StorageBucketsPayload
+  >;
   /**
    * S3 event trigger configuration
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#configure-storage-triggers
@@ -153,20 +155,26 @@ export class AmplifyStorage
    * Store storage outputs using provided strategy
    */
   private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput> = new StackMetadataBackendOutputStorageStrategy(
-      Stack.of(this)
-    ),
+    outputStorageStrategy: BackendOutputStorageStrategy<
+      StorageOutput | StorageBucketsPayload
+    > = new StackMetadataBackendOutputStorageStrategy(Stack.of(this)),
     isDefault: boolean = false,
     name: string = ''
   ): void => {
-    /*
-     * The default bucket takes the `storageRegion` and `bucketName` name without a number post-fix.
-     */
+    if (isDefault) {
+      outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
+        version: '1',
+        payload: {
+          storageRegion: Stack.of(this).region,
+          bucketName: this.resources.bucket.bucketName,
+        },
+      });
+    }
+
+    // both default and non-default buckets should have the name, bucket name, and storage region stored in `buckets` field
     outputStorageStrategy.appendToBackendOutputList(storageOutputKey, {
       version: '1',
       payload: {
-        storageRegion: isDefault ? Stack.of(this).region : '',
-        bucketName: isDefault ? this.resources.bucket.bucketName : '',
         buckets: JSON.stringify({
           name,
           bucketName: this.resources.bucket.bucketName,
