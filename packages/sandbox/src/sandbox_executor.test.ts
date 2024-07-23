@@ -133,7 +133,7 @@ void describe('Sandbox executor', () => {
   });
 
   void it('throws AmplifyUserError if listSecrets fails due to CredentialsProviderError', async () => {
-    const credentialsError = new Error('creds error');
+    const credentialsError = new Error('credentials error');
     credentialsError.name = 'CredentialsProviderError';
     const secretsError = SecretError.createInstance(credentialsError);
     listSecretMock.mock.mockImplementationOnce(() => {
