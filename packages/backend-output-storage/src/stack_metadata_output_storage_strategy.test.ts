@@ -63,20 +63,19 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
         payload: {
-          bucketName: 'test-bucket',
-          storageRegion: 'us-west-2',
+          buckets: 'test-bucket',
         },
       });
 
       const template = Template.fromStack(stack);
-      template.hasOutput('bucketName', {
+      template.hasOutput('buckets', {
         Value: JSON.stringify(['test-bucket']),
       });
       template.templateMatches({
         Metadata: {
           TestStorageOutput: {
             version: '1',
-            stackOutputs: ['bucketName', 'storageRegion'],
+            stackOutputs: ['buckets'],
           },
         },
       });
@@ -91,61 +90,93 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
         payload: {
-          bucketName: 'test-bucket',
-          storageRegion: 'us-west-2',
+          buckets: JSON.stringify({
+            name: 'test-bucket',
+            bucketName: 'test-bucket',
+            storageRegion: 'us-west-2',
+          }),
         },
       });
-      outputStorage.appendToBackendOutputList('TestStorageOutput', {
+      outputStorage.addBackendOutputEntry('TestStorageOutput', {
         version: '1',
         payload: {
           bucketName: 'test-bucket-two',
           storageRegion: 'us-west-2',
         },
       });
+      outputStorage.appendToBackendOutputList('TestStorageOutput', {
+        version: '1',
+        payload: {
+          buckets: JSON.stringify({
+            name: 'test-bucket-two',
+            bucketName: 'test-bucket-two',
+            storageRegion: 'us-west-2',
+          }),
+        },
+      });
       const template = Template.fromStack(stack);
-      template.hasOutput('bucketName', {
-        Value: JSON.stringify(['test-bucket', 'test-bucket-two']),
+      template.hasOutput('buckets', {
+        Value: JSON.stringify([
+          '{"name":"test-bucket","bucketName":"test-bucket","storageRegion":"us-west-2"}',
+          '{"name":"test-bucket-two","bucketName":"test-bucket-two","storageRegion":"us-west-2"}',
+        ]),
       });
       template.templateMatches({
         Metadata: {
           TestStorageOutput: {
             version: '1',
-            stackOutputs: ['bucketName', 'storageRegion'],
+            stackOutputs: ['buckets', 'bucketName', 'storageRegion'],
           },
         },
       });
     });
 
-    void it('appends a cdk token to an existing list in stack output', () => {
+    void it('appends a cdk token to an existing list in stack output with two buckets', () => {
       const testToken = Token.asString('testToken');
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
         stack
       );
-      outputStorage.appendToBackendOutputList('TestStorageOutput', {
-        version: '1',
-        payload: {
-          bucketName: 'test-bucket',
-          storageRegion: 'us-west-2',
-        },
-      });
-      outputStorage.appendToBackendOutputList('TestStorageOutput', {
+      outputStorage.addBackendOutputEntry('TestStorageOutput', {
         version: '1',
         payload: {
           bucketName: testToken,
           storageRegion: 'us-west-2',
         },
       });
+      outputStorage.appendToBackendOutputList('TestStorageOutput', {
+        version: '1',
+        payload: {
+          buckets: JSON.stringify({
+            name: testToken,
+            bucketName: testToken,
+            storageRegion: 'us-west-2',
+          }),
+        },
+      });
+      outputStorage.appendToBackendOutputList('TestStorageOutput', {
+        version: '1',
+        payload: {
+          buckets: JSON.stringify({
+            name: 'test-bucket-two',
+            bucketName: 'test-bucket-two',
+            storageRegion: 'us-west-2',
+          }),
+        },
+      });
       const template = Template.fromStack(stack);
-      template.hasOutput('bucketName', {
-        Value: JSON.stringify(['test-bucket', 'testToken']),
+      template.hasOutput('buckets', {
+        Value: JSON.stringify([
+          '{"name":"testToken","bucketName":"testToken","storageRegion":"us-west-2"}',
+          '{"name":"test-bucket-two","bucketName":"test-bucket-two","storageRegion":"us-west-2"}',
+        ]),
       });
       template.templateMatches({
         Metadata: {
           TestStorageOutput: {
             version: '1',
-            stackOutputs: ['bucketName', 'storageRegion'],
+            stackOutputs: ['buckets', 'bucketName', 'storageRegion'],
           },
         },
       });
@@ -160,8 +191,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
         payload: {
-          bucketName: 'test-bucket',
-          storageRegion: 'us-west-2',
+          buckets: 'test-bucket',
         },
       });
 

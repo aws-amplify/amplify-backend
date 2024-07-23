@@ -41,7 +41,7 @@ export class StackMetadataBackendOutputStorageStrategy
     const existingMetadataEntry = metadata[keyName];
 
     if (existingMetadataEntry) {
-      const excludedStackOutputs = existingMetadataEntry.filter(
+      const excludedStackOutputs = existingMetadataEntry.stackOutputs.filter(
         (output: string) =>
           !Object.keys(backendOutputEntry.payload).includes(output)
       );
@@ -78,19 +78,6 @@ export class StackMetadataBackendOutputStorageStrategy
           `Metadata entry for ${keyName} at version ${existingMetadataEntry.version} already exists. Cannot add another entry for the same key at version ${version}.`
         );
       }
-      this.stack.addMetadata(keyName, {
-        version,
-        stackOutputs: Array.from(listsMap ? listsMap.keys() : []).concat(
-          existingMetadataEntry.stackOutputs.filter(
-            (output: string) => !listsMap?.has(output)
-          )
-        ),
-      });
-    } else {
-      this.stack.addMetadata(keyName, {
-        version,
-        stackOutputs: Array.from(listsMap ? listsMap.keys() : []),
-      });
     }
 
     Object.entries(backendOutputEntry.payload ?? []).forEach(
@@ -116,5 +103,21 @@ export class StackMetadataBackendOutputStorageStrategy
         }
       }
     );
+
+    if (existingMetadataEntry) {
+      this.stack.addMetadata(keyName, {
+        version,
+        stackOutputs: Array.from(listsMap ? listsMap.keys() : []).concat(
+          existingMetadataEntry.stackOutputs.filter(
+            (output: string) => !listsMap?.has(output)
+          )
+        ),
+      });
+    } else {
+      this.stack.addMetadata(keyName, {
+        version,
+        stackOutputs: Array.from(listsMap ? listsMap.keys() : []),
+      });
+    }
   };
 }
