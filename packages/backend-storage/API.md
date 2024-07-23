@@ -27,16 +27,6 @@ export class AmplifyStorage extends Construct implements ResourceProvider<Storag
     readonly resources: StorageResources;
 }
 
-// @public
-export class AmplifyStorageFactory implements ConstructFactory<ResourceProvider<StorageResources>> {
-    constructor(props: AmplifyStorageFactoryProps, importStack?: string | undefined);
-    // (undocumented)
-    static factoryCounter: number;
-    getInstance: (getInstanceProps: ConstructFactoryGetInstanceProps) => AmplifyStorage;
-    // (undocumented)
-    static hasDefault: boolean;
-}
-
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {
     access?: StorageAccessGenerator;

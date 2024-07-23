@@ -25,12 +25,8 @@ import {
   ClientConfigVersionOption,
 } from '@aws-amplify/client-config';
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
-import {
-  AmplifyUserError,
-  ObjectAccumulator,
-} from '@aws-amplify/platform-core';
+import { ObjectAccumulator } from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
-import { AmplifyStorageFactory } from '@aws-amplify/backend-storage';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -60,16 +56,6 @@ export class BackendFactory<
    * If no CDK App is specified a new one is created
    */
   constructor(constructFactories: T, stack: Stack = createDefaultStack()) {
-    if (
-      !AmplifyStorageFactory.hasDefault &&
-      AmplifyStorageFactory.factoryCounter > 1
-    ) {
-      throw new AmplifyUserError('NoDefaultBucketError', {
-        message: 'No default bucket set in the Amplify project.',
-        resolution:
-          'Add `isDefault: true` to one of the buckets `defineStorage` in the Amplify project.',
-      });
-    }
     new AttributionMetadataStorage().storeAttributionMetadata(
       stack,
       rootStackTypeIdentifier,

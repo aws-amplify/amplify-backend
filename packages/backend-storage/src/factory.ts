@@ -9,15 +9,18 @@ import { AmplifyStorage, StorageResources } from './construct.js';
 import { AmplifyStorageFactoryProps } from './types.js';
 import { StorageContainerEntryGenerator } from './storage_container_entry_generator.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { Aspects, IAspect } from 'aws-cdk-lib';
+import { IConstruct } from 'constructs';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
  */
-export class AmplifyStorageFactory
+class AmplifyStorageFactory
   implements ConstructFactory<ResourceProvider<StorageResources>>
 {
   static hasDefault = false;
   static factoryCounter = 0;
+  static validated = false;
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -60,8 +63,32 @@ export class AmplifyStorageFactory
         getInstanceProps
       );
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyStorage;
+    const amplifyStorage = constructContainer.getOrCompute(
+      this.generator
+    ) as AmplifyStorage;
+    Aspects.of(amplifyStorage).add(new StorageValidator());
+    return amplifyStorage;
   };
+}
+
+class StorageValidator implements IAspect {
+  public visit(node: IConstruct): void {
+    if (!(node instanceof AmplifyStorage) || AmplifyStorageFactory.validated) {
+      return;
+    }
+    if (
+      !AmplifyStorageFactory.hasDefault &&
+      AmplifyStorageFactory.factoryCounter > 1
+    ) {
+      throw new AmplifyUserError('NoDefaultBucketError', {
+        message: 'No default bucket set in the Amplify project.',
+        resolution:
+          'Add `isDefault: true` to one of the buckets `defineStorage` in the Amplify project.',
+      });
+    } else {
+      AmplifyStorageFactory.validated = true;
+    }
+  }
 }
 
 /**
