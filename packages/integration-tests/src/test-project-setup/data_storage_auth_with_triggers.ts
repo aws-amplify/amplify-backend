@@ -465,13 +465,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const createQueueResponse = await this.sqsClient.send(
       new CreateQueueCommand({ QueueName: this.queueName })
     );
-    console.log(
-      `Created queue ${this.queueName} - ${JSON.stringify(
-        createQueueResponse,
-        null,
-        2
-      )}`
-    );
     this.queueUrl = createQueueResponse.QueueUrl ?? '';
   };
 
@@ -513,6 +506,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
     const lambdaRole = getFunctionConfigurationResponse.Role ?? '';
 
+    console.log(`Adding LambdaSQSPolicy to ${lambdaRole}`);
     await this.iamClient.send(
       new PutRolePolicyCommand({
         RoleName: lambdaRole,
