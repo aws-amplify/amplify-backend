@@ -46,7 +46,7 @@ export const funcWithAwsSdk = defineFunction({
 });
 
 export const funcWithSchedule = defineFunction({
-  name: 'funcWithSchedule',
-  entry: './func-src/handler_with_counter.ts',
+  name: 'amplify-funcWithSchedule',
+  entry: './func-src/handler_with_aws_sqs.ts',
   schedule: '* * * * ?',
 });
