@@ -489,7 +489,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const funcWithSchedule = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Lambda::Function',
-      (name) => name.includes('amplify-funcWithSchedule')
+      (name) => name.includes('funcWithSchedule')
     );
     const getQueueAttributesResponse = await this.getSQSQueueAttributes(
       this.queueUrl
