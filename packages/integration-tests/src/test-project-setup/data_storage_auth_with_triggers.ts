@@ -127,7 +127,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private testRoleNames: string[];
 
   // for testing scheduled function
-  private queueName = 'amplify-testScheduleLambdaQueue';
+  private queueName: string;
   private scheduleFunctionName = 'funcWithSchedule';
   private queueUrl: string;
 
@@ -154,6 +154,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       cfnClient,
       amplifyClient
     );
+
+    this.queueName = `amplify-testFuncQueue${name}`;
   }
 
   /**
@@ -470,6 +472,13 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private createSQSQueue = async () => {
     const createQueueResponse = await this.sqsClient.send(
       new CreateQueueCommand({ QueueName: this.queueName })
+    );
+    console.log(
+      `Created queue ${this.queueName} - ${JSON.stringify(
+        createQueueResponse,
+        null,
+        2
+      )}`
     );
     this.queueUrl = createQueueResponse.QueueUrl ?? '';
   };
