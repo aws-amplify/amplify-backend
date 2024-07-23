@@ -129,6 +129,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   // for testing scheduled function
   private queueName: string;
   private queueUrl: string;
+  private funcWithSchedulePhysicalIds: string[];
 
   /**
    * Create a test project instance.
@@ -251,6 +252,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.equal(node16Lambda.length, 1);
     assert.equal(funcWithSsm.length, 1);
     assert.equal(funcWithAwsSdk.length, 1);
+    assert.equal(this.funcWithSchedulePhysicalIds.length, 1);
 
     const expectedResponse = {
       s3TestContent: 'this is some test content',
@@ -263,6 +265,10 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
+    await this.checkLambdaResponse(
+      this.funcWithSchedulePhysicalIds[0],
+      'It is working'
+    );
 
     await this.assertScheduleInvokesFunction();
 
@@ -479,11 +485,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   };
 
   private addLambdaPermissionForSQS = async (backendId: BackendIdentifier) => {
-    const funcWithSchedule = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::Lambda::Function',
-      (name) => name.includes('funcWithSchedule')
-    );
+    this.funcWithSchedulePhysicalIds =
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('funcWithSchedule')
+      );
     const getQueueAttributesResponse = await this.getSQSQueueAttributes(
       this.queueUrl
     );
@@ -501,7 +508,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     const getFunctionConfigurationResponse = await this.lambdaClient.send(
       new GetFunctionConfigurationCommand({
-        FunctionName: funcWithSchedule[0],
+        FunctionName: this.funcWithSchedulePhysicalIds[0],
       })
     );
     const lambdaRole = getFunctionConfigurationResponse.Role
@@ -532,7 +539,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const startTime = Date.now();
     let messageCount = 0;
 
-    while (Date.now() - startTime < TIMEOUT_MS && messageCount < 1) {
+    // should have one message because function was invoked in assertPostDeployment
+    // wait for schedule to invoke the function one more time for second message
+    while (Date.now() - startTime < TIMEOUT_MS && messageCount < 2) {
       const response = await this.sqsClient.send(
         new ReceiveMessageCommand({
           QueueUrl: this.queueUrl,

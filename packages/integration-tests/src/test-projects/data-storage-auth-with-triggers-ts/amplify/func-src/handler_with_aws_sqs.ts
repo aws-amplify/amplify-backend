@@ -24,6 +24,8 @@ export const handler = async () => {
         MessageBody: messageBody,
       })
     );
+
+    return 'It is working';
   } catch (err) {
     throw err;
   }
