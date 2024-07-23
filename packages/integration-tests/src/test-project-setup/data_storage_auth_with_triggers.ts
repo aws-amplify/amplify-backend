@@ -127,7 +127,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private testRoleNames: string[];
 
   // for testing scheduled function
-  private queueName = 'scheduleLambdaQueue';
+  private queueName = 'amplify-testScheduleLambdaQueue';
   private scheduleFunctionName = 'funcWithSchedule';
   private queueUrl: string;
 
