@@ -265,10 +265,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
-    await this.checkLambdaResponse(
-      this.funcWithSchedulePhysicalIds[0],
-      'It is working'
-    );
 
     await this.assertScheduleInvokesFunction();
 
@@ -539,9 +535,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const startTime = Date.now();
     let messageCount = 0;
 
-    // should have one message because function was invoked in assertPostDeployment
-    // wait for schedule to invoke the function one more time for second message
-    while (Date.now() - startTime < TIMEOUT_MS && messageCount < 2) {
+    // wait for schedule to invoke the function one time for it to send a message
+    while (Date.now() - startTime < TIMEOUT_MS && messageCount < 1) {
       const response = await this.sqsClient.send(
         new ReceiveMessageCommand({
           QueueUrl: this.queueUrl,
