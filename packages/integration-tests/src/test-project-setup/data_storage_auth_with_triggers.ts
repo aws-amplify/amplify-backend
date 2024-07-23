@@ -504,9 +504,9 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         FunctionName: funcWithSchedule[0],
       })
     );
-    const lambdaRole = getFunctionConfigurationResponse.Role ?? '';
-
-    console.log(`Adding LambdaSQSPolicy to ${lambdaRole}`);
+    const lambdaRole = getFunctionConfigurationResponse.Role
+      ? getFunctionConfigurationResponse.Role.split('/')[1]
+      : '';
     await this.iamClient.send(
       new PutRolePolicyCommand({
         RoleName: lambdaRole,
