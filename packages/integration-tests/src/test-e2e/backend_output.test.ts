@@ -21,6 +21,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { IAMClient } from '@aws-sdk/client-iam';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { DataStorageAuthWithTriggerTestProjectCreator } from '../test-project-setup/data_storage_auth_with_triggers.js';
+import { SQSClient } from '@aws-sdk/client-sqs';
 
 // Different root test dir to avoid race conditions with e2e deployment tests
 const rootTestDir = fileURLToPath(
@@ -37,6 +38,7 @@ void describe(
     const lambdaClient = new LambdaClient(e2eToolingClientConfig);
     const s3Client = new S3Client(e2eToolingClientConfig);
     const iamClient = new IAMClient(e2eToolingClientConfig);
+    const sqsClient = new SQSClient(e2eToolingClientConfig);
     const resourceFinder = new DeployedResourcesFinder(cfnClient);
     const dataStorageAuthWithTriggerTestProjectCreator =
       new DataStorageAuthWithTriggerTestProjectCreator(
@@ -46,6 +48,7 @@ void describe(
         lambdaClient,
         s3Client,
         iamClient,
+        sqsClient,
         resourceFinder
       );
 
