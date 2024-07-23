@@ -128,7 +128,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   // for testing scheduled function
   private queueName: string;
-  private scheduleFunctionName = 'amplify-funcWithSchedule';
   private queueUrl: string;
 
   /**
@@ -179,7 +178,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     await this.setUpDeployEnvironment(backendIdentifier);
     await super.deploy(backendIdentifier, sharedSecretsEnv);
-    await this.addLambdaPermissionForSQS();
+    await this.addLambdaPermissionForSQS(backendIdentifier);
   }
 
   /**
@@ -248,17 +247,10 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       (name) => name.includes('funcWithAwsSdk')
     );
 
-    const funcWithSchedule = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::Lambda::Function',
-      (name) => name.includes(this.scheduleFunctionName)
-    );
-
     assert.equal(defaultNodeLambda.length, 1);
     assert.equal(node16Lambda.length, 1);
     assert.equal(funcWithSsm.length, 1);
     assert.equal(funcWithAwsSdk.length, 1);
-    assert.equal(funcWithSchedule.length, 1);
 
     const expectedResponse = {
       s3TestContent: 'this is some test content',
@@ -493,7 +485,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     }
   };
 
-  private addLambdaPermissionForSQS = async () => {
+  private addLambdaPermissionForSQS = async (backendId: BackendIdentifier) => {
+    const funcWithSchedule = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Lambda::Function',
+      (name) => name.includes('amplify-funcWithSchedule')
+    );
     const getQueueAttributesResponse = await this.getSQSQueueAttributes(
       this.queueUrl
     );
@@ -511,7 +508,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     const getFunctionConfigurationResponse = await this.lambdaClient.send(
       new GetFunctionConfigurationCommand({
-        FunctionName: this.scheduleFunctionName,
+        FunctionName: funcWithSchedule[0],
       })
     );
     const lambdaRole = getFunctionConfigurationResponse.Role ?? '';
