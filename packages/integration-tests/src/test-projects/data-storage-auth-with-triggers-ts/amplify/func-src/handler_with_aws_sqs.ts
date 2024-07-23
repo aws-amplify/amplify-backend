@@ -1,5 +1,4 @@
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import { timeStamp } from 'console';
 
 /**
  * This function asserts that schedule functions are working properly
