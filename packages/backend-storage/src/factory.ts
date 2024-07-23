@@ -15,7 +15,7 @@ import { IConstruct } from 'constructs';
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
  */
-class AmplifyStorageFactory
+export class AmplifyStorageFactory
   implements ConstructFactory<ResourceProvider<StorageResources>>
 {
   static hasDefault = false;
