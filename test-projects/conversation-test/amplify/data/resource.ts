@@ -6,7 +6,7 @@ const schema = `
     }
 
     type Mutation {
-      pirateChat(sessionId: ID, content: String): String
+      basicChat(sessionId: ID, content: String): String
       @conversation(
         aiModel: "Claude3Haiku",
         systemPrompt: "You are a helpful chatbot. Respond in 20 words or less."

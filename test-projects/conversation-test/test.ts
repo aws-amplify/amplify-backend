@@ -23,6 +23,16 @@ globalThis.crypto = crypto;
 
 Amplify.configure(outputs.default);
 
+const knownChatNames = ['basicChat'];
+const chatName = process.argv[2];
+
+if (!knownChatNames.includes(chatName)) {
+  throw new Error(`${chatName} must be one of ${knownChatNames.join(', ')}`);
+}
+
+const capitalizedChatName =
+  chatName.charAt(0).toUpperCase() + chatName.slice(1);
+
 const signInResult = await Auth.signIn({
   username: secrets.default.username,
   password: secrets.default.password,
@@ -33,7 +43,7 @@ if (!authSession.credentials) {
 }
 const idToken = authSession.tokens.idToken;
 if (!idToken) {
-  throw Error ('IdToken');
+  throw Error('IdToken');
 }
 
 const url = outputs.default.data.url;
@@ -42,7 +52,7 @@ const region = outputs.default.data.aws_region;
 const auth: AuthOptions = {
   type: AUTH_TYPE.AMAZON_COGNITO_USER_POOLS,
   jwtToken: () => {
-    return idToken.toString()
+    return idToken.toString();
   },
 };
 
@@ -62,7 +72,7 @@ const conversation = await client.mutate({
   mutation: gql(
     `
 mutation MyMutation {
-  createConversationPirateChat(input: {}) {
+  createConversation${capitalizedChatName}(input: {}) {
     id
   }
 }
@@ -72,40 +82,40 @@ mutation MyMutation {
 
 console.log(conversation);
 
-const conversationId = conversation.data.createConversationPirateChat.id;
+const conversationId =
+  conversation.data[`createConversation${capitalizedChatName}`].id;
 
-
-client.subscribe({
-  query: gql(`
+client
+  .subscribe({
+    query: gql(`
   subscription MySubscription {
-  onCreateAssistantResponsePirateChat(sessionId: "${conversationId}") {
+  onCreateAssistantResponse${capitalizedChatName}(sessionId: "${conversationId}") {
     content
   }
 }
 
   `),
-}).subscribe(response => {
-  const responseContent = response.data.onCreateAssistantResponsePirateChat.content;
-  console.log(`Response: ${responseContent}`);
-  console.log("Type question:");
-})
-
+  })
+  .subscribe((response) => {
+    const responseContent =
+      response.data[`onCreateAssistantResponse${capitalizedChatName}`].content;
+    console.log(`Response: ${responseContent}`);
+    console.log('Type question:');
+  });
 
 const reader = readline.createInterface(process.stdin);
 
-console.log("Type question:")
+console.log('Type question:');
 for await (const line of reader) {
-  console.log(`Sending message: ${line}`)
-// send message
+  console.log(`Sending message: ${line}`);
+  // send message
   await client.mutate({
     mutation: gql(
       `
     mutation MyMutation {
-  pirateChat(content: "${line}", sessionId: "${conversationId}")
+  ${chatName}(content: "${line}", sessionId: "${conversationId}")
 }
     `
-    )
-  })
+    ),
+  });
 }
-
-
