@@ -70,12 +70,11 @@ export class AmplifySandboxExecutor {
     try {
       secrets = await this.secretClient.listSecrets(backendId);
     } catch (err) {
-      if (
-        err instanceof SecretError &&
-        err.cause &&
-        err.cause instanceof SSMServiceException
-      ) {
-        if (err.cause.name === 'ExpiredTokenException') {
+      if (err instanceof SecretError && err.cause) {
+        if (
+          err.cause.name === 'ExpiredTokenException' ||
+          err.cause.name === 'CredentialsProviderError'
+        ) {
           throw new AmplifyUserError(
             'SecretsExpiredTokenError',
             {
@@ -87,12 +86,20 @@ export class AmplifySandboxExecutor {
           );
         }
       }
+      let downstreamException = err as Error;
+      if (
+        err instanceof SecretError &&
+        !(err.cause instanceof SSMServiceException) &&
+        err.cause instanceof Error
+      ) {
+        downstreamException = err.cause;
+      }
       throw new AmplifyFault(
         'ListSecretsFailedFault',
         {
           message: 'Fetching the list of secrets failed',
         },
-        err as Error
+        downstreamException
       );
     }
     let latestTimestamp = -1;

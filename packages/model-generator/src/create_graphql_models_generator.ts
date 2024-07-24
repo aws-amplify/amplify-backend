@@ -12,6 +12,7 @@ import { AWSClientProvider } from '@aws-amplify/plugin-types';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { getBackendOutputWithErrorHandling } from './get_backend_output_with_error_handling.js';
 
 export type GraphqlModelsGeneratorFactoryParams =
   | {
@@ -110,7 +111,10 @@ const getModelSchema = async (
 ): Promise<string> => {
   const backendOutputClient =
     BackendOutputClientFactory.getInstance(awsClientProvider);
-  const output = await backendOutputClient.getOutput(backendIdentifier);
+  const output = await getBackendOutputWithErrorHandling(
+    backendOutputClient,
+    backendIdentifier
+  );
   const modelSchemaS3Uri =
     output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
   if (!modelSchemaS3Uri) {

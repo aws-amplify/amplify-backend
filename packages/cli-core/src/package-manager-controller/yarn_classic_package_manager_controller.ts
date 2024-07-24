@@ -37,6 +37,12 @@ export class YarnClassicPackageManagerController extends PackageManagerControlle
     await this.addTypescript(targetDir);
     await super.initializeTsConfig(targetDir);
   };
+  /**
+   *
+   * Yarn doesn't respect the SIGINT life cycle and exits immediately leaving
+   * the node process hanging. See: https://github.com/yarnpkg/yarn/issues/8895
+   */
+  allowsSignalPropagation = () => false;
 
   private addTypescript = async (targetDir: string) => {
     await this.executeWithDebugLogger(

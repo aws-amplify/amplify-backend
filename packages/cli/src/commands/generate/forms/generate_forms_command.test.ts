@@ -1,13 +1,23 @@
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
-import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+  BackendOutputClientFactory,
+} from '@aws-amplify/deployed-backend-client';
 import assert from 'node:assert';
 import path from 'node:path';
 import { describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
-import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
+import {
+  AppBackendIdentifierResolver,
+  BackendIdentifierResolver,
+} from '../../../backend-identifier/backend_identifier_resolver.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
-import { TestCommandRunner } from '../../../test-utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../../test-utils/command_runner.js';
 import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
 import { GenerateFormsCommand } from './generate_forms_command.js';
 import { S3Client } from '@aws-sdk/client-s3';
@@ -225,6 +235,53 @@ void describe('generate forms command', () => {
         namespace: fakeSandboxId,
         name: fakeSandboxId,
         type: 'sandbox',
+      }
+    );
+  });
+
+  void it('throws user error if the stack deployment is currently in progress', async () => {
+    const fakeSandboxId = 'my-fake-app-my-fake-username';
+    const backendIdResolver = {
+      resolve: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
+    } as BackendIdentifierResolver;
+    const formGenerationHandler = new FormGenerationHandler({
+      awsClientProvider,
+    });
+
+    const fakedBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
+          'deployment in progress'
+        );
+      }),
+    };
+
+    const generateFormsCommand = new GenerateFormsCommand(
+      backendIdResolver,
+      () => fakedBackendOutputClient,
+      formGenerationHandler
+    );
+
+    const parser = yargs().command(
+      generateFormsCommand as unknown as CommandModule
+    );
+    const commandRunner = new TestCommandRunner(parser);
+    await assert.rejects(
+      () => commandRunner.runCommand('forms'),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'DeploymentInProgressError');
+        assert.strictEqual(
+          error.error.message,
+          'Deployment is currently in progress.'
+        );
+        return true;
       }
     );
   });

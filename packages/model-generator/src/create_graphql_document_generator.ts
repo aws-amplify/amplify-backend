@@ -11,6 +11,7 @@ import { GraphqlDocumentGenerator } from './model_generator.js';
 import { AWSClientProvider } from '@aws-amplify/plugin-types';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { getBackendOutputWithErrorHandling } from './get_backend_output_with_error_handling.js';
 
 export type GraphqlDocumentGeneratorFactoryParams = {
   backendIdentifier: DeployedBackendIdentifier;
@@ -37,7 +38,10 @@ export const createGraphqlDocumentGenerator = ({
   const fetchSchema = async () => {
     const backendOutputClient =
       BackendOutputClientFactory.getInstance(awsClientProvider);
-    const output = await backendOutputClient.getOutput(backendIdentifier);
+    const output = await getBackendOutputWithErrorHandling(
+      backendOutputClient,
+      backendIdentifier
+    );
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
       throw new Error(`Unable to determine AppSync API ID.`);

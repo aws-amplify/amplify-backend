@@ -8,6 +8,8 @@ import { AWSClientProvider } from '@aws-amplify/plugin-types';
 
 export enum BackendOutputClientErrorType {
   METADATA_RETRIEVAL_ERROR = 'MetadataRetrievalError',
+  NO_OUTPUTS_FOUND = 'NoOutputsFound',
+  DEPLOYMENT_IN_PROGRESS = 'DeploymentInProgress',
 }
 /**
  * Error type for BackendOutputClientError
