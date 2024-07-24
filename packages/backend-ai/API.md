@@ -4,6 +4,7 @@
 
 ```ts
 
+import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -24,6 +25,62 @@ export type ConversationHandlerProps = {
 export type ConversationHandlerResources = {
     lambda: IFunction;
 };
+
+// @public (undocumented)
+export type ConversationTurnEvent = {
+    typeName: string;
+    fieldName: string;
+    args: {
+        sessionId: string;
+        content: string;
+        owner: string;
+        modelId: string;
+        responseMutationName: string;
+        responseMutationInputTypeName: string;
+        graphqlApiEndpoint: string;
+        currentMessageId: string;
+        systemPrompt: string;
+    };
+    identity: {
+        defaultAuthStrategy: 'ALLOW' | 'DENY';
+        sub: string;
+        username: string;
+        claims: {
+            sub: string;
+            email_verified: boolean;
+            iss: string;
+        };
+    };
+    request: {
+        headers: {
+            authorization: string;
+        };
+    };
+    prev: {
+        result: {
+            items: Array<{
+                role: 'user' | 'assistant';
+                content: {
+                    text: string;
+                }[];
+            }>;
+        };
+    };
+};
+
+// @public
+export class ConversationTurnExecutor {
+    constructor(bedrockClient?: BedrockRuntimeClient);
+    // (undocumented)
+    execute: (event: ConversationTurnEvent) => Promise<void>;
+}
+
+// @public
+export class ConversationTurnResponder {
+    constructor(event: ConversationTurnEvent);
+    // (undocumented)
+    respond: (message: string) => Promise<void>;
+}
 
 // (No @packageDocumentation comment for this package)
 
