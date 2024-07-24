@@ -31,12 +31,27 @@ import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { Rule } from 'aws-cdk-lib/aws-events';
 
 const functionStackType = 'function-Lambda';
 
 export type AddEnvironmentFactory = {
   addEnvironment: (key: string, value: string | BackendSecret) => void;
 };
+
+export type CronSchedule =
+  | `${string} ${string} ${string} ${string} ${string}`
+  | `${string} ${string} ${string} ${string} ${string} ${string}`;
+export type TimeInterval =
+  | `every ${number}m`
+  | `every ${number}h`
+  | `every day`
+  | `every week`
+  | `every month`
+  | `every year`;
+export type FunctionSchedule = TimeInterval | CronSchedule;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -93,6 +108,19 @@ export type FunctionProps = {
    * Defaults to the oldest NodeJS LTS version. See https://nodejs.org/en/about/previous-releases
    */
   runtime?: NodeVersion;
+
+  /**
+   * A time interval string to periodically run the function.
+   * This can be either a string of `"every <positive whole number><m (minute) or h (hour)>"`, `"every day|week|month|year"` or cron expression.
+   * Defaults to no scheduling for the function.
+   * @example
+   * schedule: "every 5m"
+   * @example
+   * schedule: "every week"
+   * @example
+   * schedule: "0 9 * * 2" // every Monday at 9am
+   */
+  schedule?: FunctionSchedule | FunctionSchedule[];
 };
 
 /**
@@ -137,6 +165,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       memoryMB: this.resolveMemory(),
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
+      schedule: this.resolveSchedule(),
     };
   };
 
@@ -226,6 +255,14 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 
     return this.props.runtime;
   };
+
+  private resolveSchedule = () => {
+    if (!this.props.schedule) {
+      return [];
+    }
+
+    return this.props.schedule;
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -305,7 +342,7 @@ class AmplifyFunction
     // This will be overwritten with the typed file at the end of synthesis
     functionEnvironmentTypeGenerator.generateProcessEnvShim();
 
-    let functionLambda;
+    let functionLambda: NodejsFunction;
     try {
       functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
@@ -329,6 +366,32 @@ class AmplifyFunction
         'NodeJSFunctionConstructInitializationError',
         {
           message: 'Failed to instantiate nodejs function construct',
+          resolution: 'See the underlying error message for more details.',
+        },
+        error as Error
+      );
+    }
+
+    try {
+      const schedules = convertFunctionSchedulesToRuleSchedules(
+        functionLambda,
+        props.schedule
+      );
+      const lambdaTarget = new targets.LambdaFunction(functionLambda);
+
+      schedules.forEach((schedule, index) => {
+        // Lambda name will be prepended to rule id, so only using index here for uniqueness
+        const rule = new Rule(functionLambda, `schedule${index}`, {
+          schedule,
+        });
+
+        rule.addTarget(lambdaTarget);
+      });
+    } catch (error) {
+      throw new AmplifyUserError(
+        'FunctionScheduleInitializationError',
+        {
+          message: 'Failed to instantiate schedule for nodejs function',
           resolution: 'See the underlying error message for more details.',
         },
         error as Error

@@ -105,6 +105,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private testBucketName: string;
   private testRoleNames: string[];
 
+  private checkInvocationCount: boolean;
+
   /**
    * Create a test project instance.
    */
@@ -127,6 +129,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       cfnClient,
       amplifyClient
     );
+
+    this.checkInvocationCount = true;
   }
 
   /**
@@ -140,11 +144,11 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       amplifySharedSecretNameKey in environment
         ? environment[amplifySharedSecretNameKey]
         : createAmplifySharedSecretName();
-    const sharedSecretEnvObject = {
+    const sharedSecretsEnv = {
       [amplifySharedSecretNameKey]: this.amplifySharedSecret,
     };
     await this.setUpDeployEnvironment(backendIdentifier);
-    await super.deploy(backendIdentifier, sharedSecretEnvObject);
+    await super.deploy(backendIdentifier, sharedSecretsEnv);
   }
 
   /**
@@ -212,10 +216,17 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       (name) => name.includes('funcWithAwsSdk')
     );
 
+    const funcWithSchedule = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Lambda::Function',
+      (name) => name.includes('funcWithSchedule')
+    );
+
     assert.equal(defaultNodeLambda.length, 1);
     assert.equal(node16Lambda.length, 1);
     assert.equal(funcWithSsm.length, 1);
     assert.equal(funcWithAwsSdk.length, 1);
+    assert.equal(funcWithSchedule.length, 1);
 
     const expectedResponse = {
       s3TestContent: 'this is some test content',
@@ -228,6 +239,20 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
+
+    // Test schedule function event trigger on first deployment in order to do the following:
+    // 1. reduce flakiness on subsequent deployments (ex. sandbox updates)
+    // 2. reduce deployment e2e testing time as we are only waiting for 70 seconds one time per deployment
+    if (this.checkInvocationCount) {
+      const invocationCount = await this.getLambdaResponse(funcWithSchedule[0]);
+
+      // wait 70 seconds for schedule to invoke lambda again
+      await new Promise((resolve) => setTimeout(resolve, 1000 * 70));
+
+      await this.checkLambdaResponse(funcWithSchedule[0], invocationCount + 2);
+
+      this.checkInvocationCount = false;
+    }
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -334,6 +359,18 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     // check expected response
     assert.deepStrictEqual(responsePayload, expectedResponse);
+  };
+
+  private getLambdaResponse = async (lambdaName: string) => {
+    // invoke the lambda
+    const response = await this.lambdaClient.send(
+      new InvokeCommand({ FunctionName: lambdaName })
+    );
+    const responsePayload = JSON.parse(
+      response.Payload?.transformToString() || ''
+    );
+
+    return responsePayload;
   };
 
   private assertExpectedCleanup = async () => {

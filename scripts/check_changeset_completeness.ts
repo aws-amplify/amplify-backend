@@ -21,7 +21,10 @@ const changedFiles = await gitClient.getChangedFiles(baseRef);
 const modifiedPackageDirs = new Set<string>();
 
 changedFiles
-  .filter((changedFile) => changedFile.startsWith('packages/'))
+  .filter(
+    (changedFile) =>
+      changedFile.startsWith('packages/') && !changedFile.endsWith('test.ts')
+  )
   .forEach((changedPackageFile) => {
     modifiedPackageDirs.add(
       changedPackageFile.split('/').slice(0, 2).join('/')

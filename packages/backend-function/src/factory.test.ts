@@ -334,6 +334,77 @@ void describe('AmplifyFunctionFactory', () => {
     });
   });
 
+  void describe('schedule property', () => {
+    void it('sets valid schedule - rate', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: 'every 5m',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Events::Rule', {
+        ScheduleExpression: 'cron(*/5 * * * ? *)',
+        Targets: [
+          {
+            Arn: {
+              // eslint-disable-next-line spellcheck/spell-checker
+              'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+            },
+            Id: 'Target0',
+          },
+        ],
+      });
+    });
+
+    void it('sets valid schedule - cron', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: '0 1 * * ?',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Events::Rule', {
+        ScheduleExpression: 'cron(0 1 * * ? *)',
+        Targets: [
+          {
+            Arn: {
+              // eslint-disable-next-line spellcheck/spell-checker
+              'Fn::GetAtt': ['handlerlambdaE29D1580', 'Arn'],
+            },
+            Id: 'Target0',
+          },
+        ],
+      });
+    });
+
+    void it('sets valid schedule array', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        schedule: ['0 1 * * ?', 'every 5m'],
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.resourceCountIs('AWS::Events::Rule', 2);
+
+      template.hasResourceProperties('AWS::Events::Rule', {
+        ScheduleExpression: 'cron(0 1 * * ? *)',
+      });
+
+      template.hasResourceProperties('AWS::Events::Rule', {
+        ScheduleExpression: 'cron(*/5 * * * ? *)',
+      });
+    });
+
+    void it('defaults to no event rule created', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.resourceCountIs('AWS::Events::Rule', 0);
+    });
+  });
+
   void describe('resourceAccessAcceptor', () => {
     void it('attaches policy to execution role and configures ssm environment context', () => {
       const functionFactory = defineFunction({

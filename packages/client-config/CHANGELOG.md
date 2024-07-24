@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 1.1.0
+
+### Minor Changes
+
+- ebbbb60: Fix a case where auth password policies could not be parsed by upstream frontend components due to absent defaults.
+
 ## 1.0.5
 
 ### Patch Changes

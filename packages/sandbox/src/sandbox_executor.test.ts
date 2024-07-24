@@ -101,7 +101,7 @@ void describe('Sandbox executor', () => {
     assert.strictEqual(validateAppSourcesProvider.mock.callCount(), 1);
   });
 
-  void it('throws AmplifyUserError if listSecrets fails due to expired credentials', async () => {
+  void it('throws AmplifyUserError if listSecrets fails due to ExpiredTokenException', async () => {
     const ssmError = new SSMServiceException({
       name: 'ExpiredTokenException',
       $fault: 'client',
@@ -132,8 +132,37 @@ void describe('Sandbox executor', () => {
     );
   });
 
-  void it('throws AmplifyFault if listSecrets fails due to exception other than expired credentials', async () => {
-    const secretError = new SecretError('some secret error');
+  void it('throws AmplifyUserError if listSecrets fails due to CredentialsProviderError', async () => {
+    const credentialsError = new Error('credentials error');
+    credentialsError.name = 'CredentialsProviderError';
+    const secretsError = SecretError.createInstance(credentialsError);
+    listSecretMock.mock.mockImplementationOnce(() => {
+      throw secretsError;
+    });
+    await assert.rejects(
+      () =>
+        sandboxExecutor.deploy(
+          {
+            namespace: 'testSandboxId',
+            name: 'testSandboxName',
+            type: 'sandbox',
+          },
+          validateAppSourcesProvider
+        ),
+      new AmplifyUserError(
+        'SecretsExpiredTokenError',
+        {
+          message: 'Fetching the list of secrets failed due to expired tokens',
+          resolution: 'Please refresh your credentials and try again',
+        },
+        secretsError
+      )
+    );
+  });
+
+  void it('throws AmplifyFault if listSecrets fails due to a non-SSM exception other than expired credentials', async () => {
+    const underlyingError = new Error('some secret error');
+    const secretError = SecretError.createInstance(underlyingError);
     listSecretMock.mock.mockImplementationOnce(() => {
       throw secretError;
     });
@@ -152,7 +181,37 @@ void describe('Sandbox executor', () => {
         {
           message: 'Fetching the list of secrets failed',
         },
-        secretError
+        underlyingError // If it's not an SSM exception, we use the original error instead of secrets error
+      )
+    );
+  });
+
+  void it('throws AmplifyFault if listSecrets fails due to an SSM exception other than expired credentials', async () => {
+    const underlyingError = new SSMServiceException({
+      name: 'SomeException',
+      $fault: 'client',
+      $metadata: {},
+    });
+    const secretError = SecretError.createInstance(underlyingError);
+    listSecretMock.mock.mockImplementationOnce(() => {
+      throw secretError;
+    });
+    await assert.rejects(
+      () =>
+        sandboxExecutor.deploy(
+          {
+            namespace: 'testSandboxId',
+            name: 'testSandboxName',
+            type: 'sandbox',
+          },
+          validateAppSourcesProvider
+        ),
+      new AmplifyFault(
+        'ListSecretsFailedFault',
+        {
+          message: 'Fetching the list of secrets failed',
+        },
+        secretError // If it's an SSM exception, we use the wrapper secret error
       )
     );
   });
