@@ -7,25 +7,14 @@
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnBucket } from 'aws-cdk-lib/aws-s3';
-import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
-import { EventType } from 'aws-cdk-lib/aws-s3';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
-
-// @public
-export class AmplifyStorage extends Construct implements ResourceProvider<StorageResources> {
-    constructor(scope: Construct, id: string, props: AmplifyStorageProps);
-    addTrigger: (events: EventType[], handler: IFunction) => void;
-    // (undocumented)
-    readonly resources: StorageResources;
-}
 
 // @public (undocumented)
 export type AmplifyStorageFactoryProps = Omit<AmplifyStorageProps, 'outputStorageStrategy'> & {

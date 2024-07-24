@@ -1,6 +1,5 @@
 export { defineStorage } from './factory.js';
 export {
-  AmplifyStorage,
   StorageResources,
   AmplifyStorageProps,
   AmplifyStorageTriggerEvent,
