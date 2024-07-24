@@ -15,6 +15,10 @@ import { ClientConfigContributorFactory } from './client-config-contributor/clie
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '@aws-amplify/deployed-backend-client';
 const stubClientProvider = {
   getS3Client: () => new S3Client(),
   getAmplifyClient: () => new AmplifyClient(),
@@ -161,6 +165,38 @@ void describe('UnifiedClientConfigGenerator', () => {
           assert.strictEqual(
             error.message,
             'Duplicated entry with key user_pool_id detected in deployment outputs'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
+
+    void it('throws user error if the stack deployment is currently in progress', async () => {
+      const outputRetrieval = mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
+          'deployment in progress'
+        );
+      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1');
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Deployment is currently in progress.'
           );
           assert.ok(error.resolution);
           return true;
