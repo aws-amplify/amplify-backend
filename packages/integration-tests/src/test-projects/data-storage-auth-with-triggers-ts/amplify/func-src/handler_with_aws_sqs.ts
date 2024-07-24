@@ -12,21 +12,17 @@ export const handler = async () => {
     throw new Error('SQS_QUEUE_URL is not set in environment variables');
   }
 
-  try {
-    const messageBody = JSON.stringify({
-      message: 'Test message from Lambda',
-      timeStamp: new Date().toISOString(),
-    });
+  const messageBody = JSON.stringify({
+    message: 'Test message from Lambda',
+    timeStamp: new Date().toISOString(),
+  });
 
-    await sqsClient.send(
-      new SendMessageCommand({
-        QueueUrl: queueUrl,
-        MessageBody: messageBody,
-      })
-    );
+  await sqsClient.send(
+    new SendMessageCommand({
+      QueueUrl: queueUrl,
+      MessageBody: messageBody,
+    })
+  );
 
-    return 'It is working';
-  } catch (err) {
-    throw err;
-  }
+  return 'It is working';
 };
