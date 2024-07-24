@@ -9,32 +9,20 @@ import path from 'path';
 import { TestProjectCreator } from './test_project_creator.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
-import {
-  GetFunctionConfigurationCommand,
-  InvokeCommand,
-  LambdaClient,
-} from '@aws-sdk/client-lambda';
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
 } from '../shared_secret.js';
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
-import {
-  GetRoleCommand,
-  IAMClient,
-  PutRolePolicyCommand,
-} from '@aws-sdk/client-iam';
+import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import {
-  CreateQueueCommand,
   DeleteMessageCommand,
-  DeleteQueueCommand,
-  GetQueueAttributesCommand,
+  GetQueueUrlCommand,
   ReceiveMessageCommand,
   SQSClient,
 } from '@aws-sdk/client-sqs';
-import { Effect, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { sqsQueueUrlKey } from '../constants.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 /**
@@ -126,11 +114,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private testBucketName: string;
   private testRoleNames: string[];
 
-  // for testing scheduled function
-  private queueName: string;
-  private queueUrl: string;
-  private funcWithSchedulePhysicalIds: string[];
-
   /**
    * Create a test project instance.
    */
@@ -154,8 +137,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       cfnClient,
       amplifyClient
     );
-
-    this.queueName = `amplify-testFuncQueue${name}`;
   }
 
   /**
@@ -165,21 +146,18 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     backendIdentifier: BackendIdentifier,
     environment: Record<string, string> = {}
   ) {
-    await this.createSQSQueue();
     this.amplifySharedSecret =
       amplifySharedSecretNameKey in environment
         ? environment[amplifySharedSecretNameKey]
         : createAmplifySharedSecretName();
     const { region } = e2eToolingClientConfig;
-    const sharedSecretsEnv = {
+    const env = {
       [amplifySharedSecretNameKey]: this.amplifySharedSecret,
-      [sqsQueueUrlKey]: this.queueUrl,
       AWS_REGION: region ?? '',
     };
 
     await this.setUpDeployEnvironment(backendIdentifier);
-    await super.deploy(backendIdentifier, sharedSecretsEnv);
-    await this.addLambdaPermissionForSQS(backendIdentifier);
+    await super.deploy(backendIdentifier, env);
   }
 
   /**
@@ -187,7 +165,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
    */
   override async tearDown(backendIdentifier: BackendIdentifier) {
     await super.tearDown(backendIdentifier);
-    await this.deleteSQSQueue();
     await this.clearDeployEnvironment(backendIdentifier);
     await this.assertExpectedCleanup();
   }
@@ -248,11 +225,17 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       (name) => name.includes('funcWithAwsSdk')
     );
 
+    const funcWithSchedule = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Lambda::Function',
+      (name) => name.includes('funcWithSchedule')
+    );
+
     assert.equal(defaultNodeLambda.length, 1);
     assert.equal(node16Lambda.length, 1);
     assert.equal(funcWithSsm.length, 1);
     assert.equal(funcWithAwsSdk.length, 1);
-    assert.equal(this.funcWithSchedulePhysicalIds.length, 1);
+    assert.equal(funcWithSchedule.length, 1);
 
     const expectedResponse = {
       s3TestContent: 'this is some test content',
@@ -463,83 +446,25 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     }
   };
 
-  private createSQSQueue = async () => {
-    const createQueueResponse = await this.sqsClient.send(
-      new CreateQueueCommand({ QueueName: this.queueName })
-    );
-    this.queueUrl = createQueueResponse.QueueUrl ?? '';
-  };
-
-  private deleteSQSQueue = async () => {
-    if (this.queueUrl) {
-      await this.sqsClient.send(
-        new DeleteQueueCommand({
-          QueueUrl: this.queueUrl,
-        })
-      );
-    }
-  };
-
-  private addLambdaPermissionForSQS = async (backendId: BackendIdentifier) => {
-    this.funcWithSchedulePhysicalIds =
-      await this.resourceFinder.findByBackendIdentifier(
-        backendId,
-        'AWS::Lambda::Function',
-        (name) => name.includes('funcWithSchedule')
-      );
-    const getQueueAttributesResponse = await this.getSQSQueueAttributes(
-      this.queueUrl
-    );
-    const queueArn = getQueueAttributesResponse.Attributes?.QueueArn ?? '';
-
-    const sqsPolicy = new PolicyDocument({
-      statements: [
-        new PolicyStatement({
-          actions: ['sqs:SendMessage'],
-          effect: Effect.ALLOW,
-          resources: [queueArn],
-        }),
-      ],
-    });
-
-    const getFunctionConfigurationResponse = await this.lambdaClient.send(
-      new GetFunctionConfigurationCommand({
-        FunctionName: this.funcWithSchedulePhysicalIds[0],
-      })
-    );
-    const lambdaRole = getFunctionConfigurationResponse.Role
-      ? getFunctionConfigurationResponse.Role.split('/')[1]
-      : '';
-    await this.iamClient.send(
-      new PutRolePolicyCommand({
-        RoleName: lambdaRole,
-        PolicyName: 'LambdaSQSPolicy',
-        PolicyDocument: JSON.stringify(sqsPolicy),
-      })
-    );
-  };
-
-  private getSQSQueueAttributes = async (queueUrl: string) => {
-    const response = await this.sqsClient.send(
-      new GetQueueAttributesCommand({
-        QueueUrl: queueUrl,
-        AttributeNames: ['All'],
-      })
-    );
-
-    return response;
-  };
-
   private assertScheduleInvokesFunction = async () => {
     const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
     const startTime = Date.now();
     let messageCount = 0;
 
+    const getQueueUrlResponse = await this.sqsClient.send(
+      new GetQueueUrlCommand({
+        QueueName: 'amplify-testFuncQueue',
+      })
+    );
+
+    const queueUrl = getQueueUrlResponse.QueueUrl;
+
     // wait for schedule to invoke the function one time for it to send a message
     while (Date.now() - startTime < TIMEOUT_MS && messageCount < 1) {
       const response = await this.sqsClient.send(
         new ReceiveMessageCommand({
-          QueueUrl: this.queueUrl,
+          QueueUrl: queueUrl,
+          WaitTimeSeconds: 20,
         })
       );
 
@@ -550,7 +475,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         for (const message of response.Messages) {
           await this.sqsClient.send(
             new DeleteMessageCommand({
-              QueueUrl: this.queueUrl,
+              QueueUrl: queueUrl,
               ReceiptHandle: message.ReceiptHandle,
             })
           );
