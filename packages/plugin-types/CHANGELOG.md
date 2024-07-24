@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.1.0
+
+### Minor Changes
+
+- 697bc8a: Prevent CTRL-C handling for yarn classic package manager
+
 ## 1.0.1
 
 ### Patch Changes
