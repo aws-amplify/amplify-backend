@@ -19,7 +19,6 @@ import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import {
   DeleteMessageCommand,
-  GetQueueUrlCommand,
   ReceiveMessageCommand,
   SQSClient,
 } from '@aws-sdk/client-sqs';
@@ -249,7 +248,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
 
-    await this.assertScheduleInvokesFunction();
+    await this.assertScheduleInvokesFunction(backendId);
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -446,24 +445,24 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     }
   };
 
-  private assertScheduleInvokesFunction = async () => {
+  private assertScheduleInvokesFunction = async (
+    backendId: BackendIdentifier
+  ) => {
     const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
     const startTime = Date.now();
     let messageCount = 0;
 
-    const getQueueUrlResponse = await this.sqsClient.send(
-      new GetQueueUrlCommand({
-        QueueName: 'amplify-testFuncQueue',
-      })
+    const queue = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::SQS::Queue',
+      (name) => name.includes('testFuncQueue')
     );
-
-    const queueUrl = getQueueUrlResponse.QueueUrl;
 
     // wait for schedule to invoke the function one time for it to send a message
     while (Date.now() - startTime < TIMEOUT_MS && messageCount < 1) {
       const response = await this.sqsClient.send(
         new ReceiveMessageCommand({
-          QueueUrl: queueUrl,
+          QueueUrl: queue[0],
           WaitTimeSeconds: 20,
         })
       );
@@ -475,7 +474,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         for (const message of response.Messages) {
           await this.sqsClient.send(
             new DeleteMessageCommand({
-              QueueUrl: queueUrl,
+              QueueUrl: queue[0],
               ReceiptHandle: message.ReceiptHandle,
             })
           );
