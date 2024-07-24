@@ -40,23 +40,11 @@ export class StackMetadataBackendOutputStorageStrategy
     const metadata = this.stack.templateOptions.metadata || {};
     const existingMetadataEntry = metadata[keyName];
 
-    if (existingMetadataEntry) {
-      const excludedStackOutputs = existingMetadataEntry.stackOutputs.filter(
-        (output: string) =>
-          !Object.keys(backendOutputEntry.payload).includes(output)
-      );
-      this.stack.addMetadata(keyName, {
-        version: backendOutputEntry.version,
-        stackOutputs: Object.keys(backendOutputEntry.payload).concat(
-          excludedStackOutputs
-        ),
-      });
-    } else {
-      this.stack.addMetadata(keyName, {
-        version: backendOutputEntry.version,
-        stackOutputs: Object.keys(backendOutputEntry.payload),
-      });
-    }
+    this.addOrUpdateMetadata(
+      existingMetadataEntry,
+      keyName,
+      backendOutputEntry
+    );
   };
 
   /**
@@ -79,6 +67,12 @@ export class StackMetadataBackendOutputStorageStrategy
         );
       }
     }
+
+    this.addOrUpdateMetadata(
+      existingMetadataEntry,
+      keyName,
+      backendOutputEntry as BackendOutputEntry
+    );
 
     Object.entries(backendOutputEntry.payload ?? []).forEach(
       ([listName, value]) => {
@@ -103,21 +97,36 @@ export class StackMetadataBackendOutputStorageStrategy
         }
       }
     );
+  };
 
+  /**
+   * Add or update metadata entry.
+   * @param existingMetadataEntry - The existing metadata entry.
+   * @param keyName - The key name.
+   * @param backendOutputEntry - The backend output entry.
+   */
+  private addOrUpdateMetadata(
+    existingMetadataEntry:
+      | { version: string; stackOutputs: string[] }
+      | undefined,
+    keyName: string,
+    backendOutputEntry: BackendOutputEntry
+  ) {
     if (existingMetadataEntry) {
       this.stack.addMetadata(keyName, {
-        version,
-        stackOutputs: Array.from(listsMap ? listsMap.keys() : []).concat(
-          existingMetadataEntry.stackOutputs.filter(
-            (output: string) => !listsMap?.has(output)
-          )
-        ),
+        version: backendOutputEntry.version,
+        stackOutputs: [
+          ...new Set([
+            ...Object.keys(backendOutputEntry.payload),
+            ...existingMetadataEntry.stackOutputs,
+          ]),
+        ],
       });
     } else {
       this.stack.addMetadata(keyName, {
-        version,
-        stackOutputs: Array.from(listsMap ? listsMap.keys() : []),
+        version: backendOutputEntry.version,
+        stackOutputs: Object.keys(backendOutputEntry.payload),
       });
     }
-  };
+  }
 }
