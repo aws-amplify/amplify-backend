@@ -10,8 +10,6 @@ import { BackendDeployerOutputFormatter } from './types.js';
  * Transforms CDK error messages to human readable ones
  */
 export class CdkErrorMapper {
-  private placeHolder = 'PLACEHOLDER';
-
   /**
    * Instantiate with a formatter that will be used for formatting CLI commands in error messages
    */
