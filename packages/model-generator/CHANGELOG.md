@@ -1,5 +1,14 @@
 # @aws-amplify/model-generator
 
+## 1.0.2
+
+### Patch Changes
+
+- c784e40: Catch and wrap DeploymentInProgress exception while generating artifacts
+- Updated dependencies [c784e40]
+  - @aws-amplify/deployed-backend-client@1.1.0
+  - @aws-amplify/platform-core@1.0.3
+
 ## 1.0.1
 
 ### Patch Changes

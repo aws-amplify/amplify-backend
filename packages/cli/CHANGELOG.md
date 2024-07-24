@@ -1,5 +1,23 @@
 # @aws-amplify/backend-cli
 
+## 1.2.1
+
+### Patch Changes
+
+- 697bc8a: Prevent CTRL-C handling for yarn classic package manager
+- 3408511: Print all amplfiy package versions when running `ampx info`
+- c784e40: Catch and wrap DeploymentInProgress exception while generating artifacts
+- Updated dependencies [697bc8a]
+- Updated dependencies [09b4cc1]
+- Updated dependencies [c784e40]
+  - @aws-amplify/backend-deployer@1.0.2
+  - @aws-amplify/cli-core@1.1.1
+  - @aws-amplify/sandbox@1.1.1
+  - @aws-amplify/deployed-backend-client@1.1.0
+  - @aws-amplify/model-generator@1.0.2
+  - @aws-amplify/client-config@1.1.1
+  - @aws-amplify/platform-core@1.0.3
+
 ## 1.2.0
 
 ### Minor Changes
