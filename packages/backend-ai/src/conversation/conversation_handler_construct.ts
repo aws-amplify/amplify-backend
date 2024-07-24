@@ -1,24 +1,31 @@
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Duration } from 'aws-cdk-lib';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
+import { IFunction, Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
-import { fileURLToPath } from 'node:url';
 import path from 'path';
 
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
+const resourcesRoot = path.normalize(path.join(__dirname, 'lambda'));
 const defaultHandlerFilePath = path.join(resourcesRoot, 'default_handler.js');
 
 export type ConversationHandlerProps = {
   modelId: string;
 };
 
+export type ConversationHandlerResources = {
+  lambda: IFunction;
+};
+
 /**
  * TODO docs.
  */
-export class ConversationHandler extends Construct {
+export class ConversationHandler
+  extends Construct
+  implements ResourceProvider<ConversationHandlerResources>
+{
+  resources: ConversationHandlerResources;
+
   /**
    * TODO docs.
    */
@@ -37,6 +44,9 @@ export class ConversationHandler extends Construct {
         timeout: Duration.seconds(60),
         entry: defaultHandlerFilePath,
         handler: 'handler',
+        bundling: {
+          bundleAwsSDK: true,
+        },
       }
     );
 
@@ -49,5 +59,9 @@ export class ConversationHandler extends Construct {
         ],
       })
     );
+
+    this.resources = {
+      lambda: conversationHandler,
+    };
   }
 }

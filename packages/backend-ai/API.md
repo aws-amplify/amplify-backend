@@ -5,15 +5,24 @@
 ```ts
 
 import { Construct } from 'constructs';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
-export class ConversationHandler extends Construct {
+export class ConversationHandler extends Construct implements ResourceProvider<ConversationHandlerResources> {
     constructor(scope: Construct, id: string, props: ConversationHandlerProps);
+    // (undocumented)
+    resources: ConversationHandlerResources;
 }
 
 // @public (undocumented)
 export type ConversationHandlerProps = {
     modelId: string;
+};
+
+// @public (undocumented)
+export type ConversationHandlerResources = {
+    lambda: IFunction;
 };
 
 // (No @packageDocumentation comment for this package)
