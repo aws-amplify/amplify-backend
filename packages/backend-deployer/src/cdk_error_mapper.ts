@@ -38,16 +38,19 @@ export class CdkErrorMapper {
 
       if (matchGroups && matchGroups.length > 1) {
         // If the contextual information can be used in the error message use it, else consider it as a downstream cause
-        if (
-          matchingError.humanReadableErrorMessage.includes(this.placeHolder)
-        ) {
-          matchingError.humanReadableErrorMessage =
-            matchingError.humanReadableErrorMessage.replace(
-              this.placeHolder,
-              matchGroups[1] // matching group instead of the matching string
-            );
-          // reset the stderr dump in the underlying error
-          underlyingError = undefined;
+        if (matchGroups.groups) {
+          for (const [key, value] of Object.entries(matchGroups.groups)) {
+            const placeHolder = `{${key}}`;
+            if (matchingError.humanReadableErrorMessage.includes(placeHolder)) {
+              matchingError.humanReadableErrorMessage =
+                matchingError.humanReadableErrorMessage.replace(
+                  placeHolder,
+                  value
+                );
+              // reset the stderr dump in the underlying error
+              underlyingError = undefined;
+            }
+          }
         } else {
           underlyingError.message = matchGroups[0];
         }
@@ -223,8 +226,8 @@ export class CdkErrorMapper {
     {
       // We capture the parameter name to show relevant error message
       errorRegex:
-        /Failed to retrieve backend secret (.*) for.*ParameterNotFound/,
-      humanReadableErrorMessage: `The secret ${this.placeHolder} specified in the backend does not exist.`,
+        /Failed to retrieve backend secret (?<secretName>.*) for.*ParameterNotFound/,
+      humanReadableErrorMessage: `The secret {secretName} specified in the backend does not exist.`,
       resolutionMessage: `Create secrets using the command ${this.formatter.normalizeAmpxCommand(
         'sandbox secret set'
       )}. For more information, see https://docs.amplify.aws/gen2/deploy-and-host/sandbox-environments/features/#set-secrets`,
