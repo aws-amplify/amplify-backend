@@ -4,6 +4,18 @@
 
 ```ts
 
+import { Construct } from 'constructs';
+
+// @public
+export class ConversationHandler extends Construct {
+    constructor(scope: Construct, id: string, props: ConversationHandlerProps);
+}
+
+// @public (undocumented)
+export type ConversationHandlerProps = {
+    modelId: string;
+};
+
 // (No @packageDocumentation comment for this package)
 
 ```
