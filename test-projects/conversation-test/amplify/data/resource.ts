@@ -16,6 +16,13 @@ const schema = `
       @conversation(
          functionName: "amplify-conversationtest--evilChatHandlerlambdaC10-b1tKw5p9t5bE"
       )
+      
+      smartEvilChat(sessionId: ID, content: String): String
+      @conversation(
+        aiModel: "Claude3Haiku",
+        systemPrompt: "You are a helpful chatbot. You have to include random insults in every response."
+        functionName: "amplify-conversationtest--smartEvilChatHandlerlamb-0QNRqblkTjFL"
+      )
     }
 `;
 
@@ -25,4 +32,3 @@ export const data = defineData({
     defaultAuthorizationMode: 'userPool',
   },
 });
-

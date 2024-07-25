@@ -6,8 +6,11 @@
 
 import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
+import { DocumentType as DocumentType_2 } from '@smithy/types';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { ToolInputSchema } from '@aws-sdk/client-bedrock-runtime';
+import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime/dist-types/models/models_0';
 
 // @public
 export class ConversationHandler extends Construct implements ResourceProvider<ConversationHandlerResources> {
@@ -70,7 +73,7 @@ export type ConversationTurnEvent = {
 
 // @public
 export class ConversationTurnExecutor {
-    constructor(bedrockClient?: BedrockRuntimeClient);
+    constructor(bedrockClient?: BedrockRuntimeClient, additionalTools?: Array<Tool>);
     // (undocumented)
     execute: (event: ConversationTurnEvent) => Promise<void>;
 }
@@ -81,6 +84,14 @@ export class ConversationTurnResponder {
     // (undocumented)
     respond: (message: string) => Promise<void>;
 }
+
+// @public (undocumented)
+export type Tool = {
+    name: string;
+    description: string;
+    inputSchema: ToolInputSchema;
+    execute: (input: DocumentType_2 | undefined) => Promise<ToolResultContentBlock>;
+};
 
 // (No @packageDocumentation comment for this package)
 

@@ -4,7 +4,7 @@ import {
   ConversationHandlerResources,
 } from './conversation/conversation_handler_construct.js';
 
-import { ConversationTurnEvent } from './conversation/lambda/types.js';
+import { ConversationTurnEvent, Tool } from './conversation/lambda/types.js';
 
 import { ConversationTurnExecutor } from './conversation/lambda/conversation_turn_executor.js';
 
@@ -17,4 +17,5 @@ export {
   ConversationHandler,
   ConversationHandlerProps,
   ConversationHandlerResources,
+  Tool,
 };

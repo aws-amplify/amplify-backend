@@ -1,3 +1,7 @@
+import { ToolInputSchema } from '@aws-sdk/client-bedrock-runtime';
+import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime/dist-types/models/models_0';
+import { DocumentType as __DocumentType } from "@smithy/types";
+
 export type ConversationTurnEvent = {
   typeName: string;
   fieldName: string;
@@ -36,4 +40,11 @@ export type ConversationTurnEvent = {
       }>;
     };
   };
+};
+
+export type Tool = {
+  name: string;
+  description: string;
+  inputSchema: ToolInputSchema;
+  execute: (input: __DocumentType | undefined) => Promise<ToolResultContentBlock>;
 };
