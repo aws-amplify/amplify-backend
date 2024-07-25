@@ -10,7 +10,7 @@ import { DocumentType as DocumentType_2 } from '@smithy/types';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { ToolInputSchema } from '@aws-sdk/client-bedrock-runtime';
-import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime/dist-types/models/models_0';
+import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
 
 // @public
 export class ConversationHandler extends Construct implements ResourceProvider<ConversationHandlerResources> {
