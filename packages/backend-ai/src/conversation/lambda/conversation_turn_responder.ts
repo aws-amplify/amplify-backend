@@ -46,6 +46,8 @@ const assistantResponseMutation = (event: ConversationTurnEvent): string => {
                 content
                 sender
                 owner
+                createdAt
+                updatedAt
             }
         }
     `;
