@@ -83,7 +83,7 @@ class StorageValidator implements IAspect {
       throw new AmplifyUserError('NoDefaultBucketError', {
         message: 'No default bucket set in the Amplify project.',
         resolution:
-          'Add `isDefault: true` to one of the buckets `defineStorage` in the Amplify project.',
+          'Add `isDefault: true` to one of the `defineStorage` calls in your Amplify project.',
       });
     } else {
       AmplifyStorageFactory.validated = true;
