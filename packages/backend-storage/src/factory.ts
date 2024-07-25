@@ -37,7 +37,7 @@ export class AmplifyStorageFactory
       throw new AmplifyUserError('MultipleDefaultBucketError', {
         message: 'More than one default buckets set in the Amplify project.',
         resolution:
-          'Remove one `isDefault: true` from one of the buckets `defineStorage` in the Amplify project.',
+          'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
       });
     }
   }
