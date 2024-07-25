@@ -1,5 +1,16 @@
 # @aws-amplify/backend-function
 
+## 1.3.0
+
+### Minor Changes
+
+- ec12ac8: add support for scheduling functions
+
+### Patch Changes
+
+- Updated dependencies [697bc8a]
+  - @aws-amplify/plugin-types@1.1.0
+
 ## 1.2.0
 
 ### Minor Changes

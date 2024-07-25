@@ -1,7 +1,12 @@
 import assert from 'node:assert';
 import { describe, it, mock } from 'node:test';
 import { S3, S3Client } from '@aws-sdk/client-s3';
-import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+  BackendOutputClientFactory,
+  DeployedBackendIdentifier,
+} from '@aws-amplify/deployed-backend-client';
 import {
   createGraphqlModelsFromS3UriGenerator,
   createGraphqlModelsGenerator,
@@ -9,6 +14,13 @@ import {
 import { AWSClientProvider } from '@aws-amplify/plugin-types';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
+
+const awsClientProvider = {
+  getAmplifyClient: () => new AmplifyClient(),
+  getCloudFormationClient: () => new CloudFormationClient(),
+  getS3Client: () => new S3Client(),
+};
 
 void describe('models generator factory', () => {
   void describe('createGraphqlModelsGenerator', () => {
@@ -16,11 +28,7 @@ void describe('models generator factory', () => {
       assert.throws(() =>
         createGraphqlModelsGenerator({
           backendIdentifier: null as unknown as DeployedBackendIdentifier,
-          awsClientProvider: null as unknown as AWSClientProvider<{
-            getS3Client: S3Client;
-            getAmplifyClient: AmplifyClient;
-            getCloudFormationClient: CloudFormationClient;
-          }>,
+          awsClientProvider,
         })
       );
     });
@@ -35,6 +43,37 @@ void describe('models generator factory', () => {
             getCloudFormationClient: CloudFormationClient;
           }>,
         })
+      );
+    });
+
+    void it('throws an error if deployment is currently in progress', async () => {
+      const fakeBackendOutputClient = {
+        getOutput: mock.fn(() => {
+          throw new BackendOutputClientError(
+            BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
+            'deployment in progress'
+          );
+        }),
+      };
+      mock.method(
+        BackendOutputClientFactory,
+        'getInstance',
+        () => fakeBackendOutputClient
+      );
+      const generator = createGraphqlModelsGenerator({
+        backendIdentifier: { stackName: 'foo' },
+        awsClientProvider,
+      });
+      await assert.rejects(
+        () => generator.generateModels({ target: 'javascript' }),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Deployment is currently in progress.'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
       );
     });
   });

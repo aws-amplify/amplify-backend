@@ -17,6 +17,12 @@ import {
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+import {
+  DeleteMessageCommand,
+  ReceiveMessageCommand,
+  SQSClient,
+} from '@aws-sdk/client-sqs';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -36,6 +42,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
     private readonly lambdaClient: LambdaClient,
     private readonly s3Client: S3Client,
     private readonly iamClient: IAMClient,
+    private readonly sqsClient: SQSClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
@@ -53,6 +60,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.lambdaClient,
       this.s3Client,
       this.iamClient,
+      this.sqsClient,
       this.resourceFinder
     );
     await fs.cp(
@@ -105,8 +113,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private testBucketName: string;
   private testRoleNames: string[];
 
-  private checkInvocationCount: boolean;
-
   /**
    * Create a test project instance.
    */
@@ -120,6 +126,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly lambdaClient: LambdaClient,
     private readonly s3Client: S3Client,
     private readonly iamClient: IAMClient,
+    private readonly sqsClient: SQSClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(
@@ -129,8 +136,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       cfnClient,
       amplifyClient
     );
-
-    this.checkInvocationCount = true;
   }
 
   /**
@@ -144,11 +149,14 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       amplifySharedSecretNameKey in environment
         ? environment[amplifySharedSecretNameKey]
         : createAmplifySharedSecretName();
-    const sharedSecretsEnv = {
+    const { region } = e2eToolingClientConfig;
+    const env = {
       [amplifySharedSecretNameKey]: this.amplifySharedSecret,
+      AWS_REGION: region ?? '',
     };
+
     await this.setUpDeployEnvironment(backendIdentifier);
-    await super.deploy(backendIdentifier, sharedSecretsEnv);
+    await super.deploy(backendIdentifier, env);
   }
 
   /**
@@ -240,19 +248,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
 
-    // Test schedule function event trigger on first deployment in order to do the following:
-    // 1. reduce flakiness on subsequent deployments (ex. sandbox updates)
-    // 2. reduce deployment e2e testing time as we are only waiting for 70 seconds one time per deployment
-    if (this.checkInvocationCount) {
-      const invocationCount = await this.getLambdaResponse(funcWithSchedule[0]);
-
-      // wait 70 seconds for schedule to invoke lambda again
-      await new Promise((resolve) => setTimeout(resolve, 1000 * 70));
-
-      await this.checkLambdaResponse(funcWithSchedule[0], invocationCount + 2);
-
-      this.checkInvocationCount = false;
-    }
+    await this.assertScheduleInvokesFunction(backendId);
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -361,18 +357,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.deepStrictEqual(responsePayload, expectedResponse);
   };
 
-  private getLambdaResponse = async (lambdaName: string) => {
-    // invoke the lambda
-    const response = await this.lambdaClient.send(
-      new InvokeCommand({ FunctionName: lambdaName })
-    );
-    const responsePayload = JSON.parse(
-      response.Payload?.transformToString() || ''
-    );
-
-    return responsePayload;
-  };
-
   private assertExpectedCleanup = async () => {
     await this.waitForBucketDeletion(this.testBucketName);
     await this.assertRolesDoNotExist(this.testRoleNames);
@@ -458,6 +442,44 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         return false;
       }
       throw err;
+    }
+  };
+
+  private assertScheduleInvokesFunction = async (
+    backendId: BackendIdentifier
+  ) => {
+    const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
+    const startTime = Date.now();
+    let messageCount = 0;
+
+    const queue = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::SQS::Queue',
+      (name) => name.includes('testFuncQueue')
+    );
+
+    // wait for schedule to invoke the function one time for it to send a message
+    while (Date.now() - startTime < TIMEOUT_MS && messageCount < 1) {
+      const response = await this.sqsClient.send(
+        new ReceiveMessageCommand({
+          QueueUrl: queue[0],
+          WaitTimeSeconds: 20,
+        })
+      );
+
+      if (response.Messages) {
+        messageCount += response.Messages.length;
+
+        // delete messages afterwards
+        for (const message of response.Messages) {
+          await this.sqsClient.send(
+            new DeleteMessageCommand({
+              QueueUrl: queue[0],
+              ReceiptHandle: message.ReceiptHandle,
+            })
+          );
+        }
+      }
     }
   };
 }
