@@ -48,6 +48,9 @@ export type Tool = {
   name: string;
   description: string;
   inputSchema: ToolInputSchema;
+  // TODO it seems that bedrock sometimes keeps asking a tool enough times to
+  // make lambda time out, we should impose some configurable limits.
+  invocationCountLimit?: number;
   execute: (
     input: __DocumentType | undefined
   ) => Promise<ToolResultContentBlock>;
