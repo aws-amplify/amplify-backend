@@ -1,11 +1,16 @@
 import path from 'path';
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
-import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
+import {
+  BackendOutputClient,
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '@aws-amplify/deployed-backend-client';
 import { graphqlOutputKey } from '@aws-amplify/backend-output-schemas';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { DEFAULT_UI_PATH } from '../../../form-generation/default_form_generation_output_paths.js';
 import { FormGenerationHandler } from '../../../form-generation/form_generation_handler.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type GenerateFormsCommandOptions =
   ArgumentsKebabCase<GenerateFormsCommandOptionsCamelCase>;
@@ -66,7 +71,25 @@ export class GenerateFormsCommand
 
     const backendOutputClient = this.backendOutputClientBuilder();
 
-    const output = await backendOutputClient.getOutput(backendIdentifier);
+    let output;
+    try {
+      output = await backendOutputClient.getOutput(backendIdentifier);
+    } catch (error) {
+      if (
+        error instanceof BackendOutputClientError &&
+        error.code === BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS
+      ) {
+        throw new AmplifyUserError(
+          'DeploymentInProgressError',
+          {
+            message: 'Deployment is currently in progress.',
+            resolution: 'Re-run this command once the deployment completes.',
+          },
+          error
+        );
+      }
+      throw error;
+    }
 
     if (!(graphqlOutputKey in output) || !output[graphqlOutputKey]) {
       throw new Error('No GraphQL API configured for this backend.');

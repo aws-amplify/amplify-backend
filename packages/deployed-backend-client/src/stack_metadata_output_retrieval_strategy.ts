@@ -66,13 +66,13 @@ export class StackMetadataBackendOutputRetrievalStrategy
           (tag) => tag.Key === 'amplify:deployment-type'
         )?.Value ?? 'sandbox';
       throw new BackendOutputClientError(
-        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
+        BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
         `This ${deploymentType} deployment is in progress. Re-run this command once the deployment completes.`
       );
     }
     if (outputs === undefined) {
       throw new BackendOutputClientError(
-        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
+        BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
         'Stack outputs are undefined'
       );
     }

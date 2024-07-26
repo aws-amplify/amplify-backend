@@ -94,7 +94,11 @@ export class BackendOutputClientError extends Error {
 // @public (undocumented)
 export enum BackendOutputClientErrorType {
     // (undocumented)
-    METADATA_RETRIEVAL_ERROR = "MetadataRetrievalError"
+    DEPLOYMENT_IN_PROGRESS = "DeploymentInProgress",
+    // (undocumented)
+    METADATA_RETRIEVAL_ERROR = "MetadataRetrievalError",
+    // (undocumented)
+    NO_OUTPUTS_FOUND = "NoOutputsFound"
 }
 
 // @public

@@ -1,5 +1,13 @@
 # @aws-amplify/platform-core
 
+## 1.0.3
+
+### Patch Changes
+
+- c784e40: Catch and wrap DeploymentInProgress exception while generating artifacts
+- Updated dependencies [697bc8a]
+  - @aws-amplify/plugin-types@1.1.0
+
 ## 1.0.2
 
 ### Patch Changes

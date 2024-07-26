@@ -1,5 +1,16 @@
 # create-amplify
 
+## 1.0.4
+
+### Patch Changes
+
+- 697bc8a: Prevent CTRL-C handling for yarn classic package manager
+- Updated dependencies [697bc8a]
+- Updated dependencies [c784e40]
+  - @aws-amplify/plugin-types@1.1.0
+  - @aws-amplify/cli-core@1.1.1
+  - @aws-amplify/platform-core@1.0.3
+
 ## 1.0.3
 
 ### Patch Changes

@@ -14,6 +14,7 @@ import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-
 import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { STSClient } from '@aws-sdk/client-sts';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { SQSClient } from '@aws-sdk/client-sqs';
 
 export type TestProjectCreator = {
   readonly name: string;
@@ -37,6 +38,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   const lambdaClient = new LambdaClient(e2eToolingClientConfig);
   const s3Client = new S3Client(e2eToolingClientConfig);
   const iamClient = new IAMClient(e2eToolingClientConfig);
+  const sqsClient = new SQSClient(e2eToolingClientConfig);
   const resourceFinder = new DeployedResourcesFinder(cfnClient);
   const stsClient = new STSClient(e2eToolingClientConfig);
   const secretClient = getSecretClient(e2eToolingClientConfig);
@@ -48,6 +50,7 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
       lambdaClient,
       s3Client,
       iamClient,
+      sqsClient,
       resourceFinder
     ),
     new MinimalWithTypescriptIdiomTestProjectCreator(cfnClient, amplifyClient),
