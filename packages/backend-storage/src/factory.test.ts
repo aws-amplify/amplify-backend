@@ -31,15 +31,15 @@ const createStackAndSetContext = (): Stack => {
   return stack;
 };
 
+let storageFactory: ConstructFactory<ResourceProvider<StorageResources>>;
+let constructContainer: ConstructContainer;
+let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
+let importPathVerifier: ImportPathVerifier;
+let resourceNameValidator: ResourceNameValidator;
+
+let getInstanceProps: ConstructFactoryGetInstanceProps;
+
 void describe('AmplifyStorageFactory', () => {
-  let storageFactory: ConstructFactory<ResourceProvider<StorageResources>>;
-  let constructContainer: ConstructContainer;
-  let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
-  let importPathVerifier: ImportPathVerifier;
-  let resourceNameValidator: ResourceNameValidator;
-
-  let getInstanceProps: ConstructFactoryGetInstanceProps;
-
   beforeEach(() => {
     AmplifyStorageFactory.factoryCounter = 0;
     storageFactory = defineStorage({ name: 'testName' });
@@ -137,5 +137,39 @@ void describe('AmplifyStorageFactory', () => {
         message: 'Resource name contains invalid characters, found !$87++|',
       }
     );
+  });
+});
+
+void describe('AmplifyStorageFactory', () => {
+  beforeEach(() => {
+    AmplifyStorageFactory.factoryCounter = 0;
+    const stack = createStackAndSetContext();
+
+    constructContainer = new ConstructContainerStub(
+      new StackResolverStub(stack)
+    );
+
+    outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack
+    );
+
+    importPathVerifier = new ImportPathVerifierStub();
+
+    resourceNameValidator = new ResourceNameValidatorStub();
+
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+      resourceNameValidator,
+    };
+  });
+
+  void it('if more than one default bucket, throw', () => {
+    storageFactory = defineStorage({ name: 'testName', isDefault: true });
+
+    assert.throws(() => defineStorage({ name: 'testName', isDefault: true }), {
+      message: 'More than one default buckets set in the Amplify project.',
+    });
   });
 });

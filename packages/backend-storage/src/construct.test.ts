@@ -146,6 +146,46 @@ void describe('AmplifyStorage', () => {
         },
       ]);
     });
+    void it('if isDefault is true, stores output with addBackendOutputEntry and appendToBackendOutputList', () => {
+      const app = new App();
+      const stack = new Stack(app);
+
+      const storeOutputMock = mock.fn();
+      const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+        {
+          addBackendOutputEntry: storeOutputMock,
+          appendToBackendOutputList: storeOutputMock,
+        };
+
+      new AmplifyStorage(stack, 'test', {
+        name: 'testName',
+        isDefault: true,
+        outputStorageStrategy: storageStrategy,
+      });
+
+      assert.strictEqual(storeOutputMock.mock.calls.length, 2);
+    });
+
+    void it('if isDefault is false, stores output with appendToBackendOutputList', () => {
+      const app = new App();
+      const stack = new Stack(app);
+
+      const storeOutputMock = mock.fn();
+      const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+        {
+          addBackendOutputEntry: storeOutputMock,
+          appendToBackendOutputList: storeOutputMock,
+        };
+
+      new AmplifyStorage(stack, 'test', {
+        name: 'testName',
+        isDefault: false,
+        outputStorageStrategy: storageStrategy,
+      });
+
+      assert.strictEqual(storeOutputMock.mock.calls.length, 1);
+    });
+
     void it('stores output when no storage strategy is injected', () => {
       const app = new App();
       const stack = new Stack(app);

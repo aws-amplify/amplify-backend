@@ -71,7 +71,14 @@ export class AmplifyStorageFactory
   };
 }
 
-class StorageValidator implements IAspect {
+/**
+ * StorageValidator class implements the IAspect interface.
+ */
+export class StorageValidator implements IAspect {
+  /**
+   * Visit method to perform validation on the given node.
+   * @param node The IConstruct node to visit.
+   */
   public visit(node: IConstruct): void {
     if (!(node instanceof AmplifyStorage) || AmplifyStorageFactory.validated) {
       return;
