@@ -23,7 +23,7 @@ globalThis.crypto = crypto;
 
 Amplify.configure(outputs.default);
 
-const knownChatNames = ['basicChat', 'evilChat', 'smartEvilChat'];
+const knownChatNames = ['basicChat', 'evilChat', 'smartEvilChat', 'dualChat'];
 const chatName = process.argv[2];
 
 if (!knownChatNames.includes(chatName)) {

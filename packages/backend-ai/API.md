@@ -6,11 +6,19 @@
 
 import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
+import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DocumentType as DocumentType_2 } from '@smithy/types';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { ToolInputSchema } from '@aws-sdk/client-bedrock-runtime';
 import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
+
+// @public
+export class BedrockConverseAdapter {
+    constructor(bedrockClient: BedrockRuntimeClient, additionalTools?: Array<Tool>);
+    // (undocumented)
+    askBedrock: (event: ConversationTurnEvent) => Promise<string>;
+}
 
 // @public
 export class ConversationHandler extends Construct implements ResourceProvider<ConversationHandlerResources> {
@@ -20,8 +28,17 @@ export class ConversationHandler extends Construct implements ResourceProvider<C
 }
 
 // @public (undocumented)
+export type ConversationHandlerFactoryProps = {
+    name: string;
+} & ConversationHandlerProps;
+
+// @public (undocumented)
 export type ConversationHandlerProps = {
-    modelId: string;
+    entry?: string;
+    allowedModels: Array<{
+        modelId: string;
+        region: string;
+    }>;
 };
 
 // @public (undocumented)
@@ -85,11 +102,15 @@ export class ConversationTurnResponder {
     respond: (message: string) => Promise<void>;
 }
 
+// @public
+export const defineConversationHandler: (props: ConversationHandlerFactoryProps) => ConstructFactory<ResourceProvider<ConversationHandlerResources>>;
+
 // @public (undocumented)
 export type Tool = {
     name: string;
     description: string;
     inputSchema: ToolInputSchema;
+    invocationCountLimit?: number;
     execute: (input: DocumentType_2 | undefined) => Promise<ToolResultContentBlock>;
 };
 

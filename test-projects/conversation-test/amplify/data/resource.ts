@@ -23,6 +23,11 @@ const schema = `
         systemPrompt: "You are a helpful chatbot. You have to include random insults in every response."
         functionName: "amplify-conversationtest--smartEvilChatHandlerlamb-0QNRqblkTjFL"
       )
+      
+      dualChat(sessionId: ID, content: String): String
+      @conversation(
+         functionName: "amplify-conversationtest--dualChatHandlerconversat-bOJqWzZ5RDqT"
+      )
     }
 `;
 

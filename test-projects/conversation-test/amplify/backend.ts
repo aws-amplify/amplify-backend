@@ -1,5 +1,6 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource';
+import { dualChatHandler } from './dualChatHandler/resource';
 import { data } from './data/resource';
 import { evilChatHandler } from './evilChatHandler/resource';
 import { smartEvilChatHandler } from './smartEvilChatHandler/resource';
@@ -13,6 +14,7 @@ const backend = defineBackend({
   data,
   evilChatHandler,
   smartEvilChatHandler,
+  dualChatHandler,
 });
 
 // temporary

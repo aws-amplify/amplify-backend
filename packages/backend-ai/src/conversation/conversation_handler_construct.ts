@@ -10,7 +10,11 @@ const resourcesRoot = path.normalize(path.join(__dirname, 'lambda'));
 const defaultHandlerFilePath = path.join(resourcesRoot, 'default_handler.js');
 
 export type ConversationHandlerProps = {
-  modelId: string;
+  entry?: string;
+  allowedModels: Array<{
+    modelId: string;
+    region: string;
+  }>;
 };
 
 export type ConversationHandlerResources = {
@@ -42,7 +46,7 @@ export class ConversationHandler
       {
         runtime: LambdaRuntime.NODEJS_18_X,
         timeout: Duration.seconds(60),
-        entry: defaultHandlerFilePath,
+        entry: this.props.entry ?? defaultHandlerFilePath,
         handler: 'handler',
         bundling: {
           bundleAwsSDK: true,
@@ -50,15 +54,19 @@ export class ConversationHandler
       }
     );
 
-    conversationHandler.addToRolePolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ['bedrock:InvokeModel'],
-        resources: [
-          `arn:aws:bedrock:us-west-2::foundation-model/${props.modelId}`,
-        ],
-      })
-    );
+    if (this.props.allowedModels && this.props.allowedModels.length > 0) {
+      const resources = this.props.allowedModels.map(
+        (model) =>
+          `arn:aws:bedrock:${model.region}::foundation-model/${model.modelId}`
+      );
+      conversationHandler.addToRolePolicy(
+        new PolicyStatement({
+          effect: Effect.ALLOW,
+          actions: ['bedrock:InvokeModel'],
+          resources,
+        })
+      );
+    }
 
     this.resources = {
       lambda: conversationHandler,

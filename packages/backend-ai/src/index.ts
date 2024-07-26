@@ -10,12 +10,22 @@ import { ConversationTurnExecutor } from './conversation/lambda/conversation_tur
 
 import { ConversationTurnResponder } from './conversation/lambda/conversation_turn_responder.js';
 
+import {
+  ConversationHandlerFactoryProps,
+  defineConversationHandler,
+} from './conversation/factory.js';
+
+import { BedrockConverseAdapter } from './conversation/lambda/bedrock_converse_adapter';
+
 export {
+  BedrockConverseAdapter,
   ConversationTurnEvent,
   ConversationTurnExecutor,
   ConversationTurnResponder,
   ConversationHandler,
   ConversationHandlerProps,
+  ConversationHandlerFactoryProps,
   ConversationHandlerResources,
+  defineConversationHandler,
   Tool,
 };
