@@ -10,6 +10,7 @@ export enum BackendOutputClientErrorType {
   METADATA_RETRIEVAL_ERROR = 'MetadataRetrievalError',
   NO_OUTPUTS_FOUND = 'NoOutputsFound',
   DEPLOYMENT_IN_PROGRESS = 'DeploymentInProgress',
+  VALIDATION_ERROR = 'ValidationError',
 }
 /**
  * Error type for BackendOutputClientError

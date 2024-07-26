@@ -285,4 +285,48 @@ void describe('generate forms command', () => {
       }
     );
   });
+
+  void it('throws user error if the stack does not exist', async () => {
+    const fakeSandboxId = 'my-fake-app-my-fake-username';
+    const backendIdResolver = {
+      resolve: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
+    } as BackendIdentifierResolver;
+    const formGenerationHandler = new FormGenerationHandler({
+      awsClientProvider,
+    });
+
+    const fakedBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.VALIDATION_ERROR,
+          'Stack does not exist.'
+        );
+      }),
+    };
+
+    const generateFormsCommand = new GenerateFormsCommand(
+      backendIdResolver,
+      () => fakedBackendOutputClient,
+      formGenerationHandler
+    );
+
+    const parser = yargs().command(
+      generateFormsCommand as unknown as CommandModule
+    );
+    const commandRunner = new TestCommandRunner(parser);
+    await assert.rejects(
+      () => commandRunner.runCommand('forms'),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'StackDoesNotExistError');
+        assert.strictEqual(error.error.message, 'Stack does not exist.');
+        return true;
+      }
+    );
+  });
 });

@@ -88,6 +88,20 @@ export class GenerateFormsCommand
           error
         );
       }
+      if (
+        error instanceof BackendOutputClientError &&
+        error.code === BackendOutputClientErrorType.VALIDATION_ERROR
+      ) {
+        throw new AmplifyUserError(
+          'StackDoesNotExistError',
+          {
+            message: 'Stack does not exist.',
+            resolution:
+              'Ensure the CloudFormation stack ID or Amplify App ID and branch specified are correct and exists, then re-run this command.',
+          },
+          error
+        );
+      }
       throw error;
     }
 

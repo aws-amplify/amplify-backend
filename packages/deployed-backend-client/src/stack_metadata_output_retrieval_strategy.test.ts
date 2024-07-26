@@ -277,6 +277,51 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       );
     });
 
+    void it('throws if stack does not exist', async () => {
+      const cfnClientMock = {
+        send: mock.fn((command) => {
+          if (command instanceof GetTemplateSummaryCommand) {
+            const error = new Error(
+              'Stack with id stackThatDoesNotExist does not exist'
+            );
+            error.name = 'ValidationError';
+            throw error;
+          } else if (command instanceof DescribeStacksCommand) {
+            return {
+              Stacks: [
+                {
+                  Outputs: [
+                    {
+                      OutputKey: 'testName1',
+                      OutputValue: 'testValue1',
+                    },
+                  ],
+                },
+              ],
+            };
+          }
+          assert.fail(`Unknown command ${typeof command}`);
+        }),
+      } as unknown as CloudFormationClient;
+
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'stackThatDoesNotExist'),
+      };
+
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
+        cfnClientMock,
+        stackNameResolverMock
+      );
+
+      await assert.rejects(
+        retrievalStrategy.fetchBackendOutput(),
+        new BackendOutputClientError(
+          BackendOutputClientErrorType.VALIDATION_ERROR,
+          'Stack with id stackThatDoesNotExist does not exist'
+        )
+      );
+    });
+
     void it('does not throw on missing output', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
