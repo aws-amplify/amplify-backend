@@ -30,7 +30,9 @@ export class BedrockConverseAdapter {
   }
 
   askBedrock = async (): Promise<string> => {
-    const { modelId, systemPrompt } = this.event.args;
+    const { modelId, systemPrompt, toolDefinitions } = this.event.args;
+    console.log('toolDefinitions')
+    console.log(JSON.stringify(toolDefinitions, null, 2));
 
     const messages: Array<Message> = this.event.prev.result.items;
 

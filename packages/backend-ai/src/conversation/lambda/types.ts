@@ -17,6 +17,7 @@ export type ConversationTurnEvent = {
     graphqlApiEndpoint: string;
     currentMessageId: string;
     systemPrompt: string;
+    toolDefinitions: Tools;
   };
   identity: {
     defaultAuthStrategy: 'ALLOW' | 'DENY';
@@ -54,4 +55,30 @@ export type Tool = {
   execute: (
     input: __DocumentType | undefined
   ) => Promise<ToolResultContentBlock>;
+};
+
+// TODO: We need to also pass the selection set!
+type Tools = {
+  tools: ToolDefintion[];
+}
+
+type ToolDefintion = {
+  toolSpec: ToolSpec;
+}
+
+type ToolSpec = {
+  name: string;
+  description: string;
+  inputSchema: {
+    json: {
+      type: string;
+      properties: Record<string, Property>;
+      required: string[]
+    }
+  }
+}
+
+type Property = {
+  type: string;
+  description: string;
 };
