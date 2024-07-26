@@ -1,3 +1,9 @@
+import {
+  ToolInputSchema,
+  ToolResultContentBlock,
+} from '@aws-sdk/client-bedrock-runtime';
+import { DocumentType as __DocumentType } from '@smithy/types';
+
 export type ConversationTurnEvent = {
   typeName: string;
   fieldName: string;
@@ -36,4 +42,16 @@ export type ConversationTurnEvent = {
       }>;
     };
   };
+};
+
+export type Tool = {
+  name: string;
+  description: string;
+  inputSchema: ToolInputSchema;
+  // TODO it seems that bedrock sometimes keeps asking a tool enough times to
+  // make lambda time out, we should impose some configurable limits.
+  invocationCountLimit?: number;
+  execute: (
+    input: __DocumentType | undefined
+  ) => Promise<ToolResultContentBlock>;
 };

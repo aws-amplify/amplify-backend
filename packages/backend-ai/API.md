@@ -4,10 +4,20 @@
 
 ```ts
 
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
+import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { DocumentType as DocumentType_2 } from '@smithy/types';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { ToolInputSchema } from '@aws-sdk/client-bedrock-runtime';
+import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
+
+// @public
+export class BedrockConverseAdapter {
+    constructor(event: ConversationTurnEvent, additionalTools?: Array<Tool>);
+    // (undocumented)
+    askBedrock: () => Promise<string>;
+}
 
 // @public
 export class ConversationHandler extends Construct implements ResourceProvider<ConversationHandlerResources> {
@@ -17,8 +27,17 @@ export class ConversationHandler extends Construct implements ResourceProvider<C
 }
 
 // @public (undocumented)
+export type ConversationHandlerFactoryProps = {
+    name: string;
+} & ConversationHandlerProps;
+
+// @public (undocumented)
 export type ConversationHandlerProps = {
-    modelId: string;
+    entry?: string;
+    allowedModels: Array<{
+        modelId: string;
+        region: string;
+    }>;
 };
 
 // @public (undocumented)
@@ -69,10 +88,17 @@ export type ConversationTurnEvent = {
 };
 
 // @public
-export class ConversationTurnExecutor {
-    constructor(bedrockClient?: BedrockRuntimeClient);
+export class ConversationTurnEventToolsProvider {
+    constructor(event: ConversationTurnEvent);
     // (undocumented)
-    execute: (event: ConversationTurnEvent) => Promise<void>;
+    getEventTools: () => Array<Tool>;
+}
+
+// @public
+export class ConversationTurnExecutor {
+    constructor(event: ConversationTurnEvent, additionalTools?: Array<Tool>);
+    // (undocumented)
+    execute: () => Promise<void>;
 }
 
 // @public
@@ -81,6 +107,18 @@ export class ConversationTurnResponder {
     // (undocumented)
     respond: (message: string) => Promise<void>;
 }
+
+// @public
+export const defineConversationHandler: (props: ConversationHandlerFactoryProps) => ConstructFactory<ResourceProvider<ConversationHandlerResources>>;
+
+// @public (undocumented)
+export type Tool = {
+    name: string;
+    description: string;
+    inputSchema: ToolInputSchema;
+    invocationCountLimit?: number;
+    execute: (input: DocumentType_2 | undefined) => Promise<ToolResultContentBlock>;
+};
 
 // (No @packageDocumentation comment for this package)
 

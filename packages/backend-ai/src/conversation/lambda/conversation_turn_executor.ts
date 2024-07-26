@@ -1,9 +1,6 @@
-import {
-  BedrockRuntimeClient,
-  ConverseCommand,
-} from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnResponder } from './conversation_turn_responder';
-import { ConversationTurnEvent } from './types';
+import { Tool as AmplifyTool, ConversationTurnEvent } from './types';
+import { BedrockConverseAdapter } from './bedrock_converse_adapter';
 
 /**
  * TODO docs.
@@ -12,32 +9,21 @@ export class ConversationTurnExecutor {
   /**
    * TODO docs
    */
-  constructor(private readonly bedrockClient = new BedrockRuntimeClient()) {}
+  constructor(
+    private readonly event: ConversationTurnEvent,
+    private readonly additionalTools: Array<AmplifyTool> = []
+  ) {}
 
-  execute = async (event: ConversationTurnEvent): Promise<void> => {
+  execute = async (): Promise<void> => {
     console.log('Received event and context');
-    console.log(event);
-    const { modelId, systemPrompt } = event.args;
+    console.log(this.event);
+    console.log(JSON.stringify(this.event, null, 2));
 
-    const messages = event.prev.result.items;
+    const assistantResponse = await new BedrockConverseAdapter(
+      this.event,
+      this.additionalTools
+    ).askBedrock();
 
-    const bedrockResponse = await this.bedrockClient.send(
-      new ConverseCommand({
-        modelId,
-        messages,
-        system: [{ text: systemPrompt }],
-        inferenceConfig: {
-          maxTokens: 2000,
-          temperature: 0,
-        },
-      })
-    );
-    const assistantResponse =
-      bedrockResponse.output?.message?.content?.[0].text;
-    if (!assistantResponse) {
-      throw new Error('foo');
-    }
-
-    await new ConversationTurnResponder(event).respond(assistantResponse);
+    await new ConversationTurnResponder(this.event).respond(assistantResponse);
   };
 }
