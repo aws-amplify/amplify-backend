@@ -1,8 +1,14 @@
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { Duration } from 'aws-cdk-lib';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { IFunction, Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import {
+  CustomDataIdentifier,
+  DataProtectionPolicy,
+  LogGroup,
+  RetentionDays,
+} from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import path from 'path';
 
@@ -51,6 +57,17 @@ export class ConversationHandler
         bundling: {
           bundleAwsSDK: true,
         },
+        logGroup: new LogGroup(this, 'conversationHandlerLambdaLogGroup', {
+          retention: RetentionDays.INFINITE,
+          dataProtectionPolicy: new DataProtectionPolicy({
+            identifiers: [
+              new CustomDataIdentifier(
+                'idToken',
+                '[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*'
+              ),
+            ],
+          }),
+        }),
       }
     );
 
