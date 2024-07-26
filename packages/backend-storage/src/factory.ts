@@ -9,7 +9,7 @@ import { AmplifyStorage, StorageResources } from './construct.js';
 import { AmplifyStorageFactoryProps } from './types.js';
 import { StorageContainerEntryGenerator } from './storage_container_entry_generator.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { Aspects, IAspect } from 'aws-cdk-lib';
+import { Aspects, CfnOutput, IAspect, Stack } from 'aws-cdk-lib';
 import { IConstruct } from 'constructs';
 
 /**
@@ -66,7 +66,9 @@ export class AmplifyStorageFactory
     const amplifyStorage = constructContainer.getOrCompute(
       this.generator
     ) as AmplifyStorage;
-    Aspects.of(amplifyStorage).add(new StorageValidator());
+    Aspects.of(amplifyStorage).add(
+      new StorageValidator(Stack.of(amplifyStorage))
+    );
     return amplifyStorage;
   };
 }
@@ -76,6 +78,11 @@ export class AmplifyStorageFactory
  */
 export class StorageValidator implements IAspect {
   /**
+   * Constructs a new instance of the StorageValidator class.
+   * @param stack The stack to validate.
+   */
+  constructor(private readonly stack: IConstruct) {}
+  /**
    * Visit method to perform validation on the given node.
    * @param node The IConstruct node to visit.
    */
@@ -83,7 +90,26 @@ export class StorageValidator implements IAspect {
     if (!(node instanceof AmplifyStorage) || AmplifyStorageFactory.validated) {
       return;
     }
+    /*
+     * If there is no default bucket set and there is only one bucket,
+     * meaning it's never gone through StackMetadataBackendOutputStorageStrategy method addBackendOutputEntry,
+     * so we need to add the bucket name and region to the stack outputs.
+     */
     if (
+      !AmplifyStorageFactory.hasDefault &&
+      AmplifyStorageFactory.factoryCounter === 1
+    ) {
+      const parentStack = Stack.of(
+        node.resources.cfnResources.cfnBucket.stack
+          .nestedStackParent as IConstruct
+      );
+      new CfnOutput(parentStack, 'bucketName', {
+        value: node.resources.bucket.bucketName,
+      });
+      new CfnOutput(parentStack, 'storageRegion', {
+        value: node.resources.bucket.stack.region,
+      });
+    } else if (
       !AmplifyStorageFactory.hasDefault &&
       AmplifyStorageFactory.factoryCounter > 1
     ) {

@@ -112,20 +112,28 @@ export class StackMetadataBackendOutputStorageStrategy
     keyName: string,
     backendOutputEntry: BackendOutputEntry
   ) {
+    /*
+     * If there's only one bucket and not the bucket is not set as default, then it only has 'buckets' in the stackOutputs.
+     * So we need to manually add the bucketName and storageRegion to the stackOutputs.
+     * As long as there's a bucket, the bucketName, storageRegion, and buckets will always be present in the stackOutputs.
+     */
+    const stackOutputs = Object.keys(backendOutputEntry.payload).includes(
+      'buckets'
+    )
+      ? ['buckets', 'bucketName', 'storageRegion']
+      : Object.keys(backendOutputEntry.payload);
+
     if (existingMetadataEntry) {
       this.stack.addMetadata(keyName, {
         version: backendOutputEntry.version,
         stackOutputs: [
-          ...new Set([
-            ...Object.keys(backendOutputEntry.payload),
-            ...existingMetadataEntry.stackOutputs,
-          ]),
+          ...new Set([...stackOutputs, ...existingMetadataEntry.stackOutputs]),
         ],
       });
     } else {
       this.stack.addMetadata(keyName, {
         version: backendOutputEntry.version,
-        stackOutputs: Object.keys(backendOutputEntry.payload),
+        stackOutputs,
       });
     }
   }
