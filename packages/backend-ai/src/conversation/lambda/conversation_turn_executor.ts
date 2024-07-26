@@ -1,4 +1,3 @@
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnResponder } from './conversation_turn_responder';
 import { Tool as AmplifyTool, ConversationTurnEvent } from './types';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter';
@@ -11,20 +10,20 @@ export class ConversationTurnExecutor {
    * TODO docs
    */
   constructor(
-    private readonly bedrockClient = new BedrockRuntimeClient(),
+    private readonly event: ConversationTurnEvent,
     private readonly additionalTools: Array<AmplifyTool> = []
   ) {}
 
-  execute = async (event: ConversationTurnEvent): Promise<void> => {
+  execute = async (): Promise<void> => {
     console.log('Received event and context');
-    console.log(event);
-    console.log(JSON.stringify(event, null, 2));
+    console.log(this.event);
+    console.log(JSON.stringify(this.event, null, 2));
 
     const assistantResponse = await new BedrockConverseAdapter(
-      this.bedrockClient,
+      this.event,
       this.additionalTools
-    ).askBedrock(event);
+    ).askBedrock();
 
-    await new ConversationTurnResponder(event).respond(assistantResponse);
+    await new ConversationTurnResponder(this.event).respond(assistantResponse);
   };
 }

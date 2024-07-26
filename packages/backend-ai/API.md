@@ -4,7 +4,6 @@
 
 ```ts
 
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DocumentType as DocumentType_2 } from '@smithy/types';
@@ -15,9 +14,9 @@ import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
 
 // @public
 export class BedrockConverseAdapter {
-    constructor(bedrockClient: BedrockRuntimeClient, additionalTools?: Array<Tool>);
+    constructor(event: ConversationTurnEvent, additionalTools?: Array<Tool>);
     // (undocumented)
-    askBedrock: (event: ConversationTurnEvent) => Promise<string>;
+    askBedrock: () => Promise<string>;
 }
 
 // @public
@@ -89,10 +88,17 @@ export type ConversationTurnEvent = {
 };
 
 // @public
-export class ConversationTurnExecutor {
-    constructor(bedrockClient?: BedrockRuntimeClient, additionalTools?: Array<Tool>);
+export class ConversationTurnEventToolsProvider {
+    constructor(event: ConversationTurnEvent);
     // (undocumented)
-    execute: (event: ConversationTurnEvent) => Promise<void>;
+    getEventTools: () => Array<Tool>;
+}
+
+// @public
+export class ConversationTurnExecutor {
+    constructor(event: ConversationTurnEvent, additionalTools?: Array<Tool>);
+    // (undocumented)
+    execute: () => Promise<void>;
 }
 
 // @public

@@ -8,33 +8,44 @@ import {
   Tool,
   ToolConfiguration,
 } from '@aws-sdk/client-bedrock-runtime';
+import { ConversationTurnEventToolsProvider } from './conversation_turn_event_tools_provider';
 import { Tool as AmplifyTool, ConversationTurnEvent } from './types';
 
 /**
  * TODO docs
  */
 export class BedrockConverseAdapter {
+  private readonly bedrockClient: BedrockRuntimeClient;
+
   /**
    * TODO docs
    */
   constructor(
-    private readonly bedrockClient: BedrockRuntimeClient,
+    private readonly event: ConversationTurnEvent,
     private readonly additionalTools: Array<AmplifyTool> = []
-  ) {}
+  ) {
+    // TODO. Region selection may happen at event scope, so
+    // we should make all these lambda components request scoped.
+    this.bedrockClient = new BedrockRuntimeClient();
+  }
 
-  askBedrock = async (event: ConversationTurnEvent): Promise<string> => {
-    const { modelId, systemPrompt } = event.args;
+  askBedrock = async (): Promise<string> => {
+    const { modelId, systemPrompt } = this.event.args;
 
-    const messages: Array<Message> = event.prev.result.items;
+    const messages: Array<Message> = this.event.prev.result.items;
 
+    const allTools = [
+      ...new ConversationTurnEventToolsProvider(this.event).getEventTools(),
+      ...this.additionalTools,
+    ];
     let toolConfig: ToolConfiguration | undefined;
     const toolByName: Map<string, AmplifyTool> = new Map();
-    if (this.additionalTools && this.additionalTools.length > 0) {
-      this.additionalTools.forEach((t) => {
+    if (allTools && allTools.length > 0) {
+      allTools.forEach((t) => {
         toolByName.set(t.name, t);
       });
       toolConfig = {
-        tools: this.additionalTools.map((t): Tool => {
+        tools: allTools.map((t): Tool => {
           return {
             toolSpec: {
               name: t.name,

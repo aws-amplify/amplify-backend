@@ -3,7 +3,6 @@ import {
   ConversationTurnExecutor,
   Tool,
 } from '@aws-amplify/backend-ai';
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 
 const fetchSomeInsult = async (): Promise<string> => {
   const response = await fetch(
@@ -33,10 +32,7 @@ const additionalTools: Array<Tool> = [
   },
 ];
 
-const turnExecutor = new ConversationTurnExecutor(
-  new BedrockRuntimeClient(),
-  additionalTools
-);
 export const handler = async (event: ConversationTurnEvent) => {
-  await turnExecutor.execute(event);
+  const turnExecutor = new ConversationTurnExecutor(event, additionalTools);
+  await turnExecutor.execute();
 };

@@ -10,6 +10,8 @@ import { ConversationTurnExecutor } from './conversation/lambda/conversation_tur
 
 import { ConversationTurnResponder } from './conversation/lambda/conversation_turn_responder.js';
 
+import { ConversationTurnEventToolsProvider } from './conversation/lambda/conversation_turn_event_tools_provider.js';
+
 import {
   ConversationHandlerFactoryProps,
   defineConversationHandler,
@@ -20,6 +22,7 @@ import { BedrockConverseAdapter } from './conversation/lambda/bedrock_converse_a
 export {
   BedrockConverseAdapter,
   ConversationTurnEvent,
+  ConversationTurnEventToolsProvider,
   ConversationTurnExecutor,
   ConversationTurnResponder,
   ConversationHandler,

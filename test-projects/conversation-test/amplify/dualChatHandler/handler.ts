@@ -4,7 +4,6 @@ import {
   ConversationTurnResponder,
 } from '@aws-amplify/backend-ai';
 import _ from 'lodash';
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 
 export const handler = async (event: ConversationTurnEvent) => {
   const pirateEvent = _.cloneDeep(event);
@@ -16,11 +15,10 @@ export const handler = async (event: ConversationTurnEvent) => {
     'You are a helpful chatbot. Respond in 40 words or less.';
   normalEvent.args.modelId = 'anthropic.claude-3-sonnet-20240229-v1:0';
 
-  const converseAdapter = new BedrockConverseAdapter(
-    new BedrockRuntimeClient()
-  );
-  const normalResponse = await converseAdapter.askBedrock(normalEvent);
-  const pirateResponse = await converseAdapter.askBedrock(pirateEvent);
+  const converseAdapterNormal = new BedrockConverseAdapter(normalEvent);
+  const converseAdapterPirate = new BedrockConverseAdapter(pirateEvent);
+  const normalResponse = await converseAdapterNormal.askBedrock();
+  const pirateResponse = await converseAdapterPirate.askBedrock();
 
   let finalResponse: string;
   if (Math.random() < 0.5) {

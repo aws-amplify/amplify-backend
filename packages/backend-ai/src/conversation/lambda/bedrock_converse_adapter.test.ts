@@ -22,11 +22,6 @@ void describe('bedrock converse adapter', () => {
       },
     ];
 
-    const adapter = new BedrockConverseAdapter(
-      new BedrockRuntimeClient(),
-      tools
-    );
-
     const event: ConversationTurnEvent = {
       args: {
         content: '',
@@ -65,7 +60,9 @@ void describe('bedrock converse adapter', () => {
       typeName: '',
     };
 
-    const response = await adapter.askBedrock(event);
+    const adapter = new BedrockConverseAdapter(event, tools);
+
+    const response = await adapter.askBedrock();
     console.log(response);
   });
 });
