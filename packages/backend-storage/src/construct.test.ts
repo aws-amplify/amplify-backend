@@ -196,7 +196,7 @@ void describe('AmplifyStorage', () => {
         Metadata: {
           [storageOutputKey]: {
             version: '1',
-            stackOutputs: ['buckets'],
+            stackOutputs: ['buckets', 'bucketName', 'storageRegion'],
           },
         },
       });
