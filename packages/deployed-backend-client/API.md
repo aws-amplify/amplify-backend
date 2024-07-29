@@ -100,7 +100,7 @@ export enum BackendOutputClientErrorType {
     // (undocumented)
     NO_OUTPUTS_FOUND = "NoOutputsFound",
     // (undocumented)
-    VALIDATION_ERROR = "ValidationError"
+    NON_EXISTENT_STACK = "ValidationError"
 }
 
 // @public

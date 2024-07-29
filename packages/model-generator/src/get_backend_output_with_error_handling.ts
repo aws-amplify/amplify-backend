@@ -9,12 +9,12 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 /**
  * Common Error handling for BackendOutputClient.getOutput() in model-generator package.
  */
-export const getBackendOutputWithErrorHandling = (
+export const getBackendOutputWithErrorHandling = async (
   backendOutputClient: BackendOutputClient,
   backendIdentifier: DeployedBackendIdentifier
 ) => {
   try {
-    return backendOutputClient.getOutput(backendIdentifier);
+    return await backendOutputClient.getOutput(backendIdentifier);
   } catch (error) {
     if (
       error instanceof BackendOutputClientError &&
@@ -31,7 +31,7 @@ export const getBackendOutputWithErrorHandling = (
     }
     if (
       error instanceof BackendOutputClientError &&
-      error.code === BackendOutputClientErrorType.VALIDATION_ERROR
+      error.code === BackendOutputClientErrorType.NON_EXISTENT_STACK
     ) {
       throw new AmplifyUserError(
         'StackDoesNotExistError',

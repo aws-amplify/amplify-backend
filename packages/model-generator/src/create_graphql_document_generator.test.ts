@@ -76,7 +76,7 @@ void describe('model generator factory', () => {
     const fakeBackendOutputClient = {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
-          BackendOutputClientErrorType.VALIDATION_ERROR,
+          BackendOutputClientErrorType.NON_EXISTENT_STACK,
           'stack does not exist'
         );
       }),

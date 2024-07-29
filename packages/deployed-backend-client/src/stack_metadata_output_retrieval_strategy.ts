@@ -1,5 +1,6 @@
 import {
   CloudFormationClient,
+  CloudFormationServiceException,
   DescribeStacksCommand,
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
@@ -55,13 +56,12 @@ export class StackMetadataBackendOutputRetrievalStrategy
       metadataObject = JSON.parse(templateSummary.Metadata);
     } catch (error) {
       if (
-        error instanceof Error &&
-        error.name === BackendOutputClientErrorType.VALIDATION_ERROR &&
+        error instanceof CloudFormationServiceException &&
         error.message.startsWith('Stack with id') &&
         error.message.endsWith('does not exist')
       ) {
         throw new BackendOutputClientError(
-          BackendOutputClientErrorType.VALIDATION_ERROR,
+          BackendOutputClientErrorType.NON_EXISTENT_STACK,
           `Stack with id ${stackName} does not exist`
         );
       }

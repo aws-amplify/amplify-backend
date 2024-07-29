@@ -1,6 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import {
   CloudFormationClient,
+  CloudFormationServiceException,
   DescribeStacksCommand,
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
@@ -281,11 +282,12 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       const cfnClientMock = {
         send: mock.fn((command) => {
           if (command instanceof GetTemplateSummaryCommand) {
-            const error = new Error(
-              'Stack with id stackThatDoesNotExist does not exist'
-            );
-            error.name = 'ValidationError';
-            throw error;
+            throw new CloudFormationServiceException({
+              $fault: 'client',
+              $metadata: {},
+              name: 'ValidationError',
+              message: 'Stack with id stackThatDoesNotExist does not exist',
+            });
           } else if (command instanceof DescribeStacksCommand) {
             return {
               Stacks: [
@@ -316,7 +318,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
-          BackendOutputClientErrorType.VALIDATION_ERROR,
+          BackendOutputClientErrorType.NON_EXISTENT_STACK,
           'Stack with id stackThatDoesNotExist does not exist'
         )
       );

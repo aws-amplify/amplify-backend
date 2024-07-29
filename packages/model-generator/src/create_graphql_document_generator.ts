@@ -1,7 +1,5 @@
 import { AppSyncClient } from '@aws-sdk/client-appsync';
 import {
-  BackendOutputClientError,
-  BackendOutputClientErrorType,
   BackendOutputClientFactory,
   DeployedBackendIdentifier,
 } from '@aws-amplify/deployed-backend-client';
@@ -14,7 +12,6 @@ import { AWSClientProvider } from '@aws-amplify/plugin-types';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { getBackendOutputWithErrorHandling } from './get_backend_output_with_error_handling.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type GraphqlDocumentGeneratorFactoryParams = {
   backendIdentifier: DeployedBackendIdentifier;
@@ -41,42 +38,10 @@ export const createGraphqlDocumentGenerator = ({
   const fetchSchema = async () => {
     const backendOutputClient =
       BackendOutputClientFactory.getInstance(awsClientProvider);
-    let output;
-    try {
-      output = await getBackendOutputWithErrorHandling(
-        backendOutputClient,
-        backendIdentifier
-      );
-    } catch (error) {
-      if (
-        error instanceof BackendOutputClientError &&
-        error.code === BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS
-      ) {
-        throw new AmplifyUserError(
-          'DeploymentInProgressError',
-          {
-            message: 'Deployment is currently in progress.',
-            resolution: 'Re-run this command once the deployment completes.',
-          },
-          error
-        );
-      }
-      if (
-        error instanceof BackendOutputClientError &&
-        error.code === BackendOutputClientErrorType.VALIDATION_ERROR
-      ) {
-        throw new AmplifyUserError(
-          'StackDoesNotExistError',
-          {
-            message: 'Stack does not exist.',
-            resolution:
-              'Ensure the CloudFormation stack ID or Amplify App ID and branch specified are correct and exists, then re-run this command.',
-          },
-          error
-        );
-      }
-      throw error;
-    }
+    const output = await getBackendOutputWithErrorHandling(
+      backendOutputClient,
+      backendIdentifier
+    );
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
       throw new Error(`Unable to determine AppSync API ID.`);

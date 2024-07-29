@@ -90,7 +90,7 @@ export class GenerateFormsCommand
       }
       if (
         error instanceof BackendOutputClientError &&
-        error.code === BackendOutputClientErrorType.VALIDATION_ERROR
+        error.code === BackendOutputClientErrorType.NON_EXISTENT_STACK
       ) {
         throw new AmplifyUserError(
           'StackDoesNotExistError',
