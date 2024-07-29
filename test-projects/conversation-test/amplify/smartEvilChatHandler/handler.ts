@@ -2,7 +2,7 @@ import {
   ConversationTurnEvent,
   ConversationTurnExecutor,
   Tool,
-} from '@aws-amplify/backend-ai';
+} from '@aws-amplify/backend-ai/conversation/runtime';
 
 const fetchSomeInsult = async (): Promise<string> => {
   const response = await fetch(

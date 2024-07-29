@@ -2,7 +2,7 @@ import {
   BedrockConverseAdapter,
   ConversationTurnEvent,
   ConversationTurnResponder,
-} from '@aws-amplify/backend-ai';
+} from '@aws-amplify/backend-ai/conversation/runtime';
 import _ from 'lodash';
 
 export const handler = async (event: ConversationTurnEvent) => {

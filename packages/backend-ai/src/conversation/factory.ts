@@ -11,7 +11,7 @@ import {
   ConversationHandler,
   ConversationHandlerProps,
   ConversationHandlerResources,
-} from './conversation_handler_construct';
+} from './constructs';
 
 class ConversationHandlerGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'conversationHandler';
@@ -21,9 +21,7 @@ class ConversationHandlerGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {}
 
-  generateContainerEntry = ({
-    scope,
-  }: GenerateContainerEntryProps) => {
+  generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
     return new ConversationHandler(scope, this.props.name, this.props);
   };
 }

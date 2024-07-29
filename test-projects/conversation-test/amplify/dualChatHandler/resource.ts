@@ -1,4 +1,4 @@
-import { defineConversationHandler } from '@aws-amplify/backend-ai';
+import { defineConversationHandler } from '@aws-amplify/backend-ai/conversation';
 import { fileURLToPath } from 'node:url';
 import path from 'path';
 

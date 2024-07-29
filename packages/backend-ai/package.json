@@ -8,11 +8,22 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "default": "./lib/index.js"
+    },
+    "./conversation": {
+      "types": "./lib/conversation/index.d.ts",
+      "default": "./lib/conversation/index.js"
+    },
+    "./conversation/constructs": {
+      "types": "./lib/conversation/constructs/index.d.ts",
+      "default": "./lib/conversation/constructs/index.js"
+    },
+    "./conversation/runtime": {
+      "types": "./lib/conversation/runtime/index.d.ts",
+      "default": "./lib/conversation/runtime/index.js"
     }
   },
-  "types": "lib/index.d.ts",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
   },

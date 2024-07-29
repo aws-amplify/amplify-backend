@@ -13,26 +13,44 @@ import { ToolInputSchema } from '@aws-sdk/client-bedrock-runtime';
 import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
 
 // @public
-export class BedrockConverseAdapter {
+class BedrockConverseAdapter {
     constructor(event: ConversationTurnEvent, additionalTools?: Array<Tool>);
     // (undocumented)
     askBedrock: () => Promise<string>;
 }
 
+declare namespace constructs {
+    export {
+        ConversationHandler,
+        ConversationHandlerProps,
+        ConversationHandlerResources
+    }
+}
+
+declare namespace conversation {
+    export {
+        constructs,
+        ConversationHandlerFactoryProps,
+        defineConversationHandler,
+        runtime
+    }
+}
+export { conversation }
+
 // @public
-export class ConversationHandler extends Construct implements ResourceProvider<ConversationHandlerResources> {
+class ConversationHandler extends Construct implements ResourceProvider<ConversationHandlerResources> {
     constructor(scope: Construct, id: string, props: ConversationHandlerProps);
     // (undocumented)
     resources: ConversationHandlerResources;
 }
 
 // @public (undocumented)
-export type ConversationHandlerFactoryProps = {
+type ConversationHandlerFactoryProps = {
     name: string;
 } & ConversationHandlerProps;
 
 // @public (undocumented)
-export type ConversationHandlerProps = {
+type ConversationHandlerProps = {
     entry?: string;
     allowedModels: Array<{
         modelId: string;
@@ -41,12 +59,12 @@ export type ConversationHandlerProps = {
 };
 
 // @public (undocumented)
-export type ConversationHandlerResources = {
+type ConversationHandlerResources = {
     lambda: IFunction;
 };
 
 // @public (undocumented)
-export type ConversationTurnEvent = {
+type ConversationTurnEvent = {
     typeName: string;
     fieldName: string;
     args: {
@@ -88,31 +106,42 @@ export type ConversationTurnEvent = {
 };
 
 // @public
-export class ConversationTurnEventToolsProvider {
+class ConversationTurnEventToolsProvider {
     constructor(event: ConversationTurnEvent);
     // (undocumented)
     getEventTools: () => Array<Tool>;
 }
 
 // @public
-export class ConversationTurnExecutor {
+class ConversationTurnExecutor {
     constructor(event: ConversationTurnEvent, additionalTools?: Array<Tool>);
     // (undocumented)
     execute: () => Promise<void>;
 }
 
 // @public
-export class ConversationTurnResponder {
+class ConversationTurnResponder {
     constructor(event: ConversationTurnEvent);
     // (undocumented)
     respond: (message: string) => Promise<void>;
 }
 
 // @public
-export const defineConversationHandler: (props: ConversationHandlerFactoryProps) => ConstructFactory<ResourceProvider<ConversationHandlerResources>>;
+const defineConversationHandler: (props: ConversationHandlerFactoryProps) => ConstructFactory<ResourceProvider<ConversationHandlerResources>>;
+
+declare namespace runtime {
+    export {
+        BedrockConverseAdapter,
+        ConversationTurnEvent,
+        ConversationTurnEventToolsProvider,
+        ConversationTurnExecutor,
+        ConversationTurnResponder,
+        Tool
+    }
+}
 
 // @public (undocumented)
-export type Tool = {
+type Tool = {
     name: string;
     description: string;
     inputSchema: ToolInputSchema;
