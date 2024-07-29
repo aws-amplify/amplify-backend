@@ -66,16 +66,22 @@ type ToolDefintion = {
   toolSpec: ToolSpec;
 }
 
-type ToolSpec = {
+type GraphQlRequestInputMetadata = {
+  selectionSet: string[];
+  propertyTypes: Record<string, string>;
+};
+
+export type ToolSpec = {
   name: string;
   description: string;
+  gqlRequestInputMetadata?: GraphQlRequestInputMetadata;
   inputSchema: {
     json: {
       type: string;
       properties: Record<string, Property>;
       required: string[]
-    }
-  }
+    };
+  };
 }
 
 type Property = {
