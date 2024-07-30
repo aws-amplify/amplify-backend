@@ -98,7 +98,9 @@ export enum BackendOutputClientErrorType {
     // (undocumented)
     METADATA_RETRIEVAL_ERROR = "MetadataRetrievalError",
     // (undocumented)
-    NO_OUTPUTS_FOUND = "NoOutputsFound"
+    NO_OUTPUTS_FOUND = "NoOutputsFound",
+    // (undocumented)
+    NO_STACK_FOUND = "NoStackFound"
 }
 
 // @public

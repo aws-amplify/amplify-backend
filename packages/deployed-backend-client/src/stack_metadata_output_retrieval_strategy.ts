@@ -1,5 +1,6 @@
 import {
   CloudFormationClient,
+  CloudFormationServiceException,
   DescribeStacksCommand,
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
@@ -37,18 +38,36 @@ export class StackMetadataBackendOutputRetrievalStrategy
   fetchBackendOutput = async (): Promise<BackendOutput> => {
     const stackName = await this.stackNameResolver.resolveMainStackName();
 
-    // GetTemplateSummary includes the template metadata as a string
-    const templateSummary = await this.cfnClient.send(
-      new GetTemplateSummaryCommand({ StackName: stackName })
-    );
-    if (typeof templateSummary.Metadata !== 'string') {
-      throw new BackendOutputClientError(
-        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
-        'Stack template metadata is not a string'
-      );
-    }
+    let metadataObject;
 
-    const metadataObject = JSON.parse(templateSummary.Metadata);
+    try {
+      // GetTemplateSummary includes the template metadata as a string
+      const templateSummary = await this.cfnClient.send(
+        new GetTemplateSummaryCommand({ StackName: stackName })
+      );
+
+      if (typeof templateSummary.Metadata !== 'string') {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
+          'Stack template metadata is not a string'
+        );
+      }
+
+      metadataObject = JSON.parse(templateSummary.Metadata);
+    } catch (error) {
+      if (
+        error instanceof CloudFormationServiceException &&
+        error.message.startsWith('Stack with id') &&
+        error.message.endsWith('does not exist')
+      ) {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_STACK_FOUND,
+          `Stack with id ${stackName} does not exist`
+        );
+      }
+
+      throw error;
+    }
 
     // parse and validate the metadata object
     const backendOutputMetadata =

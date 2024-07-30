@@ -203,5 +203,35 @@ void describe('UnifiedClientConfigGenerator', () => {
         }
       );
     });
+
+    void it('throws user error if the stack does not exist', async () => {
+      const outputRetrieval = mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_STACK_FOUND,
+          'stack does not exist'
+        );
+      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1');
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(error.message, 'Stack does not exist.');
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
   });
 });

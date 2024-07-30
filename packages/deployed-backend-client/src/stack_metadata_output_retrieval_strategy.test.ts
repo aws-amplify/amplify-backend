@@ -1,6 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import {
   CloudFormationClient,
+  CloudFormationServiceException,
   DescribeStacksCommand,
   GetTemplateSummaryCommand,
 } from '@aws-sdk/client-cloudformation';
@@ -274,6 +275,52 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
           }
           return false;
         }
+      );
+    });
+
+    void it('throws if stack does not exist', async () => {
+      const cfnClientMock = {
+        send: mock.fn((command) => {
+          if (command instanceof GetTemplateSummaryCommand) {
+            throw new CloudFormationServiceException({
+              $fault: 'client',
+              $metadata: {},
+              name: 'ValidationError',
+              message: 'Stack with id stackThatDoesNotExist does not exist',
+            });
+          } else if (command instanceof DescribeStacksCommand) {
+            return {
+              Stacks: [
+                {
+                  Outputs: [
+                    {
+                      OutputKey: 'testName1',
+                      OutputValue: 'testValue1',
+                    },
+                  ],
+                },
+              ],
+            };
+          }
+          assert.fail(`Unknown command ${typeof command}`);
+        }),
+      } as unknown as CloudFormationClient;
+
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'stackThatDoesNotExist'),
+      };
+
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
+        cfnClientMock,
+        stackNameResolverMock
+      );
+
+      await assert.rejects(
+        retrievalStrategy.fetchBackendOutput(),
+        new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_STACK_FOUND,
+          'Stack with id stackThatDoesNotExist does not exist'
+        )
       );
     });
 

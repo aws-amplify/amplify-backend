@@ -70,4 +70,32 @@ void describe('types generator factory', () => {
       }
     );
   });
+
+  void it('throws an AmplifyUserError if stack does not exist', async () => {
+    const fakeBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_STACK_FOUND,
+          'stack does not exist'
+        );
+      }),
+    };
+    mock.method(
+      BackendOutputClientFactory,
+      'getInstance',
+      () => fakeBackendOutputClient
+    );
+    const generator = createGraphqlTypesGenerator({
+      backendIdentifier: { stackName: 'stackThatDoesNotExist' },
+      awsClientProvider,
+    });
+    await assert.rejects(
+      () => generator.generateTypes({ target: 'json' }),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(error.message, 'Stack does not exist.');
+        assert.ok(error.resolution);
+        return true;
+      }
+    );
+  });
 });

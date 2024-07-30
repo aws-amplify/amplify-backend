@@ -71,4 +71,32 @@ void describe('model generator factory', () => {
       }
     );
   });
+
+  void it('throws an error if stack does not exist', async () => {
+    const fakeBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_STACK_FOUND,
+          'stack does not exist'
+        );
+      }),
+    };
+    mock.method(
+      BackendOutputClientFactory,
+      'getInstance',
+      () => fakeBackendOutputClient
+    );
+    const generator = createGraphqlDocumentGenerator({
+      backendIdentifier: { stackName: 'stackThatDoesNotExist' },
+      awsClientProvider,
+    });
+    await assert.rejects(
+      () => generator.generateModels({ targetFormat: 'javascript' }),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(error.message, 'Stack does not exist.');
+        assert.ok(error.resolution);
+        return true;
+      }
+    );
+  });
 });
