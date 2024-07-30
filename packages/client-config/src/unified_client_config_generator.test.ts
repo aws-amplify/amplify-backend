@@ -207,7 +207,7 @@ void describe('UnifiedClientConfigGenerator', () => {
     void it('throws user error if the stack does not exist', async () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
-          BackendOutputClientErrorType.NON_EXISTENT_STACK,
+          BackendOutputClientErrorType.NO_STACK_FOUND,
           'stack does not exist'
         );
       });

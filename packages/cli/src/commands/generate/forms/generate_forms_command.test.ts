@@ -304,7 +304,7 @@ void describe('generate forms command', () => {
     const fakedBackendOutputClient = {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
-          BackendOutputClientErrorType.NON_EXISTENT_STACK,
+          BackendOutputClientErrorType.NO_STACK_FOUND,
           'Stack does not exist.'
         );
       }),

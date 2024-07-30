@@ -318,7 +318,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
-          BackendOutputClientErrorType.NON_EXISTENT_STACK,
+          BackendOutputClientErrorType.NO_STACK_FOUND,
           'Stack with id stackThatDoesNotExist does not exist'
         )
       );

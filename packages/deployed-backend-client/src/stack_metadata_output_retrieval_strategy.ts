@@ -61,7 +61,7 @@ export class StackMetadataBackendOutputRetrievalStrategy
         error.message.endsWith('does not exist')
       ) {
         throw new BackendOutputClientError(
-          BackendOutputClientErrorType.NON_EXISTENT_STACK,
+          BackendOutputClientErrorType.NO_STACK_FOUND,
           `Stack with id ${stackName} does not exist`
         );
       }

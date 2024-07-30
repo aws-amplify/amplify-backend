@@ -31,7 +31,7 @@ export const getBackendOutputWithErrorHandling = async (
     }
     if (
       error instanceof BackendOutputClientError &&
-      error.code === BackendOutputClientErrorType.NON_EXISTENT_STACK
+      error.code === BackendOutputClientErrorType.NO_STACK_FOUND
     ) {
       throw new AmplifyUserError(
         'StackDoesNotExistError',
