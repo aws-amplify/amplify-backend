@@ -63,7 +63,7 @@ void describe(
         await dataStorageAuthWithTriggerTestProjectCreator.createProject(
           rootTestDir
         );
-      await setupDeployedBackendClient(rootTestDir);
+      await setupDeployedBackendClient(testProject.projectDirPath);
       testBranch = await amplifyAppPool.createTestBranch();
       branchBackendIdentifier = {
         namespace: testBranch.appId,
