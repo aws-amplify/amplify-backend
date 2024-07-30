@@ -156,6 +156,7 @@ const isYargsValidationError = (err?: Error): boolean => {
       'Missing required argument',
       'Invalid values:',
       'Missing dependent arguments',
+      'Implications failed',
     ].some((message) => err.message.startsWith(message)) ||
       err.message.endsWith('are mutually exclusive'))
   );
