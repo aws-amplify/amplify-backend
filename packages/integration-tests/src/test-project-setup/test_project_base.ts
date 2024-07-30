@@ -183,6 +183,12 @@ export abstract class TestProjectBase {
       await currentCodebaseBackendOutputClient.getOutput(backendId);
     const npmOutputs = await npmBackendOutputClient.getOutput(backendId);
 
+    console.log(
+      '🪵 currentCodebaseOutputs: ',
+      JSON.stringify(currentCodebaseOutputs, null, 2)
+    );
+    console.log('🪵 npmOutputs: ', JSON.stringify(npmOutputs, null, 2));
+
     assert.deepStrictEqual(currentCodebaseOutputs, npmOutputs);
   }
 }
