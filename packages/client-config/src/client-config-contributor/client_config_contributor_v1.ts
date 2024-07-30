@@ -266,8 +266,8 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
       bucket_name: storageOutput.payload.bucketName,
       buckets: bucketsStringArray.map((b: string) => ({
         name: JSON.parse(b).name,
-        bucket_name: JSON.parse(b).bucketName,
-        aws_region: JSON.parse(b).storageRegion,
+        bucket_name: JSON.parse(b).bucket_name,
+        aws_region: JSON.parse(b).aws_region,
       })),
     };
 
