@@ -9,12 +9,12 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 /**
  * Common Error handling for BackendOutputClient.getOutput() in model-generator package.
  */
-export const getBackendOutputWithErrorHandling = (
+export const getBackendOutputWithErrorHandling = async (
   backendOutputClient: BackendOutputClient,
   backendIdentifier: DeployedBackendIdentifier
 ) => {
   try {
-    return backendOutputClient.getOutput(backendIdentifier);
+    return await backendOutputClient.getOutput(backendIdentifier);
   } catch (error) {
     if (
       error instanceof BackendOutputClientError &&
@@ -25,6 +25,20 @@ export const getBackendOutputWithErrorHandling = (
         {
           message: 'Deployment is currently in progress.',
           resolution: 'Re-run this command once the deployment completes.',
+        },
+        error
+      );
+    }
+    if (
+      error instanceof BackendOutputClientError &&
+      error.code === BackendOutputClientErrorType.NO_STACK_FOUND
+    ) {
+      throw new AmplifyUserError(
+        'StackDoesNotExistError',
+        {
+          message: 'Stack does not exist.',
+          resolution:
+            'Ensure the CloudFormation stack ID or Amplify App ID and branch specified are correct and exists, then re-run this command.',
         },
         error
       );
