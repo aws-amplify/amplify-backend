@@ -155,6 +155,7 @@ const isYargsValidationError = (err?: Error): boolean => {
       'Too many non-option arguments',
       'Missing required argument',
       'Invalid values:',
+      'Missing dependent arguments',
     ].some((message) => err.message.startsWith(message)) ||
       err.message.endsWith('are mutually exclusive'))
   );

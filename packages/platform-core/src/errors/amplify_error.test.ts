@@ -159,6 +159,7 @@ void describe('AmplifyError.fromError', async () => {
       new Error('Not enough non-option arguments: got 2, need at least 4'),
       new Error('Invalid values: Arguments: a, Given: n, Choices: [b, c, d]'),
       new Error('Arguments a and b are mutually exclusive'),
+      new Error('Missing dependent arguments: branch -> appId'),
     ];
     yargsErrors.forEach((error) => {
       const actual = AmplifyError.fromError(error);
