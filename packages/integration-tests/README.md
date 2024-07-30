@@ -25,3 +25,10 @@ This include setting environment variables for a default profile.
 
 To run this suite, run
 `npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js`
+
+## backend-output tests
+
+The backend-output e2e suite compares outputs from current codebase backend client to the backend client released on npm.
+
+To run this suite, run
+`npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js`

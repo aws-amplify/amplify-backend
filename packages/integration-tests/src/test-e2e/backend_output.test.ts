@@ -22,6 +22,7 @@ import { IAMClient } from '@aws-sdk/client-iam';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { DataStorageAuthWithTriggerTestProjectCreator } from '../test-project-setup/data_storage_auth_with_triggers.js';
 import { SQSClient } from '@aws-sdk/client-sqs';
+import { setupDeployedBackendClient } from '../test-project-setup/setup_deployed_backend_client.js';
 
 // Different root test dir to avoid race conditions with e2e deployment tests
 const rootTestDir = fileURLToPath(
@@ -62,6 +63,7 @@ void describe(
         await dataStorageAuthWithTriggerTestProjectCreator.createProject(
           rootTestDir
         );
+      await setupDeployedBackendClient(testProject.projectDirPath);
       testBranch = await amplifyAppPool.createTestBranch();
       branchBackendIdentifier = {
         namespace: testBranch.appId,
@@ -78,6 +80,7 @@ void describe(
       const sharedSecretsEnv = {
         [amplifySharedSecretNameKey]: createAmplifySharedSecretName(),
       };
+
       await testProject.deploy(branchBackendIdentifier, sharedSecretsEnv);
       await testProject.assertPostDeployment(branchBackendIdentifier);
 
