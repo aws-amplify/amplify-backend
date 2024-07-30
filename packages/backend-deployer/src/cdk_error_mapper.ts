@@ -164,6 +164,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /\[TransformError\]: Transform failed with .* error:\n(?<esBuildErrorMessage>.*)/,
+      humanReadableErrorMessage: '{esBuildErrorMessage}',
+      resolutionMessage:
+        'Fix the above mentioned type or syntax error in your backend definition.',
+      errorName: 'ESBuildError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: /Amplify Backend not found in/,
       humanReadableErrorMessage:
         'Backend definition could not be found in amplify directory.',
