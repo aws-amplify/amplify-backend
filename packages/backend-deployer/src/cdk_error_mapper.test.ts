@@ -132,6 +132,15 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: `[esbuild Error]: Expected identifier but found ")"\n      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
   },
   {
+    errorMessage: `Error [TransformError]: Transform failed with 1 error:
+/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"
+    at failureErrorWithLog (/Users/user/work-space/amplify-app/node_modules/tsx/node_modules/esbuild/lib/main.js:1472:15)`,
+    expectedTopLevelErrorMessage:
+      '/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"',
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     errorMessage: `some rubbish before
 Error: some cdk synth error
     at lookup (/some_random/path.js:1:3005)
