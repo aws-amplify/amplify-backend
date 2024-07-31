@@ -18,9 +18,6 @@ import { IConstruct } from 'constructs';
 export class AmplifyStorageFactory
   implements ConstructFactory<ResourceProvider<StorageResources>>
 {
-  static hasDefault = false;
-  static factoryCounter = 0;
-  static validated = false;
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -29,18 +26,7 @@ export class AmplifyStorageFactory
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
     private readonly importStack = new Error().stack
-  ) {
-    AmplifyStorageFactory.factoryCounter++;
-    if (this.props.isDefault && !AmplifyStorageFactory.hasDefault) {
-      AmplifyStorageFactory.hasDefault = true;
-    } else if (this.props.isDefault && AmplifyStorageFactory.hasDefault) {
-      throw new AmplifyUserError('MultipleDefaultBucketError', {
-        message: 'More than one default buckets set in the Amplify project.',
-        resolution:
-          'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
-      });
-    }
-  }
+  ) {}
 
   /**
    * Get a singleton instance of the Bucket
@@ -81,45 +67,52 @@ export class StorageValidator implements IAspect {
    * Constructs a new instance of the StorageValidator class.
    * @param stack The stack to validate.
    */
-  constructor(private readonly stack: IConstruct) {}
+  constructor(private readonly stack: Stack) {}
   /**
    * Visit method to perform validation on the given node.
    * @param node The IConstruct node to visit.
    */
   public visit(node: IConstruct): void {
-    if (!(node instanceof AmplifyStorage) || AmplifyStorageFactory.validated) {
+    if (!(node instanceof AmplifyStorage)) {
       return;
     }
+
+    let storageCount = 0;
+    let hasDefault = false;
+    this.stack.node.children.forEach((child) => {
+      if (!(child instanceof AmplifyStorage)) {
+        return;
+      }
+      storageCount++;
+      if (child.isDefault && !hasDefault) {
+        hasDefault = true;
+      } else if (child.isDefault && hasDefault) {
+        throw new AmplifyUserError('MultipleDefaultBucketError', {
+          message: 'More than one default buckets set in the Amplify project.',
+          resolution:
+            'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
+        });
+      }
+    });
     /*
      * If there is no default bucket set and there is only one bucket,
      * meaning it's never gone through StackMetadataBackendOutputStorageStrategy method addBackendOutputEntry,
      * so we need to add the bucket name and region to the stack outputs.
      */
-    if (
-      !AmplifyStorageFactory.hasDefault &&
-      AmplifyStorageFactory.factoryCounter === 1
-    ) {
-      const parentStack = Stack.of(
-        node.resources.cfnResources.cfnBucket.stack
-          .nestedStackParent as IConstruct
-      );
+    if (!hasDefault && storageCount === 1) {
+      const parentStack = this.stack.nestedStackParent || this.stack;
       new CfnOutput(parentStack, 'bucketName', {
         value: node.resources.bucket.bucketName,
       });
       new CfnOutput(parentStack, 'storageRegion', {
         value: node.resources.bucket.stack.region,
       });
-    } else if (
-      !AmplifyStorageFactory.hasDefault &&
-      AmplifyStorageFactory.factoryCounter > 1
-    ) {
+    } else if (!hasDefault && storageCount > 1) {
       throw new AmplifyUserError('NoDefaultBucketError', {
         message: 'No default bucket set in the Amplify project.',
         resolution:
           'Add `isDefault: true` to one of the `defineStorage` calls in your Amplify project.',
       });
-    } else {
-      AmplifyStorageFactory.validated = true;
     }
   }
 }

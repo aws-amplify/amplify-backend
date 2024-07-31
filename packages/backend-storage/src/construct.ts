@@ -86,11 +86,13 @@ export class AmplifyStorage
   implements ResourceProvider<StorageResources>
 {
   readonly resources: StorageResources;
+  readonly isDefault: boolean;
   /**
    * Create a new AmplifyStorage instance
    */
   constructor(scope: Construct, id: string, props: AmplifyStorageProps) {
     super(scope, id);
+    this.isDefault = props.isDefault || false;
 
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,

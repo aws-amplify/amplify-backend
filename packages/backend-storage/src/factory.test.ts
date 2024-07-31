@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyStorageFactory, defineStorage } from './factory.js';
+import { defineStorage } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -41,7 +41,6 @@ let getInstanceProps: ConstructFactoryGetInstanceProps;
 
 void describe('AmplifyStorageFactory', () => {
   beforeEach(() => {
-    AmplifyStorageFactory.factoryCounter = 0;
     storageFactory = defineStorage({ name: 'testName' });
     const stack = createStackAndSetContext();
 
@@ -142,7 +141,6 @@ void describe('AmplifyStorageFactory', () => {
 
 void describe('AmplifyStorageFactory', () => {
   beforeEach(() => {
-    AmplifyStorageFactory.factoryCounter = 0;
     const stack = createStackAndSetContext();
 
     constructContainer = new ConstructContainerStub(
