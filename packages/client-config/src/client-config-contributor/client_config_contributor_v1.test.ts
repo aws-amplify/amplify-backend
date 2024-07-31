@@ -538,8 +538,8 @@ void describe('storage client config contributor v1', () => {
     const buckets = JSON.stringify([
       JSON.stringify({
         name: 'testName',
-        bucket_name: 'testBucketName',
-        aws_region: 'testRegion',
+        bucketName: 'testBucketName',
+        storageRegion: 'testRegion',
       }),
     ]);
     assert.deepStrictEqual(
