@@ -21,6 +21,7 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { StorageResources } from './construct.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -32,6 +33,7 @@ const createStackAndSetContext = (): Stack => {
 };
 
 let storageFactory: ConstructFactory<ResourceProvider<StorageResources>>;
+let storageFactory2: ConstructFactory<ResourceProvider<StorageResources>>;
 let constructContainer: ConstructContainer;
 let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
 let importPathVerifier: ImportPathVerifier;
@@ -140,8 +142,9 @@ void describe('AmplifyStorageFactory', () => {
 });
 
 void describe('AmplifyStorageFactory', () => {
+  let stack: Stack;
   beforeEach(() => {
-    const stack = createStackAndSetContext();
+    stack = createStackAndSetContext();
 
     constructContainer = new ConstructContainerStub(
       new StackResolverStub(stack)
@@ -165,9 +168,39 @@ void describe('AmplifyStorageFactory', () => {
 
   void it('if more than one default bucket, throw', () => {
     storageFactory = defineStorage({ name: 'testName', isDefault: true });
+    storageFactory2 = defineStorage({ name: 'testName2', isDefault: true });
+    storageFactory.getInstance(getInstanceProps);
 
-    assert.throws(() => defineStorage({ name: 'testName', isDefault: true }), {
-      message: 'More than one default buckets set in the Amplify project.',
-    });
+    assert.throws(
+      () => storageFactory2.getInstance(getInstanceProps),
+      new AmplifyUserError('MultipleDefaultBucketError', {
+        message: 'More than one default buckets set in the Amplify project.',
+        resolution:
+          'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
+      })
+    );
+  });
+
+  void it('if there is no default bucket among buckets, throw', () => {
+    storageFactory = defineStorage({ name: 'testName' });
+    storageFactory2 = defineStorage({ name: 'testName2' });
+    storageFactory.getInstance(getInstanceProps);
+    storageFactory2.getInstance(getInstanceProps);
+
+    assert.throws(
+      () => Template.fromStack(stack),
+      new AmplifyUserError('NoDefaultBucketError', {
+        message: 'No default bucket set in the Amplify project.',
+        resolution:
+          'Add `isDefault: true` to one of the `defineStorage` calls in your Amplify project.',
+      })
+    );
+  });
+
+  void it('if there is no default bucket for one bucket, ok', () => {
+    storageFactory = defineStorage({ name: 'testName' });
+    storageFactory.getInstance(getInstanceProps);
+
+    assert.ok(Template.fromStack(stack));
   });
 });

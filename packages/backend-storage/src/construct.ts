@@ -25,6 +25,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
@@ -161,13 +162,21 @@ export class AmplifyStorage
     name: string = ''
   ): void => {
     if (isDefault) {
-      outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
-        version: '1',
-        payload: {
-          storageRegion: Stack.of(this).region,
-          bucketName: this.resources.bucket.bucketName,
-        },
-      });
+      try {
+        outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
+          version: '1',
+          payload: {
+            storageRegion: Stack.of(this).region,
+            bucketName: this.resources.bucket.bucketName,
+          },
+        });
+      } catch (error) {
+        throw new AmplifyUserError('MultipleDefaultBucketError', {
+          message: `More than one default buckets set in the Amplify project.`,
+          resolution:
+            'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
+        });
+      }
     }
 
     // both default and non-default buckets should have the name, bucket name, and storage region stored in `buckets` field
