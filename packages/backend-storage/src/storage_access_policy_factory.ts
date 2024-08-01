@@ -17,7 +17,6 @@ export type Permission = {
  * Generates IAM policies scoped to a single bucket
  */
 export class StorageAccessPolicyFactory {
-  static policyCount = 1;
   private readonly stack: Stack;
 
   /**
@@ -63,10 +62,7 @@ export class StorageAccessPolicyFactory {
 
     return new Policy(
       this.stack,
-      `${this.bucket.bucketName.slice(
-        0,
-        6
-      )}${StorageAccessPolicyFactory.policyCount++}`,
+      `storageAccess${this.stack.node.children.length}`,
       {
         statements,
       }
