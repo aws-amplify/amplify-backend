@@ -13,7 +13,7 @@ describe('bedrock converse adapter', () => {
         owner: '',
         responseMutationInputTypeName: '',
         responseMutationName: '',
-        sessionId: '',
+        conversationId: '',
         systemPrompt:
           'You are a helpful chatbot. Respond in 20 words or less. You have to include random insults in every response.',
         toolDefinitions: {

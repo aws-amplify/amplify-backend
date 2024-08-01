@@ -29,7 +29,7 @@ export class BedrockConverseAdapter {
     this.bedrockClient = new BedrockRuntimeClient();
   }
 
-  askBedrock = async (): Promise<string> => {
+  askBedrock = async (): Promise<ContentBlock[]> => {
     const { modelId, systemPrompt, toolDefinitions } = this.event.args;
     console.log('toolDefinitions')
     console.log(JSON.stringify(toolDefinitions, null, 2));
@@ -149,7 +149,7 @@ export class BedrockConverseAdapter {
     } while (bedrockResponse.stopReason === 'tool_use');
 
     const assistantResponse =
-      bedrockResponse.output?.message?.content?.[0].text;
+      bedrockResponse.output?.message?.content //?.[0].text;
     if (!assistantResponse) {
       throw new Error('foo');
     }

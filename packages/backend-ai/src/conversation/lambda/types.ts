@@ -1,4 +1,5 @@
 import {
+  Message,
   ToolInputSchema,
   ToolResultContentBlock,
 } from '@aws-sdk/client-bedrock-runtime';
@@ -8,7 +9,7 @@ export type ConversationTurnEvent = {
   typeName: string;
   fieldName: string;
   args: {
-    sessionId: string;
+    conversationId: string;
     content: string;
     owner: string;
     modelId: string;
@@ -17,7 +18,7 @@ export type ConversationTurnEvent = {
     graphqlApiEndpoint: string;
     currentMessageId: string;
     systemPrompt: string;
-    toolDefinitions: Tools;
+    toolDefinitions?: Tools;
   };
   identity: {
     defaultAuthStrategy: 'ALLOW' | 'DENY';
@@ -37,10 +38,7 @@ export type ConversationTurnEvent = {
   };
   prev: {
     result: {
-      items: Array<{
-        role: 'user' | 'assistant';
-        content: { text: string }[];
-      }>;
+      items: Message[];
     };
   };
 };

@@ -69,8 +69,10 @@ export class ConversationTurnEventToolsProvider {
     // TODO here comes logic that maps event tools into our abstraction.
     const { toolDefinitions, graphqlApiEndpoint } = this.event.args;
     const { authorization: authHeader } = this.event.request.headers;
-
-    const tools = toolDefinitions.tools.map((tool) => {
+    if (!toolDefinitions || !toolDefinitions.tools) {
+      return []
+    }
+    const tools = toolDefinitions?.tools?.map((tool) => {
       const { toolSpec } = tool;
       const { name, description, inputSchema } = toolSpec;
 
@@ -105,6 +107,6 @@ export class ConversationTurnEventToolsProvider {
         }
       }
     });
-    return tools;
+    return tools ?? [];
   };
 }
