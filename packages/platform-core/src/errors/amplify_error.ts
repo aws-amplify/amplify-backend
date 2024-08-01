@@ -101,7 +101,10 @@ export abstract class AmplifyError<T extends string = string> extends Error {
   static fromError = (
     error: unknown
   ): AmplifyError<
-    'UnknownFault' | 'CredentialsError' | 'InvalidCommandInputError'
+    | 'UnknownFault'
+    | 'CredentialsError'
+    | 'InvalidCommandInputError'
+    | 'DomainConnectionError'
   > => {
     const errorMessage =
       error instanceof Error
@@ -125,6 +128,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         {
           message: errorMessage,
           resolution: 'Please see the underlying error message for resolution.',
+        },
+        error
+      );
+    }
+    if (error instanceof Error && isENotFoundError(error)) {
+      return new AmplifyUserError(
+        'DomainConnectionError',
+        {
+          message: 'Unable to establish a connection to a domain',
+          resolution:
+            'Ensure domain name is correct and network connection is stable.',
         },
         error
       );
@@ -158,6 +172,10 @@ const isYargsValidationError = (err?: Error): boolean => {
     ].some((message) => err.message.startsWith(message)) ||
       err.message.endsWith('are mutually exclusive'))
   );
+};
+
+const isENotFoundError = (err?: Error): boolean => {
+  return !!err && err.message.startsWith('getaddrinfo ENOTFOUND');
 };
 
 /**
