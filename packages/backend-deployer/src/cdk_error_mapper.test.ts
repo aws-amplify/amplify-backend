@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendDeployerOutputFormatter } from './types.js';
+import { EOL } from 'os';
 
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
@@ -38,13 +39,17 @@ const testErrorMappings = [
     at lookup(/some_random/path.js: 1: 3005)`,
   },
   {
-    errorMessage: `TypeError: Cannot read properties of undefined (reading 'post')
-    at lookup(/some_random/path.js: 1: 3005)`,
+    errorMessage:
+      `TypeError: Cannot read properties of undefined (reading 'post')` +
+      EOL +
+      `    at lookup(/some_random/path.js: 1: 3005)`,
     expectedTopLevelErrorMessage:
       'Unable to build the Amplify backend definition.',
     errorName: 'SyntaxError',
-    expectedDownstreamErrorMessage: `TypeError: Cannot read properties of undefined (reading 'post')
-    at lookup(/some_random/path.js: 1: 3005)`,
+    expectedDownstreamErrorMessage:
+      `TypeError: Cannot read properties of undefined (reading 'post')` +
+      EOL +
+      `    at lookup(/some_random/path.js: 1: 3005)`,
   },
   {
     errorMessage: 'Has the environment been bootstrapped',
@@ -77,11 +82,12 @@ const testErrorMappings = [
   },
   {
     errorMessage:
-      'Overall error message had other stuff before ❌ Deployment failed: something bad happened\n and after',
+      `Overall error message had other stuff before ❌ Deployment failed: something bad happened` +
+      EOL +
+      ` and after`,
     expectedTopLevelErrorMessage: 'The CloudFormation deployment has failed.',
     errorName: 'CloudFormationDeploymentError',
-    expectedDownstreamErrorMessage:
-      '❌ Deployment failed: something bad happened\n',
+    expectedDownstreamErrorMessage: `❌ Deployment failed: something bad happened${EOL}`,
   },
   {
     errorMessage: `Received response status [FAILED] from custom resource. Message returned: Failed to retrieve backend secret 'non-existent-secret' for 'project-name'. Reason: {"cause":{"name":"ParameterNotFound","$fault":"client"},"__type":"ParameterNotFound","message":"UnknownError"},"httpStatusCode":400,"name":"SecretError"}`,
@@ -124,57 +130,89 @@ const testErrorMappings = [
       'Other CLIs (PID=68436) are currently reading from .amplify/artifacts/cdk.out. ',
   },
   {
-    errorMessage: `[esbuild Error]: Expected identifier but found ")"
-      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
+    errorMessage:
+      `[esbuild Error]: Expected identifier but found ")"` +
+      EOL +
+      `      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
     expectedTopLevelErrorMessage:
       'Unable to build the Amplify backend definition.',
     errorName: 'ESBuildError',
-    expectedDownstreamErrorMessage: `[esbuild Error]: Expected identifier but found ")"\n      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
+    expectedDownstreamErrorMessage:
+      `[esbuild Error]: Expected identifier but found ")"` +
+      EOL +
+      `      at /Users/user/work-space/amplify-app/amplify/data/resource.ts:16:0`,
   },
   {
-    errorMessage: `Error [TransformError]: Transform failed with 1 error:
-/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"
-    at failureErrorWithLog (/Users/user/work-space/amplify-app/node_modules/tsx/node_modules/esbuild/lib/main.js:1472:15)`,
+    errorMessage:
+      `Error [TransformError]: Transform failed with 1 error:` +
+      EOL +
+      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"` +
+      EOL +
+      `    at failureErrorWithLog (/Users/user/work-space/amplify-app/node_modules/tsx/node_modules/esbuild/lib/main.js:1472:15)`,
     expectedTopLevelErrorMessage:
       '/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"',
     errorName: 'ESBuildError',
     expectedDownstreamErrorMessage: undefined,
   },
   {
-    errorMessage: `some rubbish before
-Error: some cdk synth error
-    at lookup (/some_random/path.js:1:3005)
-    at lookup2 (/some_random/path2.js:2:3005)`,
+    errorMessage:
+      `some rubbish before` +
+      EOL +
+      `Error: some cdk synth error` +
+      EOL +
+      `    at lookup (/some_random/path.js:1:3005)` +
+      EOL +
+      `    at lookup2 (/some_random/path2.js:2:3005)`,
     expectedTopLevelErrorMessage:
       'Unable to build the Amplify backend definition.',
     errorName: 'BackendSynthError',
-    expectedDownstreamErrorMessage: `Error: some cdk synth error
-    at lookup (/some_random/path.js:1:3005)`,
+    expectedDownstreamErrorMessage:
+      'Error: some cdk synth error' +
+      EOL +
+      '    at lookup (/some_random/path.js:1:3005)',
   },
   {
-    errorMessage: `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts
-      at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)
-      at new NodeError (node:internal/errors:405:5) {
-    url: 'file:///Users/user/work-space/shared_secret.js',
-    code: 'ERR_MODULE_NOT_FOUND'
-  }
-  
-  Node.js v18.19.0`,
+    errorMessage:
+      `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts` +
+      EOL +
+      `      at __node_internal_captureLargerStackTrace (node:internal/errors:496:5)` +
+      EOL +
+      `      at new NodeError (node:internal/errors:405:5) {` +
+      EOL +
+      `    url: 'file:///Users/user/work-space/shared_secret.js',` +
+      EOL +
+      `    code: 'ERR_MODULE_NOT_FOUND'` +
+      EOL +
+      `  }` +
+      EOL +
+      `  ` +
+      EOL +
+      `  Node.js v18.19.0`,
     expectedTopLevelErrorMessage: 'Cannot find module',
     errorName: 'ModuleNotFoundError',
-    expectedDownstreamErrorMessage: `[ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts\n`,
+    expectedDownstreamErrorMessage: `[ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/user/work-space/shared_secret.js' imported from /Users/user/work-space/amplify-app/amplify/function.ts${EOL}`,
   },
   {
-    errorMessage: `Error: node:internal/modules/cjs/loader:1098
-    const err = new Error('Cannot find module ');
-                ^
-  
-  Error: Cannot find module '/Users/user/work-space/amplify/resources/module.ts'
-      at createEsmNotFoundErr (node:internal/modules/cjs/loader:1098:15)
-    code: 'MODULE_NOT_FOUND',
-  }
-  
-  Node.js v18.17.1`,
+    errorMessage:
+      `Error: node:internal/modules/cjs/loader:1098` +
+      EOL +
+      `    const err = new Error('Cannot find module ');` +
+      EOL +
+      `                ^` +
+      EOL +
+      `  ` +
+      EOL +
+      `  Error: Cannot find module '/Users/user/work-space/amplify/resources/module.ts'` +
+      EOL +
+      `      at createEsmNotFoundErr (node:internal/modules/cjs/loader:1098:15)` +
+      EOL +
+      `    code: 'MODULE_NOT_FOUND',` +
+      EOL +
+      `  }` +
+      EOL +
+      `  ` +
+      EOL +
+      `  Node.js v18.17.1`,
     expectedTopLevelErrorMessage: 'Cannot find module',
     errorName: 'ModuleNotFoundError',
     expectedDownstreamErrorMessage: `Error: Cannot find module '/Users/user/work-space/amplify/resources/module.ts'`,
