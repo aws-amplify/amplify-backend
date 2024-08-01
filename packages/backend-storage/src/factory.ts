@@ -52,8 +52,8 @@ export class AmplifyStorageFactory
     const amplifyStorage = constructContainer.getOrCompute(
       this.generator
     ) as AmplifyStorage;
-    Aspects.of(amplifyStorage).add(
-      new StorageValidator(Stack.of(amplifyStorage))
+    Aspects.of(Stack.of(amplifyStorage)).add(
+      new StorageValidator()
     );
     return amplifyStorage;
   };
