@@ -30,13 +30,17 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: 'Access Denied',
   },
   {
-    errorMessage: `ReferenceError: var is not defined
-    at lookup(/some_random/path.js: 1: 3005)`,
+    errorMessage:
+      `ReferenceError: var is not defined` +
+      EOL +
+      `    at lookup(/some_random/path.js: 1: 3005)`,
     expectedTopLevelErrorMessage:
       'Unable to build the Amplify backend definition.',
     errorName: 'SyntaxError',
-    expectedDownstreamErrorMessage: `ReferenceError: var is not defined
-    at lookup(/some_random/path.js: 1: 3005)`,
+    expectedDownstreamErrorMessage:
+      `ReferenceError: var is not defined` +
+      EOL +
+      `    at lookup(/some_random/path.js: 1: 3005)`,
   },
   {
     errorMessage:
