@@ -1,5 +1,11 @@
 # @aws-amplify/backend-auth
 
+## 1.1.1
+
+### Patch Changes
+
+- 8a7e385: update jsdoc for defineAuth access prop, triggers docs link
+
 ## 1.1.0
 
 ### Minor Changes

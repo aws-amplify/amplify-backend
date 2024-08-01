@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.0.4
+
+### Patch Changes
+
+- 2294683: Add missing dependent arguments error in the yargs validations
+
 ## 1.0.3
 
 ### Patch Changes
