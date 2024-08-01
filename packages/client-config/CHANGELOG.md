@@ -1,5 +1,16 @@
 # @aws-amplify/client-config
 
+## 1.1.2
+
+### Patch Changes
+
+- 1aef2c2: wrap CloudFormation client stack does not exist errors in AmplifyUserError
+- Updated dependencies [2294683]
+- Updated dependencies [1aef2c2]
+  - @aws-amplify/platform-core@1.0.4
+  - @aws-amplify/deployed-backend-client@1.2.0
+  - @aws-amplify/model-generator@1.0.3
+
 ## 1.1.1
 
 ### Patch Changes
