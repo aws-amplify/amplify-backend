@@ -5,6 +5,7 @@ import {
   AmplifyUserError,
 } from '@aws-amplify/platform-core';
 import { BackendDeployerOutputFormatter } from './types.js';
+import { EOL } from 'os';
 
 /**
  * Transforms CDK error messages to human readable ones
@@ -109,7 +110,9 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex: /(SyntaxError|ReferenceError|TypeError):((?:.|\n)*?at .*)/,
+      errorRegex: new RegExp(
+        `(SyntaxError|ReferenceError|TypeError):((?:.|${EOL})*?at .*)`
+      ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
       resolutionMessage:
@@ -135,8 +138,9 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex:
-        /\[ERR_MODULE_NOT_FOUND\]:(.*)\n|Error: Cannot find module (.*)/,
+      errorRegex: new RegExp(
+        `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${EOL}|Error: Cannot find module (.*)`
+      ),
       humanReadableErrorMessage: 'Cannot find module',
       resolutionMessage:
         'Check your backend definition in the `amplify` folder for missing file or package imports. Try installing them with your package manager.',
@@ -155,7 +159,7 @@ export class CdkErrorMapper {
     },
     {
       // Also extracts the first line in the stack where the error happened
-      errorRegex: /\[esbuild Error\]: ((?:.|\n)*?at .*)/,
+      errorRegex: new RegExp(`\\[esbuild Error\\]: ((?:.|${EOL})*?at .*)`),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
       resolutionMessage:
@@ -164,8 +168,9 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex:
-        /\[TransformError\]: Transform failed with .* error:\n(?<esBuildErrorMessage>.*)/,
+      errorRegex: new RegExp(
+        `\\[TransformError\\]: Transform failed with .* error:${EOL}(?<esBuildErrorMessage>.*)`
+      ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
         'Fix the above mentioned type or syntax error in your backend definition.',
@@ -213,7 +218,7 @@ export class CdkErrorMapper {
     {
       // Error: .* is printed to stderr during cdk synth
       // Also extracts the first line in the stack where the error happened
-      errorRegex: /^Error: (.*\n.*at.*)/m,
+      errorRegex: new RegExp(`^Error: (.*${EOL}.*at.*)`, 'm'),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
       resolutionMessage:
@@ -243,7 +248,7 @@ export class CdkErrorMapper {
     },
     {
       // Note that the order matters, this should be the last as it captures generic CFN error
-      errorRegex: /❌ Deployment failed: (.*)\n/,
+      errorRegex: new RegExp(`❌ Deployment failed: (.*)${EOL}`),
       humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
       resolutionMessage:
         'Find more information in the CloudFormation AWS Console for this stack.',
