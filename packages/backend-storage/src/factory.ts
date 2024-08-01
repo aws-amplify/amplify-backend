@@ -52,9 +52,7 @@ export class AmplifyStorageFactory
     const amplifyStorage = constructContainer.getOrCompute(
       this.generator
     ) as AmplifyStorage;
-    Aspects.of(Stack.of(amplifyStorage)).add(
-      new StorageValidator()
-    );
+    Aspects.of(Stack.of(amplifyStorage)).add(new StorageValidator());
     return amplifyStorage;
   };
 }
@@ -65,9 +63,8 @@ export class AmplifyStorageFactory
 export class StorageValidator implements IAspect {
   /**
    * Constructs a new instance of the StorageValidator class.
-   * @param stack The stack to validate.
    */
-  constructor(private readonly stack: Stack) {}
+  constructor() {}
   /**
    * Visit method to perform validation on the given node.
    * @param node The IConstruct node to visit.
@@ -76,10 +73,9 @@ export class StorageValidator implements IAspect {
     if (!(node instanceof AmplifyStorage)) {
       return;
     }
-
     let storageCount = 0;
     let hasDefault = false;
-    this.stack.node.children.forEach((child) => {
+    Stack.of(node).node.children.forEach((child) => {
       if (!(child instanceof AmplifyStorage)) {
         return;
       }
@@ -94,7 +90,7 @@ export class StorageValidator implements IAspect {
      * so we need to add the bucket name and region to the stack outputs.
      */
     if (!hasDefault && storageCount === 1) {
-      const parentStack = this.stack.nestedStackParent || this.stack;
+      const parentStack = Stack.of(node).nestedStackParent || Stack.of(node);
       new CfnOutput(parentStack, 'bucketName', {
         value: node.resources.bucket.bucketName,
       });
