@@ -22,5 +22,5 @@ export type ConversationTurnEvent = {
       authorization: string;
     };
   };
-  previousMessages: Array<ConversationMessage>;
+  messages: Array<ConversationMessage>;
 };

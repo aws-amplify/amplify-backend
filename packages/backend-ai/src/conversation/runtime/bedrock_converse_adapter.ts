@@ -24,7 +24,7 @@ export class BedrockConverseAdapter {
   askBedrock = async (): Promise<string> => {
     const { modelId, systemPrompt } = this.event.modelConfiguration;
 
-    const messages: Array<Message> = this.event.previousMessages;
+    const messages: Array<Message> = this.event.messages;
 
     const converseCommandInput: ConverseCommandInput = {
       modelId,

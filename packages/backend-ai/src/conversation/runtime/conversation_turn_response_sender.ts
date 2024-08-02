@@ -2,7 +2,7 @@ import { ConversationTurnEvent } from './types.js';
 
 type AssistantMutationResponseInput = {
   input: {
-    conversationId: string;
+    sessionId: string;
     content: string;
     associatedUserMessageId: string;
   };
@@ -29,7 +29,7 @@ const assistantResponseInput = (
 ): AssistantMutationResponseInput => {
   return {
     input: {
-      conversationId: event.sessionId,
+      sessionId: event.sessionId,
       content,
       associatedUserMessageId: event.currentMessageId,
     },
@@ -75,6 +75,13 @@ export class ConversationTurnResponseSender {
     );
     const request = new Request(graphqlApiEndpoint, options);
     const res = await fetch(request);
-    await res.json();
+    const body = await res.json();
+    console.log(body);
+    if (!res.ok) {
+      throw new Error(`Unable to send response ${JSON.stringify(body)}`);
+    }
+    if (body && typeof body === 'object' && 'errors' in body) {
+      throw new Error(`Unable to send response ${JSON.stringify(body.errors)}`);
+    }
   };
 }

@@ -17,7 +17,8 @@ declare namespace constructs {
 
 declare namespace conversation {
     export {
-        constructs
+        constructs,
+        runtime
     }
 }
 export { conversation }
@@ -37,6 +38,44 @@ type ConversationHandlerFunctionProps = {
         region: string;
     }>;
 };
+
+// @public (undocumented)
+type ConversationMessage = {
+    role: 'user' | 'assistant';
+    content: Array<ConversationMessageContentBlock>;
+};
+
+// @public (undocumented)
+type ConversationMessageContentBlock = {
+    text: string;
+};
+
+// @public (undocumented)
+type ConversationTurnEvent = {
+    sessionId: string;
+    currentMessageId: string;
+    responseMutationName: string;
+    responseMutationInputTypeName: string;
+    graphqlApiEndpoint: string;
+    modelConfiguration: {
+        modelId: string;
+        systemPrompt: string;
+    };
+    request: {
+        headers: {
+            authorization: string;
+        };
+    };
+    messages: Array<ConversationMessage>;
+};
+
+declare namespace runtime {
+    export {
+        ConversationMessage,
+        ConversationMessageContentBlock,
+        ConversationTurnEvent
+    }
+}
 
 // (No @packageDocumentation comment for this package)
 

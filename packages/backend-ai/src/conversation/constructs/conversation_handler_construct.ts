@@ -59,7 +59,7 @@ export class ConversationHandlerFunction
             identifiers: [
               new CustomDataIdentifier(
                 'idToken',
-                'e[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*'
+                'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*'
               ),
             ],
           }),

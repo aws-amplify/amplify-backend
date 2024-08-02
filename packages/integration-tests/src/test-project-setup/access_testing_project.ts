@@ -274,7 +274,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
       ).getNewAuthenticatedUserCredentials();
     const appSyncClientForAuthenticatedUser = this.createAppSyncClient(
       clientConfig,
-      authenticatedUserCredentials
+      authenticatedUserCredentials.iamCredentials
     );
 
     // evaluates successfully
