@@ -4,6 +4,40 @@
 
 ```ts
 
+import { Construct } from 'constructs';
+import { FunctionResources } from '@aws-amplify/plugin-types';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
+
+declare namespace constructs {
+    export {
+        ConversationHandlerFunction,
+        ConversationHandlerFunctionProps
+    }
+}
+
+declare namespace conversation {
+    export {
+        constructs
+    }
+}
+export { conversation }
+
+// @public
+class ConversationHandlerFunction extends Construct implements ResourceProvider<FunctionResources> {
+    constructor(scope: Construct, id: string, props: ConversationHandlerFunctionProps);
+    // (undocumented)
+    resources: FunctionResources;
+}
+
+// @public (undocumented)
+type ConversationHandlerFunctionProps = {
+    entry?: string;
+    models: Array<{
+        modelId: string;
+        region: string;
+    }>;
+};
+
 // (No @packageDocumentation comment for this package)
 
 ```
