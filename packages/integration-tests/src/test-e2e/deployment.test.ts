@@ -157,28 +157,30 @@ void describe('deployment tests', { concurrency: testConcurrencyLevel }, () => {
           });
 
           void it(`[${testProjectCreator.name}] hot-swaps a change`, async () => {
-            const processController = ampxCli(
-              ['sandbox', '--dirToWatch', 'amplify'],
-              testProject.projectDirPath,
-              {
-                env: sharedSecretsEnv,
-              }
-            );
-
             const updates = await testProject.getUpdates();
-            for (const update of updates) {
-              processController
-                .do(replaceFiles(update.replacements))
-                .do(ensureDeploymentTimeLessThan(update.deployThresholdSec));
+            if (updates.length > 0) {
+              const processController = ampxCli(
+                ['sandbox', '--dirToWatch', 'amplify'],
+                testProject.projectDirPath,
+                {
+                  env: sharedSecretsEnv,
+                }
+              );
+
+              for (const update of updates) {
+                processController
+                  .do(replaceFiles(update.replacements))
+                  .do(ensureDeploymentTimeLessThan(update.deployThresholdSec));
+              }
+
+              // Execute the process.
+              await processController
+                .do(interruptSandbox())
+                .do(rejectCleanupSandbox())
+                .run();
+
+              await testProject.assertPostDeployment(sandboxBackendIdentifier);
             }
-
-            // Execute the process.
-            await processController
-              .do(interruptSandbox())
-              .do(rejectCleanupSandbox())
-              .run();
-
-            await testProject.assertPostDeployment(sandboxBackendIdentifier);
           });
         });
       });

@@ -1,3 +1,9 @@
+type LockQueueItem = {
+  resolve: (value?: never) => void;
+  timeoutResolve?: (value?: never) => void;
+  timeout?: NodeJS.Timeout;
+};
+
 /**
  * Example usage:
  * const myLock = new AsyncLock();
@@ -17,7 +23,7 @@
  */
 export class AsyncLock {
   private isLocked: boolean;
-  private readonly queue: Array<(value?: never) => void>;
+  private readonly queue: Array<LockQueueItem>;
 
   /**
    * Creates async lock.
@@ -28,34 +34,45 @@ export class AsyncLock {
   }
 
   acquire = async (timeoutMs?: number): Promise<void> => {
+    let queueItem: LockQueueItem;
     const lockPromise = new Promise<void>((resolve) => {
       if (!this.isLocked) {
         this.isLocked = true;
         resolve();
       } else {
-        this.queue.push(resolve);
+        queueItem = {
+          resolve,
+        };
+        this.queue.push(queueItem);
       }
     });
     timeoutMs = timeoutMs ?? this.defaultTimeoutMs;
     if (timeoutMs) {
-      const timeoutPromise = new Promise<void>((resolve, reject) =>
-        setTimeout(
+      const timeoutPromise = new Promise<void>((resolve, reject) => {
+        queueItem.timeoutResolve = resolve;
+        queueItem.timeout = setTimeout(
           () =>
             reject(
               new Error(`Unable to acquire async lock in ${timeoutMs}ms.`)
             ),
           timeoutMs
-        )
-      );
+        );
+      });
       return Promise.race<void>([lockPromise, timeoutPromise]);
     }
     return lockPromise;
   };
 
   release = (): void => {
-    const resolve = this.queue.shift();
-    if (resolve) {
-      resolve();
+    const queueItem = this.queue.shift();
+    if (queueItem) {
+      queueItem.resolve();
+      if (queueItem.timeoutResolve) {
+        // if timeout was set resolve related promise and clear timeout
+        // so that it doesn't block node from exiting.
+        queueItem.timeoutResolve();
+        clearTimeout(queueItem.timeout);
+      }
     } else {
       this.isLocked = false;
     }
