@@ -104,7 +104,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     | 'UnknownFault'
     | 'CredentialsError'
     | 'InvalidCommandInputError'
-    | 'DomainConnectionError'
+    | 'DomainNotFoundError'
   > => {
     const errorMessage =
       error instanceof Error
@@ -134,7 +134,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     }
     if (error instanceof Error && isENotFoundError(error)) {
       return new AmplifyUserError(
-        'DomainConnectionError',
+        'DomainNotFoundError',
         {
           message: 'Unable to establish a connection to a domain',
           resolution:
