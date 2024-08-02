@@ -1,4 +1,5 @@
 import {
+  BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -9,8 +10,13 @@ import { AmplifyStorage, StorageResources } from './construct.js';
 import { AmplifyStorageFactoryProps } from './types.js';
 import { StorageContainerEntryGenerator } from './storage_container_entry_generator.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { Aspects, CfnOutput, IAspect, Stack } from 'aws-cdk-lib';
+import { Aspects, IAspect, Stack } from 'aws-cdk-lib';
 import { IConstruct } from 'constructs';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import {
+  StorageOutput,
+  storageOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
@@ -52,7 +58,22 @@ export class AmplifyStorageFactory
     const amplifyStorage = constructContainer.getOrCompute(
       this.generator
     ) as AmplifyStorage;
-    Aspects.of(Stack.of(amplifyStorage)).add(new StorageValidator());
+
+    const firstStorage = Stack.of(amplifyStorage).node.children.filter(
+      (el) => el instanceof AmplifyStorage
+    )[0] as AmplifyStorage;
+
+    /*
+     * only call Aspects once,
+     * otherwise there will be the an error -
+     * "there is already a construct with name 'storageRegion'"
+     */
+    if (firstStorage.name === this.props.name) {
+      Aspects.of(Stack.of(amplifyStorage)).add(
+        new StorageValidator(getInstanceProps.outputStorageStrategy)
+      );
+    }
+
     return amplifyStorage;
   };
 }
@@ -61,10 +82,16 @@ export class AmplifyStorageFactory
  * StorageValidator class implements the IAspect interface.
  */
 export class StorageValidator implements IAspect {
+  node: IConstruct;
+  outputStorageStrategy;
   /**
    * Constructs a new instance of the StorageValidator class.
    */
-  constructor() {}
+  constructor(
+    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput>
+  ) {
+    this.outputStorageStrategy = outputStorageStrategy;
+  }
   /**
    * Visit method to perform validation on the given node.
    * @param node The IConstruct node to visit.
@@ -73,38 +100,95 @@ export class StorageValidator implements IAspect {
     if (!(node instanceof AmplifyStorage)) {
       return;
     }
-    let storageCount = 0;
+    const storageInstances = Stack.of(node).node.children.filter(
+      (el) => el instanceof AmplifyStorage
+    );
+    const storageCount = storageInstances.length;
+    const firstStorage = Stack.of(node).node.children.filter(
+      (el) => el instanceof AmplifyStorage
+    )[0];
+    if (node !== firstStorage) {
+      return;
+    }
+    this.node = node;
     let hasDefault = false;
+
     Stack.of(node).node.children.forEach((child) => {
       if (!(child instanceof AmplifyStorage)) {
         return;
       }
-      storageCount++;
       if (child.isDefault && !hasDefault) {
         hasDefault = true;
+      } else if (child.isDefault && hasDefault) {
+        throw new AmplifyUserError('MultipleDefaultBucketError', {
+          message: `More than one default buckets set in the Amplify project.`,
+          resolution:
+            'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
+        });
       }
     });
     /*
      * If there is no default bucket set and there is only one bucket,
-     * meaning it's never gone through StackMetadataBackendOutputStorageStrategy method addBackendOutputEntry,
-     * so we need to add the bucket name and region to the stack outputs.
+     * we need to set the bucket as default.
      */
     if (!hasDefault && storageCount === 1) {
-      const parentStack = Stack.of(node).nestedStackParent || Stack.of(node);
-      new CfnOutput(parentStack, 'bucketName', {
-        value: node.resources.bucket.bucketName,
-      });
-      new CfnOutput(parentStack, 'storageRegion', {
-        value: node.resources.bucket.stack.region,
-      });
+      this.storeOutput(
+        this.outputStorageStrategy,
+        true,
+        node.name,
+        node.resources.bucket.bucketName
+      );
     } else if (!hasDefault && storageCount > 1) {
       throw new AmplifyUserError('NoDefaultBucketError', {
         message: 'No default bucket set in the Amplify project.',
         resolution:
           'Add `isDefault: true` to one of the `defineStorage` calls in your Amplify project.',
       });
+    } else {
+      Stack.of(node).node.children.forEach((child) => {
+        if (!(child instanceof AmplifyStorage)) {
+          return;
+        }
+        this.storeOutput(
+          this.outputStorageStrategy,
+          child.isDefault,
+          child.name,
+          child.resources.bucket.bucketName
+        );
+      });
     }
   }
+
+  private storeOutput = (
+    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput> = new StackMetadataBackendOutputStorageStrategy(
+      Stack.of(this.node).nestedStackParent || Stack.of(this.node)
+    ),
+    isDefault: boolean = false,
+    name: string = '',
+    bucketName: string = ''
+  ): void => {
+    if (isDefault) {
+      outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
+        version: '1',
+        payload: {
+          storageRegion: Stack.of(this.node).region,
+          bucketName,
+        },
+      });
+    }
+
+    // both default and non-default buckets should have the name, bucket name, and storage region stored in `buckets` field
+    outputStorageStrategy.appendToBackendOutputList(storageOutputKey, {
+      version: '1',
+      payload: {
+        buckets: JSON.stringify({
+          name,
+          bucketName,
+          storageRegion: Stack.of(this.node).region,
+        }),
+      },
+    });
+  };
 }
 
 /**

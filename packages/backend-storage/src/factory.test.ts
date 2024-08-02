@@ -82,23 +82,6 @@ void describe('AmplifyStorageFactory', () => {
     template.resourceCountIs('AWS::S3::Bucket', 1);
   });
 
-  void it('sets output in storage strategy', () => {
-    const storeOutputMock = mock.fn();
-
-    const outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
-      {
-        addBackendOutputEntry: storeOutputMock,
-        appendToBackendOutputList: storeOutputMock,
-      };
-
-    storageFactory.getInstance({
-      ...getInstanceProps,
-      outputStorageStrategy,
-    });
-
-    assert.strictEqual(storeOutputMock.mock.callCount(), 1);
-  });
-
   void it('verifies constructor import path', () => {
     const importPathVerifier = {
       verify: mock.fn(),
@@ -170,9 +153,10 @@ void describe('AmplifyStorageFactory', () => {
     storageFactory = defineStorage({ name: 'testName', isDefault: true });
     storageFactory2 = defineStorage({ name: 'testName2', isDefault: true });
     storageFactory.getInstance(getInstanceProps);
+    storageFactory2.getInstance(getInstanceProps);
 
     assert.throws(
-      () => storageFactory2.getInstance(getInstanceProps),
+      () => Template.fromStack(stack),
       new AmplifyUserError('MultipleDefaultBucketError', {
         message: 'More than one default buckets set in the Amplify project.',
         resolution:

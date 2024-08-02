@@ -13,19 +13,12 @@ import {
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import {
-  StorageOutput,
-  storageOutputKey,
-} from '@aws-amplify/backend-output-schemas';
+import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
-import {
-  AttributionMetadataStorage,
-  StackMetadataBackendOutputStorageStrategy,
-} from '@aws-amplify/backend-output-storage';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
@@ -88,12 +81,14 @@ export class AmplifyStorage
 {
   readonly resources: StorageResources;
   readonly isDefault: boolean;
+  readonly name: string;
   /**
    * Create a new AmplifyStorage instance
    */
   constructor(scope: Construct, id: string, props: AmplifyStorageProps) {
     super(scope, id);
     this.isDefault = props.isDefault || false;
+    this.name = props.name;
 
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
@@ -131,7 +126,7 @@ export class AmplifyStorage
       },
     };
 
-    this.storeOutput(props.outputStorageStrategy, props.isDefault, props.name);
+    // this.storeOutput(props.outputStorageStrategy, props.isDefault, props.name);
 
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
@@ -149,46 +144,5 @@ export class AmplifyStorage
     handler.addEventSource(
       new S3EventSourceV2(this.resources.bucket, { events })
     );
-  };
-
-  /**
-   * Store storage outputs using provided strategy
-   */
-  private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput> = new StackMetadataBackendOutputStorageStrategy(
-      Stack.of(this)
-    ),
-    isDefault: boolean = false,
-    name: string = ''
-  ): void => {
-    if (isDefault) {
-      try {
-        outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
-          version: '1',
-          payload: {
-            storageRegion: Stack.of(this).region,
-            bucketName: this.resources.bucket.bucketName,
-          },
-        });
-      } catch (error) {
-        throw new AmplifyUserError('MultipleDefaultBucketError', {
-          message: `More than one default buckets set in the Amplify project.`,
-          resolution:
-            'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
-        });
-      }
-    }
-
-    // both default and non-default buckets should have the name, bucket name, and storage region stored in `buckets` field
-    outputStorageStrategy.appendToBackendOutputList(storageOutputKey, {
-      version: '1',
-      payload: {
-        buckets: JSON.stringify({
-          name,
-          bucketName: this.resources.bucket.bucketName,
-          storageRegion: Stack.of(this).region,
-        }),
-      },
-    });
   };
 }
