@@ -29,7 +29,7 @@ import { BackendSecretFetcherFactory } from './engine/backend-secret/backend_sec
 export const secret = (name: string): BackendSecret => {
   // @ts-expect-error - this is a runtime check to prevent client-side usage
   if (typeof window !== 'undefined' || typeof document !== 'undefined') {
-    throw new Error('Secrets are not supported in client-side applications');
+    throw new Error('Secrets are not supported in the browser');
   }
   const secretProviderFactory = new BackendSecretFetcherProviderFactory();
   const secretResourceFactory = new BackendSecretFetcherFactory(
