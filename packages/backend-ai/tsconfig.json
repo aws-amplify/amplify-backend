@@ -1,5 +1,13 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "commonjs",
+    "moduleResolution": "Node",
+    "lib": ["ESnext"],
+    "rootDir": "src",
+    "outDir": "lib",
+    "allowJs": true
+  },
   "references": [{ "path": "../plugin-types" }]
 }
