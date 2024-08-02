@@ -58,6 +58,7 @@
   "fullname",
   "func",
   "geofence",
+  "getaddrinfo",
   "gitignore",
   "gitignored",
   "globals",

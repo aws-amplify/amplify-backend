@@ -158,11 +158,18 @@ export class CDKDeployer implements BackendDeployer {
       await childProcess;
       return cdkOutput;
     } catch (error) {
-      // swallow execa error which is most of the time noise (basically child exited with exit code...)
+      // swallow execa error if the cdk cli ran and produced some stderr.
+      // Most of the time this error is noise(basically child exited with exit code...)
       // bubbling this up to customers add confusion (Customers don't need to know we are running IPC calls
       // and their exit codes printed while sandbox continue to run). Hence we explicitly don't pass error in the cause
       // rather throw the entire stderr for clients to figure out what to do with it.
-      throw new Error(aggregatedStderr);
+      // However if the cdk process didn't run or produced no output, then we have nothing to go on with. So we throw
+      // this error to aid in some debugging.
+      if (aggregatedStderr.trim()) {
+        throw new Error(aggregatedStderr);
+      } else {
+        throw error;
+      }
     }
   };
 

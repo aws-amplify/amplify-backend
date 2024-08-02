@@ -171,4 +171,12 @@ void describe('AmplifyError.fromError', async () => {
       );
     });
   });
+  void it('wraps getaddrinfo ENOTFOUND errors in AmplifyUserError', () => {
+    const error = new Error('getaddrinfo ENOTFOUND some-domain.com');
+    const actual = AmplifyError.fromError(error);
+    assert.ok(
+      actual instanceof AmplifyError && actual.name === 'DomainNotFoundError',
+      `Failed the test for error ${error.message}`
+    );
+  });
 });

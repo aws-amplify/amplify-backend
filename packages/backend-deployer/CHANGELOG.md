@@ -1,5 +1,15 @@
 # @aws-amplify/backend-deployer
 
+## 1.0.3
+
+### Patch Changes
+
+- b3551c2: improve placeholders for cdk error messages
+- 7af1575: fix error mapping regex for host specific newline characters
+- bfd6512: catch and wrap esbuild error from cdk
+- Updated dependencies [2294683]
+  - @aws-amplify/platform-core@1.0.4
+
 ## 1.0.2
 
 ### Patch Changes

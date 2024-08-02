@@ -13,6 +13,7 @@ import {
   PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import { BackendDeployerOutputFormatter } from './types.js';
+import { EOL } from 'os';
 
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
@@ -518,10 +519,14 @@ void describe('invokeCDKCommand', () => {
 
   void it('throws the original synth error if the synth failed but tsc succeeded', async () => {
     // simulate first execa call for synth as throwing error
-    const stderr = `some rubbish before
-Error: some cdk synth error
-    at lookup (/some_random/path.js:1:3005)
-    at lookup2 (/some_random/path2.js:2:3005)`;
+    const stderr =
+      `some rubbish before` +
+      EOL +
+      `Error: some cdk synth error` +
+      EOL +
+      `    at lookup (/some_random/path.js:1:3005)` +
+      EOL +
+      `    at lookup2 (/some_random/path2.js:2:3005)`;
     executeCommandMock.mock.mockImplementation((commandArgs: string[]) => {
       if (commandArgs.includes('synth')) {
         return Promise.reject(new Error(stderr));
@@ -541,8 +546,11 @@ Error: some cdk synth error
           resolution:
             'Check your backend definition in the `amplify` folder for syntax and type errors.',
         },
-        new Error(`Error: some cdk synth error
-    at lookup (/some_random/path.js:1:3005)`)
+        new Error(
+          `Error: some cdk synth error` +
+            EOL +
+            `    at lookup (/some_random/path.js:1:3005)`
+        )
       )
     );
     assert.strictEqual(executeCommandMock.mock.callCount(), 3);
