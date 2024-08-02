@@ -126,8 +126,6 @@ export class AmplifyStorage
       },
     };
 
-    // this.storeOutput(props.outputStorageStrategy, props.isDefault, props.name);
-
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       storageStackType,
