@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-ai",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -22,7 +22,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/plugin-types": "^1.0.1",
-    "@aws-sdk/client-bedrock-runtime": "^3.616.0"
+    "@aws-sdk/client-bedrock-runtime": "^3.622.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.132.0",
