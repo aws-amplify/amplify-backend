@@ -117,11 +117,11 @@ export class StorageValidator implements IAspect {
       if (!(child instanceof AmplifyStorage)) {
         return;
       }
-      if (child.isDefault && !hasDefault) {
-        hasDefault = true;
-      } else if (child.isDefault && hasDefault) {
-        throw new AmplifyUserError('MultipleDefaultStoragesError', {
-          message: `More than one default storages set in the Amplify project.`,
+      if (child.isDefault && !defaultStorageFound) {
+        defaultStorageFound = true;
+      } else if (child.isDefault && defaultStorageFound) {
+        throw new AmplifyUserError('MultipleDefaultStorageError', {
+          message: `More than one default storage set in the Amplify project.`,
           resolution:
             'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
         });
@@ -131,14 +131,14 @@ export class StorageValidator implements IAspect {
      * If there is no default bucket set and there is only one bucket,
      * we need to set the bucket as default.
      */
-    if (!hasDefault && storageCount === 1) {
+    if (!defaultStorageFound && storageCount === 1) {
       this.storeOutput(
         this.outputStorageStrategy,
         true,
         node.name,
         node.resources.bucket.bucketName
       );
-    } else if (!hasDefault && storageCount > 1) {
+    } else if (!defaultStorageFound && storageCount > 1) {
       throw new AmplifyUserError('NoDefaultBucketError', {
         message: 'No default bucket set in the Amplify project.',
         resolution:
