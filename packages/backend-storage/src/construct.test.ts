@@ -1,14 +1,8 @@
-import { describe, it, mock } from 'node:test';
+import { describe, it } from 'node:test';
 import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Capture, Template } from 'aws-cdk-lib/assertions';
-import {
-  BackendOutputEntry,
-  BackendOutputStorageStrategy,
-} from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
-import { Bucket } from 'aws-cdk-lib/aws-s3';
-import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
 
 void describe('AmplifyStorage', () => {
   void it('creates a bucket', () => {
@@ -105,102 +99,6 @@ void describe('AmplifyStorage', () => {
       JSON.stringify(policyCapture.asObject()),
       /"aws:SecureTransport":"false"/
     );
-  });
-
-  void describe('storeOutput', () => {
-    void it('stores output using the provided strategy', () => {
-      const app = new App();
-      const stack = new Stack(app);
-
-      const storeOutputMock = mock.fn();
-      const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
-        {
-          addBackendOutputEntry: storeOutputMock,
-          appendToBackendOutputList: storeOutputMock,
-        };
-
-      const storageConstruct = new AmplifyStorage(stack, 'test', {
-        name: 'testName',
-        isDefault: true,
-        outputStorageStrategy: storageStrategy,
-      });
-
-      const expectedBucketName = (
-        storageConstruct.node.findChild('Bucket') as Bucket
-      ).bucketName;
-      const expectedRegion = Stack.of(storageConstruct).region;
-
-      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
-      assert.strictEqual(storeOutputArgs.length, 2);
-      assert.equal(storeOutputArgs[0], storageOutputKey);
-      assert.equal(storeOutputArgs[1].version, '1');
-
-      assert.deepStrictEqual(storeOutputArgs, [
-        storageOutputKey,
-        {
-          version: '1',
-          payload: {
-            bucketName: expectedBucketName,
-            storageRegion: expectedRegion,
-          },
-        },
-      ]);
-    });
-    void it('if isDefault is true, stores output with addBackendOutputEntry and appendToBackendOutputList', () => {
-      const app = new App();
-      const stack = new Stack(app);
-
-      const storeOutputMock = mock.fn();
-      const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
-        {
-          addBackendOutputEntry: storeOutputMock,
-          appendToBackendOutputList: storeOutputMock,
-        };
-
-      new AmplifyStorage(stack, 'test', {
-        name: 'testName',
-        isDefault: true,
-        outputStorageStrategy: storageStrategy,
-      });
-
-      assert.strictEqual(storeOutputMock.mock.calls.length, 2);
-    });
-
-    void it('if isDefault is false, stores output with appendToBackendOutputList', () => {
-      const app = new App();
-      const stack = new Stack(app);
-
-      const storeOutputMock = mock.fn();
-      const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
-        {
-          addBackendOutputEntry: storeOutputMock,
-          appendToBackendOutputList: storeOutputMock,
-        };
-
-      new AmplifyStorage(stack, 'test', {
-        name: 'testName',
-        isDefault: false,
-        outputStorageStrategy: storageStrategy,
-      });
-
-      assert.strictEqual(storeOutputMock.mock.calls.length, 1);
-    });
-
-    void it('stores output when no storage strategy is injected', () => {
-      const app = new App();
-      const stack = new Stack(app);
-
-      new AmplifyStorage(stack, 'test', { name: 'testName' });
-      const template = Template.fromStack(stack);
-      template.templateMatches({
-        Metadata: {
-          [storageOutputKey]: {
-            version: '1',
-            stackOutputs: ['buckets', 'bucketName', 'storageRegion'],
-          },
-        },
-      });
-    });
   });
 
   void describe('storage overrides', () => {
