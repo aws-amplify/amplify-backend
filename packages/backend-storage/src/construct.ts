@@ -28,8 +28,8 @@ export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 export type AmplifyStorageProps = {
   /**
    * Whether this storage resource is the default storage resource for the backend.
-   * required if there's multiple bucket.
-   * @default false (if there's multiple bucket) or @default true (if there's only one)
+   * required and relevant only if there are multiple storage resources defined.
+   * @default false.
    */
   isDefault?: boolean;
   /**
