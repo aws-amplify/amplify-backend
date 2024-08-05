@@ -68,9 +68,11 @@ export class AsyncLock {
     if (queueItem) {
       queueItem.resolve();
       if (queueItem.timeoutResolve) {
+        // if timeout was set resolve related promise and clear timeout
+        // so that it doesn't block node from exiting.
         queueItem.timeoutResolve();
+        clearTimeout(queueItem.timeout);
       }
-      clearTimeout(queueItem.timeout);
     } else {
       this.isLocked = false;
     }
