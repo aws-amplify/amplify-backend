@@ -144,8 +144,8 @@ export class StorageOutputsAspect implements IAspect {
         node.resources.bucket.bucketName
       );
     } else if (!defaultStorageFound && storageCount > 1) {
-      throw new AmplifyUserError('NoDefaultBucketError', {
-        message: 'No default bucket set in the Amplify project.',
+      throw new AmplifyUserError('NoDefaultStorageError', {
+        message: 'No default storage set in the Amplify project.',
         resolution:
           'Add `isDefault: true` to one of the `defineStorage` calls in your Amplify project.',
       });
