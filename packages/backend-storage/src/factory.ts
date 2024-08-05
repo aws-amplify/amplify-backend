@@ -111,7 +111,7 @@ export class StorageValidator implements IAspect {
       return;
     }
     this.node = node;
-    let hasDefault = false;
+    let defaultStorageFound = false;
 
     Stack.of(node).node.children.forEach((child) => {
       if (!(child instanceof AmplifyStorage)) {
