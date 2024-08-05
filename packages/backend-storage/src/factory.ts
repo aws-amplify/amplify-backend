@@ -79,6 +79,7 @@ export class AmplifyStorageFactory
  * StorageValidator class implements the IAspect interface.
  */
 export class StorageOutputsAspect implements IAspect {
+  isStorageProcessed = false;
   node: IConstruct;
   outputStorageStrategy;
   /**
@@ -103,18 +104,16 @@ export class StorageOutputsAspect implements IAspect {
       (el) => el instanceof AmplifyStorage
     );
     const storageCount = storageInstances.length;
-    const firstStorage = Stack.of(node).node.children.filter(
-      (el) => el instanceof AmplifyStorage
-    )[0];
 
     /**
      * only store traverse the siblings once to store the outputs,
      * otherwise there will be the an error -
      * "there is already a construct with name 'storageRegion'"
      */
-    if (node !== firstStorage) {
+    if (this.isStorageProcessed) {
       return;
     }
+    this.isStorageProcessed = true;
     this.node = node;
     let defaultStorageFound = false;
 
