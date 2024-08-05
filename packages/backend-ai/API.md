@@ -60,6 +60,7 @@ type ConversationTurnEvent = {
     modelConfiguration: {
         modelId: string;
         systemPrompt: string;
+        region?: string;
     };
     request: {
         headers: {
@@ -69,11 +70,15 @@ type ConversationTurnEvent = {
     messages: Array<ConversationMessage>;
 };
 
+// @public
+const handleConversationTurnEvent: (event: ConversationTurnEvent) => Promise<void>;
+
 declare namespace runtime {
     export {
         ConversationMessage,
         ConversationMessageContentBlock,
-        ConversationTurnEvent
+        ConversationTurnEvent,
+        handleConversationTurnEvent
     }
 }
 

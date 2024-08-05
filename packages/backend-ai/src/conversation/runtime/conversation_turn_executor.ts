@@ -9,23 +9,32 @@ export class ConversationTurnExecutor {
   /**
    * TODO docs
    */
-  constructor(private readonly event: ConversationTurnEvent) {}
+  constructor(
+    private readonly event: ConversationTurnEvent,
+    private readonly bedrockConverseAdapter = new BedrockConverseAdapter(event),
+    private readonly responseSender = new ConversationTurnResponseSender(event)
+  ) {}
 
   execute = async (): Promise<void> => {
     console.log(
       `Handling conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
     );
 
-    const assistantResponse = await new BedrockConverseAdapter(
-      this.event
-    ).askBedrock();
+    const assistantResponse = await this.bedrockConverseAdapter.askBedrock();
 
-    await new ConversationTurnResponseSender(this.event).respond(
-      assistantResponse
-    );
+    await this.responseSender.sendResponse(assistantResponse);
 
     console.log(
       `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
     );
   };
 }
+
+/**
+ * TODO docs
+ */
+export const handleConversationTurnEvent = async (
+  event: ConversationTurnEvent
+): Promise<void> => {
+  await new ConversationTurnExecutor(event).execute();
+};

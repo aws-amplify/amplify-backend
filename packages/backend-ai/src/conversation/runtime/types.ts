@@ -16,6 +16,7 @@ export type ConversationTurnEvent = {
   modelConfiguration: {
     modelId: string;
     systemPrompt: string;
+    region?: string;
   };
   request: {
     headers: {

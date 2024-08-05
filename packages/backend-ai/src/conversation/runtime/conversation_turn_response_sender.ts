@@ -1,7 +1,7 @@
 import { ConversationTurnEvent } from './types.js';
 import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 
-type AssistantMutationResponseInput = {
+type MutationResponseInput = {
   input: {
     conversationId: string;
     content: ContentBlock[];
@@ -9,39 +9,43 @@ type AssistantMutationResponseInput = {
   };
 };
 
-const assistantResponseRequestOptions = (
-  authHeader: string,
-  query: string,
-  variables: AssistantMutationResponseInput
-): RequestInit => {
-  return {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/graphql',
-      Authorization: authHeader,
-    },
-    body: JSON.stringify({ query, variables }),
-  };
-};
+/**
+ * TODO docs
+ */
+export class ConversationTurnResponseSender {
+  /**
+   * TODO docs
+   */
+  constructor(
+    private readonly event: ConversationTurnEvent,
+    private readonly _fetch = fetch
+  ) {}
 
-const assistantResponseInput = (
-  event: ConversationTurnEvent,
-  content: ContentBlock[]
-): AssistantMutationResponseInput => {
-  return {
-    input: {
-      conversationId: event.conversationId,
-      content,
-      associatedUserMessageId: event.currentMessageId,
-    },
+  sendResponse = async (message: ContentBlock[]) => {
+    const request = this.createMutationRequest(message);
+    const res = await this._fetch(request);
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(
+        `Assistant response mutation request was not successful response headers=${JSON.stringify(
+          res.headers
+        )}, body=${body}`
+      );
+    }
+    const body = await res.json();
+    if (body && typeof body === 'object' && 'errors' in body) {
+      throw new Error(
+        `Assistant response mutation request was not successful response headers=${JSON.stringify(
+          res.headers
+        )}, body=${JSON.stringify(body)}`
+      );
+    }
   };
-};
 
-const assistantResponseMutation = (event: ConversationTurnEvent): string => {
-  const { responseMutationInputTypeName, responseMutationName } = event;
-  return `
-        mutation PublishModelResponse($input: ${responseMutationInputTypeName}!) {
-            ${responseMutationName}(input: $input) {
+  private createMutationRequest = (content: ContentBlock[]) => {
+    const query = `
+        mutation PublishModelResponse($input: ${this.event.responseMutationInputTypeName}!) {
+            ${this.event.responseMutationName}(input: $input) {
                 id
                 conversationId
                 content
@@ -52,37 +56,20 @@ const assistantResponseMutation = (event: ConversationTurnEvent): string => {
             }
         }
     `;
-};
-
-/**
- * TODO docs
- */
-export class ConversationTurnResponseSender {
-  /**
-   * TODO docs
-   */
-  constructor(private readonly event: ConversationTurnEvent) {}
-
-  respond = async (message: ContentBlock[]) => {
-    const authHeader = this.event.request.headers.authorization;
-    const { graphqlApiEndpoint } = this.event;
-    // Construct mutation event sending assistant response to AppSync
-    const query = assistantResponseMutation(this.event);
-    const variables = assistantResponseInput(this.event, message);
-    const options = assistantResponseRequestOptions(
-      authHeader,
-      query,
-      variables
-    );
-    const request = new Request(graphqlApiEndpoint, options);
-    const res = await fetch(request);
-    const body = await res.json();
-    console.log(body);
-    if (!res.ok) {
-      throw new Error(`Unable to send response ${JSON.stringify(body)}`);
-    }
-    if (body && typeof body === 'object' && 'errors' in body) {
-      throw new Error(`Unable to send response ${JSON.stringify(body.errors)}`);
-    }
+    const variables: MutationResponseInput = {
+      input: {
+        conversationId: this.event.conversationId,
+        content,
+        associatedUserMessageId: this.event.currentMessageId,
+      },
+    };
+    return new Request(this.event.graphqlApiEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/graphql',
+        Authorization: this.event.request.headers.authorization,
+      },
+      body: JSON.stringify({ query, variables }),
+    });
   };
 }

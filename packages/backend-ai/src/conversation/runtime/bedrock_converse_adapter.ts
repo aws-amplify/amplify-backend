@@ -11,16 +11,15 @@ import { ConversationTurnEvent } from './types.js';
  * TODO docs
  */
 export class BedrockConverseAdapter {
-  private readonly bedrockClient: BedrockRuntimeClient;
-
   /**
    * TODO docs
    */
-  constructor(private readonly event: ConversationTurnEvent) {
-    // TODO. Region selection may happen at event scope, so
-    // we should make all these lambda components request scoped.
-    this.bedrockClient = new BedrockRuntimeClient();
-  }
+  constructor(
+    private readonly event: ConversationTurnEvent,
+    private readonly bedrockClient: BedrockRuntimeClient = new BedrockRuntimeClient(
+      { region: event.modelConfiguration.region }
+    )
+  ) {}
 
   askBedrock = async (): Promise<ContentBlock[]> => {
     const { modelId, systemPrompt } = this.event.modelConfiguration;
@@ -43,11 +42,6 @@ export class BedrockConverseAdapter {
       messages.push(bedrockResponse.output?.message);
     }
 
-    const assistantResponse = bedrockResponse.output?.message?.content;
-    if (!assistantResponse) {
-      throw new Error('No response from bedrock');
-    }
-
-    return assistantResponse;
+    return bedrockResponse.output?.message?.content ?? [];
   };
 }
