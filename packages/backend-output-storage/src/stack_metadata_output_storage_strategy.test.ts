@@ -75,7 +75,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
         Metadata: {
           TestStorageOutput: {
             version: '1',
-            stackOutputs: ['buckets', 'bucketName', 'storageRegion'],
+            stackOutputs: ['buckets'],
           },
         },
       });
