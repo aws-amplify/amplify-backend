@@ -52,7 +52,7 @@ type ConversationMessageContentBlock = {
 
 // @public (undocumented)
 type ConversationTurnEvent = {
-    sessionId: string;
+    conversationId: string;
     currentMessageId: string;
     responseMutationName: string;
     responseMutationInputTypeName: string;
