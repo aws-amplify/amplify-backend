@@ -120,7 +120,7 @@ export class StorageValidator implements IAspect {
       if (child.isDefault && !hasDefault) {
         hasDefault = true;
       } else if (child.isDefault && hasDefault) {
-        throw new AmplifyUserError('MultipleDefaultBucketError', {
+        throw new AmplifyUserError('MultipleDefaultStoragesError', {
           message: `More than one default storages set in the Amplify project.`,
           resolution:
             'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
