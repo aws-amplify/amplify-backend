@@ -59,18 +59,15 @@ export class AmplifyStorageFactory
       this.generator
     ) as AmplifyStorage;
 
-    const firstStorage = Stack.of(amplifyStorage).node.children.filter(
-      (el) => el instanceof AmplifyStorage
-    )[0] as AmplifyStorage;
-
     /*
      * only call Aspects once,
      * otherwise there will be the an error -
      * "there is already a construct with name 'storageRegion'"
      */
-    if (firstStorage.name === this.props.name) {
-      Aspects.of(Stack.of(amplifyStorage)).add(
-        new StorageValidator(getInstanceProps.outputStorageStrategy)
+    const aspects = Aspects.of(Stack.of(amplifyStorage));
+    if (!aspects.all.length) {
+      aspects.add(
+        new StorageOutputsAspect(getInstanceProps.outputStorageStrategy)
       );
     }
 
@@ -81,7 +78,7 @@ export class AmplifyStorageFactory
 /**
  * StorageValidator class implements the IAspect interface.
  */
-export class StorageValidator implements IAspect {
+export class StorageOutputsAspect implements IAspect {
   node: IConstruct;
   outputStorageStrategy;
   /**
@@ -92,9 +89,11 @@ export class StorageValidator implements IAspect {
   ) {
     this.outputStorageStrategy = outputStorageStrategy;
   }
+
   /**
-   * Visit method to perform validation on the given node.
-   * @param node The IConstruct node to visit.
+   * Visit the given node.
+   * If the node is an AmplifyStorage construct, we will traverse its siblings in the same stack
+   * @param node The node to visit.
    */
   public visit(node: IConstruct): void {
     if (!(node instanceof AmplifyStorage)) {
@@ -107,6 +106,12 @@ export class StorageValidator implements IAspect {
     const firstStorage = Stack.of(node).node.children.filter(
       (el) => el instanceof AmplifyStorage
     )[0];
+
+    /**
+     * only store traverse the siblings once to store the outputs,
+     * otherwise there will be the an error -
+     * "there is already a construct with name 'storageRegion'"
+     */
     if (node !== firstStorage) {
       return;
     }
