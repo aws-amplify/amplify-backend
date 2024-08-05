@@ -8,7 +8,7 @@ export type ConversationMessageContentBlock = {
 };
 
 export type ConversationTurnEvent = {
-  sessionId: string;
+  conversationId: string;
   currentMessageId: string;
   responseMutationName: string;
   responseMutationInputTypeName: string;

@@ -13,7 +13,7 @@ export class ConversationTurnExecutor {
 
   execute = async (): Promise<void> => {
     console.log(
-      `Handling conversation turn event, currentMessageId=${this.event.currentMessageId}, sessionId=${this.event.sessionId}`
+      `Handling conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
     );
 
     const assistantResponse = await new BedrockConverseAdapter(
@@ -25,7 +25,7 @@ export class ConversationTurnExecutor {
     );
 
     console.log(
-      `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, sessionId=${this.event.sessionId}`
+      `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
     );
   };
 }

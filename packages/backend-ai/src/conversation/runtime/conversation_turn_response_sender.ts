@@ -1,9 +1,10 @@
 import { ConversationTurnEvent } from './types.js';
+import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 
 type AssistantMutationResponseInput = {
   input: {
-    sessionId: string;
-    content: string;
+    conversationId: string;
+    content: ContentBlock[];
     associatedUserMessageId: string;
   };
 };
@@ -25,11 +26,11 @@ const assistantResponseRequestOptions = (
 
 const assistantResponseInput = (
   event: ConversationTurnEvent,
-  content: string
+  content: ContentBlock[]
 ): AssistantMutationResponseInput => {
   return {
     input: {
-      sessionId: event.sessionId,
+      conversationId: event.conversationId,
       content,
       associatedUserMessageId: event.currentMessageId,
     },
@@ -42,7 +43,7 @@ const assistantResponseMutation = (event: ConversationTurnEvent): string => {
         mutation PublishModelResponse($input: ${responseMutationInputTypeName}!) {
             ${responseMutationName}(input: $input) {
                 id
-                sessionId
+                conversationId
                 content
                 sender
                 owner
@@ -62,7 +63,7 @@ export class ConversationTurnResponseSender {
    */
   constructor(private readonly event: ConversationTurnEvent) {}
 
-  respond = async (message: string) => {
+  respond = async (message: ContentBlock[]) => {
     const authHeader = this.event.request.headers.authorization;
     const { graphqlApiEndpoint } = this.event;
     // Construct mutation event sending assistant response to AppSync

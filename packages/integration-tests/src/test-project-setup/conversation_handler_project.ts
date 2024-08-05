@@ -144,7 +144,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
 
     // send event
     const event: ConversationTurnEvent = {
-      sessionId: randomUUID().toString(),
+      conversationId: randomUUID().toString(),
       currentMessageId: randomUUID().toString(),
       graphqlApiEndpoint: clientConfig.data.url,
       messages: [
@@ -158,7 +158,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
         },
       ],
       request: {
-        headers: { authorization: authenticatedUserCredentials.idToken },
+        headers: { authorization: authenticatedUserCredentials.accessToken },
       },
       responseMutationInputTypeName:
         'CreateConversationMessageAssistantResponseInput',
@@ -183,7 +183,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
         region: clientConfig.data.aws_region,
         auth: {
           type: AUTH_TYPE.AMAZON_COGNITO_USER_POOLS,
-          jwtToken: authenticatedUserCredentials.idToken,
+          jwtToken: authenticatedUserCredentials.accessToken,
         },
       }),
       // see https://github.com/awslabs/aws-mobile-appsync-sdk-js/issues/473#issuecomment-543029072
@@ -205,7 +205,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
         query ListMessages {
           listConversationMessageAssistantResponses {
             items {
-              sessionId
+              conversationId
               sender
               id
               updatedAt

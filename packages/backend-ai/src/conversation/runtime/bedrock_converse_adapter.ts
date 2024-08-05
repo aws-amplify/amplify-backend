@@ -1,5 +1,6 @@
 import {
   BedrockRuntimeClient,
+  ContentBlock,
   ConverseCommand,
   ConverseCommandInput,
   Message,
@@ -21,7 +22,7 @@ export class BedrockConverseAdapter {
     this.bedrockClient = new BedrockRuntimeClient();
   }
 
-  askBedrock = async (): Promise<string> => {
+  askBedrock = async (): Promise<ContentBlock[]> => {
     const { modelId, systemPrompt } = this.event.modelConfiguration;
 
     const messages: Array<Message> = this.event.messages;
@@ -42,8 +43,7 @@ export class BedrockConverseAdapter {
       messages.push(bedrockResponse.output?.message);
     }
 
-    const assistantResponse =
-      bedrockResponse.output?.message?.content?.[0].text;
+    const assistantResponse = bedrockResponse.output?.message?.content;
     if (!assistantResponse) {
       throw new Error('No response from bedrock');
     }

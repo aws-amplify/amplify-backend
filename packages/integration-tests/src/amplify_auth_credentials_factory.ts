@@ -45,7 +45,7 @@ export class AmplifyAuthCredentialsFactory {
 
   getNewAuthenticatedUserCredentials = async (): Promise<{
     iamCredentials: IamCredentials;
-    idToken: string;
+    accessToken: string;
   }> => {
     await this.lock.acquire();
     try {
@@ -94,13 +94,13 @@ export class AmplifyAuthCredentialsFactory {
       if (!authSession.credentials) {
         throw new Error('No credentials in auth session');
       }
-      if (!authSession.tokens?.idToken) {
-        throw new Error('No idToken in auth session');
+      if (!authSession.tokens?.accessToken) {
+        throw new Error('No accessToken in auth session');
       }
 
       return {
         iamCredentials: authSession.credentials,
-        idToken: authSession.tokens.idToken.toString(),
+        accessToken: authSession.tokens.accessToken.toString(),
       };
     } finally {
       this.lock.release();
