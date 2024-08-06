@@ -43,6 +43,7 @@ void describe('Conversation Handler Function construct', () => {
           sid: 'redact-statement-cdk',
           dataIdentifier: ['JWTToken'],
           operation: {
+            // eslint-disable-next-line spellcheck/spell-checker
             deidentify: {
               maskConfig: {},
             },
