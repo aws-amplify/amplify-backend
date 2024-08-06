@@ -165,7 +165,7 @@ void describe('AmplifyStorageFactory', () => {
     );
   });
 
-  void it('if there is no default storage among storages, throw', () => {
+  void it('if there is no default storage among storage, throw', () => {
     storageFactory = defineStorage({ name: 'testName' });
     storageFactory2 = defineStorage({ name: 'testName2' });
     storageFactory.getInstance(getInstanceProps);
