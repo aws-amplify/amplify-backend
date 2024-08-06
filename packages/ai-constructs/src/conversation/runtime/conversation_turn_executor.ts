@@ -12,21 +12,31 @@ export class ConversationTurnExecutor {
   constructor(
     private readonly event: ConversationTurnEvent,
     private readonly bedrockConverseAdapter = new BedrockConverseAdapter(event),
-    private readonly responseSender = new ConversationTurnResponseSender(event)
+    private readonly responseSender = new ConversationTurnResponseSender(event),
+    private readonly logger = console
   ) {}
 
   execute = async (): Promise<void> => {
-    console.log(
-      `Handling conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
-    );
+    try {
+      this.logger.log(
+        `Handling conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
+      );
 
-    const assistantResponse = await this.bedrockConverseAdapter.askBedrock();
+      const assistantResponse = await this.bedrockConverseAdapter.askBedrock();
 
-    await this.responseSender.sendResponse(assistantResponse);
+      await this.responseSender.sendResponse(assistantResponse);
 
-    console.log(
-      `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
-    );
+      this.logger.log(
+        `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
+      );
+    } catch (e) {
+      this.logger.error(
+        `Failed to handle conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`,
+        e
+      );
+      // Propagate error to mark lambda execution as failed in metrics.
+      throw e;
+    }
   };
 }
 
