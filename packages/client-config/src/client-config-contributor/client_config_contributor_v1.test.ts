@@ -533,7 +533,7 @@ void describe('storage client config contributor v1', () => {
     );
   });
 
-  void it('returns translated config when output has auth', () => {
+  void it('returns translated config when output has storage', () => {
     const contributor = new StorageClientConfigContributor();
     const buckets = JSON.stringify([
       JSON.stringify({
@@ -549,7 +549,7 @@ void describe('storage client config contributor v1', () => {
           payload: {
             bucketName: 'testBucketName',
             storageRegion: 'testRegion',
-            buckets: buckets,
+            buckets,
           },
         },
       }),
