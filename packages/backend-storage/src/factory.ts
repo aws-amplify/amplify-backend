@@ -106,9 +106,8 @@ export class StorageOutputsAspect implements IAspect {
     const storageCount = storageInstances.length;
 
     /**
-     * only store traverse the siblings once to store the outputs,
-     * otherwise there will be the an error -
-     * "there is already a construct with name 'storageRegion'"
+     * only traverse the siblings once to store the outputs,
+     * storing the same outputs multiple times result in error
      */
     if (this.isStorageProcessed) {
       return;
