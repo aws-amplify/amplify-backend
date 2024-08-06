@@ -27,7 +27,7 @@ export class ConversationTurnResponseSender {
     if (!res.ok) {
       const body = await res.text();
       throw new Error(
-        `Assistant response mutation request was not successful response headers=${JSON.stringify(
+        `Assistant response mutation request was not successful, response headers=${JSON.stringify(
           res.headers
         )}, body=${body}`
       );
@@ -35,7 +35,7 @@ export class ConversationTurnResponseSender {
     const body = await res.json();
     if (body && typeof body === 'object' && 'errors' in body) {
       throw new Error(
-        `Assistant response mutation request was not successful response headers=${JSON.stringify(
+        `Assistant response mutation request was not successful, response headers=${JSON.stringify(
           res.headers
         )}, body=${JSON.stringify(body)}`
       );

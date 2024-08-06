@@ -38,9 +38,6 @@ export class BedrockConverseAdapter {
     const bedrockResponse = await this.bedrockClient.send(
       new ConverseCommand(converseCommandInput)
     );
-    if (bedrockResponse.output?.message) {
-      messages.push(bedrockResponse.output?.message);
-    }
 
     return bedrockResponse.output?.message?.content ?? [];
   };
