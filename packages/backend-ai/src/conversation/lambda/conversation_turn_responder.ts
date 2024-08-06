@@ -104,11 +104,13 @@ export class ConversationTurnResponder {
       variables
     );
     const request = new Request(graphqlApiEndpoint, options);
-
+    // eslint-disable-next-line no-console
     console.log('Responding with:');
+    // eslint-disable-next-line no-console
     console.log(request);
     const res = await fetch(request);
     const body = await res.json();
+    // eslint-disable-next-line no-console
     console.log(body);
   };
 }

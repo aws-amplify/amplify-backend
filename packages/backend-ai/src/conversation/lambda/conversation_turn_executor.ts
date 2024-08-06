@@ -15,8 +15,11 @@ export class ConversationTurnExecutor {
   ) {}
 
   execute = async (): Promise<void> => {
+    // eslint-disable-next-line no-console
     console.log('Received event and context');
+    // eslint-disable-next-line no-console
     console.log(this.event);
+    // eslint-disable-next-line no-console
     console.log(JSON.stringify(this.event, null, 2));
 
     const assistantResponse = await new BedrockConverseAdapter(

@@ -57,10 +57,10 @@ export type Tool = {
 
 // TODO: We need to also pass the selection set!
 type Tools = {
-  tools: ToolDefintion[];
+  tools: ToolDefinition[];
 }
 
-type ToolDefintion = {
+type ToolDefinition = {
   toolSpec: ToolSpec;
 }
 

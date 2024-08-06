@@ -1,6 +1,5 @@
 import { describe, it } from 'node:test';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter';
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnEvent, Tool } from './types';
 
 void describe('bedrock converse adapter', () => {
@@ -64,6 +63,7 @@ void describe('bedrock converse adapter', () => {
     const adapter = new BedrockConverseAdapter(event, tools);
 
     const response = await adapter.askBedrock();
+    // eslint-disable-next-line no-console
     console.log(response);
   });
 
@@ -135,6 +135,7 @@ void describe('bedrock converse adapter', () => {
     const adapter = new BedrockConverseAdapter(event);
 
     const response = await adapter.askBedrock();
+    // eslint-disable-next-line no-console
     console.log(response);
   });
 

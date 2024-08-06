@@ -1,9 +1,9 @@
-import test, { describe, it } from "node:test";
+import test, { describe } from "node:test";
 import { ConversationTurnEvent } from "./types";
 import { ConversationTurnEventToolsProvider } from "./conversation_turn_event_tools_provider";
 
-describe('bedrock converse adapter', () => {
-  test('should construct appsync query tool from event definition', async () => {
+void describe('bedrock converse adapter', () => {
+  void test('should construct appsync query tool from event definition', async () => {
     const event: ConversationTurnEvent = {
       args: {
         content: '',
@@ -68,15 +68,12 @@ describe('bedrock converse adapter', () => {
       typeName: '',
     };
 
-    const makeRequest = (endpoint: string, request: RequestInit): Promise<any> => {
-      console.log(endpoint);
-      console.log(request.body)
-      return new Promise((resolve) => resolve({ }))
-    };
-    const tools = new ConversationTurnEventToolsProvider(event, { makeRequest }).getEventTools();
+    const tools = new ConversationTurnEventToolsProvider(event).getEventTools();
+    // eslint-disable-next-line no-console
     console.log(tools);
 
     const toolResponse = await tools[0].execute({});
+    // eslint-disable-next-line no-console
     console.log(toolResponse);
   });
 

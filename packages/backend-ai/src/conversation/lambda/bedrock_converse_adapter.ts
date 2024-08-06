@@ -31,7 +31,9 @@ export class BedrockConverseAdapter {
 
   askBedrock = async (): Promise<ContentBlock[]> => {
     const { modelId, systemPrompt, toolDefinitions } = this.event.args;
+    // eslint-disable-next-line no-console
     console.log('toolDefinitions')
+    // eslint-disable-next-line no-console
     console.log(JSON.stringify(toolDefinitions, null, 2));
 
     const messages: Array<Message> = this.event.prev.result.items;
@@ -71,13 +73,17 @@ export class BedrockConverseAdapter {
         },
         toolConfig,
       };
+      // eslint-disable-next-line no-console
       console.log('Calling bedrock with');
+      // eslint-disable-next-line no-console
       console.log(JSON.stringify(converseCommandInput, null, 2));
       bedrockResponse = await this.bedrockClient.send(
         new ConverseCommand(converseCommandInput)
       );
       if (bedrockResponse.output?.message) {
+        // eslint-disable-next-line no-console
         console.log('Bedrock output');
+        // eslint-disable-next-line no-console
         console.log(JSON.stringify(bedrockResponse.output, null, 2));
         messages.push(bedrockResponse.output?.message);
       }
@@ -96,11 +102,14 @@ export class BedrockConverseAdapter {
               throw Error();
             }
             try {
+              // eslint-disable-next-line no-console
               console.log(`Invoking tool ${toolUseBlock.toolUse.name}`);
               const toolResponse = await tool.execute(
                 toolUseBlock.toolUse.input
               );
+              // eslint-disable-next-line no-console
               console.log('Tool Response');
+              // eslint-disable-next-line no-console
               console.log(JSON.stringify(toolResponse, null, 2));
               messages.push({
                 role: 'user',
@@ -149,7 +158,7 @@ export class BedrockConverseAdapter {
     } while (bedrockResponse.stopReason === 'tool_use');
 
     const assistantResponse =
-      bedrockResponse.output?.message?.content //?.[0].text;
+      bedrockResponse.output?.message?.content
     if (!assistantResponse) {
       throw new Error('foo');
     }
