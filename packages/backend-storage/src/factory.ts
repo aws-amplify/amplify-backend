@@ -97,22 +97,20 @@ export class StorageOutputsAspect implements IAspect {
    * @param node The node to visit.
    */
   public visit(node: IConstruct): void {
-    if (!(node instanceof AmplifyStorage)) {
+    if (!(node instanceof AmplifyStorage) || this.isStorageProcessed) {
       return;
     }
+    /**
+     * only traverse the siblings once to store the outputs,
+     * storing the same outputs multiple times result in error
+     */
+    this.isStorageProcessed = true;
+
     const storageInstances = Stack.of(node).node.children.filter(
       (el) => el instanceof AmplifyStorage
     );
     const storageCount = storageInstances.length;
 
-    /**
-     * only traverse the siblings once to store the outputs,
-     * storing the same outputs multiple times result in error
-     */
-    if (this.isStorageProcessed) {
-      return;
-    }
-    this.isStorageProcessed = true;
     this.node = node;
     let defaultStorageFound = false;
 
