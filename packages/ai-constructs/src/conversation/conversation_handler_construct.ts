@@ -42,10 +42,18 @@ export class ConversationHandlerFunction
   ) {
     super(scope, id);
 
+    if (this.props.entry && !path.isAbsolute(this.props.entry)) {
+      throw new Error('Entry must be absolute path');
+    }
+
+    // Create unique name upfront in order to use it for both function
+    // and its log group to mimic default behaviors.
+    const functionName = `conversationHandler-${this.node.addr}`;
     const conversationHandler = new NodejsFunction(
       this,
       `conversationHandlerFunction`,
       {
+        functionName,
         runtime: LambdaRuntime.NODEJS_18_X,
         timeout: Duration.seconds(60),
         entry: this.props.entry ?? defaultHandlerFilePath,
@@ -54,11 +62,12 @@ export class ConversationHandlerFunction
           bundleAwsSDK: true,
         },
         logGroup: new LogGroup(this, 'conversationHandlerFunctionLogGroup', {
+          logGroupName: `/aws/lambda/${functionName}`,
           retention: RetentionDays.INFINITE,
           dataProtectionPolicy: new DataProtectionPolicy({
             identifiers: [
               new CustomDataIdentifier(
-                'idToken',
+                'JWTToken',
                 'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*'
               ),
             ],
