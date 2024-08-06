@@ -101,7 +101,7 @@ export class StorageOutputsAspect implements IAspect {
       version: '1',
       payload: {
         buckets: JSON.stringify({
-          node: node.name,
+          name: node.name,
           bucketName: node.resources.bucket.bucketName,
           storageRegion: Stack.of(node).region,
         }),
