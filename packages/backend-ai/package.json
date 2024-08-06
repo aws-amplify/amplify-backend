@@ -1,0 +1,29 @@
+{
+  "name": "@aws-amplify/backend-ai",
+  "version": "0.1.0",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-amplify/plugin-types": "^1.0.1"
+  },
+  "peerDependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.616.0",
+    "@smithy/types": "^3.3.0",
+    "aws-cdk-lib": "^2.132.0",
+    "constructs": "^10.0.0"
+  }
+}
