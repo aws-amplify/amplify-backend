@@ -6,8 +6,10 @@
 
 import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { DocumentType as DocumentType_2 } from '@smithy/types';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { Message } from '@aws-sdk/client-bedrock-runtime';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { ToolInputSchema } from '@aws-sdk/client-bedrock-runtime';
 import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
@@ -16,7 +18,7 @@ import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
 export class BedrockConverseAdapter {
     constructor(event: ConversationTurnEvent, additionalTools?: Array<Tool>);
     // (undocumented)
-    askBedrock: () => Promise<string>;
+    askBedrock: () => Promise<ContentBlock[]>;
 }
 
 // @public
@@ -50,7 +52,7 @@ export type ConversationTurnEvent = {
     typeName: string;
     fieldName: string;
     args: {
-        sessionId: string;
+        conversationId: string;
         content: string;
         owner: string;
         modelId: string;
@@ -59,6 +61,7 @@ export type ConversationTurnEvent = {
         graphqlApiEndpoint: string;
         currentMessageId: string;
         systemPrompt: string;
+        toolDefinitions?: Tools;
     };
     identity: {
         defaultAuthStrategy: 'ALLOW' | 'DENY';
@@ -77,12 +80,7 @@ export type ConversationTurnEvent = {
     };
     prev: {
         result: {
-            items: Array<{
-                role: 'user' | 'assistant';
-                content: {
-                    text: string;
-                }[];
-            }>;
+            items: Message[];
         };
     };
 };
@@ -105,7 +103,7 @@ export class ConversationTurnExecutor {
 export class ConversationTurnResponder {
     constructor(event: ConversationTurnEvent);
     // (undocumented)
-    respond: (message: string) => Promise<void>;
+    respond: (message: ContentBlock[]) => Promise<void>;
 }
 
 // @public
@@ -119,6 +117,10 @@ export type Tool = {
     invocationCountLimit?: number;
     execute: (input: DocumentType_2 | undefined) => Promise<ToolResultContentBlock>;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/conversation/lambda/types.ts:21:5 - (ae-forgotten-export) The symbol "Tools" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
