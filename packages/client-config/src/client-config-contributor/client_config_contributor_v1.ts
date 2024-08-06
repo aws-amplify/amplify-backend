@@ -264,11 +264,13 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,
       bucket_name: storageOutput.payload.bucketName,
-      buckets: bucketsStringArray.map((b: string) => ({
-        name: JSON.parse(b).name,
-        bucket_name: JSON.parse(b).bucketName,
-        aws_region: JSON.parse(b).storageRegion,
-      })),
+      buckets: bucketsStringArray
+        .map((bucketJsonString) => zodSchema.parse(JSON.parse(bucketJsonString))
+        .map(({name, bucketName, storageRegion}) => ({
+          name,
+          bucket_name: bucketName,
+          aws_region: storageRegion
+        })
     };
 
     return config;
