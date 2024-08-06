@@ -2,7 +2,6 @@ import {
   StorageOutput,
   storageOutputKey,
 } from '@aws-amplify/backend-output-schemas';
-import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { IAspect, Stack } from 'aws-cdk-lib';
@@ -14,7 +13,6 @@ import { AmplifyStorage } from './construct.js';
  */
 export class StorageOutputsAspect implements IAspect {
   isStorageProcessed = false;
-  node: IConstruct;
   outputStorageStrategy;
   /**
    * Constructs a new instance of the StorageValidator class.
@@ -45,7 +43,6 @@ export class StorageOutputsAspect implements IAspect {
     );
     const storageCount = storageInstances.length;
 
-    this.node = node;
     let defaultStorageFound = false;
 
     Stack.of(node).node.children.forEach((child) => {
@@ -67,12 +64,7 @@ export class StorageOutputsAspect implements IAspect {
      * we need to set the bucket as default.
      */
     if (!defaultStorageFound && storageCount === 1) {
-      this.storeOutput(
-        this.outputStorageStrategy,
-        true,
-        node.name,
-        node.resources.bucket.bucketName
-      );
+      this.storeOutput(this.outputStorageStrategy, true, node);
     } else if (!defaultStorageFound && storageCount > 1) {
       throw new AmplifyUserError('NoDefaultStorageError', {
         message: 'No default storage set in the Amplify project.',
@@ -84,30 +76,22 @@ export class StorageOutputsAspect implements IAspect {
         if (!(child instanceof AmplifyStorage)) {
           return;
         }
-        this.storeOutput(
-          this.outputStorageStrategy,
-          child.isDefault,
-          child.name,
-          child.resources.bucket.bucketName
-        );
+        this.storeOutput(this.outputStorageStrategy, child.isDefault, child);
       });
     }
   }
 
   private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput> = new StackMetadataBackendOutputStorageStrategy(
-      Stack.of(this.node).nestedStackParent || Stack.of(this.node)
-    ),
+    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput>,
     isDefault: boolean = false,
-    name: string = '',
-    bucketName: string = ''
+    node: AmplifyStorage
   ): void => {
     if (isDefault) {
       outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
         version: '1',
         payload: {
-          storageRegion: Stack.of(this.node).region,
-          bucketName,
+          storageRegion: Stack.of(node).region,
+          bucketName: node.resources.bucket.bucketName,
         },
       });
     }
@@ -117,9 +101,9 @@ export class StorageOutputsAspect implements IAspect {
       version: '1',
       payload: {
         buckets: JSON.stringify({
-          name,
-          bucketName,
-          storageRegion: Stack.of(this.node).region,
+          node: node.name,
+          bucketName: node.resources.bucket.bucketName,
+          storageRegion: Stack.of(node).region,
         }),
       },
     });

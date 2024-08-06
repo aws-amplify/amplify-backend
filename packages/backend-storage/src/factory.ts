@@ -9,7 +9,7 @@ import { AmplifyStorage, StorageResources } from './construct.js';
 import { AmplifyStorageFactoryProps } from './types.js';
 import { StorageContainerEntryGenerator } from './storage_container_entry_generator.js';
 import { Aspects, Stack } from 'aws-cdk-lib';
-import { StorageOutputsAspect } from './StorageOutputsAspect.js';
+import { StorageOutputsAspect } from './storage_outputs_aspect.js';
 
 /**
  * Singleton factory for a Storage bucket that can be used in `resource.ts` files
