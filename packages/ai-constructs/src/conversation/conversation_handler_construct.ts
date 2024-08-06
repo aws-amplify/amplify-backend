@@ -12,7 +12,7 @@ import {
 import { Construct } from 'constructs';
 import path from 'path';
 
-const resourcesRoot = path.normalize(path.join(__dirname, '..', 'runtime'));
+const resourcesRoot = path.normalize(path.join(__dirname, 'runtime'));
 const defaultHandlerFilePath = path.join(resourcesRoot, 'default_handler.js');
 
 export type ConversationHandlerFunctionProps = {

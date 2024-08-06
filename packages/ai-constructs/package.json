@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/backend-ai",
+  "name": "@aws-amplify/ai-constructs",
   "version": "0.0.1",
   "type": "commonjs",
   "publishConfig": {
@@ -10,9 +10,9 @@
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
     },
-    "./conversation/constructs": {
-      "types": "./lib/conversation/constructs/index.d.ts",
-      "default": "./lib/conversation/constructs/index.js"
+    "./conversation": {
+      "types": "./lib/conversation/index.d.ts",
+      "default": "./lib/conversation/index.js"
     },
     "./conversation/runtime": {
       "types": "./lib/conversation/runtime/index.d.ts",

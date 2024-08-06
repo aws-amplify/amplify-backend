@@ -11,7 +11,7 @@ const packagePaths = await glob('./packages/*');
 const getExpectedMajorVersion = (packageName: string) => {
   switch (packageName) {
     case 'ampx':
-    case '@aws-amplify/backend-ai':
+    case '@aws-amplify/ai-constructs':
       return '0.';
     default:
       return '1.';

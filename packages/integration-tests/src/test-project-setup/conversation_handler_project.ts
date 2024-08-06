@@ -7,7 +7,7 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import { ConversationTurnEvent } from '@aws-amplify/backend-ai/conversation/runtime';
+import { ConversationTurnEvent } from '@aws-amplify/ai-constructs/conversation/runtime';
 import { randomUUID } from 'crypto';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';

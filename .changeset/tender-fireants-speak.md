@@ -1,5 +1,5 @@
 ---
-'@aws-amplify/backend-ai': patch
+'@aws-amplify/ai-constructs': patch
 ---
 
-Introduce backend-ai package. Implement basic conversation handler.
+Introduce ai-constructs package. Implement basic conversation handler.

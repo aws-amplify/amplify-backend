@@ -1,5 +1,5 @@
 import { defineBackend } from '@aws-amplify/backend';
-import { ConversationHandlerFunction } from '@aws-amplify/backend-ai/conversation/constructs';
+import { ConversationHandlerFunction } from '@aws-amplify/ai-constructs/conversation';
 import { auth } from './auth/resource.js';
 import { data } from './data/resource.js';
 
