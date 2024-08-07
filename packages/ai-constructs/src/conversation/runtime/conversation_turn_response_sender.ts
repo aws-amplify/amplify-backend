@@ -24,11 +24,13 @@ export class ConversationTurnResponseSender {
   sendResponse = async (message: ContentBlock[]) => {
     const request = this.createMutationRequest(message);
     const res = await this._fetch(request);
+    const responseHeaders: Record<string, string> = {};
+    res.headers.forEach((value, key) => (responseHeaders[key] = value));
     if (!res.ok) {
       const body = await res.text();
       throw new Error(
         `Assistant response mutation request was not successful, response headers=${JSON.stringify(
-          res.headers
+          responseHeaders
         )}, body=${body}`
       );
     }
@@ -36,7 +38,7 @@ export class ConversationTurnResponseSender {
     if (body && typeof body === 'object' && 'errors' in body) {
       throw new Error(
         `Assistant response mutation request was not successful, response headers=${JSON.stringify(
-          res.headers
+          responseHeaders
         )}, body=${JSON.stringify(body)}`
       );
     }
