@@ -90,7 +90,7 @@ export type BackendOutputRetrievalStrategy = {
 // @public
 export type BackendOutputStorageStrategy<T extends BackendOutputEntry> = {
     addBackendOutputEntry: (keyName: string, backendOutputEntry: T) => void;
-    appendToBackendOutputList: (keyName: string, backendOutputEntry: T) => void;
+    appendToBackendOutputList: (keyName: string, backendOutputEntry: DeepPartial<T>) => void;
 };
 
 // @public (undocumented)
@@ -133,6 +133,11 @@ export type ConstructFactoryGetInstanceProps = {
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     importPathVerifier?: ImportPathVerifier;
     resourceNameValidator?: ResourceNameValidator;
+};
+
+// @public
+export type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
 // @public

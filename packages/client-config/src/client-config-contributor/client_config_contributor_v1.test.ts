@@ -533,8 +533,15 @@ void describe('storage client config contributor v1', () => {
     );
   });
 
-  void it('returns translated config when output has auth', () => {
+  void it('returns translated config when output has storage', () => {
     const contributor = new StorageClientConfigContributor();
+    const buckets = JSON.stringify([
+      JSON.stringify({
+        name: 'testName',
+        bucketName: 'testBucketName',
+        storageRegion: 'testRegion',
+      }),
+    ]);
     assert.deepStrictEqual(
       contributor.contribute({
         [storageOutputKey]: {
@@ -542,6 +549,7 @@ void describe('storage client config contributor v1', () => {
           payload: {
             bucketName: 'testBucketName',
             storageRegion: 'testRegion',
+            buckets,
           },
         },
       }),
@@ -549,8 +557,15 @@ void describe('storage client config contributor v1', () => {
         storage: {
           aws_region: 'testRegion',
           bucket_name: 'testBucketName',
+          buckets: [
+            {
+              name: 'testName',
+              bucket_name: 'testBucketName',
+              aws_region: 'testRegion',
+            },
+          ],
         },
-      } as Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs>
+      }
     );
   });
 });
