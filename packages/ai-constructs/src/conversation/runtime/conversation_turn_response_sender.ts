@@ -10,11 +10,12 @@ type MutationResponseInput = {
 };
 
 /**
- * TODO docs
+ * This class is responsible for sending a response produced by Bedrock back to AppSync
+ * in a form of mutation.
  */
 export class ConversationTurnResponseSender {
   /**
-   * TODO docs
+   * Creates conversation turn response sender.
    */
   constructor(
     private readonly event: ConversationTurnEvent,

@@ -3,11 +3,15 @@ import { ConversationTurnEvent } from './types.js';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter.js';
 
 /**
- * TODO docs.
+ * This class is responsible for orchestrating conversation turn execution.
+ * The conversation turn consist of:
+ * 1. Accepting an event that is coming from conversational route resolvers in AppSync.
+ * 2. Interacting with AWS Bedrock to produce response.
+ * 3. Send response back to AppSync in a form of mutation.
  */
 export class ConversationTurnExecutor {
   /**
-   * TODO docs
+   * Creates conversation turn executor.
    */
   constructor(
     private readonly event: ConversationTurnEvent,
@@ -41,7 +45,8 @@ export class ConversationTurnExecutor {
 }
 
 /**
- * TODO docs
+ * This function handles a conversation turn event that is coming from
+ * AppSync instance with conversational routes defined and sends response back.
  */
 export const handleConversationTurnEvent = async (
   event: ConversationTurnEvent

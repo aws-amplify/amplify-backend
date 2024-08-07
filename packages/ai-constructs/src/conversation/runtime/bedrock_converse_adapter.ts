@@ -8,11 +8,12 @@ import {
 import { ConversationTurnEvent } from './types.js';
 
 /**
- * TODO docs
+ * This class is responsible for interacting with Bedrock Converse API
+ * in order to produce final response that can be sent back to caller.
  */
 export class BedrockConverseAdapter {
   /**
-   * TODO docs
+   * Creates Bedrock Converse Adapter.
    */
   constructor(
     private readonly event: ConversationTurnEvent,

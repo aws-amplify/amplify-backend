@@ -24,7 +24,14 @@ export type ConversationHandlerFunctionProps = {
 };
 
 /**
- * TODO docs.
+ * Conversation Handler Function CDK construct.
+ * This construct deploys resources that integrate conversation routes
+ * defined in data schema with AI models available in AWS Bedrock. I.e.
+ * 1. AWS Lambda function that handles conversation turn events.
+ *    With Amplify provided implementation by default and option to specify
+ *    custom handler.
+ * 2. AWS CloudWatch log group policy with appropriate data protection policies.
+ * 3. AWS IAM policy that grants access to selected AWS Bedrock models.
  */
 export class ConversationHandlerFunction
   extends Construct
@@ -33,7 +40,7 @@ export class ConversationHandlerFunction
   resources: FunctionResources;
 
   /**
-   * TODO docs.
+   * Creates Conversation Handler Function CDK construct.
    */
   constructor(
     scope: Construct,
