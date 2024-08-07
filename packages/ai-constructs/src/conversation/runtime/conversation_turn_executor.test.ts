@@ -19,7 +19,7 @@ void describe('Conversation turn executor', () => {
   };
 
   void it('executes turn successfully', async () => {
-    const bedrockConverseAdapter = new BedrockConverseAdapter(event);
+    const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
     const bedrockResponse: Array<ContentBlock> = [
       { text: 'block1' },
       { text: 'block2' },
@@ -45,6 +45,7 @@ void describe('Conversation turn executor', () => {
 
     await new ConversationTurnExecutor(
       event,
+      [],
       bedrockConverseAdapter,
       responseSender,
       consoleMock
@@ -74,7 +75,7 @@ void describe('Conversation turn executor', () => {
   });
 
   void it('logs and propagates error if bedrock adapter throws', async () => {
-    const bedrockConverseAdapter = new BedrockConverseAdapter(event);
+    const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
     const bedrockError = new Error('Bedrock failed');
     const bedrockConverseAdapterAskBedrockMock = mock.method(
       bedrockConverseAdapter,
@@ -99,6 +100,7 @@ void describe('Conversation turn executor', () => {
       () =>
         new ConversationTurnExecutor(
           event,
+          [],
           bedrockConverseAdapter,
           responseSender,
           consoleMock
@@ -133,7 +135,7 @@ void describe('Conversation turn executor', () => {
   });
 
   void it('logs and propagates error if response sender throws', async () => {
-    const bedrockConverseAdapter = new BedrockConverseAdapter(event);
+    const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
     const bedrockResponse: Array<ContentBlock> = [
       { text: 'block1' },
       { text: 'block2' },
@@ -162,6 +164,7 @@ void describe('Conversation turn executor', () => {
       () =>
         new ConversationTurnExecutor(
           event,
+          [],
           bedrockConverseAdapter,
           responseSender,
           consoleMock

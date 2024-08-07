@@ -7,8 +7,11 @@
 /// <reference types="node" />
 
 import { Construct } from 'constructs';
+import { DocumentType } from '@smithy/types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
+import { ToolSpecification } from '@aws-sdk/client-bedrock-runtime';
 
 declare namespace conversation {
     export {
@@ -64,16 +67,33 @@ type ConversationTurnEvent = {
         };
     };
     messages: Array<ConversationMessage>;
+    toolsConfiguration?: {
+        tools: Array<{
+            graphqlRequestInputDescriptor: {
+                selectionSet: string[];
+                propertyTypes: Record<string, string>;
+            };
+        } & ToolSpecification>;
+    };
 };
 
+// @public (undocumented)
+type ExecutableTool = {
+    execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
+    invocationCountLimit?: number;
+} & ToolSpecification;
+
 // @public
-const handleConversationTurnEvent: (event: ConversationTurnEvent) => Promise<void>;
+const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
+    tools?: Array<ExecutableTool>;
+}) => Promise<void>;
 
 declare namespace runtime {
     export {
         ConversationMessage,
         ConversationMessageContentBlock,
         ConversationTurnEvent,
+        ExecutableTool,
         handleConversationTurnEvent
     }
 }

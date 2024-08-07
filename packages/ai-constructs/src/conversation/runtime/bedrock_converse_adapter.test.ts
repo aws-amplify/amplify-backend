@@ -51,6 +51,7 @@ void describe('Bedrock converse adapter', () => {
 
     const responseContent = await new BedrockConverseAdapter(
       event,
+      [],
       bedrockClient
     ).askBedrock();
 
@@ -74,6 +75,7 @@ void describe('Bedrock converse adapter', () => {
           text: event.modelConfiguration.systemPrompt,
         },
       ],
+      toolConfig: undefined,
     };
     assert.deepStrictEqual(bedrockRequest.input, expectedBedrockInput);
   });
