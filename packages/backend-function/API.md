@@ -21,8 +21,6 @@ export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` |
 // @public
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory>;
 
-// Warning: (ae-forgotten-export) The symbol "LayerReference" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type FunctionLayerReferences = Record<string, LayerReference>;
 
@@ -40,6 +38,11 @@ export type FunctionProps = {
 
 // @public (undocumented)
 export type FunctionSchedule = TimeInterval | CronSchedule;
+
+// @public
+export type LayerReference = {
+    arn: string;
+};
 
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20;
