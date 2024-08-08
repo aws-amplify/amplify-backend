@@ -164,7 +164,7 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["email", "phone_number", "username"]
+            "enum": ["email", "phone_number"]
           },
           "minItems": 1,
           "uniqueItems": true

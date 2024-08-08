@@ -142,7 +142,7 @@ export interface AWSAmplifyBackendOutputs {
      *
      * @minItems 1
      */
-    username_attributes?: ('email' | 'phone_number' | 'username')[];
+    username_attributes?: ('email' | 'phone_number')[];
     user_verification_types?: ('email' | 'phone_number')[];
     unauthenticated_identities_enabled?: boolean;
     mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
