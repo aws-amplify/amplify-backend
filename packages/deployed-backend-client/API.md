@@ -96,9 +96,9 @@ export enum BackendOutputClientErrorType {
     // (undocumented)
     ACCESS_DENIED = "AccessDenied",
     // (undocumented)
-    DEPLOYMENT_IN_PROGRESS = "DeploymentInProgress",
+    CREDENTIALS_ERROR = "CredentialsError",
     // (undocumented)
-    EXPIRED_TOKEN = "ExpiredToken",
+    DEPLOYMENT_IN_PROGRESS = "DeploymentInProgress",
     // (undocumented)
     METADATA_RETRIEVAL_ERROR = "MetadataRetrievalError",
     // (undocumented)

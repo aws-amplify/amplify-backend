@@ -67,11 +67,11 @@ export class StackMetadataBackendOutputRetrievalStrategy
       }
       if (
         error instanceof CloudFormationServiceException &&
-        error.name === 'ExpiredToken'
+        ['ExpiredToken', 'InvalidClientTokenId'].includes(error.name)
       ) {
         throw new BackendOutputClientError(
-          BackendOutputClientErrorType.EXPIRED_TOKEN,
-          'The security token included in the request is expired'
+          BackendOutputClientErrorType.CREDENTIALS_ERROR,
+          error.message
         );
       }
       if (

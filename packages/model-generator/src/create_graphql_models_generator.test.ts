@@ -109,8 +109,8 @@ void describe('models generator factory', () => {
       const fakeBackendOutputClient = {
         getOutput: mock.fn(() => {
           throw new BackendOutputClientError(
-            BackendOutputClientErrorType.EXPIRED_TOKEN,
-            'unable to get backend outputs with credentials'
+            BackendOutputClientErrorType.CREDENTIALS_ERROR,
+            'token is expired'
           );
         }),
       };
@@ -128,7 +128,7 @@ void describe('models generator factory', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Unable to get backend outputs with credentials.'
+            'Unable to get backend outputs due to invalid credentials.'
           );
           assert.ok(error.resolution);
           return true;
@@ -141,7 +141,7 @@ void describe('models generator factory', () => {
         getOutput: mock.fn(() => {
           throw new BackendOutputClientError(
             BackendOutputClientErrorType.ACCESS_DENIED,
-            'unable to get backend outputs with credentials'
+            'access is denied'
           );
         }),
       };
@@ -159,7 +159,7 @@ void describe('models generator factory', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Unable to get backend outputs with credentials.'
+            'Unable to get backend outputs due to insufficient permissions.'
           );
           assert.ok(error.resolution);
           return true;

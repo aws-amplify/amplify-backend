@@ -237,8 +237,8 @@ void describe('UnifiedClientConfigGenerator', () => {
     void it('throws user error if credentials are expired when getting backend outputs', async () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
-          BackendOutputClientErrorType.EXPIRED_TOKEN,
-          'unable to get backend outputs with credentials'
+          BackendOutputClientErrorType.CREDENTIALS_ERROR,
+          'token is expired'
         );
       });
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
@@ -259,7 +259,7 @@ void describe('UnifiedClientConfigGenerator', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Unable to get backend outputs with credentials.'
+            'Unable to get backend outputs due to invalid credentials.'
           );
           assert.ok(error.resolution);
           return true;
@@ -271,7 +271,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.ACCESS_DENIED,
-          'unable to get backend outputs with credentials'
+          'access is denied'
         );
       });
       const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
@@ -292,7 +292,7 @@ void describe('UnifiedClientConfigGenerator', () => {
         (error: AmplifyUserError) => {
           assert.strictEqual(
             error.message,
-            'Unable to get backend outputs with credentials.'
+            'Unable to get backend outputs due to insufficient permissions.'
           );
           assert.ok(error.resolution);
           return true;

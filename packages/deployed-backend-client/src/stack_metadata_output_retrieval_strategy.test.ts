@@ -364,7 +364,7 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       await assert.rejects(
         retrievalStrategy.fetchBackendOutput(),
         new BackendOutputClientError(
-          BackendOutputClientErrorType.EXPIRED_TOKEN,
+          BackendOutputClientErrorType.CREDENTIALS_ERROR,
           'The security token included in the request is expired'
         )
       );

@@ -11,7 +11,7 @@ export enum BackendOutputClientErrorType {
   NO_OUTPUTS_FOUND = 'NoOutputsFound',
   DEPLOYMENT_IN_PROGRESS = 'DeploymentInProgress',
   NO_STACK_FOUND = 'NoStackFound',
-  EXPIRED_TOKEN = 'ExpiredToken',
+  CREDENTIALS_ERROR = 'CredentialsError',
   ACCESS_DENIED = 'AccessDenied',
 }
 /**
