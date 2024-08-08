@@ -10,8 +10,8 @@ import { Construct } from 'constructs';
 import { DocumentType } from '@smithy/types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { ToolInputSchema } from '@aws-sdk/client-bedrock-runtime';
 import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
-import { ToolSpecification } from '@aws-sdk/client-bedrock-runtime';
 
 declare namespace conversation {
     export {
@@ -69,20 +69,25 @@ type ConversationTurnEvent = {
     messages: Array<ConversationMessage>;
     toolsConfiguration?: {
         tools: Array<{
+            name: string;
+            description?: string;
+            inputSchema: ToolInputSchema;
             graphqlRequestInputDescriptor: {
                 queryName: string;
                 selectionSet: string[];
                 propertyTypes: Record<string, string>;
             };
-        } & ToolSpecification>;
+        }>;
     };
 };
 
 // @public (undocumented)
 type ExecutableTool = {
+    name: string;
+    description?: string;
+    inputSchema: ToolInputSchema;
     execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
-    invocationCountLimit?: number;
-} & ToolSpecification;
+};
 
 // @public
 const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {

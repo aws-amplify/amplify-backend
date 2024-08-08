@@ -1,6 +1,6 @@
 import {
+  ToolInputSchema,
   ToolResultContentBlock,
-  ToolSpecification,
 } from '@aws-sdk/client-bedrock-runtime';
 import { DocumentType } from '@smithy/types';
 
@@ -31,19 +31,22 @@ export type ConversationTurnEvent = {
   };
   messages: Array<ConversationMessage>;
   toolsConfiguration?: {
-    tools: Array<
-      {
-        graphqlRequestInputDescriptor: {
-          queryName: string;
-          selectionSet: string[];
-          propertyTypes: Record<string, string>;
-        };
-      } & ToolSpecification
-    >;
+    tools: Array<{
+      name: string;
+      description?: string;
+      inputSchema: ToolInputSchema;
+      graphqlRequestInputDescriptor: {
+        queryName: string;
+        selectionSet: string[];
+        propertyTypes: Record<string, string>;
+      };
+    }>;
   };
 };
 
 export type ExecutableTool = {
+  name: string;
+  description?: string;
+  inputSchema: ToolInputSchema;
   execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
-  invocationCountLimit?: number;
-} & ToolSpecification;
+};

@@ -16,52 +16,39 @@ import { ConversationTurnEventToolsProvider } from './conversation_turn_event_to
  * in order to produce final response that can be sent back to caller.
  */
 export class BedrockConverseAdapter {
+  private readonly allTools: Array<ExecutableTool>;
+  private readonly toolByName: Map<string, ExecutableTool> = new Map();
+
   /**
    * Creates Bedrock Converse Adapter.
    */
   constructor(
     private readonly event: ConversationTurnEvent,
-    private readonly additionalTools: Array<ExecutableTool>,
+    additionalTools: Array<ExecutableTool>,
     private readonly bedrockClient: BedrockRuntimeClient = new BedrockRuntimeClient(
       { region: event.modelConfiguration.region }
     ),
-    private readonly eventToolsProvider = new ConversationTurnEventToolsProvider(
-      event
-    )
-  ) {}
+    eventToolsProvider = new ConversationTurnEventToolsProvider(event)
+  ) {
+    this.allTools = [...eventToolsProvider.getEventTools(), ...additionalTools];
+    this.allTools.forEach((t) => {
+      if (this.toolByName.has(t.name)) {
+        throw new Error(
+          `Tools must have unique names. Duplicate tools with '${t.name}' name detected.`
+        );
+      }
+      this.toolByName.set(t.name, t);
+    });
+  }
 
   askBedrock = async (): Promise<ContentBlock[]> => {
     const { modelId, systemPrompt } = this.event.modelConfiguration;
 
     const messages: Array<Message> = [...this.event.messages]; // clone, so we don't mutate inputs
 
-    const allTools = [
-      ...this.eventToolsProvider.getEventTools(),
-      ...this.additionalTools,
-    ];
-    let toolConfig: ToolConfiguration | undefined;
-    const toolByName: Map<string, ExecutableTool> = new Map();
-    if (allTools && allTools.length > 0) {
-      allTools.forEach((t) => {
-        if (!t.name) {
-          throw new Error('tools must have names');
-        }
-        toolByName.set(t.name, t);
-      });
-      toolConfig = {
-        tools: allTools.map((t): Tool => {
-          return {
-            toolSpec: {
-              name: t.name,
-              description: t.description,
-              inputSchema: t.inputSchema,
-            },
-          };
-        }),
-      };
-    }
     let bedrockResponse: ConverseCommandOutput;
     do {
+      const toolConfig = this.createToolConfiguration();
       const converseCommandInput: ConverseCommandInput = {
         modelId,
         messages: [...messages],
@@ -72,14 +59,10 @@ export class BedrockConverseAdapter {
         },
         toolConfig,
       };
-      console.log('Calling bedrock with');
-      console.log(JSON.stringify(converseCommandInput, null, 2));
       bedrockResponse = await this.bedrockClient.send(
         new ConverseCommand(converseCommandInput)
       );
       if (bedrockResponse.output?.message) {
-        console.log('Bedrock output');
-        console.log(JSON.stringify(bedrockResponse.output, null, 2));
         messages.push(bedrockResponse.output?.message);
       }
       if (bedrockResponse.stopReason === 'tool_use') {
@@ -89,66 +72,87 @@ export class BedrockConverseAdapter {
           if ('toolUse' in responseContentBlock) {
             const toolUseBlock =
               responseContentBlock as ContentBlock.ToolUseMember;
-            if (!toolUseBlock.toolUse.name) {
-              throw Error();
-            }
-            const tool = toolByName.get(toolUseBlock.toolUse.name);
-            if (!tool) {
-              throw Error();
-            }
-            try {
-              console.log(`Invoking tool ${toolUseBlock.toolUse.name}`);
-              const toolResponse = await tool.execute(
-                toolUseBlock.toolUse.input
-              );
-              console.log('Tool Response');
-              console.log(JSON.stringify(toolResponse, null, 2));
-              messages.push({
-                role: 'user',
-                content: [
-                  {
-                    toolResult: {
-                      toolUseId: toolUseBlock.toolUse.toolUseId,
-                      content: [toolResponse],
-                      status: 'success',
-                    },
-                  },
-                ],
-              });
-            } catch (e) {
-              if (e instanceof Error) {
-                messages.push({
-                  role: 'user',
-                  content: [
-                    {
-                      toolResult: {
-                        toolUseId: toolUseBlock.toolUse.toolUseId,
-                        content: [{ text: e.toString() }],
-                        status: 'error',
-                      },
-                    },
-                  ],
-                });
-              } else {
-                messages.push({
-                  role: 'user',
-                  content: [
-                    {
-                      toolResult: {
-                        toolUseId: toolUseBlock.toolUse.toolUseId,
-                        content: [{ text: 'unknown error occurred' }],
-                        status: 'error',
-                      },
-                    },
-                  ],
-                });
-              }
-            }
+            const toolMessage = await this.executeTool(toolUseBlock);
+            messages.push(toolMessage);
           }
         }
       }
     } while (bedrockResponse.stopReason === 'tool_use');
 
     return bedrockResponse.output?.message?.content ?? [];
+  };
+
+  private createToolConfiguration = (): ToolConfiguration | undefined => {
+    if (this.allTools.length === 0) {
+      return undefined;
+    }
+
+    return {
+      tools: this.allTools.map((t): Tool => {
+        return {
+          toolSpec: {
+            name: t.name,
+            description: t.description,
+            inputSchema: t.inputSchema,
+          },
+        };
+      }),
+    };
+  };
+
+  private executeTool = async (
+    toolUseBlock: ContentBlock.ToolUseMember
+  ): Promise<Message> => {
+    if (!toolUseBlock.toolUse.name) {
+      throw Error('Bedrock tool use response is missing a tool name');
+    }
+    const tool = this.toolByName.get(toolUseBlock.toolUse.name);
+    if (!tool) {
+      throw Error(
+        `Bedrock tool use response contains unknown tool '${toolUseBlock.toolUse.name}'`
+      );
+    }
+    try {
+      const toolResponse = await tool.execute(toolUseBlock.toolUse.input);
+      return {
+        role: 'user',
+        content: [
+          {
+            toolResult: {
+              toolUseId: toolUseBlock.toolUse.toolUseId,
+              content: [toolResponse],
+              status: 'success',
+            },
+          },
+        ],
+      };
+    } catch (e) {
+      if (e instanceof Error) {
+        return {
+          role: 'user',
+          content: [
+            {
+              toolResult: {
+                toolUseId: toolUseBlock.toolUse.toolUseId,
+                content: [{ text: e.toString() }],
+                status: 'error',
+              },
+            },
+          ],
+        };
+      }
+      return {
+        role: 'user',
+        content: [
+          {
+            toolResult: {
+              toolUseId: toolUseBlock.toolUse.toolUseId,
+              content: [{ text: 'unknown error occurred' }],
+              status: 'error',
+            },
+          },
+        ],
+      };
+    }
   };
 }
