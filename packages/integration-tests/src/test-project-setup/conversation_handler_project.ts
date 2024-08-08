@@ -23,6 +23,7 @@ import {
 import { AUTH_TYPE, createAuthLink } from 'aws-appsync-auth-link';
 import { gql } from 'graphql-tag';
 import assert from 'assert';
+import { NormalizedCacheObject } from '@apollo/client';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -34,6 +35,11 @@ if (process.versions.node) {
     globalThis.crypto = crypto;
   }
 }
+
+type ConversationTurnAppSyncResponse = {
+  associatedUserMessageId: string;
+  content: string;
+};
 
 /**
  * Creates conversation handler test project.
@@ -128,54 +134,12 @@ class ConversationHandlerTestProject extends TestProjectBase {
       throw new Error('Conversation handler project must include auth');
     }
 
-    // find lambda function
-    const conversationHandlerFunction =
-      await this.resourceFinder.findByBackendIdentifier(
-        backendId,
-        'AWS::Lambda::Function',
-        (name) => name.includes('conversationHandler')
-      );
-
     const authenticatedUserCredentials =
       await new AmplifyAuthCredentialsFactory(
         this.cognitoIdentityProviderClient,
         clientConfig.auth
       ).getNewAuthenticatedUserCredentials();
 
-    // send event
-    const event: ConversationTurnEvent = {
-      conversationId: randomUUID().toString(),
-      currentMessageId: randomUUID().toString(),
-      graphqlApiEndpoint: clientConfig.data.url,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              text: 'How are you?',
-            },
-          ],
-        },
-      ],
-      request: {
-        headers: { authorization: authenticatedUserCredentials.accessToken },
-      },
-      responseMutationInputTypeName:
-        'CreateConversationMessageAssistantResponseInput',
-      responseMutationName: 'createConversationMessageAssistantResponse',
-      modelConfiguration: {
-        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
-        systemPrompt: 'You are helpful bot.',
-      },
-    };
-    await this.lambdaClient.send(
-      new InvokeCommand({
-        FunctionName: conversationHandlerFunction[0],
-        Payload: Buffer.from(JSON.stringify(event)),
-      })
-    );
-
-    // assert that response came back
     const httpLink = new HttpLink({ uri: clientConfig.data.url });
     const link = ApolloLink.from([
       createAuthLink({
@@ -194,11 +158,134 @@ class ConversationHandlerTestProject extends TestProjectBase {
       cache: new InMemoryCache(),
     });
 
+    await this.assertDefaultConversationHandlerCanExecuteTurn(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient
+    );
+
+    await this.assertCustomConversationHandlerCanExecuteTurn(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient
+    );
+  }
+
+  private assertDefaultConversationHandlerCanExecuteTurn = async (
+    backendId: BackendIdentifier,
+    accessToken: string,
+    graphqlApiEndpoint: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>
+  ): Promise<void> => {
+    const defaultConversationHandlerFunction = (
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('default')
+      )
+    )[0];
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: randomUUID().toString(),
+      currentMessageId: randomUUID().toString(),
+      graphqlApiEndpoint: graphqlApiEndpoint,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'How are you?',
+            },
+          ],
+        },
+      ],
+      request: {
+        headers: { authorization: accessToken },
+      },
+      responseMutationInputTypeName:
+        'CreateConversationMessageAssistantResponseInput',
+      responseMutationName: 'createConversationMessageAssistantResponse',
+      modelConfiguration: {
+        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+        systemPrompt: 'You are helpful bot.',
+      },
+    };
+    await this.executeConversationTurn(
+      event,
+      defaultConversationHandlerFunction,
+      apolloClient
+    );
+  };
+
+  private assertCustomConversationHandlerCanExecuteTurn = async (
+    backendId: BackendIdentifier,
+    accessToken: string,
+    graphqlApiEndpoint: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>
+  ): Promise<void> => {
+    const customConversationHandlerFunction = (
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('custom')
+      )
+    )[0];
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: randomUUID().toString(),
+      currentMessageId: randomUUID().toString(),
+      graphqlApiEndpoint: graphqlApiEndpoint,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'What is the temperature in Seattle?',
+            },
+          ],
+        },
+      ],
+      request: {
+        headers: { authorization: accessToken },
+      },
+      responseMutationInputTypeName:
+        'CreateConversationMessageAssistantResponseInput',
+      responseMutationName: 'createConversationMessageAssistantResponse',
+      modelConfiguration: {
+        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+        systemPrompt: 'You are helpful bot.',
+      },
+    };
+    const response = await this.executeConversationTurn(
+      event,
+      customConversationHandlerFunction,
+      apolloClient
+    );
+    // Assert that tool was used.
+    assert.match(response.content, /75/);
+  };
+
+  private executeConversationTurn = async (
+    event: ConversationTurnEvent,
+    functionName: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>
+  ): Promise<ConversationTurnAppSyncResponse> => {
+    await this.lambdaClient.send(
+      new InvokeCommand({
+        FunctionName: functionName,
+        Payload: Buffer.from(JSON.stringify(event)),
+      })
+    );
+
+    // assert that response came back
+
     const queryResult = await apolloClient.query<{
       listConversationMessageAssistantResponses: {
-        items: Array<{
-          associatedUserMessageId: string;
-        }>;
+        items: Array<ConversationTurnAppSyncResponse>;
       };
     }>({
       query: gql`
@@ -216,11 +303,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
           }
         }
       `,
+      fetchPolicy: 'no-cache',
     });
     const response =
       queryResult.data.listConversationMessageAssistantResponses.items.find(
         (item) => item.associatedUserMessageId === event.currentMessageId
       );
     assert.ok(response);
-  }
+    return response;
+  };
 }
