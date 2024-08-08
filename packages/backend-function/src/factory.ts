@@ -1,4 +1,10 @@
 import {
+  FunctionOutput,
+  functionOutputKey,
+} from '@aws-amplify/backend-output-schemas';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import {
   BackendOutputStorageStrategy,
   BackendSecret,
   BackendSecretResolver,
@@ -12,28 +18,23 @@ import {
   ResourceProvider,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
-import { Construct } from 'constructs';
-import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
-import * as path from 'path';
-import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
-import { CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { createRequire } from 'module';
-import { FunctionEnvironmentTranslator } from './function_env_translator.js';
-import { Policy } from 'aws-cdk-lib/aws-iam';
-import { readFileSync } from 'fs';
-import { EOL } from 'os';
-import {
-  FunctionOutput,
-  functionOutputKey,
-} from '@aws-amplify/backend-output-schemas';
-import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
-import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'node:url';
-import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
-import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Rule } from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+import { CfnFunction, ILayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Construct } from 'constructs';
+import { readFileSync } from 'fs';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'node:url';
+import { EOL } from 'os';
+import * as path from 'path';
+import { FunctionEnvironmentTranslator } from './function_env_translator.js';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
+import { getCallerDirectory } from './get_caller_directory.js';
+import { LayerReference, resolveLayers } from './reference_layer.js';
+import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
 const functionStackType = 'function-Lambda';
 
@@ -52,6 +53,7 @@ export type TimeInterval =
   | `every month`
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
+export type FunctionLayerReferences = Record<string, LayerReference>;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -121,6 +123,20 @@ export type FunctionProps = {
    * schedule: "0 9 * * 2" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
+
+  /**
+   * Attach Lambda layers to a function
+   * @example
+   * import { referenceFunctionLayer } from "@aws-amplify/backend";
+   *
+   * layers: {
+   *    myModule: referenceFunctionLayer("arn:aws:lambda:<current-region>:<account-id>:layer:myLayer:1")
+   * },
+   *
+   * The object is keyed by the module name hosted on your existing layer and a value that references to an existing layer using an ARN. The keys will be externalized and available via your layer at runtime
+   * Maximum of 5 layers can be attached to a function. Layers must be in the same region as the function.
+   */
+  layers?: FunctionLayerReferences;
 };
 
 /**
@@ -166,6 +182,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      layers: this.props.layers ?? {},
     };
   };
 
@@ -265,7 +282,9 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 }
 
-type HydratedFunctionProps = Required<FunctionProps>;
+type HydratedFunctionProps = Required<FunctionProps> & {
+  layers: FunctionLayerReferences;
+};
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
@@ -279,10 +298,15 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps) => {
+    const resolvedLayers = resolveLayers(
+      this.props.layers,
+      scope,
+      this.props.name
+    );
     return new AmplifyFunction(
       scope,
       this.props.name,
-      this.props,
+      { ...this.props, resolvedLayers },
       backendSecretResolver,
       this.outputStorageStrategy
     );
@@ -301,7 +325,7 @@ class AmplifyFunction
   constructor(
     scope: Construct,
     id: string,
-    props: HydratedFunctionProps,
+    props: HydratedFunctionProps & { resolvedLayers: ILayerVersion[] },
     backendSecretResolver: BackendSecretResolver,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
@@ -349,6 +373,7 @@ class AmplifyFunction
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
         runtime: nodeVersionMap[props.runtime],
+        layers: props.resolvedLayers,
         bundling: {
           format: OutputFormat.ESM,
           banner: bannerCode,
@@ -359,6 +384,7 @@ class AmplifyFunction
           },
           minify: true,
           sourceMap: true,
+          externalModules: Object.keys(props.layers),
         },
       });
     } catch (error) {
