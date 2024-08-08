@@ -1,5 +1,13 @@
 # @aws-amplify/auth-construct
 
+## 1.2.1
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+- Updated dependencies [3c698e0]
+  - @aws-amplify/plugin-types@1.1.1
+
 ## 1.2.0
 
 ### Minor Changes

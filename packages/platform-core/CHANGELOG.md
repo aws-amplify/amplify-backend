@@ -1,5 +1,14 @@
 # @aws-amplify/platform-core
 
+## 1.0.5
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+- 320a86d: wrap getaddrinfo ENOTFOUND errors in AmplifyUserError
+- Updated dependencies [3c698e0]
+  - @aws-amplify/plugin-types@1.1.1
+
 ## 1.0.4
 
 ### Patch Changes
