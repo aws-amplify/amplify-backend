@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.5.7
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+
 ## 0.5.6
 
 ### Patch Changes

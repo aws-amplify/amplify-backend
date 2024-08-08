@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.1.1
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+
 ## 1.1.0
 
 ### Minor Changes
