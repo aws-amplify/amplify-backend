@@ -102,6 +102,37 @@ export class GenerateFormsCommand
           error
         );
       }
+      if (
+        error instanceof BackendOutputClientError &&
+        error.code === BackendOutputClientErrorType.CREDENTIALS_ERROR
+      ) {
+        throw new AmplifyUserError(
+          'CredentialsError',
+          {
+            message:
+              'Unable to get backend outputs due to invalid credentials.',
+            resolution:
+              'Ensure your AWS credentials are correctly set and refreshed.',
+          },
+          error
+        );
+      }
+      if (
+        error instanceof BackendOutputClientError &&
+        error.code === BackendOutputClientErrorType.ACCESS_DENIED
+      ) {
+        throw new AmplifyUserError(
+          'AccessDenied',
+          {
+            message:
+              'Unable to get backend outputs due to insufficient permissions.',
+            resolution:
+              'Ensure you have permissions to call cloudformation:GetTemplateSummary.',
+          },
+          error
+        );
+      }
+
       throw error;
     }
 

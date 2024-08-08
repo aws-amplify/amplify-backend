@@ -65,6 +65,24 @@ export class StackMetadataBackendOutputRetrievalStrategy
           `Stack with id ${stackName} does not exist`
         );
       }
+      if (
+        error instanceof CloudFormationServiceException &&
+        ['ExpiredToken', 'InvalidClientTokenId'].includes(error.name)
+      ) {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.CREDENTIALS_ERROR,
+          error.message
+        );
+      }
+      if (
+        error instanceof CloudFormationServiceException &&
+        error.name === 'AccessDenied'
+      ) {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.ACCESS_DENIED,
+          error.message
+        );
+      }
 
       throw error;
     }

@@ -104,6 +104,68 @@ void describe('models generator factory', () => {
         }
       );
     });
+
+    void it('throws an error if credentials are expired when getting backend outputs', async () => {
+      const fakeBackendOutputClient = {
+        getOutput: mock.fn(() => {
+          throw new BackendOutputClientError(
+            BackendOutputClientErrorType.CREDENTIALS_ERROR,
+            'token is expired'
+          );
+        }),
+      };
+      mock.method(
+        BackendOutputClientFactory,
+        'getInstance',
+        () => fakeBackendOutputClient
+      );
+      const generator = createGraphqlModelsGenerator({
+        backendIdentifier: { stackName: 'randomStack' },
+        awsClientProvider,
+      });
+      await assert.rejects(
+        () => generator.generateModels({ target: 'javascript' }),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Unable to get backend outputs due to invalid credentials.'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
+
+    void it('throws an error if access is denied when getting backend outputs', async () => {
+      const fakeBackendOutputClient = {
+        getOutput: mock.fn(() => {
+          throw new BackendOutputClientError(
+            BackendOutputClientErrorType.ACCESS_DENIED,
+            'access is denied'
+          );
+        }),
+      };
+      mock.method(
+        BackendOutputClientFactory,
+        'getInstance',
+        () => fakeBackendOutputClient
+      );
+      const generator = createGraphqlModelsGenerator({
+        backendIdentifier: { stackName: 'randomStack' },
+        awsClientProvider,
+      });
+      await assert.rejects(
+        () => generator.generateModels({ target: 'javascript' }),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Unable to get backend outputs due to insufficient permissions.'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
   });
 
   void describe('createGraphqlModelsFromS3UriGenerator', () => {

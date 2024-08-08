@@ -329,4 +329,98 @@ void describe('generate forms command', () => {
       }
     );
   });
+
+  void it('throws user error if credentials are expired when getting backend outputs', async () => {
+    const fakeSandboxId = 'my-fake-app-my-fake-username';
+    const backendIdResolver = {
+      resolve: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
+    } as BackendIdentifierResolver;
+    const formGenerationHandler = new FormGenerationHandler({
+      awsClientProvider,
+    });
+
+    const fakedBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.CREDENTIALS_ERROR,
+          'token is expired'
+        );
+      }),
+    };
+
+    const generateFormsCommand = new GenerateFormsCommand(
+      backendIdResolver,
+      () => fakedBackendOutputClient,
+      formGenerationHandler
+    );
+
+    const parser = yargs().command(
+      generateFormsCommand as unknown as CommandModule
+    );
+    const commandRunner = new TestCommandRunner(parser);
+    await assert.rejects(
+      () => commandRunner.runCommand('forms'),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'CredentialsError');
+        assert.strictEqual(
+          error.error.message,
+          'Unable to get backend outputs due to invalid credentials.'
+        );
+        return true;
+      }
+    );
+  });
+
+  void it('throws user error if access is denied when getting backend outputs', async () => {
+    const fakeSandboxId = 'my-fake-app-my-fake-username';
+    const backendIdResolver = {
+      resolve: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
+    } as BackendIdentifierResolver;
+    const formGenerationHandler = new FormGenerationHandler({
+      awsClientProvider,
+    });
+
+    const fakedBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.ACCESS_DENIED,
+          'access is denied'
+        );
+      }),
+    };
+
+    const generateFormsCommand = new GenerateFormsCommand(
+      backendIdResolver,
+      () => fakedBackendOutputClient,
+      formGenerationHandler
+    );
+
+    const parser = yargs().command(
+      generateFormsCommand as unknown as CommandModule
+    );
+    const commandRunner = new TestCommandRunner(parser);
+    await assert.rejects(
+      () => commandRunner.runCommand('forms'),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'AccessDenied');
+        assert.strictEqual(
+          error.error.message,
+          'Unable to get backend outputs due to insufficient permissions.'
+        );
+        return true;
+      }
+    );
+  });
 });
