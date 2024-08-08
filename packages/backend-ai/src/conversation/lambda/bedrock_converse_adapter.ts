@@ -61,7 +61,7 @@ export class BedrockConverseAdapter {
       };
     }
 
-    if (clientToolConfiguration?.tools) {
+    if (clientToolConfiguration?.tools && clientToolConfiguration.tools.length > 0) {
       if (!toolConfig?.tools) {
         toolConfig = {
           tools: clientToolConfiguration?.tools,
