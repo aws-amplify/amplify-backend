@@ -34,7 +34,7 @@ export type ConversationTurnEvent = {
     tools: Array<
       {
         graphqlRequestInputDescriptor: {
-          queryName: string,
+          queryName: string;
           selectionSet: string[];
           propertyTypes: Record<string, string>;
         };

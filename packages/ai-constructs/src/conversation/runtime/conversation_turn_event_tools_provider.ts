@@ -131,7 +131,7 @@ export class ConversationTurnEventToolsProvider {
             graphqlApiEndpoint,
             options
           );
-          console.log(JSON.stringify(body, null,2));
+          console.log(JSON.stringify(body, null, 2));
 
           return { json: body.data as DocumentType };
         },
