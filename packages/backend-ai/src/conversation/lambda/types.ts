@@ -19,6 +19,7 @@ export type ConversationTurnEvent = {
     currentMessageId: string;
     systemPrompt: string;
     toolDefinitions?: Tools;
+    clientToolConfiguration?: Tools;
   };
   identity: {
     defaultAuthStrategy: 'ALLOW' | 'DENY';

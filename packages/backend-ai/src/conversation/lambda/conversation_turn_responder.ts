@@ -28,11 +28,22 @@ const assistantResponseInput = (
   event: ConversationTurnEvent,
   content: ContentBlock[]
 ): AssistantMutationResponseInput => {
+  const { conversationId, currentMessageId: associatedUserMessageId } = event.args;
+  const preparedContent = content.map((block) => {
+    if (block.toolUse) {
+      // The `input` field is typed as `AWSJSON` in the GraphQL API because it can represent
+      // arbitrary JSON values.
+      // We need to stringify it before sending it to AppSync to prevent type errors.
+      const input = JSON.stringify(block.toolUse.input);
+      return { toolUse: { ...block.toolUse, input } };
+    }
+    return block;
+  });
   return {
     input: {
-      conversationId: event.args.conversationId,
-      content,
-      associatedUserMessageId: event.args.currentMessageId,
+      conversationId,
+      content: preparedContent,
+      associatedUserMessageId,
     },
   };
 };
@@ -52,6 +63,11 @@ const assistantResponseMutation = (event: ConversationTurnEvent): string => {
                     }
                   }
                   text
+                  toolUse {
+                    toolUseId
+                    name
+                    input
+                  }
                   toolResult {
                     status
                     toolUseId
@@ -90,7 +106,7 @@ export class ConversationTurnResponder {
   /**
    * TODO docs
    */
-  constructor(private readonly event: ConversationTurnEvent) {}
+  constructor(private readonly event: ConversationTurnEvent) { }
 
   respond = async (message: ContentBlock[]) => {
     const authHeader = this.event.request.headers.authorization;
