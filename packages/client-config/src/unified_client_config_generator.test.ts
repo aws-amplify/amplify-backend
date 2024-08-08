@@ -233,5 +233,71 @@ void describe('UnifiedClientConfigGenerator', () => {
         }
       );
     });
+
+    void it('throws user error if credentials are expired when getting backend outputs', async () => {
+      const outputRetrieval = mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.EXPIRED_TOKEN,
+          'unable to get backend outputs with credentials'
+        );
+      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1');
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Unable to get backend outputs with credentials.'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
+
+    void it('throws user error if access is denied when getting backend outputs', async () => {
+      const outputRetrieval = mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.ACCESS_DENIED,
+          'unable to get backend outputs with credentials'
+        );
+      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1');
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Unable to get backend outputs with credentials.'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
   });
 });

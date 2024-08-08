@@ -324,6 +324,99 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
       );
     });
 
+    void it('throws if security token is expired', async () => {
+      const cfnClientMock = {
+        send: mock.fn((command) => {
+          if (command instanceof GetTemplateSummaryCommand) {
+            throw new CloudFormationServiceException({
+              $fault: 'client',
+              $metadata: {},
+              name: 'ExpiredToken',
+              message: 'The security token included in the request is expired',
+            });
+          } else if (command instanceof DescribeStacksCommand) {
+            return {
+              Stacks: [
+                {
+                  Outputs: [
+                    {
+                      OutputKey: 'testName1',
+                      OutputValue: 'testValue1',
+                    },
+                  ],
+                },
+              ],
+            };
+          }
+          assert.fail(`Unknown command ${typeof command}`);
+        }),
+      } as unknown as CloudFormationClient;
+
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'randomStack'),
+      };
+
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
+        cfnClientMock,
+        stackNameResolverMock
+      );
+
+      await assert.rejects(
+        retrievalStrategy.fetchBackendOutput(),
+        new BackendOutputClientError(
+          BackendOutputClientErrorType.EXPIRED_TOKEN,
+          'The security token included in the request is expired'
+        )
+      );
+    });
+
+    void it('throws if access is denied when getting template summary', async () => {
+      const cfnClientMock = {
+        send: mock.fn((command) => {
+          if (command instanceof GetTemplateSummaryCommand) {
+            throw new CloudFormationServiceException({
+              $fault: 'client',
+              $metadata: {},
+              name: 'AccessDenied',
+              message:
+                'role is not authorized to perform: randomAction on resource: resource-arn because no identity-based policy allows the randomAction action',
+            });
+          } else if (command instanceof DescribeStacksCommand) {
+            return {
+              Stacks: [
+                {
+                  Outputs: [
+                    {
+                      OutputKey: 'testName1',
+                      OutputValue: 'testValue1',
+                    },
+                  ],
+                },
+              ],
+            };
+          }
+          assert.fail(`Unknown command ${typeof command}`);
+        }),
+      } as unknown as CloudFormationClient;
+
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'randomStack'),
+      };
+
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
+        cfnClientMock,
+        stackNameResolverMock
+      );
+
+      await assert.rejects(
+        retrievalStrategy.fetchBackendOutput(),
+        new BackendOutputClientError(
+          BackendOutputClientErrorType.ACCESS_DENIED,
+          'role is not authorized to perform: randomAction on resource: resource-arn because no identity-based policy allows the randomAction action'
+        )
+      );
+    });
+
     void it('does not throw on missing output', async () => {
       const cfnClientMock = {
         send: mock.fn((command) => {

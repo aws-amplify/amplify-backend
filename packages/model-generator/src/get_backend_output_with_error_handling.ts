@@ -13,6 +13,8 @@ export const getBackendOutputWithErrorHandling = async (
   backendOutputClient: BackendOutputClient,
   backendIdentifier: DeployedBackendIdentifier
 ) => {
+  const credentialsErrorMessage =
+    'Unable to get backend outputs with credentials.';
   try {
     return await backendOutputClient.getOutput(backendIdentifier);
   } catch (error) {
@@ -43,6 +45,35 @@ export const getBackendOutputWithErrorHandling = async (
         error
       );
     }
+    if (
+      error instanceof BackendOutputClientError &&
+      error.code === BackendOutputClientErrorType.EXPIRED_TOKEN
+    ) {
+      throw new AmplifyUserError(
+        'CredentialsError',
+        {
+          message: credentialsErrorMessage,
+          resolution:
+            'Ensure your AWS credentials are correctly set and refreshed.',
+        },
+        error
+      );
+    }
+    if (
+      error instanceof BackendOutputClientError &&
+      error.code === BackendOutputClientErrorType.ACCESS_DENIED
+    ) {
+      throw new AmplifyUserError(
+        'CredentialsError',
+        {
+          message: credentialsErrorMessage,
+          resolution:
+            'Ensure you have permissions to call cloudformation:GetTemplateSummary.',
+        },
+        error
+      );
+    }
+
     throw error;
   }
 };

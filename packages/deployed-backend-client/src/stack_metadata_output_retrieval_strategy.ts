@@ -65,6 +65,24 @@ export class StackMetadataBackendOutputRetrievalStrategy
           `Stack with id ${stackName} does not exist`
         );
       }
+      if (
+        error instanceof CloudFormationServiceException &&
+        error.name === 'ExpiredToken'
+      ) {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.EXPIRED_TOKEN,
+          'The security token included in the request is expired'
+        );
+      }
+      if (
+        error instanceof CloudFormationServiceException &&
+        error.name === 'AccessDenied'
+      ) {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.ACCESS_DENIED,
+          error.message
+        );
+      }
 
       throw error;
     }

@@ -35,6 +35,8 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
    * Fetch all backend output, invoke each ClientConfigContributor on the result and merge into a single config object
    */
   generateClientConfig = async (): Promise<ClientConfig> => {
+    const credentialsErrorMessage =
+      'Unable to get backend outputs with credentials.';
     let output;
     try {
       output = await this.fetchOutput();
@@ -66,6 +68,35 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
           error
         );
       }
+      if (
+        error instanceof BackendOutputClientError &&
+        error.code === BackendOutputClientErrorType.EXPIRED_TOKEN
+      ) {
+        throw new AmplifyUserError(
+          'CredentialsError',
+          {
+            message: credentialsErrorMessage,
+            resolution:
+              'Ensure your AWS credentials are correctly set and refreshed.',
+          },
+          error
+        );
+      }
+      if (
+        error instanceof BackendOutputClientError &&
+        error.code === BackendOutputClientErrorType.ACCESS_DENIED
+      ) {
+        throw new AmplifyUserError(
+          'CredentialsError',
+          {
+            message: credentialsErrorMessage,
+            resolution:
+              'Ensure you have permissions to call cloudformation:GetTemplateSummary.',
+          },
+          error
+        );
+      }
+
       throw error;
     }
     const backendOutput = unifiedBackendOutputSchema.parse(output);

@@ -99,4 +99,66 @@ void describe('model generator factory', () => {
       }
     );
   });
+
+  void it('throws an error if credentials are expired when getting backend outputs', async () => {
+    const fakeBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.EXPIRED_TOKEN,
+          'unable to get backend outputs with credentials'
+        );
+      }),
+    };
+    mock.method(
+      BackendOutputClientFactory,
+      'getInstance',
+      () => fakeBackendOutputClient
+    );
+    const generator = createGraphqlDocumentGenerator({
+      backendIdentifier: { stackName: 'randomStack' },
+      awsClientProvider,
+    });
+    await assert.rejects(
+      () => generator.generateModels({ targetFormat: 'javascript' }),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(
+          error.message,
+          'Unable to get backend outputs with credentials.'
+        );
+        assert.ok(error.resolution);
+        return true;
+      }
+    );
+  });
+
+  void it('throws an error if access is denied when getting backend outputs', async () => {
+    const fakeBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.ACCESS_DENIED,
+          'unable to get backend outputs with credentials'
+        );
+      }),
+    };
+    mock.method(
+      BackendOutputClientFactory,
+      'getInstance',
+      () => fakeBackendOutputClient
+    );
+    const generator = createGraphqlDocumentGenerator({
+      backendIdentifier: { stackName: 'randomStack' },
+      awsClientProvider,
+    });
+    await assert.rejects(
+      () => generator.generateModels({ targetFormat: 'javascript' }),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(
+          error.message,
+          'Unable to get backend outputs with credentials.'
+        );
+        assert.ok(error.resolution);
+        return true;
+      }
+    );
+  });
 });

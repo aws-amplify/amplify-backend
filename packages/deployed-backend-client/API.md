@@ -94,7 +94,11 @@ export class BackendOutputClientError extends Error {
 // @public (undocumented)
 export enum BackendOutputClientErrorType {
     // (undocumented)
+    ACCESS_DENIED = "AccessDenied",
+    // (undocumented)
     DEPLOYMENT_IN_PROGRESS = "DeploymentInProgress",
+    // (undocumented)
+    EXPIRED_TOKEN = "ExpiredToken",
     // (undocumented)
     METADATA_RETRIEVAL_ERROR = "MetadataRetrievalError",
     // (undocumented)
