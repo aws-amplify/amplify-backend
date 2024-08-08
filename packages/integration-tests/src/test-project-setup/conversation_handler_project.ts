@@ -171,6 +171,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
       clientConfig.data.url,
       apolloClient
     );
+
+    await this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient
+    );
   }
 
   private assertDefaultConversationHandlerCanExecuteTurn = async (
@@ -218,6 +225,82 @@ class ConversationHandlerTestProject extends TestProjectBase {
       defaultConversationHandlerFunction,
       apolloClient
     );
+  };
+
+  private assertDefaultConversationHandlerCanExecuteTurnWithDataTool = async (
+    backendId: BackendIdentifier,
+    accessToken: string,
+    graphqlApiEndpoint: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>
+  ): Promise<void> => {
+    const defaultConversationHandlerFunction = (
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('default')
+      )
+    )[0];
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: randomUUID().toString(),
+      currentMessageId: randomUUID().toString(),
+      graphqlApiEndpoint: graphqlApiEndpoint,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'What is the temperature in Seattle?',
+            },
+          ],
+        },
+      ],
+      request: {
+        headers: { authorization: accessToken },
+      },
+      responseMutationInputTypeName:
+        'CreateConversationMessageAssistantResponseInput',
+      responseMutationName: 'createConversationMessageAssistantResponse',
+      modelConfiguration: {
+        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+        systemPrompt: 'You are helpful bot.',
+      },
+      toolsConfiguration: {
+        tools: [
+          {
+            name: 'thermometer',
+            description: 'Provides the current temperature for a given city.',
+            inputSchema: {
+              json: {
+                type: 'object',
+                properties: {
+                  city: {
+                    type: 'string',
+                    description: 'string',
+                  },
+                },
+                required: [],
+              },
+            },
+            graphqlRequestInputDescriptor: {
+              queryName: 'getTemperature',
+              selectionSet: ['value', 'unit'],
+              propertyTypes: {
+                city: 'String',
+              },
+            },
+          },
+        ],
+      },
+    };
+    const response = await this.executeConversationTurn(
+      event,
+      defaultConversationHandlerFunction,
+      apolloClient
+    );
+    // Assert that tool was used.
+    assert.match(response.content, /85/);
   };
 
   private assertCustomConversationHandlerCanExecuteTurn = async (

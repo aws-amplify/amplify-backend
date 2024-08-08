@@ -70,6 +70,7 @@ type ConversationTurnEvent = {
     toolsConfiguration?: {
         tools: Array<{
             graphqlRequestInputDescriptor: {
+                queryName: string;
                 selectionSet: string[];
                 propertyTypes: Record<string, string>;
             };

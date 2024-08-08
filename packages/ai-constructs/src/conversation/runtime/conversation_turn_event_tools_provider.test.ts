@@ -32,8 +32,9 @@ void describe('bedrock converse adapter', () => {
                 required: [],
               },
             },
-            name: 'getTemperature',
+            name: 'thermometer',
             graphqlRequestInputDescriptor: {
+              queryName: 'getTemperature',
               selectionSet: ['value', 'unit'],
               propertyTypes: { city: 'String' },
             },

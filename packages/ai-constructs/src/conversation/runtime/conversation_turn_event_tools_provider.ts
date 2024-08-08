@@ -35,7 +35,8 @@ const makeGraphqlQuery = (toolSpec: ToolConfiguration): string => {
     // TODO: handle queries without args
     throw Error('not yet handling no-arg queries');
   }
-  const { selectionSet, propertyTypes } = graphqlRequestInputDescriptor;
+  const { selectionSet, propertyTypes, queryName } =
+    graphqlRequestInputDescriptor;
 
   let topLevelQueryArgs = '';
   let queryArgs = '';
@@ -68,7 +69,7 @@ const makeGraphqlQuery = (toolSpec: ToolConfiguration): string => {
 
   const query = `
     query ToolQuery(${topLevelQueryArgs}) {
-      ${toolSpec.name}(${queryArgs}) {
+      ${queryName}(${queryArgs}) {
         ${selectionSetString}
       }
     }
@@ -130,7 +131,7 @@ export class ConversationTurnEventToolsProvider {
             graphqlApiEndpoint,
             options
           );
-          console.log(body);
+          console.log(JSON.stringify(body, null,2));
 
           return { json: body.data as DocumentType };
         },
