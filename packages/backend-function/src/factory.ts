@@ -33,7 +33,7 @@ import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { LayerReference, resolveLayers } from './reference_layer.js';
+import { resolveLayers } from './reference_layer.js';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
 const functionStackType = 'function-Lambda';
@@ -53,7 +53,7 @@ export type TimeInterval =
   | `every month`
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
-export type FunctionLayerReferences = Record<string, LayerReference>;
+export type FunctionLayerReferences = Record<string, string>;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem

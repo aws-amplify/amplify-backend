@@ -11,6 +11,7 @@ import {
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
+import { EOL } from 'node:os';
 import { beforeEach, describe, it } from 'node:test';
 import { defineFunction } from './factory.js';
 
@@ -54,9 +55,7 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       entry: './test-assets/default-lambda/handler.ts',
       name: 'lambdaWithLayer',
       layers: {
-        myLayer: {
-          arn: layerArn,
-        },
+        myLayer: layerArn,
       },
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
@@ -78,12 +77,8 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       entry: './test-assets/default-lambda/handler.ts',
       name: 'lambdaWithMultipleLayers',
       layers: {
-        myLayer1: {
-          arn: layerArns[0],
-        },
-        myLayer2: {
-          arn: layerArns[1],
-        },
+        myLayer1: layerArns[0],
+        myLayer2: layerArns[1],
       },
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
@@ -102,14 +97,14 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       entry: './test-assets/default-lambda/handler.ts',
       name: 'lambdaWithInvalidLayer',
       layers: {
-        invalidLayer: {
-          arn: invalidLayerArn,
-        },
+        invalidLayer: invalidLayerArn,
       },
     });
     assert.throws(
       () => functionFactory.getInstance(getInstanceProps),
-      new Error(`Invalid ARN format for layer invalidLayer: ${invalidLayerArn}`)
+      new Error(
+        `Invalid ARN format for layer: ${invalidLayerArn} ${EOL} Expected format: arn:aws:lambda:<current-region>:<account-id>:layer:<layer-name>:<version>`
+      )
     );
   });
 
@@ -122,12 +117,12 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       'arn:aws:lambda:us-east-1:123456789012:layer:my-layer-5:1',
       'arn:aws:lambda:us-east-1:123456789012:layer:my-layer-6:1',
     ];
-    const layers: Record<string, { arn: string }> = layerArns.reduce(
+    const layers: Record<string, string> = layerArns.reduce(
       (acc, arn, index) => {
-        acc[`layer${index + 1}`] = { arn };
+        acc[`layer${index + 1}`] = arn;
         return acc;
       },
-      {} as Record<string, { arn: string }>
+      {} as Record<string, string>
     );
 
     const functionFactory = defineFunction({

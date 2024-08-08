@@ -22,7 +22,7 @@ export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` |
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory>;
 
 // @public (undocumented)
-export type FunctionLayerReferences = Record<string, LayerReference>;
+export type FunctionLayerReferences = Record<string, string>;
 
 // @public (undocumented)
 export type FunctionProps = {
@@ -39,16 +39,8 @@ export type FunctionProps = {
 // @public (undocumented)
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
-// @public
-export type LayerReference = {
-    arn: string;
-};
-
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20;
-
-// @public
-export const referenceFunctionLayer: (arn: string) => LayerReference;
 
 // @public (undocumented)
 export type TimeInterval = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;

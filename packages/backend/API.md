@@ -26,7 +26,6 @@ import { defineStorage } from '@aws-amplify/backend-storage';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GenerateContainerEntryProps } from '@aws-amplify/plugin-types';
 import { ImportPathVerifier } from '@aws-amplify/plugin-types';
-import { referenceFunctionLayer } from '@aws-amplify/backend-function';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntriesGenerator } from '@aws-amplify/plugin-types';
@@ -89,8 +88,6 @@ export { FunctionResources }
 export { GenerateContainerEntryProps }
 
 export { ImportPathVerifier }
-
-export { referenceFunctionLayer }
 
 export { ResourceProvider }
 

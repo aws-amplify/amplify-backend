@@ -15,7 +15,4 @@ export { defineAuth } from '@aws-amplify/backend-auth';
 export { defineStorage } from '@aws-amplify/backend-storage';
 
 // function
-export {
-  defineFunction,
-  referenceFunctionLayer,
-} from '@aws-amplify/backend-function';
+export { defineFunction } from '@aws-amplify/backend-function';
