@@ -1,7 +1,6 @@
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
-  DeepPartial,
 } from '@aws-amplify/plugin-types';
 import { CfnOutput, Lazy, Stack } from 'aws-cdk-lib';
 
@@ -37,14 +36,10 @@ export class StackMetadataBackendOutputStorageStrategy
       new CfnOutput(this.stack, key, { value });
     });
 
-    const metadata = this.stack.templateOptions.metadata || {};
-    const existingMetadataEntry = metadata[keyName];
-
-    this.addOrUpdateMetadata(
-      existingMetadataEntry,
-      keyName,
-      backendOutputEntry
-    );
+    this.stack.addMetadata(keyName, {
+      version: backendOutputEntry.version,
+      stackOutputs: Object.keys(backendOutputEntry.payload),
+    });
   };
 
   /**
@@ -52,7 +47,7 @@ export class StackMetadataBackendOutputStorageStrategy
    */
   appendToBackendOutputList = (
     keyName: string,
-    backendOutputEntry: DeepPartial<BackendOutputEntry>
+    backendOutputEntry: BackendOutputEntry
   ): void => {
     const version = backendOutputEntry.version;
     let listsMap = this.lazyListValueMap.get(keyName);
@@ -66,67 +61,32 @@ export class StackMetadataBackendOutputStorageStrategy
           `Metadata entry for ${keyName} at version ${existingMetadataEntry.version} already exists. Cannot add another entry for the same key at version ${version}.`
         );
       }
-    }
-
-    this.addOrUpdateMetadata(
-      existingMetadataEntry,
-      keyName,
-      backendOutputEntry as BackendOutputEntry
-    );
-
-    Object.entries(backendOutputEntry.payload ?? []).forEach(
-      ([listName, value]) => {
-        if (!value) {
-          return;
-        }
-        if (!listsMap) {
-          listsMap = new Map();
-          this.lazyListValueMap.set(keyName, listsMap);
-        }
-        let outputList = listsMap.get(listName);
-
-        if (outputList) {
-          outputList.push(value);
-        } else {
-          outputList = [value];
-          listsMap.set(listName, outputList);
-
-          new CfnOutput(this.stack, listName, {
-            value: Lazy.string({ produce: () => JSON.stringify(outputList) }),
-          });
-        }
-      }
-    );
-  };
-
-  /**
-   * Add or update metadata entry.
-   * @param existingMetadataEntry - The existing metadata entry.
-   * @param keyName - The key name.
-   * @param backendOutputEntry - The backend output entry.
-   */
-  private addOrUpdateMetadata(
-    existingMetadataEntry:
-      | { version: string; stackOutputs: string[] }
-      | undefined,
-    keyName: string,
-    backendOutputEntry: BackendOutputEntry
-  ) {
-    if (existingMetadataEntry) {
-      this.stack.addMetadata(keyName, {
-        version: backendOutputEntry.version,
-        stackOutputs: [
-          ...new Set([
-            ...Object.keys(backendOutputEntry.payload),
-            ...existingMetadataEntry.stackOutputs,
-          ]),
-        ],
-      });
     } else {
       this.stack.addMetadata(keyName, {
-        version: backendOutputEntry.version,
-        stackOutputs: Object.keys(backendOutputEntry.payload),
+        version,
+        stackOutputs: Lazy.list({
+          produce: () => Array.from(listsMap ? listsMap.keys() : []),
+        }),
       });
     }
-  }
+
+    Object.entries(backendOutputEntry.payload).forEach(([listName, value]) => {
+      if (!listsMap) {
+        listsMap = new Map();
+        this.lazyListValueMap.set(keyName, listsMap);
+      }
+      let outputList = listsMap.get(listName);
+
+      if (outputList) {
+        outputList.push(value);
+      } else {
+        outputList = [value];
+        listsMap.set(listName, outputList);
+
+        new CfnOutput(this.stack, listName, {
+          value: Lazy.string({ produce: () => JSON.stringify(outputList) }),
+        });
+      }
+    });
+  };
 }

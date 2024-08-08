@@ -8,7 +8,6 @@
 
 import { BackendOutputEntry } from '@aws-amplify/plugin-types';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
-import { DeepPartial } from '@aws-amplify/plugin-types';
 import * as _os from 'os';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { Stack } from 'aws-cdk-lib';
@@ -38,7 +37,7 @@ export type Platform = 'Mac' | 'Windows' | 'Linux' | 'Other';
 export class StackMetadataBackendOutputStorageStrategy implements BackendOutputStorageStrategy<BackendOutputEntry> {
     constructor(stack: Stack);
     addBackendOutputEntry: (keyName: string, backendOutputEntry: BackendOutputEntry) => void;
-    appendToBackendOutputList: (keyName: string, backendOutputEntry: DeepPartial<BackendOutputEntry>) => void;
+    appendToBackendOutputList: (keyName: string, backendOutputEntry: BackendOutputEntry) => void;
 }
 
 // (No @packageDocumentation comment for this package)

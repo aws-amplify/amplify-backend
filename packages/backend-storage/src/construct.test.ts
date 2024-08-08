@@ -1,8 +1,14 @@
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import { AmplifyStorage } from './construct.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Capture, Template } from 'aws-cdk-lib/assertions';
+import {
+  BackendOutputEntry,
+  BackendOutputStorageStrategy,
+} from '@aws-amplify/plugin-types';
 import assert from 'node:assert';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { storageOutputKey } from '@aws-amplify/backend-output-schemas';
 
 void describe('AmplifyStorage', () => {
   void it('creates a bucket', () => {
@@ -99,6 +105,59 @@ void describe('AmplifyStorage', () => {
       JSON.stringify(policyCapture.asObject()),
       /"aws:SecureTransport":"false"/
     );
+  });
+
+  void describe('storeOutput', () => {
+    void it('stores output using the provided strategy', () => {
+      const app = new App();
+      const stack = new Stack(app);
+
+      const storeOutputMock = mock.fn();
+      const storageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+        {
+          addBackendOutputEntry: storeOutputMock,
+          appendToBackendOutputList: storeOutputMock,
+        };
+
+      const storageConstruct = new AmplifyStorage(stack, 'test', {
+        name: 'testName',
+        outputStorageStrategy: storageStrategy,
+      });
+
+      const expectedBucketName = (
+        storageConstruct.node.findChild('Bucket') as Bucket
+      ).bucketName;
+      const expectedRegion = Stack.of(storageConstruct).region;
+
+      const storeOutputArgs = storeOutputMock.mock.calls[0].arguments;
+      assert.strictEqual(storeOutputArgs.length, 2);
+
+      assert.deepStrictEqual(storeOutputArgs, [
+        storageOutputKey,
+        {
+          version: '1',
+          payload: {
+            bucketName: expectedBucketName,
+            storageRegion: expectedRegion,
+          },
+        },
+      ]);
+    });
+    void it('stores output when no storage strategy is injected', () => {
+      const app = new App();
+      const stack = new Stack(app);
+
+      new AmplifyStorage(stack, 'test', { name: 'testName' });
+      const template = Template.fromStack(stack);
+      template.templateMatches({
+        Metadata: {
+          [storageOutputKey]: {
+            version: '1',
+            stackOutputs: ['storageRegion', 'bucketName'],
+          },
+        },
+      });
+    });
   });
 
   void describe('storage overrides', () => {
