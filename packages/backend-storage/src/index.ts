@@ -1,4 +1,4 @@
-export { defineStorage } from './factory.js';
+export * from './factory.js';
 export {
   StorageResources,
   AmplifyStorageProps,

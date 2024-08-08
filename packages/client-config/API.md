@@ -23,16 +23,6 @@ interface AmazonLocationServiceConfig {
 type AmazonPinpointChannels = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public (undocumented)
-interface AmplifyStorageBucket {
-    // (undocumented)
-    aws_region: string;
-    // (undocumented)
-    bucket_name: string;
-    // (undocumented)
-    name: string;
-}
-
-// @public (undocumented)
 export type AnalyticsClientConfig = {
     aws_mobile_analytics_app_id?: string;
     aws_mobile_analytics_app_region?: string;
@@ -145,7 +135,6 @@ interface AWSAmplifyBackendOutputs {
     storage?: {
         aws_region: AwsRegion;
         bucket_name: string;
-        buckets?: AmplifyStorageBucket[];
     };
     version: '1';
 }
@@ -191,8 +180,7 @@ declare namespace clientConfigTypesV1 {
         AwsAppsyncAuthorizationType,
         AmazonPinpointChannels,
         AWSAmplifyBackendOutputs,
-        AmazonLocationServiceConfig,
-        AmplifyStorageBucket
+        AmazonLocationServiceConfig
     }
 }
 export { clientConfigTypesV1 }

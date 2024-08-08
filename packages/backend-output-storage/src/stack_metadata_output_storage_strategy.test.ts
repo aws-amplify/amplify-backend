@@ -16,18 +16,17 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       outputStorage.addBackendOutputEntry('TestStorageOutput', {
         version: '1',
         payload: {
-          bucketName: 'test-bucket',
-          storageRegion: 'us-west-2',
+          something: 'special',
         },
       });
 
       const template = Template.fromStack(stack);
-      template.hasOutput('bucketName', { Value: 'test-bucket' });
+      template.hasOutput('something', { Value: 'special' });
       template.templateMatches({
         Metadata: {
           TestStorageOutput: {
             version: '1',
-            stackOutputs: ['bucketName', 'storageRegion'],
+            stackOutputs: ['something'],
           },
         },
       });
@@ -42,8 +41,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       outputStorage.addBackendOutputEntry('TestStorageOutput', {
         version: '44',
         payload: {
-          bucketName: 'test-bucket',
-          storageRegion: 'us-west-2',
+          something: 'special',
         },
       });
 
@@ -63,19 +61,17 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
         payload: {
-          buckets: 'test-bucket',
+          something: 'special',
         },
       });
 
       const template = Template.fromStack(stack);
-      template.hasOutput('buckets', {
-        Value: JSON.stringify(['test-bucket']),
-      });
+      template.hasOutput('something', { Value: JSON.stringify(['special']) });
       template.templateMatches({
         Metadata: {
           TestStorageOutput: {
             version: '1',
-            stackOutputs: ['buckets'],
+            stackOutputs: ['something'],
           },
         },
       });
@@ -90,93 +86,57 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
         payload: {
-          buckets: JSON.stringify({
-            name: 'test-bucket',
-            bucketName: 'test-bucket',
-            storageRegion: 'us-west-2',
-          }),
-        },
-      });
-      outputStorage.addBackendOutputEntry('TestStorageOutput', {
-        version: '1',
-        payload: {
-          bucketName: 'test-bucket-two',
-          storageRegion: 'us-west-2',
+          something: 'special',
         },
       });
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
         payload: {
-          buckets: JSON.stringify({
-            name: 'test-bucket-two',
-            bucketName: 'test-bucket-two',
-            storageRegion: 'us-west-2',
-          }),
+          something: 'otherSpecial',
         },
       });
       const template = Template.fromStack(stack);
-      template.hasOutput('buckets', {
-        Value: JSON.stringify([
-          '{"name":"test-bucket","bucketName":"test-bucket","storageRegion":"us-west-2"}',
-          '{"name":"test-bucket-two","bucketName":"test-bucket-two","storageRegion":"us-west-2"}',
-        ]),
+      template.hasOutput('something', {
+        Value: JSON.stringify(['special', 'otherSpecial']),
       });
       template.templateMatches({
         Metadata: {
           TestStorageOutput: {
             version: '1',
-            stackOutputs: ['buckets', 'bucketName', 'storageRegion'],
+            stackOutputs: ['something'],
           },
         },
       });
     });
 
-    void it('appends a cdk token to an existing list in stack output with two buckets', () => {
+    void it('appends a cdk token to an existing list in stack output', () => {
       const testToken = Token.asString('testToken');
       const app = new App();
       const stack = new Stack(app);
       const outputStorage = new StackMetadataBackendOutputStorageStrategy(
         stack
       );
-      outputStorage.addBackendOutputEntry('TestStorageOutput', {
+      outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
         payload: {
-          bucketName: testToken,
-          storageRegion: 'us-west-2',
+          something: 'special',
         },
       });
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
         payload: {
-          buckets: JSON.stringify({
-            name: testToken,
-            bucketName: testToken,
-            storageRegion: 'us-west-2',
-          }),
-        },
-      });
-      outputStorage.appendToBackendOutputList('TestStorageOutput', {
-        version: '1',
-        payload: {
-          buckets: JSON.stringify({
-            name: 'test-bucket-two',
-            bucketName: 'test-bucket-two',
-            storageRegion: 'us-west-2',
-          }),
+          something: testToken,
         },
       });
       const template = Template.fromStack(stack);
-      template.hasOutput('buckets', {
-        Value: JSON.stringify([
-          '{"name":"testToken","bucketName":"testToken","storageRegion":"us-west-2"}',
-          '{"name":"test-bucket-two","bucketName":"test-bucket-two","storageRegion":"us-west-2"}',
-        ]),
+      template.hasOutput('something', {
+        Value: JSON.stringify(['special', 'testToken']),
       });
       template.templateMatches({
         Metadata: {
           TestStorageOutput: {
             version: '1',
-            stackOutputs: ['buckets', 'bucketName', 'storageRegion'],
+            stackOutputs: ['something'],
           },
         },
       });
@@ -191,7 +151,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
       outputStorage.appendToBackendOutputList('TestStorageOutput', {
         version: '1',
         payload: {
-          buckets: 'test-bucket',
+          something: 'special',
         },
       });
 
@@ -200,8 +160,7 @@ void describe('StackMetadataBackendOutputStorageStrategy', () => {
           outputStorage.appendToBackendOutputList('TestStorageOutput', {
             version: '2',
             payload: {
-              bucketName: 'test-bucket',
-              storageRegion: 'us-west-2',
+              something: 'otherSpecial',
             },
           }),
         {

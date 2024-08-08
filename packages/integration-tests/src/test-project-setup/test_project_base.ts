@@ -24,7 +24,6 @@ import { BackendOutputClientFactory as CurrentCodebaseBackendOutputClientFactory
 import path from 'path';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { pathToFileURL } from 'url';
-import isMatch from 'lodash.ismatch';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -184,6 +183,6 @@ export abstract class TestProjectBase {
       await currentCodebaseBackendOutputClient.getOutput(backendId);
     const npmOutputs = await npmBackendOutputClient.getOutput(backendId);
 
-    assert.ok(isMatch(currentCodebaseOutputs, npmOutputs));
+    assert.deepStrictEqual(currentCodebaseOutputs, npmOutputs);
   }
 }
