@@ -12,6 +12,7 @@
   "argv",
   "arn",
   "arns",
+  "awslayer",
   "backends",
   "birthdate",
   "bundler",

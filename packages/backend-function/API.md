@@ -21,6 +21,11 @@ export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` |
 // @public
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory>;
 
+// Warning: (ae-forgotten-export) The symbol "LayerReference" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export type FunctionLayerReferences = Record<string, LayerReference>;
+
 // @public (undocumented)
 export type FunctionProps = {
     name?: string;
@@ -30,6 +35,7 @@ export type FunctionProps = {
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
+    layers?: FunctionLayerReferences;
 };
 
 // @public (undocumented)
@@ -37,6 +43,9 @@ export type FunctionSchedule = TimeInterval | CronSchedule;
 
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20;
+
+// @public
+export const referenceFunctionLayer: (arn: string) => LayerReference;
 
 // @public (undocumented)
 export type TimeInterval = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;
