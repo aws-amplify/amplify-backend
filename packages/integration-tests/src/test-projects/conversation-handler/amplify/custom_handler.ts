@@ -4,6 +4,7 @@ import {
   handleConversationTurnEvent,
 } from '@aws-amplify/ai-constructs/conversation/runtime';
 import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
+import { expectedTemperatureInProgrammaticToolScenario } from './constants.js';
 
 const thermometer: ExecutableTool = {
   name: 'thermometer',
@@ -11,7 +12,9 @@ const thermometer: ExecutableTool = {
   execute: (): Promise<ToolResultContentBlock> => {
     return Promise.resolve({
       // We use this value in test assertion.
-      text: '75F',
+      // LLM uses tool to get temperature and serves this value in final response.
+      // We're matching number only as LLM may translate unit to something more descriptive.
+      text: `${expectedTemperatureInProgrammaticToolScenario}F`,
     });
   },
   inputSchema: { json: { type: 'object' } },

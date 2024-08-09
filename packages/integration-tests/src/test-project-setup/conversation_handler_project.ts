@@ -24,6 +24,11 @@ import { AUTH_TYPE, createAuthLink } from 'aws-appsync-auth-link';
 import { gql } from 'graphql-tag';
 import assert from 'assert';
 import { NormalizedCacheObject } from '@apollo/client';
+import {
+  bedrockModelId,
+  expectedTemperatureInDataToolScenario,
+  expectedTemperatureInProgrammaticToolScenario,
+} from '../test-projects/conversation-handler/amplify/constants.js';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -204,7 +209,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
           role: 'user',
           content: [
             {
-              text: 'How are you?',
+              text: 'What is the value of PI?',
             },
           ],
         },
@@ -216,15 +221,16 @@ class ConversationHandlerTestProject extends TestProjectBase {
         'CreateConversationMessageAssistantResponseInput',
       responseMutationName: 'createConversationMessageAssistantResponse',
       modelConfiguration: {
-        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+        modelId: bedrockModelId,
         systemPrompt: 'You are helpful bot.',
       },
     };
-    await this.executeConversationTurn(
+    const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
       apolloClient
     );
+    assert.match(response.content, /3\.14/);
   };
 
   private assertDefaultConversationHandlerCanExecuteTurnWithDataTool = async (
@@ -263,7 +269,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
         'CreateConversationMessageAssistantResponseInput',
       responseMutationName: 'createConversationMessageAssistantResponse',
       modelConfiguration: {
-        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+        modelId: bedrockModelId,
         systemPrompt: 'You are helpful bot.',
       },
       toolsConfiguration: {
@@ -299,8 +305,11 @@ class ConversationHandlerTestProject extends TestProjectBase {
       defaultConversationHandlerFunction,
       apolloClient
     );
-    // Assert that tool was used.
-    assert.match(response.content, /85/);
+    // Assert that tool was used. I.e. that LLM used value returned by the tool.
+    assert.match(
+      response.content,
+      new RegExp(expectedTemperatureInDataToolScenario.toString())
+    );
   };
 
   private assertCustomConversationHandlerCanExecuteTurn = async (
@@ -339,7 +348,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
         'CreateConversationMessageAssistantResponseInput',
       responseMutationName: 'createConversationMessageAssistantResponse',
       modelConfiguration: {
-        modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+        modelId: bedrockModelId,
         systemPrompt: 'You are helpful bot.',
       },
     };
@@ -348,8 +357,11 @@ class ConversationHandlerTestProject extends TestProjectBase {
       customConversationHandlerFunction,
       apolloClient
     );
-    // Assert that tool was used.
-    assert.match(response.content, /75/);
+    // Assert that tool was used. I.e. LLM used value provided by the tool.
+    assert.match(
+      response.content,
+      new RegExp(expectedTemperatureInProgrammaticToolScenario.toString())
+    );
   };
 
   private executeConversationTurn = async (
