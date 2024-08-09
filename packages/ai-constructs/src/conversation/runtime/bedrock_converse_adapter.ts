@@ -31,14 +31,20 @@ export class BedrockConverseAdapter {
     eventToolsProvider = new ConversationTurnEventToolsProvider(event)
   ) {
     this.allTools = [...eventToolsProvider.getEventTools(), ...additionalTools];
+    const duplicateTools = new Set<string>();
     this.allTools.forEach((t) => {
       if (this.toolByName.has(t.name)) {
-        throw new Error(
-          `Tools must have unique names. Duplicate tools with '${t.name}' name detected.`
-        );
+        duplicateTools.add(t.name);
       }
       this.toolByName.set(t.name, t);
     });
+    if (duplicateTools.size > 0) {
+      throw new Error(
+        `Tools must have unique names. Duplicate tools: ${[
+          ...duplicateTools,
+        ].join(', ')}.`
+      );
+    }
   }
 
   askBedrock = async (): Promise<ContentBlock[]> => {

@@ -322,13 +322,25 @@ void describe('Bedrock converse adapter', () => {
           },
           [
             {
-              name: 'duplicateName',
+              name: 'duplicateName1',
               description: '',
               inputSchema: { json: {} },
               execute: () => Promise.reject(new Error()),
             },
             {
-              name: 'duplicateName',
+              name: 'duplicateName1',
+              description: '',
+              inputSchema: { json: {} },
+              execute: () => Promise.reject(new Error()),
+            },
+            {
+              name: 'duplicateName2',
+              description: '',
+              inputSchema: { json: {} },
+              execute: () => Promise.reject(new Error()),
+            },
+            {
+              name: 'duplicateName2',
               description: '',
               inputSchema: { json: {} },
               execute: () => Promise.reject(new Error()),
@@ -338,7 +350,7 @@ void describe('Bedrock converse adapter', () => {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          "Tools must have unique names. Duplicate tools with 'duplicateName' name detected."
+          'Tools must have unique names. Duplicate tools: duplicateName1, duplicateName2.'
         );
         return true;
       }
