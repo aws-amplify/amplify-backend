@@ -503,6 +503,11 @@ export class AmplifyAuth
       customAttributes: {
         ...customAttributes,
       },
+      email: cognito.UserPoolEmail.withSES({
+        fromEmail: props.senders?.email.fromEmail,
+        fromName: props.senders?.email.fromName,
+        replyTo: props.senders?.email.replyTo,
+      }),
 
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
