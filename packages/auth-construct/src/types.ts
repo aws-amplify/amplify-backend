@@ -7,6 +7,7 @@ import {
   StandardAttributes,
   StringAttributeConstraints,
   UserPoolIdentityProviderSamlMetadata,
+  UserPoolSESOptions,
 } from 'aws-cdk-lib/aws-cognito';
 export type VerificationEmailWithLink = {
   /**
@@ -409,6 +410,12 @@ export type AuthProps = {
      * Configure OAuth, OIDC, and SAML login providers
      */
     externalProviders?: ExternalProviderOptions;
+  };
+  /**
+   * Expose parameters to enable configuring Cognito to send emails with SES
+   */
+  senders?: {
+    email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
   };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
