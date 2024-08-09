@@ -4,6 +4,7 @@ import {
   ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import {
   ConstructFactoryGetInstanceProps,
   ResourceNameValidator,
@@ -11,7 +12,6 @@ import {
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import { EOL } from 'node:os';
 import { beforeEach, describe, it } from 'node:test';
 import { defineFunction } from './factory.js';
 
@@ -102,9 +102,14 @@ void describe('AmplifyFunctionFactory - Layers', () => {
     });
     assert.throws(
       () => functionFactory.getInstance(getInstanceProps),
-      new Error(
-        `Invalid ARN format for layer: ${invalidLayerArn} ${EOL} Expected format: arn:aws:lambda:<current-region>:<account-id>:layer:<layer-name>:<version>`
-      )
+      (error: AmplifyUserError) => {
+        assert.strictEqual(
+          error.message,
+          `Invalid ARN format for layer: ${invalidLayerArn}`
+        );
+        assert.ok(error.resolution);
+        return true;
+      }
     );
   });
 
@@ -133,7 +138,14 @@ void describe('AmplifyFunctionFactory - Layers', () => {
 
     assert.throws(
       () => functionFactory.getInstance(getInstanceProps),
-      new Error('A maximum of 5 unique layers can be attached to a function.')
+      (error: AmplifyUserError) => {
+        assert.strictEqual(
+          error.message,
+          `A maximum of 5 unique layers can be attached to a function.`
+        );
+        assert.ok(error.resolution);
+        return true;
+      }
     );
   });
 });

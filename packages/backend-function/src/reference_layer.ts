@@ -1,7 +1,7 @@
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { ILayerVersion, LayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { Arn } from 'aws-cdk-lib/core';
 import { Construct } from 'constructs';
-import { EOL } from 'os';
 
 /**
  * Defines the ARN regex pattern for a layer.
@@ -28,9 +28,11 @@ export class FunctionLayerArn {
    */
   constructor(arn: string) {
     if (!isValidLayerArn(arn)) {
-      throw new Error(
-        `Invalid ARN format for layer: ${arn} ${EOL} Expected format: arn:aws:lambda:<current-region>:<account-id>:layer:<layer-name>:<version>`
-      );
+      throw new AmplifyUserError('InvalidLayerArnFormatError', {
+        message: `Invalid ARN format for layer: ${arn}`,
+        resolution:
+          'Update the layer Arn with the expected format: arn:aws:lambda:<current-region>:<account-id>:layer:<layer-name>:<version>',
+      });
     }
     this.arn = arn;
   }
@@ -59,9 +61,10 @@ export const validateLayers = (
   const uniqueArns = new Set<string>(Object.values(layers));
 
   if (uniqueArns.size > 5) {
-    throw new Error(
-      'A maximum of 5 unique layers can be attached to a function.'
-    );
+    throw new AmplifyUserError('MaximumLayersReachedError', {
+      message: 'A maximum of 5 unique layers can be attached to a function.',
+      resolution: 'Remove unused layers in your function',
+    });
   }
 
   return new Set<FunctionLayerArn>(
