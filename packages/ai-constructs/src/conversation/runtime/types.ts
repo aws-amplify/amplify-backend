@@ -33,7 +33,7 @@ export type ConversationTurnEvent = {
   toolsConfiguration?: {
     tools: Array<{
       name: string;
-      description?: string;
+      description: string;
       inputSchema: ToolInputSchema;
       graphqlRequestInputDescriptor: {
         queryName: string;
@@ -46,7 +46,7 @@ export type ConversationTurnEvent = {
 
 export type ExecutableTool = {
   name: string;
-  description?: string;
+  description: string;
   inputSchema: ToolInputSchema;
   execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
 };

@@ -9,7 +9,7 @@ import {
   ToolConfiguration,
 } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnEvent, ExecutableTool } from './types.js';
-import { ConversationTurnEventToolsProvider } from './conversation_turn_event_tools_provider';
+import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API

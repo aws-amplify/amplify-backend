@@ -11,7 +11,7 @@ import {
   ToolConfiguration,
   ToolResultContentBlock,
 } from '@aws-sdk/client-bedrock-runtime';
-import { ConversationTurnEventToolsProvider } from './conversation_turn_event_tools_provider';
+import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { randomUUID } from 'node:crypto';
 
 void describe('Bedrock converse adapter', () => {
@@ -323,13 +323,13 @@ void describe('Bedrock converse adapter', () => {
           [
             {
               name: 'duplicateName',
-              description: undefined,
+              description: '',
               inputSchema: { json: {} },
               execute: () => Promise.reject(new Error()),
             },
             {
               name: 'duplicateName',
-              description: undefined,
+              description: '',
               inputSchema: { json: {} },
               execute: () => Promise.reject(new Error()),
             },
