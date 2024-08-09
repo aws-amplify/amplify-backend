@@ -70,7 +70,7 @@ type ConversationTurnEvent = {
     toolsConfiguration?: {
         tools: Array<{
             name: string;
-            description?: string;
+            description: string;
             inputSchema: ToolInputSchema;
             graphqlRequestInputDescriptor: {
                 queryName: string;
@@ -84,7 +84,7 @@ type ConversationTurnEvent = {
 // @public (undocumented)
 type ExecutableTool = {
     name: string;
-    description?: string;
+    description: string;
     inputSchema: ToolInputSchema;
     execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
 };
