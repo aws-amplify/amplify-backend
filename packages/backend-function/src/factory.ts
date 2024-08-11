@@ -126,15 +126,13 @@ export type FunctionProps = {
 
   /**
    * Attach Lambda layers to a function
+   * @see [Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
    * @example
-   * import { referenceFunctionLayer } from "@aws-amplify/backend";
-   *
    * layers: {
-   *    myModule: referenceFunctionLayer("arn:aws:lambda:<current-region>:<account-id>:layer:myLayer:1")
+   *    "@aws-lambda-powertools/logger": "arn:aws:lambda:<current-region>:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:11"
    * },
-   *
-   * The object is keyed by the module name hosted on your existing layer and a value that references to an existing layer using an ARN. The keys will be externalized and available via your layer at runtime
-   * Maximum of 5 layers can be attached to a function. Layers must be in the same region as the function.
+   * @description The object is keyed by the module name hosted on your existing layer and a value that references to an existing layer using an ARN. The keys will be externalized and available via your layer at runtime
+   * @description Maximum of 5 layers can be attached to a function and must be in the same region as the function.
    */
   layers?: FunctionLayerReferences;
 };
