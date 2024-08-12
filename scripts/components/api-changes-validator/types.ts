@@ -11,6 +11,7 @@ export type UsageStatementsGenerator = {
 };
 
 export type NamespaceDefinitions = {
-  namespaceNames: Array<string>;
+  topLevelNamespaces: Set<string>;
+  namespaceNames: Set<string>;
   namespaceBySymbol: Map<string, string>;
 };

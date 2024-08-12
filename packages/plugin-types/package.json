@@ -13,7 +13,7 @@
   "peerDependencies": {
     "aws-cdk-lib": "^2.132.0",
     "constructs": "^10.0.0",
-    "@aws-sdk/types": "^3.465.0"
+    "@aws-sdk/types": "^3.609.0"
   },
   "imports": {
     "#package.json": "./package.json"
