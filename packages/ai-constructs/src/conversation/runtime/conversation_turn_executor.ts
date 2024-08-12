@@ -1,5 +1,5 @@
 import { ConversationTurnResponseSender } from './conversation_turn_response_sender.js';
-import { ConversationTurnEvent } from './types.js';
+import { ConversationTurnEvent, ExecutableTool } from './types.js';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter.js';
 
 /**
@@ -15,7 +15,11 @@ export class ConversationTurnExecutor {
    */
   constructor(
     private readonly event: ConversationTurnEvent,
-    private readonly bedrockConverseAdapter = new BedrockConverseAdapter(event),
+    additionalTools: Array<ExecutableTool>,
+    private readonly bedrockConverseAdapter = new BedrockConverseAdapter(
+      event,
+      additionalTools
+    ),
     private readonly responseSender = new ConversationTurnResponseSender(event),
     private readonly logger = console
   ) {}
@@ -49,7 +53,8 @@ export class ConversationTurnExecutor {
  * AppSync instance with conversational routes defined and sends response back.
  */
 export const handleConversationTurnEvent = async (
-  event: ConversationTurnEvent
+  event: ConversationTurnEvent,
+  props?: { tools?: Array<ExecutableTool> }
 ): Promise<void> => {
-  await new ConversationTurnExecutor(event).execute();
+  await new ConversationTurnExecutor(event, props?.tools ?? []).execute();
 };

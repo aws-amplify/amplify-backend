@@ -1,3 +1,15 @@
+import {
+  ToolInputSchema,
+  ToolResultContentBlock,
+} from '@aws-sdk/client-bedrock-runtime';
+import { DocumentType } from '@smithy/types';
+
+/*
+  Notice: This file contains types that are exposed publicly.
+  Therefore, we avoid eager introduction of types that wouldn't be useful for
+  public API consumer and potentially pollute syntax assist in IDEs.
+ */
+
 export type ConversationMessage = {
   role: 'user' | 'assistant';
   content: Array<ConversationMessageContentBlock>;
@@ -7,6 +19,8 @@ export type ConversationMessageContentBlock = {
   text: string;
 };
 
+// Customers are not expected to create events themselves, therefore
+// definition of nested properties is inline.
 export type ConversationTurnEvent = {
   conversationId: string;
   currentMessageId: string;
@@ -24,4 +38,23 @@ export type ConversationTurnEvent = {
     };
   };
   messages: Array<ConversationMessage>;
+  toolsConfiguration?: {
+    tools: Array<{
+      name: string;
+      description: string;
+      inputSchema: ToolInputSchema;
+      graphqlRequestInputDescriptor: {
+        queryName: string;
+        selectionSet: string[];
+        propertyTypes: Record<string, string>;
+      };
+    }>;
+  };
+};
+
+export type ExecutableTool = {
+  name: string;
+  description: string;
+  inputSchema: ToolInputSchema;
+  execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
 };
