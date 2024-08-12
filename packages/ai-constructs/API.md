@@ -83,10 +83,7 @@ type ConversationTurnEvent = {
 };
 
 // @public (undocumented)
-type ExecutableTool = {
-    name: string;
-    description: string;
-    inputSchema: ToolInputSchema;
+type ExecutableTool = ToolDefinition & {
     execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
 };
 
@@ -101,13 +98,17 @@ declare namespace runtime {
         ConversationMessageContentBlock,
         ConversationTurnEvent,
         ExecutableTool,
-        handleConversationTurnEvent
+        handleConversationTurnEvent,
+        ToolDefinition
     }
 }
 
-// Warnings were encountered during analysis:
-//
-// src/conversation/runtime/types.ts:48:5 - (ae-forgotten-export) The symbol "ToolDefinition" needs to be exported by the entry point index.d.ts
+// @public (undocumented)
+type ToolDefinition = {
+    name: string;
+    description: string;
+    inputSchema: ToolInputSchema;
+};
 
 // (No @packageDocumentation comment for this package)
 

@@ -61,9 +61,6 @@ export type ConversationTurnEvent = {
   };
 };
 
-export type ExecutableTool = {
-  name: string;
-  description: string;
-  inputSchema: ToolInputSchema;
+export type ExecutableTool = ToolDefinition & {
   execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
 };
