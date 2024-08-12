@@ -91,7 +91,16 @@ const testErrorMappings = [
       ` and after`,
     expectedTopLevelErrorMessage: 'The CloudFormation deployment has failed.',
     errorName: 'CloudFormationDeploymentError',
-    expectedDownstreamErrorMessage: `❌ Deployment failed: something bad happened${EOL}`,
+    expectedDownstreamErrorMessage: `Deployment failed: something bad happened${EOL}`,
+  },
+  {
+    errorMessage:
+      `[31m  Deployment failed: Error: The stack named something-fancy failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE: Illegal character in authority at index 8: https://bedrock-runtime.us- east-1.amazonaws.com (Service: AWSAppSync; Status Code: 400; Error Code: BadRequestException;)` +
+      EOL +
+      ` and after`,
+    expectedTopLevelErrorMessage: 'The CloudFormation deployment has failed.',
+    errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage: `Deployment failed: Error: The stack named something-fancy failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE: Illegal character in authority at index 8: https://bedrock-runtime.us- east-1.amazonaws.com (Service: AWSAppSync; Status Code: 400; Error Code: BadRequestException;)${EOL}`,
   },
   {
     errorMessage: `Received response status [FAILED] from custom resource. Message returned: Failed to retrieve backend secret 'non-existent-secret' for 'project-name'. Reason: {"cause":{"name":"ParameterNotFound","$fault":"client"},"__type":"ParameterNotFound","message":"UnknownError"},"httpStatusCode":400,"name":"SecretError"}`,
