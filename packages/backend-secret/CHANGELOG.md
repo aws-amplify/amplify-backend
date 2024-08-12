@@ -1,5 +1,15 @@
 # @aws-amplify/backend-secret
 
+## 1.0.1
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+- Updated dependencies [3c698e0]
+- Updated dependencies [320a86d]
+  - @aws-amplify/platform-core@1.0.5
+  - @aws-amplify/plugin-types@1.1.1
+
 ## 1.0.0
 
 ### Major Changes

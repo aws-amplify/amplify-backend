@@ -1,5 +1,18 @@
 # @aws-amplify/client-config
 
+## 1.1.3
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+- eab6ddb: wrap credential related errors for generate commands in AmplifyUserError
+- Updated dependencies [3c698e0]
+- Updated dependencies [eab6ddb]
+- Updated dependencies [320a86d]
+  - @aws-amplify/deployed-backend-client@1.3.0
+  - @aws-amplify/model-generator@1.0.4
+  - @aws-amplify/platform-core@1.0.5
+
 ## 1.1.2
 
 ### Patch Changes
