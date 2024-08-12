@@ -16,10 +16,10 @@ export class ConversationTurnEventToolsProvider {
 
   getEventTools = (): Array<ExecutableTool> => {
     const { toolsConfiguration, graphqlApiEndpoint } = this.event;
-    if (!toolsConfiguration || !toolsConfiguration.tools) {
+    if (!toolsConfiguration || !toolsConfiguration.dataTools) {
       return [];
     }
-    const tools = toolsConfiguration.tools?.map((tool) => {
+    const tools = toolsConfiguration.dataTools?.map((tool) => {
       const { name, description, inputSchema } = tool;
       const query = this.graphQlQueryFactory.createQuery(tool);
       return new GraphQlTool(

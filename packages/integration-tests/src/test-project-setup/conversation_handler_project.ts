@@ -273,7 +273,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
         systemPrompt: 'You are helpful bot.',
       },
       toolsConfiguration: {
-        tools: [
+        dataTools: [
           {
             name: 'thermometer',
             description: 'Provides the current temperature for a given city.',

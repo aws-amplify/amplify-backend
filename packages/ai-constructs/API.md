@@ -68,16 +68,14 @@ type ConversationTurnEvent = {
     };
     messages: Array<ConversationMessage>;
     toolsConfiguration?: {
-        tools: Array<{
-            name: string;
-            description: string;
-            inputSchema: ToolInputSchema;
+        dataTools?: Array<ToolDefinition & {
             graphqlRequestInputDescriptor: {
                 queryName: string;
                 selectionSet: string[];
                 propertyTypes: Record<string, string>;
             };
         }>;
+        clientTools?: Array<ToolDefinition>;
     };
 };
 
@@ -103,6 +101,10 @@ declare namespace runtime {
         handleConversationTurnEvent
     }
 }
+
+// Warnings were encountered during analysis:
+//
+// src/conversation/runtime/types.ts:48:5 - (ae-forgotten-export) The symbol "ToolDefinition" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
