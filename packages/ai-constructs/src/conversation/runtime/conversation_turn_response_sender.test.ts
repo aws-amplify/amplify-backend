@@ -13,8 +13,11 @@ void describe('Conversation turn response sender', () => {
     messages: [],
     modelConfiguration: { modelId: '', systemPrompt: '' },
     request: { headers: { authorization: 'testToken' } },
-    responseMutationInputTypeName: 'testResponseMutationInputTypeName',
-    responseMutationName: 'testResponseMutationName',
+    responseMutation: {
+      name: 'testResponseMutationName',
+      inputTypeName: 'testResponseMutationInputTypeName',
+      selectionSet: 'testSelectionSet',
+    },
   };
 
   void it('sends response back to appsync', async () => {
@@ -51,13 +54,7 @@ void describe('Conversation turn response sender', () => {
         '\n' +
         '        mutation PublishModelResponse($input: testResponseMutationInputTypeName!) {\n' +
         '            testResponseMutationName(input: $input) {\n' +
-        '                id\n' +
-        '                conversationId\n' +
-        '                content\n' +
-        '                sender\n' +
-        '                owner\n' +
-        '                createdAt\n' +
-        '                updatedAt\n' +
+        '                testSelectionSet\n' +
         '            }\n' +
         '        }\n' +
         '    ',
