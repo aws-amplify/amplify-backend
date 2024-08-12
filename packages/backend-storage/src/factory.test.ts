@@ -21,7 +21,6 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { StorageResources } from './construct.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -32,16 +31,15 @@ const createStackAndSetContext = (): Stack => {
   return stack;
 };
 
-let storageFactory: ConstructFactory<ResourceProvider<StorageResources>>;
-let storageFactory2: ConstructFactory<ResourceProvider<StorageResources>>;
-let constructContainer: ConstructContainer;
-let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
-let importPathVerifier: ImportPathVerifier;
-let resourceNameValidator: ResourceNameValidator;
-
-let getInstanceProps: ConstructFactoryGetInstanceProps;
-
 void describe('AmplifyStorageFactory', () => {
+  let storageFactory: ConstructFactory<ResourceProvider<StorageResources>>;
+  let constructContainer: ConstructContainer;
+  let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
+  let importPathVerifier: ImportPathVerifier;
+  let resourceNameValidator: ResourceNameValidator;
+
+  let getInstanceProps: ConstructFactoryGetInstanceProps;
+
   beforeEach(() => {
     storageFactory = defineStorage({ name: 'testName' });
     const stack = createStackAndSetContext();
@@ -80,6 +78,23 @@ void describe('AmplifyStorageFactory', () => {
     );
 
     template.resourceCountIs('AWS::S3::Bucket', 1);
+  });
+
+  void it('sets output in storage strategy', () => {
+    const storeOutputMock = mock.fn();
+
+    const outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry> =
+      {
+        addBackendOutputEntry: storeOutputMock,
+        appendToBackendOutputList: storeOutputMock,
+      };
+
+    storageFactory.getInstance({
+      ...getInstanceProps,
+      outputStorageStrategy,
+    });
+
+    assert.strictEqual(storeOutputMock.mock.callCount(), 1);
   });
 
   void it('verifies constructor import path', () => {
@@ -121,70 +136,5 @@ void describe('AmplifyStorageFactory', () => {
         message: 'Resource name contains invalid characters, found !$87++|',
       }
     );
-  });
-});
-
-void describe('AmplifyStorageFactory', () => {
-  let stack: Stack;
-  beforeEach(() => {
-    stack = createStackAndSetContext();
-
-    constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
-    );
-
-    outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
-    );
-
-    importPathVerifier = new ImportPathVerifierStub();
-
-    resourceNameValidator = new ResourceNameValidatorStub();
-
-    getInstanceProps = {
-      constructContainer,
-      outputStorageStrategy,
-      importPathVerifier,
-      resourceNameValidator,
-    };
-  });
-
-  void it('if more than one default bucket, throw', () => {
-    storageFactory = defineStorage({ name: 'testName', isDefault: true });
-    storageFactory2 = defineStorage({ name: 'testName2', isDefault: true });
-    storageFactory.getInstance(getInstanceProps);
-    storageFactory2.getInstance(getInstanceProps);
-
-    assert.throws(
-      () => Template.fromStack(stack),
-      new AmplifyUserError('MultipleDefaultStorageError', {
-        message: 'More than one default storage set in the Amplify project.',
-        resolution:
-          'Remove `isDefault: true` from all `defineStorage` calls except for one in your Amplify project.',
-      })
-    );
-  });
-
-  void it('if there is no default storage among storage, throw', () => {
-    storageFactory = defineStorage({ name: 'testName' });
-    storageFactory2 = defineStorage({ name: 'testName2' });
-    storageFactory.getInstance(getInstanceProps);
-    storageFactory2.getInstance(getInstanceProps);
-
-    assert.throws(
-      () => Template.fromStack(stack),
-      new AmplifyUserError('NoDefaultStorageError', {
-        message: 'No default storage set in the Amplify project.',
-        resolution:
-          'Add `isDefault: true` to one of the `defineStorage` calls in your Amplify project.',
-      })
-    );
-  });
-
-  void it('if there is no default storage for one storage, ok', () => {
-    storageFactory = defineStorage({ name: 'testName' });
-    storageFactory.getInstance(getInstanceProps);
-
-    assert.ok(Template.fromStack(stack));
   });
 });

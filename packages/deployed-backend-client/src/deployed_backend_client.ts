@@ -307,8 +307,9 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     if (apiStack) {
-      const additionalAuthTypesString = backendOutput[graphqlOutputKey]?.payload
-        .awsAppsyncAdditionalAuthenticationTypes as string;
+      const additionalAuthTypesString =
+        backendOutput[graphqlOutputKey]?.payload
+          .awsAppsyncAdditionalAuthenticationTypes;
       const additionalAuthTypes = additionalAuthTypesString
         ? (additionalAuthTypesString.split(',') as ApiAuthType[])
         : [];
@@ -339,7 +340,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       const definedFunctionsString =
         backendOutput[functionOutputKey]?.payload.definedFunctions;
       const customerFunctionNames = definedFunctionsString
-        ? (JSON.parse(definedFunctionsString as string) as string[])
+        ? (JSON.parse(definedFunctionsString) as string[])
         : [];
 
       customerFunctionNames.forEach((functionName) => {
