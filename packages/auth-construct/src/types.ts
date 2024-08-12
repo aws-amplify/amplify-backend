@@ -414,7 +414,7 @@ export type AuthProps = {
   /**
    * Expose parameters to enable configuring Cognito to send emails with SES
    */
-  senders: {
+  senders?: {
     email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
   };
   /**

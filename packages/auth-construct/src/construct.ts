@@ -504,7 +504,7 @@ export class AmplifyAuth
         ...customAttributes,
       },
       email: cognito.UserPoolEmail.withSES({
-        fromEmail: props.senders?.email.fromEmail,
+        fromEmail: props.senders?.email.fromEmail ?? '',
         fromName: props.senders?.email.fromName,
         replyTo: props.senders?.email.replyTo,
       }),
