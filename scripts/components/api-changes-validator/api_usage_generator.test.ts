@@ -302,9 +302,20 @@ export type SomeTypeUnderNamespace = {
   someProperty: string;
 }
 
+type SomeTypeUnderSubNamespace = {
+  someOtherProperty: string;
+}
+
+declare namespace someSubNamespace {
+  export {
+    SomeTypeUnderSubNamespace
+  }
+}
+
 declare namespace someNamespace {
   export {
-    SomeTypeUnderNamespace
+    SomeTypeUnderNamespace,
+    someSubNamespace
   }
 }
     `,
@@ -316,6 +327,13 @@ type SomeTypeUnderNamespaceBaseline = {
 }
 const someTypeUnderNamespaceUsageFunction = (someTypeUnderNamespaceFunctionParameter: SomeTypeUnderNamespaceBaseline) => {
   const someTypeUnderNamespace: someNamespace.SomeTypeUnderNamespace = someTypeUnderNamespaceFunctionParameter;
+}
+
+type SomeTypeUnderSubNamespaceBaseline = {
+  someOtherProperty: string;
+}
+const someTypeUnderSubNamespaceUsageFunction = (someTypeUnderSubNamespaceFunctionParameter: SomeTypeUnderSubNamespaceBaseline) => {
+  const someTypeUnderSubNamespace: someNamespace.someSubNamespace.SomeTypeUnderSubNamespace = someTypeUnderSubNamespaceFunctionParameter;
 }
     `,
   },
