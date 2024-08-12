@@ -30,8 +30,11 @@ export type ToolDefinition = {
 export type ConversationTurnEvent = {
   conversationId: string;
   currentMessageId: string;
-  responseMutationName: string;
-  responseMutationInputTypeName: string;
+  responseMutation: {
+    name: string;
+    inputTypeName: string;
+    selectionSet: string;
+  };
   graphqlApiEndpoint: string;
   modelConfiguration: {
     modelId: string;

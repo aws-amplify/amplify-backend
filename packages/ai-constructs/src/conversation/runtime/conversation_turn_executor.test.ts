@@ -14,8 +14,11 @@ void describe('Conversation turn executor', () => {
     messages: [],
     modelConfiguration: { modelId: '', systemPrompt: '' },
     request: { headers: { authorization: '' } },
-    responseMutationInputTypeName: '',
-    responseMutationName: '',
+    responseMutation: {
+      name: '',
+      inputTypeName: '',
+      selectionSet: '',
+    },
   };
 
   void it('executes turn successfully', async () => {

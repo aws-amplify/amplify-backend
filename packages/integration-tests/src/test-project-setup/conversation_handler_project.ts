@@ -46,6 +46,26 @@ type ConversationTurnAppSyncResponse = {
   content: string;
 };
 
+const commonEventProperties = {
+  responseMutation: {
+    name: 'createConversationMessageAssistantResponse',
+    inputTypeName: 'CreateConversationMessageAssistantResponseInput',
+    selectionSet: [
+      'id',
+      'conversationId',
+      'content',
+      'sender',
+      'owner',
+      'createdAt',
+      'updatedAt',
+    ].join('\n'),
+  },
+  modelConfiguration: {
+    modelId: bedrockModelId,
+    systemPrompt: 'You are helpful bot.',
+  },
+};
+
 /**
  * Creates conversation handler test project.
  */
@@ -217,13 +237,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       request: {
         headers: { authorization: accessToken },
       },
-      responseMutationInputTypeName:
-        'CreateConversationMessageAssistantResponseInput',
-      responseMutationName: 'createConversationMessageAssistantResponse',
-      modelConfiguration: {
-        modelId: bedrockModelId,
-        systemPrompt: 'You are helpful bot.',
-      },
+      ...commonEventProperties,
     };
     const response = await this.executeConversationTurn(
       event,
@@ -265,13 +279,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       request: {
         headers: { authorization: accessToken },
       },
-      responseMutationInputTypeName:
-        'CreateConversationMessageAssistantResponseInput',
-      responseMutationName: 'createConversationMessageAssistantResponse',
-      modelConfiguration: {
-        modelId: bedrockModelId,
-        systemPrompt: 'You are helpful bot.',
-      },
       toolsConfiguration: {
         dataTools: [
           {
@@ -299,6 +306,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
           },
         ],
       },
+      ...commonEventProperties,
     };
     const response = await this.executeConversationTurn(
       event,
@@ -344,13 +352,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       request: {
         headers: { authorization: accessToken },
       },
-      responseMutationInputTypeName:
-        'CreateConversationMessageAssistantResponseInput',
-      responseMutationName: 'createConversationMessageAssistantResponse',
-      modelConfiguration: {
-        modelId: bedrockModelId,
-        systemPrompt: 'You are helpful bot.',
-      },
+      ...commonEventProperties,
     };
     const response = await this.executeConversationTurn(
       event,

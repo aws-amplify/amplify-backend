@@ -34,8 +34,11 @@ void describe('Bedrock converse adapter', () => {
       systemPrompt: 'testSystemPrompt',
     },
     request: { headers: { authorization: '' } },
-    responseMutationInputTypeName: '',
-    responseMutationName: '',
+    responseMutation: {
+      name: '',
+      inputTypeName: '',
+      selectionSet: '',
+    },
   };
 
   void it('calls bedrock to get conversation response', async () => {

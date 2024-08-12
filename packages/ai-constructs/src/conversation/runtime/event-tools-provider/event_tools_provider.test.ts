@@ -14,8 +14,11 @@ void describe('events tool provider', () => {
       messages: [],
       modelConfiguration: { modelId: '', systemPrompt: '' },
       request: { headers: { authorization: '' } },
-      responseMutationInputTypeName: '',
-      responseMutationName: '',
+      responseMutation: {
+        name: '',
+        inputTypeName: '',
+        selectionSet: '',
+      },
     }).getEventTools();
 
     assert.strictEqual(eventTools.length, 0);
@@ -61,8 +64,11 @@ void describe('events tool provider', () => {
       messages: [],
       modelConfiguration: { modelId: '', systemPrompt: '' },
       request: { headers: { authorization: '' } },
-      responseMutationInputTypeName: '',
-      responseMutationName: '',
+      responseMutation: {
+        name: '',
+        inputTypeName: '',
+        selectionSet: '',
+      },
       toolsConfiguration: {
         dataTools: [toolDefinition1, toolDefinition2],
       },

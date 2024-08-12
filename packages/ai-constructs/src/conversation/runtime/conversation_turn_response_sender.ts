@@ -47,15 +47,9 @@ export class ConversationTurnResponseSender {
 
   private createMutationRequest = (content: ContentBlock[]) => {
     const query = `
-        mutation PublishModelResponse($input: ${this.event.responseMutationInputTypeName}!) {
-            ${this.event.responseMutationName}(input: $input) {
-                id
-                conversationId
-                content
-                sender
-                owner
-                createdAt
-                updatedAt
+        mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
+            ${this.event.responseMutation.name}(input: $input) {
+                ${this.event.responseMutation.selectionSet}
             }
         }
     `;
