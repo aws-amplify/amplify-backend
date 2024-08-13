@@ -19,6 +19,12 @@ export type ConversationMessageContentBlock = {
   text: string;
 };
 
+export type ToolDefinition = {
+  name: string;
+  description: string;
+  inputSchema: ToolInputSchema;
+};
+
 // Customers are not expected to create events themselves, therefore
 // definition of nested properties is inline.
 export type ConversationTurnEvent = {
@@ -42,22 +48,19 @@ export type ConversationTurnEvent = {
   };
   messages: Array<ConversationMessage>;
   toolsConfiguration?: {
-    tools: Array<{
-      name: string;
-      description: string;
-      inputSchema: ToolInputSchema;
-      graphqlRequestInputDescriptor: {
-        queryName: string;
-        selectionSet: string[];
-        propertyTypes: Record<string, string>;
-      };
-    }>;
+    dataTools?: Array<
+      ToolDefinition & {
+        graphqlRequestInputDescriptor: {
+          queryName: string;
+          selectionSet: string[];
+          propertyTypes: Record<string, string>;
+        };
+      }
+    >;
+    clientTools?: Array<ToolDefinition>;
   };
 };
 
-export type ExecutableTool = {
-  name: string;
-  description: string;
-  inputSchema: ToolInputSchema;
+export type ExecutableTool = ToolDefinition & {
   execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
 };
