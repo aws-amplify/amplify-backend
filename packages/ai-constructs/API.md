@@ -71,24 +71,19 @@ type ConversationTurnEvent = {
     };
     messages: Array<ConversationMessage>;
     toolsConfiguration?: {
-        tools: Array<{
-            name: string;
-            description: string;
-            inputSchema: ToolInputSchema;
+        dataTools?: Array<ToolDefinition & {
             graphqlRequestInputDescriptor: {
                 queryName: string;
                 selectionSet: string[];
                 propertyTypes: Record<string, string>;
             };
         }>;
+        clientTools?: Array<ToolDefinition>;
     };
 };
 
 // @public (undocumented)
-type ExecutableTool = {
-    name: string;
-    description: string;
-    inputSchema: ToolInputSchema;
+type ExecutableTool = ToolDefinition & {
     execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
 };
 
@@ -103,9 +98,17 @@ declare namespace runtime {
         ConversationMessageContentBlock,
         ConversationTurnEvent,
         ExecutableTool,
-        handleConversationTurnEvent
+        handleConversationTurnEvent,
+        ToolDefinition
     }
 }
+
+// @public (undocumented)
+type ToolDefinition = {
+    name: string;
+    description: string;
+    inputSchema: ToolInputSchema;
+};
 
 // (No @packageDocumentation comment for this package)
 
