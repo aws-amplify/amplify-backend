@@ -1,5 +1,5 @@
 import { FunctionResources, ResourceProvider } from '@aws-amplify/plugin-types';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { CfnFunction, Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -19,7 +19,7 @@ export type ConversationHandlerFunctionProps = {
   entry?: string;
   models: Array<{
     modelId: string;
-    region: string;
+    region?: string;
   }>;
 };
 
@@ -81,7 +81,9 @@ export class ConversationHandlerFunction
     if (this.props.models && this.props.models.length > 0) {
       const resources = this.props.models.map(
         (model) =>
-          `arn:aws:bedrock:${model.region}::foundation-model/${model.modelId}`
+          `arn:aws:bedrock:${
+            model.region ?? Stack.of(this).region
+          }::foundation-model/${model.modelId}`
       );
       conversationHandler.addToRolePolicy(
         new PolicyStatement({

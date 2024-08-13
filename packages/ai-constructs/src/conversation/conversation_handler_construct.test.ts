@@ -99,6 +99,47 @@ void describe('Conversation Handler Function construct', () => {
     });
   });
 
+  void it('uses stack region if region is not specified', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new ConversationHandlerFunction(stack, 'conversationHandler', {
+      models: [
+        {
+          modelId: 'testModelId',
+        },
+      ],
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: 'bedrock:InvokeModel',
+            Effect: 'Allow',
+            Resource: {
+              'Fn::Join': [
+                '',
+                [
+                  'arn:aws:bedrock:',
+                  {
+                    Ref: 'AWS::Region',
+                  },
+                  '::foundation-model/testModelId',
+                ],
+              ],
+            },
+          },
+        ],
+      },
+      Roles: [
+        {
+          // eslint-disable-next-line spellcheck/spell-checker
+          Ref: 'conversationHandlerconversationHandlerFunctionServiceRole49C4C6FB',
+        },
+      ],
+    });
+  });
+
   void it('throws if entry is not absolute', () => {
     const app = new App();
     const stack = new Stack(app);

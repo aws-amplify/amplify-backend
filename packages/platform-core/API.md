@@ -77,6 +77,13 @@ export class BackendLocator {
 }
 
 // @public
+export class CallerDirectoryExtractor {
+    constructor(stackTrace: string | undefined);
+    // (undocumented)
+    extract: () => string;
+}
+
+// @public
 export enum CDKContextKey {
     // (undocumented)
     BACKEND_NAME = "amplify-backend-name",
