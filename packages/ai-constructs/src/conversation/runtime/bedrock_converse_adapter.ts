@@ -21,7 +21,7 @@ import { ConversationTurnEventToolsProvider } from './event-tools-provider';
  */
 export class BedrockConverseAdapter {
   private readonly allTools: Array<ToolDefinition>;
-  private readonly allExecutableTools: Array<ExecutableTool>;
+  private readonly executableTools: Array<ExecutableTool>;
   private readonly clientTools: Array<ToolDefinition>;
   private readonly executableToolByName: Map<string, ExecutableTool> =
     new Map();
@@ -38,14 +38,14 @@ export class BedrockConverseAdapter {
     ),
     eventToolsProvider = new ConversationTurnEventToolsProvider(event)
   ) {
-    this.allExecutableTools = [
+    this.executableTools = [
       ...eventToolsProvider.getEventTools(),
       ...additionalTools,
     ];
     this.clientTools = this.event.toolsConfiguration?.clientTools ?? [];
-    this.allTools = [...this.allExecutableTools, ...this.clientTools];
+    this.allTools = [...this.executableTools, ...this.clientTools];
     const duplicateTools = new Set<string>();
-    this.allExecutableTools.forEach((t) => {
+    this.executableTools.forEach((t) => {
       if (this.executableToolByName.has(t.name)) {
         duplicateTools.add(t.name);
       }
@@ -122,7 +122,7 @@ export class BedrockConverseAdapter {
   };
 
   private createToolConfiguration = (): ToolConfiguration | undefined => {
-    if (this.allExecutableTools.length === 0) {
+    if (this.allTools.length === 0) {
       return undefined;
     }
 

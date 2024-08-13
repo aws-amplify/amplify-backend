@@ -203,6 +203,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
       clientConfig.data.url,
       apolloClient
     );
+
+    await this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient
+    );
   }
 
   private assertDefaultConversationHandlerCanExecuteTurn = async (
@@ -318,6 +325,71 @@ class ConversationHandlerTestProject extends TestProjectBase {
       response.content,
       new RegExp(expectedTemperatureInDataToolScenario.toString())
     );
+  };
+
+  private assertDefaultConversationHandlerCanExecuteTurnWithClientTool = async (
+    backendId: BackendIdentifier,
+    accessToken: string,
+    graphqlApiEndpoint: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>
+  ): Promise<void> => {
+    const defaultConversationHandlerFunction = (
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('default')
+      )
+    )[0];
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: randomUUID().toString(),
+      currentMessageId: randomUUID().toString(),
+      graphqlApiEndpoint: graphqlApiEndpoint,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'What is the temperature in Seattle?',
+            },
+          ],
+        },
+      ],
+      request: {
+        headers: { authorization: accessToken },
+      },
+      toolsConfiguration: {
+        clientTools: [
+          {
+            name: 'thermometer',
+            description: 'Provides the current temperature for a given city.',
+            inputSchema: {
+              json: {
+                type: 'object',
+                properties: {
+                  city: {
+                    type: 'string',
+                    description: 'string',
+                  },
+                },
+                required: [],
+              },
+            },
+          },
+        ],
+      },
+      ...commonEventProperties,
+    };
+    const response = await this.executeConversationTurn(
+      event,
+      defaultConversationHandlerFunction,
+      apolloClient
+    );
+    // Assert that tool was used. I.e. that LLM used value returned by the tool.
+    assert.match(response.content, /Seattle/);
+    assert.match(response.content, /toolUse/);
+    assert.match(response.content, /toolUseId/);
   };
 
   private assertCustomConversationHandlerCanExecuteTurn = async (
