@@ -8,7 +8,11 @@ import {
   Tool,
   ToolConfiguration,
 } from '@aws-sdk/client-bedrock-runtime';
-import { ConversationTurnEvent, ExecutableTool } from './types.js';
+import {
+  ConversationTurnEvent,
+  ExecutableTool,
+  ToolDefinition,
+} from './types.js';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 
 /**
@@ -16,8 +20,12 @@ import { ConversationTurnEventToolsProvider } from './event-tools-provider';
  * in order to produce final response that can be sent back to caller.
  */
 export class BedrockConverseAdapter {
-  private readonly allTools: Array<ExecutableTool>;
-  private readonly toolByName: Map<string, ExecutableTool> = new Map();
+  private readonly allTools: Array<ToolDefinition>;
+  private readonly executableTools: Array<ExecutableTool>;
+  private readonly clientTools: Array<ToolDefinition>;
+  private readonly executableToolByName: Map<string, ExecutableTool> =
+    new Map();
+  private readonly clientToolByName: Map<string, ToolDefinition> = new Map();
 
   /**
    * Creates Bedrock Converse Adapter.
@@ -30,13 +38,27 @@ export class BedrockConverseAdapter {
     ),
     eventToolsProvider = new ConversationTurnEventToolsProvider(event)
   ) {
-    this.allTools = [...eventToolsProvider.getEventTools(), ...additionalTools];
+    this.executableTools = [
+      ...eventToolsProvider.getEventTools(),
+      ...additionalTools,
+    ];
+    this.clientTools = this.event.toolsConfiguration?.clientTools ?? [];
+    this.allTools = [...this.executableTools, ...this.clientTools];
     const duplicateTools = new Set<string>();
-    this.allTools.forEach((t) => {
-      if (this.toolByName.has(t.name)) {
+    this.executableTools.forEach((t) => {
+      if (this.executableToolByName.has(t.name)) {
         duplicateTools.add(t.name);
       }
-      this.toolByName.set(t.name, t);
+      this.executableToolByName.set(t.name, t);
+    });
+    this.clientTools.forEach((t) => {
+      if (this.executableToolByName.has(t.name)) {
+        duplicateTools.add(t.name);
+      }
+      if (this.clientToolByName.has(t.name)) {
+        duplicateTools.add(t.name);
+      }
+      this.clientToolByName.set(t.name, t);
     });
     if (duplicateTools.size > 0) {
       throw new Error(
@@ -74,13 +96,24 @@ export class BedrockConverseAdapter {
       if (bedrockResponse.stopReason === 'tool_use') {
         const responseContentBlocks =
           bedrockResponse.output?.message?.content ?? [];
-        for (const responseContentBlock of responseContentBlocks) {
-          if ('toolUse' in responseContentBlock) {
-            const toolUseBlock =
-              responseContentBlock as ContentBlock.ToolUseMember;
-            const toolMessage = await this.executeTool(toolUseBlock);
-            messages.push(toolMessage);
-          }
+        const toolUseBlocks = responseContentBlocks.filter(
+          (block) => 'toolUse' in block
+        ) as Array<ContentBlock.ToolUseMember>;
+        const clientToolUseBlocks = responseContentBlocks.filter(
+          (block) =>
+            block.toolUse?.name &&
+            this.clientToolByName.has(block.toolUse?.name)
+        );
+        if (clientToolUseBlocks.length > 0) {
+          // For now if any of client tools is used we ignore executable tools
+          // and propagate result back to client.
+          return clientToolUseBlocks;
+        }
+        for (const responseContentBlock of toolUseBlocks) {
+          const toolUseBlock =
+            responseContentBlock as ContentBlock.ToolUseMember;
+          const toolMessage = await this.executeTool(toolUseBlock);
+          messages.push(toolMessage);
         }
       }
     } while (bedrockResponse.stopReason === 'tool_use');
@@ -112,7 +145,7 @@ export class BedrockConverseAdapter {
     if (!toolUseBlock.toolUse.name) {
       throw Error('Bedrock tool use response is missing a tool name');
     }
-    const tool = this.toolByName.get(toolUseBlock.toolUse.name);
+    const tool = this.executableToolByName.get(toolUseBlock.toolUse.name);
     if (!tool) {
       throw Error(
         `Bedrock tool use response contains unknown tool '${toolUseBlock.toolUse.name}'`

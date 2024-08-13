@@ -70,7 +70,7 @@ void describe('events tool provider', () => {
         selectionSet: '',
       },
       toolsConfiguration: {
-        tools: [toolDefinition1, toolDefinition2],
+        dataTools: [toolDefinition1, toolDefinition2],
       },
     };
     const queryFactory = new GraphQlQueryFactory();

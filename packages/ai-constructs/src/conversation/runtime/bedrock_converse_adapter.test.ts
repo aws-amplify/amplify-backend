@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { ConversationTurnEvent, ExecutableTool } from './types';
+import { ConversationTurnEvent, ExecutableTool, ToolDefinition } from './types';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter';
 import {
   BedrockRuntimeClient,
@@ -101,7 +101,7 @@ void describe('Bedrock converse adapter', () => {
     assert.deepStrictEqual(bedrockRequest.input, expectedBedrockInput);
   });
 
-  void it('uses tools while calling bedrock', async () => {
+  void it('uses executable tools while calling bedrock', async () => {
     const additionalToolOutput: ToolResultContentBlock = {
       text: 'additionalToolOutput',
     };
@@ -322,6 +322,26 @@ void describe('Bedrock converse adapter', () => {
         new BedrockConverseAdapter(
           {
             ...commonEvent,
+            toolsConfiguration: {
+              clientTools: [
+                {
+                  // this one overlaps with executable tools below
+                  name: 'duplicateName3',
+                  description: '',
+                  inputSchema: { json: {} },
+                },
+                {
+                  name: 'duplicateName4',
+                  description: '',
+                  inputSchema: { json: {} },
+                },
+                {
+                  name: 'duplicateName4',
+                  description: '',
+                  inputSchema: { json: {} },
+                },
+              ],
+            },
           },
           [
             {
@@ -348,19 +368,25 @@ void describe('Bedrock converse adapter', () => {
               inputSchema: { json: {} },
               execute: () => Promise.reject(new Error()),
             },
+            {
+              name: 'duplicateName3',
+              description: '',
+              inputSchema: { json: {} },
+              execute: () => Promise.reject(new Error()),
+            },
           ]
         ),
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Tools must have unique names. Duplicate tools: duplicateName1, duplicateName2.'
+          'Tools must have unique names. Duplicate tools: duplicateName1, duplicateName2, duplicateName3, duplicateName4.'
         );
         return true;
       }
     );
   });
 
-  void it('tool error is reported to bedrock', async () => {
+  void it('executable tool error is reported to bedrock', async () => {
     const tool: ExecutableTool = {
       name: 'testTool',
       description: 'tool description',
@@ -454,7 +480,7 @@ void describe('Bedrock converse adapter', () => {
     } as Message);
   });
 
-  void it('tool error of unknown type is reported to bedrock', async () => {
+  void it('executable tool error of unknown type is reported to bedrock', async () => {
     const tool: ExecutableTool = {
       name: 'testTool',
       description: 'tool description',
@@ -548,5 +574,121 @@ void describe('Bedrock converse adapter', () => {
         },
       ],
     } as Message);
+  });
+
+  void it('returns client tool input block when client tool is requested and ignores executable tools', async () => {
+    const additionalToolOutput: ToolResultContentBlock = {
+      text: 'additionalToolOutput',
+    };
+    const additionalTool: ExecutableTool = {
+      name: 'additionalTool',
+      description: 'additional tool description',
+      inputSchema: {
+        json: {
+          required: ['additionalToolRequiredProperty'],
+        },
+      },
+      execute: () => Promise.resolve(additionalToolOutput),
+    };
+    const clientTool: ToolDefinition = {
+      name: 'clientTool',
+      description: 'client tool description',
+      inputSchema: {
+        json: {
+          required: ['clientToolRequiredProperty'],
+        },
+      },
+    };
+
+    const event: ConversationTurnEvent = {
+      ...commonEvent,
+      toolsConfiguration: {
+        clientTools: [clientTool],
+      },
+    };
+
+    const bedrockClient = new BedrockRuntimeClient();
+    const bedrockResponseQueue: Array<ConverseCommandOutput> = [];
+    const clientToolUseBlock = {
+      toolUse: {
+        toolUseId: randomUUID().toString(),
+        name: clientTool.name,
+        input: 'clientToolInput',
+      },
+    };
+    const toolUseBedrockResponse: ConverseCommandOutput = {
+      $metadata: {},
+      metrics: undefined,
+      output: {
+        message: {
+          role: 'assistant',
+          content: [
+            {
+              toolUse: {
+                toolUseId: randomUUID().toString(),
+                name: additionalTool.name,
+                input: 'additionalToolInput',
+              },
+            },
+            clientToolUseBlock,
+          ],
+        },
+      },
+      stopReason: 'tool_use',
+      usage: undefined,
+    };
+    bedrockResponseQueue.push(toolUseBedrockResponse);
+
+    const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
+      Promise.resolve(bedrockResponseQueue.shift())
+    );
+
+    const responseContent = await new BedrockConverseAdapter(
+      event,
+      [additionalTool],
+      bedrockClient
+    ).askBedrock();
+
+    assert.deepStrictEqual(responseContent, [clientToolUseBlock]);
+
+    assert.strictEqual(bedrockClientSendMock.mock.calls.length, 1);
+    const expectedToolConfig: ToolConfiguration = {
+      tools: [
+        {
+          toolSpec: {
+            name: additionalTool.name,
+            description: additionalTool.description,
+            inputSchema: additionalTool.inputSchema,
+          },
+        },
+        {
+          toolSpec: {
+            name: clientTool.name,
+            description: clientTool.description,
+            inputSchema: clientTool.inputSchema,
+          },
+        },
+      ],
+    };
+    const expectedBedrockInputCommonProperties = {
+      modelId: event.modelConfiguration.modelId,
+      inferenceConfig: {
+        maxTokens: 2000,
+        temperature: 0,
+      },
+      system: [
+        {
+          text: event.modelConfiguration.systemPrompt,
+        },
+      ],
+      toolConfig: expectedToolConfig,
+    };
+    const bedrockRequest = bedrockClientSendMock.mock.calls[0]
+      .arguments[0] as unknown as ConverseCommand;
+    const expectedBedrockInput: ConverseCommandInput = {
+      messages: event.messages,
+      ...expectedBedrockInputCommonProperties,
+    };
+    assert.deepStrictEqual(bedrockRequest.input, expectedBedrockInput);
   });
 });
