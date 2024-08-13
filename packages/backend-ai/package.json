@@ -1,0 +1,19 @@
+{
+  "name": "@aws-amplify/backend-ai",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    "./conversation": {
+      "types": "./lib/conversation/index.d.ts",
+      "default": "./lib/conversation/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0"
+}
