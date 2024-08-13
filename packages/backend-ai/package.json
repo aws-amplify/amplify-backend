@@ -15,5 +15,9 @@
   "scripts": {
     "update:api": "api-extractor run --local"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-amplify/ai-constructs": "^0.0.1",
+    "@aws-amplify/plugin-types": "^1.0.1"
+  }
 }

@@ -4,6 +4,19 @@
 
 ```ts
 
+import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConversationHandlerFunctionProps } from '@aws-amplify/ai-constructs/conversation';
+import { FunctionResources } from '@aws-amplify/plugin-types';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
+
+// @public
+export const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
+
+// @public (undocumented)
+export type DefineConversationHandlerFunctionProps = {
+    name: string;
+} & ConversationHandlerFunctionProps;
+
 // (No @packageDocumentation comment for this package)
 
 ```
