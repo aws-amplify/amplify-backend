@@ -216,6 +216,7 @@ export interface AWSAmplifyBackendOutputs {
   storage?: {
     aws_region: AwsRegion;
     bucket_name: string;
+    buckets?: AmplifyStorageBucket[];
   };
   /**
    * Outputs generated from backend.addOutput({ custom: <config> })
@@ -237,4 +238,9 @@ export interface AmazonLocationServiceConfig {
    * Map style
    */
   style?: string;
+}
+export interface AmplifyStorageBucket {
+  name: string;
+  bucket_name: string;
+  aws_region: string;
 }
