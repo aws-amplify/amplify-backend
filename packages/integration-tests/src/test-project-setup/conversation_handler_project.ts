@@ -386,10 +386,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
       defaultConversationHandlerFunction,
       apolloClient
     );
-    // Assert that tool was used. I.e. that LLM used value returned by the tool.
-    assert.match(response.content, /Seattle/);
+    // Assert that tool use content blocks are emitted in case LLM selects client tool.
+    // The content blocks are string serialized, but not as a proper JSON,
+    // hence string matching is employed below to detect some signals that tool use blocks kinds were emitted.
     assert.match(response.content, /toolUse/);
     assert.match(response.content, /toolUseId/);
+    // Assert that LLM attempts to pass parameter when asking for tool use.
+    assert.match(response.content, /city=Seattle/);
   };
 
   private assertCustomConversationHandlerCanExecuteTurn = async (
