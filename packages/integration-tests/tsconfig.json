@@ -5,6 +5,7 @@
     { "path": "../ai-constructs" },
     { "path": "../auth-construct" },
     { "path": "../backend" },
+    { "path": "../backend-ai" },
     { "path": "../backend-secret" },
     { "path": "../client-config" },
     { "path": "../deployed-backend-client" },

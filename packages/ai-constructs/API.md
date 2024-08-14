@@ -34,7 +34,7 @@ type ConversationHandlerFunctionProps = {
     entry?: string;
     models: Array<{
         modelId: string;
-        region: string;
+        region?: string;
     }>;
 };
 
