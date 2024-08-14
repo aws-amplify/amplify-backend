@@ -545,6 +545,34 @@ void describe('Auth construct', () => {
     );
   });
 
+  void it('configures Cognito to send emails with SES when senders field is populated', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const expectedEmail = 'Example.com <noreply@example.com>';
+    const expectedReply = 'support@example.com';
+    const sesEmailSettings = {
+      fromEmail: 'noreply@example.com',
+      fromName: 'Example.com',
+      replyTo: 'support@example.com',
+    };
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      senders: {
+        email: sesEmailSettings,
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.allResourcesProperties('AWS::Cognito::UserPool', {
+      EmailConfiguration: {
+        From: expectedEmail,
+        ReplyToEmailAddress: expectedReply,
+      },
+    });
+  });
+
   void it('requires email attribute if email is enabled', () => {
     const app = new App();
     const stack = new Stack(app);

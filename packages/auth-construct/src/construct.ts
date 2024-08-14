@@ -508,6 +508,7 @@ export class AmplifyAuth
             fromEmail: props.senders.email.fromEmail,
             fromName: props.senders.email.fromName,
             replyTo: props.senders.email.replyTo,
+            sesRegion: Stack.of(this).region,
           })
         : undefined,
 

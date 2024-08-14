@@ -412,9 +412,12 @@ export type AuthProps = {
     externalProviders?: ExternalProviderOptions;
   };
   /**
-   * Parameters to enable configuring email notifications with Cognito.
+   * Configure how Cognito sends emails
    */
   senders?: {
+    /**
+     * Configure Cognito to send emails from SES
+     */
     email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
   };
   /**
