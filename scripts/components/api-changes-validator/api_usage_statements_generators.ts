@@ -142,9 +142,17 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
     let importStatement: string | undefined;
     let typeNameWithNamespace: string;
     if (this.namespaceDefinitions.namespaceBySymbol.has(typeName)) {
-      typeNameWithNamespace = `${this.namespaceDefinitions.namespaceBySymbol.get(
-        typeName
-      )}.${typeName}`;
+      let currentSymbolName: string | undefined = typeName;
+      const namespaceHierarchy: Array<string> = [];
+      do {
+        currentSymbolName =
+          this.namespaceDefinitions.namespaceBySymbol.get(currentSymbolName);
+        if (currentSymbolName) {
+          namespaceHierarchy.unshift(currentSymbolName);
+        }
+      } while (currentSymbolName);
+
+      typeNameWithNamespace = `${namespaceHierarchy.join('.')}.${typeName}`;
     } else {
       importStatement = `import { ${typeName} } from '${this.packageName}';`;
       typeNameWithNamespace = typeName;

@@ -42,7 +42,7 @@ export class ApiUsageGenerator {
       }
     }
 
-    for (const namespaceName of this.namespaceDefinitions.namespaceNames) {
+    for (const namespaceName of this.namespaceDefinitions.topLevelNamespaces) {
       importStatements.push(
         `import { ${namespaceName} } from '${this.packageName}';`
       );
@@ -97,13 +97,14 @@ export class ApiUsageGenerator {
   private getNamespaceDefinitions = (): NamespaceDefinitions => {
     const namespaceDefinitions: NamespaceDefinitions = {
       namespaceBySymbol: new Map<string, string>(),
-      namespaceNames: [],
+      namespaceNames: new Set<string>(),
+      topLevelNamespaces: new Set<string>(),
     };
     for (const statement of this.apiReportAST.statements) {
       if (statement.kind === ts.SyntaxKind.ModuleDeclaration) {
         const moduleDeclaration = statement as ts.ModuleDeclaration;
         const namespaceName = moduleDeclaration.name.getText();
-        namespaceDefinitions.namespaceNames.push(namespaceName);
+        namespaceDefinitions.namespaceNames.add(namespaceName);
         if (moduleDeclaration.body?.kind === ts.SyntaxKind.ModuleBlock) {
           const moduleBody = moduleDeclaration.body as ts.ModuleBlock;
           for (const moduleBodyStatement of moduleBody.statements) {
@@ -127,6 +128,13 @@ export class ApiUsageGenerator {
             }
           }
         }
+      }
+    }
+
+    for (const namespaceName of namespaceDefinitions.namespaceNames) {
+      if (!namespaceDefinitions.namespaceBySymbol.has(namespaceName)) {
+        // Top level namespaces won't be included in mapping.
+        namespaceDefinitions.topLevelNamespaces.add(namespaceName);
       }
     }
 

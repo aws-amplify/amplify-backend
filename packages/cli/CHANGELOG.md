@@ -1,5 +1,29 @@
 # @aws-amplify/backend-cli
 
+## 1.2.3
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+- eab6ddb: wrap credential related errors for generate commands in AmplifyUserError
+- Updated dependencies [489d16e]
+- Updated dependencies [3c698e0]
+- Updated dependencies [decd10e]
+- Updated dependencies [057a069]
+- Updated dependencies [eab6ddb]
+- Updated dependencies [36feb29]
+- Updated dependencies [320a86d]
+  - @aws-amplify/backend-deployer@1.0.4
+  - @aws-amplify/deployed-backend-client@1.3.0
+  - @aws-amplify/model-generator@1.0.4
+  - @aws-amplify/backend-secret@1.0.1
+  - @aws-amplify/form-generator@1.0.1
+  - @aws-amplify/client-config@1.1.3
+  - @aws-amplify/platform-core@1.0.5
+  - @aws-amplify/sandbox@1.1.2
+  - @aws-amplify/schema-generator@1.2.1
+  - @aws-amplify/cli-core@1.1.2
+
 ## 1.2.2
 
 ### Patch Changes
