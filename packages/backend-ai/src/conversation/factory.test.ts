@@ -77,7 +77,7 @@ void describe('ConversationHandlerFactory', () => {
     });
   });
 
-  void it('throws on invalid name', () => {
+  void it('throws if resourceNameValidator detects an invalid name', () => {
     mock
       .method(resourceNameValidator, 'validate')
       .mock.mockImplementationOnce(() => {
