@@ -1,5 +1,19 @@
 # @aws-amplify/backend
 
+## 1.0.5
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+- Updated dependencies [3c698e0]
+- Updated dependencies [eab6ddb]
+- Updated dependencies [320a86d]
+  - @aws-amplify/backend-function@1.3.1
+  - @aws-amplify/backend-secret@1.0.1
+  - @aws-amplify/client-config@1.1.3
+  - @aws-amplify/platform-core@1.0.5
+  - @aws-amplify/plugin-types@1.1.1
+
 ## 1.0.4
 
 ### Patch Changes

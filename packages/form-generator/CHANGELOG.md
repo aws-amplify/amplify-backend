@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 1.0.1
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+
 ## 1.0.0
 
 ### Major Changes
