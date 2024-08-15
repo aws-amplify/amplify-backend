@@ -53,6 +53,16 @@ export class ConversationTurnResponseSender {
             }
         }
     `;
+    content = content.map((block) => {
+      if (block.toolUse) {
+        // The `input` field is typed as `AWS JSON` in the GraphQL API because it can represent
+        // arbitrary JSON values.
+        // We need to stringify it before sending it to AppSync to prevent type errors.
+        const input = JSON.stringify(block.toolUse.input);
+        return { toolUse: { ...block.toolUse, input } };
+      }
+      return block;
+    });
     const variables: MutationResponseInput = {
       input: {
         conversationId: this.event.conversationId,
