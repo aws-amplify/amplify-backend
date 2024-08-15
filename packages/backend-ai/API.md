@@ -9,11 +9,19 @@ import { ConversationHandlerFunctionProps } from '@aws-amplify/ai-constructs/con
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
+declare namespace __export__conversation {
+    export {
+        DefineConversationHandlerFunctionProps,
+        defineConversationHandlerFunction
+    }
+}
+export { __export__conversation }
+
 // @public
-export const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
+const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
 
 // @public (undocumented)
-export type DefineConversationHandlerFunctionProps = {
+type DefineConversationHandlerFunctionProps = {
     name: string;
 } & ConversationHandlerFunctionProps;
 
