@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.2.0
+
+### Minor Changes
+
+- d9b83a1: support adding more than one bucket
+
 ## 1.1.0
 
 ### Minor Changes
