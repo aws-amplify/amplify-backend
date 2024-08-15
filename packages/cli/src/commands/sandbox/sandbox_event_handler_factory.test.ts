@@ -73,7 +73,7 @@ void describe('sandbox_event_handler_factory', () => {
         namespace: 'test',
         name: 'name',
       },
-      '1',
+      '1.1',
       'test-out',
       'json',
     ]);
@@ -185,7 +185,7 @@ void describe('sandbox_event_handler_factory', () => {
         namespace: 'test',
         name: 'name',
       },
-      '1',
+      '1.1',
       'test-out',
       'json',
     ]);
