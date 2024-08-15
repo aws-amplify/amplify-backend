@@ -54,7 +54,7 @@ export interface AWSAmplifyBackendOutputs {
   /**
    * Version of this schema
    */
-  version: '1';
+  version: '1.1';
   /**
    * Outputs manually specified by developers for use with frontend library
    */
