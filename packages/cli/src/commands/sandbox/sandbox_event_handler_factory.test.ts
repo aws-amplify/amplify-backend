@@ -23,7 +23,7 @@ void describe('sandbox_event_handler_factory', () => {
   } as unknown as ClientConfigGeneratorAdapter;
   const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
     clientConfigGeneratorAdapterMock,
-    '1',
+    '1.1',
     'test-out',
     ClientConfigFormat.JSON
   );

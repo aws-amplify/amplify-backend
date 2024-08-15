@@ -147,7 +147,7 @@ interface AWSAmplifyBackendOutputs {
         bucket_name: string;
         buckets?: AmplifyStorageBucket[];
     };
-    version: '1';
+    version: '1.1';
 }
 
 // @public
@@ -205,11 +205,11 @@ export enum ClientConfigVersionOption {
     // (undocumented)
     V0 = "0",
     // (undocumented)
-    V1 = "1"
+    V1 = "1.1"
 }
 
 // @public
-export type ClientConfigVersionTemplateType<T> = T extends '1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
+export type ClientConfigVersionTemplateType<T> = T extends '1.1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
 
 // @public (undocumented)
 export type CustomClientConfig = {
@@ -220,7 +220,7 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
+export const generateClientConfig: <T extends "1.1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
