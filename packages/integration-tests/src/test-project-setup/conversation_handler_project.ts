@@ -151,7 +151,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
 
-    const clientConfig = await generateClientConfig(backendId, '1');
+    const clientConfig = await generateClientConfig(backendId, '1.1');
     if (!clientConfig.data?.url) {
       throw new Error('Conversation handler project must include data');
     }
@@ -392,7 +392,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     assert.match(response.content, /toolUse/);
     assert.match(response.content, /toolUseId/);
     // Assert that LLM attempts to pass parameter when asking for tool use.
-    assert.match(response.content, /city=Seattle/);
+    assert.match(response.content, /"city":"Seattle"/);
   };
 
   private assertCustomConversationHandlerCanExecuteTurn = async (
