@@ -276,6 +276,6 @@ export class ClientConfigLegacyConverter {
   isClientConfigV1 = (
     clientConfig: ClientConfig
   ): clientConfig is clientConfigTypesV1.AWSAmplifyBackendOutputs => {
-    return clientConfig.version === '1';
+    return clientConfig.version === '1.1';
   };
 }
