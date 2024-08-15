@@ -5,3 +5,15 @@ export type SomeTypeUnderNamespace = {
 };
 
 export { someSubNamespace };
+
+export const functionUsingTypes1 = (
+  props: SomeTypeUnderNamespace
+): someSubNamespace.SomeTypeUnderSubNamespace => {
+  throw new Error();
+};
+export const functionUsingTypes2 = (
+  props: SomeTypeUnderNamespace,
+  extraArg: string
+): Array<someSubNamespace.SomeTypeUnderSubNamespace> => {
+  throw new Error();
+};

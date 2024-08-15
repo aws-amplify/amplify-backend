@@ -13,15 +13,9 @@ import {
   FunctionResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import {
-  StorageOutput,
-  storageOutputKey,
-} from '@aws-amplify/backend-output-schemas';
+import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
-import {
-  AttributionMetadataStorage,
-  StackMetadataBackendOutputStorageStrategy,
-} from '@aws-amplify/backend-output-storage';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
@@ -32,6 +26,12 @@ const storageStackType = 'storage-S3';
 export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 export type AmplifyStorageProps = {
+  /**
+   * Whether this storage resource is the default storage resource for the backend.
+   * required and relevant only if there are multiple storage resources defined.
+   * @default false.
+   */
+  isDefault?: boolean;
   /**
    * Friendly name that will be used to derive the S3 Bucket name
    */
@@ -80,11 +80,15 @@ export class AmplifyStorage
   implements ResourceProvider<StorageResources>
 {
   readonly resources: StorageResources;
+  readonly isDefault: boolean;
+  readonly name: string;
   /**
    * Create a new AmplifyStorage instance
    */
   constructor(scope: Construct, id: string, props: AmplifyStorageProps) {
     super(scope, id);
+    this.isDefault = props.isDefault || false;
+    this.name = props.name;
 
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
@@ -122,8 +126,6 @@ export class AmplifyStorage
       },
     };
 
-    this.storeOutput(props.outputStorageStrategy);
-
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       storageStackType,
@@ -140,22 +142,5 @@ export class AmplifyStorage
     handler.addEventSource(
       new S3EventSourceV2(this.resources.bucket, { events })
     );
-  };
-
-  /**
-   * Store storage outputs using provided strategy
-   */
-  private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput> = new StackMetadataBackendOutputStorageStrategy(
-      Stack.of(this)
-    )
-  ): void => {
-    outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
-      version: '1',
-      payload: {
-        storageRegion: Stack.of(this).region,
-        bucketName: this.resources.bucket.bucketName,
-      },
-    });
   };
 }
