@@ -33,7 +33,7 @@ export class UsageStatementsRenderer {
 
   /**
    * This function applies namespaces using a simple algorithm that
-   * regex match symbols in generated code with namespaced version.
+   * regex match and replace symbols in generated code with namespace prefix.
    *
    * This a cheap alternative to a proper but more expensive solution
    * that would involve inspecting symbols during generation.
