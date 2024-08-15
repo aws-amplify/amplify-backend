@@ -131,4 +131,54 @@ void describe('Conversation turn response sender', () => {
       }
     );
   });
+
+  void it('serializes tool use input to JSON', async () => {
+    const fetchMock = mock.fn(
+      fetch,
+      (): Promise<Response> =>
+        // Mock successful Appsync response
+        Promise.resolve(new Response('{}', { status: 200 }))
+    );
+    const sender = new ConversationTurnResponseSender(event, fetchMock);
+    const toolUseBlock: ContentBlock.ToolUseMember = {
+      toolUse: {
+        name: 'testTool',
+        toolUseId: 'testToolUseId',
+        input: {
+          testPropertyKey: 'testPropertyValue',
+        },
+      },
+    };
+    const response: Array<ContentBlock> = [toolUseBlock];
+    await sender.sendResponse(response);
+
+    assert.strictEqual(fetchMock.mock.calls.length, 1);
+    const request: Request = fetchMock.mock.calls[0].arguments[0] as Request;
+    assert.ok(request.body);
+    assert.deepStrictEqual(JSON.parse(await text(request.body)), {
+      query:
+        '\n' +
+        '        mutation PublishModelResponse($input: testResponseMutationInputTypeName!) {\n' +
+        '            testResponseMutationName(input: $input) {\n' +
+        '                testSelectionSet\n' +
+        '            }\n' +
+        '        }\n' +
+        '    ',
+      variables: {
+        input: {
+          conversationId: event.conversationId,
+          content: [
+            {
+              toolUse: {
+                input: JSON.stringify(toolUseBlock.toolUse.input),
+                name: toolUseBlock.toolUse.name,
+                toolUseId: toolUseBlock.toolUse.toolUseId,
+              },
+            },
+          ],
+          associatedUserMessageId: event.currentMessageId,
+        },
+      },
+    });
+  });
 });
