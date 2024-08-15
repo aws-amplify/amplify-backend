@@ -1,5 +1,5 @@
-name: Feature request
-description: Request a feature to help us improve Amplify Gen 2
+name: Feature Request
+description: Suggest an idea to help us improve Amplify Gen 2
 labels: ['pending-triage']
 body:
   - type: markdown
@@ -19,9 +19,17 @@ body:
     validations:
       required: true
   - type: textarea
+    id: description
     attributes:
-      label: Description
+      label: Describe the feature
+      description: A clear and concise description of the feature you are proposing.
+    validations:
+      required: true
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
       description: |
-        Describe the feature request
+        Please provide information about your use case and how this feature will help with it?
     validations:
       required: true
