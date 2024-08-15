@@ -613,6 +613,6 @@ void describe('Custom client config contributor v1', () => {
 
 void describe('Custom client config contributor v1', () => {
   void it('contributes the version correctly', () => {
-    assert.deepEqual(new VersionContributor().contribute(), { version: '1' });
+    assert.deepEqual(new VersionContributor().contribute(), { version: '1.1' });
   });
 });
