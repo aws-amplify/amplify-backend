@@ -1,6 +1,9 @@
 import ts from 'typescript';
 import { EOL } from 'os';
-import { NamespaceDefinitions, UsageStatements } from './types.js';
+import {
+  NamespaceDefinitions,
+  UsageStatementsGeneratorOutput,
+} from './types.js';
 import {
   ClassUsageStatementsGenerator,
   EnumUsageStatementsGenerator,
@@ -8,6 +11,8 @@ import {
   TypeUsageStatementsGenerator,
   VariableUsageStatementsGenerator,
 } from './api_usage_statements_generators.js';
+import { ImportStatementsRenderer } from './import_statements_renderer.js';
+import { UsageStatementsRenderer } from './usage_statemets_renderer.js';
 
 /**
  * Generates API usage using API.md definition.
@@ -26,36 +31,32 @@ export class ApiUsageGenerator {
   }
 
   generate = (): string => {
-    const importStatements: Array<string> = [];
-    const usageStatements: Array<string> = [];
+    const generatorOutputs: Array<UsageStatementsGeneratorOutput> = [];
 
     // go over top level statements and generate usage for them
     for (const statement of this.apiReportAST.statements) {
-      const statementsForNode = this.generateStatementsForNode(statement);
-      if (statementsForNode) {
-        if (statementsForNode.importStatement) {
-          importStatements.push(statementsForNode.importStatement);
-        }
-        if (statementsForNode.usageStatement) {
-          usageStatements.push(statementsForNode.usageStatement);
-        }
+      const generatorOutputForNode = this.generateStatementsForNode(statement);
+      if (generatorOutputForNode) {
+        generatorOutputs.push(generatorOutputForNode);
       }
     }
 
-    for (const namespaceName of this.namespaceDefinitions.topLevelNamespaces) {
-      importStatements.push(
-        `import { ${namespaceName} } from '${this.packageName}';`
-      );
-    }
+    const importStatements = new ImportStatementsRenderer(
+      generatorOutputs,
+      this.namespaceDefinitions,
+      this.packageName
+    ).render();
+    const usageStatements = new UsageStatementsRenderer(
+      generatorOutputs,
+      this.namespaceDefinitions
+    ).render();
 
-    return `${importStatements.join(EOL)}${EOL}${EOL}${usageStatements.join(
-      EOL
-    )}${EOL}`;
+    return `${importStatements}${EOL}${EOL}${usageStatements}${EOL}`;
   };
 
   private generateStatementsForNode = (
     node: ts.Node
-  ): UsageStatements | undefined => {
+  ): UsageStatementsGeneratorOutput | undefined => {
     switch (node.kind) {
       case ts.SyntaxKind.ImportDeclaration:
         return new ImportUsageStatementsGenerator(
@@ -64,8 +65,7 @@ export class ApiUsageGenerator {
       case ts.SyntaxKind.TypeAliasDeclaration:
         return new TypeUsageStatementsGenerator(
           node as ts.TypeAliasDeclaration,
-          this.packageName,
-          this.namespaceDefinitions
+          this.packageName
         ).generate();
       case ts.SyntaxKind.EnumDeclaration:
         return new EnumUsageStatementsGenerator(

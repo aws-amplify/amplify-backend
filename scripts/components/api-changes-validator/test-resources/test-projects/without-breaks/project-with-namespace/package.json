@@ -6,6 +6,11 @@
       "import": "./lib/index.js",
       "require": "./lib/index.js",
       "types": "./lib/index.d.ts"
+    },
+    "./other_entry_point": {
+      "import": "./lib/some_other_entry_point.js",
+      "require": "./lib/some_other_entry_point.js",
+      "types": "./lib/some_other_entry_point.d.ts"
     }
   },
   "types": "lib/index.d.ts"
