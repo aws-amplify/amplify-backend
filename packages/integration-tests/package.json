@@ -28,7 +28,7 @@
     "@types/lodash.ismatch": "^4.4.9",
     "aws-amplify": "^6.0.16",
     "aws-appsync-auth-link": "^3.0.7",
-    "aws-cdk-lib": "^2.132.0",
+    "aws-cdk-lib": "^2.152.0",
     "constructs": "^10.0.0",
     "execa": "^8.0.1",
     "fs-extra": "^11.1.1",
