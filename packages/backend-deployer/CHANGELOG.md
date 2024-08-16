@@ -1,5 +1,15 @@
 # @aws-amplify/backend-deployer
 
+## 1.0.5
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [4cce19f]
+- Updated dependencies [a65371c]
+  - @aws-amplify/platform-core@1.0.6
+  - @aws-amplify/plugin-types@1.2.1
+
 ## 1.0.4
 
 ### Patch Changes
