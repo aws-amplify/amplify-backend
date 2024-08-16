@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.2.1
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+
 ## 1.2.0
 
 ### Minor Changes

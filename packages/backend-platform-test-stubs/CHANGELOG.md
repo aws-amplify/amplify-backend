@@ -1,5 +1,11 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.4
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+
 ## 0.3.3
 
 ### Patch Changes
