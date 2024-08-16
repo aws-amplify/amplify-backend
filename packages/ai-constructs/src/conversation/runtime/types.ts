@@ -40,6 +40,11 @@ export type ConversationTurnEvent = {
     modelId: string;
     systemPrompt: string;
     region?: string;
+    inferenceConfiguration?: {
+      maxTokens?: number;
+      temperature?: number;
+      topP?: number;
+    };
   };
   request: {
     headers: {

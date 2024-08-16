@@ -70,7 +70,8 @@ export class BedrockConverseAdapter {
   }
 
   askBedrock = async (): Promise<ContentBlock[]> => {
-    const { modelId, systemPrompt } = this.event.modelConfiguration;
+    const { modelId, systemPrompt, inferenceConfiguration } =
+      this.event.modelConfiguration;
 
     const messages: Array<Message> = [...this.event.messages]; // clone, so we don't mutate inputs
 
@@ -81,10 +82,7 @@ export class BedrockConverseAdapter {
         modelId,
         messages: [...messages],
         system: [{ text: systemPrompt }],
-        inferenceConfig: {
-          maxTokens: 2000,
-          temperature: 0,
-        },
+        inferenceConfig: inferenceConfiguration,
         toolConfig,
       };
       bedrockResponse = await this.bedrockClient.send(
