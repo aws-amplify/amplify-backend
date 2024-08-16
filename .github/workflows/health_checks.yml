@@ -206,6 +206,7 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
       - name: Select E2E test account
         id: selectE2EAccount
+        shell: bash
         run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
         env:
           E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
@@ -256,6 +257,7 @@ jobs:
       - run: cd packages/cli && npm link
       - name: Select E2E test account
         id: selectE2EAccount
+        shell: bash
         run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
         env:
           E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
@@ -304,6 +306,7 @@ jobs:
       - run: cd packages/cli && npm link
       - name: Select E2E test account
         id: selectE2EAccount
+        shell: bash
         run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
         env:
           E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
@@ -338,6 +341,7 @@ jobs:
       - run: cd packages/cli && npm link
       - name: Select E2E test account
         id: selectE2EAccount
+        shell: bash
         run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
         env:
           E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
@@ -413,6 +417,7 @@ jobs:
         uses: ./.github/actions/restore_build_cache
       - name: Select E2E test account
         id: selectE2EAccount
+        shell: bash
         run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
         env:
           E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
