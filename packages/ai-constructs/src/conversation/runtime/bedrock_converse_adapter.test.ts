@@ -36,7 +36,6 @@ void describe('Bedrock converse adapter', () => {
         maxTokens: 124,
         temperature: 234,
         topP: 345,
-        stopSequences: ['testStopSequence'],
       },
     },
     request: { headers: { authorization: '' } },

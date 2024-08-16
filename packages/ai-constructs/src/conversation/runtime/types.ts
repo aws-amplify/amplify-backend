@@ -44,7 +44,6 @@ export type ConversationTurnEvent = {
       maxTokens?: number;
       temperature?: number;
       topP?: number;
-      stopSequences?: string[];
     };
   };
   request: {
