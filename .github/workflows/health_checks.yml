@@ -149,7 +149,11 @@ jobs:
         id: check
         run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
       - run: echo run_e2e set to ${{ steps.check.outputs.run_e2e }}
-      - run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
+      - run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)"
+      - name: Select E2E test account
+        id: selectAccount
+        run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
+      - run: echo e2e_test_account_number set to ${{ steps.selectAccount.outputs.e2e_test_account_number }}
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
