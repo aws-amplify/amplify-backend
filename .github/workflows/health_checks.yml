@@ -148,6 +148,7 @@ jobs:
         id: check
         run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
       - run: echo run_e2e set to ${{ steps.check.outputs.run_e2e }}
+      - run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts ${{ vars.E2E_TEST_ACCOUNTS }})" >> "$GITHUB_OUTPUT"
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -207,13 +208,13 @@ jobs:
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-test-tooling
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-execution
           aws-region: us-west-2
       - name: Run e2e iam access drift test
         run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
@@ -252,13 +253,13 @@ jobs:
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-test-tooling
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-execution
           aws-region: us-west-2
       - name: Run e2e deployment tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js
@@ -295,13 +296,13 @@ jobs:
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-test-tooling
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-execution
           aws-region: us-west-2
       - name: Run e2e sandbox tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/sandbox.test.js
@@ -324,13 +325,13 @@ jobs:
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-test-tooling
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-execution
           aws-region: us-west-2
       - name: Run e2e backend output tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
@@ -394,13 +395,13 @@ jobs:
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-test-tooling
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ needs.do_include_e2e.outputs.e2e_test_account_number }}:role/e2e-execution
           aws-region: us-west-2
       - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
         shell: bash
