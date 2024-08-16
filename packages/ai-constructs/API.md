@@ -63,6 +63,12 @@ type ConversationTurnEvent = {
         modelId: string;
         systemPrompt: string;
         region?: string;
+        inferenceConfiguration?: {
+            maxTokens?: number;
+            temperature?: number;
+            topP?: number;
+            stopSequences?: string[];
+        };
     };
     request: {
         headers: {

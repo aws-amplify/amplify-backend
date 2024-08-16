@@ -32,6 +32,12 @@ void describe('Bedrock converse adapter', () => {
     modelConfiguration: {
       modelId: 'testModelId',
       systemPrompt: 'testSystemPrompt',
+      inferenceConfiguration: {
+        maxTokens: 124,
+        temperature: 234,
+        topP: 345,
+        stopSequences: ['testStopSequence'],
+      },
     },
     request: { headers: { authorization: '' } },
     responseMutation: {
@@ -87,10 +93,7 @@ void describe('Bedrock converse adapter', () => {
     const expectedBedrockInput: ConverseCommandInput = {
       messages: event.messages,
       modelId: event.modelConfiguration.modelId,
-      inferenceConfig: {
-        maxTokens: 2000,
-        temperature: 0,
-      },
+      inferenceConfig: event.modelConfiguration.inferenceConfiguration,
       system: [
         {
           text: event.modelConfiguration.systemPrompt,
@@ -238,10 +241,7 @@ void describe('Bedrock converse adapter', () => {
     };
     const expectedBedrockInputCommonProperties = {
       modelId: event.modelConfiguration.modelId,
-      inferenceConfig: {
-        maxTokens: 2000,
-        temperature: 0,
-      },
+      inferenceConfig: event.modelConfiguration.inferenceConfiguration,
       system: [
         {
           text: event.modelConfiguration.systemPrompt,
@@ -672,10 +672,7 @@ void describe('Bedrock converse adapter', () => {
     };
     const expectedBedrockInputCommonProperties = {
       modelId: event.modelConfiguration.modelId,
-      inferenceConfig: {
-        maxTokens: 2000,
-        temperature: 0,
-      },
+      inferenceConfig: event.modelConfiguration.inferenceConfiguration,
       system: [
         {
           text: event.modelConfiguration.systemPrompt,
