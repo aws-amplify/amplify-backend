@@ -548,7 +548,7 @@ void describe('Auth construct', () => {
   void it('configures Cognito to send emails with SES when senders field is populated', () => {
     const app = new App();
     const stack = new Stack(app);
-    const expectedEmail = 'Example.com <noreply@example.com>';
+    const expectedNameAndEmail = 'Example.com <noreply@example.com>';
     const expectedReply = 'support@example.com';
     const sesEmailSettings = {
       fromEmail: 'noreply@example.com',
@@ -567,7 +567,7 @@ void describe('Auth construct', () => {
     const template = Template.fromStack(stack);
     template.allResourcesProperties('AWS::Cognito::UserPool', {
       EmailConfiguration: {
-        From: expectedEmail,
+        From: expectedNameAndEmail,
         ReplyToEmailAddress: expectedReply,
       },
     });
