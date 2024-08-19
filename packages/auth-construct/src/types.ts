@@ -412,11 +412,14 @@ export type AuthProps = {
     externalProviders?: ExternalProviderOptions;
   };
   /**
-   * Configure how Cognito sends emails
+   * Configure sending behaviors for Emails or SMS messages sent from your auth resource
+   * @see https://docs.amplify.aws/react/build-a-backend/auth/customize-auth-lifecycle/email-customization/#custom-senders
    */
   senders?: {
     /**
      * Configure Cognito to send emails from SES
+     * SES configurations enable the use of customized email sender addresses and names
+     * @see https://docs.amplify.aws/react/build-a-backend/auth/moving-to-production/#email
      */
     email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
   };
