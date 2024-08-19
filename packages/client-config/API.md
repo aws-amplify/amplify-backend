@@ -23,6 +23,16 @@ interface AmazonLocationServiceConfig {
 type AmazonPinpointChannels = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public (undocumented)
+interface AmplifyStorageBucket {
+    // (undocumented)
+    aws_region: string;
+    // (undocumented)
+    bucket_name: string;
+    // (undocumented)
+    name: string;
+}
+
+// @public (undocumented)
 export type AnalyticsClientConfig = {
     aws_mobile_analytics_app_id?: string;
     aws_mobile_analytics_app_region?: string;
@@ -135,8 +145,9 @@ interface AWSAmplifyBackendOutputs {
     storage?: {
         aws_region: AwsRegion;
         bucket_name: string;
+        buckets?: AmplifyStorageBucket[];
     };
-    version: '1';
+    version: '1.1';
 }
 
 // @public
@@ -180,7 +191,8 @@ declare namespace clientConfigTypesV1 {
         AwsAppsyncAuthorizationType,
         AmazonPinpointChannels,
         AWSAmplifyBackendOutputs,
-        AmazonLocationServiceConfig
+        AmazonLocationServiceConfig,
+        AmplifyStorageBucket
     }
 }
 export { clientConfigTypesV1 }
@@ -193,11 +205,11 @@ export enum ClientConfigVersionOption {
     // (undocumented)
     V0 = "0",
     // (undocumented)
-    V1 = "1"
+    V1 = "1.1"
 }
 
 // @public
-export type ClientConfigVersionTemplateType<T> = T extends '1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
+export type ClientConfigVersionTemplateType<T> = T extends '1.1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
 
 // @public (undocumented)
 export type CustomClientConfig = {
@@ -208,7 +220,7 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
+export const generateClientConfig: <T extends "1.1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;

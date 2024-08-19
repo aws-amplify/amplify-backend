@@ -1,5 +1,26 @@
 # @aws-amplify/backend-deployer
 
+## 1.0.5
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [4cce19f]
+- Updated dependencies [a65371c]
+  - @aws-amplify/platform-core@1.0.6
+  - @aws-amplify/plugin-types@1.2.1
+
+## 1.0.4
+
+### Patch Changes
+
+- 489d16e: throw child process error if no stderr generated during CDK cli execution
+- 057a069: Update cdk error mapper to catch all deployment errors
+- Updated dependencies [3c698e0]
+- Updated dependencies [320a86d]
+  - @aws-amplify/platform-core@1.0.5
+  - @aws-amplify/plugin-types@1.1.1
+
 ## 1.0.3
 
 ### Patch Changes

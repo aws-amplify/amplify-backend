@@ -21,7 +21,9 @@ export class DefaultBackendOutputClient implements BackendOutputClient {
       this.cloudFormationClient,
       this.amplifyClient
     ).getStrategy(backendIdentifier);
+
     const output = await outputFetcher.fetchBackendOutput();
+
     return unifiedBackendOutputSchema.parse(output);
   };
 }

@@ -1,5 +1,22 @@
 # @aws-amplify/platform-core
 
+## 1.0.6
+
+### Patch Changes
+
+- 4cce19f: wrap SyntaxErrors in AmplifyUserError
+- Updated dependencies [a65371c]
+  - @aws-amplify/plugin-types@1.2.1
+
+## 1.0.5
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+- 320a86d: wrap getaddrinfo ENOTFOUND errors in AmplifyUserError
+- Updated dependencies [3c698e0]
+  - @aws-amplify/plugin-types@1.1.1
+
 ## 1.0.4
 
 ### Patch Changes

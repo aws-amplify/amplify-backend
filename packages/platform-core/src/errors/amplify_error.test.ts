@@ -179,4 +179,13 @@ void describe('AmplifyError.fromError', async () => {
       `Failed the test for error ${error.message}`
     );
   });
+  void it('wraps SyntaxErrors in AmplifyUserError', () => {
+    const error = new Error('Typescript validation check failed.');
+    error.name = 'SyntaxError';
+    const actual = AmplifyError.fromError(error);
+    assert.ok(
+      actual instanceof AmplifyError && actual.name === 'SyntaxError',
+      `Failed the test for error ${error.message}`
+    );
+  });
 });

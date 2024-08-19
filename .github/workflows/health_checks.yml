@@ -204,16 +204,22 @@ jobs:
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
+      - name: Select E2E test account
+        id: selectE2EAccount
+        shell: bash
+        run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
+        env:
+          E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-test-tooling
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-execution
           aws-region: us-west-2
       - name: Run e2e iam access drift test
         run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
@@ -249,19 +255,74 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - uses: ./.github/actions/restore_build_cache
       - run: cd packages/cli && npm link
+      - name: Select E2E test account
+        id: selectE2EAccount
+        shell: bash
+        run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
+        env:
+          E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-test-tooling
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-execution
           aws-region: us-west-2
       - name: Run e2e deployment tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js
+  e2e_sandbox:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    strategy:
+      # will finish running other test matrices even if one fails
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14-xlarge, windows-latest]
+        node-version: [18, 20]
+        # skip multiple node version test on other os
+        exclude:
+          - os: macos-14-xlarge
+            node-version: 20
+          - os: windows-latest
+            node-version: 20
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
+    needs:
+      - do_include_e2e
+      - build
+    permissions:
+      # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: ./.github/actions/restore_build_cache
+      - run: cd packages/cli && npm link
+      - name: Select E2E test account
+        id: selectE2EAccount
+        shell: bash
+        run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
+        env:
+          E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
+      - name: Configure test tooling credentials
+        uses: ./.github/actions/setup_profile
+        with:
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-test-tooling
+          aws-region: us-west-2
+          profile-name: e2e-tooling
+      - name: Configure test execution credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
+        with:
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-execution
+          aws-region: us-west-2
+      - name: Run e2e sandbox tests
+        run: npm run test:dir packages/integration-tests/lib/test-e2e/sandbox.test.js
   e2e_backend_output:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -278,16 +339,22 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
       - run: cd packages/cli && npm link
+      - name: Select E2E test account
+        id: selectE2EAccount
+        shell: bash
+        run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
+        env:
+          E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-test-tooling
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-execution
           aws-region: us-west-2
       - name: Run e2e backend output tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
@@ -348,16 +415,22 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Restore Build Cache
         uses: ./.github/actions/restore_build_cache
+      - name: Select E2E test account
+        id: selectE2EAccount
+        shell: bash
+        run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
+        env:
+          E2E_TEST_ACCOUNTS: ${{ vars.E2E_TEST_ACCOUNTS }}
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-test-tooling
           aws-region: us-west-2
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ steps.selectE2EAccount.outputs.e2e_test_account_number }}:role/e2e-execution
           aws-region: us-west-2
       - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
         shell: bash
@@ -487,6 +560,7 @@ jobs:
       - test_with_coverage
       - e2e_package_manager
       - e2e_deployment
+      - e2e_sandbox
       - e2e_create_amplify
     runs-on: ubuntu-latest
     steps:

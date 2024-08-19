@@ -52,7 +52,7 @@ void describe('Api changes validator', { concurrency: true }, () => {
           'utf-8'
         )
       ).trim();
-      await execa('tsc', ['--build'], { cwd: latestPackagePath });
+      await execa('npx', ['tsc', '--build'], { cwd: latestPackagePath });
       const baselinePackageApiReportPath = path.join(
         latestPackagePath,
         'API.md'
@@ -83,7 +83,7 @@ void describe('Api changes validator', { concurrency: true }, () => {
         testProjectsWithoutBreaksPath,
         testProject
       );
-      await execa('tsc', ['--build'], { cwd: latestPackagePath });
+      await execa('npx', ['tsc', '--build'], { cwd: latestPackagePath });
       const baselinePackageApiReportPath = path.join(
         latestPackagePath,
         'API.md'
