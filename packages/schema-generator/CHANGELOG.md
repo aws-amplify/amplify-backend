@@ -1,5 +1,14 @@
 # @aws-amplify/schema-generator
 
+## 1.2.1
+
+### Patch Changes
+
+- decd10e: Upgrade @aws-amplify/graphql-schema-generator
+- Updated dependencies [3c698e0]
+- Updated dependencies [320a86d]
+  - @aws-amplify/platform-core@1.0.5
+
 ## 1.2.0
 
 ### Minor Changes

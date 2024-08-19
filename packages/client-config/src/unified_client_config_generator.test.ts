@@ -79,7 +79,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
         configContributors
@@ -114,7 +114,7 @@ void describe('UnifiedClientConfigGenerator', () => {
           default_authorization_type: 'API_KEY',
           authorization_types: ['API_KEY'],
         },
-        version: '1',
+        version: '1.1',
       };
 
       assert.deepStrictEqual(result, expectedClientConfig);
@@ -153,7 +153,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -185,7 +185,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -217,7 +217,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -228,6 +228,72 @@ void describe('UnifiedClientConfigGenerator', () => {
         () => clientConfigGenerator.generateClientConfig(),
         (error: AmplifyUserError) => {
           assert.strictEqual(error.message, 'Stack does not exist.');
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
+
+    void it('throws user error if credentials are expired when getting backend outputs', async () => {
+      const outputRetrieval = mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.CREDENTIALS_ERROR,
+          'token is expired'
+        );
+      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1.1');
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Unable to get backend outputs due to invalid credentials.'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
+
+    void it('throws user error if access is denied when getting backend outputs', async () => {
+      const outputRetrieval = mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.ACCESS_DENIED,
+          'access is denied'
+        );
+      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1.1');
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Unable to get backend outputs due to insufficient permissions.'
+          );
           assert.ok(error.resolution);
           return true;
         }

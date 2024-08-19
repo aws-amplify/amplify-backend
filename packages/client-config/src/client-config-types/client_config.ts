@@ -8,7 +8,7 @@ import { AnalyticsClientConfig } from './analytics_client_config.js';
 import { NotificationsClientConfig } from './notifications_client_config.js';
 
 // Versions of new unified config schemas
-import * as clientConfigTypesV1 from '../client-config-schema/client_config_v1.js';
+import * as clientConfigTypesV1 from '../client-config-schema/client_config_v1.1.js';
 
 /**
  * Merged type of all category client config legacy types
@@ -35,7 +35,7 @@ export { clientConfigTypesV1 };
 
 export enum ClientConfigVersionOption {
   V0 = '0', // Legacy client config
-  V1 = '1',
+  V1 = '1.1',
 }
 
 export type ClientConfigVersion = `${ClientConfigVersionOption}`;
@@ -49,13 +49,13 @@ export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion =
  * if the caller specified a static version, e.g. `generateClientConfig(_, _, ClientConfigVersions.V1)`
  *
  * Add new supported version here such as
- * export type ClientConfigVersionType<T> = T extends '1'
+ * export type ClientConfigVersionType<T> = T extends '1.1'
  * ? clientConfigTypesV1.AWSAmplifyBackendOutputs
  * : T extends '2'
  * ? clientConfigTypesV2.AWSAmplifyBackendOutputs
  * : never;
  */
-export type ClientConfigVersionTemplateType<T> = T extends '1'
+export type ClientConfigVersionTemplateType<T> = T extends '1.1'
   ? clientConfigTypesV1.AWSAmplifyBackendOutputs
   : never;
 

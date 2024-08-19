@@ -1,5 +1,17 @@
 # @aws-amplify/integration-tests
 
+## 0.5.8
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+
+## 0.5.7
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+
 ## 0.5.6
 
 ### Patch Changes

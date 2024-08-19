@@ -1,16 +1,28 @@
-export type UsageStatements = {
-  importStatement?: string;
-  usageStatement?: string;
+export type SymbolDescriptor = {
+  symbolName: string;
 };
+
+export type UsageStatementsGeneratorOutput =
+  | {
+      symbolDescriptor?: undefined;
+      importStatement?: string;
+      usageStatement?: string;
+    }
+  | {
+      symbolDescriptor?: SymbolDescriptor;
+      importStatement?: undefined;
+      usageStatement?: string;
+    };
 
 export type UsageStatementsGenerator = {
   /**
    * Generates usage statements
    */
-  generate: () => UsageStatements;
+  generate: () => UsageStatementsGeneratorOutput;
 };
 
 export type NamespaceDefinitions = {
-  namespaceNames: Array<string>;
+  topLevelNamespaces: Set<string>;
+  namespaceNames: Set<string>;
   namespaceBySymbol: Map<string, string>;
 };

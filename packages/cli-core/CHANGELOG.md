@@ -1,5 +1,14 @@
 # @aws-amplify/cli-core
 
+## 1.1.2
+
+### Patch Changes
+
+- 36feb29: prevent CTRL+C handling for pnpm
+- Updated dependencies [3c698e0]
+- Updated dependencies [320a86d]
+  - @aws-amplify/platform-core@1.0.5
+
 ## 1.1.1
 
 ### Patch Changes

@@ -1,5 +1,29 @@
 # @aws-amplify/deployed-backend-client
 
+## 1.4.0
+
+### Minor Changes
+
+- d9b83a1: support adding more than one bucket
+
+### Patch Changes
+
+- Updated dependencies [d9b83a1]
+  - @aws-amplify/backend-output-schemas@1.2.0
+
+## 1.3.0
+
+### Minor Changes
+
+- eab6ddb: wrap credential related errors for generate commands in AmplifyUserError
+
+### Patch Changes
+
+- 3c698e0: upgrade AWS SDK packages to latest
+- Updated dependencies [3c698e0]
+- Updated dependencies [320a86d]
+  - @aws-amplify/platform-core@1.0.5
+
 ## 1.2.0
 
 ### Minor Changes
