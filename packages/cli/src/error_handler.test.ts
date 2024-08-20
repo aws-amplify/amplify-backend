@@ -98,7 +98,7 @@ void describe('generateCommandFailureHandler', () => {
   void it('prints AmplifyErrors', async () => {
     await generateCommandFailureHandler(parser, usageDataEmitter)(
       '',
-      new AmplifyUserError('TestName', {
+      new AmplifyUserError('TestNameError', {
         message: 'test error message',
         resolution: 'test resolution',
         details: 'test details',
@@ -109,7 +109,7 @@ void describe('generateCommandFailureHandler', () => {
     assert.equal(mockPrint.mock.callCount(), 3);
     assert.match(
       mockPrint.mock.calls[0].arguments[0],
-      /TestName: test error message/
+      /TestNameError: test error message/
     );
     assert.equal(
       mockPrint.mock.calls[1].arguments[0],
@@ -123,7 +123,7 @@ void describe('generateCommandFailureHandler', () => {
   void it('prints debug stack traces', async () => {
     const causeError = new Error('test underlying cause error');
     const amplifyError = new AmplifyUserError(
-      'TestName',
+      'TestNameError',
       {
         message: 'test error message',
         resolution: 'test resolution',

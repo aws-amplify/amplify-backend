@@ -414,7 +414,7 @@ void describe('generate forms command', () => {
     await assert.rejects(
       () => commandRunner.runCommand('forms'),
       (error: TestCommandError) => {
-        assert.strictEqual(error.error.name, 'AccessDenied');
+        assert.strictEqual(error.error.name, 'AccessDeniedError');
         assert.strictEqual(
           error.error.message,
           'Unable to get backend outputs due to insufficient permissions.'
