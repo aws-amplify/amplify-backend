@@ -1,5 +1,13 @@
 # @aws-amplify/client-config
 
+## 1.2.1
+
+### Patch Changes
+
+- 4d4c0d5: Use proper error and fault suffixes.
+- Updated dependencies [4d4c0d5]
+  - @aws-amplify/model-generator@1.0.5
+
 ## 1.2.0
 
 ### Minor Changes

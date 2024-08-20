@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 1.0.5
+
+### Patch Changes
+
+- 4d4c0d5: Use proper error and fault suffixes.
+
 ## 1.0.4
 
 ### Patch Changes
