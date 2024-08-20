@@ -101,7 +101,8 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex: /Has the environment been bootstrapped/,
+      errorRegex:
+        /(Has the environment been bootstrapped)|(Is account \d+ bootstrapped)|(Is this account bootstrapped)/,
       humanReadableErrorMessage:
         'This AWS account and region has not been bootstrapped.',
       resolutionMessage:
