@@ -36,7 +36,7 @@ ruleTester.run('amplify-error-name', amplifyErrorNameRule, {
       ],
     },
     {
-      code: "new AmplifyFault('ValidFaultNameError', {}, new Error())",
+      code: "new AmplifyFault('InvalidFaultNameError', {}, new Error())",
       errors: [
         {
           messageId: 'properAmplifyFaultSuffix',
@@ -44,7 +44,7 @@ ruleTester.run('amplify-error-name', amplifyErrorNameRule, {
       ],
     },
     {
-      code: "new AmplifyFault('ValidFaultName', {}, new Error())",
+      code: "new AmplifyFault('InvalidFaultName', {}, new Error())",
       errors: [
         {
           messageId: 'properAmplifyFaultSuffix',
