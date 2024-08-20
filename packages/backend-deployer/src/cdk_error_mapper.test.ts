@@ -63,6 +63,20 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: 'Has the environment been bootstrapped',
   },
   {
+    errorMessage: 'Is account 12345 bootstrapped',
+    expectedTopLevelErrorMessage:
+      'This AWS account and region has not been bootstrapped.',
+    errorName: 'BootstrapNotDetectedError',
+    expectedDownstreamErrorMessage: 'Is account 12345 bootstrapped',
+  },
+  {
+    errorMessage: 'Is this account bootstrapped',
+    expectedTopLevelErrorMessage:
+      'This AWS account and region has not been bootstrapped.',
+    errorName: 'BootstrapNotDetectedError',
+    expectedDownstreamErrorMessage: 'Is this account bootstrapped',
+  },
+  {
     errorMessage: 'Amplify Backend not found in amplify/backend.ts',
     expectedTopLevelErrorMessage:
       'Backend definition could not be found in amplify directory.',
