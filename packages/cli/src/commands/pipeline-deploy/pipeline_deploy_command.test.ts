@@ -93,7 +93,7 @@ void describe('deploy command', () => {
         );
         assert.deepStrictEqual(
           err.error.name,
-          'RunningPipelineDeployLocallyError'
+          'RunningPipelineDeployNotInCiError'
         );
         return true;
       }

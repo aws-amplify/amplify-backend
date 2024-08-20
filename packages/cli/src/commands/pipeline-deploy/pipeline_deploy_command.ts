@@ -60,7 +60,7 @@ export class PipelineDeployCommand
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>
   ): Promise<void> => {
     if (!this.isCiEnvironment) {
-      throw new AmplifyUserError('RunningPipelineDeployLocallyError', {
+      throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
         message:
           'It looks like this command is being run outside of a CI/CD workflow.',
         resolution: `To deploy locally use ${format.normalizeAmpxCommand(
