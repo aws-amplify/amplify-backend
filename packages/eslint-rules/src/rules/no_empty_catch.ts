@@ -7,7 +7,7 @@ import { ESLintUtils } from '@typescript-eslint/utils';
  * in such a way that it uses typescript-eslint and typescript AST
  * which does not include comments as statements in catch clause body block.
  */
-export const rule = ESLintUtils.RuleCreator.withoutDocs({
+export const noEmptyCatchRule = ESLintUtils.RuleCreator.withoutDocs({
   create(context) {
     return {
       // This naming comes from @typescript-eslint/utils types.

@@ -1,6 +1,6 @@
 import * as nodeTest from 'node:test';
 import { RuleTester } from '@typescript-eslint/rule-tester';
-import { noEmptyCatchRule } from './no_empty_catch.js';
+import { amplifyErrorNameRule } from './amplify_error_name.js';
 
 RuleTester.afterAll = nodeTest.after;
 // See https://typescript-eslint.io/packages/rule-tester/#with-specific-frameworks
@@ -13,34 +13,41 @@ RuleTester.describe = nodeTest.describe;
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-empty-catch', noEmptyCatchRule, {
+ruleTester.run('amplify-error-name', amplifyErrorNameRule, {
   valid: [
-    'try {} catch (e) { console.log(e); }',
-    'try {} catch (e) { \n /* some comment*/ \n console.log(e); }',
-    'try {} catch (e) { \n // some comment \n console.log(e); }',
+    "new AmplifyUserError('ValidErrorNameError', {}, new Error())",
+    "new AmplifyFault('ValidFaultNameFault', {}, new Error())",
   ],
   invalid: [
     {
-      code: 'try {} catch (e) { /* some comment */ }',
+      code: "new AmplifyUserError('InvalidErrorNameFault', {}, new Error())",
       errors: [
         {
-          messageId: 'noEmptyCatch',
+          messageId: 'properAmplifyErrorSuffix',
         },
       ],
     },
     {
-      code: 'try {} catch (e) { \n // some comment \n }',
+      code: "new AmplifyUserError('InvalidErrorName', {}, new Error())",
       errors: [
         {
-          messageId: 'noEmptyCatch',
+          messageId: 'properAmplifyErrorSuffix',
         },
       ],
     },
     {
-      code: 'try {} catch (e) { }',
+      code: "new AmplifyFault('InvalidFaultNameError', {}, new Error())",
       errors: [
         {
-          messageId: 'noEmptyCatch',
+          messageId: 'properAmplifyFaultSuffix',
+        },
+      ],
+    },
+    {
+      code: "new AmplifyFault('InvalidFaultName', {}, new Error())",
+      errors: [
+        {
+          messageId: 'properAmplifyFaultSuffix',
         },
       ],
     },

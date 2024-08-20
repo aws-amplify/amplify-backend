@@ -13,7 +13,7 @@ import { AmplifyDataError } from './types.js';
  */
 export const resolveEntryPath = (entry: JsResolverEntry): string => {
   const unresolvedImportLocationError = new AmplifyUserError<AmplifyDataError>(
-    'UnresolvedEntryPath',
+    'UnresolvedEntryPathError',
     {
       message:
         'Could not determine import path to construct absolute code path from relative path: ' +
