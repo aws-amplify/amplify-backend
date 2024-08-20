@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.3.3
+
+### Patch Changes
+
+- 775e2bb: Fix InvalidFunctionConfigurationError and InvalidStorageAccessDefinitionError error names.
+
 ## 1.3.2
 
 ### Patch Changes

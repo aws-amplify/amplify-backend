@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/client-config",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -25,7 +25,7 @@
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^1.2.0",
     "@aws-amplify/deployed-backend-client": "^1.4.0",
-    "@aws-amplify/model-generator": "^1.0.4",
+    "@aws-amplify/model-generator": "^1.0.5",
     "@aws-amplify/platform-core": "^1.0.5",
     "zod": "^3.22.2"
   },

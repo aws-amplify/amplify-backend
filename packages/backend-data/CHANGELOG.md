@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 1.1.2
+
+### Patch Changes
+
+- 4d4c0d5: Use proper error and fault suffixes.
+
 ## 1.1.1
 
 ### Patch Changes

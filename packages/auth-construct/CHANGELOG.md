@@ -1,5 +1,11 @@
 # @aws-amplify/auth-construct
 
+## 1.3.0
+
+### Minor Changes
+
+- 61d4fb3: add support for configuring SES for email sender
+
 ## 1.2.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 1.0.6
+
+### Patch Changes
+
+- 66a4267: Detect more non bootstrapped account variants
+
 ## 1.0.5
 
 ### Patch Changes
