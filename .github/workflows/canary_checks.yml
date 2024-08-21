@@ -46,16 +46,21 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/build_with_cache
+      - name: Select E2E test account
+        uses: ./.github/actions/select_e2e_account
+        id: selectE2EAccount
+        with:
+          e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
       - name: Configure test tooling credentials
         uses: ./.github/actions/setup_profile
         with:
-          role-to-assume: ${{ secrets.E2E_TOOLING_ROLE_ARN }}
+          role-to-assume: ${{ steps.selectE2EAccount.outputs.e2e_test_tooling_role }}
           aws-region: ${{ matrix.region }}
           profile-name: e2e-tooling
       - name: Configure test execution credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RUNNER_ROLE_ARN }}
+          role-to-assume: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
           aws-region: ${{ matrix.region }}
       - name: Run live dependency health checks
         shell: bash
