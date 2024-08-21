@@ -85,7 +85,9 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
         ].includes(error.cause.name)
       ) {
         return new AmplifyUserError('SSMCredentialsError', {
-          message: `Failed to ${apiName} secrets. ${error.cause.name}: ${error.cause?.message}`,
+          message: `Failed to ${apiName.toLowerCase()} secrets. ${
+            error.cause.name
+          }: ${error.cause?.message}`,
           resolution:
             'Make sure your AWS credentials are set up correctly, refreshed and have necessary permissions to call SSM service',
         });
@@ -100,7 +102,9 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
       throw new AmplifyFault(
         `${apiName}SecretsFailedFault`,
         {
-          message: `Failed to ${apiName} secrets. ${error.cause.name}: ${error.cause?.message}`,
+          message: `Failed to ${apiName.toLowerCase()} secrets. ${
+            error.cause.name
+          }: ${error.cause?.message}`,
         },
         downstreamException
       );

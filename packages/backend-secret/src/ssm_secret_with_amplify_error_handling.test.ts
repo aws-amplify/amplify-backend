@@ -32,7 +32,7 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
         }),
       new AmplifyUserError('SSMCredentialsError', {
         message:
-          'Failed to List secrets. ExpiredTokenException: tokens expired',
+          'Failed to list secrets. ExpiredTokenException: tokens expired',
         resolution:
           'Make sure your AWS credentials are set up correctly, refreshed and have necessary permissions to call SSM service',
       })
@@ -55,7 +55,7 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
         }),
       new AmplifyUserError('SSMCredentialsError', {
         message:
-          'Failed to List secrets. CredentialsProviderError: credentials error',
+          'Failed to list secrets. CredentialsProviderError: credentials error',
         resolution:
           'Make sure your AWS credentials are set up correctly, refreshed and have necessary permissions to call SSM service',
       })
@@ -78,7 +78,7 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
       new AmplifyFault(
         'ListSecretsFailedFault',
         {
-          message: 'Failed to List secrets. Error: some secret error',
+          message: 'Failed to list secrets. Error: some secret error',
         },
         underlyingError // If it's not an SSM exception, we use the original error instead of secrets error
       )
@@ -109,7 +109,7 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
       new AmplifyFault(
         'GetSecretsFailedFault',
         {
-          message: 'Failed to Get secrets. SomeException: some error',
+          message: 'Failed to get secrets. SomeException: some error',
         },
         secretsError // If it's an SSM exception, we use the wrapper secret error
       )
