@@ -167,6 +167,20 @@ void describe('invokeCDKCommand', () => {
     ]);
   });
 
+  void it('deploy handles profile', async () => {
+    const profile = 'test_profile';
+    await invoker.deploy(sandboxBackendId, { profile });
+    assert.strictEqual(executeCommandMock.mock.callCount(), 2);
+    assert.ok(
+      executeCommandMock.mock.calls[0].arguments[0].includes('--profile')
+    );
+    assert.ok(executeCommandMock.mock.calls[0].arguments[0].includes(profile));
+    assert.ok(
+      executeCommandMock.mock.calls[1].arguments[0].includes('--profile')
+    );
+    assert.ok(executeCommandMock.mock.calls[1].arguments[0].includes(profile));
+  });
+
   void it('handles options and deployProps for sandbox', async () => {
     await invoker.deploy(sandboxBackendId, sandboxDeployProps);
     assert.strictEqual(executeCommandMock.mock.callCount(), 2);
@@ -240,6 +254,16 @@ void describe('invokeCDKCommand', () => {
       'amplify-backend-type=sandbox',
       '--force',
     ]);
+  });
+
+  void it('destroy handles profile', async () => {
+    const profile = 'test_profile';
+    await invoker.destroy(sandboxBackendId, { profile });
+    assert.strictEqual(executeCommandMock.mock.callCount(), 1);
+    assert.ok(
+      executeCommandMock.mock.calls[0].arguments[0].includes('--profile')
+    );
+    assert.ok(executeCommandMock.mock.calls[0].arguments[0].includes(profile));
   });
 
   void it('enables type checking for branch deployments', async () => {
