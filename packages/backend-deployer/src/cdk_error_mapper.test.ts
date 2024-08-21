@@ -261,12 +261,12 @@ const testErrorMappings = [
   },
   {
     errorMessage:
-      'Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 1234)',
+      'Resource handler returned message: The code contains one or more errors.',
     expectedTopLevelErrorMessage:
       'There are one or more errors with data handlers.',
     errorName: 'AppSyncHandlerError',
     expectedDownstreamErrorMessage:
-      'Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 1234)',
+      'Resource handler returned message: The code contains one or more errors.',
   },
   {
     errorMessage: 'BadRequestException: The code contains one or more errors.',

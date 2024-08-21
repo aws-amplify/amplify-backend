@@ -250,7 +250,7 @@ export class CdkErrorMapper {
     {
       // This error originates from AppSync when there are syntax/type errors or unsupported features being used in resolvers
       errorRegex:
-        /The code contains one or more errors. \(Service: AppSync|BadRequestException: The code contains one or more errors./,
+        /(Resource handler returned message|BadRequestException): The code contains one or more errors./,
       humanReadableErrorMessage:
         'There are one or more errors with data handlers.',
       resolutionMessage:
