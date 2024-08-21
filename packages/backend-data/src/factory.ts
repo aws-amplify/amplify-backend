@@ -232,6 +232,9 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     });
     let amplifyApi = undefined;
 
+    const shouldProvisionHotswapFriendlyResources =
+      stableBackendIdentifiers?.getDeploymentType?.() === 'sandbox';
+
     try {
       amplifyApi = new AmplifyData(scope, this.name, {
         apiName: this.name,
@@ -246,6 +249,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
            * The CI/CD check should take the responsibility to validate if any tables are being replaced and determine whether to execute the changeset
            */
           allowDestructiveGraphqlSchemaUpdates: true,
+          _provisionHotswapFriendlyResources:
+            shouldProvisionHotswapFriendlyResources,
         },
       });
     } catch (error) {

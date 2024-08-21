@@ -23,6 +23,10 @@ export class BackendIdScopedStableBackendIdentifiers
 
   getStableBackendHash = (): string => this.hash;
 
+  getDeploymentType = (): string => {
+    return this.backendId.type;
+  };
+
   private hashFromBackendId = (): string =>
     createHash('sha512')
       .update(this.backendId.type)
