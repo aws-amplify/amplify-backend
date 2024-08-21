@@ -248,6 +248,17 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // This error originates from AppSync when there are syntax/type errors or unsupported features being used in resolvers
+      errorRegex:
+        /The code contains one or more errors. \(Service: AppSync|BadRequestException: The code contains one or more errors./,
+      humanReadableErrorMessage:
+        'There are one or more errors with data handlers.',
+      resolutionMessage:
+        'Check your handlers defined in your data backend for syntax errors, type errors, and unsupported features of AppSync resolvers.',
+      errorName: 'AppSyncHandlerError',
+      classification: 'ERROR',
+    },
+    {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: new RegExp(`Deployment failed: (.*)${EOL}`),
       humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
@@ -275,4 +286,5 @@ export type CDKDeploymentError =
   | 'FileConventionError'
   | 'ModuleNotFoundError'
   | 'SecretNotSetError'
-  | 'SyntaxError';
+  | 'SyntaxError'
+  | 'AppSyncHandlerError';

@@ -259,6 +259,23 @@ const testErrorMappings = [
     errorName: 'FilePermissionsError',
     expectedDownstreamErrorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
   },
+  {
+    errorMessage:
+      'Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 1234)',
+    expectedTopLevelErrorMessage:
+      'There are one or more errors with data handlers.',
+    errorName: 'AppSyncHandlerError',
+    expectedDownstreamErrorMessage:
+      'Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 1234)',
+  },
+  {
+    errorMessage: 'BadRequestException: The code contains one or more errors.',
+    expectedTopLevelErrorMessage:
+      'There are one or more errors with data handlers.',
+    errorName: 'AppSyncHandlerError',
+    expectedDownstreamErrorMessage:
+      'BadRequestException: The code contains one or more errors.',
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
