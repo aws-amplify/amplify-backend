@@ -6,7 +6,7 @@ import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import {
   Secret,
   SecretIdentifier,
-  getSecretClient,
+  getSecretClientWithAmplifyErrorHandling,
 } from '@aws-amplify/backend-secret';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 import { format, printer } from '@aws-amplify/cli-core';
@@ -26,7 +26,7 @@ const testSecret: Secret = {
 };
 
 void describe('sandbox secret get command', () => {
-  const secretClient = getSecretClient();
+  const secretClient = getSecretClientWithAmplifyErrorHandling();
   const secretGetMock = mock.method(
     secretClient,
     'getSecret',

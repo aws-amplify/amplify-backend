@@ -15,7 +15,10 @@ import {
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 import _open from 'open';
-import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
+import {
+  SecretListItem,
+  getSecretClientWithAmplifyErrorHandling,
+} from '@aws-amplify/backend-secret';
 import { Sandbox, SandboxOptions } from './sandbox.js';
 import {
   AmplifyPrompter,
@@ -53,7 +56,7 @@ const backendDeployerFactory = new BackendDeployerFactory(
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 
-const secretClient = getSecretClient();
+const secretClient = getSecretClientWithAmplifyErrorHandling();
 const newlyUpdatedSecretItem: SecretListItem = {
   name: 'C',
   lastUpdated: new Date(1234567),

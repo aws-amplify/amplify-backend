@@ -12,6 +12,9 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 export const getSecretClient: (secretClientOptions?: SecretClientOptions) => SecretClient;
 
 // @public
+export const getSecretClientWithAmplifyErrorHandling: (secretClientOptions?: SecretClientOptions) => SecretClient;
+
+// @public
 export type Secret = SecretIdentifier & {
     value: string;
     lastUpdated?: Date;
