@@ -21,7 +21,7 @@ runs:
       shell: bash
       run: echo "e2e_test_account_number=$(npx tsx scripts/select_e2e_test_account.ts)" >> "$GITHUB_OUTPUT"
       env:
-        E2E_TEST_ACCOUNTS: ${{ inputs.e2e-test-accounts }}
+        E2E_TEST_ACCOUNTS: ${{ inputs.e2e_test_accounts }}
     - name: Output E2E roles
       id: outputE2ERoles
       shell: bash
