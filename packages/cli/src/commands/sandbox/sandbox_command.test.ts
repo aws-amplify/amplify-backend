@@ -239,10 +239,10 @@ void describe('sandbox command', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
-    assert.strictEqual(
-      sandboxDeleteMock.mock.calls[0].arguments[0].profile,
-      profile
-    );
+    assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
+      identifier: undefined,
+      profile,
+    });
   });
 
   void it('asks to delete the sandbox environment when users send ctrl-C and say no to delete', async (contextual) => {
