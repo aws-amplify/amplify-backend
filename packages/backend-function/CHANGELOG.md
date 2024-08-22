@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.3.4
+
+### Patch Changes
+
+- 67feca0: update env type cast to cast as unknown first
+
 ## 1.3.3
 
 ### Patch Changes
