@@ -10,7 +10,7 @@ import { BackendDeployerOutputFormatter } from './types.js';
  * Transforms CDK error messages to human readable ones
  */
 export class CdkErrorMapper {
-  private eolRegex = '[\r\n]+';
+  private multiLineEolRegex = '[\r\n]+';
   /**
    * Instantiate with a formatter that will be used for formatting CLI commands in error messages
    */
@@ -112,7 +112,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex: new RegExp(
-        `(SyntaxError|ReferenceError|TypeError):((?:.|${this.eolRegex})*?at .*)`
+        `(SyntaxError|ReferenceError|TypeError):((?:.|${this.multiLineEolRegex})*?at .*)`
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -140,7 +140,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex: new RegExp(
-        `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${this.eolRegex}|Error: Cannot find module (.*)`
+        `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${this.multiLineEolRegex}|Error: Cannot find module (.*)`
       ),
       humanReadableErrorMessage: 'Cannot find module',
       resolutionMessage:
@@ -161,7 +161,7 @@ export class CdkErrorMapper {
     {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
-        `\\[esbuild Error\\]: ((?:.|${this.eolRegex})*?at .*)`
+        `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -172,7 +172,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex: new RegExp(
-        `\\[TransformError\\]: Transform failed with .* error:${this.eolRegex}(?<esBuildErrorMessage>.*)`
+        `\\[TransformError\\]: Transform failed with .* error:${this.multiLineEolRegex}(?<esBuildErrorMessage>.*)`
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
@@ -221,7 +221,10 @@ export class CdkErrorMapper {
     {
       // Error: .* is printed to stderr during cdk synth
       // Also extracts the first line in the stack where the error happened
-      errorRegex: new RegExp(`^Error: (.*${this.eolRegex}.*at.*)`, 'm'),
+      errorRegex: new RegExp(
+        `^Error: (.*${this.multiLineEolRegex}.*at.*)`,
+        'm'
+      ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
       resolutionMessage:
@@ -251,7 +254,9 @@ export class CdkErrorMapper {
     },
     {
       // Note that the order matters, this should be the last as it captures generic CFN error
-      errorRegex: new RegExp(`Deployment failed: (.*)${this.eolRegex}`),
+      errorRegex: new RegExp(
+        `Deployment failed: (.*)${this.multiLineEolRegex}`
+      ),
       humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
       resolutionMessage:
         'Find more information in the CloudFormation AWS Console for this stack.',
