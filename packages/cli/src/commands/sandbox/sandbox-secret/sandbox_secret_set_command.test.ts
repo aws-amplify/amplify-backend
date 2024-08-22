@@ -4,7 +4,10 @@ import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { SecretIdentifier, getSecretClient } from '@aws-amplify/backend-secret';
+import {
+  SecretIdentifier,
+  getSecretClientWithAmplifyErrorHandling,
+} from '@aws-amplify/backend-secret';
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
 import { ReadStream } from 'node:tty';
 import { PassThrough } from 'node:stream';
@@ -20,7 +23,7 @@ const testBackendId = 'testBackendId';
 const testSandboxName = 'testSandboxName';
 
 void describe('sandbox secret set command', () => {
-  const secretClient = getSecretClient();
+  const secretClient = getSecretClientWithAmplifyErrorHandling();
   const secretSetMock = mock.method(
     secretClient,
     'setSecret',

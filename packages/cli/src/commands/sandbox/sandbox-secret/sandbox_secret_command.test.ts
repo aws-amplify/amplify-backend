@@ -3,14 +3,14 @@ import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { getSecretClient } from '@aws-amplify/backend-secret';
+import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
 import { SandboxSecretCommand } from './sandbox_secret_command.js';
 import { SandboxSecretGetCommand } from './sandbox_secret_get_command.js';
 
 const testBackendId = 'testBackendId';
 
 void describe('sandbox secret command', () => {
-  const secretClient = getSecretClient();
+  const secretClient = getSecretClientWithAmplifyErrorHandling();
   const sandboxIdResolver = new SandboxBackendIdResolver({
     resolve: () => Promise.resolve(testBackendId),
   });
