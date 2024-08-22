@@ -305,7 +305,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
             },
             graphqlRequestInputDescriptor: {
               queryName: 'getTemperature',
-              selectionSet: ['value', 'unit'],
+              selectionSet: 'value unit',
               propertyTypes: {
                 city: 'String',
               },

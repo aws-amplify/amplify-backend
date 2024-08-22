@@ -35,7 +35,7 @@ void describe('events tool provider', () => {
       },
       graphqlRequestInputDescriptor: {
         queryName: 'queryName1',
-        selectionSet: ['selection1'],
+        selectionSet: 'selection1',
         propertyTypes: {
           property1: 'type1',
         },
@@ -51,7 +51,7 @@ void describe('events tool provider', () => {
       },
       graphqlRequestInputDescriptor: {
         queryName: 'queryName2',
-        selectionSet: ['selection2'],
+        selectionSet: 'selection2',
         propertyTypes: {
           property1: 'type2',
         },
