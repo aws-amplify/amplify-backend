@@ -1,5 +1,15 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.0
+
+### Minor Changes
+
+- 9720736: Pass profile explicitly to CDK CLI when using `npx ampx sandbox --profile <profile_name>`
+
+### Patch Changes
+
+- 9c50380: make line endings in error mapper regex os independent
+
 ## 1.0.6
 
 ### Patch Changes
