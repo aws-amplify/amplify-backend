@@ -329,6 +329,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -360,6 +361,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -397,6 +399,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -435,6 +438,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -457,6 +461,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -485,6 +490,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -509,6 +515,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -517,6 +524,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -556,6 +564,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -564,6 +573,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -585,6 +595,27 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       testSandboxBackendId,
+      { profile: undefined },
+    ]);
+  });
+
+  void it('calls BackendDeployer destroy when delete is called with profile', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+    }));
+    const profile = 'test_profile';
+    await sandboxInstance.delete({ profile });
+
+    // BackendDeployer should be called once to destroy
+    assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
+
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
+      testSandboxBackendId,
+      { profile },
     ]);
   });
 
@@ -775,6 +806,7 @@ void describe('Sandbox using local project name resolver', () => {
         type: 'sandbox',
       },
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -803,6 +835,7 @@ void describe('Sandbox using local project name resolver', () => {
         name: 'customSandboxName',
         type: 'sandbox',
       },
+      { profile: undefined },
     ]);
   });
 

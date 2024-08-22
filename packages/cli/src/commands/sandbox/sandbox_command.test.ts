@@ -205,6 +205,46 @@ void describe('sandbox command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
   });
 
+  void it('asks to delete the sandbox environment when users send ctrl-C and say yes to delete with profile', async (contextual) => {
+    // Mock process and extract the sigint handler after calling the sandbox command
+    const processSignal = contextual.mock.method(process, 'on', () => {
+      /* no op */
+    });
+    const sandboxStartMock = contextual.mock.method(
+      sandbox,
+      'start',
+      async () => Promise.resolve()
+    );
+
+    const sandboxDeleteMock = contextual.mock.method(sandbox, 'delete', () =>
+      Promise.resolve()
+    );
+
+    // User said yes to delete
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(true)
+    );
+
+    const profile = 'test_profile';
+    await commandRunner.runCommand(`sandbox --profile ${profile}`);
+
+    // Similar to the later 0ms timeout. Without this tests in github action are failing
+    // but working locally
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
+    if (sigIntHandlerFn) sigIntHandlerFn();
+
+    // I can't find any open node:test or yargs issues that would explain why this is necessary
+    // but for some reason the mock call count does not update without this 0ms wait
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.equal(sandboxDeleteMock.mock.callCount(), 1);
+    assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
+      identifier: undefined,
+      profile,
+    });
+  });
+
   void it('asks to delete the sandbox environment when users send ctrl-C and say no to delete', async (contextual) => {
     // Mock process and extract the sigint handler after calling the sandbox command
     const processSignal = contextual.mock.method(process, 'on', () => {
@@ -319,6 +359,10 @@ void describe('sandbox command', () => {
     commandRunner = new TestCommandRunner(parser);
     await commandRunner.runCommand(`sandbox --profile ${sandboxProfile}`);
     assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.strictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].profile,
+      sandboxProfile
+    );
     assert.equal(
       mockHandleProfile.mock.calls[0].arguments[0]?.profile,
       sandboxProfile
