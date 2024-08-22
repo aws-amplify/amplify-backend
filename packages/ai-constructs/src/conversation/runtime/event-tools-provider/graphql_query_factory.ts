@@ -13,43 +13,43 @@ export class GraphQlQueryFactory {
     toolDefinition: ConversationTurnEventToolConfiguration
   ): string => {
     const { graphqlRequestInputDescriptor } = toolDefinition;
-    const { selectionSet, propertyTypes, queryName } =
-      graphqlRequestInputDescriptor;
-
-    let topLevelQueryArgs = '';
-    let queryArgs = '';
-    if (toolDefinition.inputSchema?.json) {
-      const inputSchemaJson = toolDefinition.inputSchema
-        .json as InputSchemaJson;
-      topLevelQueryArgs = Object.entries(inputSchemaJson.properties)
-        .map(([name]) => {
-          let type = propertyTypes[name];
-          if (
-            inputSchemaJson.required.find(
-              (requiredField) => requiredField === name
-            )
-          ) {
-            type += '!';
-          }
-          return `$${name}: ${type}`;
-        })
-        .join(', ');
-
-      queryArgs = Object.entries(inputSchemaJson.properties)
-        .map(([name]) => `${name}: $${name}`)
-        .join(', ');
-    }
-
-    const selectionSetString = selectionSet.join('\n');
+    const { selectionSet, queryName } = graphqlRequestInputDescriptor;
+    const [topLevelQueryArgs, queryArgs] = this.createQueryArgs(toolDefinition);
 
     const query = `
-    query ToolQuery(${topLevelQueryArgs}) {
-      ${queryName}(${queryArgs}) {
-        ${selectionSetString}
+    query ToolQuery${topLevelQueryArgs} {
+      ${queryName}${queryArgs} {
+        ${selectionSet}
       }
     }
   `;
 
     return query;
+  };
+
+  private createQueryArgs = (
+    toolDefinition: ConversationTurnEventToolConfiguration
+  ): [string, string] => {
+    const { inputSchema } = toolDefinition;
+    if (!inputSchema?.json) {
+      return ['', ''];
+    }
+
+    const { properties } = inputSchema.json as InputSchemaJson;
+    if (!properties) {
+      return ['', ''];
+    }
+    const { propertyTypes } = toolDefinition.graphqlRequestInputDescriptor;
+    const propertyNames = Object.keys(properties);
+
+    const topLevelQueryArgs = propertyNames
+      .map((name) => `$${name}: ${propertyTypes[name]}`)
+      .join(', ');
+
+    const queryArgs = propertyNames
+      .map((name) => `${name}: $${name}`)
+      .join(', ');
+
+    return [`(${topLevelQueryArgs})`, `(${queryArgs})`];
   };
 }
