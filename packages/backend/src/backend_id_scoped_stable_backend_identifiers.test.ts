@@ -22,13 +22,3 @@ void describe('convertSchemaToCDK', () => {
     assert.strictEqual(hash, expected);
   });
 });
-
-void describe('getDeploymentType', () => {
-  void it('returns deployment type', () => {
-    const deploymentType = backendHashGetter.getDeploymentType();
-
-    const expected = 'branch';
-
-    assert.strictEqual(deploymentType, expected);
-  });
-});
