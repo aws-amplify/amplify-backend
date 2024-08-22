@@ -58,8 +58,8 @@ const testCases: Array<TestCase> = [
     },
     expectedQuery: `
     query ToolQuery {
-      testQueryName1 {
-        testSelection1 testSelection2
+      testQueryName2 {
+        testSelection3 testSelection4
       }
     }
     `,
