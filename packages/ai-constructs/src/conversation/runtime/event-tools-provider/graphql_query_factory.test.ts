@@ -30,13 +30,13 @@ const testCases: Array<TestCase> = [
         queryName: 'testQueryName1',
         selectionSet: 'testSelection1 testSelection2',
         propertyTypes: {
-          property1: 'string',
-          property2: 'number',
+          property1: 'String!',
+          property2: 'Int',
         },
       },
     },
     expectedQuery: `
-    query ToolQuery($property1: string!, $property2: number) {
+    query ToolQuery($property1: String!, $property2: Int) {
       testQueryName1(property1: $property1, property2: $property2) {
         testSelection1 testSelection2
       }
