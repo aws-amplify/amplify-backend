@@ -55,6 +55,7 @@ runs:
         else
           selected_aws_region="${{ inputs.aws_region }}"
         fi
+        echo "Selected AWS Region is $selected_aws_region"
         echo "selected_aws_region=$selected_aws_region" >> "$GITHUB_OUTPUT"
     - name: Configure test tooling credentials
       uses: ./.github/actions/setup_profile
