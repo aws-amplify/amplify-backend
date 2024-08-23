@@ -236,7 +236,6 @@ export type SsmEnvironmentEntry = {
 // @public (undocumented)
 export type StableBackendIdentifiers = {
     getStableBackendHash: () => string;
-    getDeploymentType?: () => string;
 };
 
 // (No @packageDocumentation comment for this package)
