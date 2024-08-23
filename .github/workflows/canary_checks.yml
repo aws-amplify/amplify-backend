@@ -48,5 +48,6 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
           aws_region: ${{ matrix.region }}
+          fresh_build: true
           shell: bash
           run: ./scripts/retry.js npm run live-dependency-health-checks

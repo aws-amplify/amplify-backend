@@ -19,6 +19,9 @@ inputs:
   link_cli:
     description: Whether should link Gen2 CLI globally
     default: false
+  fresh_build:
+    description: Whether should build from scratch
+    default: false
 runs:
   using: composite
   steps:
@@ -27,7 +30,11 @@ runs:
       with:
         node-version: ${{ inputs.node_version }}
     - name: Restore Build Cache
+      if: inputs.fresh_build != 'true'
       uses: ./.github/actions/restore_build_cache
+    - name: Build With Cache
+      if: inputs.fresh_build == 'true'
+      uses: ./.github/actions/build_with_cache
     - name: Link CLI
       if: inputs.link_cli == 'true'
       shell: bash
