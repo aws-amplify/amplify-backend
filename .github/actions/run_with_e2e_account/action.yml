@@ -15,7 +15,7 @@ inputs:
     required: true
   aws_region:
     description: AWS region
-    default: us-west-2
+    required: false
   link_cli:
     description: Whether should link Gen2 CLI globally
     default: false
@@ -44,19 +44,31 @@ runs:
       id: selectE2EAccount
       with:
         e2e_test_accounts: ${{ inputs.e2e_test_accounts }}
+    - name: Select region
+      id: selectE2ERegion
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.aws_region }}" ]; then
+          regions=("us-west-2" "us-east-1" "ca-central-1" "eu-central-1")
+          rand=$[$RANDOM % ${#regions[@]}]
+          selected_aws_region=${regions[$rand]}
+        else
+          selected_aws_region="${{ inputs.aws_region }}"
+        fi
+        echo "selected_aws_region=$selected_aws_region" >> "$GITHUB_OUTPUT"
     - name: Configure test tooling credentials
       uses: ./.github/actions/setup_profile
       with:
         role-to-assume: ${{ steps.selectE2EAccount.outputs.e2e_test_tooling_role }}
-        aws-region: ${{ inputs.aws_region }}
+        aws-region: ${{ steps.selectE2ERegion.outputs.selected_aws_region }}
         profile-name: e2e-tooling
     - name: Configure test execution credentials
       uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
       with:
         role-to-assume: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
-        aws-region: ${{ inputs.aws_region }}
+        aws-region: ${{ steps.selectE2ERegion.outputs.selected_aws_region }}
     - name: Run script
       shell: ${{ inputs.shell }}
       run: ${{ inputs.run }}
       env:
-        AWS_REGION: ${{ inputs.aws_region }}
+        AWS_REGION: ${{ steps.selectE2ERegion.outputs.selected_aws_region }}
