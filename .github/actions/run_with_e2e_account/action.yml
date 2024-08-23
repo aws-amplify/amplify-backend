@@ -14,7 +14,7 @@ inputs:
     description: Serialized JSON array of strings with account numbers
     required: true
   aws_region:
-    description: AWS region
+    description: AWS region. If not provided random will be selected
     required: false
   link_cli:
     description: Whether should link Gen2 CLI globally
