@@ -7,12 +7,47 @@ inputs:
   shell:
     description: Shell
     required: false
+  node_version:
+    description: node version used to configure environment with
+    required: false
   e2e_test_accounts:
     description: Serialized JSON array of strings with account numbers
     required: true
+  aws_region:
+    description: AWS region
+    default: us-west-2
+  link_cli:
+    description: Whether should link Gen2 CLI globally
+    default: false
 runs:
   using: composite
   steps:
+    - name: Setup Node.js
+      uses: ./.github/actions/setup_node
+      with:
+        node-version: ${{ inputs.node_version }}
+    - name: Restore Build Cache
+      uses: ./.github/actions/restore_build_cache
+    - name: Link CLI
+      if: inputs.link_cli == 'true'
+      shell: bash
+      run: cd packages/cli && npm link
+    - name: Select E2E test account
+      uses: ./.github/actions/select_e2e_account
+      id: selectE2EAccount
+      with:
+        e2e_test_accounts: ${{ inputs.e2e_test_accounts }}
+    - name: Configure test tooling credentials
+      uses: ./.github/actions/setup_profile
+      with:
+        role-to-assume: ${{ steps.selectE2EAccount.outputs.e2e_test_tooling_role }}
+        aws-region: ${{ inputs.aws_region }}
+        profile-name: e2e-tooling
+    - name: Configure test execution credentials
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
+      with:
+        role-to-assume: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
+        aws-region: ${{ inputs.aws_region }}
     - name: Run script
       shell: ${{ inputs.shell }}
       run: ${{ inputs.run }}
