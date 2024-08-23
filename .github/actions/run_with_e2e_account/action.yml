@@ -1,0 +1,13 @@
+name: run_with_e2e_account
+description: Runs commands with e2e test account
+inputs:
+  run:
+    description: Script to run
+  e2e_test_accounts:
+    description: Serialized JSON array of strings with account numbers
+runs:
+  using: composite
+  steps:
+    - name: Run script
+      shell: bash
+      run: ${{ inputs.run }}

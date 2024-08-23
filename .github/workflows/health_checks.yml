@@ -428,9 +428,11 @@ jobs:
           role-to-assume: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
           aws-region: us-west-2
       - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
-        shell: bash
-        run: |
-          PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
+        uses: ./.github/actions/run_with_e2e_account
+        with:
+          e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
+          run: |
+            PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
   lint:
     runs-on: ubuntu-latest
     needs:
