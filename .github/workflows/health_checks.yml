@@ -271,7 +271,11 @@ jobs:
           role-to-assume: ${{ steps.selectE2EAccount.outputs.e2e_execution_role }}
           aws-region: us-west-2
       - name: Run e2e deployment tests
-        run: npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js
+        uses: ./.github/actions/run_with_e2e_account
+        with:
+          e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
+          run: |
+            npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js
   e2e_sandbox:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -431,6 +435,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
+          shell: bash
           run: |
             PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
   lint:

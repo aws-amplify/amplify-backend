@@ -3,11 +3,16 @@ description: Runs commands with e2e test account
 inputs:
   run:
     description: Script to run
+    required: true
+  shell:
+    description: Shell
+    required: false
   e2e_test_accounts:
     description: Serialized JSON array of strings with account numbers
+    required: true
 runs:
   using: composite
   steps:
     - name: Run script
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: ${{ inputs.run }}
