@@ -220,6 +220,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
     config.data = {
       url: graphqlOutput.payload.awsAppsyncApiEndpoint,
       aws_region: graphqlOutput.payload.awsAppsyncRegion,
+      api_id: graphqlOutput.payload.awsAppsyncApiId,
       api_key: graphqlOutput.payload.awsAppsyncApiKey,
       default_authorization_type:
         graphqlOutput.payload.awsAppsyncAuthenticationType,
