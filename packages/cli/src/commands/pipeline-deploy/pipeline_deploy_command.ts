@@ -10,6 +10,8 @@ import {
   ClientConfigVersionOption,
   DEFAULT_CLIENT_CONFIG_VERSION,
 } from '@aws-amplify/client-config';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { format } from '@aws-amplify/cli-core';
 
 export type PipelineDeployCommandOptions =
   ArgumentsKebabCase<PipelineDeployCommandOptionsCamelCase>;
@@ -58,9 +60,13 @@ export class PipelineDeployCommand
     args: ArgumentsCamelCase<PipelineDeployCommandOptions>
   ): Promise<void> => {
     if (!this.isCiEnvironment) {
-      throw new Error(
-        'It looks like this command is being run outside of a CI/CD workflow. To deploy locally use `amplify sandbox` instead.'
-      );
+      throw new AmplifyUserError('RunningPipelineDeployNotInCiError', {
+        message:
+          'It looks like this command is being run outside of a CI/CD workflow.',
+        resolution: `To deploy locally use ${format.normalizeAmpxCommand(
+          'sandbox'
+        )} instead.`,
+      });
     }
 
     const backendId: BackendIdentifier = {

@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-platform-test-stubs",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "type": "module",
   "private": true,
   "exports": {
@@ -16,7 +16,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-cdk-lib": "^2.132.0",
+    "aws-cdk-lib": "^2.152.0",
     "constructs": "^10.0.0"
   }
 }

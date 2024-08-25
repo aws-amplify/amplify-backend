@@ -1,5 +1,31 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.0
+
+### Minor Changes
+
+- 9720736: Pass profile explicitly to CDK CLI when using `npx ampx sandbox --profile <profile_name>`
+
+### Patch Changes
+
+- 9c50380: make line endings in error mapper regex os independent
+
+## 1.0.6
+
+### Patch Changes
+
+- 66a4267: Detect more non bootstrapped account variants
+
+## 1.0.5
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [4cce19f]
+- Updated dependencies [a65371c]
+  - @aws-amplify/platform-core@1.0.6
+  - @aws-amplify/plugin-types@1.2.1
+
 ## 1.0.4
 
 ### Patch Changes

@@ -15,6 +15,7 @@ import { SecretValue } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
 import { StringAttributeConstraints } from 'aws-cdk-lib/aws-cognito';
 import { UserPoolIdentityProviderSamlMetadata } from 'aws-cdk-lib/aws-cognito';
+import { UserPoolSESOptions } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool' | 'attributeMapping'> & IdentityProviderProps;
@@ -44,6 +45,9 @@ export type AuthProps = {
         email?: EmailLogin;
         phone?: PhoneNumberLogin;
         externalProviders?: ExternalProviderOptions;
+    };
+    senders?: {
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
     };
     userAttributes?: UserAttributes;
     multifactor?: MFA;

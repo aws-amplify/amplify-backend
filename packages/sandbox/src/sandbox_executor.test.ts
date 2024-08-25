@@ -11,12 +11,9 @@ import {
   Printer,
 } from '@aws-amplify/cli-core';
 import {
-  SecretError,
   SecretListItem,
-  getSecretClient,
+  getSecretClientWithAmplifyErrorHandling,
 } from '@aws-amplify/backend-secret';
-import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
-import { SSMServiceException } from '@aws-sdk/client-ssm';
 
 const logMock = mock.fn();
 const mockedPrinter = {
@@ -36,7 +33,7 @@ const backendDeployerFactory = new BackendDeployerFactory(
   formatterStub
 );
 const backendDeployer = backendDeployerFactory.getInstance();
-const secretClient = getSecretClient();
+const secretClient = getSecretClientWithAmplifyErrorHandling();
 const sandboxExecutor = new AmplifySandboxExecutor(
   backendDeployer,
   secretClient,
@@ -82,7 +79,8 @@ void describe('Sandbox executor', () => {
         name: 'testSandboxName',
         type: 'sandbox',
       },
-      validateAppSourcesProvider
+      validateAppSourcesProvider,
+      undefined
     );
 
     const secondDeployPromise = sandboxExecutor.deploy(
@@ -91,7 +89,8 @@ void describe('Sandbox executor', () => {
         name: 'testSandboxName',
         type: 'sandbox',
       },
-      validateAppSourcesProvider
+      validateAppSourcesProvider,
+      undefined
     );
 
     await Promise.all([firstDeployPromise, secondDeployPromise]);
@@ -99,121 +98,6 @@ void describe('Sandbox executor', () => {
     // Assert debounce worked as expected
     assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
     assert.strictEqual(validateAppSourcesProvider.mock.callCount(), 1);
-  });
-
-  void it('throws AmplifyUserError if listSecrets fails due to ExpiredTokenException', async () => {
-    const ssmError = new SSMServiceException({
-      name: 'ExpiredTokenException',
-      $fault: 'client',
-      $metadata: {},
-    });
-    const secretsError = SecretError.createInstance(ssmError);
-    listSecretMock.mock.mockImplementationOnce(() => {
-      throw secretsError;
-    });
-    await assert.rejects(
-      () =>
-        sandboxExecutor.deploy(
-          {
-            namespace: 'testSandboxId',
-            name: 'testSandboxName',
-            type: 'sandbox',
-          },
-          validateAppSourcesProvider
-        ),
-      new AmplifyUserError(
-        'SecretsExpiredTokenError',
-        {
-          message: 'Fetching the list of secrets failed due to expired tokens',
-          resolution: 'Please refresh your credentials and try again',
-        },
-        secretsError
-      )
-    );
-  });
-
-  void it('throws AmplifyUserError if listSecrets fails due to CredentialsProviderError', async () => {
-    const credentialsError = new Error('credentials error');
-    credentialsError.name = 'CredentialsProviderError';
-    const secretsError = SecretError.createInstance(credentialsError);
-    listSecretMock.mock.mockImplementationOnce(() => {
-      throw secretsError;
-    });
-    await assert.rejects(
-      () =>
-        sandboxExecutor.deploy(
-          {
-            namespace: 'testSandboxId',
-            name: 'testSandboxName',
-            type: 'sandbox',
-          },
-          validateAppSourcesProvider
-        ),
-      new AmplifyUserError(
-        'SecretsExpiredTokenError',
-        {
-          message: 'Fetching the list of secrets failed due to expired tokens',
-          resolution: 'Please refresh your credentials and try again',
-        },
-        secretsError
-      )
-    );
-  });
-
-  void it('throws AmplifyFault if listSecrets fails due to a non-SSM exception other than expired credentials', async () => {
-    const underlyingError = new Error('some secret error');
-    const secretError = SecretError.createInstance(underlyingError);
-    listSecretMock.mock.mockImplementationOnce(() => {
-      throw secretError;
-    });
-    await assert.rejects(
-      () =>
-        sandboxExecutor.deploy(
-          {
-            namespace: 'testSandboxId',
-            name: 'testSandboxName',
-            type: 'sandbox',
-          },
-          validateAppSourcesProvider
-        ),
-      new AmplifyFault(
-        'ListSecretsFailedFault',
-        {
-          message: 'Fetching the list of secrets failed',
-        },
-        underlyingError // If it's not an SSM exception, we use the original error instead of secrets error
-      )
-    );
-  });
-
-  void it('throws AmplifyFault if listSecrets fails due to an SSM exception other than expired credentials', async () => {
-    const underlyingError = new SSMServiceException({
-      name: 'SomeException',
-      $fault: 'client',
-      $metadata: {},
-    });
-    const secretError = SecretError.createInstance(underlyingError);
-    listSecretMock.mock.mockImplementationOnce(() => {
-      throw secretError;
-    });
-    await assert.rejects(
-      () =>
-        sandboxExecutor.deploy(
-          {
-            namespace: 'testSandboxId',
-            name: 'testSandboxName',
-            type: 'sandbox',
-          },
-          validateAppSourcesProvider
-        ),
-      new AmplifyFault(
-        'ListSecretsFailedFault',
-        {
-          message: 'Fetching the list of secrets failed',
-        },
-        secretError // If it's an SSM exception, we use the wrapper secret error
-      )
-    );
   });
 
   [true, false].forEach((shouldValidateSources) => {
@@ -228,7 +112,8 @@ void describe('Sandbox executor', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         },
-        validateAppSourcesProvider
+        validateAppSourcesProvider,
+        undefined
       );
 
       assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
@@ -242,8 +127,43 @@ void describe('Sandbox executor', () => {
             type: 'sandbox',
           },
           {
+            profile: undefined,
             secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
             validateAppSources: shouldValidateSources,
+          },
+        ]
+      );
+    });
+  });
+
+  ['test_profile', undefined].forEach((profile) => {
+    void it(`calls deployer with correct profile=${
+      profile ?? 'undefined'
+    } setting`, async () => {
+      await sandboxExecutor.deploy(
+        {
+          namespace: 'testSandboxId',
+          name: 'testSandboxName',
+          type: 'sandbox',
+        },
+        validateAppSourcesProvider,
+        profile
+      );
+
+      assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+      // BackendDeployer should be called with the right params
+      assert.deepStrictEqual(
+        backendDeployerDeployMock.mock.calls[0].arguments,
+        [
+          {
+            name: 'testSandboxName',
+            namespace: 'testSandboxId',
+            type: 'sandbox',
+          },
+          {
+            profile: profile,
+            secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+            validateAppSources: true,
           },
         ]
       );

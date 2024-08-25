@@ -1,5 +1,33 @@
 # @aws-amplify/backend-storage
 
+## 1.1.2
+
+### Patch Changes
+
+- 775e2bb: Fix InvalidFunctionConfigurationError and InvalidStorageAccessDefinitionError error names.
+
+## 1.1.1
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [a65371c]
+  - @aws-amplify/backend-output-storage@1.1.1
+  - @aws-amplify/plugin-types@1.2.1
+
+## 1.1.0
+
+### Minor Changes
+
+- d9b83a1: support adding more than one bucket
+
+### Patch Changes
+
+- Updated dependencies [d9b83a1]
+  - @aws-amplify/backend-output-schemas@1.2.0
+  - @aws-amplify/backend-output-storage@1.1.0
+  - @aws-amplify/plugin-types@1.2.0
+
 ## 1.0.4
 
 ### Patch Changes

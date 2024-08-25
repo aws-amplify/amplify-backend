@@ -25,7 +25,7 @@ void describe('ClientConfigLegacyConverter', () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           version: '3' as any,
         }),
-      new AmplifyFault('UnsupportedClientConfigVersion', {
+      new AmplifyFault('UnsupportedClientConfigVersionFault', {
         message: 'Only version 1 of ClientConfig is supported.',
       })
     );

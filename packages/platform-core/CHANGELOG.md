@@ -1,5 +1,13 @@
 # @aws-amplify/platform-core
 
+## 1.0.6
+
+### Patch Changes
+
+- 4cce19f: wrap SyntaxErrors in AmplifyUserError
+- Updated dependencies [a65371c]
+  - @aws-amplify/plugin-types@1.2.1
+
 ## 1.0.5
 
 ### Patch Changes

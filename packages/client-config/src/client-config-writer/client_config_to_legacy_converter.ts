@@ -24,7 +24,7 @@ export class ClientConfigLegacyConverter {
   convertToLegacyConfig = (clientConfig: ClientConfig): ClientConfigLegacy => {
     // We can only convert from V1 of ClientConfig. For everything else, throw
     if (!this.isClientConfigV1(clientConfig)) {
-      throw new AmplifyFault('UnsupportedClientConfigVersion', {
+      throw new AmplifyFault('UnsupportedClientConfigVersionFault', {
         message: 'Only version 1 of ClientConfig is supported.',
       });
     }
@@ -276,6 +276,6 @@ export class ClientConfigLegacyConverter {
   isClientConfigV1 = (
     clientConfig: ClientConfig
   ): clientConfig is clientConfigTypesV1.AWSAmplifyBackendOutputs => {
-    return clientConfig.version === '1';
+    return clientConfig.version === '1.1';
   };
 }

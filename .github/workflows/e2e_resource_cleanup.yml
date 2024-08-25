@@ -18,6 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         region: [us-west-2, us-east-1, ca-central-1, eu-central-1]
+        testAccount: ${{ fromJson(vars.E2E_TEST_ACCOUNTS) }}
     env:
       AWS_REGION: ${{ matrix.region }}
     steps:
@@ -27,7 +28,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # version 4.0.2
         with:
-          role-to-assume: ${{ secrets.E2E_RESOURCE_CLEANUP_ROLE_ARN }}
+          role-to-assume: arn:aws:iam::${{ matrix.testAccount }}:role/e2e-resource-cleanup
           aws-region: ${{ matrix.region }}
       - name: Run E2E resource cleanup
         run: npm run e2e:cleanup-resources

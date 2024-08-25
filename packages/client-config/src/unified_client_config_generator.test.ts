@@ -79,7 +79,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
         configContributors
@@ -114,7 +114,7 @@ void describe('UnifiedClientConfigGenerator', () => {
           default_authorization_type: 'API_KEY',
           authorization_types: ['API_KEY'],
         },
-        version: '1',
+        version: '1.1',
       };
 
       assert.deepStrictEqual(result, expectedClientConfig);
@@ -153,7 +153,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -185,7 +185,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -217,7 +217,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -247,7 +247,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -280,7 +280,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1');
+      ).getContributors('1.1');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,

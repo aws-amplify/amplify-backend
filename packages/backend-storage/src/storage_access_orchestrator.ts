@@ -99,7 +99,7 @@ export class StorageAccessOrchestrator {
             ({ uniqueDefinitionId, validationErrorOptions }) => {
               if (uniqueDefinitionIdSet.has(uniqueDefinitionId)) {
                 throw new AmplifyUserError<StorageError>(
-                  'InvalidStorageAccessDefinition',
+                  'InvalidStorageAccessDefinitionError',
                   validationErrorOptions
                 );
               } else {

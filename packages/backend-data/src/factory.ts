@@ -232,6 +232,9 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     });
     let amplifyApi = undefined;
 
+    const isSandboxDeployment =
+      scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
+
     try {
       amplifyApi = new AmplifyData(scope, this.name, {
         apiName: this.name,
@@ -246,6 +249,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
            * The CI/CD check should take the responsibility to validate if any tables are being replaced and determine whether to execute the changeset
            */
           allowDestructiveGraphqlSchemaUpdates: true,
+          _provisionHotswapFriendlyResources: isSandboxDeployment,
         },
       });
     } catch (error) {
@@ -265,8 +269,6 @@ class DataGenerator implements ConstructContainerEntryGenerator {
      * Enable the table replacement upon GSI update
      * This is allowed in sandbox mode ONLY
      */
-    const isSandboxDeployment =
-      scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
     if (isSandboxDeployment) {
       Aspects.of(amplifyApi).add(new ReplaceTableUponGsiUpdateOverrideAspect());
     }
