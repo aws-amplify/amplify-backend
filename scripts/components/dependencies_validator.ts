@@ -13,6 +13,7 @@ export type DependencyRule =
     };
 
 export type DependencyWithKnownException = {
+  dependencyName: string;
   globalDependencyVersion: string;
   exceptions: Array<{ packageName: string; dependencyVersion: string }>;
 };
@@ -61,10 +62,7 @@ export class DependenciesValidator {
     private packagePaths: Array<string>,
     private disallowedDependencies: Record<string, DependencyRule>,
     private linkedDependencies: Array<Array<string>>,
-    private knownInconsistentDependencies: Record<
-      string,
-      DependencyWithKnownException
-    >,
+    private knownInconsistentDependencies: Array<DependencyWithKnownException>,
     private execa = _execa
   ) {}
 
@@ -251,26 +249,33 @@ export class DependenciesValidator {
   }
 
   private getPackageVersionDeclarationPredicate = async (
-    //**this is where we map packages to dependency versions
     packageName: string
   ): Promise<DependencyVersionPredicate> => {
-    if (packageName === 'execa') {
-      //** check if the packageName is a known inconsistent dependency
+    if (
+      this.knownInconsistentDependencies.find(
+        (a) => a.dependencyName === packageName
+      )
+    ) {
       // @aws-amplify/plugin-types can depend on execa@^5.1.1 as a workaround for https://github.com/aws-amplify/amplify-backend/issues/962
       // all other packages must depend on execa@^8.0.1
       // this can be removed once execa is patched
-      //**if the package is a known inconsistent depencency, then we want to make sure every package but the one(s) specified are using the default version
+      const inconsistentDependency = this.knownInconsistentDependencies.find(
+        (x) => x.dependencyName === packageName
+      );
       return (declarations) => {
         const validationResult = declarations.every(
           ({ dependentPackageName, version }) =>
-            (dependentPackageName === '@aws-amplify/plugin-types' &&
-              version === '^5.1.1') ||
-            version === '^8.0.1'
+            inconsistentDependency!.exceptions.find(
+              (a) => a.packageName === dependentPackageName
+            )?.dependencyVersion ||
+            version === inconsistentDependency!.globalDependencyVersion
         );
         return (
           validationResult ||
-          `${packageName} dependency declarations must depend on version ^8.0.1 except in @aws-amplify/plugin-types where it must depend on ^5.1.1.`
-        );
+          `${packageName} dependency declarations must depend on version ${
+            inconsistentDependency!.globalDependencyVersion
+          } except in the following packages,`
+        ); // ${inconsistentDependency!.exceptions.forEach(exception=>(`${exception.packageName} where it must depend on ${exception.dependencyVersion} `))}`);
       };
     } else if ((await this.getRepoPackageNames()).includes(packageName)) {
       // repo packages only need consistent major versions

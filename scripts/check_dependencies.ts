@@ -22,8 +22,9 @@ await new DependenciesValidator( //**the structure of this comes from dependenci
     },
   },
   [['aws-cdk', 'aws-cdk-lib']],
-  {
-    execa: {
+  [
+    {
+      dependencyName: 'execa',
       globalDependencyVersion: '^8.0.1',
       exceptions: [
         {
@@ -32,5 +33,5 @@ await new DependenciesValidator( //**the structure of this comes from dependenci
         },
       ],
     },
-  }
+  ]
 ).validate();
