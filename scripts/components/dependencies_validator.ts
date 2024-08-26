@@ -279,7 +279,7 @@ export class DependenciesValidator {
               (exception) =>
                 `, ${exception.packageName} where it must depend on ${exception.dependencyVersion}`
             )
-        ); // ${inconsistentDependency!.exceptions.forEach(exception=>(`${exception.packageName} where it must depend on ${exception.dependencyVersion} `))}`);
+        );
       };
     } else if ((await this.getRepoPackageNames()).includes(packageName)) {
       // repo packages only need consistent major versions
