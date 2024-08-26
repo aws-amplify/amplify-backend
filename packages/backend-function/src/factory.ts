@@ -22,7 +22,12 @@ import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Policy } from 'aws-cdk-lib/aws-iam';
-import { CfnFunction, ILayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
+import {
+  CfnFunction,
+  ILayerVersion,
+  LayerVersion,
+  Runtime,
+} from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import { readFileSync } from 'fs';
@@ -33,7 +38,7 @@ import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { getCallerDirectory } from './get_caller_directory.js';
-import { resolveLayers } from './reference_layer.js';
+import { FunctionLayerArnParser } from './layer_parser.js';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
 const functionStackType = 'function-Lambda';
@@ -53,7 +58,6 @@ export type TimeInterval =
   | `every month`
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
-export type FunctionLayerReferences = Record<string, string>;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -126,16 +130,16 @@ export type FunctionProps = {
 
   /**
    * Attach Lambda layers to a function
-   * - The object is keyed by the module name hosted on your existing layer and a value that references to an existing layer using an ARN. The keys will be externalized and available via your layer at runtime
+   * - A Lambda layer is represented by an object of key/value pair where the key is the module name that is exported from your layer and the value is the ARN of the layer. The key (module name) is used to externalize the module dependency so it doesn't get bundled with your lambda function
    * - Maximum of 5 layers can be attached to a function and must be in the same region as the function.
-   * @see [Amplify documentation for Lambda layers](https://docs.amplify.aws/react/build-a-backend/functions/add-lambda-layers)
-   * @see [AWS documentation for Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
    * @example
    * layers: {
    *    "@aws-lambda-powertools/logger": "arn:aws:lambda:<current-region>:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:11"
    * },
+   * @see [Amplify documentation for Lambda layers](https://docs.amplify.aws/react/build-a-backend/functions/add-lambda-layers)
+   * @see [AWS documentation for Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
    */
-  layers?: FunctionLayerReferences;
+  layers?: Record<string, string>;
 };
 
 /**
@@ -173,6 +177,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   ): HydratedFunctionProps => {
     const name = this.resolveName();
     resourceNameValidator?.validate(name);
+    const parser = new FunctionLayerArnParser();
+    const layers = parser.parseLayers(this.props.layers ?? {}, name);
     return {
       name,
       entry: this.resolveEntry(),
@@ -181,7 +187,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
-      layers: this.props.layers ?? {},
+      layers,
     };
   };
 
@@ -281,9 +287,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 }
 
-type HydratedFunctionProps = Required<FunctionProps> & {
-  layers: FunctionLayerReferences;
-};
+type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
@@ -297,11 +301,15 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps) => {
-    const resolvedLayers = resolveLayers(
-      this.props.layers,
-      scope,
-      this.props.name
+    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
+    const resolvedLayers = Object.entries(this.props.layers).map(([key, arn]) =>
+      LayerVersion.fromLayerVersionArn(
+        scope,
+        `${this.props.name}-${key}-layer`,
+        arn
+      )
     );
+
     return new AmplifyFunction(
       scope,
       this.props.name,
