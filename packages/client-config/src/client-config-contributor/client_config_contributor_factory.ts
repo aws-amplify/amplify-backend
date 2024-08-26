@@ -1,10 +1,12 @@
 // Versions of config schemas supported by this package version
 import {
-  AuthClientConfigContributor as Auth1,
-  CustomClientConfigContributor as Custom1,
-  DataClientConfigContributor as Data1,
-  StorageClientConfigContributor as Storage1,
-  VersionContributor as VersionContributor1,
+  AuthClientConfigContributor as Auth1_1,
+  CustomClientConfigContributor as Custom1_1,
+  DataClientConfigContributor as Data1_1,
+  StorageClientConfigContributorV1 as Storage1,
+  StorageClientConfigContributor as Storage1_1,
+  VersionContributor as VersionContributor1_1,
+  VersionContributorV1,
 } from './client_config_contributor_v1.js';
 
 import { ClientConfigContributor } from '../client-config-types/client_config_contributor.js';
@@ -29,21 +31,30 @@ export class ClientConfigContributorFactory {
     private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter
   ) {
     this.versionedClientConfigContributors = {
-      [ClientConfigVersionOption.V1]: [
-        new Auth1(),
-        new Data1(this.modelIntrospectionSchemaAdapter),
-        new Storage1(),
-        new VersionContributor1(),
-        new Custom1(),
+      [ClientConfigVersionOption.V1_1]: [
+        new Auth1_1(),
+        new Data1_1(this.modelIntrospectionSchemaAdapter),
+        new Storage1_1(),
+        new VersionContributor1_1(),
+        new Custom1_1(),
       ],
 
-      // Legacy config is derived from V1 of unified default config
-      [ClientConfigVersionOption.V0]: [
-        new Auth1(),
-        new Data1(this.modelIntrospectionSchemaAdapter),
+      // Except for storage and version, other contributors are same as V1
+      [ClientConfigVersionOption.V1]: [
+        new Auth1_1(),
+        new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Storage1(),
-        new VersionContributor1(),
-        new Custom1(),
+        new VersionContributorV1(),
+        new Custom1_1(),
+      ],
+
+      // Legacy config is derived from V1.1 (latest) of unified default config
+      [ClientConfigVersionOption.V0]: [
+        new Auth1_1(),
+        new Data1_1(this.modelIntrospectionSchemaAdapter),
+        new Storage1_1(),
+        new VersionContributor1_1(),
+        new Custom1_1(),
       ],
     };
   }

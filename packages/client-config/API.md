@@ -14,13 +14,25 @@ import { S3Client } from '@aws-sdk/client-s3';
 type AmazonCognitoStandardAttributes = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
 
 // @public
+type AmazonCognitoStandardAttributes_2 = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
+
+// @public
 interface AmazonLocationServiceConfig {
     name?: string;
     style?: string;
 }
 
 // @public
+interface AmazonLocationServiceConfig_2 {
+    name?: string;
+    style?: string;
+}
+
+// @public
 type AmazonPinpointChannels = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
+
+// @public
+type AmazonPinpointChannels_2 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public (undocumented)
 interface AmplifyStorageBucket {
@@ -151,13 +163,96 @@ interface AWSAmplifyBackendOutputs {
 }
 
 // @public
+interface AWSAmplifyBackendOutputs_2 {
+    analytics?: {
+        amazon_pinpoint?: {
+            aws_region: AwsRegion_2;
+            app_id: string;
+        };
+    };
+    auth?: {
+        aws_region: AwsRegion_2;
+        user_pool_id: string;
+        user_pool_client_id: string;
+        identity_pool_id?: string;
+        password_policy?: {
+            min_length: number;
+            require_numbers: boolean;
+            require_lowercase: boolean;
+            require_uppercase: boolean;
+            require_symbols: boolean;
+        };
+        oauth?: {
+            identity_providers: ('GOOGLE' | 'FACEBOOK' | 'LOGIN_WITH_AMAZON' | 'SIGN_IN_WITH_APPLE')[];
+            domain: string;
+            scopes: string[];
+            redirect_sign_in_uri: string[];
+            redirect_sign_out_uri: string[];
+            response_type: 'code' | 'token';
+        };
+        standard_required_attributes?: AmazonCognitoStandardAttributes_2[];
+        username_attributes?: ('email' | 'phone_number' | 'username')[];
+        user_verification_types?: ('email' | 'phone_number')[];
+        unauthenticated_identities_enabled?: boolean;
+        mfa_configuration?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+        mfa_methods?: ('SMS' | 'TOTP')[];
+    };
+    custom?: {
+        [k: string]: unknown;
+    };
+    data?: {
+        aws_region: AwsRegion_2;
+        url: string;
+        model_introspection?: {
+            [k: string]: unknown;
+        };
+        api_key?: string;
+        default_authorization_type: AwsAppsyncAuthorizationType_2;
+        authorization_types: AwsAppsyncAuthorizationType_2[];
+    };
+    geo?: {
+        aws_region: AwsRegion_2;
+        maps?: {
+            items: {
+                [k: string]: AmazonLocationServiceConfig_2;
+            };
+            default: string;
+        };
+        search_indices?: {
+            items: string[];
+            default: string;
+        };
+        geofence_collections?: {
+            items: string[];
+            default: string;
+        };
+    };
+    notifications?: {
+        aws_region: AwsRegion_2;
+        amazon_pinpoint_app_id: string;
+        channels: AmazonPinpointChannels_2[];
+    };
+    storage?: {
+        aws_region: AwsRegion_2;
+        bucket_name: string;
+    };
+    version: '1';
+}
+
+// @public
 type AwsAppsyncAuthorizationType = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
+
+// @public
+type AwsAppsyncAuthorizationType_2 = 'AMAZON_COGNITO_USER_POOLS' | 'API_KEY' | 'AWS_IAM' | 'AWS_LAMBDA' | 'OPENID_CONNECT';
 
 // @public (undocumented)
 type AwsRegion = string;
 
+// @public (undocumented)
+type AwsRegion_2 = string;
+
 // @public
-export type ClientConfig = clientConfigTypesV1.AWSAmplifyBackendOutputs;
+export type ClientConfig = clientConfigTypesV1_1.AWSAmplifyBackendOutputs | clientConfigTypesV1.AWSAmplifyBackendOutputs;
 
 // @public (undocumented)
 export enum ClientConfigFileBaseName {
@@ -186,6 +281,18 @@ export type ClientConfigLegacy = Partial<AnalyticsClientConfig & AuthClientConfi
 
 declare namespace clientConfigTypesV1 {
     export {
+        AmazonCognitoStandardAttributes_2 as AmazonCognitoStandardAttributes,
+        AwsRegion_2 as AwsRegion,
+        AwsAppsyncAuthorizationType_2 as AwsAppsyncAuthorizationType,
+        AmazonPinpointChannels_2 as AmazonPinpointChannels,
+        AWSAmplifyBackendOutputs_2 as AWSAmplifyBackendOutputs,
+        AmazonLocationServiceConfig_2 as AmazonLocationServiceConfig
+    }
+}
+export { clientConfigTypesV1 }
+
+declare namespace clientConfigTypesV1_1 {
+    export {
         AmazonCognitoStandardAttributes,
         AwsRegion,
         AwsAppsyncAuthorizationType,
@@ -195,7 +302,7 @@ declare namespace clientConfigTypesV1 {
         AmplifyStorageBucket
     }
 }
-export { clientConfigTypesV1 }
+export { clientConfigTypesV1_1 }
 
 // @public (undocumented)
 export type ClientConfigVersion = `${ClientConfigVersionOption}`;
@@ -205,11 +312,13 @@ export enum ClientConfigVersionOption {
     // (undocumented)
     V0 = "0",
     // (undocumented)
-    V1 = "1.1"
+    V1 = "1",
+    // (undocumented)
+    V1_1 = "1.1"
 }
 
 // @public
-export type ClientConfigVersionTemplateType<T> = T extends '1.1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
+export type ClientConfigVersionTemplateType<T> = T extends '1.1' ? clientConfigTypesV1_1.AWSAmplifyBackendOutputs : T extends '1' ? clientConfigTypesV1.AWSAmplifyBackendOutputs : never;
 
 // @public (undocumented)
 export type CustomClientConfig = {
@@ -220,7 +329,7 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1.1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
+export const generateClientConfig: <T extends "1" | "1.1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
