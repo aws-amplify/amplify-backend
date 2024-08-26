@@ -1,7 +1,7 @@
 import { glob } from 'glob';
 import { DependenciesValidator } from './components/dependencies_validator.js';
 
-await new DependenciesValidator(
+await new DependenciesValidator( //**the structure of this comes from dependencies_validator.ts
   await glob('packages/*'),
   {
     'aws-amplify': {
@@ -21,5 +21,17 @@ await new DependenciesValidator(
       ],
     },
   },
-  [['aws-cdk', 'aws-cdk-lib']]
+  [['aws-cdk', 'aws-cdk-lib']],
+  [
+    {
+      dependencyName: 'execa',
+      globalDependencyVersion: '^8.0.1',
+      exceptions: [
+        {
+          packageName: '@aws-amplify/plugin-types',
+          dependencyVersion: '^5.1.1',
+        },
+      ],
+    },
+  ]
 ).validate();

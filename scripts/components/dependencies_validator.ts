@@ -2,15 +2,22 @@ import { execa as _execa } from 'execa';
 import { EOL } from 'os';
 import { PackageJson, readPackageJson } from './package-json/package_json.js';
 
-export type DependencyRule =
-  | {
-      denyAll: true;
-      allowList?: never;
-    }
-  | {
-      denyAll?: never;
-      allowList: Array<string>;
-    };
+export type DependencyRule = //** going to assume this might not be what I want to refactor...
+
+    | {
+        denyAll: true;
+        allowList?: never;
+      }
+    | {
+        denyAll?: never;
+        allowList: Array<string>;
+      };
+
+export type DependencyWithKnownException = {
+  dependencyName: string;
+  globalDependencyVersion: string;
+  exceptions: Array<{ packageName: string; dependencyVersion: string }>;
+};
 
 type NpmListOutputItem = {
   name?: string;
@@ -47,14 +54,17 @@ export class DependenciesValidator {
   /**
    * Creates dependency validator
    * @param packagePaths paths of packages to validate
-   * @param dependencyRules dependency exclusion and inclusion rules
+   * @param disallowedDependencies dependency exclusion and inclusion rules
    * @param linkedDependencies dependencies that should be versioned with the same version
+   * @param knownInconsistentDependencies dependencies that are known to violate the consistency check
    * @param execa in order to inject execa mock in tests
    */
   constructor(
+    //**constructs the dependencies validator -- will want to alter this
     private packagePaths: Array<string>,
-    private dependencyRules: Record<string, DependencyRule>,
-    private linkedDependencies: Array<Array<string>>,
+    private disallowedDependencies: Record<string, DependencyRule>, //**consider refactoring dependencyRules and linkedDependencies
+    private linkedDependencies: Array<Array<string>>, //** I am assuming these are dependencies that should share the same version
+    private knownInconsistentDependencies: Array<DependencyWithKnownException>, //**previously Record<string, Array<PkgNameDependencyVerPair>>
     private execa = _execa
   ) {}
 
@@ -202,9 +212,9 @@ export class DependenciesValidator {
         // skip if self referencing
         continue;
       }
-      if (dependencyName in this.dependencyRules) {
+      if (dependencyName in this.disallowedDependencies) {
         const dependencyRule: DependencyRule =
-          this.dependencyRules[dependencyName];
+          this.disallowedDependencies[dependencyName];
         const isViolating =
           dependencyRule.denyAll ||
           !dependencyRule.allowList.includes(packageName);
@@ -241,12 +251,17 @@ export class DependenciesValidator {
   }
 
   private getPackageVersionDeclarationPredicate = async (
+    //**this is where we map packages to dependency versions
     packageName: string
   ): Promise<DependencyVersionPredicate> => {
     if (packageName === 'execa') {
+      //** check if the packageName is a known inconsistent dependency
       // @aws-amplify/plugin-types can depend on execa@^5.1.1 as a workaround for https://github.com/aws-amplify/amplify-backend/issues/962
       // all other packages must depend on execa@^8.0.1
       // this can be removed once execa is patched
+      //**if the package is a known inconsistent depencency, then we want to make sure every package but the one(s) specified are using the default version
+      //**so we want to iterate through the array of packageName-DependencyVer pairs, ensure all of them are using the right version
+      //**in general, the arrays of pairs should be short, so we could do an in operation to find if the package name is in the list if it comes up...
       return (declarations) => {
         const validationResult = declarations.every(
           ({ dependentPackageName, version }) =>
