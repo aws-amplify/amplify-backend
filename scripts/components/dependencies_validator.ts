@@ -274,7 +274,11 @@ export class DependenciesValidator {
           validationResult ||
           `${packageName} dependency declarations must depend on version ${
             inconsistentDependency!.globalDependencyVersion
-          } except in the following packages,`
+          } except in the following packages` +
+            inconsistentDependency!.exceptions.forEach(
+              (exception) =>
+                `, ${exception.packageName} where it must depend on ${exception.dependencyVersion}`
+            )
         ); // ${inconsistentDependency!.exceptions.forEach(exception=>(`${exception.packageName} where it must depend on ${exception.dependencyVersion} `))}`);
       };
     } else if ((await this.getRepoPackageNames()).includes(packageName)) {
