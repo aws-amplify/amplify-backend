@@ -22,9 +22,6 @@ export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` |
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory>;
 
 // @public (undocumented)
-export type FunctionLayerReferences = Record<string, string>;
-
-// @public (undocumented)
 export type FunctionProps = {
     name?: string;
     entry?: string;
@@ -33,7 +30,7 @@ export type FunctionProps = {
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
-    layers?: FunctionLayerReferences;
+    layers?: Record<string, string>;
 };
 
 // @public (undocumented)
