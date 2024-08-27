@@ -30,6 +30,6 @@ body:
     attributes:
       label: Use case
       description: |
-        Please provide information about your use case and how this feature will help with it?
+        Please provide information about your use case and how this feature will help with it.
     validations:
       required: true
