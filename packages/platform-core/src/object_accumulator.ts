@@ -1,6 +1,6 @@
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import mergeWith from 'lodash.mergewith';
-
+import semver from 'semver';
 /**
  * This error is thrown when there's a collision in the object keys
  */
@@ -58,11 +58,23 @@ export class ObjectAccumulator<T> {
         return existingValue.concat(incomingValue);
       }
       if (existingValue && typeof existingValue !== 'object') {
-        if (key === this.versionKey && existingValue !== incomingValue) {
-          throw new ObjectAccumulatorVersionMismatchError(
-            existingValue,
-            incomingValue
-          );
+        if (key === this.versionKey) {
+          const incomingVersion = semver.coerce(incomingValue);
+          const existingVersion = semver.coerce(existingValue);
+          if (incomingVersion && existingVersion) {
+            // Only throw if the major version is not equal
+            if (incomingVersion.major !== existingVersion.major) {
+              throw new ObjectAccumulatorVersionMismatchError(
+                existingValue,
+                incomingValue
+              );
+            } else {
+              // We always get the max version to persist in the accumulated object
+              return semver.gte(incomingVersion, existingVersion)
+                ? incomingValue
+                : existingValue;
+            }
+          }
         } else if (key !== this.versionKey) {
           throw new ObjectAccumulatorPropertyAlreadyExistsError(
             key,

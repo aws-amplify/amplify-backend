@@ -128,6 +128,96 @@ void describe('Object accumulator', () => {
     });
   });
 
+  void it('should merge two objects with same major version 1.1 and 1.2', () => {
+    const object1 = {
+      myVersionKey: '1.2',
+      a1: 'valueA1',
+      b1: {
+        c1: 'valueC1',
+        d1: {
+          e1: 'valueE1',
+        },
+      },
+    };
+    const object2 = {
+      myVersionKey: '1.1',
+      a2: 'valueA2',
+      b2: {
+        c2: 'valueC2',
+        d2: {
+          e2: 'valueE2',
+        },
+      },
+    };
+    const accumulatedObject = new ObjectAccumulator({}, 'myVersionKey')
+      .accumulate(object1)
+      .accumulate(object2)
+      .getAccumulatedObject();
+
+    assert.deepEqual(accumulatedObject, {
+      myVersionKey: '1.2',
+      a1: 'valueA1',
+      a2: 'valueA2',
+      b1: {
+        c1: 'valueC1',
+        d1: {
+          e1: 'valueE1',
+        },
+      },
+      b2: {
+        c2: 'valueC2',
+        d2: {
+          e2: 'valueE2',
+        },
+      },
+    });
+  });
+
+  void it('should merge two objects with same major version 1.1 and 1', () => {
+    const object1 = {
+      myVersionKey: '1.1',
+      a1: 'valueA1',
+      b1: {
+        c1: 'valueC1',
+        d1: {
+          e1: 'valueE1',
+        },
+      },
+    };
+    const object2 = {
+      myVersionKey: '1.0',
+      a2: 'valueA2',
+      b2: {
+        c2: 'valueC2',
+        d2: {
+          e2: 'valueE2',
+        },
+      },
+    };
+    const accumulatedObject = new ObjectAccumulator({}, 'myVersionKey')
+      .accumulate(object1)
+      .accumulate(object2)
+      .getAccumulatedObject();
+
+    assert.deepEqual(accumulatedObject, {
+      myVersionKey: '1.1',
+      a1: 'valueA1',
+      a2: 'valueA2',
+      b1: {
+        c1: 'valueC1',
+        d1: {
+          e1: 'valueE1',
+        },
+      },
+      b2: {
+        c2: 'valueC2',
+        d2: {
+          e2: 'valueE2',
+        },
+      },
+    });
+  });
+
   void it('should throw on property override attempt', () => {
     assert.throws(
       () => {
@@ -153,7 +243,7 @@ void describe('Object accumulator', () => {
     );
   });
 
-  void it('should throw on version mismatch of objects', () => {
+  void it('should throw on major version mismatch of objects', () => {
     assert.throws(
       () => {
         new ObjectAccumulator({}) // using default version key of `version`
