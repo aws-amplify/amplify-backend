@@ -41,6 +41,7 @@ void describe('Dependency validator', () => {
             },
           },
           [],
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -65,6 +66,7 @@ void describe('Dependency validator', () => {
             },
           },
           [],
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -88,6 +90,7 @@ void describe('Dependency validator', () => {
         },
       },
       [],
+      [],
       execaMock as never
     ).validate();
   });
@@ -105,6 +108,7 @@ void describe('Dependency validator', () => {
               denyAll: true,
             },
           },
+          [],
           [],
           execaMock as never
         ).validate(),
@@ -128,6 +132,7 @@ void describe('Dependency validator', () => {
         await new DependenciesValidator(
           packagePaths,
           {},
+          [],
           [],
           execaMock as never
         ).validate();
@@ -156,6 +161,18 @@ void describe('Dependency validator', () => {
       packagePaths,
       {},
       [],
+      [
+        {
+          dependencyName: 'yargs',
+          globalDependencyVersion: '^8.0.1',
+          exceptions: [
+            {
+              packageName: '@aws-amplify/plugin-types',
+              dependencyVersion: '^6.2.1',
+            },
+          ],
+        },
+      ],
       execaMock as never
     );
 
@@ -185,6 +202,7 @@ void describe('Dependency validator', () => {
           packagePaths,
           {},
           [['aws-cdk', 'aws-cdk-lib']],
+          [],
           execaMock as never
         ).validate();
       },

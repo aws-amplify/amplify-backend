@@ -254,7 +254,7 @@ export class DependenciesValidator {
     if (
       this.knownInconsistentDependencies.find(
         (a) => a.dependencyName === packageName
-      )
+      ) !== undefined
     ) {
       // @aws-amplify/plugin-types can depend on execa@^5.1.1 as a workaround for https://github.com/aws-amplify/amplify-backend/issues/962
       // all other packages must depend on execa@^8.0.1
