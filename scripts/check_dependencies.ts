@@ -1,7 +1,7 @@
 import { glob } from 'glob';
 import { DependenciesValidator } from './components/dependencies_validator.js';
 
-await new DependenciesValidator( //**the structure of this comes from dependencies_validator.ts
+await new DependenciesValidator(
   await glob('packages/*'),
   {
     'aws-amplify': {
