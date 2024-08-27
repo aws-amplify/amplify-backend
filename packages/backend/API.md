@@ -31,6 +31,7 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntriesGenerator } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntry } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
+import { StackProps } from 'aws-cdk-lib';
 
 export { a }
 
@@ -70,7 +71,12 @@ export { ConstructFactoryGetInstanceProps }
 export { defineAuth }
 
 // @public
-export const defineBackend: <T extends DefineBackendProps>(constructFactories: T) => Backend<T>;
+export const defineBackend: <T extends DefineBackendProps>(constructFactories: T, props?: DefineBackendOptions) => Backend<T>;
+
+// @public (undocumented)
+export type DefineBackendOptions = {
+    mainStackProps?: MainStackProps;
+};
 
 // @public (undocumented)
 export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {
@@ -88,6 +94,9 @@ export { FunctionResources }
 export { GenerateContainerEntryProps }
 
 export { ImportPathVerifier }
+
+// @public
+export type MainStackProps = Pick<StackProps, 'env' | 'crossRegionReferences'>;
 
 export { ResourceProvider }
 

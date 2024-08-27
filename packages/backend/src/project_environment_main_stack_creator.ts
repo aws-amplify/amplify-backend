@@ -1,7 +1,7 @@
 import { BackendIdentifier, MainStackCreator } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { Stack, Tags } from 'aws-cdk-lib';
-import { AmplifyStack } from './engine/amplify_stack.js';
+import { AmplifyStack, MainStackProps } from './engine/amplify_stack.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 /**
@@ -20,11 +20,12 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
   /**
    * Get a stack for this environment in the provided CDK scope
    */
-  getOrCreateMainStack = (): Stack => {
+  getOrCreateMainStack = (props?: MainStackProps): Stack => {
     if (this.mainStack === undefined) {
       this.mainStack = new AmplifyStack(
         this.scope,
-        BackendIdentifierConversions.toStackName(this.backendId)
+        BackendIdentifierConversions.toStackName(this.backendId),
+        props
       );
     }
 
