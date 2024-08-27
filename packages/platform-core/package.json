@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/platform-core",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"

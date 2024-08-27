@@ -1,5 +1,20 @@
 # @aws-amplify/backend
 
+## 1.2.0
+
+### Minor Changes
+
+- 4ea9a5e: re-add the V1 of client config version
+
+### Patch Changes
+
+- Updated dependencies [4ea9a5e]
+- Updated dependencies [c8d1f10]
+- Updated dependencies [5b6ae85]
+  - @aws-amplify/client-config@1.3.0
+  - @aws-amplify/backend-data@1.1.3
+  - @aws-amplify/platform-core@1.0.7
+
 ## 1.1.1
 
 ### Patch Changes

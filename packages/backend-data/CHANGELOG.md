@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 1.1.3
+
+### Patch Changes
+
+- c8d1f10: added provisionHotswapFriendlyResources and getDeploymentType to determine if we are in sandbox and would like to enable hotswap
+
 ## 1.1.2
 
 ### Patch Changes
