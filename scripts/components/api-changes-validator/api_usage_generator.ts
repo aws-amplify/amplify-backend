@@ -123,7 +123,7 @@ export class ApiUsageGenerator {
                   if (namedExport.propertyName) {
                     // If property name is present this means that
                     // API Extractor aliased type definition to avoid duplicate
-                    // end exported from namespace as '${symbolNameInApiView} as ${exportedSymbolName}'
+                    // end exported from namespace as 'SomeType_2 as SomeType'
                     symbolNameInApiView = namedExport.propertyName.getText();
                     const exportedSymbolName = namedExport.name.getText();
                     namespaceDefinitions.aliasedSymbols.set(
