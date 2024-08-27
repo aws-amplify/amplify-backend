@@ -36,7 +36,7 @@
     "graphql-tag": "^2.12.6",
     "lodash.ismatch": "^4.4.0",
     "node-fetch": "^3.3.2",
-    "semver": "^7.5.4",
+    "semver": "^7.6.3",
     "ssh2": "^1.15.0",
     "uuid": "^9.0.1"
   },
