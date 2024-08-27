@@ -191,7 +191,7 @@ void describe('Backend', () => {
     const backend = new BackendFactory({}, rootStack);
     const clientConfigPartial: DeepPartialAmplifyGeneratedConfigs<ClientConfig> =
       {
-        version: '1.1',
+        version: '1.2',
         custom: {
           someCustomOutput: 'someCustomOutputValue',
         },

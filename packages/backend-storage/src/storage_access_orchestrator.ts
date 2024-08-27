@@ -12,7 +12,11 @@ import { entityIdPathToken } from './constants.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
-import { InternalStorageAction, StorageError } from './private_types.js';
+import {
+  InternalStorageAction,
+  StorageAccessConfig,
+  StorageError,
+} from './private_types.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /* some types internal to this file to improve readability */
@@ -88,11 +92,15 @@ export class StorageAccessOrchestrator {
     // verify that the paths in the access definition are valid
     this.validateStorageAccessPaths(Object.keys(storageAccessDefinition));
 
+    const storageOutputAccessDefinition: Record<string, StorageAccessConfig> =
+      {};
+
     // iterate over the access definition and group permissions by ResourceAccessAcceptor
     Object.entries(storageAccessDefinition).forEach(
       ([s3Prefix, accessPermissions]) => {
         const uniqueDefinitionIdSet = new Set<string>();
         // iterate over all of the access definitions for a given prefix
+        const accessConfig: StorageAccessConfig = {};
         accessPermissions.forEach((permission) => {
           // iterate over all uniqueDefinitionIdValidations and ensure uniqueness within this path prefix
           permission.uniqueDefinitionIdValidations.forEach(
@@ -105,6 +113,8 @@ export class StorageAccessOrchestrator {
               } else {
                 uniqueDefinitionIdSet.add(uniqueDefinitionId);
               }
+
+              accessConfig[uniqueDefinitionId] = permission.actions;
             }
           );
           // make the owner placeholder substitution in the s3 prefix
@@ -112,6 +122,11 @@ export class StorageAccessOrchestrator {
             entityIdPathToken,
             permission.idSubstitution
           ) as StoragePath;
+
+          storageOutputAccessDefinition[prefix] = {
+            ...storageOutputAccessDefinition[prefix],
+            ...accessConfig,
+          };
 
           // replace "read" with "get" and "list" in actions
           const replaceReadWithGetAndList = permission.actions.flatMap(
@@ -139,6 +154,8 @@ export class StorageAccessOrchestrator {
 
     // iterate over the access map entries and invoke each ResourceAccessAcceptor to accept the permissions
     this.attachPolicies(this.ssmEnvironmentEntries);
+
+    return storageOutputAccessDefinition;
   };
 
   /**

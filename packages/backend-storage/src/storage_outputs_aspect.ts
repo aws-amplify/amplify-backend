@@ -95,7 +95,6 @@ export class StorageOutputsAspect implements IAspect {
         },
       });
     }
-
     // both default and non-default buckets should have the name, bucket name, and storage region stored in `buckets` field
     outputStorageStrategy.appendToBackendOutputList(storageOutputKey, {
       version: '1',
@@ -104,6 +103,7 @@ export class StorageOutputsAspect implements IAspect {
           name: node.name,
           bucketName: node.resources.bucket.bucketName,
           storageRegion: Stack.of(node).region,
+          paths: node.accessDefinition,
         }),
       },
     });

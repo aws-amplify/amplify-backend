@@ -33,7 +33,7 @@ const rootStackTypeIdentifier = 'root';
 
 // Client config version that is used by `backend.addOutput()`
 const DEFAULT_CLIENT_CONFIG_VERSION_FOR_BACKEND_ADD_OUTPUT =
-  ClientConfigVersionOption.V1_1;
+  ClientConfigVersionOption.V1_2;
 
 /**
  * Factory that collects and instantiates all the Amplify backend constructs

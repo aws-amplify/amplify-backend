@@ -147,7 +147,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     backendId: BackendIdentifier
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
-    const clientConfig = await generateClientConfig(backendId, '1.1');
+    const clientConfig = await generateClientConfig(backendId, '1.2');
     await this.assertDifferentCognitoInstanceCannotAssumeAmplifyRoles(
       clientConfig
     );
@@ -160,7 +160,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
    * I.e. roles not created by auth construct.
    */
   private assertGenericIamRolesAccessToData = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>
+    clientConfig: ClientConfigVersionTemplateType<'1.2'>
   ) => {
     if (!clientConfig.custom) {
       throw new Error('Client config is missing custom section');
@@ -262,7 +262,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
    * This asserts that authenticated and unauthenticated roles have relevant access to data API.
    */
   private assertAmplifyAuthAccessToData = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>
+    clientConfig: ClientConfigVersionTemplateType<'1.2'>
   ): Promise<void> => {
     if (!clientConfig.auth) {
       throw new Error('Client config is missing auth section');
@@ -367,7 +367,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
    * unauthorized roles. I.e. it tests trust policy.
    */
   private assertDifferentCognitoInstanceCannotAssumeAmplifyRoles = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>
+    clientConfig: ClientConfigVersionTemplateType<'1.2'>
   ): Promise<void> => {
     const simpleAuthUser = await this.createAuthenticatedSimpleAuthCognitoUser(
       clientConfig
@@ -416,7 +416,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   };
 
   private createAuthenticatedSimpleAuthCognitoUser = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>
+    clientConfig: ClientConfigVersionTemplateType<'1.2'>
   ): Promise<SimpleAuthCognitoUser> => {
     if (!clientConfig.custom) {
       throw new Error('Client config is missing custom section');
@@ -496,7 +496,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   };
 
   private createAppSyncClient = (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>,
+    clientConfig: ClientConfigVersionTemplateType<'1.2'>,
     credentials: IamCredentials
   ): ApolloClient<NormalizedCacheObject> => {
     if (!clientConfig.data?.url) {

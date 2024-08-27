@@ -78,7 +78,8 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessOrchestrator.orchestrateStorageAccess();
+      const storageAccessDefinitionOutput =
+        storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -102,6 +103,11 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccessMock.mock.calls[0].arguments[1],
         ssmEnvironmentEntriesStub
       );
+      assert.deepStrictEqual(storageAccessDefinitionOutput, {
+        'test/prefix/*': {
+          acceptor: ['get', 'write'],
+        },
+      });
     });
 
     void it('handles multiple permissions for the same resource access acceptor', () => {
@@ -132,7 +138,8 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessOrchestrator.orchestrateStorageAccess();
+      const storageAccessDefinitionOutput =
+        storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -164,6 +171,14 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccessMock.mock.calls[0].arguments[1],
         ssmEnvironmentEntriesStub
       );
+      assert.deepStrictEqual(storageAccessDefinitionOutput, {
+        'test/prefix/*': {
+          acceptor: ['get', 'write', 'delete'],
+        },
+        'another/prefix/*': {
+          acceptor: ['get'],
+        },
+      });
     });
 
     void it('handles multiple resource access acceptors', () => {
@@ -204,7 +219,8 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessOrchestrator.orchestrateStorageAccess();
+      const storageAccessDefinitionOutput =
+        storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[0].document.toJSON(),
@@ -259,6 +275,15 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccessMock2.mock.calls[0].arguments[1],
         ssmEnvironmentEntriesStub
       );
+      assert.deepStrictEqual(storageAccessDefinitionOutput, {
+        'test/prefix/*': {
+          acceptor1: ['get', 'write', 'delete'],
+          acceptor2: ['get'],
+        },
+        'another/prefix/*': {
+          acceptor2: ['get', 'delete'],
+        },
+      });
     });
 
     void it('replaces owner placeholder in s3 prefix', () => {
@@ -286,7 +311,8 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessOrchestrator.orchestrateStorageAccess();
+      const storageAccessDefinitionOutput =
+        storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -310,6 +336,11 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccessMock.mock.calls[0].arguments[1],
         ssmEnvironmentEntriesStub
       );
+      assert.deepStrictEqual(storageAccessDefinitionOutput, {
+        'test/{testOwnerSub}/*': {
+          acceptor: ['get', 'write'],
+        },
+      });
     });
 
     void it('denies parent actions on a subpath by default', () => {
@@ -347,7 +378,8 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessOrchestrator.orchestrateStorageAccess();
+      const storageAccessDefinitionOutput =
+        storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[0].document.toJSON(),
@@ -396,6 +428,14 @@ void describe('StorageAccessOrchestrator', () => {
           Version: '2012-10-17',
         }
       );
+      assert.deepStrictEqual(storageAccessDefinitionOutput, {
+        'foo/*': {
+          acceptor1: ['get', 'write'],
+        },
+        'foo/bar/*': {
+          acceptor2: ['get'],
+        },
+      });
     });
 
     void it('combines owner rules for same resource access acceptor', () => {
@@ -428,7 +468,8 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessOrchestrator.orchestrateStorageAccess();
+      const storageAccessDefinitionOutput =
+        storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -457,6 +498,15 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccessMock.mock.calls[0].arguments[1],
         ssmEnvironmentEntriesStub
       );
+      assert.deepStrictEqual(storageAccessDefinitionOutput, {
+        'foo/*/*': {
+          'auth-with-id': ['write', 'delete'],
+          auth: ['get'],
+        },
+        'foo/{idSub}/*': {
+          'auth-with-id': ['write', 'delete'],
+        },
+      });
     });
 
     void it('handles multiple resource access acceptors on multiple prefixes', () => {
@@ -526,7 +576,8 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessOrchestrator.orchestrateStorageAccess();
+      const storageAccessDefinitionOutput =
+        storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock1.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock1.mock.calls[0].arguments[0].document.toJSON(),
@@ -594,6 +645,24 @@ void describe('StorageAccessOrchestrator', () => {
           Version: '2012-10-17',
         }
       );
+      assert.deepStrictEqual(storageAccessDefinitionOutput, {
+        'foo/*': {
+          stub1: ['get', 'write'],
+        },
+        'foo/bar/*': {
+          stub2: ['get'],
+        },
+        'foo/baz/*': {
+          stub1: ['get'],
+        },
+        'other/*/*': {
+          stub1: ['get'],
+          stub2: ['get', 'write', 'delete'],
+        },
+        'other/{idSub}/*': {
+          stub2: ['get', 'write', 'delete'],
+        },
+      });
     });
 
     void it('throws validation error for multiple rules on the same resource access acceptor', () => {
@@ -658,7 +727,8 @@ void describe('StorageAccessOrchestrator', () => {
         storageAccessPolicyFactory
       );
 
-      storageAccessOrchestrator.orchestrateStorageAccess();
+      const storageAccessDefinitionOutput =
+        storageAccessOrchestrator.orchestrateStorageAccess();
       assert.equal(acceptResourceAccessMock.mock.callCount(), 1);
       assert.deepStrictEqual(
         acceptResourceAccessMock.mock.calls[0].arguments[0].document.toJSON(),
@@ -695,6 +765,14 @@ void describe('StorageAccessOrchestrator', () => {
         acceptResourceAccessMock.mock.calls[0].arguments[1],
         ssmEnvironmentEntriesStub
       );
+      assert.deepStrictEqual(storageAccessDefinitionOutput, {
+        'foo/bar/*': {
+          auth: ['read', 'get', 'list'],
+        },
+        'other/baz/*': {
+          auth: ['read'],
+        },
+      });
     });
   });
 });

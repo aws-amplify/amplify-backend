@@ -130,6 +130,45 @@ void describe('StorageGenerator', () => {
       );
     });
 
+    void it('adds access rule definitions to storage instance when access rules are defined', () => {
+      const orchestrateStorageAccessMock = mock.fn();
+      const storageAccessOrchestratorFactoryStub =
+        new StorageAccessOrchestratorFactory();
+      const getInstanceMock = mock.method(
+        storageAccessOrchestratorFactoryStub,
+        'getInstance',
+        () => ({
+          orchestrateStorageAccess: orchestrateStorageAccessMock,
+        })
+      );
+
+      const accessRulesCallback: StorageAccessGenerator = (allow) => ({
+        'path/*': [allow.guest.to(['read'])],
+      });
+
+      const storageGenerator = new StorageContainerEntryGenerator(
+        {
+          name: 'testName',
+          access: accessRulesCallback,
+        },
+        getInstanceProps,
+        storageAccessOrchestratorFactoryStub
+      );
+
+      const storage = storageGenerator.generateContainerEntry(
+        generateContainerEntryProps
+      );
+
+      assert.equal(orchestrateStorageAccessMock.mock.callCount(), 1);
+      assert.equal(
+        getInstanceMock.mock.calls[0].arguments[0],
+        accessRulesCallback
+      );
+      assert.deepStrictEqual(storage.accessDefinition, {
+        'path/*': { guest: ['read'] },
+      });
+    });
+
     void it('configures S3 triggers if defined', () => {
       let counter = 1;
       const stubFunctionFactory: ConstructFactory<
