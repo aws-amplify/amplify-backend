@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/platform-core",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -28,6 +28,7 @@
     "@aws-sdk/client-sts": "^3.624.0",
     "is-ci": "^3.0.1",
     "lodash.mergewith": "^4.6.2",
+    "semver": "^7.6.3",
     "uuid": "^9.0.1",
     "zod": "^3.22.2"
   }

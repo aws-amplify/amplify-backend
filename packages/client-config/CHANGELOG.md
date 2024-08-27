@@ -1,5 +1,17 @@
 # @aws-amplify/client-config
 
+## 1.3.0
+
+### Minor Changes
+
+- 4ea9a5e: re-add the V1 of client config version
+
+### Patch Changes
+
+- 5b6ae85: relax object accumulator to accumulate parts with different versions with same major version
+- Updated dependencies [5b6ae85]
+  - @aws-amplify/platform-core@1.0.7
+
 ## 1.2.1
 
 ### Patch Changes

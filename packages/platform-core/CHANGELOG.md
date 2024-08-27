@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.0.7
+
+### Patch Changes
+
+- 5b6ae85: relax object accumulator to accumulate parts with different versions with same major version
+
 ## 1.0.6
 
 ### Patch Changes
