@@ -99,6 +99,7 @@ export class ApiUsageGenerator {
       namespaceBySymbol: new Map<string, string>(),
       namespaceNames: new Set<string>(),
       topLevelNamespaces: new Set<string>(),
+      aliasedSymbols: new Map<string, string>(),
     };
     for (const statement of this.apiReportAST.statements) {
       if (statement.kind === ts.SyntaxKind.ModuleDeclaration) {
@@ -118,9 +119,22 @@ export class ApiUsageGenerator {
                 const namedExports =
                   exportDeclaration.exportClause as ts.NamedExports;
                 for (const namedExport of namedExports.elements) {
-                  const symbolName = namedExport.name.getText();
+                  let symbolNameInApiView: string;
+                  if (namedExport.propertyName) {
+                    // If property name is present this means that
+                    // API Extractor aliased type definition to avoid duplicate
+                    // end exported from namespace as '${symbolNameInApiView} as ${exportedSymbolName}'
+                    symbolNameInApiView = namedExport.propertyName.getText();
+                    const exportedSymbolName = namedExport.name.getText();
+                    namespaceDefinitions.aliasedSymbols.set(
+                      symbolNameInApiView,
+                      exportedSymbolName
+                    );
+                  } else {
+                    symbolNameInApiView = namedExport.name.getText();
+                  }
                   namespaceDefinitions.namespaceBySymbol.set(
-                    symbolName,
+                    symbolNameInApiView,
                     namespaceName
                   );
                 }
