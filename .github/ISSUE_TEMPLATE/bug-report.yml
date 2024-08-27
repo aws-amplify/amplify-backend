@@ -21,10 +21,18 @@ body:
   - type: textarea
     id: description
     attributes:
-      label: Description
+      label: Describe the bug
       description: |
-        Describe the bug
+        A clear and concise description of the bug you are observing.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: |
         How can this bug be reproduced?
         Please include any code snippets or screenshots that you think would be helpful!
+        For more complex issues provide a repository with the smallest sample that reproduces the issue.
     validations:
       required: true
