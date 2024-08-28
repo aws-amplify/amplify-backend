@@ -62,7 +62,7 @@ export class DependenciesValidator {
     private packagePaths: Array<string>,
     private disallowedDependencies: Record<string, DependencyRule>,
     private linkedDependencies: Array<Array<string>>,
-    private knownInconsistentDependencies: Array<DependencyWithKnownException>,
+    private knownInconsistentDependencyVersions: Array<DependencyWithKnownVersionConsistencyException>,
     private execa = _execa
   ) {}
 
