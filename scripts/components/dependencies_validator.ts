@@ -12,7 +12,7 @@ export type DependencyRule =
       allowList: Array<string>;
     };
 
-export type DependencyWithKnownException = {
+export type DependencyWithKnownVersionConsistencyException = {
   dependencyName: string;
   globalDependencyVersion: string;
   exceptions: Array<{ packageName: string; dependencyVersion: string }>;
@@ -55,7 +55,7 @@ export class DependenciesValidator {
    * @param packagePaths paths of packages to validate
    * @param disallowedDependencies dependency exclusion and inclusion rules
    * @param linkedDependencies dependencies that should be versioned with the same version
-   * @param knownInconsistentDependencies dependencies that are known to violate the consistency check
+   * @param knownInconsistentDependencyVersions dependencies that are known to violate the consistency check
    * @param execa in order to inject execa mock in tests
    */
   constructor(
@@ -251,17 +251,14 @@ export class DependenciesValidator {
   private getPackageVersionDeclarationPredicate = async (
     packageName: string
   ): Promise<DependencyVersionPredicate> => {
-    if (
-      this.knownInconsistentDependencies.find(
-        (a) => a.dependencyName === packageName
-      ) !== undefined
-    ) {
+    const inconsistentDependency =
+      this.knownInconsistentDependencyVersions.find(
+        (x) => x.dependencyName === packageName
+      );
+    if (inconsistentDependency) {
       // @aws-amplify/plugin-types can depend on execa@^5.1.1 as a workaround for https://github.com/aws-amplify/amplify-backend/issues/962
       // all other packages must depend on execa@^8.0.1
       // this can be removed once execa is patched
-      const inconsistentDependency = this.knownInconsistentDependencies.find(
-        (x) => x.dependencyName === packageName
-      );
       return (declarations) => {
         const validationResult = declarations.every(
           ({ dependentPackageName, version }) =>
