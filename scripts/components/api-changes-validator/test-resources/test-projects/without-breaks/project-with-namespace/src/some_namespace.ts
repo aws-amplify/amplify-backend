@@ -1,10 +1,7 @@
 import * as someSubNamespace from './some_sub_namespace.js';
+import { SomeTypeUnderNamespace } from './types.js';
 
-export type SomeTypeUnderNamespace = {
-  someProperty: string;
-};
-
-export { someSubNamespace };
+export { someSubNamespace, SomeTypeUnderNamespace };
 
 export const functionUsingTypes1 = (
   props: SomeTypeUnderNamespace

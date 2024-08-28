@@ -25,4 +25,5 @@ export type NamespaceDefinitions = {
   topLevelNamespaces: Set<string>;
   namespaceNames: Set<string>;
   namespaceBySymbol: Map<string, string>;
+  aliasedSymbols: Map<string, string>;
 };
