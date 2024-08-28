@@ -32,7 +32,7 @@ void describe('generate empty client config to file', () => {
   });
   void it('correctly generates an empty file for client config version 1.1', async () => {
     await generateEmptyClientConfigToFile(
-      ClientConfigVersionOption.V1,
+      ClientConfigVersionOption.V1_1,
       'userOutDir'
     );
     assert.equal(writeFileMock.mock.callCount(), 1);
