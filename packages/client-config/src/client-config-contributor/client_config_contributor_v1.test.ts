@@ -540,6 +540,11 @@ void describe('storage client config contributor v1', () => {
         name: 'testName',
         bucketName: 'testBucketName',
         storageRegion: 'testRegion',
+        paths: {
+          'path/*': {
+            guest: ['read'],
+          },
+        },
       }),
     ]);
     assert.deepStrictEqual(
@@ -562,6 +567,11 @@ void describe('storage client config contributor v1', () => {
               name: 'testName',
               bucket_name: 'testBucketName',
               aws_region: 'testRegion',
+              paths: {
+                'path/*': {
+                  guest: ['read'],
+                },
+              },
             },
           ],
         },
