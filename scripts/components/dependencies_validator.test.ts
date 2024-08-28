@@ -161,18 +161,7 @@ void describe('Dependency validator', () => {
       packagePaths,
       {},
       [],
-      [
-        {
-          dependencyName: 'yargs',
-          globalDependencyVersion: '^8.0.1',
-          exceptions: [
-            {
-              packageName: '@aws-amplify/plugin-types',
-              dependencyVersion: '^6.2.1',
-            },
-          ],
-        },
-      ],
+      [],
       execaMock as never
     );
 
