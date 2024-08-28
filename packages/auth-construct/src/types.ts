@@ -7,6 +7,7 @@ import {
   StandardAttributes,
   StringAttributeConstraints,
   UserPoolIdentityProviderSamlMetadata,
+  UserPoolSESOptions,
 } from 'aws-cdk-lib/aws-cognito';
 export type VerificationEmailWithLink = {
   /**
@@ -409,6 +410,18 @@ export type AuthProps = {
      * Configure OAuth, OIDC, and SAML login providers
      */
     externalProviders?: ExternalProviderOptions;
+  };
+  /**
+   * Configure sending behaviors for Emails or SMS messages sent from your auth resource
+   * @see https://docs.amplify.aws/react/build-a-backend/auth/customize-auth-lifecycle/email-customization/#custom-senders
+   */
+  senders?: {
+    /**
+     * Configure Cognito to send emails from SES
+     * SES configurations enable the use of customized email sender addresses and names
+     * @see https://docs.amplify.aws/react/build-a-backend/auth/moving-to-production/#email
+     */
+    email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
   };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html

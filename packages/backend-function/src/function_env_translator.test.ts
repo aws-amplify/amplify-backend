@@ -134,7 +134,7 @@ void describe('FunctionEnvironmentTranslator', () => {
         );
       },
       {
-        name: 'InvalidFunctionConfiguration',
+        name: 'InvalidFunctionConfigurationError',
       }
     );
   });

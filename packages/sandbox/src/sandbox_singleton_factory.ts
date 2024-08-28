@@ -8,7 +8,7 @@ import { BackendIdSandboxResolver, Sandbox } from './sandbox.js';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import { SSMClient } from '@aws-sdk/client-ssm';
-import { getSecretClient } from '@aws-amplify/backend-secret';
+import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
 import { CloudWatchLogsClient } from '@aws-sdk/client-cloudwatch-logs';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { BackendOutputClientFactory } from '@aws-amplify/deployed-backend-client';
@@ -46,7 +46,7 @@ export class SandboxSingletonFactory {
         this.sandboxIdResolver,
         new AmplifySandboxExecutor(
           backendDeployerFactory.getInstance(),
-          getSecretClient(),
+          getSecretClientWithAmplifyErrorHandling(),
           this.printer
         ),
         new SSMClient(),

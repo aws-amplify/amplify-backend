@@ -57,9 +57,15 @@ export class UsageStatementsRenderer {
           namespaceHierarchy.unshift(currentSymbolName);
         }
       } while (currentSymbolName);
+      const symbolAlias =
+        this.namespaceDefinitions.aliasedSymbols.get(symbolName);
+      let actualSymbolName = symbolName;
+      if (symbolAlias) {
+        actualSymbolName = symbolAlias;
+      }
       const symbolWithNamespace = `${namespaceHierarchy.join(
         '.'
-      )}.${symbolName}`;
+      )}.${actualSymbolName}`;
 
       // characters that can be found before or after symbol
       // this is to prevent partial matches in case one symbol's characters are subset of longer one

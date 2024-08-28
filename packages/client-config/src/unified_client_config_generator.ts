@@ -86,7 +86,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
         error.code === BackendOutputClientErrorType.ACCESS_DENIED
       ) {
         throw new AmplifyUserError(
-          'AccessDenied',
+          'AccessDeniedError',
           {
             message:
               'Unable to get backend outputs due to insufficient permissions.',

@@ -95,7 +95,7 @@ export class FunctionEnvironmentTranslator {
         );
       }
       if (typeof value === 'undefined') {
-        throw new AmplifyUserError('InvalidFunctionConfiguration', {
+        throw new AmplifyUserError('InvalidFunctionConfigurationError', {
           message: `The value of environment variable ${key} is undefined.`,
           resolution: `Ensure that all defineFunction environment variables are defined.`,
         });

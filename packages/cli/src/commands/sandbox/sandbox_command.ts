@@ -70,6 +70,7 @@ export class SandboxCommand
   readonly describe: string;
 
   private sandboxIdentifier?: string;
+  private profile?: string;
 
   /**
    * Creates sandbox command.
@@ -95,6 +96,7 @@ export class SandboxCommand
   ): Promise<void> => {
     const sandbox = await this.sandboxFactory.getInstance();
     this.sandboxIdentifier = args.identifier;
+    this.profile = args.profile;
 
     // attaching event handlers
     const clientConfigLifecycleHandler = new ClientConfigLifecycleHandler(
@@ -287,7 +289,7 @@ export class SandboxCommand
     if (answer)
       await (
         await this.sandboxFactory.getInstance()
-      ).delete({ identifier: this.sandboxIdentifier });
+      ).delete({ identifier: this.sandboxIdentifier, profile: this.profile });
   };
 
   private validateDirectory = async (option: string, dir: string) => {

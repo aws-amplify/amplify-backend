@@ -1,5 +1,30 @@
 # @aws-amplify/backend-cli
 
+## 1.2.5
+
+### Patch Changes
+
+- 5405c87: chore: refactor error handling for secrets client
+- 9720736: Pass profile explicitly to CDK CLI when using `npx ampx sandbox --profile <profile_name>`
+- Updated dependencies [9c50380]
+- Updated dependencies [5405c87]
+- Updated dependencies [9720736]
+  - @aws-amplify/backend-deployer@1.1.0
+  - @aws-amplify/backend-secret@1.1.0
+  - @aws-amplify/sandbox@1.2.0
+
+## 1.2.4
+
+### Patch Changes
+
+- 16b7bbd: fix: classify error for running pipeline-deploy in local as user error
+- 4d4c0d5: Use proper error and fault suffixes.
+- Updated dependencies [66a4267]
+- Updated dependencies [4d4c0d5]
+  - @aws-amplify/backend-deployer@1.0.6
+  - @aws-amplify/model-generator@1.0.5
+  - @aws-amplify/client-config@1.2.1
+
 ## 1.2.3
 
 ### Patch Changes

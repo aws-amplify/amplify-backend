@@ -4,6 +4,10 @@ export type SomeTypeUnderNamespace = {
   someProperty: string;
 }
 
+export type SomeTypeUnderNamespace_2 = {
+  someProperty: string;
+}
+
 type SomeTypeUnderSubNamespace = {
   someOtherProperty: string;
 }
@@ -23,6 +27,12 @@ declare namespace someNamespace {
     someSubNamespace,
     functionUsingTypes1,
     functionUsingTypes2
+  }
+}
+
+declare namespace someNamespaceWithSameType {
+  export {
+    SomeTypeUnderNamespace_2 as SomeTypeUnderNamespace,
   }
 }
 

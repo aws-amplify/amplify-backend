@@ -1,5 +1,11 @@
 # @aws-amplify/backend-secret
 
+## 1.1.0
+
+### Minor Changes
+
+- 5405c87: chore: refactor error handling for secrets client
+
 ## 1.0.1
 
 ### Patch Changes
