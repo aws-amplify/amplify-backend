@@ -105,6 +105,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     | 'CredentialsError'
     | 'InvalidCommandInputError'
     | 'DomainNotFoundError'
+    | 'SyntaxError'
   > => {
     const errorMessage =
       error instanceof Error
@@ -139,6 +140,21 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           message: 'Unable to establish a connection to a domain',
           resolution:
             'Ensure domain name is correct and network connection is stable.',
+        },
+        error
+      );
+    }
+    /**
+     * catches SyntaxErrors that were somehow not instances of AmplifyError
+     * this can be removed once we can properly identify where AmplifyError is being stripped off
+     */
+    if (error instanceof Error && isSyntaxError(error)) {
+      return new AmplifyUserError(
+        'SyntaxError',
+        {
+          message: error.message,
+          resolution:
+            'Check your backend definition in the `amplify` folder for syntax and type errors.',
         },
         error
       );
@@ -178,6 +194,10 @@ const isYargsValidationError = (err?: Error): boolean => {
 
 const isENotFoundError = (err?: Error): boolean => {
   return !!err && err.message.startsWith('getaddrinfo ENOTFOUND');
+};
+
+const isSyntaxError = (err?: Error): boolean => {
+  return !!err && err.name === 'SyntaxError';
 };
 
 /**

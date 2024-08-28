@@ -1,6 +1,6 @@
 import * as nodeTest from 'node:test';
 import { RuleTester } from '@typescript-eslint/rule-tester';
-import { rule } from './no_empty_catch.js';
+import { noEmptyCatchRule } from './no_empty_catch.js';
 
 RuleTester.afterAll = nodeTest.after;
 // See https://typescript-eslint.io/packages/rule-tester/#with-specific-frameworks
@@ -13,7 +13,7 @@ RuleTester.describe = nodeTest.describe;
 
 const ruleTester = new RuleTester();
 
-ruleTester.run('no-empty-catch', rule, {
+ruleTester.run('no-empty-catch', noEmptyCatchRule, {
   valid: [
     'try {} catch (e) { console.log(e); }',
     'try {} catch (e) { \n /* some comment*/ \n console.log(e); }',

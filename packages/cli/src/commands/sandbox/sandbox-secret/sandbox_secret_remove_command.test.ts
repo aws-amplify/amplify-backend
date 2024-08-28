@@ -3,7 +3,7 @@ import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { getSecretClient } from '@aws-amplify/backend-secret';
+import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
 import { printer } from '@aws-amplify/cli-core';
 
@@ -12,7 +12,7 @@ const testBackendId = 'testBackendId';
 const testSandboxName = 'testSandboxName';
 
 void describe('sandbox secret remove command', () => {
-  const secretClient = getSecretClient();
+  const secretClient = getSecretClientWithAmplifyErrorHandling();
   const secretRemoveMock = mock.method(
     secretClient,
     'removeSecret',

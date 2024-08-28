@@ -91,6 +91,10 @@ void describe('deploy command', () => {
           err.error.message,
           /It looks like this command is being run outside of a CI\/CD workflow/
         );
+        assert.deepStrictEqual(
+          err.error.name,
+          'RunningPipelineDeployNotInCiError'
+        );
         return true;
       }
     );

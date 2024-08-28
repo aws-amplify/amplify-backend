@@ -7,7 +7,7 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AppBackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
 import { BackendIdentifierResolverWithFallback } from '../../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
-import { getSecretClient } from '@aws-amplify/backend-secret';
+import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
 
 void describe('generate graphql-client-code command', () => {
@@ -27,7 +27,7 @@ void describe('generate graphql-client-code command', () => {
     sandboxIdResolver
   );
 
-  const secretClient = getSecretClient();
+  const secretClient = getSecretClientWithAmplifyErrorHandling();
 
   const schemaGenerator = new SchemaGenerator();
   const schemaGeneratorGenerateMethod = mock.method(

@@ -66,7 +66,7 @@ export class FunctionEnvironmentTypeGenerator {
 
     const content = `${this.header}${EOL}${
       this.envAssignment
-    } as ${lambdaEnvVarTypeName} & ${amplifyBackendEnvVarTypeName};${EOL}${EOL}${declarations.join(
+    } as unknown as ${lambdaEnvVarTypeName} & ${amplifyBackendEnvVarTypeName};${EOL}${EOL}${declarations.join(
       EOL
     )}`;
 

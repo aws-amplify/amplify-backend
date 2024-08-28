@@ -4,6 +4,7 @@ import {
   BackendDeployer,
   DeployProps,
   DeployResult,
+  DestroyProps,
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
@@ -56,6 +57,10 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
 
+    if (deployProps?.profile) {
+      cdkCommandArgs.push('--profile', deployProps.profile);
+    }
+
     // first synth with the backend definition but suppress any errors.
     // We want to show errors from the TS compiler rather than the ESBuild as
     // TS errors are more relevant (Library validations are type reliant).
@@ -102,12 +107,19 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk destroy command
    */
-  destroy = async (backendId: BackendIdentifier) => {
+  destroy = async (
+    backendId: BackendIdentifier,
+    destroyProps?: DestroyProps
+  ) => {
+    const cdkCommandArgs: string[] = ['--force'];
+    if (destroyProps?.profile) {
+      cdkCommandArgs.push('--profile', destroyProps.profile);
+    }
     return this.tryInvokeCdk(
       InvokableCommand.DESTROY,
       backendId,
       this.getAppCommand(),
-      ['--force']
+      cdkCommandArgs
     );
   };
 

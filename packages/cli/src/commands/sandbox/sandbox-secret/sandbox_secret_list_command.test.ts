@@ -3,7 +3,10 @@ import yargs from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
+import {
+  SecretListItem,
+  getSecretClientWithAmplifyErrorHandling,
+} from '@aws-amplify/backend-secret';
 import { SandboxSecretListCommand } from './sandbox_secret_list_command.js';
 import { format, printer } from '@aws-amplify/cli-core';
 
@@ -24,7 +27,7 @@ void describe('sandbox secret list command', () => {
   const listSecretsResponseMock = mock.fn<() => Promise<SecretListItem[]>>(
     async () => testSecrets
   );
-  const secretClient = getSecretClient();
+  const secretClient = getSecretClientWithAmplifyErrorHandling();
   const secretListMock = mock.method(
     secretClient,
     'listSecrets',

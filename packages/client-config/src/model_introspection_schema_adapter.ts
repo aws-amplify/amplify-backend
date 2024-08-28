@@ -37,7 +37,7 @@ export class ModelIntrospectionSchemaAdapter {
     ).getResults();
     const generatedModelFiles = Object.values(generatedModels);
     if (generatedModelFiles.length !== 1) {
-      throw new AmplifyFault('UnexpectedModelIntrospectionSchema', {
+      throw new AmplifyFault('UnexpectedModelIntrospectionSchemaFault', {
         message: `A single model introspection schema is expected, received ${generatedModelFiles.length} values.`,
       });
     }
@@ -46,7 +46,7 @@ export class ModelIntrospectionSchemaAdapter {
       return JSON.parse(generatedModelFiles[0]);
     } catch (e) {
       throw new AmplifyFault(
-        'InvalidModelIntrospectionSchema',
+        'InvalidModelIntrospectionSchemaFault',
         {
           message:
             'Caught exception while converting introspection schema to JSON representation',

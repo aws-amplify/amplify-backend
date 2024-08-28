@@ -17,6 +17,7 @@
   "backends",
   "birthdate",
   "bundler",
+  "callee",
   "cdk",
   "changelog",
   "changeset",
