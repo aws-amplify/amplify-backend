@@ -148,4 +148,30 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       }
     );
   });
+
+  void it('checks if only unique Arns are being used', () => {
+    const duplicateArn =
+      'arn:aws:lambda:us-east-1:123456789012:layer:my-layer:1';
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'lambdaWithDuplicateLayers',
+      layers: {
+        layer1: duplicateArn,
+        layer2: duplicateArn,
+        layer3: duplicateArn,
+        layer4: duplicateArn,
+        layer5: duplicateArn,
+        layer6: duplicateArn,
+      },
+    });
+
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'index.handler',
+      Layers: [duplicateArn],
+    });
+  });
 });

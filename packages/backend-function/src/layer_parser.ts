@@ -21,9 +21,7 @@ export class FunctionLayerArnParser {
     functionName: string
   ): Record<string, string> {
     const validLayers: Record<string, string> = {};
-
-    const uniqueArns = new Set<string>(Object.values(layers));
-    this.validateLayerCount(uniqueArns);
+    const uniqueArns = new Map<string, string>();
 
     for (const [key, arn] of Object.entries(layers)) {
       if (!this.isValidLayerArn(arn)) {
@@ -32,8 +30,18 @@ export class FunctionLayerArnParser {
           resolution: `Update the layer ARN with the expected format: arn:aws:lambda:<current-region>:<account-id>:layer:<layer-name>:<version> for function: ${functionName}`,
         });
       }
-      validLayers[key] = arn;
+      // Add ARN to the Map with the first encountered key
+      if (!uniqueArns.has(arn)) {
+        uniqueArns.set(arn, key);
+      }
     }
+
+    this.validateLayerCount(new Set(uniqueArns.keys()));
+
+    // Construct validLayers with the unique ARNs and their associated keys
+    uniqueArns.forEach((key, arn) => {
+      validLayers[key] = arn;
+    });
 
     return validLayers;
   }

@@ -2,4 +2,4 @@
 '@aws-amplify/backend-function': minor
 ---
 
-adds layers to defineFunction
+adds support to reference existing layers in defineFunction
