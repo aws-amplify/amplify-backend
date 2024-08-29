@@ -123,7 +123,9 @@ void describe('Dependency validator', () => {
     );
   });
 
+  //** make a new test or two -- will probably be similar to the one below (requires more thinking than I am able to do right now)
   void it('can detect inconsistent dependency declarations', async () => {
+    //** detects whether there are inconsistent dependency declarations and throws an error if true
     await assert.rejects(
       async () => {
         const packagePaths = await glob(
@@ -153,6 +155,66 @@ void describe('Dependency validator', () => {
     );
   });
 
+  void it('passes if dependency declaration that is known to be inconsistent uses multiple versions', async () => {
+    const packagePaths = await glob(
+      'scripts/components/test-resources/dependency-version-inconsistent-test-packages/*'
+    );
+    await new DependenciesValidator(
+      packagePaths,
+      {},
+      [],
+      [
+        {
+          dependencyName: 'glob',
+          globalDependencyVersion: '^7.2.0',
+          exceptions: [
+            {
+              packageName: 'package2',
+              dependencyVersion: '^3.4.0',
+            },
+            {
+              packageName: 'package3',
+              dependencyVersion: '^1.6.0',
+            },
+          ],
+        },
+      ],
+      execaMock as never
+    ).validate();
+  });
+  /*
+  void it('passes if multiple dependency declarations are known to be inconsistent', async () => {
+    const packagePaths = await glob('');
+    await new DependenciesValidator(
+      packagePaths,
+      {},
+      [],
+      [
+        {
+          dependencyName: 'glob',
+          globalDependencyVersion: '',
+          exceptions: [
+            {
+              packageName: '',
+              dependencyVersion: ''
+            }
+          ]
+        },
+        {
+          dependencyName: 'yargs',
+          globalDependencyVersion: '',
+          exceptions: [
+            {
+              packageName: '',
+              dependencyVersion: ''
+            }
+          ]
+        }
+      ],
+      execaMock as never
+    ).validate();
+  });
+*/
   void it('can detect inconsistent major versions of repo packages', async () => {
     const packagePaths = await glob(
       'scripts/components/test-resources/inter-repo-dependency-version-consistency-test-packages/*'

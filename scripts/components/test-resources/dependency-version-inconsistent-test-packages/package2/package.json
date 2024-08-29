@@ -1,0 +1,12 @@
+{
+  "name": "package2",
+  "dependencies": {
+    "glob": "^3.4.0"
+  },
+  "devDependencies": {
+    "zod": "^3.8.2-alpha.6"
+  },
+  "peerDependencies": {
+    "yargs": "~14.2.3"
+  }
+}
