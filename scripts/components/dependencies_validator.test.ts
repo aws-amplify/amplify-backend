@@ -123,9 +123,7 @@ void describe('Dependency validator', () => {
     );
   });
 
-  //** make a new test or two -- will probably be similar to the one below (requires more thinking than I am able to do right now)
   void it('can detect inconsistent dependency declarations', async () => {
-    //** detects whether there are inconsistent dependency declarations and throws an error if true
     await assert.rejects(
       async () => {
         const packagePaths = await glob(
@@ -184,7 +182,9 @@ void describe('Dependency validator', () => {
   });
 
   void it('passes if multiple dependency declarations are known to be inconsistent', async () => {
-    const packagePaths = await glob('');
+    const packagePaths = await glob(
+      'scripts/components/test-resources/dependency-version-multiple-inconsistencies-test-packages/*'
+    );
     await new DependenciesValidator(
       packagePaths,
       {},
@@ -205,7 +205,7 @@ void describe('Dependency validator', () => {
           globalDependencyVersion: '^3.8.2-alpha.6',
           exceptions: [
             {
-              packageName: 'pacakge2',
+              packageName: 'package2',
               dependencyVersion: '^2.0.0',
             },
           ],
@@ -213,6 +213,46 @@ void describe('Dependency validator', () => {
       ],
       execaMock as never
     ).validate();
+  });
+
+  void it('can detect unknown inconsistent dependency delcarations when known inconsistent dependency delcarations are present', async () => {
+    await assert.rejects(
+      async () => {
+        const packagePaths = await glob(
+          'scripts/components/test-resources/dependency-version-multiple-inconsistencies-test-packages/*'
+        );
+        await new DependenciesValidator(
+          packagePaths,
+          {},
+          [],
+          [
+            {
+              dependencyName: 'glob',
+              globalDependencyVersion: '^7.2.0',
+              exceptions: [
+                {
+                  packageName: 'package3',
+                  dependencyVersion: '^5.3.0',
+                },
+              ],
+            },
+          ],
+          execaMock as never
+        ).validate();
+      },
+      (err: Error) => {
+        assert.ok(
+          err.message.includes(
+            'dependency declarations must all the on the same semver range'
+          )
+        );
+        assert.ok(err.message.includes('zod'));
+        assert.ok(err.message.includes('package1'));
+        assert.ok(err.message.includes('package2'));
+        assert.ok(err.message.includes('package3'));
+        return true;
+      }
+    );
   });
 
   void it('can detect inconsistent major versions of repo packages', async () => {
