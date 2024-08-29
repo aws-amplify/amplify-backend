@@ -6,6 +6,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Locate NPM cache
+      id: locateNpmCache
+      shell: bash
+      run: |
+        echo "$(npm config get cache)"
+        echo "npm_cache_path=$(npm config get cache)" >> "$GITHUB_OUTPUT"
     # cache node_modules based on package-lock.json hash
     - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # version 4.0.2
       id: npm-cache
