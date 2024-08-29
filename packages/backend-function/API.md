@@ -16,6 +16,9 @@ export type AddEnvironmentFactory = {
 };
 
 // @public (undocumented)
+export type ArchitectureType = 'x86_64' | 'arm64';
+
+// @public (undocumented)
 export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
 
 // @public
@@ -29,6 +32,7 @@ export type FunctionProps = {
     memoryMB?: number;
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
+    architecture?: ArchitectureType;
     schedule?: FunctionSchedule | FunctionSchedule[];
 };
 

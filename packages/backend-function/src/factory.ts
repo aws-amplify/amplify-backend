@@ -1,4 +1,10 @@
 import {
+  FunctionOutput,
+  functionOutputKey,
+} from '@aws-amplify/backend-output-schemas';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import {
   BackendOutputStorageStrategy,
   BackendSecret,
   BackendSecretResolver,
@@ -12,28 +18,22 @@ import {
   ResourceProvider,
   SsmEnvironmentEntry,
 } from '@aws-amplify/plugin-types';
-import { Construct } from 'constructs';
-import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
-import * as path from 'path';
-import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
-import { CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { createRequire } from 'module';
-import { FunctionEnvironmentTranslator } from './function_env_translator.js';
-import { Policy } from 'aws-cdk-lib/aws-iam';
-import { readFileSync } from 'fs';
-import { EOL } from 'os';
-import {
-  FunctionOutput,
-  functionOutputKey,
-} from '@aws-amplify/backend-output-schemas';
-import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
-import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'node:url';
-import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
-import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Rule } from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+import { Architecture, CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Construct } from 'constructs';
+import { readFileSync } from 'fs';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'node:url';
+import { EOL } from 'os';
+import * as path from 'path';
+import { FunctionEnvironmentTranslator } from './function_env_translator.js';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
+import { getCallerDirectory } from './get_caller_directory.js';
+import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
 const functionStackType = 'function-Lambda';
 
@@ -110,6 +110,13 @@ export type FunctionProps = {
   runtime?: NodeVersion;
 
   /**
+   * The architecture of the target platform for the function.
+   * Defaults to x86_64.
+   * @see [AWS Lambda architectures](https://docs.aws.amazon.com/lambda/latest/dg/foundation-arch.html)
+   */
+  architecture?: ArchitectureType;
+
+  /**
    * A time interval string to periodically run the function.
    * This can be either a string of `"every <positive whole number><m (minute) or h (hour)>"`, `"every day|week|month|year"` or cron expression.
    * Defaults to no scheduling for the function.
@@ -165,6 +172,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       memoryMB: this.resolveMemory(),
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
+      architecture: this.resolveArchitecture(),
       schedule: this.resolveSchedule(),
     };
   };
@@ -254,6 +262,23 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
 
     return this.props.runtime;
+  };
+
+  private resolveArchitecture = () => {
+    // if architecture is not set, default to x86_64
+    if (!this.props.architecture) {
+      return 'x86_64';
+    }
+
+    if (!(this.props.architecture in architectureMap)) {
+      throw new Error(
+        `architecture must be one of the following: ${Object.keys(
+          architectureMap
+        ).join(', ')}`
+      );
+    }
+
+    return this.props.architecture;
   };
 
   private resolveSchedule = () => {
@@ -349,6 +374,7 @@ class AmplifyFunction
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
         runtime: nodeVersionMap[props.runtime],
+        architecture: architectureMap[props.architecture],
         bundling: {
           format: OutputFormat.ESM,
           banner: bannerCode,
@@ -474,4 +500,10 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
+};
+
+export type ArchitectureType = 'x86_64' | 'arm64';
+const architectureMap: Record<ArchitectureType, Architecture> = {
+  x86_64: Architecture.X86_64,
+  arm64: Architecture.ARM_64,
 };
