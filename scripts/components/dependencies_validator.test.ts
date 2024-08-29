@@ -182,7 +182,7 @@ void describe('Dependency validator', () => {
       execaMock as never
     ).validate();
   });
-  /*
+
   void it('passes if multiple dependency declarations are known to be inconsistent', async () => {
     const packagePaths = await glob('');
     await new DependenciesValidator(
@@ -192,29 +192,29 @@ void describe('Dependency validator', () => {
       [
         {
           dependencyName: 'glob',
-          globalDependencyVersion: '',
+          globalDependencyVersion: '^7.2.0',
           exceptions: [
             {
-              packageName: '',
-              dependencyVersion: ''
-            }
-          ]
+              packageName: 'package3',
+              dependencyVersion: '^5.3.0',
+            },
+          ],
         },
         {
-          dependencyName: 'yargs',
-          globalDependencyVersion: '',
+          dependencyName: 'zod',
+          globalDependencyVersion: '^3.8.2-alpha.6',
           exceptions: [
             {
-              packageName: '',
-              dependencyVersion: ''
-            }
-          ]
-        }
+              packageName: 'pacakge2',
+              dependencyVersion: '^2.0.0',
+            },
+          ],
+        },
       ],
       execaMock as never
     ).validate();
   });
-*/
+
   void it('can detect inconsistent major versions of repo packages', async () => {
     const packagePaths = await glob(
       'scripts/components/test-resources/inter-repo-dependency-version-consistency-test-packages/*'
