@@ -5,8 +5,10 @@
 ```ts
 
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { DocumentType } from '@smithy/types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import * as runtime from '@aws-amplify/ai-constructs/conversation/runtime';
 
 declare namespace __export__conversation {
     export {
@@ -15,6 +17,19 @@ declare namespace __export__conversation {
     }
 }
 export { __export__conversation }
+
+declare namespace __export__conversation_runtime {
+    export {
+        ToolResultContentBlock,
+        ExecutableTool,
+        ConversationTurnEvent,
+        handleConversationTurnEvent
+    }
+}
+export { __export__conversation_runtime }
+
+// @public (undocumented)
+type ConversationTurnEvent = runtime.ConversationTurnEvent;
 
 // @public
 const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
@@ -30,6 +45,19 @@ type DefineConversationHandlerFunctionProps = {
         region?: string;
     }>;
 };
+
+// @public (undocumented)
+type ExecutableTool = runtime.ToolDefinition & {
+    execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
+};
+
+// @public (undocumented)
+const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
+    tools?: Array<ExecutableTool>;
+}) => Promise<void>;
+
+// @public (undocumented)
+type ToolResultContentBlock = runtime.ToolResultContentBlock;
 
 // (No @packageDocumentation comment for this package)
 

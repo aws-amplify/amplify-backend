@@ -1,9 +1,9 @@
 import {
   ConversationTurnEvent,
   ExecutableTool,
+  ToolResultContentBlock,
   handleConversationTurnEvent,
-} from '@aws-amplify/ai-constructs/conversation/runtime';
-import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
+} from '@aws-amplify/backend-ai/conversation/runtime';
 import { expectedTemperatureInProgrammaticToolScenario } from '../constants.js';
 
 const thermometer: ExecutableTool = {
