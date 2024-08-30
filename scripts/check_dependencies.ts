@@ -21,5 +21,20 @@ await new DependenciesValidator(
       ],
     },
   },
-  [['aws-cdk', 'aws-cdk-lib']]
+  [['aws-cdk', 'aws-cdk-lib']],
+  [
+    {
+      // @aws-amplify/plugin-types can depend on execa@^5.1.1 as a workaround for https://github.com/aws-amplify/amplify-backend/issues/962
+      // all other packages must depend on execa@^8.0.1
+      // this can be removed once execa is patched
+      dependencyName: 'execa',
+      globalDependencyVersion: '^8.0.1',
+      exceptions: [
+        {
+          packageName: '@aws-amplify/plugin-types',
+          dependencyVersion: '^5.1.1',
+        },
+      ],
+    },
+  ]
 ).validate();
