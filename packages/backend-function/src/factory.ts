@@ -118,7 +118,7 @@ export type FunctionProps = {
    * @example
    * schedule: "every week"
    * @example
-   * schedule: "0 9 * * 2" // every Monday at 9am
+   * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
 };
