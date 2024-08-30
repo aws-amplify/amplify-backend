@@ -6,12 +6,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Locate local NPM cache
-      id: locate-local-npm-cache
-      shell: bash
-      run: |
-        echo "$(npm config get cache)"
-        echo "npm_cache_path=$(npm config get cache)" >> "$GITHUB_OUTPUT"
     # cache node_modules based on package-lock.json hash
     - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # version 4.0.2
       id: npm-cache
@@ -19,8 +13,7 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-          ${{ steps.locate-local-npm-cache.outputs.npm_cache_path }}
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-v2
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash

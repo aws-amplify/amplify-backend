@@ -18,7 +18,7 @@ void describe(
     const npmProxyController = new NpmProxyController();
 
     before(async () => {
-      //await npmProxyController.setUp();
+      await npmProxyController.setUp();
 
       // Prefixing with ~. Otherwise, npm is going to install desired version but
       // declare dependency with ^ in package json. So just in case removing that
@@ -28,7 +28,7 @@ void describe(
     });
 
     after(async () => {
-      //await npmProxyController.tearDown();
+      await npmProxyController.tearDown();
     });
 
     const startDelayIntervalMS = 1000 * 20; // start tests 20 seconds apart to avoid file hot spots
