@@ -6,8 +6,8 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Locate NPM cache
-      id: locate-npm-cache
+    - name: Locate local NPM cache
+      id: locate-local-npm-cache
       shell: bash
       run: |
         echo "$(npm config get cache)"
@@ -19,7 +19,7 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-          ${{ steps.locate-npm-cache.outputs.npm_cache_path }}
+          ${{ steps.locate-local-npm-cache.outputs.npm_cache_path }}
         key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-v2
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
