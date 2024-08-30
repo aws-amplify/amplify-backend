@@ -5,7 +5,6 @@
 ```ts
 
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ConversationHandlerFunctionProps } from '@aws-amplify/ai-constructs/conversation';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
@@ -23,7 +22,14 @@ const defineConversationHandlerFunction: (props: DefineConversationHandlerFuncti
 // @public (undocumented)
 type DefineConversationHandlerFunctionProps = {
     name: string;
-} & ConversationHandlerFunctionProps;
+    entry?: string;
+    models: Array<{
+        modelId: string | {
+            resourcePath: string;
+        };
+        region?: string;
+    }>;
+};
 
 // (No @packageDocumentation comment for this package)
 

@@ -29,10 +29,25 @@ class ConversationHandlerFunctionGenerator
   ) {}
 
   generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
+    const constructProps: ConversationHandlerFunctionProps = {
+      entry: this.props.entry,
+      models: this.props.models.map((model) => {
+        let modelId;
+        if (typeof model.modelId === 'string') {
+          modelId = model.modelId;
+        } else {
+          modelId = model.modelId.resourcePath;
+        }
+        return {
+          modelId,
+          region: model.region,
+        };
+      }),
+    };
     const conversationHandlerFunction = new ConversationHandlerFunction(
       scope,
       this.props.name,
-      this.props
+      constructProps
     );
     this.storeOutput(this.outputStorageStrategy, conversationHandlerFunction);
     return conversationHandlerFunction;
@@ -110,7 +125,17 @@ class ConversationHandlerFunctionFactory
 
 export type DefineConversationHandlerFunctionProps = {
   name: string;
-} & ConversationHandlerFunctionProps;
+  entry?: string;
+  models: Array<{
+    modelId:
+      | string
+      | {
+          // This is to match return of 'a.ai.model.anthropic.claude3Haiku()'
+          resourcePath: string;
+        };
+    region?: string;
+  }>;
+};
 
 /**
  * Entry point for defining a conversation handler function in the Amplify ecosystem
