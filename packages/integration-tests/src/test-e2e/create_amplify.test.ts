@@ -12,7 +12,7 @@ import { NpmProxyController } from '../npm_proxy_controller.js';
 
 void describe(
   'create-amplify script',
-  { concurrency: testConcurrencyLevel },
+  { concurrency: process.platform === 'win32' ? false : testConcurrencyLevel },
   () => {
     let baselineCdkVersion: string;
     const npmProxyController = new NpmProxyController();
