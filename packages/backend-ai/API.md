@@ -18,7 +18,7 @@ declare namespace __export__conversation {
 }
 export { __export__conversation }
 
-declare namespace __export__conversation_runtime {
+declare namespace __export__conversation__runtime {
     export {
         ToolResultContentBlock,
         ExecutableTool,
@@ -26,7 +26,7 @@ declare namespace __export__conversation_runtime {
         handleConversationTurnEvent
     }
 }
-export { __export__conversation_runtime }
+export { __export__conversation__runtime }
 
 // @public (undocumented)
 type ConversationTurnEvent = runtime.ConversationTurnEvent;
