@@ -1,22 +1,22 @@
-import { beforeEach, describe, it, mock } from 'node:test';
-import { App, Stack } from 'aws-cdk-lib';
-import {
-  ConstructFactoryGetInstanceProps,
-  ResourceNameValidator,
-} from '@aws-amplify/plugin-types';
-import assert from 'node:assert';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
   ResourceNameValidatorStub,
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
-import { defaultLambda } from './test-assets/default-lambda/resource.js';
+import {
+  ConstructFactoryGetInstanceProps,
+  ResourceNameValidator,
+} from '@aws-amplify/plugin-types';
+import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { NodeVersion, defineFunction } from './factory.js';
-import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import assert from 'node:assert';
+import { beforeEach, describe, it, mock } from 'node:test';
+import { NodeVersion, defineFunction } from './factory.js';
+import { defaultLambda } from './test-assets/default-lambda/resource.js';
+import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -331,6 +331,31 @@ void describe('AmplifyFunctionFactory', () => {
       const currentDate = new Date();
 
       assert.ok(endDate > currentDate);
+    });
+  });
+
+  void describe('architectures property', () => {
+    void it('sets valid architectures', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        architecture: 'arm64',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Architectures: ['arm64'],
+      });
+    });
+
+    void it('defaults to x86_64 architecture', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Architectures: ['x86_64'],
+      });
     });
   });
 
