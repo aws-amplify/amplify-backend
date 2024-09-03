@@ -6,12 +6,11 @@
 
 /// <reference types="node" />
 
+import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
 import { DocumentType } from '@smithy/types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { ToolInputSchema } from '@aws-sdk/client-bedrock-runtime';
-import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
 
 declare namespace conversation {
     export {
@@ -45,9 +44,7 @@ type ConversationMessage = {
 };
 
 // @public (undocumented)
-type ConversationMessageContentBlock = {
-    text: string;
-};
+type ConversationMessageContentBlock = bedrock.ContentBlock;
 
 // @public (undocumented)
 type ConversationTurnEvent = {
@@ -104,7 +101,9 @@ declare namespace runtime {
         ConversationTurnEvent,
         ExecutableTool,
         handleConversationTurnEvent,
-        ToolDefinition
+        ToolDefinition,
+        ToolInputSchema,
+        ToolResultContentBlock
     }
 }
 
@@ -114,6 +113,12 @@ type ToolDefinition = {
     description: string;
     inputSchema: ToolInputSchema;
 };
+
+// @public (undocumented)
+type ToolInputSchema = bedrock.ToolInputSchema;
+
+// @public (undocumented)
+type ToolResultContentBlock = bedrock.ToolResultContentBlock;
 
 // (No @packageDocumentation comment for this package)
 

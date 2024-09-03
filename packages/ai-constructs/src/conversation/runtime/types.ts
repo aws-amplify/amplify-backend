@@ -1,7 +1,4 @@
-import {
-  ToolInputSchema,
-  ToolResultContentBlock,
-} from '@aws-sdk/client-bedrock-runtime';
+import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { DocumentType } from '@smithy/types';
 
 /*
@@ -10,14 +7,15 @@ import { DocumentType } from '@smithy/types';
   public API consumer and potentially pollute syntax assist in IDEs.
  */
 
+export type ToolInputSchema = bedrock.ToolInputSchema;
+export type ToolResultContentBlock = bedrock.ToolResultContentBlock;
+
 export type ConversationMessage = {
   role: 'user' | 'assistant';
   content: Array<ConversationMessageContentBlock>;
 };
 
-export type ConversationMessageContentBlock = {
-  text: string;
-};
+export type ConversationMessageContentBlock = bedrock.ContentBlock;
 
 export type ToolDefinition = {
   name: string;

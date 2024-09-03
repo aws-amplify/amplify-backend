@@ -77,6 +77,63 @@ void describe('ConversationHandlerFactory', () => {
     });
   });
 
+  void it('accepts modelId as string', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [
+        {
+          modelId: 'testModelId',
+          region: 'testModelRegion',
+        },
+      ],
+    });
+    const lambda = factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::IAM::Policy', 1);
+    const policy = Object.values(template.findResources('AWS::IAM::Policy'))[0];
+    assert.ok(
+      policy.Properties.PolicyDocument.Statement[0].Resource.includes(
+        'testModelId'
+      )
+    );
+    assert.ok(
+      policy.Properties.PolicyDocument.Statement[0].Resource.includes(
+        'testModelRegion'
+      )
+    );
+  });
+
+  void it('accepts modelId as schema type', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [
+        {
+          modelId: {
+            // this mocks 'a.ai.model.anthropic.claude3Haiku()'
+            resourcePath: 'testModelId',
+          },
+          region: 'testModelRegion',
+        },
+      ],
+    });
+    const lambda = factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::IAM::Policy', 1);
+    const policy = Object.values(template.findResources('AWS::IAM::Policy'))[0];
+    assert.ok(
+      policy.Properties.PolicyDocument.Statement[0].Resource.includes(
+        'testModelId'
+      )
+    );
+    assert.ok(
+      policy.Properties.PolicyDocument.Statement[0].Resource.includes(
+        'testModelRegion'
+      )
+    );
+  });
+
   void it('throws if resourceNameValidator detects an invalid name', () => {
     mock
       .method(resourceNameValidator, 'validate')
