@@ -69,7 +69,7 @@ export class UsageStatementsRenderer {
 
       // characters that can be found before or after symbol
       // this is to prevent partial matches in case one symbol's characters are subset of longer one
-      const symbolTerminators = '[\\s\\,\\(\\)<>]';
+      const symbolTerminators = '[\\s\\,\\(\\)<>;]';
       const regex = new RegExp(
         `(${symbolTerminators})(${symbolName})(${symbolTerminators})`,
         'g'
