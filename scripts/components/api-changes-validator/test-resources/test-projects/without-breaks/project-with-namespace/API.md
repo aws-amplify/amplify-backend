@@ -12,9 +12,14 @@ type SomeTypeUnderSubNamespace = {
   someOtherProperty: string;
 }
 
+type SomeOtherTypeUnderSubNamespace = {
+  someProperty: SomeTypeUnderSubNamespace;
+};
+
 declare namespace someSubNamespace {
   export {
-    SomeTypeUnderSubNamespace
+    SomeTypeUnderSubNamespace,
+    SomeOtherTypeUnderSubNamespace
   }
 }
 
