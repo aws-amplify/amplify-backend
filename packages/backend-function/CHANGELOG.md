@@ -1,5 +1,15 @@
 # @aws-amplify/backend-function
 
+## 1.4.0
+
+### Minor Changes
+
+- 038b54d: update cron jsdoc example
+
+### Patch Changes
+
+- 99c8b6a: Add new @aws-amplify/ai-constructs and @aws-amplify/backend-ai packages with a conversation handler.
+
 ## 1.3.4
 
 ### Patch Changes
