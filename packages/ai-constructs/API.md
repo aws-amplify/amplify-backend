@@ -8,9 +8,9 @@
 
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
-import { DocumentType } from '@smithy/types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import * as smithy from '@smithy/types';
 
 declare namespace conversation {
     export {
@@ -92,7 +92,7 @@ type ConversationTurnEvent = {
 
 // @public (undocumented)
 type ExecutableTool = ToolDefinition & {
-    execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
+    execute: (input: ToolExecutionInput | undefined) => Promise<ToolResultContentBlock>;
 };
 
 // @public
@@ -108,6 +108,7 @@ declare namespace runtime {
         ExecutableTool,
         handleConversationTurnEvent,
         ToolDefinition,
+        ToolExecutionInput,
         ToolInputSchema,
         ToolResultContentBlock
     }
@@ -119,6 +120,9 @@ type ToolDefinition = {
     description: string;
     inputSchema: ToolInputSchema;
 };
+
+// @public (undocumented)
+type ToolExecutionInput = smithy.DocumentType;
 
 // @public (undocumented)
 type ToolInputSchema = bedrock.ToolInputSchema;

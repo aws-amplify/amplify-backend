@@ -4,6 +4,7 @@ import {
   ConversationTurnEvent,
   ExecutableTool,
   ToolDefinition,
+  ToolExecutionInput,
   ToolInputSchema,
   ToolResultContentBlock,
 } from './types.js';
@@ -17,6 +18,7 @@ export {
   ExecutableTool,
   handleConversationTurnEvent,
   ToolDefinition,
+  ToolExecutionInput,
   ToolInputSchema,
   ToolResultContentBlock,
 };
