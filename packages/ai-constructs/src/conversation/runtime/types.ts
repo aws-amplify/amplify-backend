@@ -1,5 +1,5 @@
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
-import { DocumentType } from '@smithy/types';
+import * as smithy from '@smithy/types';
 
 /*
   Notice: This file contains types that are exposed publicly.
@@ -9,6 +9,7 @@ import { DocumentType } from '@smithy/types';
 
 export type ToolInputSchema = bedrock.ToolInputSchema;
 export type ToolResultContentBlock = bedrock.ToolResultContentBlock;
+export type ToolExecutionInput = smithy.DocumentType;
 
 export type ConversationMessage = {
   role: 'user' | 'assistant';
@@ -65,5 +66,7 @@ export type ConversationTurnEvent = {
 };
 
 export type ExecutableTool = ToolDefinition & {
-  execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
+  execute: (
+    input: ToolExecutionInput | undefined
+  ) => Promise<ToolResultContentBlock>;
 };

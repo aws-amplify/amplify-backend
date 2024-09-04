@@ -8,9 +8,9 @@
 
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
-import { DocumentType } from '@smithy/types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import * as smithy from '@smithy/types';
 
 declare namespace conversation {
     export {
@@ -86,7 +86,7 @@ type ConversationTurnEvent = {
 
 // @public (undocumented)
 type ExecutableTool = ToolDefinition & {
-    execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
+    execute: (input: ToolExecutionInput | undefined) => Promise<ToolResultContentBlock>;
 };
 
 // @public
@@ -119,6 +119,10 @@ type ToolInputSchema = bedrock.ToolInputSchema;
 
 // @public (undocumented)
 type ToolResultContentBlock = bedrock.ToolResultContentBlock;
+
+// Warnings were encountered during analysis:
+//
+// src/conversation/runtime/types.ts:69:3 - (ae-forgotten-export) The symbol "ToolExecutionInput" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
