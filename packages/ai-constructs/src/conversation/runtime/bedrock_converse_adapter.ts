@@ -73,7 +73,7 @@ export class BedrockConverseAdapter {
     const { modelId, systemPrompt, inferenceConfiguration } =
       this.event.modelConfiguration;
 
-    const messages: Array<Message> = [...this.event.messages]; // clone, so we don't mutate inputs
+    const messages: Array<Message> = this.getEventMessagesAsBedrockMessages();
 
     let bedrockResponse: ConverseCommandOutput;
     do {
@@ -117,6 +117,38 @@ export class BedrockConverseAdapter {
     } while (bedrockResponse.stopReason === 'tool_use');
 
     return bedrockResponse.output?.message?.content ?? [];
+  };
+
+  /**
+   * Maps event messages to Bedrock types.
+   * 1. Makes a copy so that we don't mutate event.
+   * 2. Decodes Base64 encoded images.
+   */
+  private getEventMessagesAsBedrockMessages = (): Array<Message> => {
+    const messages: Array<Message> = [];
+    for (const message of this.event.messages) {
+      const messageContent: Array<ContentBlock> = [];
+      for (const contentElement of message.content) {
+        if (typeof contentElement.image?.source?.bytes === 'string') {
+          messageContent.push({
+            image: {
+              format: contentElement.image.format,
+              source: {
+                bytes: Buffer.from(contentElement.image.source.bytes, 'base64'),
+              },
+            },
+          });
+        } else {
+          // Otherwise type conforms to Bedrock's type and it's safe to cast.
+          messageContent.push(contentElement as ContentBlock);
+        }
+      }
+      messages.push({
+        role: message.role,
+        content: messageContent,
+      });
+    }
+    return messages;
   };
 
   private createToolConfiguration = (): ToolConfiguration | undefined => {
