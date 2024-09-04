@@ -44,7 +44,13 @@ type ConversationMessage = {
 };
 
 // @public (undocumented)
-type ConversationMessageContentBlock = bedrock.ContentBlock;
+type ConversationMessageContentBlock = bedrock.ContentBlock | {
+    image: Omit<bedrock.ImageBlock, 'source'> & {
+        source: {
+            bytes: string;
+        };
+    };
+};
 
 // @public (undocumented)
 type ConversationTurnEvent = {
