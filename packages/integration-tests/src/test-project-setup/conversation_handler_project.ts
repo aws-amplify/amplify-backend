@@ -29,6 +29,8 @@ import {
   expectedTemperatureInDataToolScenario,
   expectedTemperatureInProgrammaticToolScenario,
 } from '../test-projects/conversation-handler/amplify/constants.js';
+import { resolve } from 'path';
+import { fileURLToPath } from 'url';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -210,6 +212,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
       clientConfig.data.url,
       apolloClient
     );
+
+    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient
+    );
   }
 
   private assertDefaultConversationHandlerCanExecuteTurn = async (
@@ -252,6 +261,70 @@ class ConversationHandlerTestProject extends TestProjectBase {
       apolloClient
     );
     assert.match(response.content, /3\.14/);
+  };
+
+  private assertDefaultConversationHandlerCanExecuteTurnWithImage = async (
+    backendId: BackendIdentifier,
+    accessToken: string,
+    graphqlApiEndpoint: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>
+  ): Promise<void> => {
+    const defaultConversationHandlerFunction = (
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('default')
+      )
+    )[0];
+
+    const imagePath = resolve(
+      fileURLToPath(import.meta.url),
+      '..',
+      '..',
+      '..',
+      'src',
+      'test-projects',
+      'conversation-handler',
+      'resources',
+      'sample-image.png'
+    );
+
+    const imageSource = await fs.readFile(imagePath, 'base64');
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: randomUUID().toString(),
+      currentMessageId: randomUUID().toString(),
+      graphqlApiEndpoint: graphqlApiEndpoint,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'What is on the attached image?',
+            },
+            {
+              image: {
+                format: 'png',
+                source: { bytes: imageSource },
+              },
+            },
+          ],
+        },
+      ],
+      request: {
+        headers: { authorization: accessToken },
+      },
+      ...commonEventProperties,
+    };
+    const response = await this.executeConversationTurn(
+      event,
+      defaultConversationHandlerFunction,
+      apolloClient
+    );
+    // The image contains a logo of AWS. Responses may vary, but they should always contain statements below.
+    assert.match(response.content, /logo/);
+    assert.match(response.content, /(aws)|(AWS)|(Amazon Web Services)/);
   };
 
   private assertDefaultConversationHandlerCanExecuteTurnWithDataTool = async (

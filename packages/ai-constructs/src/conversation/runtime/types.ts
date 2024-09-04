@@ -16,7 +16,14 @@ export type ConversationMessage = {
   content: Array<ConversationMessageContentBlock>;
 };
 
-export type ConversationMessageContentBlock = bedrock.ContentBlock;
+export type ConversationMessageContentBlock =
+  | bedrock.ContentBlock
+  | {
+      image: Omit<bedrock.ImageBlock, 'source'> & {
+        // Upstream (Appsync) may send images in a form of Base64 encoded strings
+        source: { bytes: string };
+      };
+    };
 
 export type ToolDefinition = {
   name: string;
