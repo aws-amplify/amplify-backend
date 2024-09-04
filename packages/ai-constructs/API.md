@@ -108,6 +108,7 @@ declare namespace runtime {
         ExecutableTool,
         handleConversationTurnEvent,
         ToolDefinition,
+        ToolExecutionInput,
         ToolInputSchema,
         ToolResultContentBlock
     }
@@ -121,14 +122,13 @@ type ToolDefinition = {
 };
 
 // @public (undocumented)
+type ToolExecutionInput = smithy.DocumentType;
+
+// @public (undocumented)
 type ToolInputSchema = bedrock.ToolInputSchema;
 
 // @public (undocumented)
 type ToolResultContentBlock = bedrock.ToolResultContentBlock;
-
-// Warnings were encountered during analysis:
-//
-// src/conversation/runtime/types.ts:69:3 - (ae-forgotten-export) The symbol "ToolExecutionInput" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
