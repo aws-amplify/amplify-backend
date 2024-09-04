@@ -18,8 +18,4 @@ export const configs = {
       'amplify-backend-rules/no-empty-catch': 'error',
     },
   },
-  rules: {
-    'amplify-backend-rules/prefer-amplify-errors': 'error',
-    'amplify-backend-rules/no-amplify-errors': 'error',
-  },
 };
