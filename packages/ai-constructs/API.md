@@ -12,14 +12,28 @@ import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import * as smithy from '@smithy/types';
 
-declare namespace conversation {
+declare namespace __export__conversation {
     export {
         ConversationHandlerFunction,
-        ConversationHandlerFunctionProps,
-        runtime
+        ConversationHandlerFunctionProps
     }
 }
-export { conversation }
+export { __export__conversation }
+
+declare namespace __export__conversation__runtime {
+    export {
+        ConversationMessage,
+        ConversationMessageContentBlock,
+        ConversationTurnEvent,
+        ExecutableTool,
+        handleConversationTurnEvent,
+        ToolDefinition,
+        ToolExecutionInput,
+        ToolInputSchema,
+        ToolResultContentBlock
+    }
+}
+export { __export__conversation__runtime }
 
 // @public
 class ConversationHandlerFunction extends Construct implements ResourceProvider<FunctionResources> {
@@ -100,19 +114,12 @@ const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
     tools?: Array<ExecutableTool>;
 }) => Promise<void>;
 
-declare namespace runtime {
+declare namespace main {
     export {
-        ConversationMessage,
-        ConversationMessageContentBlock,
-        ConversationTurnEvent,
-        ExecutableTool,
-        handleConversationTurnEvent,
-        ToolDefinition,
-        ToolExecutionInput,
-        ToolInputSchema,
-        ToolResultContentBlock
+        __export__conversation as conversation
     }
 }
+export { main }
 
 // @public (undocumented)
 type ToolDefinition = {

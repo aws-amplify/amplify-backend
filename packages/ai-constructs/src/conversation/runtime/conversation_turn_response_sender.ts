@@ -1,5 +1,5 @@
 import { ConversationTurnEvent } from './types.js';
-import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
+import type { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 
 type MutationResponseInput = {
   input: {
