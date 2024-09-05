@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 0.1.2
+
+### Patch Changes
+
+- daac630: Remove runtime namespace from main exports
+
 ## 0.1.1
 
 ### Patch Changes

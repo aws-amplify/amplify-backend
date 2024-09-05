@@ -1,5 +1,13 @@
 # @aws-amplify/sandbox
 
+## 1.2.1
+
+### Patch Changes
+
+- 79fdc7c: wrap InvalidSignatureException in AmplifyUserError
+- Updated dependencies [79fdc7c]
+  - @aws-amplify/backend-secret@1.1.1
+
 ## 1.2.0
 
 ### Minor Changes
