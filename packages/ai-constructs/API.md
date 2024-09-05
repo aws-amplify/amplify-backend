@@ -114,13 +114,6 @@ const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
     tools?: Array<ExecutableTool>;
 }) => Promise<void>;
 
-declare namespace main {
-    export {
-        __export__conversation as conversation
-    }
-}
-export { main }
-
 // @public (undocumented)
 type ToolDefinition = {
     name: string;
