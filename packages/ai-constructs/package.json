@@ -22,6 +22,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "prepublishOnly": "tsx prepublish.ts",
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
@@ -33,5 +34,8 @@
   "peerDependencies": {
     "aws-cdk-lib": "^2.152.0",
     "constructs": "^10.0.0"
-  }
+  },
+  "bundledDependencies": [
+    "@aws-sdk/client-bedrock-runtime"
+  ]
 }
