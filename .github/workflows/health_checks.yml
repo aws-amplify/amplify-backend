@@ -11,6 +11,7 @@ on:
       - hotfix
       - feature/**
       - sobolk-patch-3
+      - use-import-types-bedrock
   schedule:
     # Every day at At minute 0 past hour 0, 6, 12, and 18 UTC.
     # This is to make sure that there is at least one workflow run every 24 hours
