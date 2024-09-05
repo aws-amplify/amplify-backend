@@ -43,7 +43,10 @@ export class AmplifyAuthCredentialsFactory {
     this.allowGuestAccess = authConfig.unauthenticated_identities_enabled;
   }
 
-  getNewAuthenticatedUserCredentials = async (): Promise<IamCredentials> => {
+  getNewAuthenticatedUserCredentials = async (): Promise<{
+    iamCredentials: IamCredentials;
+    accessToken: string;
+  }> => {
     await this.lock.acquire();
     try {
       const username = `amplify-backend-${shortUuid()}@amazon.com`;
@@ -91,8 +94,14 @@ export class AmplifyAuthCredentialsFactory {
       if (!authSession.credentials) {
         throw new Error('No credentials in auth session');
       }
+      if (!authSession.tokens?.accessToken) {
+        throw new Error('No accessToken in auth session');
+      }
 
-      return authSession.credentials;
+      return {
+        iamCredentials: authSession.credentials,
+        accessToken: authSession.tokens.accessToken.toString(),
+      };
     } finally {
       this.lock.release();
     }

@@ -11,6 +11,11 @@
       "import": "./lib/some_other_entry_point.js",
       "require": "./lib/some_other_entry_point.js",
       "types": "./lib/some_other_entry_point.d.ts"
+    },
+    "./other_entry_point/some_nested_entry_point": {
+      "import": "./lib/some_nested_entry_point.js",
+      "require": "./lib/some_nested_entry_point.js",
+      "types": "./lib/some_nested_entry_point.d.ts"
     }
   },
   "types": "lib/index.d.ts"
