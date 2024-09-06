@@ -356,7 +356,7 @@
   "$defs": {
     "amplify_storage_access_actions": {
       "type": "string",
-      "enum": ["read", "get", "list", "write", "delete"]
+      "enum": ["get", "list", "write", "delete"]
     },
     "amplify_storage_access_rule": {
       "type": "object",

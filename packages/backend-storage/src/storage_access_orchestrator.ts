@@ -102,6 +102,16 @@ export class StorageAccessOrchestrator {
         // iterate over all of the access definitions for a given prefix
         const accessConfig: StorageAccessConfig = {};
         accessPermissions.forEach((permission) => {
+          // replace "read" with "get" and "list" in actions
+          const replaceReadWithGetAndList = permission.actions.flatMap(
+            (action) => (action === 'read' ? ['get', 'list'] : [action])
+          ) as InternalStorageAction[];
+
+          // ensure the actions list has no duplicates
+          const noDuplicateActions = Array.from(
+            new Set(replaceReadWithGetAndList)
+          );
+
           // iterate over all uniqueDefinitionIdValidations and ensure uniqueness within this path prefix
           permission.uniqueDefinitionIdValidations.forEach(
             ({ uniqueDefinitionId, validationErrorOptions }) => {
@@ -114,7 +124,7 @@ export class StorageAccessOrchestrator {
                 uniqueDefinitionIdSet.add(uniqueDefinitionId);
               }
 
-              accessConfig[uniqueDefinitionId] = permission.actions;
+              accessConfig[uniqueDefinitionId] = noDuplicateActions;
             }
           );
           // make the owner placeholder substitution in the s3 prefix
@@ -127,16 +137,6 @@ export class StorageAccessOrchestrator {
             ...storageOutputAccessDefinition[prefix],
             ...accessConfig,
           };
-
-          // replace "read" with "get" and "list" in actions
-          const replaceReadWithGetAndList = permission.actions.flatMap(
-            (action) => (action === 'read' ? ['get', 'list'] : [action])
-          ) as InternalStorageAction[];
-
-          // ensure the actions list has no duplicates
-          const noDuplicateActions = Array.from(
-            new Set(replaceReadWithGetAndList)
-          );
 
           // set an entry that maps this permission to each resource acceptor
           permission.getResourceAccessAcceptors.forEach(

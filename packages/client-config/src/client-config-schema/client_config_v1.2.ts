@@ -46,12 +46,7 @@ export type AmazonPinpointChannels =
   | 'APNS'
   | 'EMAIL'
   | 'SMS';
-export type AmplifyStorageAccessActions =
-  | 'read'
-  | 'get'
-  | 'list'
-  | 'write'
-  | 'delete';
+export type AmplifyStorageAccessActions = 'get' | 'list' | 'write' | 'delete';
 
 /**
  * Config format for Amplify Gen 2 client libraries to communicate with backend services.

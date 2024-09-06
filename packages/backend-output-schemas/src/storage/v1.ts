@@ -1,12 +1,6 @@
 import { z } from 'zod';
 
-const storageAccessActionEnum = z.enum([
-  'read',
-  'get',
-  'list',
-  'write',
-  'delete',
-]);
+const storageAccessActionEnum = z.enum(['get', 'list', 'write', 'delete']);
 
 const pathSchema = z.record(
   z.string(),

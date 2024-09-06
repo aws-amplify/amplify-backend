@@ -767,10 +767,10 @@ void describe('StorageAccessOrchestrator', () => {
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         'foo/bar/*': {
-          auth: ['read', 'get', 'list'],
+          auth: ['get', 'list'],
         },
         'other/baz/*': {
-          auth: ['read'],
+          auth: ['get', 'list'],
         },
       });
     });

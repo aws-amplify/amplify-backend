@@ -542,7 +542,7 @@ void describe('storage client config contributor v1', () => {
         storageRegion: 'testRegion',
         paths: {
           'path/*': {
-            guest: ['read'],
+            guest: ['get'],
           },
         },
       }),
@@ -569,7 +569,7 @@ void describe('storage client config contributor v1', () => {
               aws_region: 'testRegion',
               paths: {
                 'path/*': {
-                  guest: ['read'],
+                  guest: ['get'],
                 },
               },
             },
