@@ -513,4 +513,20 @@ void describe('AmplifyFunctionFactory', () => {
       'function-Lambda'
     );
   });
+
+  void it('allows passing retryAttempts prop to NodejsFunction', () => {
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'myCoolNodejsFunctionLambda',
+      retryAttempts: 2,
+    });
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    const stack = Stack.of(lambda.resources.lambda);
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.resourceCountIs('AWS::Lambda::EventInvokeConfig', 1);
+    template.hasResourceProperties('AWS::Lambda::EventInvokeConfig', {
+      MaximumRetryAttempts: 2,
+    });
+  });
 });
