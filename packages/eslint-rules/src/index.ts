@@ -22,6 +22,7 @@ export const configs = {
     overrides: [
       {
         files: ['packages/cli/src/**'],
+        excludedFiles: ['**/*.test.ts'],
         rules: {
           'amplify-backend-rules/prefer-amplify-errors': 'off', //will be changed to 'error' in the future
         },
