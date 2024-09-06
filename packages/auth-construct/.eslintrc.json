@@ -1,5 +1,0 @@
-{
-  "rules": {
-    "amplify-backend-rules/no-amplify-errors": "error"
-  }
-}

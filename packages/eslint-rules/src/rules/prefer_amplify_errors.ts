@@ -1,5 +1,5 @@
 import { ESLintUtils } from '@typescript-eslint/utils';
-//import { join, sep } from 'path';
+import { join, sep } from 'path';
 
 export const preferAmplifyErrorsRule = ESLintUtils.RuleCreator.withoutDocs({
   create(context) {
@@ -7,34 +7,27 @@ export const preferAmplifyErrorsRule = ESLintUtils.RuleCreator.withoutDocs({
       // This naming comes from @typescript-eslint/utils types.
       // eslint-disable-next-line @typescript-eslint/naming-convention
       NewExpression(node) {
-        const checkNode = (
-          errorType: string
-          //preferPatterns: string,
-          //ignorePatterns: string
-        ) => {
+        const checkNode = (errorType: string, ignorePatterns: string) => {
+          const fileNameWithPath = context.physicalFilename!.replace(
+            join(context.cwd, sep),
+            ''
+          );
+
+          const ignoreMatch = [
+            ...fileNameWithPath.matchAll(new RegExp(ignorePatterns, 'g')),
+          ];
           if (
             node.callee.type === 'Identifier' &&
-            node.callee.name === errorType
+            node.callee.name === errorType &&
+            !ignoreMatch.length
           ) {
-            /*
-            const fileNameWithPath = context.physicalFilename!.replace(
-              join(context.cwd, sep),
-              ''
-            );
-            const ignoreMatch = [
-              ...fileNameWithPath.matchAll(new RegExp(ignorePatterns, 'g')),
-            ];
-            const preferMatch = [...fileNameWithPath.matchAll(new RegExp(preferPatterns, 'g'))];
-            */
-            //if (!ignoreMatch.length && preferMatch.length) {
             context.report({
               messageId: 'useOfErrorDetected',
               node,
             });
-            //}
           }
         };
-        checkNode('Error'); /*, '\\?(.+?)\\|(.+)' ,'.test.ts');*/
+        checkNode('Error', '.test.ts');
       },
     };
   },

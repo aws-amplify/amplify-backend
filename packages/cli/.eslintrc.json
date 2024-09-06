@@ -1,6 +1,0 @@
-{
-  //"ignorePatterns": ["src/*.test.ts", "src/**/*.test.ts", "src/**/**/*.test.ts", "src/**/**/**/*.test.ts"],
-  //"rules": {
-  //  "amplify-backend-rules/prefer-amplify-errors": "error"
-  //}
-}

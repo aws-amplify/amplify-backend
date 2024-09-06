@@ -16,7 +16,22 @@ export const configs = {
     rules: {
       'amplify-backend-rules/amplify-error-name': 'error',
       'amplify-backend-rules/no-empty-catch': 'error',
-      //'amplify-backend-rules/prefer-amplify-errors': 'error',
+      'amplify-backend-rules/prefer-amplify-errors': 'off',
+      'amplify-backend-rules/no-amplify-errors': 'off',
     },
+    overrides: [
+      {
+        files: ['packages/cli/src/**'],
+        rules: {
+          'amplify-backend-rules/prefer-amplify-errors': 'off',
+        },
+      },
+      {
+        files: ['packages/auth-construct/src/**'],
+        rules: {
+          'amplify-backend-rules/no-amplify-errors': 'error',
+        },
+      },
+    ],
   },
 };
