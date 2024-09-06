@@ -1,5 +1,15 @@
 # @aws-amplify/backend
 
+## 1.2.1
+
+### Patch Changes
+
+- d4c10fe: add check to `@aws-amplify/backend` entrypoint to throw early in a browser context
+- Updated dependencies [99c8b6a]
+- Updated dependencies [038b54d]
+  - @aws-amplify/backend-function@1.4.0
+  - @aws-amplify/platform-core@1.1.0
+
 ## 1.2.0
 
 ### Minor Changes

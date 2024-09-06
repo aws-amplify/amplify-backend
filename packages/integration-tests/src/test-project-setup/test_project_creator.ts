@@ -3,6 +3,7 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { getSecretClient } from '@aws-amplify/backend-secret';
 import { DataStorageAuthWithTriggerTestProjectCreator } from './data_storage_auth_with_triggers.js';
 import { MinimalWithTypescriptIdiomTestProjectCreator } from './minimal_with_typescript_idioms.js';
+import { ConversationHandlerTestProjectCreator } from './conversation_handler_project.js';
 import { LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
@@ -61,6 +62,13 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
       cognitoIdentityClient,
       cognitoIdentityProviderClient,
       stsClient
+    ),
+    new ConversationHandlerTestProjectCreator(
+      cfnClient,
+      amplifyClient,
+      lambdaClient,
+      cognitoIdentityProviderClient,
+      resourceFinder
     )
   );
   return testProjectCreators;

@@ -1,5 +1,6 @@
 export * from './backend_identifier_conversions.js';
 export * from './backend_entry_point_locator.js';
+export * from './caller_directory_extractor.js';
 export * from './extract_file_path_from_stack_trace_line.js';
 export * from './package_json_reader.js';
 export * from './usage-data/usage_data_emitter_factory.js';

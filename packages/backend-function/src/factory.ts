@@ -15,7 +15,6 @@ import {
 import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
-import { getCallerDirectory } from './get_caller_directory.js';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
@@ -30,7 +29,11 @@ import {
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
-import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  CallerDirectoryExtractor,
+  TagName,
+} from '@aws-amplify/platform-core';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Rule } from 'aws-cdk-lib/aws-events';
@@ -118,7 +121,7 @@ export type FunctionProps = {
    * @example
    * schedule: "every week"
    * @example
-   * schedule: "0 9 * * 2" // every Monday at 9am
+   * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
 };
@@ -180,13 +183,18 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
 
     // Otherwise, use the directory name where the function is defined
-    return path.basename(getCallerDirectory(this.callerStack));
+    return path.basename(
+      new CallerDirectoryExtractor(this.callerStack).extract()
+    );
   };
 
   private resolveEntry = () => {
     // if entry is not set, default to handler.ts
     if (!this.props.entry) {
-      return path.join(getCallerDirectory(this.callerStack), 'handler.ts');
+      return path.join(
+        new CallerDirectoryExtractor(this.callerStack).extract(),
+        'handler.ts'
+      );
     }
 
     // if entry is absolute use that
@@ -195,7 +203,10 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
 
     // if entry is relative, compute with respect to the caller directory
-    return path.join(getCallerDirectory(this.callerStack), this.props.entry);
+    return path.join(
+      new CallerDirectoryExtractor(this.callerStack).extract(),
+      this.props.entry
+    );
   };
 
   private resolveTimeout = () => {

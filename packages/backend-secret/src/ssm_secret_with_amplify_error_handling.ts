@@ -82,6 +82,7 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
           'NotAuthorized',
           'ExpiredTokenException',
           'CredentialsProviderError',
+          'InvalidSignatureException',
         ].includes(error.cause.name)
       ) {
         return new AmplifyUserError('SSMCredentialsError', {
