@@ -23,7 +23,7 @@ export const configs = {
       {
         files: ['packages/cli/src/**'],
         rules: {
-          'amplify-backend-rules/prefer-amplify-errors': 'off',
+          'amplify-backend-rules/prefer-amplify-errors': 'off', //will be changed to 'error' in the future
         },
       },
       {
