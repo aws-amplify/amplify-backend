@@ -1,5 +1,5 @@
 import { ExecutableTool } from '../types';
-import {
+import type {
   ToolInputSchema,
   ToolResultContentBlock,
 } from '@aws-sdk/client-bedrock-runtime';
