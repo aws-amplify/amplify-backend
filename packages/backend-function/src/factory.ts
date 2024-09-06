@@ -124,6 +124,9 @@ export type FunctionProps = {
    * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
+
+  // TODO Naming, but maybe it's not a bad name given this concept exists in plugin types already.
+  resourceGroupName?: string;
 };
 
 /**
@@ -169,6 +172,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      resourceGroupName: this.props.resourceGroupName ?? 'function',
     };
   };
 
@@ -279,12 +283,14 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'function';
+  readonly resourceGroupName: string;
 
   constructor(
     private readonly props: HydratedFunctionProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-  ) {}
+  ) {
+    this.resourceGroupName = props.resourceGroupName;
+  }
 
   generateContainerEntry = ({
     scope,

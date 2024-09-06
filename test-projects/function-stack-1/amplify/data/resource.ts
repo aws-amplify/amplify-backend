@@ -6,6 +6,7 @@ import {
 } from "@aws-amplify/backend";
 
 const testHandler = defineFunction({
+  resourceGroupName: 'function2'
 });
 
 const schema = a
