@@ -291,10 +291,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
-type HydratedFunctionPropsWithOptional = Omit<
-  Partial<CDKNodejsFunctionProps>,
-  keyof FunctionProps
-> &
+type HydratedFunctionPropsWithOptional = FunctionPropsWithOptional &
   HydratedFunctionProps;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
