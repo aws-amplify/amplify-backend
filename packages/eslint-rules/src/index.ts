@@ -24,11 +24,14 @@ export const configs = {
         files: ['packages/cli/src/**'],
         excludedFiles: ['**/*.test.ts'],
         rules: {
-          'amplify-backend-rules/prefer-amplify-errors': 'off', //will be changed to 'error' in the future
+          'amplify-backend-rules/prefer-amplify-errors': 'off',
         },
       },
       {
-        files: ['packages/auth-construct/src/**'],
+        files: [
+          'packages/auth-construct/src/**',
+          'packages/ai-constructs/src/**',
+        ],
         rules: {
           'amplify-backend-rules/no-amplify-errors': 'error',
         },
