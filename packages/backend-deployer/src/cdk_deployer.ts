@@ -13,6 +13,7 @@ import {
   type PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import {
+  AmplifyError,
   AmplifyUserError,
   BackendLocator,
   CDKContextKey,
@@ -80,7 +81,23 @@ export class CDKDeployer implements BackendDeployer {
     const synthTimeSeconds = Math.floor((Date.now() - startTime) / 10) / 100;
 
     // then run type checks
-    await this.invokeTsc(deployProps);
+    try {
+      await this.invokeTsc(deployProps);
+    } catch (typeError: unknown) {
+      if (
+        synthError &&
+        typeError instanceof AmplifyError &&
+        typeError.cause?.message.match(
+          /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/
+        )
+      ) {
+        // synth have failed and we don't have auto generated function environment definition files. This will
+        // result in the exception caught here which is not very useful for the customers.
+        // We instead throw the synth error for customers to fix what caused the synth to fail.
+        throw synthError;
+      }
+      throw typeError;
+    }
 
     // If somehow TSC was successful but synth wasn't, we now throw to surface the synth error
     if (synthError) {
@@ -129,7 +146,9 @@ export class CDKDeployer implements BackendDeployer {
    */
   executeCommand = async (
     commandArgs: string[],
-    options: { printStdout: boolean } = { printStdout: true }
+    options: { redirectStdoutToStderr: boolean } = {
+      redirectStdoutToStderr: false,
+    }
   ) => {
     // We let the stdout and stdin inherit and streamed to parent process but pipe
     // the stderr and use it to throw on failure. This is to prevent actual
@@ -157,7 +176,9 @@ export class CDKDeployer implements BackendDeployer {
 
     childProcess.stderr?.pipe(aggregatorStderrStream);
 
-    if (options?.printStdout) {
+    if (options?.redirectStdoutToStderr) {
+      childProcess.stdout?.pipe(aggregatorStderrStream);
+    } else {
       childProcess.stdout?.pipe(process.stdout);
     }
 
@@ -203,21 +224,24 @@ export class CDKDeployer implements BackendDeployer {
           '--project',
           dirname(this.backendLocator.locate()),
         ],
-        { printStdout: false }
+        { redirectStdoutToStderr: true } // TSC prints errors to stdout by default
       );
     } catch (error) {
       // If we cannot load ts config, turn off type checking
       return;
     }
     try {
-      await this.executeCommand([
-        'tsc',
-        '--noEmit',
-        '--skipLibCheck',
-        // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
-        '--project',
-        dirname(this.backendLocator.locate()),
-      ]);
+      await this.executeCommand(
+        [
+          'tsc',
+          '--noEmit',
+          '--skipLibCheck',
+          // pointing the project arg to the amplify backend directory will use the tsconfig present in that directory
+          '--project',
+          dirname(this.backendLocator.locate()),
+        ],
+        { redirectStdoutToStderr: true } // TSC prints errors to stdout by default
+      );
     } catch (err) {
       throw new AmplifyUserError<CDKDeploymentError>(
         'SyntaxError',
