@@ -55,3 +55,48 @@ export class NestedStackResolver implements StackResolver {
     return this.stacks[resourceGroupName];
   };
 }
+
+/**
+ * TODO
+ */
+export class SingleStackResolver implements StackResolver {
+  private readonly stacks: Record<string, Stack> = {};
+
+  /**
+   * Initialize with a root stack
+   */
+  constructor(
+    private readonly rootStack: Stack,
+    private readonly attributionMetadataStorage: AttributionMetadataStorage
+  ) {}
+
+  // TODO de-duplicate this logic
+  createCustomStack = (name: string): Stack => {
+    if (this.stacks[name]) {
+      throw new Error(`Custom stack named ${name} has already been created`);
+    }
+    const stack = this.getStackForInternal(name);
+    // this is safe even if stack is cached from an earlier invocation because storeAttributionMetadata is a noop if the stack description already exists
+    this.attributionMetadataStorage.storeAttributionMetadata(
+      stack,
+      `custom`,
+      fileURLToPath(new URL('../../package.json', import.meta.url))
+    );
+    return stack;
+  };
+
+  getStackFor = (): Stack => {
+    return this.rootStack;
+  };
+
+  // TODO this is a hack
+  private getStackForInternal = (resourceGroupName: string): Stack => {
+    if (!this.stacks[resourceGroupName]) {
+      this.stacks[resourceGroupName] = new NestedStack(
+        this.rootStack,
+        resourceGroupName
+      );
+    }
+    return this.stacks[resourceGroupName];
+  };
+}

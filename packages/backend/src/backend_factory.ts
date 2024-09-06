@@ -6,6 +6,7 @@ import {
 import { Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
+  SingleStackResolver,
   StackResolver,
 } from './engine/nested_stack_resolver.js';
 import { SingletonConstructContainer } from './engine/singleton_construct_container.js';
@@ -18,7 +19,11 @@ import { createDefaultStack } from './default_stack_factory.js';
 import { getBackendIdentifier } from './backend_identifier.js';
 import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { fileURLToPath } from 'node:url';
-import { Backend, DefineBackendProps } from './backend.js';
+import {
+  Backend,
+  DefineBackendOptions,
+  DefineBackendProps,
+} from './backend.js';
 import { AmplifyBranchLinkerConstruct } from './engine/branch-linker/branch_linker_construct.js';
 import {
   ClientConfig,
@@ -55,16 +60,27 @@ export class BackendFactory<
    * Initialize an Amplify backend with the given construct factories and in the given CDK App.
    * If no CDK App is specified a new one is created
    */
-  constructor(constructFactories: T, stack: Stack = createDefaultStack()) {
+  constructor(
+    constructFactories: T,
+    options?: DefineBackendOptions,
+    stack: Stack = createDefaultStack()
+  ) {
     new AttributionMetadataStorage().storeAttributionMetadata(
       stack,
       rootStackTypeIdentifier,
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
-    this.stackResolver = new NestedStackResolver(
-      stack,
-      new AttributionMetadataStorage()
-    );
+    if (options?.useSingleStack) {
+      this.stackResolver = new SingleStackResolver(
+        stack,
+        new AttributionMetadataStorage()
+      );
+    } else {
+      this.stackResolver = new NestedStackResolver(
+        stack,
+        new AttributionMetadataStorage()
+      );
+    }
 
     const constructContainer = new SingletonConstructContainer(
       this.stackResolver
@@ -148,11 +164,13 @@ export class BackendFactory<
 /**
  * Creates a new Amplify backend instance and returns it
  * @param constructFactories - list of backend factories such as those created by `defineAuth` or `defineData`
+ * @param options - optional options
  */
 export const defineBackend = <T extends DefineBackendProps>(
-  constructFactories: T
+  constructFactories: T,
+  options?: DefineBackendOptions
 ): Backend<T> => {
-  const backend = new BackendFactory(constructFactories);
+  const backend = new BackendFactory(constructFactories, options);
   return {
     ...backend.resources,
     createStack: backend.createStack,

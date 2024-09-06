@@ -33,3 +33,8 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
     keyof ResourceAccessAcceptorFactory
   >;
 };
+
+export type DefineBackendOptions = {
+  // TODO This is not the best name given that there are still nested stacks in the system.
+  useSingleStack?: boolean;
+};

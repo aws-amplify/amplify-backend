@@ -57,6 +57,7 @@ void describe('Backend', () => {
       {
         testConstructFactory,
       },
+      undefined,
       rootStack
     );
 
@@ -96,6 +97,7 @@ void describe('Backend', () => {
       {
         testConstructFactory,
       },
+      undefined,
       rootStack
     );
 
@@ -140,6 +142,7 @@ void describe('Backend', () => {
       {
         testConstructFactory,
       },
+      undefined,
       rootStack
     );
     assert.equal(
@@ -149,7 +152,7 @@ void describe('Backend', () => {
   });
 
   void it('stores attribution metadata in root stack', () => {
-    new BackendFactory({}, rootStack);
+    new BackendFactory({}, undefined, rootStack);
     const rootStackTemplate = Template.fromStack(rootStack);
     assert.equal(
       JSON.parse(rootStackTemplate.toJSON().Description).stackType,
@@ -158,27 +161,27 @@ void describe('Backend', () => {
   });
 
   void it('registers branch linker for branch deployments', () => {
-    new BackendFactory({}, rootStack);
+    new BackendFactory({}, undefined, rootStack);
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 1);
   });
 
   void it('does not register branch linker for sandbox deployments', () => {
     const rootStack = createStackAndSetContext('sandbox');
-    new BackendFactory({}, rootStack);
+    new BackendFactory({}, undefined, rootStack);
     const rootStackTemplate = Template.fromStack(rootStack);
     rootStackTemplate.resourceCountIs('Custom::AmplifyBranchLinkerResource', 0);
   });
 
   void describe('createStack', () => {
     void it('returns nested stack', () => {
-      const backend = new BackendFactory({}, rootStack);
+      const backend = new BackendFactory({}, undefined, rootStack);
       const testStack = backend.createStack('testStack');
       assert.strictEqual(rootStack.node.findChild('testStack'), testStack);
     });
 
     void it('throws if stack has already been created with specified name', () => {
-      const backend = new BackendFactory({}, rootStack);
+      const backend = new BackendFactory({}, undefined, rootStack);
       backend.createStack('testStack');
       assert.throws(() => backend.createStack('testStack'), {
         message: 'Custom stack named testStack has already been created',
@@ -188,7 +191,7 @@ void describe('Backend', () => {
 
   void it('can add custom output', () => {
     const rootStack = createStackAndSetContext('sandbox');
-    const backend = new BackendFactory({}, rootStack);
+    const backend = new BackendFactory({}, undefined, rootStack);
     const clientConfigPartial: DeepPartialAmplifyGeneratedConfigs<ClientConfig> =
       {
         version: '1.1',
