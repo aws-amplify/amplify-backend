@@ -1,4 +1,5 @@
 import { ESLintUtils } from '@typescript-eslint/utils';
+//import { join, sep } from 'path';
 
 export const noAmplifyErrors = ESLintUtils.RuleCreator.withoutDocs({
   create(context) {
@@ -10,6 +11,7 @@ export const noAmplifyErrors = ESLintUtils.RuleCreator.withoutDocs({
           errorType: string,
           messageId: 'useOfAmplifyErrorDetected' | 'useOfFaultDetected'
         ) => {
+          //const fileNameWithPath = context.physicalFilename?.replace(join(context.cwd, sep), '');
           if (
             node.callee.type === 'Identifier' &&
             node.callee.name === errorType

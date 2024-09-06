@@ -16,6 +16,7 @@ export const configs = {
     rules: {
       'amplify-backend-rules/amplify-error-name': 'error',
       'amplify-backend-rules/no-empty-catch': 'error',
+      //'amplify-backend-rules/prefer-amplify-errors': 'error',
     },
   },
 };
