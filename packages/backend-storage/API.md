@@ -9,6 +9,7 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnBucket } from 'aws-cdk-lib/aws-s3';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
+import { CorsRule } from 'aws-cdk-lib/aws-s3';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
@@ -28,6 +29,7 @@ export type AmplifyStorageProps = {
     versioned?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
     triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+    cors?: CorsRule[];
 };
 
 // @public (undocumented)
