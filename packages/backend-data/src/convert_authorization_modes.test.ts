@@ -273,6 +273,7 @@ void describe('convertAuthorizationModesToCDK', () => {
           },
         },
       }),
+      resourceGroupName: 'test',
     };
 
     const authModes: AuthorizationModes = {
@@ -321,6 +322,7 @@ void describe('convertAuthorizationModesToCDK', () => {
           },
         },
       }),
+      resourceGroupName: 'test',
     };
 
     const authModes: AuthorizationModes = {

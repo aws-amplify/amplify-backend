@@ -55,6 +55,8 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
   // publicly accessible for testing purpose only.
   static factoryCount = 0;
 
+  readonly resourceGroupName = 'data';
+
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -147,6 +149,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
             schema.transform();
           schemasJsFunctions.push(...jsFunctions);
           schemasFunctionSchemaAccess.push(...functionSchemaAccess);
+          // @ts-expect-error TODO figure this out later
           schemasLambdaFunctions = {
             ...schemasLambdaFunctions,
             ...lambdaFunctions,

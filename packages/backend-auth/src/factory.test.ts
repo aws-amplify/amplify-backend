@@ -236,6 +236,7 @@ void describe('AmplifyAuthFactory', () => {
             },
           };
         },
+        resourceGroupName: 'testGroup',
       };
 
       resetFactoryCount();

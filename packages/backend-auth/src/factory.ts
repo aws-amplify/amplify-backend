@@ -72,6 +72,8 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
 
   readonly provides = 'AuthResources';
 
+  readonly resourceGroupName = 'auth';
+
   private generator: ConstructContainerEntryGenerator;
 
   /**

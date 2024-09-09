@@ -139,6 +139,7 @@ void describe('storageAccessBuilder', () => {
           ({
             getResourceAccessAcceptor: getResourceAccessAcceptorMock,
           } as unknown as ResourceProvider & ResourceAccessAcceptorFactory),
+        resourceGroupName: 'testGroup',
       })
       .to(['read', 'write', 'delete']);
 

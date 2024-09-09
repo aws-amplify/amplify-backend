@@ -21,5 +21,11 @@ export type ConstructFactory<T extends ResourceProvider = ResourceProvider> = {
    * Registering as a provider allows other construct factories to fetch this one based on the provides token
    */
   readonly provides?: string;
+
+  /**
+   * TODO: docs.
+   * This is lifted from ConstructContainerEntryGenerator
+   */
+  readonly resourceGroupName: string;
   getInstance: (props: ConstructFactoryGetInstanceProps) => T;
 };
