@@ -279,12 +279,16 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'function';
+  readonly resourceGroupName: string;
 
   constructor(
     private readonly props: HydratedFunctionProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-  ) {}
+  ) {
+    // TODO function name can have [a-zA-Z0-9-_]+
+    // Stack [a-zA-Z0-9-]+ . I.e. we should also sanitize this.
+    this.resourceGroupName = `function-${props.name}`;
+  }
 
   generateContainerEntry = ({
     scope,
