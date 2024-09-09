@@ -5,6 +5,7 @@
 ```ts
 
 import { AmazonProviderProps } from '@aws-amplify/auth-construct';
+import { AmplifyStackResources } from '@aws-amplify/plugin-types';
 import { AppleProviderProps } from '@aws-amplify/auth-construct';
 import { AuthProps } from '@aws-amplify/auth-construct';
 import { AuthResources } from '@aws-amplify/plugin-types';
@@ -39,6 +40,7 @@ export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
     access?: AuthAccessGenerator;
+    scope?: ConstructFactory<ResourceProvider<AmplifyStackResources>>;
 }>;
 
 // @public

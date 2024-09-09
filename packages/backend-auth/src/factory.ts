@@ -8,6 +8,7 @@ import {
   TriggerEvent,
 } from '@aws-amplify/auth-construct';
 import {
+  AmplifyStackResources,
   AuthResources,
   AuthRoleName,
   ConstructContainerEntryGenerator,
@@ -58,6 +59,8 @@ export type AmplifyAuthProps = Expand<
      * access: (allow) => [allow.resource(groupManager).to(["manageGroups"])]
      */
     access?: AuthAccessGenerator;
+
+    scope?: ConstructFactory<ResourceProvider<AmplifyStackResources>>;
   }
 >;
 
@@ -110,7 +113,10 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
     if (!this.generator) {
       this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
     }
-    return constructContainer.getOrCompute(this.generator) as BackendAuth;
+    return constructContainer.getOrCompute(
+      this.generator,
+      this.props.scope?.getInstance(getInstanceProps).resources.stack
+    ) as BackendAuth;
   };
 }
 

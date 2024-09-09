@@ -1,3 +1,5 @@
+import { Stack } from 'aws-cdk-lib';
+
 export * from './backend_stack_creator.js';
 export * from './backend_stack_resolver.js';
 export * from './construct_container.js';
@@ -20,3 +22,7 @@ export * from './deep_partial.js';
 export * from './stable_backend_identifiers.js';
 export * from './resource_name_validator.js';
 export * from './aws_client_provider.js';
+
+export type AmplifyStackResources = {
+  readonly stack: Stack;
+};

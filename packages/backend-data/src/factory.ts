@@ -106,7 +106,10 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
         outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyData;
+    return constructContainer.getOrCompute(
+      this.generator,
+      this.props.scope?.getInstance(props).resources.stack
+    ) as AmplifyData;
   };
 }
 

@@ -2,7 +2,13 @@ import {
   DerivedCombinedSchema,
   DerivedModelSchema,
 } from '@aws-amplify/data-schema-types';
-import { AmplifyFunction, ConstructFactory } from '@aws-amplify/plugin-types';
+import {
+  AmplifyFunction,
+  AmplifyStackResources,
+  ConstructFactory,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
+import { Stack } from 'aws-cdk-lib';
 
 /**
  * Authorization modes used in by client side Amplify represented in camelCase.
@@ -139,6 +145,8 @@ export type DataProps = {
    * Functions invokable by the API. The specific input type of the function is subject to change or removal.
    */
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+
+  scope?: ConstructFactory<ResourceProvider<AmplifyStackResources>>;
 };
 
 export type AmplifyDataError =

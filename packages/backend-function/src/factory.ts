@@ -1,4 +1,5 @@
 import {
+  AmplifyStackResources,
   BackendOutputStorageStrategy,
   BackendSecret,
   BackendSecretResolver,
@@ -124,6 +125,8 @@ export type FunctionProps = {
    * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
+
+  scope?: ConstructFactory<ResourceProvider<AmplifyStackResources>>;
 };
 
 /**
@@ -142,18 +145,19 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   /**
    * Creates an instance of AmplifyFunction within the provided Amplify context
    */
-  getInstance = ({
-    constructContainer,
-    outputStorageStrategy,
-    resourceNameValidator,
-  }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
+  getInstance = (
+    getInstanceProps: ConstructFactoryGetInstanceProps
+  ): AmplifyFunction => {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
-        this.hydrateDefaults(resourceNameValidator),
-        outputStorageStrategy
+        this.hydrateDefaults(getInstanceProps.resourceNameValidator),
+        getInstanceProps.outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
+    return getInstanceProps.constructContainer.getOrCompute(
+      this.generator,
+      this.props.scope?.getInstance(getInstanceProps).resources.stack
+    ) as AmplifyFunction;
   };
 
   private hydrateDefaults = (
@@ -169,6 +173,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      scope: this.props.scope,
     };
   };
 
@@ -276,7 +281,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 }
 
-type HydratedFunctionProps = Required<FunctionProps>;
+type HydratedFunctionProps = Required<Omit<FunctionProps, 'scope'>> &
+  Pick<FunctionProps, 'scope'>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
