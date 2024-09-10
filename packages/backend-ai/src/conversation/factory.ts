@@ -143,4 +143,5 @@ export type DefineConversationHandlerFunctionProps = {
 export const defineConversationHandlerFunction = (
   props: DefineConversationHandlerFunctionProps
 ): ConstructFactory<ResourceProvider<FunctionResources>> =>
+  // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
   new ConversationHandlerFunctionFactory(props, new Error().stack);

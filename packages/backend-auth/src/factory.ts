@@ -79,6 +79,7 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
    */
   constructor(
     private readonly props: AmplifyAuthProps,
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     private readonly importStack = new Error().stack
   ) {
     if (AmplifyAuthFactory.factoryCount > 0) {
@@ -235,4 +236,5 @@ const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
 export const defineAuth = (
   props: AmplifyAuthProps
 ): ConstructFactory<BackendAuth> =>
+  // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
   new AmplifyAuthFactory(props, new Error().stack);
