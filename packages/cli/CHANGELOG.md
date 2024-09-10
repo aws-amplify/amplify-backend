@@ -1,5 +1,13 @@
 # @aws-amplify/backend-cli
 
+## 1.2.6
+
+### Patch Changes
+
+- ab09375: throw user error when sandbox identifier validation fails
+- Updated dependencies [1505414]
+  - @aws-amplify/backend-deployer@1.1.1
+
 ## 1.2.5
 
 ### Patch Changes
