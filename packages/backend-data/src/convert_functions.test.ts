@@ -40,6 +40,7 @@ void describe('convertFunctionNameMapToCDK', () => {
           },
         },
       }),
+      resourceGroupName: 'test',
     };
     const updateFn = new Function(stack, 'UpdateFn', {
       runtime: Runtime.NODEJS_18_X,
@@ -57,6 +58,7 @@ void describe('convertFunctionNameMapToCDK', () => {
           },
         },
       }),
+      resourceGroupName: 'test',
     };
 
     const convertedOutput = convertFunctionNameMapToCDK(getInstancePropsStub, {

@@ -75,6 +75,8 @@ class ConversationHandlerFunctionGenerator
 class ConversationHandlerFunctionFactory
   implements ConstructFactory<ConversationHandlerFunction>
 {
+  readonly resourceGroupName = 'conversationHandlerFunction';
+
   private generator: ConstructContainerEntryGenerator;
 
   constructor(

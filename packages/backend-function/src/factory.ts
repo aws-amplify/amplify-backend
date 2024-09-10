@@ -124,12 +124,20 @@ export type FunctionProps = {
    * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
+
+  parent?: ConstructFactory;
 };
 
 /**
  * Create Lambda functions in the context of an Amplify backend definition
  */
 class FunctionFactory implements ConstructFactory<AmplifyFunction> {
+  // TODO this is not good.
+  // I.e. if we use parent to define this then this concept becomes no-op
+  // and DX is incoherent.
+  // But maybe there's some better way to implement this without exposing this here.
+  readonly resourceGroupName = 'function';
+
   private generator: ConstructContainerEntryGenerator;
   /**
    * Create a new AmplifyFunctionFactory
@@ -169,6 +177,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      parent: this.props.parent,
     };
   };
 
@@ -276,15 +285,18 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 }
 
-type HydratedFunctionProps = Required<FunctionProps>;
+type HydratedFunctionProps = Required<Omit<FunctionProps, 'parent'>> &
+  Pick<FunctionProps, 'parent'>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'function';
+  readonly resourceGroupName: string;
 
   constructor(
     private readonly props: HydratedFunctionProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-  ) {}
+  ) {
+    this.resourceGroupName = props.parent?.resourceGroupName ?? 'function';
+  }
 
   generateContainerEntry = ({
     scope,

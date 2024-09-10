@@ -51,6 +51,7 @@ void describe('Backend', () => {
           },
         }) as TestResourceProvider;
       },
+      resourceGroupName: 'test',
     };
 
     new BackendFactory(
@@ -90,6 +91,7 @@ void describe('Backend', () => {
           },
         }) as TestResourceProvider;
       },
+      resourceGroupName: 'test',
     };
 
     new BackendFactory(
@@ -134,6 +136,7 @@ void describe('Backend', () => {
           },
         }) as TestResourceProvider;
       },
+      resourceGroupName: 'test',
     };
 
     const backend = new BackendFactory(

@@ -73,6 +73,7 @@ const createConstructContainerWithUserPoolAuthRegistered = (
   const sampleUserPool = new UserPool(stack, 'UserPool');
   constructContainer.registerConstructFactory('AuthResources', {
     provides: 'AuthResources',
+    resourceGroupName: 'auth',
     getInstance: (): ResourceProvider<AuthResources> => ({
       resources: {
         userPool: sampleUserPool,
@@ -307,6 +308,7 @@ void describe('DataFactory', () => {
           },
         },
       }),
+      resourceGroupName: 'test',
     };
     dataFactory = defineData({
       schema: testSchema,
@@ -428,6 +430,7 @@ void describe('DataFactory', () => {
           },
         },
       }),
+      resourceGroupName: 'test',
     };
     dataFactory = defineData({
       schema: /* GraphQL */ `
@@ -501,6 +504,7 @@ void describe('DataFactory', () => {
             acceptResourceAccess: acceptResourceAccessMock,
           }),
         }),
+        resourceGroupName: 'test',
       };
       const schema = a
         .schema({
@@ -655,6 +659,7 @@ void describe('DataFactory', () => {
             acceptResourceAccess: acceptResourceAccessMock1,
           }),
         }),
+        resourceGroupName: 'test',
       };
 
       // create lambda1 stub
@@ -683,6 +688,7 @@ void describe('DataFactory', () => {
             acceptResourceAccess: acceptResourceAccessMock2,
           }),
         }),
+        resourceGroupName: 'test',
       };
       const schema = a
         .schema({

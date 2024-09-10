@@ -153,6 +153,7 @@ void describe('StorageGenerator', () => {
             },
           };
         },
+        resourceGroupName: 'test',
       };
 
       const storageGenerator = new StorageContainerEntryGenerator(

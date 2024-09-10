@@ -41,6 +41,7 @@ void describe('allowAccessBuilder', () => {
           ({
             getResourceAccessAcceptor: getResourceAccessAcceptorMock,
           } as unknown as ResourceProvider & ResourceAccessAcceptorFactory),
+        resourceGroupName: 'testGroup',
       })
       .to(['createUser', 'deleteUser', 'setUserPassword']);
 

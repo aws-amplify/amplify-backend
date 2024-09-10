@@ -17,6 +17,8 @@ import { StorageOutputsAspect } from './storage_outputs_aspect.js';
 export class AmplifyStorageFactory
   implements ConstructFactory<ResourceProvider<StorageResources>>
 {
+  readonly resourceGroupName: 'storage';
+
   private generator: ConstructContainerEntryGenerator;
 
   /**
