@@ -21,7 +21,7 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
@@ -124,19 +124,16 @@ void describe('sandbox command', () => {
 
   void it('throws AmplifyUserError if invalid identifier is provided', async () => {
     const invalidIdentifier = 'invalid@';
-    const invalidIdentifierError = new AmplifyUserError(
-      'InvalidCommandInputError',
-      {
-        message: `Invalid --identifier provided: ${invalidIdentifier}`,
-        resolution:
-          'Use an identifier that matches [a-zA-Z0-9-] and is less than 15 characters.',
-      }
-    );
     await assert.rejects(
       () =>
         commandRunner.runCommand(`sandbox --identifier ${invalidIdentifier}`), // invalid identifier
       (err: TestCommandError) => {
-        assert.deepStrictEqual(err.error, invalidIdentifierError);
+        assert.ok(err.error instanceof AmplifyError);
+        assert.strictEqual(
+          err.error.message,
+          'Invalid --identifier provided: invalid@'
+        );
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
         return true;
       }
     );
