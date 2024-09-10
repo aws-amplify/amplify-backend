@@ -6,7 +6,11 @@ export const preferAmplifyErrorsRule = ESLintUtils.RuleCreator.withoutDocs({
       // This naming comes from @typescript-eslint/utils types.
       // eslint-disable-next-line @typescript-eslint/naming-convention
       NewExpression(node) {
-        if (node.callee.type === 'Identifier' && node.callee.name === 'Error') {
+        if (
+          node.callee.type === 'Identifier' &&
+          node.callee.name === 'Error' &&
+          node.parent.type === 'ThrowStatement'
+        ) {
           context.report({
             messageId: 'useOfErrorDetected',
             node,

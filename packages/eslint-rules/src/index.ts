@@ -30,7 +30,7 @@ export const configs = {
         ],
         excludedFiles: ['**/*.test.ts'],
         rules: {
-          'amplify-backend-rules/prefer-amplify-errors': 'error', //will be changed to 'error' in the future
+          'amplify-backend-rules/prefer-amplify-errors': 'error',
         },
       },
       {
