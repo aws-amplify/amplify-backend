@@ -34,7 +34,15 @@ export const configs = {
         },
       },
       {
-        files: ['packages/auth-construct/src/**'],
+        files: [
+          'packages/auth-construct/src/**',
+          'packages/ai-constructs/src/**',
+          'packages/backend-output-storage/src/**',
+          'packages/deployed-backend-client/src/**',
+          'packages/form-generator/src/**',
+          'packages/model-generator/src/**',
+          'packages/schema-generator/src/**',
+        ],
         rules: {
           'amplify-backend-rules/no-amplify-errors': 'error',
         },

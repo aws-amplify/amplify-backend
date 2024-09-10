@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 0.1.3
+
+### Patch Changes
+
+- 041d041: Do not bundle AWS SDK if default implementation is used
+
 ## 0.1.2
 
 ### Patch Changes

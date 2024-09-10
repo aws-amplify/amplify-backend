@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.1
+
+### Patch Changes
+
+- 1505414: surface synth errors if the function declaration files have not been written yet.
+
 ## 1.1.0
 
 ### Minor Changes
