@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AmplifyStackResources } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
@@ -30,6 +31,7 @@ export type FunctionProps = {
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
+    scope?: ConstructFactory<ResourceProvider<AmplifyStackResources>>;
 };
 
 // @public (undocumented)

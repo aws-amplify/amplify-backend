@@ -26,6 +26,11 @@ import { Stack } from 'aws-cdk-lib';
 // @public (undocumented)
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
 
+// @public (undocumented)
+export type AmplifyStackResources = {
+    readonly stack: Stack;
+};
+
 // @public
 export type AppId = string;
 
@@ -110,7 +115,7 @@ export type BranchName = string;
 
 // @public
 export type ConstructContainer = {
-    getOrCompute: (generator: ConstructContainerEntryGenerator) => ResourceProvider;
+    getOrCompute: (generator: ConstructContainerEntryGenerator, scope?: Stack) => ResourceProvider;
     registerConstructFactory: (token: string, provider: ConstructFactory) => void;
     getConstructFactory: <T extends ResourceProvider>(token: string) => ConstructFactory<T> | undefined;
 };

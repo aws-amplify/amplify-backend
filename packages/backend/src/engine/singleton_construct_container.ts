@@ -9,6 +9,7 @@ import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
 import { BackendIdScopedSsmEnvironmentEntriesGenerator } from './backend_id_scoped_ssm_environment_entries_generator.js';
 import { BackendIdScopedStableBackendIdentifiers } from '../backend_id_scoped_stable_backend_identifiers.js';
+import { Stack } from 'aws-cdk-lib';
 
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs
@@ -33,10 +34,13 @@ export class SingletonConstructContainer implements ConstructContainer {
    * Otherwise, the generator is called and the value is cached and returned
    */
   getOrCompute = (
-    generator: ConstructContainerEntryGenerator
+    generator: ConstructContainerEntryGenerator,
+    scope?: Stack
   ): ResourceProvider => {
     if (!this.providerCache.has(generator)) {
-      const scope = this.stackResolver.getStackFor(generator.resourceGroupName);
+      if (!scope) {
+        scope = this.stackResolver.getStackFor(generator.resourceGroupName);
+      }
       const backendId = getBackendIdentifier(scope);
       const ssmEnvironmentEntriesGenerator =
         new BackendIdScopedSsmEnvironmentEntriesGenerator(scope, backendId);

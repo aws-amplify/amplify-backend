@@ -6,9 +6,11 @@
 
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
+import { AmplifyStackResources } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedCombinedSchema } from '@aws-amplify/data-schema-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import { ResourceProvider } from '@aws-amplify/plugin-types';
 
 // @public
 export type ApiKeyAuthorizationModeProps = {
@@ -30,6 +32,7 @@ export type DataProps = {
     name?: string;
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+    scope?: ConstructFactory<ResourceProvider<AmplifyStackResources>>;
 };
 
 // @public

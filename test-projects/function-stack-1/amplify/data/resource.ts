@@ -2,10 +2,14 @@ import {
   a,
   defineData,
   defineFunction,
+  defineStack,
   type ClientSchema,
 } from "@aws-amplify/backend";
 
+const stack = defineStack('awesome-stack');
+
 const testHandler = defineFunction({
+  scope: stack
 });
 
 const schema = a
@@ -28,4 +32,5 @@ export const data = defineData({
     defaultAuthorizationMode: "apiKey",
     apiKeyAuthorizationMode: { expiresInDays: 30 },
   },
+  scope: stack
 });

@@ -5,6 +5,7 @@
 ```ts
 
 import { a } from '@aws-amplify/data-schema';
+import { AmplifyStackResources } from '@aws-amplify/plugin-types';
 import { AuthCfnResources } from '@aws-amplify/plugin-types';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { AuthRoleName } from '@aws-amplify/plugin-types';
@@ -80,6 +81,9 @@ export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvide
 export { defineData }
 
 export { defineFunction }
+
+// @public
+export const defineStack: (name: string) => ConstructFactory<ResourceProvider<AmplifyStackResources>>;
 
 export { defineStorage }
 
