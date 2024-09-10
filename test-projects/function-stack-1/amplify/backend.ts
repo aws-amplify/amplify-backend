@@ -9,6 +9,8 @@ const backend = defineBackend({
   auth,
   data,
   myApiFunction,
+}, {
+  useSingleStack: true
 });
 
 const eventSource = new DynamoEventSource(

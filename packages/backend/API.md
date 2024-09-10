@@ -70,7 +70,12 @@ export { ConstructFactoryGetInstanceProps }
 export { defineAuth }
 
 // @public
-export const defineBackend: <T extends DefineBackendProps>(constructFactories: T) => Backend<T>;
+export const defineBackend: <T extends DefineBackendProps>(constructFactories: T, options?: DefineBackendOptions) => Backend<T>;
+
+// @public (undocumented)
+export type DefineBackendOptions = {
+    useSingleStack?: boolean;
+};
 
 // @public (undocumented)
 export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {

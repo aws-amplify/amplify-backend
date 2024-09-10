@@ -8,6 +8,8 @@ const backend = defineBackend({
   auth,
   data,
   myApiFunction,
+},{
+  useSingleStack: true,
 });
 
 backend.myApiFunction.resources.lambda.addToRolePolicy(
