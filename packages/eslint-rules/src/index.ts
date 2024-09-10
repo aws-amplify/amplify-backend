@@ -21,10 +21,16 @@ export const configs = {
     },
     overrides: [
       {
-        files: ['packages/cli/src/**'],
+        files: [
+          'packages/sandbox/src/**',
+          'packages/backend-ai/src/**',
+          'packages/backend-auth/src/**',
+          'packages/backend-deployer/src/**',
+          'packages/create-amplify/src/**',
+        ],
         excludedFiles: ['**/*.test.ts'],
         rules: {
-          'amplify-backend-rules/prefer-amplify-errors': 'off', //will be changed to 'error' in the future
+          'amplify-backend-rules/prefer-amplify-errors': 'error', //will be changed to 'error' in the future
         },
       },
       {
