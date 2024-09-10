@@ -199,6 +199,7 @@ export class CDKDeployer implements BackendDeployer {
       // However if the cdk process didn't run or produced no output, then we have nothing to go on with. So we throw
       // this error to aid in some debugging.
       if (aggregatedStderr.trim()) {
+        // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
         throw new Error(aggregatedStderr);
       } else {
         throw error;
