@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-cli",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Command line interface for various Amplify tools",
   "bin": {
     "ampx": "lib/ampx.js",
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/aws-amplify/amplify-backend#readme",
   "dependencies": {
-    "@aws-amplify/backend-deployer": "^1.1.0",
+    "@aws-amplify/backend-deployer": "^1.1.1",
     "@aws-amplify/backend-output-schemas": "^1.1.0",
     "@aws-amplify/backend-secret": "^1.1.0",
     "@aws-amplify/cli-core": "^1.1.2",
