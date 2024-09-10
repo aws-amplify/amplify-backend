@@ -30,6 +30,7 @@ export type FunctionProps = {
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
+    resourceGroupName?: string;
 };
 
 // @public (undocumented)
