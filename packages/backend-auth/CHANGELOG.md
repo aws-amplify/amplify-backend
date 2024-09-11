@@ -1,5 +1,11 @@
 # @aws-amplify/backend-auth
 
+## 1.1.4
+
+### Patch Changes
+
+- c85d071: updated packages to fix violations of prefer-amplify-errors rule
+
 ## 1.1.3
 
 ### Patch Changes

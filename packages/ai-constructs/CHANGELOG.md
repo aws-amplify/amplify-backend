@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 0.1.4
+
+### Patch Changes
+
+- 8e964e1: fix invalid graphql in tool query generation
+
 ## 0.1.3
 
 ### Patch Changes
