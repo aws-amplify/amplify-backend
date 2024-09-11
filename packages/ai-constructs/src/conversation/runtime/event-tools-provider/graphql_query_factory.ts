@@ -36,7 +36,20 @@ export class GraphQlQueryFactory {
     }
 
     const { properties } = inputSchema.json as InputSchemaJson;
-    if (!properties) {
+
+    // The conversation resolver should not pass an empty object as input,
+    // but we're defensively checking for it here anyway because if `properties: {}`
+    // is passed, it will generate invalid GraphQL. e.g.
+    // Valid:
+    // query ToolQuery {
+    //   exampleQuery
+    // }
+    //
+    // Invalid:
+    // query ToolQuery {
+    //   exampleQuery()
+    // }
+    if (!properties || Object.keys(properties).length === 0) {
       return ['', ''];
     }
     const { propertyTypes } = toolDefinition.graphqlRequestInputDescriptor;
