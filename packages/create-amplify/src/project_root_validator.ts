@@ -1,3 +1,4 @@
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { existsSync } from 'fs';
 import * as path from 'path';
 
@@ -22,9 +23,10 @@ export class ProjectRootValidator {
   validate = async (): Promise<void> => {
     const testPath = path.resolve(this.projectRoot, 'amplify');
     if (this.exists(testPath)) {
-      throw new Error(
-        `An amplify directory already exists at ${testPath}. If you are trying to run an Amplify Gen 2 command inside an Amplify Gen 1 project we recommend creating the project in another directory. Learn more about AWS Amplify Gen 2: ${amplifyLearnMoreUrl}`
-      );
+      throw new AmplifyUserError('AmplifyDirectoryAlreadyExistsError', {
+        message: `An amplify directory already exists at ${testPath}.`,
+        resolution: `If you are trying to run an Amplify Gen 2 command inside an Amplify Gen 1 project we recommend creating the project in another directory. Learn more about AWS Amplify Gen 2: ${amplifyLearnMoreUrl}`,
+      });
     }
   };
 }
