@@ -15,12 +15,11 @@ export class GraphQlQueryFactory {
     const { graphqlRequestInputDescriptor } = toolDefinition;
     const { selectionSet, queryName } = graphqlRequestInputDescriptor;
     const [topLevelQueryArgs, queryArgs] = this.createQueryArgs(toolDefinition);
-
+    const fieldSelection =
+      selectionSet.length > 0 ? ` { ${selectionSet} }` : '';
     const query = `
     query ToolQuery${topLevelQueryArgs} {
-      ${queryName}${queryArgs} {
-        ${selectionSet}
-      }
+      ${queryName}${queryArgs}${fieldSelection}
     }
   `;
 
