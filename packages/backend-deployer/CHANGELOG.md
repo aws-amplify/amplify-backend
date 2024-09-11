@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.2
+
+### Patch Changes
+
+- c85d071: updated packages to fix violations of prefer-amplify-errors rule
+
 ## 1.1.1
 
 ### Patch Changes

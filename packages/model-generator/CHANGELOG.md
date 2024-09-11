@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 1.0.6
+
+### Patch Changes
+
+- c10f6fc: activated no-amplify-errors, ignored lines with valid violations
+
 ## 1.0.5
 
 ### Patch Changes

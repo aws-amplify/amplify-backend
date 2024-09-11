@@ -1,5 +1,11 @@
 # @aws-amplify/schema-generator
 
+## 1.2.2
+
+### Patch Changes
+
+- c10f6fc: activated no-amplify-errors, ignored lines with valid violations
+
 ## 1.2.1
 
 ### Patch Changes
