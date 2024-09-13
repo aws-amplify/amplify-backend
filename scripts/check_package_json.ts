@@ -5,8 +5,12 @@ const packagePaths = await glob('./packages/*');
 
 const errors: string[] = [];
 for (const packagePath of packagePaths) {
-  const { main, name, isPrivate } = await readPackageJson(packagePath);
-  if (isPrivate || name === '@aws-amplify/integration-tests') {
+  const {
+    main,
+    name,
+    private: privatePackage,
+  } = await readPackageJson(packagePath);
+  if (privatePackage) {
     continue;
   }
   if (!main) {
