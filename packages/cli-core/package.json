@@ -12,12 +12,14 @@
       "require": "./lib/index.js"
     }
   },
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-amplify/cli-core": "^1.1.2",
     "@aws-amplify/platform-core": "^1.0.5",
     "@inquirer/prompts": "^3.0.0",
     "execa": "^8.0.1",
