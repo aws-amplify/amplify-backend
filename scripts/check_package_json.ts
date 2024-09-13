@@ -3,6 +3,7 @@ import { readPackageJson } from './components/package-json/package_json.js';
 
 const packagePaths = await glob('./packages/*');
 
+// Excluding packages that violate 'import/no-extraneous-dependencies' rule until they're fixed.
 const tempExclude: string[] = [
   '@aws-amplify/plugin-types',
   '@aws-amplify/cli-core',
