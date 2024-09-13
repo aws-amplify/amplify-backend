@@ -1,5 +1,37 @@
 # @aws-amplify/client-config
 
+## 1.3.0
+
+### Minor Changes
+
+- 4ea9a5e: re-add the V1 of client config version
+
+### Patch Changes
+
+- 5b6ae85: relax object accumulator to accumulate parts with different versions with same major version
+- Updated dependencies [5b6ae85]
+  - @aws-amplify/platform-core@1.0.7
+
+## 1.2.1
+
+### Patch Changes
+
+- 4d4c0d5: Use proper error and fault suffixes.
+- Updated dependencies [4d4c0d5]
+  - @aws-amplify/model-generator@1.0.5
+
+## 1.2.0
+
+### Minor Changes
+
+- d9b83a1: support adding more than one bucket
+
+### Patch Changes
+
+- Updated dependencies [d9b83a1]
+  - @aws-amplify/deployed-backend-client@1.4.0
+  - @aws-amplify/backend-output-schemas@1.2.0
+
 ## 1.1.3
 
 ### Patch Changes

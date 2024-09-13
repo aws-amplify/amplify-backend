@@ -21,7 +21,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     // (undocumented)
     readonly details?: string;
     // (undocumented)
-    static fromError: (error: unknown) => AmplifyError<'UnknownFault' | 'CredentialsError' | 'InvalidCommandInputError' | 'DomainNotFoundError'>;
+    static fromError: (error: unknown) => AmplifyError<'UnknownFault' | 'CredentialsError' | 'InvalidCommandInputError' | 'DomainNotFoundError' | 'SyntaxError'>;
     // (undocumented)
     static fromStderr: (_stderr: string) => AmplifyError | undefined;
     // (undocumented)
@@ -74,6 +74,13 @@ export class BackendLocator {
     constructor(rootDir?: string);
     // (undocumented)
     locate: () => string;
+}
+
+// @public
+export class CallerDirectoryExtractor {
+    constructor(stackTrace: string | undefined);
+    // (undocumented)
+    extract: () => string;
 }
 
 // @public

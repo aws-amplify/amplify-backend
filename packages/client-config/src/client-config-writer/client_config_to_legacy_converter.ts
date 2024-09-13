@@ -2,7 +2,7 @@ import { AmplifyFault } from '@aws-amplify/platform-core';
 import {
   ClientConfig,
   ClientConfigLegacy,
-  clientConfigTypesV1,
+  clientConfigTypesV1_1,
 } from '../client-config-types/client_config.js';
 
 import {
@@ -22,10 +22,10 @@ export class ClientConfigLegacyConverter {
    * Converts client config to a shape consumable by legacy libraries.
    */
   convertToLegacyConfig = (clientConfig: ClientConfig): ClientConfigLegacy => {
-    // We can only convert from V1 of ClientConfig. For everything else, throw
-    if (!this.isClientConfigV1(clientConfig)) {
-      throw new AmplifyFault('UnsupportedClientConfigVersion', {
-        message: 'Only version 1 of ClientConfig is supported.',
+    // We can only convert from V1.1 of ClientConfig. For everything else, throw
+    if (!this.isClientConfigV1_1(clientConfig)) {
+      throw new AmplifyFault('UnsupportedClientConfigVersionFault', {
+        message: 'Only version 1.1 of ClientConfig is supported.',
       });
     }
 
@@ -273,9 +273,10 @@ export class ClientConfigLegacyConverter {
     return legacyConfig;
   };
 
-  isClientConfigV1 = (
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  isClientConfigV1_1 = (
     clientConfig: ClientConfig
-  ): clientConfig is clientConfigTypesV1.AWSAmplifyBackendOutputs => {
-    return clientConfig.version === '1';
+  ): clientConfig is clientConfigTypesV1_1.AWSAmplifyBackendOutputs => {
+    return clientConfig.version === '1.1';
   };
 }

@@ -1,5 +1,36 @@
 # @aws-amplify/backend-function
 
+## 1.4.0
+
+### Minor Changes
+
+- 038b54d: update cron jsdoc example
+
+### Patch Changes
+
+- 99c8b6a: Add new @aws-amplify/ai-constructs and @aws-amplify/backend-ai packages with a conversation handler.
+
+## 1.3.4
+
+### Patch Changes
+
+- 67feca0: update env type cast to cast as unknown first
+
+## 1.3.3
+
+### Patch Changes
+
+- 775e2bb: Fix InvalidFunctionConfigurationError and InvalidStorageAccessDefinitionError error names.
+
+## 1.3.2
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [a65371c]
+  - @aws-amplify/backend-output-storage@1.1.1
+  - @aws-amplify/plugin-types@1.2.1
+
 ## 1.3.1
 
 ### Patch Changes

@@ -39,6 +39,7 @@ export class SchemaGenerator {
     } catch (err) {
       const databaseError = err as DatabaseConnectError;
       if (databaseError.code === 'ETIMEDOUT') {
+        // eslint-disable-next-line amplify-backend-rules/no-amplify-errors
         throw new AmplifyUserError<AmplifyGenerateSchemaError>(
           'DatabaseConnectionError',
           {
@@ -117,6 +118,7 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
     ).filter((part) => !config[part]);
 
     if (missingParts.length > 0) {
+      // eslint-disable-next-line amplify-backend-rules/no-amplify-errors
       throw new AmplifyUserError<AmplifyGenerateSchemaError>(
         'DatabaseUrlParseError',
         {
@@ -132,6 +134,7 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
     return config;
   } catch (err) {
     const error = err as Error;
+    // eslint-disable-next-line amplify-backend-rules/no-amplify-errors
     throw new AmplifyUserError<AmplifyGenerateSchemaError>(
       'DatabaseUrlParseError',
       {

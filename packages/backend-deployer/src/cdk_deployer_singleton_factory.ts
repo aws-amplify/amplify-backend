@@ -10,6 +10,11 @@ import { BackendDeployerOutputFormatter } from './types.js';
 export type DeployProps = {
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
+  profile?: string;
+};
+
+export type DestroyProps = {
+  profile?: string;
 };
 
 export type DeployResult = {
@@ -33,7 +38,10 @@ export type BackendDeployer = {
     backendId: BackendIdentifier,
     deployProps?: DeployProps
   ) => Promise<DeployResult>;
-  destroy: (backendId: BackendIdentifier) => Promise<DestroyResult>;
+  destroy: (
+    backendId: BackendIdentifier,
+    destroyProps?: DestroyProps
+  ) => Promise<DestroyResult>;
 };
 
 /**

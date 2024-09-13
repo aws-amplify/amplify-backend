@@ -15,7 +15,10 @@ import {
 import fs from 'fs';
 import parseGitIgnore from 'parse-gitignore';
 import _open from 'open';
-import { SecretListItem, getSecretClient } from '@aws-amplify/backend-secret';
+import {
+  SecretListItem,
+  getSecretClientWithAmplifyErrorHandling,
+} from '@aws-amplify/backend-secret';
 import { Sandbox, SandboxOptions } from './sandbox.js';
 import {
   AmplifyPrompter,
@@ -53,7 +56,7 @@ const backendDeployerFactory = new BackendDeployerFactory(
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 
-const secretClient = getSecretClient();
+const secretClient = getSecretClientWithAmplifyErrorHandling();
 const newlyUpdatedSecretItem: SecretListItem = {
   name: 'C',
   lastUpdated: new Date(1234567),
@@ -326,6 +329,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -357,6 +361,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -394,6 +399,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -432,6 +438,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -454,6 +461,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: false,
       },
@@ -482,6 +490,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -506,6 +515,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -514,6 +524,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -553,6 +564,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[0].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -561,6 +573,7 @@ void describe('Sandbox using local project name resolver', () => {
     assert.deepEqual(backendDeployerDeployMock.mock.calls[1].arguments, [
       testSandboxBackendId,
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -582,6 +595,27 @@ void describe('Sandbox using local project name resolver', () => {
     // BackendDeployer should be called with the right params
     assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
       testSandboxBackendId,
+      { profile: undefined },
+    ]);
+  });
+
+  void it('calls BackendDeployer destroy when delete is called with profile', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox({
+      executor: sandboxExecutor,
+      ssmClient: ssmClientMock,
+      functionsLogStreamer:
+        functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+    }));
+    const profile = 'test_profile';
+    await sandboxInstance.delete({ profile });
+
+    // BackendDeployer should be called once to destroy
+    assert.strictEqual(backendDeployerDestroyMock.mock.callCount(), 1);
+
+    // BackendDeployer should be called with the right params
+    assert.deepEqual(backendDeployerDestroyMock.mock.calls[0].arguments, [
+      testSandboxBackendId,
+      { profile },
     ]);
   });
 
@@ -772,6 +806,7 @@ void describe('Sandbox using local project name resolver', () => {
         type: 'sandbox',
       },
       {
+        profile: undefined,
         secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
         validateAppSources: true,
       },
@@ -800,6 +835,7 @@ void describe('Sandbox using local project name resolver', () => {
         name: 'customSandboxName',
         type: 'sandbox',
       },
+      { profile: undefined },
     ]);
   });
 

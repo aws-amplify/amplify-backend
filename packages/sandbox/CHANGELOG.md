@@ -1,5 +1,38 @@
 # @aws-amplify/sandbox
 
+## 1.2.1
+
+### Patch Changes
+
+- 79fdc7c: wrap InvalidSignatureException in AmplifyUserError
+- Updated dependencies [79fdc7c]
+  - @aws-amplify/backend-secret@1.1.1
+
+## 1.2.0
+
+### Minor Changes
+
+- 9720736: Pass profile explicitly to CDK CLI when using `npx ampx sandbox --profile <profile_name>`
+
+### Patch Changes
+
+- 5405c87: chore: refactor error handling for secrets client
+- Updated dependencies [9c50380]
+- Updated dependencies [5405c87]
+- Updated dependencies [9720736]
+  - @aws-amplify/backend-deployer@1.1.0
+  - @aws-amplify/backend-secret@1.1.0
+
+## 1.1.3
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [4cce19f]
+- Updated dependencies [a65371c]
+  - @aws-amplify/platform-core@1.0.6
+  - @aws-amplify/backend-deployer@1.0.5
+
 ## 1.1.2
 
 ### Patch Changes

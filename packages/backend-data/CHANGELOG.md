@@ -1,5 +1,26 @@
 # @aws-amplify/backend-data
 
+## 1.1.3
+
+### Patch Changes
+
+- c8d1f10: added provisionHotswapFriendlyResources and getDeploymentType to determine if we are in sandbox and would like to enable hotswap
+
+## 1.1.2
+
+### Patch Changes
+
+- 4d4c0d5: Use proper error and fault suffixes.
+
+## 1.1.1
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [a65371c]
+  - @aws-amplify/backend-output-storage@1.1.1
+  - @aws-amplify/plugin-types@1.2.1
+
 ## 1.1.0
 
 ### Minor Changes

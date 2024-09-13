@@ -79,6 +79,7 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
    */
   constructor(
     private readonly props: AmplifyAuthProps,
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     private readonly importStack = new Error().stack
   ) {
     if (AmplifyAuthFactory.factoryCount > 0) {
@@ -186,7 +187,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
             ? authConstruct.resources[roleIdentifier]
             : authConstruct.resources.groups?.[roleIdentifier]?.role;
           if (!role) {
-            throw new AmplifyUserError('InvalidResourceAccessConfig', {
+            throw new AmplifyUserError('InvalidResourceAccessConfigError', {
               message: `No auth IAM role found for "${roleIdentifier}".`,
               resolution: `If you are trying to configure UserPool group access, ensure that the group name is specified correctly.`,
             });
@@ -235,4 +236,5 @@ const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
 export const defineAuth = (
   props: AmplifyAuthProps
 ): ConstructFactory<BackendAuth> =>
+  // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
   new AmplifyAuthFactory(props, new Error().stack);

@@ -1,5 +1,24 @@
 # @aws-amplify/backend-output-storage
 
+## 1.1.1
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [4cce19f]
+  - @aws-amplify/platform-core@1.0.6
+
+## 1.1.0
+
+### Minor Changes
+
+- d9b83a1: support adding more than one bucket
+
+### Patch Changes
+
+- Updated dependencies [d9b83a1]
+  - @aws-amplify/backend-output-schemas@1.2.0
+
 ## 1.0.2
 
 ### Patch Changes

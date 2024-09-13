@@ -2,6 +2,7 @@ import { SSMSecretClient } from './ssm_secret.js';
 import { AwsCredentialIdentityProvider } from '@aws-sdk/types';
 import { SSM } from '@aws-sdk/client-ssm';
 import { AppId, BackendIdentifier } from '@aws-amplify/plugin-types';
+import { SSMSecretClientWithAmplifyErrorHandling } from './ssm_secret_with_amplify_error_handling.js';
 
 /**
  * The unique identifier of the secret.
@@ -72,7 +73,7 @@ export type SecretClientOptions = {
 };
 
 /**
- * Creates an Amplify secret client.
+ * Creates an Amplify secret client. Used in the backend lambda for fetching secrets
  */
 export const getSecretClient = (
   secretClientOptions?: SecretClientOptions
@@ -82,5 +83,17 @@ export const getSecretClient = (
       credentials: secretClientOptions?.credentials,
       region: secretClientOptions?.region,
     })
+  );
+};
+
+/**
+ * Creates an Amplify secret client with inbuilt amplify error handling
+ * Used in the amplify CLI commands such as sandbox and pipeline-deploy
+ */
+export const getSecretClientWithAmplifyErrorHandling = (
+  secretClientOptions?: SecretClientOptions
+): SecretClient => {
+  return new SSMSecretClientWithAmplifyErrorHandling(
+    getSecretClient(secretClientOptions)
   );
 };

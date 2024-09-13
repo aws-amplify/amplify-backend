@@ -1,5 +1,60 @@
 # @aws-amplify/backend
 
+## 1.2.1
+
+### Patch Changes
+
+- d4c10fe: add check to `@aws-amplify/backend` entrypoint to throw early in a browser context
+- Updated dependencies [99c8b6a]
+- Updated dependencies [038b54d]
+  - @aws-amplify/backend-function@1.4.0
+  - @aws-amplify/platform-core@1.1.0
+
+## 1.2.0
+
+### Minor Changes
+
+- 4ea9a5e: re-add the V1 of client config version
+
+### Patch Changes
+
+- Updated dependencies [4ea9a5e]
+- Updated dependencies [c8d1f10]
+- Updated dependencies [5b6ae85]
+  - @aws-amplify/client-config@1.3.0
+  - @aws-amplify/backend-data@1.1.3
+  - @aws-amplify/platform-core@1.0.7
+
+## 1.1.1
+
+### Patch Changes
+
+- a65371c: upgrade aws-cdk and aws-cdk-lib to ^2.152.0
+- Updated dependencies [4cce19f]
+- Updated dependencies [a65371c]
+  - @aws-amplify/platform-core@1.0.6
+  - @aws-amplify/backend-output-storage@1.1.1
+  - @aws-amplify/backend-function@1.3.2
+  - @aws-amplify/backend-storage@1.1.1
+  - @aws-amplify/backend-auth@1.1.2
+  - @aws-amplify/backend-data@1.1.1
+  - @aws-amplify/plugin-types@1.2.1
+
+## 1.1.0
+
+### Minor Changes
+
+- d9b83a1: support adding more than one bucket
+
+### Patch Changes
+
+- Updated dependencies [d9b83a1]
+  - @aws-amplify/backend-output-schemas@1.2.0
+  - @aws-amplify/backend-output-storage@1.1.0
+  - @aws-amplify/backend-storage@1.1.0
+  - @aws-amplify/client-config@1.2.0
+  - @aws-amplify/plugin-types@1.2.0
+
 ## 1.0.5
 
 ### Patch Changes

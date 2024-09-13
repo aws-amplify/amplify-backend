@@ -1,5 +1,25 @@
 # @aws-amplify/platform-core
 
+## 1.1.0
+
+### Minor Changes
+
+- 99c8b6a: Add new @aws-amplify/ai-constructs and @aws-amplify/backend-ai packages with a conversation handler.
+
+## 1.0.7
+
+### Patch Changes
+
+- 5b6ae85: relax object accumulator to accumulate parts with different versions with same major version
+
+## 1.0.6
+
+### Patch Changes
+
+- 4cce19f: wrap SyntaxErrors in AmplifyUserError
+- Updated dependencies [a65371c]
+  - @aws-amplify/plugin-types@1.2.1
+
 ## 1.0.5
 
 ### Patch Changes

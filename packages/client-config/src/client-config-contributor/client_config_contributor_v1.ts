@@ -9,18 +9,30 @@ import {
 import {
   ClientConfig,
   ClientConfigVersionOption,
-  clientConfigTypesV1,
+  clientConfigTypesV1_1,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
-import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.js';
+import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.1.js';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
 
 /**
- * Translator for the version number of ClientConfig
+ * Translator for the version number of ClientConfig of V1.1
  */
 export class VersionContributor implements ClientConfigContributor {
+  /**
+   * Return the version of the schema types that this contributor uses
+   */
+  contribute = (): ClientConfig => {
+    return { version: ClientConfigVersionOption.V1_1 };
+  };
+}
+
+/**
+ * Translator for the version number of ClientConfig of V1.0
+ */
+export class VersionContributorV1 implements ClientConfigContributor {
   /**
    * Return the version of the schema types that this contributor uses
    */
@@ -54,7 +66,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       obj[key] = JSON.parse(value);
     };
 
-    const authClientConfig: Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs> =
+    const authClientConfig: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> =
       {};
 
     authClientConfig.auth = {
@@ -215,7 +227,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
     if (graphqlOutput === undefined) {
       return {};
     }
-    const config: Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs> = {};
+    const config: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> = {};
 
     config.data = {
       url: graphqlOutput.payload.awsAppsyncApiEndpoint,
@@ -245,7 +257,7 @@ export class DataClientConfigContributor implements ClientConfigContributor {
 }
 
 /**
- * Translator for the Storage portion of ClientConfig
+ * Translator for the Storage portion of ClientConfig in V1.1
  */
 export class StorageClientConfigContributor implements ClientConfigContributor {
   /**
@@ -257,7 +269,52 @@ export class StorageClientConfigContributor implements ClientConfigContributor {
     if (storageOutput === undefined) {
       return {};
     }
-    const config: Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs> = {};
+    const config: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> = {};
+    const bucketsStringArray = JSON.parse(
+      storageOutput.payload.buckets ?? '[]'
+    );
+    config.storage = {
+      aws_region: storageOutput.payload.storageRegion,
+      bucket_name: storageOutput.payload.bucketName,
+      buckets: bucketsStringArray
+        .map((b: string) => JSON.parse(b))
+        .map(
+          ({
+            name,
+            bucketName,
+            storageRegion,
+          }: {
+            name: string;
+            bucketName: string;
+            storageRegion: string;
+          }) => ({
+            name,
+            bucket_name: bucketName,
+            aws_region: storageRegion,
+          })
+        ),
+    };
+
+    return config;
+  };
+}
+
+/**
+ * Translator for the Storage portion of ClientConfig in V1
+ */
+export class StorageClientConfigContributorV1
+  implements ClientConfigContributor
+{
+  /**
+   * Given some BackendOutput, contribute the Storage portion of the client config
+   */
+  contribute = ({
+    [storageOutputKey]: storageOutput,
+  }: UnifiedBackendOutput): Partial<ClientConfig> | Record<string, never> => {
+    if (storageOutput === undefined) {
+      return {};
+    }
+    const config: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> = {};
 
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,

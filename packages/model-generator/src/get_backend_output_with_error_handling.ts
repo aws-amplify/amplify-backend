@@ -20,6 +20,7 @@ export const getBackendOutputWithErrorHandling = async (
       error instanceof BackendOutputClientError &&
       error.code === BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS
     ) {
+      // eslint-disable-next-line amplify-backend-rules/no-amplify-errors
       throw new AmplifyUserError(
         'DeploymentInProgressError',
         {
@@ -33,6 +34,7 @@ export const getBackendOutputWithErrorHandling = async (
       error instanceof BackendOutputClientError &&
       error.code === BackendOutputClientErrorType.NO_STACK_FOUND
     ) {
+      // eslint-disable-next-line amplify-backend-rules/no-amplify-errors
       throw new AmplifyUserError(
         'StackDoesNotExistError',
         {
@@ -47,6 +49,7 @@ export const getBackendOutputWithErrorHandling = async (
       error instanceof BackendOutputClientError &&
       error.code === BackendOutputClientErrorType.CREDENTIALS_ERROR
     ) {
+      // eslint-disable-next-line amplify-backend-rules/no-amplify-errors
       throw new AmplifyUserError(
         'CredentialsError',
         {
@@ -61,8 +64,9 @@ export const getBackendOutputWithErrorHandling = async (
       error instanceof BackendOutputClientError &&
       error.code === BackendOutputClientErrorType.ACCESS_DENIED
     ) {
+      // eslint-disable-next-line amplify-backend-rules/no-amplify-errors
       throw new AmplifyUserError(
-        'AccessDenied',
+        'AccessDeniedError',
         {
           message:
             'Unable to get backend outputs due to insufficient permissions.',

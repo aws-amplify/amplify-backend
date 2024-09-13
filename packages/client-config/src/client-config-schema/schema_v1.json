@@ -12,7 +12,7 @@
     },
     "version": {
       "description": "Version of this schema",
-      "const": "1"
+      "const": "1.1"
     },
     "analytics": {
       "description": "Outputs manually specified by developers for use with frontend library",

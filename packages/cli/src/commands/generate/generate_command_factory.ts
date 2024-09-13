@@ -14,7 +14,7 @@ import { CommandMiddleware } from '../../command_middleware.js';
 import { BackendIdentifierResolverWithFallback } from '../../backend-identifier/backend_identifier_with_sandbox_fallback.js';
 import { AppBackendIdentifierResolver } from '../../backend-identifier/backend_identifier_resolver.js';
 import { GenerateSchemaCommand } from './schema-from-database/generate_schema_command.js';
-import { getSecretClient } from '@aws-amplify/backend-secret';
+import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
 import { printer } from '@aws-amplify/cli-core';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
@@ -34,7 +34,7 @@ export const createGenerateCommand = (): CommandModule => {
     getAmplifyClient: () => amplifyClient,
     getCloudFormationClient: () => cloudFormationClient,
   };
-  const secretClient = getSecretClient();
+  const secretClient = getSecretClientWithAmplifyErrorHandling();
 
   const clientConfigGenerator = new ClientConfigGeneratorAdapter(
     awsClientProvider

@@ -21,6 +21,7 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
@@ -121,6 +122,24 @@ void describe('sandbox command', () => {
     );
   });
 
+  void it('throws AmplifyUserError if invalid identifier is provided', async () => {
+    const invalidIdentifier = 'invalid@';
+    await assert.rejects(
+      () =>
+        commandRunner.runCommand(`sandbox --identifier ${invalidIdentifier}`), // invalid identifier
+      (err: TestCommandError) => {
+        assert.ok(err.error instanceof AmplifyError);
+        assert.strictEqual(
+          err.error.message,
+          'Invalid --identifier provided: invalid@'
+        );
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
+        return true;
+      }
+    );
+    assert.equal(sandboxStartMock.mock.callCount(), 0);
+  });
+
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand('sandbox --help');
     assert.match(output, /--identifier/);
@@ -203,6 +222,46 @@ void describe('sandbox command', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
+  });
+
+  void it('asks to delete the sandbox environment when users send ctrl-C and say yes to delete with profile', async (contextual) => {
+    // Mock process and extract the sigint handler after calling the sandbox command
+    const processSignal = contextual.mock.method(process, 'on', () => {
+      /* no op */
+    });
+    const sandboxStartMock = contextual.mock.method(
+      sandbox,
+      'start',
+      async () => Promise.resolve()
+    );
+
+    const sandboxDeleteMock = contextual.mock.method(sandbox, 'delete', () =>
+      Promise.resolve()
+    );
+
+    // User said yes to delete
+    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
+      Promise.resolve(true)
+    );
+
+    const profile = 'test_profile';
+    await commandRunner.runCommand(`sandbox --profile ${profile}`);
+
+    // Similar to the later 0ms timeout. Without this tests in github action are failing
+    // but working locally
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
+    if (sigIntHandlerFn) sigIntHandlerFn();
+
+    // I can't find any open node:test or yargs issues that would explain why this is necessary
+    // but for some reason the mock call count does not update without this 0ms wait
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.equal(sandboxDeleteMock.mock.callCount(), 1);
+    assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
+      identifier: undefined,
+      profile,
+    });
   });
 
   void it('asks to delete the sandbox environment when users send ctrl-C and say no to delete', async (contextual) => {
@@ -319,6 +378,10 @@ void describe('sandbox command', () => {
     commandRunner = new TestCommandRunner(parser);
     await commandRunner.runCommand(`sandbox --profile ${sandboxProfile}`);
     assert.equal(sandboxStartMock.mock.callCount(), 1);
+    assert.strictEqual(
+      sandboxStartMock.mock.calls[0].arguments[0].profile,
+      sandboxProfile
+    );
     assert.equal(
       mockHandleProfile.mock.calls[0].arguments[0]?.profile,
       sandboxProfile
@@ -364,15 +427,15 @@ void describe('sandbox command', () => {
     );
   });
 
-  void it('sandbox creates an empty client config file if one does not already exist for version 1', async (contextual) => {
+  void it('sandbox creates an empty client config file if one does not already exist for version 1.1', async (contextual) => {
     contextual.mock.method(fs, 'existsSync', () => false);
     const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
-    await commandRunner.runCommand('sandbox --outputs-version 1');
+    await commandRunner.runCommand('sandbox --outputs-version 1.1');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[1],
-      `{\n  "version": "1"\n}`
+      `{\n  "version": "1.1"\n}`
     );
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],
