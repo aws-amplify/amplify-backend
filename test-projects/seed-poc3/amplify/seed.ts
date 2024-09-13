@@ -98,3 +98,39 @@ const todos = await dataClient.models.Todo.list({
 console.log('####### Data Items #######');
 console.log(todos.data);
 console.log('##########################');
+
+const result = await dataClient.models.Todo2.create(
+  {
+    content: `Todo2@${Math.random().toString()}`,
+  },
+  { authMode: 'iam' }
+);
+
+console.log(JSON.stringify(result, null, 2));
+
+const todos2 = await dataClient.models.Todo2.list({
+  limit: 1000,
+});
+
+console.log('####### Data Items 2 #######');
+console.log(todos2.data);
+console.log('##########################');
+
+
+// TODO: how can we use IAM creds with data client?? (and other clients?)
+
+/**
+ * ##########################
+ * {
+ *   "data": null,
+ *   "errors": [
+ *     {
+ *       "message": "Unauthorized",
+ *       "recoverySuggestion": "If you're calling an Amplify-generated API, make sure to set the \"authMode\" in generateClient({ authMode: '...' }) to the backend authorization rule's auth provider ('apiKey', 'userPool', 'iam', 'oidc', 'lambda')"
+ *     }
+ *   ]
+ * }
+ * ####### Data Items 2 #######
+ * []
+ * ##########################
+ */

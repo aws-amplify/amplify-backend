@@ -11,9 +11,6 @@ import { SchemaSeedable, Seedable } from '@aws-amplify/plugin-types';
 import { V6Client } from '@aws-amplify/api-graphql';
 import { ClientSchema } from '@aws-amplify/data-schema';
 import {
-  // TODO these types were hackily exposed in node modules dir
-  CombinedModelSchema,
-  GenericModelSchema,
   ModelSchema,
   ModelSchemaParamShape,
 } from '@aws-amplify/data-schema';
@@ -85,6 +82,7 @@ export const defineSeed3 = <
     clients: OmitNever<{
       data: KeysByType<T, Seedable<'data'>> extends never
         ? never
+        // @ts-ignore
         : V6Client<ClientSchema<TSchema>>;
       auth: KeysByType<T, Seedable<'auth'>> extends never ? never : AuthClient;
     }>

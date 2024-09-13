@@ -10,6 +10,7 @@ import { BackendDeployerOutputFormatter } from './types.js';
 export type DeployProps = {
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
+  callerPrincipalArn?: string;
 };
 
 export type DeployResult = {

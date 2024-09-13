@@ -14,8 +14,13 @@ const schema = a.schema({
     .authorization((allow) => [
       allow.guest(),
       allow.authenticated('identityPool'),
-      allow.owner()
+      allow.owner(),
     ]),
+  Todo2: a
+    .model({
+      content: a.string(),
+    })
+    .authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
