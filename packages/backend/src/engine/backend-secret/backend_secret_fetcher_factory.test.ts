@@ -1,5 +1,5 @@
 import { App, Stack } from 'aws-cdk-lib';
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -25,30 +25,27 @@ void describe('getOrCreate', () => {
   const providerFactory = new BackendSecretFetcherProviderFactory();
   const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
 
+  beforeEach(() => {
+    BackendSecretFetcherFactory.clearRegisteredSecrets();
+  });
+
   void it('create different secrets', () => {
     const app = new App();
     const stack = new Stack(app);
     stack.node.setContext('secretLastUpdated', secretLastUpdated);
-    resourceFactory.getOrCreate(stack, secretName1, backendId);
-    resourceFactory.getOrCreate(stack, secretName2, backendId);
+    BackendSecretFetcherFactory.registerSecret(secretName1);
+    BackendSecretFetcherFactory.registerSecret(secretName2);
+    resourceFactory.getOrCreate(stack, backendId);
 
     const template = Template.fromStack(stack);
-    template.resourceCountIs(secretResourceType, 2);
-    let customResources = template.findResources(secretResourceType, {
+    // only one custom resource is created that fetches all secrets
+    template.resourceCountIs(secretResourceType, 1);
+    const customResources = template.findResources(secretResourceType, {
       Properties: {
         namespace,
         name,
-        secretName: secretName1,
+        secretNames: [secretName1, secretName2],
         secretLastUpdated,
-      },
-    });
-    assert.equal(Object.keys(customResources).length, 1);
-
-    customResources = template.findResources(secretResourceType, {
-      Properties: {
-        namespace,
-        name,
-        secretName: secretName2,
       },
     });
     assert.equal(Object.keys(customResources).length, 1);
@@ -67,8 +64,18 @@ void describe('getOrCreate', () => {
   void it('does not create duplicate resource for the same secret name', () => {
     const app = new App();
     const stack = new Stack(app);
-    resourceFactory.getOrCreate(stack, secretName1, backendId);
-    resourceFactory.getOrCreate(stack, secretName1, backendId);
+    // ensure only 1 secret name is registered if they are duplicates
+    BackendSecretFetcherFactory.registerSecret(secretName1);
+    BackendSecretFetcherFactory.registerSecret(secretName1);
+    assert.equal(BackendSecretFetcherFactory.secretNames.size, 1);
+    assert.equal(
+      Array.from(BackendSecretFetcherFactory.secretNames)[0],
+      secretName1
+    );
+
+    // ensure only 1 resource is created even if this is called twice
+    resourceFactory.getOrCreate(stack, backendId);
+    resourceFactory.getOrCreate(stack, backendId);
 
     const template = Template.fromStack(stack);
     template.resourceCountIs(secretResourceType, 1);
@@ -78,6 +85,7 @@ void describe('getOrCreate', () => {
     const body = customResources[resourceName]['Properties'];
     assert.strictEqual(body['namespace'], namespace);
     assert.strictEqual(body['name'], name);
-    assert.strictEqual(body['secretName'], secretName1);
+    assert.equal(body['secretNames'].length, 1);
+    assert.equal(body['secretNames'][0], secretName1);
   });
 });

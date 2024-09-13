@@ -18,6 +18,8 @@ const SECRET_RESOURCE_TYPE = `Custom::SecretFetcherResource`;
  * The factory to create backend secret-fetcher resource.
  */
 export class BackendSecretFetcherFactory {
+  static secretNames: Set<string> = new Set<string>();
+
   /**
    * Creates a backend secret-fetcher resource factory.
    */
@@ -26,15 +28,29 @@ export class BackendSecretFetcherFactory {
   ) {}
 
   /**
+   * Register secrets that to be fetched by the BackendSecretFetcher custom resource.\
+   * @param secretName the name of the secret
+   */
+  static registerSecret = (secretName: string): void => {
+    BackendSecretFetcherFactory.secretNames.add(secretName);
+  };
+
+  /**
+   * Clear registered secrets that will be fetched by the BackendSecretFetcher custom resource.
+   */
+  static clearRegisteredSecrets = (): void => {
+    BackendSecretFetcherFactory.secretNames.clear();
+  };
+
+  /**
    * Returns a resource if it exists in the input scope. Otherwise,
    * creates a new one.
    */
   getOrCreate = (
     scope: Construct,
-    secretName: string,
     backendIdentifier: BackendIdentifier
   ): CustomResource => {
-    const secretResourceId = `${secretName}SecretFetcherResource`;
+    const secretResourceId = `SecretFetcherResource`;
     const existingResource = scope.node.tryFindChild(
       secretResourceId
     ) as CustomResource;
@@ -59,7 +75,7 @@ export class BackendSecretFetcherFactory {
       namespace: backendIdentifier.namespace,
       name: backendIdentifier.name,
       type: backendIdentifier.type,
-      secretName: secretName,
+      secretNames: Array.from(BackendSecretFetcherFactory.secretNames),
     };
 
     return new CustomResource(scope, secretResourceId, {
