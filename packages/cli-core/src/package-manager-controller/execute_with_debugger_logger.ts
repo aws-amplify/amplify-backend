@@ -1,4 +1,4 @@
-import { LogLevel } from '@aws-amplify/cli-core';
+import { LogLevel } from '../printer/printer.js';
 import { type Options, execa as _execa } from 'execa';
 import { printer } from '../printer.js';
 
