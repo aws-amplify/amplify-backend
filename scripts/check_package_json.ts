@@ -3,6 +3,10 @@ import { readPackageJson } from './components/package-json/package_json.js';
 
 const packagePaths = await glob('./packages/*');
 
+const tempExclude: string[] = [
+  '@aws-amplify/plugin-types',
+  '@aws-amplify/cli-core',
+];
 const errors: string[] = [];
 for (const packagePath of packagePaths) {
   const {
@@ -10,7 +14,7 @@ for (const packagePath of packagePaths) {
     name,
     private: privatePackage,
   } = await readPackageJson(packagePath);
-  if (privatePackage) {
+  if (privatePackage || tempExclude.includes(name)) {
     continue;
   }
   if (!main) {
