@@ -18,6 +18,7 @@ import {
   ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
+  Seedable,
 } from '@aws-amplify/plugin-types';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
@@ -31,7 +32,8 @@ import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js
 import { Tags } from 'aws-cdk-lib';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
-  ResourceAccessAcceptorFactory<AuthRoleName | string>;
+  ResourceAccessAcceptorFactory<AuthRoleName | string> &
+  Seedable<'auth'>;
 
 export type AmplifyAuthProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
@@ -129,6 +131,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     backendSecretResolver,
     ssmEnvironmentEntriesGenerator,
     stableBackendIdentifiers,
+    seedRole,
   }: GenerateContainerEntryProps) => {
     const authProps: AuthProps = {
       ...this.props,
@@ -157,6 +160,13 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       );
     }
 
+    if (seedRole) {
+      authConstruct.resources.userPool.grant(
+        seedRole,
+        'cognito-idp:AdminCreateUser'
+      );
+    }
+
     Tags.of(authConstruct).add(TagName.FRIENDLY_NAME, this.name);
 
     Object.entries(this.props.triggers || {}).forEach(
@@ -169,6 +179,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     );
 
     const authConstructMixin: BackendAuth = {
+      seedableAs: 'auth',
       ...authConstruct,
       /**
        * Returns a resourceAccessAcceptor for the given role

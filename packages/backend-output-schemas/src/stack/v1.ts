@@ -5,5 +5,7 @@ export const stackOutputSchema = z.object({
   payload: z.object({
     deploymentType: z.string(),
     region: z.string(),
+    seedFunctionArn: z.string().optional(),
+    seedRoleArn: z.string().optional(),
   }),
 });

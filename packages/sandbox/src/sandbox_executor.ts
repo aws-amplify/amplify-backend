@@ -9,6 +9,7 @@ import { SecretClient, SecretError } from '@aws-amplify/backend-secret';
 import { LogLevel, Printer } from '@aws-amplify/cli-core';
 import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
 import { SSMServiceException } from '@aws-sdk/client-ssm';
+import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 
 /**
  * Execute CDK commands.
@@ -31,7 +32,8 @@ export class AmplifySandboxExecutor {
   constructor(
     private readonly backendDeployer: BackendDeployer,
     private readonly secretClient: SecretClient,
-    private readonly printer: Printer
+    private readonly printer: Printer,
+    private readonly stsClient = new STSClient()
   ) {}
 
   /**
@@ -44,6 +46,9 @@ export class AmplifySandboxExecutor {
     this.printer.log('[Sandbox] Executing command `deploy`', LogLevel.DEBUG);
     const secretLastUpdated = await this.getSecretLastUpdated(backendId);
 
+    const callerIdentityResponse = await this.stsClient.send(
+      new GetCallerIdentityCommand()
+    );
     return this.invoke(() => {
       // it's important to get information here so that information
       // doesn't get lost while debouncing
@@ -51,6 +56,7 @@ export class AmplifySandboxExecutor {
       return this.backendDeployer.deploy(backendId, {
         secretLastUpdated,
         validateAppSources,
+        callerPrincipalArn: callerIdentityResponse.Arn,
       });
     });
   };

@@ -1,0 +1,31 @@
+{
+  "name": "@aws-amplify/backend-seed",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-amplify/client-config": "^1.0.3",
+    "@aws-amplify/platform-core": "^1.0.1",
+    "@aws-sdk/client-cognito-identity-provider": "^3.465.0",
+    "aws-amplify": "^6.2.0",
+    "semver": "^7.5.4"
+  },
+  "peerDependencies": {
+    "@aws-amplify/api-graphql": "^4.1.0",
+    "@aws-amplify/data-schema": "^1.0.0"
+  }
+}

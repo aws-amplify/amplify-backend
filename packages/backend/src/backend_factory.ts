@@ -3,7 +3,7 @@ import {
   DeepPartialAmplifyGeneratedConfigs,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import {
   NestedStackResolver,
   StackResolver,
@@ -27,6 +27,11 @@ import {
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
 import { ObjectAccumulator } from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
+import path from 'node:path';
+import { existsSync } from 'fs';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { ArnPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -66,8 +71,70 @@ export class BackendFactory<
       new AttributionMetadataStorage()
     );
 
+    const backendId = getBackendIdentifier(stack);
+    const shouldEnableSeed = backendId.type === 'sandbox';
+    let seedFunctionArn: string | undefined;
+    let seedRoleArn: string | undefined;
+    let seedRole: Role | undefined;
+    if (shouldEnableSeed) {
+      // this is a hack.
+      const seedScriptPath = path.join(process.cwd(), 'amplify', 'seed.ts');
+      if (existsSync(seedScriptPath)) {
+        const seedFunction = new NodejsFunction(stack, 'seed', {
+          entry: seedScriptPath,
+          memorySize: 1024,
+          runtime: Runtime.NODEJS_18_X,
+          timeout: Duration.minutes(1),
+          bundling: {
+            bundleAwsSDK: true,
+            format: OutputFormat.ESM,
+            // TODO this should be replaced with shims from defineFunction
+            banner:
+              "import { createRequire } from 'module';const require = createRequire(import.meta.url);",
+            define: {
+              window: 'global',
+              /*
+              This doesn't work
+              2024-09-12T17:11:00.659Z	undefined	ERROR	Uncaught Exception
+{
+    "errorType": "TypeError",
+    "errorMessage": "Cannot read properties of undefined (reading 'Handlebars')",
+    "stack": [
+        "TypeError: Cannot read properties of undefined (reading 'Handlebars')",
+        "    at exports3.default (file:///var/task/index.mjs:300242:99)",
+        "    at Object.<anonymous> (file:///var/task/index.mjs:298986:46)",
+        "    at __webpack_require__ (file:///var/task/index.mjs:298889:31)",
+        "    at Object.<anonymous> (file:///var/task/index.mjs:298904:38)",
+        "    at __webpack_require__ (file:///var/task/index.mjs:298889:31)",
+        "    at file:///var/task/index.mjs:298896:18",
+        "    at file:///var/task/index.mjs:298897:10",
+        "    at webpackUniversalModuleDefinition (file:///var/task/index.mjs:298865:27)",
+        "    at node_modules/handlebars/dist/handlebars.js (file:///var/task/index.mjs:298872:7)",
+        "    at __require2 (file:///var/task/index.mjs:19:50)"
+    ]
+}
+               */
+            },
+          },
+        });
+        seedFunctionArn = seedFunction.functionArn;
+
+        const callerPrincipalArn =
+          stack.node.tryGetContext('callerPrincipalArn');
+        if (callerPrincipalArn) {
+          seedRole = new Role(stack, 'seedRole', {
+            // TODO
+            // this should also include amplify service principal for seed-able branches.
+            assumedBy: new ArnPrincipal(callerPrincipalArn),
+          });
+          seedRoleArn = seedRole.roleArn;
+        }
+      }
+    }
+
     const constructContainer = new SingletonConstructContainer(
-      this.stackResolver
+      this.stackResolver,
+      seedRole
     );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
@@ -79,12 +146,13 @@ export class BackendFactory<
       new ObjectAccumulator<ClientConfig>({})
     );
 
-    const backendId = getBackendIdentifier(stack);
     outputStorageStrategy.addBackendOutputEntry(platformOutputKey, {
       version: '1',
       payload: {
         deploymentType: backendId.type,
         region: stack.region,
+        seedFunctionArn: seedFunctionArn ?? '',
+        seedRoleArn: seedRoleArn ?? '',
       },
     });
 
