@@ -171,6 +171,29 @@ const testErrorMappings = [
   },
   {
     errorMessage:
+      `✘ [ERROR] Could not resolve "$amplify/env/defaultNodeFunctions"` +
+      EOL +
+      EOL +
+      `    amplify/func-src/handler.ts:1:20:` +
+      EOL +
+      `      1 │ ...t { env } from '$amplify/env/defaultNodeFunctions';` +
+      EOL +
+      `1 error`,
+    expectedTopLevelErrorMessage:
+      'Unable to build the Amplify backend definition.',
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage:
+      `✘ [ERROR] Could not resolve "$amplify/env/defaultNodeFunctions"` +
+      EOL +
+      EOL +
+      `    amplify/func-src/handler.ts:1:20:` +
+      EOL +
+      `      1 │ ...t { env } from '$amplify/env/defaultNodeFunctions';` +
+      EOL +
+      `1 error`,
+  },
+  {
+    errorMessage:
       `Error [TransformError]: Transform failed with 1 error:` +
       EOL +
       `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"` +
