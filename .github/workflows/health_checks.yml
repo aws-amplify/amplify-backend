@@ -160,11 +160,13 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Checkout current version
+      - name: Checkout version for baseline # This is needed for the action to run
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Setup baseline version
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
+      - name: Checkout current version
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e iam access drift test
         uses: ./.github/actions/run_with_e2e_account
         with:
@@ -185,11 +187,13 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Checkout current version
+      - name: Checkout version for baseline # This is needed for the action to run
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Setup baseline version
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
+      - name: Checkout current version
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e client config backwards compatibility test
         uses: ./.github/actions/run_with_e2e_account
         with:
