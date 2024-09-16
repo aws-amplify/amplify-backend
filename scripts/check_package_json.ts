@@ -3,8 +3,8 @@ import { readPackageJson } from './components/package-json/package_json.js';
 
 const packagePaths = await glob('./packages/*');
 
-// Excluding packages that violate 'import/no-extraneous-dependencies' rule until they're fixed.
-const tempExclude: string[] = ['@aws-amplify/plugin-types'];
+// Excluding packages that cannot have a main field due to status as a types only package
+const excludedPackages: string[] = ['@aws-amplify/plugin-types'];
 const errors: string[] = [];
 for (const packagePath of packagePaths) {
   const {
@@ -12,7 +12,7 @@ for (const packagePath of packagePaths) {
     name,
     private: privatePackage,
   } = await readPackageJson(packagePath);
-  if (privatePackage || tempExclude.includes(name)) {
+  if (privatePackage || excludedPackages.includes(name)) {
     continue;
   }
   if (!main) {
