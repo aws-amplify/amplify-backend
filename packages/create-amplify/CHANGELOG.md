@@ -1,5 +1,12 @@
 # create-amplify
 
+## 1.0.5
+
+### Patch Changes
+
+- c85d071: updated packages to fix violations of prefer-amplify-errors rule
+- f149730: reverted change that was made in activate prefer-amplify-errors for create-amplify
+
 ## 1.0.4
 
 ### Patch Changes

@@ -21,6 +21,7 @@ import { CommandMiddleware } from '../../command_middleware.js';
 import { SandboxCommandGlobalOptions } from './option_types.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
   {
@@ -254,9 +255,11 @@ export class SandboxCommand
           if (argv.identifier) {
             const identifierRegex = /^[a-zA-Z0-9-]{1,15}$/;
             if (!argv.identifier.match(identifierRegex)) {
-              throw new Error(
-                `--identifier should match [a-zA-Z0-9-] and be less than 15 characters.`
-              );
+              throw new AmplifyUserError('InvalidCommandInputError', {
+                message: `Invalid --identifier provided: ${argv.identifier}`,
+                resolution:
+                  'Use an identifier that matches [a-zA-Z0-9-] and is less than 15 characters.',
+              });
             }
           }
           return true;

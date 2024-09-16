@@ -81,6 +81,7 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
           'AccessDeniedException',
           'NotAuthorized',
           'ExpiredTokenException',
+          'ExpiredToken',
           'CredentialsProviderError',
           'InvalidSignatureException',
         ].includes(error.cause.name)

@@ -1,5 +1,17 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.2
+
+### Patch Changes
+
+- c85d071: updated packages to fix violations of prefer-amplify-errors rule
+
+## 1.1.1
+
+### Patch Changes
+
+- 1505414: surface synth errors if the function declaration files have not been written yet.
+
 ## 1.1.0
 
 ### Minor Changes
