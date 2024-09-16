@@ -16,7 +16,7 @@
     "diff:check": "tsx scripts/check_pr_size.ts",
     "docs": "typedoc",
     "e2e:cleanup-resources": "tsx scripts/cleanup_e2e_resources.ts",
-    "lint": "eslint --max-warnings 0 . && prettier --check .",
+    "lint": "eslint --max-warnings 0 . && tsx scripts/check_package_json.ts && prettier --check .",
     "lint:fix": "eslint --cache --fix . && prettier --write .",
     "live-dependency-health-checks": "npm run test:dir packages/integration-tests/lib/test-live-dependency-health-checks",
     "new": "tsx scripts/copy_template.ts",

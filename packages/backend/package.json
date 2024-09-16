@@ -15,6 +15,7 @@
       "types": "./lib/types/platform.d.ts"
     }
   },
+  "main": "lib/index.js",
   "imports": {
     "#package.json": "./package.json"
   },
