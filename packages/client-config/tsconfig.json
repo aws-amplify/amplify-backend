@@ -5,6 +5,7 @@
     { "path": "../backend-output-schemas" },
     { "path": "../deployed-backend-client" },
     { "path": "../model-generator" },
-    { "path": "../platform-core" }
+    { "path": "../platform-core" },
+    { "path": "../plugin-types" }
   ]
 }

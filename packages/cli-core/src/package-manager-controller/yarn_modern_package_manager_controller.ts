@@ -2,7 +2,8 @@ import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
-import { LogLevel, Printer, format } from '@aws-amplify/cli-core';
+import { LogLevel, Printer } from '../printer/printer.js';
+import { format } from '../format/format.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 import { PackageManagerControllerBase } from './package_manager_controller_base.js';
 
