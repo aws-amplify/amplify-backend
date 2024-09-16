@@ -7,6 +7,7 @@
     "amplify": "lib/ampx.js"
   },
   "type": "module",
+  "main": "lib/index.js",
   "publishConfig": {
     "access": "public"
   },
