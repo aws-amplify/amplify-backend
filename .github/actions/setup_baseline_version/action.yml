@@ -9,6 +9,7 @@ runs:
   steps:
     - name: Get baseline commit sha
       id: get_baseline_commit_sha
+      shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
@@ -35,11 +36,13 @@ runs:
         ref: ${{ steps.get_baseline_commit_sha.outputs.baseline_commit_sha }}
     - uses: ./.github/actions/setup_node
     - name: Install and build baseline version
+      shell: bash
       run: |
         npm ci
         npm run build
     - name: Move baseline version
       id: move_baseline_version
+      shell: bash
       run: |
         BASELINE_DIR=$(mktemp -d)
         # Command below makes shell include .hidden files in file system commands (i.e. mv).
