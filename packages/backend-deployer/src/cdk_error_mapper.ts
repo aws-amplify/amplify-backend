@@ -253,6 +253,17 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // This error originates from AppSync when there are syntax/type errors or unsupported features being used in resolvers
+      errorRegex:
+        /(Resource handler returned message|BadRequestException): The code contains one or more errors./,
+      humanReadableErrorMessage:
+        'There are one or more errors with data handlers.',
+      resolutionMessage:
+        'Check your handlers defined in your data backend for syntax errors, type errors, and unsupported features of AppSync resolvers.',
+      errorName: 'AppSyncHandlerError',
+      classification: 'ERROR',
+    },
+    {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: new RegExp(
         `Deployment failed: (.*)${this.multiLineEolRegex}`
@@ -282,4 +293,5 @@ export type CDKDeploymentError =
   | 'FileConventionError'
   | 'ModuleNotFoundError'
   | 'SecretNotSetError'
-  | 'SyntaxError';
+  | 'SyntaxError'
+  | 'AppSyncHandlerError';
