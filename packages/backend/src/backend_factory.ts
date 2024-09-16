@@ -143,6 +143,10 @@ export class BackendFactory<
     }
     this.customOutputsAccumulator.addOutput(clientConfigPart);
   };
+
+  rootStack = (): Stack => {
+    return this.stackResolver.getStackFor('root');
+  };
 }
 
 /**
@@ -157,5 +161,6 @@ export const defineBackend = <T extends DefineBackendProps>(
     ...backend.resources,
     createStack: backend.createStack,
     addOutput: backend.addOutput,
+    rootStack: backend.rootStack,
   };
 };
