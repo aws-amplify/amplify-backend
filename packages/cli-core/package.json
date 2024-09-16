@@ -19,7 +19,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/platform-core": "^1.0.5",
-    "@inquirer/prompts": "^3.0.0",
+    "@inquirer/prompts": "^6.0.0",
     "execa": "^8.0.1",
     "kleur": "^4.1.5"
   }
