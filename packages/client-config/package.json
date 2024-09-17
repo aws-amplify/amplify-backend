@@ -17,6 +17,7 @@
       "require": "./lib/paths/index.js"
     }
   },
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
@@ -27,6 +28,7 @@
     "@aws-amplify/deployed-backend-client": "^1.4.0",
     "@aws-amplify/model-generator": "^1.0.5",
     "@aws-amplify/platform-core": "^1.0.7",
+    "@aws-amplify/plugin-types": "^1.2.1",
     "zod": "^3.22.2"
   },
   "devDependencies": {
