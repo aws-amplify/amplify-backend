@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
-import { CustomResource } from 'aws-cdk-lib';
+import { CustomResource, CustomResourceProps, Lazy } from 'aws-cdk-lib';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SecretResourceProps } from './lambda/backend_secret_fetcher_types.js';
 
@@ -8,6 +8,25 @@ import { SecretResourceProps } from './lambda/backend_secret_fetcher_types.js';
  * Resource provider ID for the backend secret resource.
  */
 export const SECRET_RESOURCE_PROVIDER_ID = 'SecretFetcherResourceProvider';
+
+class SecretFetcherCustomResource extends CustomResource {
+  private secrets: Set<string>;
+  constructor(
+    scope: Construct,
+    id: string,
+    props: CustomResourceProps,
+    secrets: Set<string>
+  ) {
+    super(scope, id, {
+      ...props,
+    });
+    this.secrets = secrets;
+  }
+
+  public addSecret = (secretName: string) => {
+    this.secrets.add(secretName);
+  };
+}
 
 /**
  * Type of the backend custom CFN resource.
@@ -18,29 +37,12 @@ const SECRET_RESOURCE_TYPE = `Custom::SecretFetcherResource`;
  * The factory to create backend secret-fetcher resource.
  */
 export class BackendSecretFetcherFactory {
-  static secretNames: Set<string> = new Set<string>();
-
   /**
    * Creates a backend secret-fetcher resource factory.
    */
   constructor(
-    private readonly secretProviderFactory: BackendSecretFetcherProviderFactory
+    private secretProviderFactory: BackendSecretFetcherProviderFactory
   ) {}
-
-  /**
-   * Register secrets that to be fetched by the BackendSecretFetcher custom resource.\
-   * @param secretName the name of the secret
-   */
-  static registerSecret = (secretName: string): void => {
-    BackendSecretFetcherFactory.secretNames.add(secretName);
-  };
-
-  /**
-   * Clear registered secrets that will be fetched by the BackendSecretFetcher custom resource.
-   */
-  static clearRegisteredSecrets = (): void => {
-    BackendSecretFetcherFactory.secretNames.clear();
-  };
 
   /**
    * Returns a resource if it exists in the input scope. Otherwise,
@@ -48,16 +50,20 @@ export class BackendSecretFetcherFactory {
    */
   getOrCreate = (
     scope: Construct,
-    backendIdentifier: BackendIdentifier
-  ): CustomResource => {
+    backendIdentifier: BackendIdentifier,
+    secretName: string
+  ): SecretFetcherCustomResource => {
     const secretResourceId = `SecretFetcherResource`;
     const existingResource = scope.node.tryFindChild(
       secretResourceId
-    ) as CustomResource;
+    ) as SecretFetcherCustomResource;
 
     if (existingResource) {
+      existingResource.addSecret(secretName);
       return existingResource;
     }
+    const secrets: Set<string> = new Set();
+    secrets.add(secretName);
 
     const provider = this.secretProviderFactory.getOrCreateInstance(
       scope,
@@ -75,16 +81,25 @@ export class BackendSecretFetcherFactory {
       namespace: backendIdentifier.namespace,
       name: backendIdentifier.name,
       type: backendIdentifier.type,
-      secretNames: Array.from(BackendSecretFetcherFactory.secretNames),
+      secretNames: Lazy.list({
+        produce: () => {
+          return Array.from(secrets);
+        },
+      }),
     };
 
-    return new CustomResource(scope, secretResourceId, {
-      serviceToken: provider.serviceToken,
-      properties: {
-        ...customResourceProps,
-        secretLastUpdated, // this property is only to trigger resource update event.
+    return new SecretFetcherCustomResource(
+      scope,
+      secretResourceId,
+      {
+        serviceToken: provider.serviceToken,
+        properties: {
+          ...customResourceProps,
+          secretLastUpdated, // this property is only to trigger resource update event.
+        },
+        resourceType: SECRET_RESOURCE_TYPE,
       },
-      resourceType: SECRET_RESOURCE_TYPE,
-    });
+      secrets
+    );
   };
 }

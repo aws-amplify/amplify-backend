@@ -1,5 +1,5 @@
 import { App, Stack } from 'aws-cdk-lib';
-import { beforeEach, describe, it } from 'node:test';
+import { describe, it } from 'node:test';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
@@ -22,20 +22,14 @@ const backendId: BackendIdentifier = {
 };
 
 void describe('getOrCreate', () => {
-  const providerFactory = new BackendSecretFetcherProviderFactory();
-  const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
-
-  beforeEach(() => {
-    BackendSecretFetcherFactory.clearRegisteredSecrets();
-  });
-
   void it('create different secrets', () => {
     const app = new App();
     const stack = new Stack(app);
+    const providerFactory = new BackendSecretFetcherProviderFactory();
+    const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
     stack.node.setContext('secretLastUpdated', secretLastUpdated);
-    BackendSecretFetcherFactory.registerSecret(secretName1);
-    BackendSecretFetcherFactory.registerSecret(secretName2);
-    resourceFactory.getOrCreate(stack, backendId);
+    resourceFactory.getOrCreate(stack, backendId, secretName1);
+    resourceFactory.getOrCreate(stack, backendId, secretName2);
 
     const template = Template.fromStack(stack);
     // only one custom resource is created that fetches all secrets
@@ -64,18 +58,12 @@ void describe('getOrCreate', () => {
   void it('does not create duplicate resource for the same secret name', () => {
     const app = new App();
     const stack = new Stack(app);
-    // ensure only 1 secret name is registered if they are duplicates
-    BackendSecretFetcherFactory.registerSecret(secretName1);
-    BackendSecretFetcherFactory.registerSecret(secretName1);
-    assert.equal(BackendSecretFetcherFactory.secretNames.size, 1);
-    assert.equal(
-      Array.from(BackendSecretFetcherFactory.secretNames)[0],
-      secretName1
-    );
+    const providerFactory = new BackendSecretFetcherProviderFactory();
+    const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
 
     // ensure only 1 resource is created even if this is called twice
-    resourceFactory.getOrCreate(stack, backendId);
-    resourceFactory.getOrCreate(stack, backendId);
+    resourceFactory.getOrCreate(stack, backendId, secretName1);
+    resourceFactory.getOrCreate(stack, backendId, secretName1);
 
     const template = Template.fromStack(stack);
     template.resourceCountIs(secretResourceType, 1);

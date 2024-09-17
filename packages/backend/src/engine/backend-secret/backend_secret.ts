@@ -18,9 +18,7 @@ export class CfnTokenBackendSecret implements BackendSecret {
   constructor(
     private readonly secretName: string,
     private readonly secretResourceFactory: BackendSecretFetcherFactory
-  ) {
-    BackendSecretFetcherFactory.registerSecret(secretName);
-  }
+  ) {}
   /**
    * Get a reference to the value within a CDK scope.
    */
@@ -30,7 +28,8 @@ export class CfnTokenBackendSecret implements BackendSecret {
   ): SecretValue => {
     const secretResource = this.secretResourceFactory.getOrCreate(
       scope,
-      backendIdentifier
+      backendIdentifier,
+      this.secretName
     );
 
     const val = secretResource.getAttString(`${this.secretName}`);
