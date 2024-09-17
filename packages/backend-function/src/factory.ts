@@ -44,6 +44,10 @@ export type AddEnvironmentFactory = {
   addEnvironment: (key: string, value: string | BackendSecret) => void;
 };
 
+export type FuncStackFactory = {
+  stack: Stack;
+};
+
 export type CronSchedule =
   | `${string} ${string} ${string} ${string} ${string}`
   | `${string} ${string} ${string} ${string} ${string} ${string}`;
@@ -64,7 +68,7 @@ export const defineFunction = (
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
-    AddEnvironmentFactory
+    AddEnvironmentFactory /*& FuncStackFactory*/
 > => new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {
@@ -307,6 +311,7 @@ class AmplifyFunction
     ResourceAccessAcceptorFactory,
     AddEnvironmentFactory
 {
+  /*, FuncStackFactory*/
   readonly resources: FunctionResources;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
@@ -437,6 +442,8 @@ class AmplifyFunction
   addEnvironment = (key: string, value: string | BackendSecret) => {
     this.functionEnvironmentTranslator.addEnvironmentEntry(key, value);
   };
+
+  //stack: Stack = () => {return this.generator.scope;};
 
   getResourceAccessAcceptor = () => ({
     identifier: `${this.node.id}LambdaResourceAccessAcceptor`,

@@ -161,6 +161,6 @@ export const defineBackend = <T extends DefineBackendProps>(
     ...backend.resources,
     createStack: backend.createStack,
     addOutput: backend.addOutput,
-    rootStack: backend.rootStack,
+    stack: backend.rootStack,
   };
 };

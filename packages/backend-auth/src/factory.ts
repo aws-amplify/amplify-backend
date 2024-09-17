@@ -28,10 +28,15 @@ import {
   Expand,
 } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
-import { Tags } from 'aws-cdk-lib';
+import { Stack, Tags } from 'aws-cdk-lib';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
-  ResourceAccessAcceptorFactory<AuthRoleName | string>;
+  ResourceAccessAcceptorFactory<AuthRoleName | string> &
+  AuthStackFactory;
+
+export type AuthStackFactory = {
+  stack: Stack;
+};
 
 export type AmplifyAuthProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
@@ -115,7 +120,10 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
   };
 }
 
-class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
+class AmplifyAuthGenerator
+  implements ConstructContainerEntryGenerator, AuthStackFactory
+{
+  stack: Stack;
   readonly resourceGroupName = 'auth';
   private readonly name: string;
 
@@ -195,6 +203,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
           policy.attachToRole(role);
         },
       }),
+      stack: this.generateContainerEntry.prototype.scope,
     };
     if (!this.props.access) {
       return authConstructMixin;
