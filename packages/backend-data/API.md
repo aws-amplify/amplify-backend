@@ -46,6 +46,7 @@ export type DataProps = {
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
     logging?: DataLoggingOptions;
+    stackMapping?: Record<string, string>;
 };
 
 // @public
