@@ -34,7 +34,7 @@ void describe('client config backwards compatibility', () => {
     baselineDir = process.env.BASELINE_DIR;
 
     tempDir = await fsp.mkdtemp(
-      path.join(os.tmpdir(), 'test-client-config-backwards-compatibility')
+      path.join(os.tmpdir(), 'test-amplify-outputs-backwards-compatibility')
     );
 
     console.log(`Temp dir is ${tempDir}`);

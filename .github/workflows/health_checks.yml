@@ -160,7 +160,9 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Checkout version for baseline # This is needed for the action to run
+      # This checkout is needed for the setup_baseline_version action to run `checkout` inside
+      # See https://github.com/actions/checkout/issues/692
+      - name: Checkout version for baseline
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Setup baseline version
         uses: ./.github/actions/setup_baseline_version
@@ -175,7 +177,7 @@ jobs:
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
-  e2e_client_config_backwards_compatibility:
+  e2e_amplify_outputs_backwards_compatibility:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -187,19 +189,21 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Checkout version for baseline # This is needed for the action to run
+      # This checkout is needed for the setup_baseline_version action to run `checkout` inside
+      # See https://github.com/actions/checkout/issues/692
+      - name: Checkout version for baseline
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Setup baseline version
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
-      - name: Run e2e client config backwards compatibility test
+      - name: Run e2e amplify outputs backwards compatibility test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
-          run: npm run test:dir packages/integration-tests/lib/test-e2e/client_config_backwards_compatibility.test.js
+          run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
   e2e_deployment:
