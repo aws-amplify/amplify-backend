@@ -149,6 +149,12 @@ export type DataProps = {
    * Logging configuration for the API.
    */
   logging?: DataLoggingOptions;
+
+  /**
+   * stackMapping override the assigned nested stack on a per-resource basis. Only applies to resolvers, and takes the form
+   * { <logicalId>: <stackName> }
+   */
+  stackMapping?: Record<string, string>;
 };
 
 export type AmplifyDataError =
