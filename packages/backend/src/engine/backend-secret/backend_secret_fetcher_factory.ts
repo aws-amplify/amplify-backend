@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { BackendSecretFetcherProviderFactory } from './backend_secret_fetcher_provider_factory.js';
-import { CustomResource } from 'aws-cdk-lib';
+import { CustomResource, Lazy } from 'aws-cdk-lib';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SecretResourceProps } from './lambda/backend_secret_fetcher_types.js';
 
@@ -18,7 +18,7 @@ const SECRET_RESOURCE_TYPE = `Custom::SecretFetcherResource`;
  * The factory to create backend secret-fetcher resource.
  */
 export class BackendSecretFetcherFactory {
-  static secretNames: Set<string> = new Set<string>();
+  private readonly secretNames: Set<string> = new Set<string>();
 
   /**
    * Creates a backend secret-fetcher resource factory.
@@ -28,28 +28,15 @@ export class BackendSecretFetcherFactory {
   ) {}
 
   /**
-   * Register secrets that to be fetched by the BackendSecretFetcher custom resource.\
-   * @param secretName the name of the secret
-   */
-  static registerSecret = (secretName: string): void => {
-    BackendSecretFetcherFactory.secretNames.add(secretName);
-  };
-
-  /**
-   * Clear registered secrets that will be fetched by the BackendSecretFetcher custom resource.
-   */
-  static clearRegisteredSecrets = (): void => {
-    BackendSecretFetcherFactory.secretNames.clear();
-  };
-
-  /**
    * Returns a resource if it exists in the input scope. Otherwise,
    * creates a new one.
    */
   getOrCreate = (
     scope: Construct,
-    backendIdentifier: BackendIdentifier
+    backendIdentifier: BackendIdentifier,
+    secretName: string
   ): CustomResource => {
+    this.secretNames.add(secretName);
     const secretResourceId = `SecretFetcherResource`;
     const existingResource = scope.node.tryFindChild(
       secretResourceId
@@ -75,7 +62,9 @@ export class BackendSecretFetcherFactory {
       namespace: backendIdentifier.namespace,
       name: backendIdentifier.name,
       type: backendIdentifier.type,
-      secretNames: Array.from(BackendSecretFetcherFactory.secretNames),
+      secretNames: Lazy.list({
+        produce: () => Array.from(this.secretNames),
+      }),
     };
 
     return new CustomResource(scope, secretResourceId, {
