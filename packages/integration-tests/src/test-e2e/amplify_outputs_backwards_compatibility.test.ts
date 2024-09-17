@@ -9,10 +9,10 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import fsp from 'fs/promises';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
-//import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { NpmProxyController } from '../npm_proxy_controller.js';
 import assert from 'assert';
 import os from 'os';
+import { generateClientConfig } from '@aws-amplify/client-config';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { amplifyAtTag } from '../constants.js';
 
@@ -22,7 +22,6 @@ void describe('client config backwards compatibility', () => {
   let cfnClient: CloudFormationClient;
   let tempDir: string;
   let baselineDir: string;
-  //let deployedResourcesFinder: DeployedResourcesFinder;
   let baselineNpmProxyController: NpmProxyController;
   let currentNpmProxyController: NpmProxyController;
 
@@ -40,7 +39,6 @@ void describe('client config backwards compatibility', () => {
     console.log(`Temp dir is ${tempDir}`);
 
     cfnClient = new CloudFormationClient(e2eToolingClientConfig);
-    //deployedResourcesFinder = new DeployedResourcesFinder(cfnClient);
     baselineNpmProxyController = new NpmProxyController(baselineDir);
     currentNpmProxyController = new NpmProxyController();
     testBranch = await amplifyAppPool.createTestBranch();
@@ -99,6 +97,64 @@ void describe('client config backwards compatibility', () => {
     });
   };
 
+  const assertGenerateClientConfigAPI = async (
+    type: 'baseline' | 'current'
+  ) => {
+    try {
+      assert.ok(
+        await generateClientConfig(branchBackendIdentifier, '1'),
+        `outputs v1 failed to be generated for an app created with ${type} library version`
+      );
+    } catch (e) {
+      throw new Error(
+        `outputs v1 failed to be generated for an app created with ${type} library version. Error: ${JSON.stringify(
+          e
+        )}`
+      );
+    }
+    try {
+      assert.ok(
+        await generateClientConfig(branchBackendIdentifier, '1.1'),
+        `outputs v1.1 failed to be generated for an app created with ${type} library version`
+      );
+    } catch (e) {
+      throw new Error(
+        `outputs v1.1 failed to be generated for an app created with ${type} library version. Error: ${JSON.stringify(
+          e
+        )}`
+      );
+    }
+  };
+
+  const assertGenerateClientConfigCommand = async (
+    type: 'baseline' | 'current'
+  ) => {
+    await execa(
+      'npx',
+      [
+        'ampx',
+        'generate',
+        'outputs',
+        '--stack',
+        BackendIdentifierConversions.toStackName(branchBackendIdentifier),
+      ],
+      {
+        cwd: tempDir,
+        stdio: 'inherit',
+      }
+    );
+
+    const fileSize = (
+      await fsp.stat(path.join(tempDir, 'amplify_outputs.json'))
+    ).size;
+    assert.ok(
+      fileSize > 100, // Validate that it's not just a shim
+      `outputs file should not be empty when generating for a ${
+        type === 'baseline' ? 'new' : 'old'
+      } new app with the ${type} version`
+    );
+  };
+
   void it('outputs generation should be backwards and forward compatible', async () => {
     // build an app using previous (baseline) version
     await baselineNpmProxyController.setUp();
@@ -129,60 +185,28 @@ backend.addOutput({
     await deploy();
     await baselineNpmProxyController.tearDown();
 
-    // Generate the outputs using the new version
+    // Generate the outputs using the current version for apps built with baseline version
+
+    // 1. via CLI command
     await currentNpmProxyController.setUp();
     await reinstallDependencies();
+    await assertGenerateClientConfigCommand('current');
 
-    await execa(
-      'npx',
-      [
-        'ampx',
-        'generate',
-        'outputs',
-        '--stack',
-        BackendIdentifierConversions.toStackName(branchBackendIdentifier),
-      ],
-      {
-        cwd: tempDir,
-        stdio: 'inherit',
-      }
-    );
-    let fileSize = (await fsp.stat(path.join(tempDir, 'amplify_outputs.json')))
-      .size;
-    assert.ok(
-      fileSize > 100, // Validate that it's not just a shim
-      'outputs file should not be empty when generating for an older app with new version'
-    );
-    // delete the file now
-    await fsp.unlink(path.join(tempDir, 'amplify_outputs.json'));
+    // 2. via API.
+    await assertGenerateClientConfigAPI('current');
 
-    // Re-deploy the app using the new version now
+    // Re-deploy the app using the current version now
     await deploy();
 
-    // Generate the outputs using the older version
+    // Generate the outputs using the baseline version for apps built with current version
+
+    // 1. via CLI command
     await currentNpmProxyController.tearDown();
     await baselineNpmProxyController.setUp();
     await reinstallDependencies();
-    await execa(
-      'npx',
-      [
-        'ampx',
-        'generate',
-        'outputs',
-        '--stack',
-        BackendIdentifierConversions.toStackName(branchBackendIdentifier),
-      ],
-      {
-        cwd: tempDir,
-        stdio: 'inherit',
-      }
-    );
+    await assertGenerateClientConfigCommand('baseline');
 
-    fileSize = (await fsp.stat(path.join(tempDir, 'amplify_outputs.json')))
-      .size;
-    assert.ok(
-      fileSize > 100, // Validate that it's not just a shim
-      'outputs file should not be empty when generating for a new app with the previous version'
-    );
+    // 2. via API.
+    await assertGenerateClientConfigAPI('baseline');
   });
 });
