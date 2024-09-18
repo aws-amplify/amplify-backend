@@ -203,7 +203,7 @@ class AmplifyAuthGenerator
           policy.attachToRole(role);
         },
       }),
-      stack: this.generateContainerEntry.prototype.scope,
+      stack: Stack.of(this.generateContainerEntry.prototype),
     };
     if (!this.props.access) {
       return authConstructMixin;
