@@ -12,7 +12,7 @@ export type BackendBase = {
   addOutput: (
     clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>
   ) => void;
-  stack: () => Stack;
+  stack: Stack;
 };
 
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers
