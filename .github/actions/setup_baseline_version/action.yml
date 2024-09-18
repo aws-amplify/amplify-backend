@@ -1,0 +1,52 @@
+name: setup_baseline_version
+description: Set up a baseline or "previous" version of the library for testing. Mostly useful for backwards compatibility
+outputs:
+  baseline_dir:
+    description: 'Path where baseline project directory is setup'
+    value: ${{ steps.move_baseline_version.outputs.baseline_dir }}
+runs:
+  using: composite
+  steps:
+    - name: Get baseline commit sha
+      id: get_baseline_commit_sha
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if [[ ${{ github.event_name }} == 'push' ]]; then
+          # The SHA of the most recent commit on ref before the push.
+          baseline_commit_sha="${{ github.event.before }}"
+        elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
+          # The SHA of the HEAD commit on base branch.
+          baseline_commit_sha="${{ github.event.pull_request.base.sha }}"
+        elif [[ ${{ github.event_name }} == 'schedule' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
+          # The SHA of the parent of HEAD commit on main branch.
+          # This assumes linear history of main branch, i.e. one parent.
+          # These events have only information about HEAD commit, hence the need for lookup.
+          baseline_commit_sha=$(gh api /repos/${{ github.repository }}/commits/${{ github.sha }} | jq -r '.parents[0].sha')
+        else
+          echo Unable to determine baseline commit sha;
+          exit 1;
+        fi
+        echo baseline commit sha is $baseline_commit_sha;
+        echo "baseline_commit_sha=$baseline_commit_sha" >> "$GITHUB_OUTPUT";
+    - name: Checkout baseline version
+      uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      with:
+        ref: ${{ steps.get_baseline_commit_sha.outputs.baseline_commit_sha }}
+    - uses: ./.github/actions/setup_node
+    - name: Install and build baseline version
+      shell: bash
+      run: |
+        npm ci
+        npm run build
+    - name: Move baseline version
+      id: move_baseline_version
+      shell: bash
+      run: |
+        BASELINE_DIR=$(mktemp -d)
+        # Command below makes shell include .hidden files in file system commands (i.e. mv).
+        # This is to make sure that .git directory is moved with the repo content.
+        shopt -s dotglob
+        mv ./* $BASELINE_DIR
+        echo "baseline_dir=$BASELINE_DIR" >> "$GITHUB_OUTPUT";

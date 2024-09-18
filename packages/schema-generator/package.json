@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/schema-generator",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -12,6 +12,7 @@
       "require": "./lib/index.js"
     }
   },
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"

@@ -352,6 +352,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
           'AccessDeniedException',
           'NotAuthorized',
           'ExpiredTokenException',
+          'ExpiredToken',
           'InvalidSignatureException',
         ].includes(e.name)
       ) {

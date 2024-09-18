@@ -1,5 +1,26 @@
 # @aws-amplify/sandbox
 
+## 1.2.2
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- 0ff73ec: add ExpiredToken in the list of credentials error
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [e648e8e]
+- Updated dependencies [0ff73ec]
+- Updated dependencies [c9c873c]
+- Updated dependencies [cbac105]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/deployed-backend-client@1.4.1
+  - @aws-amplify/backend-deployer@1.1.3
+  - @aws-amplify/backend-secret@1.1.2
+  - @aws-amplify/client-config@1.3.1
+  - @aws-amplify/plugin-types@1.2.2
+  - @aws-amplify/cli-core@1.1.3
+
 ## 1.2.1
 
 ### Patch Changes

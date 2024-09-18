@@ -62,7 +62,10 @@ export class ConversationHandlerFunction
         entry: this.props.entry ?? defaultHandlerFilePath,
         handler: 'handler',
         bundling: {
-          bundleAwsSDK: true,
+          // Do not bundle SDK if conversation handler is using our default implementation which is
+          // compatible with Lambda provided SDK.
+          // For custom entry we do bundle SDK as we can't control version customer is coding against.
+          bundleAwsSDK: !!this.props.entry,
         },
         logGroup: new LogGroup(this, 'conversationHandlerFunctionLogGroup', {
           retention: RetentionDays.INFINITE,

@@ -37,9 +37,7 @@ const testCases: Array<TestCase> = [
     },
     expectedQuery: `
     query ToolQuery($property1: String!, $property2: Int) {
-      testQueryName1(property1: $property1, property2: $property2) {
-        testSelection1 testSelection2
-      }
+      testQueryName1(property1: $property1, property2: $property2) { testSelection1 testSelection2 }
     }
     `,
   },
@@ -58,9 +56,30 @@ const testCases: Array<TestCase> = [
     },
     expectedQuery: `
     query ToolQuery {
-      testQueryName2 {
-        testSelection3 testSelection4
-      }
+      testQueryName2 { testSelection3 testSelection4 }
+    }
+    `,
+  },
+  {
+    toolDefinition: {
+      name: 'toolName3',
+      description: 'toolDescription3',
+      inputSchema: {
+        json: {
+          type: 'object',
+          properties: {},
+          required: [],
+        },
+      },
+      graphqlRequestInputDescriptor: {
+        queryName: 'testQueryName3',
+        selectionSet: '',
+        propertyTypes: {},
+      },
+    },
+    expectedQuery: `
+    query ToolQuery {
+      testQueryName3
     }
     `,
   },

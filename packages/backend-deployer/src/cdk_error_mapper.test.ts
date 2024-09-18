@@ -171,6 +171,29 @@ const testErrorMappings = [
   },
   {
     errorMessage:
+      `✘ [ERROR] Could not resolve "$amplify/env/defaultNodeFunctions"` +
+      EOL +
+      EOL +
+      `    amplify/func-src/handler.ts:1:20:` +
+      EOL +
+      `      1 │ ...t { env } from '$amplify/env/defaultNodeFunctions';` +
+      EOL +
+      `1 error`,
+    expectedTopLevelErrorMessage:
+      'Unable to build the Amplify backend definition.',
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage:
+      `✘ [ERROR] Could not resolve "$amplify/env/defaultNodeFunctions"` +
+      EOL +
+      EOL +
+      `    amplify/func-src/handler.ts:1:20:` +
+      EOL +
+      `      1 │ ...t { env } from '$amplify/env/defaultNodeFunctions';` +
+      EOL +
+      `1 error`,
+  },
+  {
+    errorMessage:
       `Error [TransformError]: Transform failed with 1 error:` +
       EOL +
       `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"` +
@@ -258,6 +281,15 @@ const testErrorMappings = [
     expectedTopLevelErrorMessage: 'File permissions error',
     errorName: 'FilePermissionsError',
     expectedDownstreamErrorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
+  },
+  {
+    errorMessage: `This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
+      (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
+    expectedTopLevelErrorMessage:
+      "Installed 'aws-cdk' is not compatible with installed 'aws-cdk-lib'.",
+    errorName: 'CDKVersionMismatchError',
+    expectedDownstreamErrorMessage: `This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
+      (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
   },
 ];
 

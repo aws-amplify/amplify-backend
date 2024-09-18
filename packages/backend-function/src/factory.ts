@@ -373,11 +373,22 @@ class AmplifyFunction
         },
       });
     } catch (error) {
+      // If the error is from ES Bundler which is executed as a child process by CDK,
+      // then the error from CDK contains the command that was executed along with the exit status.
+      // Wrapping it here  would cause the cdk_deployer to re-throw this wrapped exception
+      // instead of scraping the stderr for actual ESBuild error.
+      if (
+        error instanceof Error &&
+        error.message.match(/Failed to bundle asset.*exited with status/)
+      ) {
+        throw error;
+      }
       throw new AmplifyUserError(
         'NodeJSFunctionConstructInitializationError',
         {
           message: 'Failed to instantiate nodejs function construct',
-          resolution: 'See the underlying error message for more details.',
+          resolution:
+            'See the underlying error message for more details. Use `--debug` for additional debugging information.',
         },
         error as Error
       );

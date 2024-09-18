@@ -21,14 +21,28 @@ export const configs = {
     },
     overrides: [
       {
-        files: ['packages/cli/src/**'],
+        files: [
+          'packages/sandbox/src/**',
+          'packages/backend-ai/src/**',
+          'packages/backend-auth/src/**',
+          'packages/backend-deployer/src/**',
+          'packages/create-amplify/src/**',
+        ],
         excludedFiles: ['**/*.test.ts'],
         rules: {
-          'amplify-backend-rules/prefer-amplify-errors': 'off', //will be changed to 'error' in the future
+          'amplify-backend-rules/prefer-amplify-errors': 'error',
         },
       },
       {
-        files: ['packages/auth-construct/src/**'],
+        files: [
+          'packages/auth-construct/src/**',
+          'packages/ai-constructs/src/**',
+          'packages/backend-output-storage/src/**',
+          'packages/deployed-backend-client/src/**',
+          'packages/form-generator/src/**',
+          'packages/model-generator/src/**',
+          'packages/schema-generator/src/**',
+        ],
         rules: {
           'amplify-backend-rules/no-amplify-errors': 'error',
         },
