@@ -68,7 +68,8 @@ export const defineFunction = (
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
-    AddEnvironmentFactory /*& FuncStackFactory*/
+    AddEnvironmentFactory &
+    FuncStackFactory
 > => new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {
@@ -309,9 +310,10 @@ class AmplifyFunction
   implements
     ResourceProvider<FunctionResources>,
     ResourceAccessAcceptorFactory,
-    AddEnvironmentFactory
+    AddEnvironmentFactory,
+    FuncStackFactory
 {
-  /*, FuncStackFactory*/
+  stack: Stack;
   readonly resources: FunctionResources;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
@@ -437,13 +439,13 @@ class AmplifyFunction
       functionStackType,
       fileURLToPath(new URL('../package.json', import.meta.url))
     );
+
+    this.stack = Stack.of(this);
   }
 
   addEnvironment = (key: string, value: string | BackendSecret) => {
     this.functionEnvironmentTranslator.addEnvironmentEntry(key, value);
   };
-
-  //stack: Stack = () => {return this.generator.scope;};
 
   getResourceAccessAcceptor = () => ({
     identifier: `${this.node.id}LambdaResourceAccessAcceptor`,
