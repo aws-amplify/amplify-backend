@@ -49,6 +49,7 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
 export type BackendBase = {
     createStack: (name: string) => Stack;
     addOutput: (clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>) => void;
+    stack: () => Stack;
 };
 
 export { BackendOutputEntry }

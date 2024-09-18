@@ -20,6 +20,7 @@ import { OidcProviderProps } from '@aws-amplify/auth-construct';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { Stack } from 'aws-cdk-lib';
 import { TriggerEvent } from '@aws-amplify/auth-construct';
 
 // @public
@@ -76,8 +77,10 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
     externalProviders?: ExternalProviderSpecificFactoryProps;
 };
 
+// Warning: (ae-forgotten-export) The symbol "AuthStackFactory" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
-export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string>;
+export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string> & AuthStackFactory;
 
 // @public
 export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth>;
