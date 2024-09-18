@@ -56,6 +56,17 @@ const testErrorMappings = [
       `    at lookup(/some_random/path.js: 1: 3005)`,
   },
   {
+    errorMessage: `TypeError [ERR_INVALID_MODULE_SPECIFIER]: Invalid module ..../function/foo/resource.ts is not a valid package name imported from 
+/Users/foo/Desktop/amplify-app/amplify/storage/foo/resource.ts
+    at new NodeError (node:internal/errors:405:5)`,
+    expectedTopLevelErrorMessage:
+      'Unable to build the Amplify backend definition.',
+    errorName: 'SyntaxError',
+    expectedDownstreamErrorMessage: `TypeError [ERR_INVALID_MODULE_SPECIFIER]: Invalid module ..../function/foo/resource.ts is not a valid package name imported from 
+/Users/foo/Desktop/amplify-app/amplify/storage/foo/resource.ts
+    at new NodeError (node:internal/errors:405:5)`,
+  },
+  {
     errorMessage: 'Has the environment been bootstrapped',
     expectedTopLevelErrorMessage:
       'This AWS account and region has not been bootstrapped.',

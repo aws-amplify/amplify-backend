@@ -122,7 +122,7 @@ export class CdkErrorMapper {
     },
     {
       errorRegex: new RegExp(
-        `(SyntaxError|ReferenceError|TypeError):((?:.|${this.multiLineEolRegex})*?at .*)`
+        `(SyntaxError|ReferenceError|TypeError)( \\[[A-Z_]+])?:((?:.|${this.multiLineEolRegex})*?at .*)`
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
