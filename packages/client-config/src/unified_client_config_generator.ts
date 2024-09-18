@@ -68,6 +68,20 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
       }
       if (
         error instanceof BackendOutputClientError &&
+        error.code === BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR
+      ) {
+        throw new AmplifyUserError(
+          'NonAmplifyStackError',
+          {
+            message: 'Stack was not created with Amplify.',
+            resolution:
+              'Ensure the CloudFormation stack ID references a main stack created with Amplify, then re-run this command.',
+          },
+          error
+        );
+      }
+      if (
+        error instanceof BackendOutputClientError &&
         error.code === BackendOutputClientErrorType.CREDENTIALS_ERROR
       ) {
         throw new AmplifyUserError(
