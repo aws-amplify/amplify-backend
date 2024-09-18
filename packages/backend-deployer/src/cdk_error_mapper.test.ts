@@ -259,6 +259,15 @@ const testErrorMappings = [
     errorName: 'FilePermissionsError',
     expectedDownstreamErrorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
   },
+  {
+    errorMessage: `This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
+      (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
+    expectedTopLevelErrorMessage:
+      "Installed 'aws-cdk' is not compatible with installed 'aws-cdk-lib'.",
+    errorName: 'CDKVersionMismatchError',
+    expectedDownstreamErrorMessage: `This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
+      (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
