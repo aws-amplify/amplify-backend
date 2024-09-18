@@ -111,6 +111,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /This CDK CLI is not compatible with the CDK library used by your application\. Please upgrade the CLI to the latest version\./,
+      humanReadableErrorMessage:
+        "Installed 'aws-cdk' is not compatible with installed 'aws-cdk-lib'.",
+      resolutionMessage:
+        "Make sure that version of 'aws-cdk' is greater or equal to version of 'aws-cdk-lib'",
+      errorName: 'CDKVersionMismatchError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `(SyntaxError|ReferenceError|TypeError):((?:.|${this.multiLineEolRegex})*?at .*)`
       ),
@@ -272,6 +282,7 @@ export type CDKDeploymentError =
   | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
   | 'CDKResolveAWSAccountError'
+  | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
   | 'CloudFormationDeploymentError'
   | 'FilePermissionsError'
