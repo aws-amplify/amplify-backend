@@ -449,6 +449,39 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
     });
 
+    void it('throws user error if the stack is missing metadata', async () => {
+      const outputRetrieval = mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
+          'Stack template metadata is not a string'
+        );
+      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1.1');
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Stack was not created with Amplify.'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
+
     void it('throws user error if credentials are expired when getting backend outputs', async () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(
