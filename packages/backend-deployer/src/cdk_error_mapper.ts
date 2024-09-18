@@ -181,6 +181,18 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // Also extracts the first line in the stack where the error happened
+      errorRegex: new RegExp(
+        `[✘X] \\[ERROR\\] ((?:.|${this.multiLineEolRegex})*error.*)`
+      ),
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'ESBuildError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `\\[TransformError\\]: Transform failed with .* error:${this.multiLineEolRegex}(?<esBuildErrorMessage>.*)`
       ),
