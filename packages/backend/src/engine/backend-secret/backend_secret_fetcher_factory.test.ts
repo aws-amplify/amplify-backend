@@ -22,11 +22,12 @@ const backendId: BackendIdentifier = {
 };
 
 void describe('getOrCreate', () => {
+  const providerFactory = new BackendSecretFetcherProviderFactory();
+  const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
+
   void it('create different secrets', () => {
     const app = new App();
     const stack = new Stack(app);
-    const providerFactory = new BackendSecretFetcherProviderFactory();
-    const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
     stack.node.setContext('secretLastUpdated', secretLastUpdated);
     resourceFactory.getOrCreate(stack, backendId, secretName1);
     resourceFactory.getOrCreate(stack, backendId, secretName2);
@@ -58,8 +59,6 @@ void describe('getOrCreate', () => {
   void it('does not create duplicate resource for the same secret name', () => {
     const app = new App();
     const stack = new Stack(app);
-    const providerFactory = new BackendSecretFetcherProviderFactory();
-    const resourceFactory = new BackendSecretFetcherFactory(providerFactory);
 
     // ensure only 1 resource is created even if this is called twice
     resourceFactory.getOrCreate(stack, backendId, secretName1);
