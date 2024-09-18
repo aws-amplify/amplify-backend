@@ -79,6 +79,8 @@ export class AmplifyStorage
   extends Construct
   implements ResourceProvider<StorageResources>
 {
+  // needs stack property to satisfy getInstance
+  readonly stack: Stack;
   readonly resources: StorageResources;
   readonly isDefault: boolean;
   readonly name: string;

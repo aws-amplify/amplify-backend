@@ -3,6 +3,7 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
 import { AmplifyStorage, StorageResources } from './construct.js';
@@ -17,6 +18,7 @@ import { StorageOutputsAspect } from './storage_outputs_aspect.js';
 export class AmplifyStorageFactory
   implements ConstructFactory<ResourceProvider<StorageResources>>
 {
+  stack: Stack;
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -64,6 +66,8 @@ export class AmplifyStorageFactory
       );
     }
 
+    this.stack = Stack.of(amplifyStorage);
+
     return amplifyStorage;
   };
 }
@@ -74,5 +78,5 @@ export class AmplifyStorageFactory
  */
 export const defineStorage = (
   props: AmplifyStorageFactoryProps
-): ConstructFactory<ResourceProvider<StorageResources>> =>
+): ConstructFactory<ResourceProvider<StorageResources> & StackProvider> =>
   new AmplifyStorageFactory(props, new Error().stack);
