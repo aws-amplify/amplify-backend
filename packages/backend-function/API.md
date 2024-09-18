@@ -9,7 +9,6 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { Stack } from 'aws-cdk-lib';
 
 // @public (undocumented)
 export type AddEnvironmentFactory = {
@@ -20,12 +19,7 @@ export type AddEnvironmentFactory = {
 export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
 
 // @public
-export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & FuncStackFactory>;
-
-// @public (undocumented)
-export type FuncStackFactory = {
-    stack: Stack;
-};
+export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory>;
 
 // @public (undocumented)
 export type FunctionProps = {
