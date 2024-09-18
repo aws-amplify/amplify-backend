@@ -28,8 +28,8 @@ export class CfnTokenBackendSecret implements BackendSecret {
   ): SecretValue => {
     const secretResource = this.secretResourceFactory.getOrCreate(
       scope,
-      backendIdentifier,
-      this.secretName
+      this.secretName,
+      backendIdentifier
     );
 
     const val = secretResource.getAttString(`${this.secretName}`);

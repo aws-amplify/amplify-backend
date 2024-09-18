@@ -50,8 +50,8 @@ export class BackendSecretFetcherFactory {
    */
   getOrCreate = (
     scope: Construct,
-    backendIdentifier: BackendIdentifier,
-    secretName: string
+    secretName: string,
+    backendIdentifier: BackendIdentifier
   ): SecretFetcherCustomResource => {
     const secretResourceId = `SecretFetcherResource`;
     const existingResource = scope.node.tryFindChild(

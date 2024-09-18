@@ -29,8 +29,8 @@ void describe('getOrCreate', () => {
     const app = new App();
     const stack = new Stack(app);
     stack.node.setContext('secretLastUpdated', secretLastUpdated);
-    resourceFactory.getOrCreate(stack, backendId, secretName1);
-    resourceFactory.getOrCreate(stack, backendId, secretName2);
+    resourceFactory.getOrCreate(stack, secretName1, backendId);
+    resourceFactory.getOrCreate(stack, secretName2, backendId);
 
     const template = Template.fromStack(stack);
     // only one custom resource is created that fetches all secrets
@@ -61,8 +61,8 @@ void describe('getOrCreate', () => {
     const stack = new Stack(app);
 
     // ensure only 1 resource is created even if this is called twice
-    resourceFactory.getOrCreate(stack, backendId, secretName1);
-    resourceFactory.getOrCreate(stack, backendId, secretName1);
+    resourceFactory.getOrCreate(stack, secretName1, backendId);
+    resourceFactory.getOrCreate(stack, secretName1, backendId);
 
     const template = Template.fromStack(stack);
     template.resourceCountIs(secretResourceType, 1);
