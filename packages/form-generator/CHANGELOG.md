@@ -1,5 +1,12 @@
 # @aws-amplify/form-generator
 
+## 1.0.2
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- e648e8e: added main field to packages known to lack one
+
 ## 1.0.1
 
 ### Patch Changes

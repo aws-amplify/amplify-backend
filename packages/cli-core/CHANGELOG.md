@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 1.1.3
+
+### Patch Changes
+
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+
 ## 1.1.2
 
 ### Patch Changes
