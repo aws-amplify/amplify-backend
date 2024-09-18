@@ -49,6 +49,8 @@ export class BackendFactory<
     [K in keyof T]: ReturnType<T[K]['getInstance']>;
   };
 
+  readonly mainStack: Stack;
+
   private readonly stackResolver: StackResolver;
   private readonly customOutputsAccumulator: CustomOutputsAccumulator;
   /**
@@ -56,6 +58,7 @@ export class BackendFactory<
    * If no CDK App is specified a new one is created
    */
   constructor(constructFactories: T, stack: Stack = createDefaultStack()) {
+    this.mainStack = stack;
     new AttributionMetadataStorage().storeAttributionMetadata(
       stack,
       rootStackTypeIdentifier,
@@ -157,5 +160,6 @@ export const defineBackend = <T extends DefineBackendProps>(
     ...backend.resources,
     createStack: backend.createStack,
     addOutput: backend.addOutput,
+    mainStack: backend.mainStack,
   };
 };
