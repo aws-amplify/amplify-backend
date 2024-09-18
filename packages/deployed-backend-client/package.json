@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/deployed-backend-client",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -21,7 +21,7 @@
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^1.2.0",
     "@aws-amplify/platform-core": "^1.0.5",
-    "@aws-amplify/plugin-types": "^1.2.1",
+    "@aws-amplify/plugin-types": "^1.2.2",
     "zod": "^3.22.2"
   },
   "peerDependencies": {

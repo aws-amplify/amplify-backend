@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.2.2
+
+### Patch Changes
+
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+
 ## 1.2.1
 
 ### Patch Changes

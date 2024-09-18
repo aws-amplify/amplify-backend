@@ -1,5 +1,12 @@
 # @aws-amplify/schema-generator
 
+## 1.2.3
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- e648e8e: added main field to packages known to lack one
+
 ## 1.2.2
 
 ### Patch Changes
