@@ -9,7 +9,7 @@ import { SecretResourceProps } from './lambda/backend_secret_fetcher_types.js';
  */
 export const SECRET_RESOURCE_PROVIDER_ID = 'SecretFetcherResourceProvider';
 
-class SecretFetcherCustomResource extends CustomResource {
+class AmplifySecretFetcherCustomResource extends CustomResource {
   private secrets: Set<string>;
   constructor(
     scope: Construct,
@@ -52,11 +52,11 @@ export class BackendSecretFetcherFactory {
     scope: Construct,
     secretName: string,
     backendIdentifier: BackendIdentifier
-  ): SecretFetcherCustomResource => {
+  ): AmplifySecretFetcherCustomResource => {
     const secretResourceId = `SecretFetcherResource`;
     const existingResource = scope.node.tryFindChild(
       secretResourceId
-    ) as SecretFetcherCustomResource;
+    ) as AmplifySecretFetcherCustomResource;
 
     if (existingResource) {
       existingResource.addSecret(secretName);
@@ -88,7 +88,7 @@ export class BackendSecretFetcherFactory {
       }),
     };
 
-    return new SecretFetcherCustomResource(
+    return new AmplifySecretFetcherCustomResource(
       scope,
       secretResourceId,
       {
