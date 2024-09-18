@@ -203,7 +203,7 @@ class AmplifyAuthGenerator
           policy.attachToRole(role);
         },
       }),
-      stack: Stack.of(this.generateContainerEntry.prototype),
+      stack: authConstruct.resources.authenticatedUserIamRole.stack, //not sure if this actually works...
     };
     if (!this.props.access) {
       return authConstructMixin;
