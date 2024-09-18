@@ -41,7 +41,7 @@ export class BackendSecretFetcherFactory {
    * Creates a backend secret-fetcher resource factory.
    */
   constructor(
-    private secretProviderFactory: BackendSecretFetcherProviderFactory
+    private readonly secretProviderFactory: BackendSecretFetcherProviderFactory
   ) {}
 
   /**
