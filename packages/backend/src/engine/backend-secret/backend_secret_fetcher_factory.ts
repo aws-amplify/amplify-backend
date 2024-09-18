@@ -7,9 +7,10 @@ import { SecretResourceProps } from './lambda/backend_secret_fetcher_types.js';
 /**
  * Resource provider ID for the backend secret resource.
  */
-export const SECRET_RESOURCE_PROVIDER_ID = 'SecretFetcherResourceProvider';
+export const SECRET_RESOURCE_PROVIDER_ID =
+  'AmplifySecretFetcherResourceProvider';
 
-class AmplifySecretFetcherCustomResource extends CustomResource {
+class SecretFetcherCustomResource extends CustomResource {
   private secrets: Set<string>;
   constructor(
     scope: Construct,
@@ -31,7 +32,7 @@ class AmplifySecretFetcherCustomResource extends CustomResource {
 /**
  * Type of the backend custom CFN resource.
  */
-const SECRET_RESOURCE_TYPE = `Custom::SecretFetcherResource`;
+const SECRET_RESOURCE_TYPE = `Custom::AmplifySecretFetcherResource`;
 
 /**
  * The factory to create backend secret-fetcher resource.
@@ -52,11 +53,11 @@ export class BackendSecretFetcherFactory {
     scope: Construct,
     secretName: string,
     backendIdentifier: BackendIdentifier
-  ): AmplifySecretFetcherCustomResource => {
-    const secretResourceId = `SecretFetcherResource`;
+  ): SecretFetcherCustomResource => {
+    const secretResourceId = `AmplifySecretFetcherResource`;
     const existingResource = scope.node.tryFindChild(
       secretResourceId
-    ) as AmplifySecretFetcherCustomResource;
+    ) as SecretFetcherCustomResource;
 
     if (existingResource) {
       existingResource.addSecret(secretName);
@@ -88,7 +89,7 @@ export class BackendSecretFetcherFactory {
       }),
     };
 
-    return new AmplifySecretFetcherCustomResource(
+    return new SecretFetcherCustomResource(
       scope,
       secretResourceId,
       {

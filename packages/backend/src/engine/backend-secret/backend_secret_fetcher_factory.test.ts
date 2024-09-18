@@ -9,7 +9,7 @@ import {
 } from './backend_secret_fetcher_factory.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
-const secretResourceType = 'Custom::SecretFetcherResource';
+const secretResourceType = 'Custom::AmplifySecretFetcherResource';
 const namespace = 'testId';
 const name = 'testBranch';
 const secretName1 = 'testSecretName1';
