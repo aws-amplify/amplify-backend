@@ -84,8 +84,7 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
         ),
       new AmplifyUserError('SSMParameterNotFoundError', {
         message: `Failed to get ${secretName} secret. ParameterNotFound: Parameter not found error`,
-        resolution:
-          'Make sure that testSecretName has been set. See https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/.',
+        resolution: `Make sure that ${secretName} has been set. See https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/.`,
       })
     );
   });
