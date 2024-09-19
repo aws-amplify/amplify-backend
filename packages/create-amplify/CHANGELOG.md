@@ -1,5 +1,14 @@
 # create-amplify
 
+## 1.0.6
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- Updated dependencies [8dd7286]
+  - @aws-amplify/plugin-types@1.2.2
+  - @aws-amplify/cli-core@1.1.3
+
 ## 1.0.5
 
 ### Patch Changes

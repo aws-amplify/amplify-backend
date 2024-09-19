@@ -1,5 +1,18 @@
 # @aws-amplify/model-generator
 
+## 1.0.7
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [e648e8e]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/deployed-backend-client@1.4.1
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.0.6
 
 ### Patch Changes

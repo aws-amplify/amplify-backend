@@ -1,5 +1,28 @@
 # @aws-amplify/backend-cli
 
+## 1.2.7
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- Updated dependencies [e648e8e]
+- Updated dependencies [0ff73ec]
+- Updated dependencies [c9c873c]
+- Updated dependencies [cbac105]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/deployed-backend-client@1.4.1
+  - @aws-amplify/backend-deployer@1.1.3
+  - @aws-amplify/schema-generator@1.2.3
+  - @aws-amplify/model-generator@1.0.7
+  - @aws-amplify/backend-secret@1.1.2
+  - @aws-amplify/form-generator@1.0.2
+  - @aws-amplify/client-config@1.3.1
+  - @aws-amplify/sandbox@1.2.2
+  - @aws-amplify/plugin-types@1.2.2
+  - @aws-amplify/cli-core@1.1.3
+
 ## 1.2.6
 
 ### Patch Changes
