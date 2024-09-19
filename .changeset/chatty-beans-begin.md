@@ -4,4 +4,4 @@
 '@aws-amplify/backend': minor
 ---
 
-expose stack parameter for backend, function resource, and auth resource
+expose stack property for backend, function resource, and auth resource
