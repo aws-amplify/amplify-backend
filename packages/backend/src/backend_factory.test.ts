@@ -203,12 +203,12 @@ void describe('Backend', () => {
       Value: JSON.stringify(clientConfigPartial),
     });
   });
-  void it('checking if generated/emv/ directory is cleared', () => {
+  void it('checking if .amplify/generated/env/ directory is cleared', () => {
     const fsRmSyncMock = mock.method(fs, 'rmSync');
     const backend = new BackendFactory({}, rootStack);
     backend.createStack('testStack');
     const callCount = fsRmSyncMock.mock.callCount;
-    assert.equal(callCount, 1);
+    assert.equal(callCount, 2);
     mock.restoreAll();
   });
 });
