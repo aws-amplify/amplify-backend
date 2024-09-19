@@ -109,9 +109,6 @@ export class BackendFactory<
     // Clear any existing files and subdirectories in the directory
     fs.rmSync(pathToDelete, { recursive: true, force: true });
 
-    // Recreate the directory to ensure it is empty
-    fs.mkdirSync(pathToDelete, { recursive: true });
-
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
       if (typeof factory.provides === 'string') {
