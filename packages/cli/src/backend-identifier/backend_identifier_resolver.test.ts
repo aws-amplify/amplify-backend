@@ -3,13 +3,15 @@ import { describe, it } from 'node:test';
 import { AppBackendIdentifierResolver } from './backend_identifier_resolver.js';
 
 void describe('BackendIdentifierResolver', () => {
-  void describe('resolve', () => {
+  void describe('resolveDeployedBackendIdentifier', () => {
     void it('returns an App Name and Branch identifier', async () => {
       const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
       });
       assert.deepStrictEqual(
-        await backendIdResolver.resolve({ branch: 'test' }),
+        await backendIdResolver.resolveDeployedBackendIdentifier({
+          branch: 'test',
+        }),
         {
           appName: 'testAppName',
           branchName: 'test',
@@ -20,7 +22,7 @@ void describe('BackendIdentifierResolver', () => {
       const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
       });
-      const actual = await backendIdResolver.resolve({
+      const actual = await backendIdResolver.resolveDeployedBackendIdentifier({
         appId: 'my-id',
         branch: 'my-branch',
       });
@@ -34,9 +36,14 @@ void describe('BackendIdentifierResolver', () => {
       const backendIdResolver = new AppBackendIdentifierResolver({
         resolve: () => Promise.resolve('testAppName'),
       });
-      assert.deepEqual(await backendIdResolver.resolve({ stack: 'my-stack' }), {
-        stackName: 'my-stack',
-      });
+      assert.deepEqual(
+        await backendIdResolver.resolveDeployedBackendIdentifier({
+          stack: 'my-stack',
+        }),
+        {
+          stackName: 'my-stack',
+        }
+      );
     });
   });
 
@@ -46,9 +53,9 @@ void describe('BackendIdentifierResolver', () => {
         resolve: () => Promise.resolve('testAppName'),
       });
       assert.deepEqual(
-        await backendIdResolver.resolveDeployedBackendIdToBackendId({
-          appName: 'testAppName',
-          branchName: 'test',
+        await backendIdResolver.resolveBackendIdentifier({
+          appId: 'testAppName',
+          branch: 'test',
         }),
         {
           namespace: 'testAppName',
@@ -62,31 +69,14 @@ void describe('BackendIdentifierResolver', () => {
         resolve: () => Promise.resolve('testAppName'),
       });
       assert.deepEqual(
-        await backendIdResolver.resolveDeployedBackendIdToBackendId({
-          stackName: 'amplify-reasonableName-userName-branch-testHash',
+        await backendIdResolver.resolveBackendIdentifier({
+          stack: 'amplify-reasonableName-userName-branch-testHash',
         }),
         {
           namespace: 'reasonableName',
           name: 'userName',
           type: 'branch',
           hash: 'testHash',
-        }
-      );
-    });
-    void it('does nothing if already backend identifier', async () => {
-      const backendIdResolver = new AppBackendIdentifierResolver({
-        resolve: () => Promise.resolve('testAppName'),
-      });
-      assert.deepEqual(
-        await backendIdResolver.resolveDeployedBackendIdToBackendId({
-          namespace: 'testAppName',
-          name: 'test',
-          type: 'branch',
-        }),
-        {
-          namespace: 'testAppName',
-          name: 'test',
-          type: 'branch',
         }
       );
     });

@@ -1,6 +1,6 @@
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { NamespaceResolver } from './local_namespace_resolver.js';
-import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 export type BackendIdentifierParameters = {
@@ -10,11 +10,11 @@ export type BackendIdentifierParameters = {
 };
 
 export type BackendIdentifierResolver = {
-  resolve: (
+  resolveDeployedBackendIdentifier: (
     args: BackendIdentifierParameters
   ) => Promise<DeployedBackendIdentifier | undefined>;
-  resolveDeployedBackendIdToBackendId: (
-    deployedBackendId?: DeployedBackendIdentifier
+  resolveBackendIdentifier: (
+    args: BackendIdentifierParameters
   ) => Promise<BackendIdentifier | undefined>;
 };
 
@@ -27,7 +27,7 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
    * Instantiates BackendIdentifierResolver
    */
   constructor(private readonly namespaceResolver: NamespaceResolver) {}
-  resolve = async (
+  resolveDeployedBackendIdentifier = async (
     args: BackendIdentifierParameters
   ): Promise<DeployedBackendIdentifier | undefined> => {
     if (args.stack) {
@@ -46,25 +46,25 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
     }
     return undefined;
   };
-  resolveDeployedBackendIdToBackendId = async (
-    deployedBackendId?: DeployedBackendIdentifier
+  resolveBackendIdentifier = async (
+    args: BackendIdentifierParameters
   ): Promise<BackendIdentifier | undefined> => {
-    if (!deployedBackendId) {
-      return undefined;
-    }
-
-    if ('stackName' in deployedBackendId) {
-      return BackendIdentifierConversions.fromStackName(
-        deployedBackendId.stackName
-      );
-    } else if ('appName' in deployedBackendId) {
+    if (args.stack) {
+      return BackendIdentifierConversions.fromStackName(args.stack);
+    } else if (args.appId && args.branch) {
       return {
-        namespace: deployedBackendId.appName,
-        name: deployedBackendId.branchName,
-        type: 'branch' as DeploymentType,
+        namespace: args.appId,
+        name: args.branch,
+        type: 'branch',
+      };
+    } else if (args.branch) {
+      return {
+        namespace: await this.namespaceResolver.resolve(),
+        name: args.branch,
+        type: 'branch',
       };
     }
 
-    return deployedBackendId;
+    return undefined;
   };
 }

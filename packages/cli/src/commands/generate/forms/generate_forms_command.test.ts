@@ -242,14 +242,14 @@ void describe('generate forms command', () => {
   void it('throws user error if the stack deployment is currently in progress', async () => {
     const fakeSandboxId = 'my-fake-app-my-fake-username';
     const backendIdResolver = {
-      resolve: mock.fn(() =>
+      resolveDeployedBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
         })
       ),
-      resolveDeployedBackendIdToBackendId: mock.fn(() =>
+      resolveBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
@@ -296,14 +296,14 @@ void describe('generate forms command', () => {
   void it('throws user error if the stack does not exist', async () => {
     const fakeSandboxId = 'my-fake-app-my-fake-username';
     const backendIdResolver = {
-      resolve: mock.fn(() =>
+      resolveDeployedBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
         })
       ),
-      resolveDeployedBackendIdToBackendId: mock.fn(() =>
+      resolveBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
@@ -347,14 +347,14 @@ void describe('generate forms command', () => {
   void it('throws user error if credentials are expired when getting backend outputs', async () => {
     const fakeSandboxId = 'my-fake-app-my-fake-username';
     const backendIdResolver = {
-      resolve: mock.fn(() =>
+      resolveDeployedBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
         })
       ),
-      resolveDeployedBackendIdToBackendId: mock.fn(() =>
+      resolveBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
@@ -401,14 +401,14 @@ void describe('generate forms command', () => {
   void it('throws user error if access is denied when getting backend outputs', async () => {
     const fakeSandboxId = 'my-fake-app-my-fake-username';
     const backendIdResolver = {
-      resolve: mock.fn(() =>
+      resolveDeployedBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
         })
       ),
-      resolveDeployedBackendIdToBackendId: mock.fn(() =>
+      resolveBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,

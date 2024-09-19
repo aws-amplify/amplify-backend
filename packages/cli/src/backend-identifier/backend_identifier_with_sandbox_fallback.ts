@@ -1,4 +1,3 @@
-import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { SandboxBackendIdResolver } from '../commands/sandbox/sandbox_id_resolver.js';
 import {
   BackendIdentifierParameters,
@@ -21,22 +20,21 @@ export class BackendIdentifierResolverWithFallback
   /**
    * resolves the backend id, falling back to the sandbox id if there is an error
    */
-  resolve = async (args: BackendIdentifierParameters) => {
+  resolveDeployedBackendIdentifier = async (
+    args: BackendIdentifierParameters
+  ) => {
     return (
-      (await this.defaultResolver.resolve(args)) ??
+      (await this.defaultResolver.resolveDeployedBackendIdentifier(args)) ??
       (await this.fallbackResolver.resolve())
     );
   };
   /**
    * Resolves deployed backend id to backend id, falling back to the sandbox id if there is an error
    */
-  resolveDeployedBackendIdToBackendId = async (
-    deployedBackendId?: DeployedBackendIdentifier
-  ) => {
+  resolveBackendIdentifier = async (args: BackendIdentifierParameters) => {
     return (
-      (await this.defaultResolver.resolveDeployedBackendIdToBackendId(
-        deployedBackendId
-      )) ?? (await this.fallbackResolver.resolve())
+      (await this.defaultResolver.resolveBackendIdentifier(args)) ??
+      (await this.fallbackResolver.resolve())
     );
   };
 }

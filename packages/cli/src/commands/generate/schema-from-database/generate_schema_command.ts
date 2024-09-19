@@ -53,15 +53,10 @@ export class GenerateSchemaCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateSchemaCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier = await this.backendIdentifierResolver.resolve(
-      args
-    );
-    const resolvedBackendId =
-      await this.backendIdentifierResolver.resolveDeployedBackendIdToBackendId(
-        backendIdentifier
-      );
+    const backendIdentifier =
+      await this.backendIdentifierResolver.resolveBackendIdentifier(args);
 
-    if (!resolvedBackendId) {
+    if (!backendIdentifier) {
       throw new AmplifyFault('BackendIdentifierFault', {
         message: 'Could not resolve the backend identifier',
       });
@@ -71,7 +66,7 @@ export class GenerateSchemaCommand
     const outputFile = args.out as string;
 
     const connectionUriSecret = await this.secretClient.getSecret(
-      resolvedBackendId,
+      backendIdentifier,
       {
         name: connectionUriSecretName,
       }
@@ -80,7 +75,7 @@ export class GenerateSchemaCommand
     const sslCertSecretName = args.sslCertSecret as string;
     let sslCertSecret;
     if (sslCertSecretName) {
-      sslCertSecret = await this.secretClient.getSecret(resolvedBackendId, {
+      sslCertSecret = await this.secretClient.getSecret(backendIdentifier, {
         name: sslCertSecretName,
       });
     }
