@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 1.3.2
+
+### Patch Changes
+
+- 603b75d: Classify pointing client config generator at metadata-less stack as user error
+
 ## 1.3.1
 
 ### Patch Changes
