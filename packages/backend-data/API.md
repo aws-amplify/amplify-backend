@@ -9,6 +9,7 @@ import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedCombinedSchema } from '@aws-amplify/data-schema-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import { StackProvider } from '@aws-amplify/plugin-types';
 
 // @public
 export type ApiKeyAuthorizationModeProps = {
@@ -39,7 +40,7 @@ export type DataSchemaInput = string | DerivedModelSchema | DerivedCombinedSchem
 export type DefaultAuthorizationMode = 'iam' | 'identityPool' | 'userPool' | 'oidc' | 'apiKey' | 'lambda';
 
 // @public
-export const defineData: (props: DataProps) => ConstructFactory<AmplifyData>;
+export const defineData: (props: DataProps) => ConstructFactory<AmplifyData & StackProvider>;
 
 // @public
 export type LambdaAuthorizationModeProps = {
