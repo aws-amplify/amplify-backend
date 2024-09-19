@@ -4,7 +4,10 @@ import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
-import { AmplifyFault } from '@aws-amplify/platform-core';
+import {
+  AmplifyFault,
+  BackendIdentifierConversions,
+} from '@aws-amplify/platform-core';
 
 const DEFAULT_OUTPUT = 'amplify/data/schema.sql.ts';
 
@@ -67,8 +70,13 @@ export class GenerateSchemaCommand
     const connectionUriSecretName = args.connectionUriSecret as string;
     const outputFile = args.out as string;
 
+    const backendIdentifierIsStack = 'stackName' in backendIdentifier;
+    const sanitizedBackendId = backendIdentifierIsStack
+      ? BackendIdentifierConversions.fromStackName(backendIdentifier.stackName)
+      : backendIdentifier;
+
     const connectionUriSecret = await this.secretClient.getSecret(
-      backendIdentifier as BackendIdentifier,
+      sanitizedBackendId as BackendIdentifier,
       {
         name: connectionUriSecretName,
       }
@@ -78,7 +86,7 @@ export class GenerateSchemaCommand
     let sslCertSecret;
     if (sslCertSecretName) {
       sslCertSecret = await this.secretClient.getSecret(
-        backendIdentifier as BackendIdentifier,
+        sanitizedBackendId as BackendIdentifier,
         {
           name: sslCertSecretName,
         }
