@@ -18,7 +18,6 @@ import { StorageOutputsAspect } from './storage_outputs_aspect.js';
 export class AmplifyStorageFactory
   implements ConstructFactory<ResourceProvider<StorageResources>>
 {
-  stack: Stack;
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -65,8 +64,6 @@ export class AmplifyStorageFactory
         new StorageOutputsAspect(getInstanceProps.outputStorageStrategy)
       );
     }
-
-    this.stack = Stack.of(amplifyStorage);
 
     return amplifyStorage;
   };
