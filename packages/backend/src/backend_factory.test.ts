@@ -150,7 +150,7 @@ void describe('Backend', () => {
 
   void it('verifies stack property exists and is equivalent to rootStack', () => {
     const backend = new BackendFactory({}, rootStack);
-    assert.equal(rootStack, backend.mainStack);
+    assert.equal(rootStack, backend.stack);
   });
 
   void it('stores attribution metadata in root stack', () => {
