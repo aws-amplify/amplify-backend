@@ -79,6 +79,11 @@ void describe('AmplifyAuthFactory', () => {
     assert.strictEqual(instance1, instance2);
   });
 
+  void it('verifies stack property exists and is equivalent to auth stack', () => {
+    const backendAuth = authFactory.getInstance(getInstanceProps);
+    assert.equal(backendAuth.stack, Stack.of(backendAuth.resources.userPool));
+  });
+
   void it('adds construct to stack', () => {
     const backendAuth = authFactory.getInstance(getInstanceProps);
 

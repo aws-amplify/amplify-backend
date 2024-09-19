@@ -59,6 +59,12 @@ void describe('AmplifyFunctionFactory', () => {
     assert.strictEqual(instance1, instance2);
   });
 
+  void it('verifies stack property exists and is equal to function stack', () => {
+    const functionFactory = defaultLambda;
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    assert.equal(lambda.stack, Stack.of(lambda.resources.lambda));
+  });
+
   void it('resolves default name and entry when no args specified', () => {
     const functionFactory = defaultLambda;
     const lambda = functionFactory.getInstance(getInstanceProps);
