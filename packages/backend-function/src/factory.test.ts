@@ -68,7 +68,7 @@ void describe('AmplifyFunctionFactory', () => {
   void it('resolves default name and entry when no args specified', () => {
     const functionFactory = defaultLambda;
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    const template = Template.fromStack(lambda.stack);
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -85,7 +85,7 @@ void describe('AmplifyFunctionFactory', () => {
       entry: './test-assets/default-lambda/handler.ts',
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    const template = Template.fromStack(lambda.stack);
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -102,7 +102,7 @@ void describe('AmplifyFunctionFactory', () => {
       name: 'myCoolLambda',
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    const template = Template.fromStack(lambda.stack);
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -119,7 +119,7 @@ void describe('AmplifyFunctionFactory', () => {
       name: 'myCoolLambda',
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    const template = Template.fromStack(lambda.stack);
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
       Tags: [{ Key: 'amplify:friendly-name', Value: 'myCoolLambda' }],
@@ -143,7 +143,7 @@ void describe('AmplifyFunctionFactory', () => {
 
   void it('builds lambda with local and 3p dependencies', () => {
     const lambda = lambdaWithDependencies.getInstance(getInstanceProps);
-    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    const template = Template.fromStack(lambda.stack);
     // There isn't a way to check the contents of the bundled lambda using the CDK Template utility
     // So we just check that the lambda was created properly in the CFN template.
     // There is an e2e test that validates proper lambda bundling
@@ -165,7 +165,7 @@ void describe('AmplifyFunctionFactory', () => {
     });
     const lambda = functionFactory.getInstance(getInstanceProps);
     lambda.addEnvironment('key1', 'value1');
-    const stack = Stack.of(lambda.resources.lambda);
+    const stack = lambda.stack;
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::Lambda::Function', 1);
     template.hasResourceProperties('AWS::Lambda::Function', {
@@ -183,7 +183,7 @@ void describe('AmplifyFunctionFactory', () => {
         entry: './test-assets/default-lambda/handler.ts',
         timeoutSeconds: 10,
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+      const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         Timeout: 10,
@@ -236,7 +236,7 @@ void describe('AmplifyFunctionFactory', () => {
         entry: './test-assets/default-lambda/handler.ts',
         memoryMB: 234,
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+      const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         MemorySize: 234,
@@ -247,7 +247,7 @@ void describe('AmplifyFunctionFactory', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+      const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         MemorySize: 512,
@@ -300,7 +300,7 @@ void describe('AmplifyFunctionFactory', () => {
         entry: './test-assets/default-lambda/handler.ts',
         runtime: 16,
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+      const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         Runtime: Runtime.NODEJS_16_X.name,
@@ -311,7 +311,7 @@ void describe('AmplifyFunctionFactory', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+      const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
         Runtime: Runtime.NODEJS_18_X.name,
@@ -346,7 +346,7 @@ void describe('AmplifyFunctionFactory', () => {
         entry: './test-assets/default-lambda/handler.ts',
         schedule: 'every 5m',
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+      const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Events::Rule', {
         ScheduleExpression: 'cron(*/5 * * * ? *)',
@@ -367,7 +367,7 @@ void describe('AmplifyFunctionFactory', () => {
         entry: './test-assets/default-lambda/handler.ts',
         schedule: '0 1 * * ?',
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+      const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Events::Rule', {
         ScheduleExpression: 'cron(0 1 * * ? *)',
@@ -388,7 +388,7 @@ void describe('AmplifyFunctionFactory', () => {
         entry: './test-assets/default-lambda/handler.ts',
         schedule: ['0 1 * * ?', 'every 5m'],
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+      const template = Template.fromStack(lambda.stack);
 
       template.resourceCountIs('AWS::Events::Rule', 2);
 
@@ -405,7 +405,7 @@ void describe('AmplifyFunctionFactory', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
       }).getInstance(getInstanceProps);
-      const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+      const template = Template.fromStack(lambda.stack);
 
       template.resourceCountIs('AWS::Events::Rule', 0);
     });
@@ -418,7 +418,7 @@ void describe('AmplifyFunctionFactory', () => {
         name: 'myCoolLambda',
       });
       const lambda = functionFactory.getInstance(getInstanceProps);
-      const stack = Stack.of(lambda.resources.lambda);
+      const stack = lambda.stack;
       const policy = new Policy(stack, 'testPolicy', {
         statements: [
           new PolicyStatement({
@@ -510,7 +510,7 @@ void describe('AmplifyFunctionFactory', () => {
       name: 'anotherName',
     });
     const functionStack = Stack.of(
-      functionFactory.getInstance(getInstanceProps).resources.lambda
+      functionFactory.getInstance(getInstanceProps).stack
     );
     anotherFunction.getInstance(getInstanceProps);
     const template = Template.fromStack(functionStack);
