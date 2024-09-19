@@ -11,7 +11,6 @@ import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import { ClientConfig } from '@aws-amplify/client-config';
-import fs from 'fs';
 
 const createStackAndSetContext = (deploymentType: DeploymentType): Stack => {
   const app = new App();
@@ -203,24 +202,6 @@ void describe('Backend', () => {
       Value: JSON.stringify(clientConfigPartial),
     });
   });
-});
-
-void it('it should clear the generated env directory', () => {
-  const pathToFile1 = `${process.cwd()}/.amplify/generated/env/file1.ts`;
-  const pathToFile2 = `${process.cwd()}/.amplify/generated/env/file2.ts`;
-
-  // Write files to the directory
-  fs.writeFileSync(pathToFile1, 'content1');
-  fs.writeFileSync(pathToFile2, 'content1');
-
-  // Clean up after the test
-  fs.rmSync(`${process.cwd()}/.amplify/generated/env/`, {
-    recursive: true,
-    force: true,
-  });
-
-  assert.strictEqual(fs.existsSync(pathToFile1), false);
-  assert.strictEqual(fs.existsSync(pathToFile2), false);
 });
 
 type TestResourceProvider = ResourceProvider<{ bucket: Bucket }>;
