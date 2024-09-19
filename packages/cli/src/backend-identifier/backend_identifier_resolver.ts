@@ -1,6 +1,6 @@
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { NamespaceResolver } from './local_namespace_resolver.js';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifier, DeploymentType } from '@aws-amplify/plugin-types';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 export type BackendIdentifierParameters = {
@@ -61,7 +61,7 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
       return {
         namespace: deployedBackendId.appName,
         name: deployedBackendId.branchName,
-        type: 'branch' as 'sandbox' | 'branch',
+        type: 'branch' as DeploymentType,
       };
     }
 
