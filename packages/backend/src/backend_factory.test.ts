@@ -207,8 +207,8 @@ void describe('Backend', () => {
     const fsRmSyncMock = mock.method(fs, 'rmSync');
     const backend = new BackendFactory({}, rootStack);
     backend.createStack('testStack');
-    const callCount = fsRmSyncMock.mock.callCount;
-    assert.equal(callCount, 2);
+    const callCount = fsRmSyncMock.mock.callCount();
+    assert.equal(callCount, 1);
     mock.restoreAll();
   });
 });
