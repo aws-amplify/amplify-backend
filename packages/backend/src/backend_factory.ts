@@ -27,6 +27,7 @@ import {
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
 import { ObjectAccumulator } from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
+import fs from 'fs';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -97,6 +98,19 @@ export class BackendFactory<
     const importPathVerifier = new ToggleableImportPathVerifier();
 
     const resourceNameValidator = new DefaultResourceNameValidator();
+
+    const pathToDelete = `${process.cwd()}/.amplify/generated/env/`;
+
+    // Ensure the directory exists
+    if (!fs.existsSync(pathToDelete)) {
+      fs.mkdirSync(pathToDelete, { recursive: true });
+    }
+
+    // Clear any existing files and subdirectories in the directory
+    fs.rmSync(pathToDelete, { recursive: true, force: true });
+
+    // Recreate the directory to ensure it is empty
+    fs.mkdirSync(pathToDelete, { recursive: true });
 
     // register providers but don't actually execute anything yet
     Object.values(constructFactories).forEach((factory) => {
