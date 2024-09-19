@@ -34,9 +34,9 @@ export class BackendIdentifierResolverWithFallback
     deployedBackendId?: DeployedBackendIdentifier
   ) => {
     return (
-      this.defaultResolver.resolveDeployedBackendIdToBackendId(
+      (await this.defaultResolver.resolveDeployedBackendIdToBackendId(
         deployedBackendId
-      ) ?? (await this.fallbackResolver.resolve())
+      )) ?? (await this.fallbackResolver.resolve())
     );
   };
 }
