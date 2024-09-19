@@ -1,5 +1,7 @@
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { NamespaceResolver } from './local_namespace_resolver.js';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 export type BackendIdentifierParameters = {
   stack?: string;
@@ -11,6 +13,9 @@ export type BackendIdentifierResolver = {
   resolve: (
     args: BackendIdentifierParameters
   ) => Promise<DeployedBackendIdentifier | undefined>;
+  resolveDeployedBackendIdToBackendId: (
+    deployedBackendId?: DeployedBackendIdentifier
+  ) => Promise<BackendIdentifier | undefined>;
 };
 
 /**
@@ -40,5 +45,26 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
       };
     }
     return undefined;
+  };
+  resolveDeployedBackendIdToBackendId = async (
+    deployedBackendId?: DeployedBackendIdentifier
+  ): Promise<BackendIdentifier | undefined> => {
+    if (!deployedBackendId) {
+      return undefined;
+    }
+
+    if ('stackName' in deployedBackendId) {
+      return BackendIdentifierConversions.fromStackName(
+        deployedBackendId.stackName
+      );
+    } else if ('appName' in deployedBackendId) {
+      return {
+        namespace: deployedBackendId.appName,
+        name: deployedBackendId.branchName,
+        type: 'branch' as 'sandbox' | 'branch',
+      };
+    }
+
+    return deployedBackendId;
   };
 }

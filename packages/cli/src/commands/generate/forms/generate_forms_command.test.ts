@@ -249,6 +249,13 @@ void describe('generate forms command', () => {
           type: 'sandbox',
         })
       ),
+      resolveDeployedBackendIdToBackendId: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
     } as BackendIdentifierResolver;
     const formGenerationHandler = new FormGenerationHandler({
       awsClientProvider,
@@ -290,6 +297,13 @@ void describe('generate forms command', () => {
     const fakeSandboxId = 'my-fake-app-my-fake-username';
     const backendIdResolver = {
       resolve: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
+      resolveDeployedBackendIdToBackendId: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
@@ -340,6 +354,13 @@ void describe('generate forms command', () => {
           type: 'sandbox',
         })
       ),
+      resolveDeployedBackendIdToBackendId: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
     } as BackendIdentifierResolver;
     const formGenerationHandler = new FormGenerationHandler({
       awsClientProvider,
@@ -381,6 +402,13 @@ void describe('generate forms command', () => {
     const fakeSandboxId = 'my-fake-app-my-fake-username';
     const backendIdResolver = {
       resolve: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
+      resolveDeployedBackendIdToBackendId: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,

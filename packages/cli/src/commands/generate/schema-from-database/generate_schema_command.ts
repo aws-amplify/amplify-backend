@@ -2,12 +2,8 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
-import {
-  AmplifyFault,
-  BackendIdentifierConversions,
-} from '@aws-amplify/platform-core';
+import { AmplifyFault } from '@aws-amplify/platform-core';
 
 const DEFAULT_OUTPUT = 'amplify/data/schema.sql.ts';
 
@@ -60,8 +56,12 @@ export class GenerateSchemaCommand
     const backendIdentifier = await this.backendIdentifierResolver.resolve(
       args
     );
+    const resolvedBackendId =
+      await this.backendIdentifierResolver.resolveDeployedBackendIdToBackendId(
+        backendIdentifier
+      );
 
-    if (!backendIdentifier) {
+    if (!resolvedBackendId) {
       throw new AmplifyFault('BackendIdentifierFault', {
         message: 'Could not resolve the backend identifier',
       });
@@ -70,13 +70,8 @@ export class GenerateSchemaCommand
     const connectionUriSecretName = args.connectionUriSecret as string;
     const outputFile = args.out as string;
 
-    const backendIdentifierIsStack = 'stackName' in backendIdentifier;
-    const sanitizedBackendId = backendIdentifierIsStack
-      ? BackendIdentifierConversions.fromStackName(backendIdentifier.stackName)
-      : backendIdentifier;
-
     const connectionUriSecret = await this.secretClient.getSecret(
-      sanitizedBackendId as BackendIdentifier,
+      resolvedBackendId,
       {
         name: connectionUriSecretName,
       }
@@ -85,12 +80,9 @@ export class GenerateSchemaCommand
     const sslCertSecretName = args.sslCertSecret as string;
     let sslCertSecret;
     if (sslCertSecretName) {
-      sslCertSecret = await this.secretClient.getSecret(
-        sanitizedBackendId as BackendIdentifier,
-        {
-          name: sslCertSecretName,
-        }
-      );
+      sslCertSecret = await this.secretClient.getSecret(resolvedBackendId, {
+        name: sslCertSecretName,
+      });
     }
 
     await this.schemaGenerator.generate({
