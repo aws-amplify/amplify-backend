@@ -1,4 +1,4 @@
-import { beforeEach, describe, it } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import {
   ConstructFactory,
   DeepPartialAmplifyGeneratedConfigs,
@@ -9,8 +9,9 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BackendFactory } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import assert from 'node:assert';
 import { ClientConfig } from '@aws-amplify/client-config';
+import fs from 'fs';
+import assert from 'node:assert';
 
 const createStackAndSetContext = (deploymentType: DeploymentType): Stack => {
   const app = new App();
@@ -201,6 +202,14 @@ void describe('Backend', () => {
     rootStackTemplate.hasOutput('customOutputs', {
       Value: JSON.stringify(clientConfigPartial),
     });
+  });
+  void it('checking if generated/emv/ directory is cleared', () => {
+    const fsRmSyncMock = mock.method(fs, 'rmSync');
+    const backend = new BackendFactory({}, rootStack);
+    backend.createStack('testStack');
+    const callCount = fsRmSyncMock.mock.callCount;
+    assert.equal(callCount, 1);
+    mock.restoreAll();
   });
 });
 
