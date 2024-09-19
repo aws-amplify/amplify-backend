@@ -206,22 +206,21 @@ void describe('Backend', () => {
 });
 
 void it('it should clear the generated env directory', () => {
-  const pathToDelete = `${process.cwd()}/.amplify/generated/env`;
-
-  // Ensure the directory exists
-  if (!fs.existsSync(pathToDelete)) {
-    fs.mkdirSync(pathToDelete, { recursive: true });
-  }
+  const pathToFile1 = `${process.cwd()}/.amplify/generated/env/file1.ts`;
+  const pathToFile2 = `${process.cwd()}/.amplify/generated/env/file2.ts`;
 
   // Write files to the directory
-  fs.writeFileSync(`${pathToDelete}/file1.ts`, 'content1');
-  fs.writeFileSync(`${pathToDelete}/file2.ts`, 'content1');
+  fs.writeFileSync(pathToFile1, 'content1');
+  fs.writeFileSync(pathToFile2, 'content1');
 
   // Clean up after the test
-  fs.rmSync(pathToDelete, { recursive: true, force: true });
+  fs.rmSync(`${process.cwd()}/.amplify/generated/env/`, {
+    recursive: true,
+    force: true,
+  });
 
-  assert.strictEqual(fs.existsSync(`${pathToDelete}/file1.ts`), false);
-  assert.strictEqual(fs.existsSync(`${pathToDelete}/file2.ts`), false);
+  assert.strictEqual(fs.existsSync(pathToFile1), false);
+  assert.strictEqual(fs.existsSync(pathToFile2), false);
 });
 
 type TestResourceProvider = ResourceProvider<{ bucket: Bucket }>;
