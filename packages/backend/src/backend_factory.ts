@@ -101,11 +101,6 @@ export class BackendFactory<
 
     const pathToDelete = `${process.cwd()}/.amplify/generated/env/`;
 
-    // Ensure the directory exists
-    if (!fs.existsSync(pathToDelete)) {
-      fs.mkdirSync(pathToDelete, { recursive: true });
-    }
-
     // Clear any existing files and subdirectories in the directory
     fs.rmSync(pathToDelete, { recursive: true, force: true });
 
