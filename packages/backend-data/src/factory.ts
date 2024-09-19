@@ -8,6 +8,7 @@ import {
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
   ResourceProvider,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyData,
@@ -38,7 +39,7 @@ import {
   CDKContextKey,
   TagName,
 } from '@aws-amplify/platform-core';
-import { Aspects, IAspect, Tags } from 'aws-cdk-lib';
+import { Aspects, IAspect, Stack, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
@@ -51,9 +52,12 @@ import {
  *
  * Exported for testing purpose only & should NOT be exported out of the package.
  */
-export class DataFactory implements ConstructFactory<AmplifyData> {
+export class DataFactory
+  implements ConstructFactory<AmplifyData & StackProvider>
+{
   // publicly accessible for testing purpose only.
   static factoryCount = 0;
+  stack: Stack;
 
   private generator: ConstructContainerEntryGenerator;
 
@@ -77,7 +81,9 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
   /**
    * Gets an instance of the Data construct
    */
-  getInstance = (props: ConstructFactoryGetInstanceProps): AmplifyData => {
+  getInstance = (
+    props: ConstructFactoryGetInstanceProps
+  ): AmplifyData & StackProvider => {
     const {
       constructContainer,
       outputStorageStrategy,
@@ -106,7 +112,9 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
         outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyData;
+    this.stack = Stack.of(this.getInstance(props));
+    return constructContainer.getOrCompute(this.generator) as AmplifyData &
+      StackProvider;
   };
 }
 
@@ -322,5 +330,7 @@ class ReplaceTableUponGsiUpdateOverrideAspect implements IAspect {
 /**
  * Creates a factory that implements ConstructFactory<AmplifyGraphqlApi>
  */
-export const defineData = (props: DataProps): ConstructFactory<AmplifyData> =>
+export const defineData = (
+  props: DataProps
+): ConstructFactory<AmplifyData & StackProvider> =>
   new DataFactory(props, new Error().stack);
