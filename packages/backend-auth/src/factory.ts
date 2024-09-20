@@ -18,6 +18,7 @@ import {
   ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
@@ -28,10 +29,11 @@ import {
   Expand,
 } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
-import { Tags } from 'aws-cdk-lib';
+import { Stack, Tags } from 'aws-cdk-lib';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
-  ResourceAccessAcceptorFactory<AuthRoleName | string>;
+  ResourceAccessAcceptorFactory<AuthRoleName | string> &
+  StackProvider;
 
 export type AmplifyAuthProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
@@ -195,6 +197,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
           policy.attachToRole(role);
         },
       }),
+      stack: Stack.of(authConstruct),
     };
     if (!this.props.access) {
       return authConstructMixin;

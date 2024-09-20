@@ -1,5 +1,11 @@
 # @aws-amplify/backend-secret
 
+## 1.1.3
+
+### Patch Changes
+
+- dce0518: Handle parameter not found error
+
 ## 1.1.2
 
 ### Patch Changes

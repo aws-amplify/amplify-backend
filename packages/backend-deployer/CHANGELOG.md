@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.4
+
+### Patch Changes
+
+- 98673b0: Improve type error regex
+
 ## 1.1.3
 
 ### Patch Changes
