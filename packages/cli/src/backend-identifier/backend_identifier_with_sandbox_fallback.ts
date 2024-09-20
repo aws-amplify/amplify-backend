@@ -18,23 +18,23 @@ export class BackendIdentifierResolverWithFallback
     private fallbackResolver: SandboxBackendIdResolver
   ) {}
   /**
-   * resolves to deployed backend id, falling back to the sandbox id if there is an error and stack, appId, and branch are not provided
+   * resolves to deployed backend id, falling back to the sandbox id if stack or appId and branch inputs are not provided
    */
   resolveDeployedBackendIdentifier = async (
     args: BackendIdentifierParameters
   ) => {
     if (args.stack || args.appId || args.branch) {
-      return await this.defaultResolver.resolveDeployedBackendIdentifier(args);
+      return this.defaultResolver.resolveDeployedBackendIdentifier(args);
     }
 
     return this.fallbackResolver.resolve();
   };
   /**
-   * Resolves deployed backend id to backend id, falling back to the sandbox id if there is an error and stack, appId, and branch are not provided
+   * Resolves deployed backend id to backend id, falling back to the sandbox id if stack or appId and branch inputs are not provided
    */
   resolveBackendIdentifier = async (args: BackendIdentifierParameters) => {
     if (args.stack || args.appId || args.branch) {
-      return await this.defaultResolver.resolveBackendIdentifier(args);
+      return this.defaultResolver.resolveBackendIdentifier(args);
     }
 
     return this.fallbackResolver.resolve();
