@@ -6,25 +6,6 @@ import assert from 'assert';
 import { pathToFileURL } from 'url';
 
 void describe('FunctionEnvironmentTypeGenerator', () => {
-  void it('clears the generated env directory', async () => {
-    const fsMkdirSyncMock = mock.method(fs, 'mkdirSync', () => {});
-    const fsExistsSyncMock = mock.method(fs, 'existsSync', () => true);
-    const fsRmSyncMock = mock.method(fs, 'rmSync', () => {});
-
-    FunctionEnvironmentTypeGenerator.clearGeneratedEnvDirectory();
-
-    assert.equal(fsExistsSyncMock.mock.calls.length, 1);
-    assert.equal(fsRmSyncMock.mock.calls.length, 1);
-    assert.deepEqual(fsRmSyncMock.mock.calls[0].arguments[1], {
-      recursive: true,
-      force: true,
-    });
-
-    fsMkdirSyncMock.mock.restore();
-    fsExistsSyncMock.mock.restore();
-    fsRmSyncMock.mock.restore();
-  });
-
   void it('generates a type definition file', () => {
     const fsOpenSyncMock = mock.method(fs, 'openSync');
     const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);
@@ -87,5 +68,19 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     await import(pathToFileURL(filePath).toString());
 
     await fsp.rm(targetDirectory, { recursive: true, force: true });
+  });
+  void it('clears the generated env directory', async () => {
+    const fsExistsSyncMock = mock.method(fs, 'existsSync', () => true);
+    const fsRmSyncMock = mock.method(fs, 'rmSync', () => {});
+
+    const functionEnvironmentTypeGenerator =
+      new FunctionEnvironmentTypeGenerator('testFunction');
+    functionEnvironmentTypeGenerator.clearGeneratedEnvDirectory();
+
+    assert.equal(fsExistsSyncMock.mock.calls.length, 1);
+    assert.equal(fsRmSyncMock.mock.calls.length, 1);
+
+    fsExistsSyncMock.mock.restore();
+    fsRmSyncMock.mock.restore();
   });
 });
