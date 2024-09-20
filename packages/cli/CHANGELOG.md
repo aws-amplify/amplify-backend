@@ -1,5 +1,19 @@
 # @aws-amplify/backend-cli
 
+## 1.2.8
+
+### Patch Changes
+
+- 9e11e5d: correctly handle stack argument for generate schema command
+- 7aad5e8: update fallback for backend id resolvers if stack, app id, or branch are in args
+- Updated dependencies [e325044]
+- Updated dependencies [87dbf41]
+- Updated dependencies [f6b1943]
+  - @aws-amplify/schema-generator@1.2.4
+  - @aws-amplify/model-generator@1.0.8
+  - @aws-amplify/form-generator@1.0.3
+  - @aws-amplify/plugin-types@1.3.0
+
 ## 1.2.7
 
 ### Patch Changes
