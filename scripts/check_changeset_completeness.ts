@@ -2,9 +2,8 @@ import getReleasePlan from '@changesets/get-release-plan';
 import { GitClient } from './components/git_client.js';
 import { readPackageJson } from './components/package-json/package_json.js';
 import { EOL } from 'os';
-
-// one function checks to see if any changesets are missing
-// one function checks if there are version bumps that should affect backend and whether backend is getting the right type of bump as a result
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { ReleasePlan } from '@changesets/types';
 
 const getModifiedPackages = (changedFiles: string[]) => {
   const modifiedPackageDirs = new Set<string>();
@@ -22,10 +21,9 @@ const getModifiedPackages = (changedFiles: string[]) => {
   return modifiedPackageDirs;
 };
 
-/*
-const checkBackendDependenciesVersion = (
-  releasePlan: ReleasePlan
-) => {
+// one function checks if there are version bumps that should affect backend and whether backend is getting the right type of bump as a result
+//first check for presence of dependencies, if they are not present don't need to keep going
+const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
   const backendDependencies: string[] = [
     '@aws-amplify/backend-auth',
     '@aws-amplify-backend/data',
@@ -34,12 +32,38 @@ const checkBackendDependenciesVersion = (
   ];
   const backendName: string = '@aws-amplify/backend';
   const versionBumpOfWrongKind: string[] = [];
-  
+  let backendMaxVersionType: string = 'none';
 
+  for (const changeset of releasePlan.changesets) {
+    for (const release of changeset.releases) {
+      if (release.name === backendName) {
+        if (
+          release.type === 'major' ||
+          backendMaxVersionType === 'none' ||
+          (backendMaxVersionType === 'patch' && release.type === 'minor')
+        ) {
+          backendMaxVersionType = release.type;
+        }
+      }
+    }
+  }
+
+  for (const changeset of releasePlan.changesets) {
+    for (const release of changeset.releases) {
+      if (backendDependencies.includes(release.name)) {
+        if (
+          (release.type !== backendMaxVersionType &&
+            (release.type === 'major' || backendMaxVersionType === 'none')) ||
+          (backendMaxVersionType === 'patch' && release.type === 'minor')
+        ) {
+          versionBumpOfWrongKind.push(release.name);
+        }
+      }
+    }
+  }
   // check if dependencies have a changeset
   // if they do, check if backend has a changeset of the same kind
   // will aggregate the errors if multiple appear
-
   if (versionBumpOfWrongKind.length > 0) {
     throw new Error(
       `${backendName} has a version bump of a different kind of the following packages but is expected to have a version bump of the same kind:${EOL}${versionBumpOfWrongKind.join(
@@ -48,7 +72,6 @@ const checkBackendDependenciesVersion = (
     );
   }
 };
-*/
 
 const gitClient = new GitClient();
 
@@ -87,4 +110,4 @@ if (packagesMissingChangesets.length > 0) {
   );
 }
 
-//checkBackendDependenciesVersion(releasePlan);
+checkBackendDependenciesVersion(releasePlan);
