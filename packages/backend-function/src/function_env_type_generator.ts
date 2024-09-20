@@ -103,7 +103,6 @@ export class FunctionEnvironmentTypeGenerator {
   }
 
   private writeShimFile = (content: string) => {
-    this.clearGeneratedEnvDirectory();
     const typeDefFileDirname = path.dirname(this.typeDefFilePath);
 
     if (!fs.existsSync(typeDefFileDirname)) {
