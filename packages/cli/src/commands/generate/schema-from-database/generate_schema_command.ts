@@ -3,7 +3,7 @@ import { BackendIdentifierResolver } from '../../../backend-identifier/backend_i
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SecretClient } from '@aws-amplify/backend-secret';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
-import { AmplifyFault } from '@aws-amplify/platform-core';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const DEFAULT_OUTPUT = 'amplify/data/schema.sql.ts';
 
@@ -57,8 +57,10 @@ export class GenerateSchemaCommand
       await this.backendIdentifierResolver.resolveBackendIdentifier(args);
 
     if (!backendIdentifier) {
-      throw new AmplifyFault('BackendIdentifierFault', {
-        message: 'Could not resolve the backend identifier',
+      throw new AmplifyUserError('BackendIdentifierResolverError', {
+        message: 'Could not resolve the backend identifier.',
+        resolution:
+          'Ensure stack name or Amplify App ID and branch specified are correct and exists, then re-run this command.',
       });
     }
 
