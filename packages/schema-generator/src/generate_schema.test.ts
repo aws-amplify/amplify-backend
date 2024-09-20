@@ -154,4 +154,14 @@ void describe('SchemaGenerator', () => {
         'Unable to parse the database URL. One or more parts of the database URL is missing. Missing [username, password].',
     });
   });
+
+  void it('should throw error if database engine is incorrect', async () => {
+    const parse = () =>
+      parseDatabaseUrl('incorrect://user:password@test-host-name/db');
+    assert.throws(parse, {
+      name: 'DatabaseUrlParseError',
+      message:
+        'Unable to parse the database URL. Unsupported database engine: incorrect',
+    });
+  });
 });
