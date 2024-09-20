@@ -15,7 +15,7 @@ void it('if backend identifier resolves without error, the resolved id is return
     defaultResolver,
     sandboxResolver
   );
-  const resolvedId = await backendIdResolver.resolve({
+  const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier({
     appId: 'hello',
     branch: 'world',
   });
@@ -45,7 +45,9 @@ void it('uses the sandbox id if the default identifier resolver fails', async ()
     defaultResolver,
     sandboxResolver
   );
-  const resolvedId = await backendIdResolver.resolve({});
+  const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier(
+    {}
+  );
   assert.deepEqual(resolvedId, {
     namespace: appName,
     type: 'sandbox',

@@ -54,9 +54,10 @@ export class GenerateOutputsCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateOutputsCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier = await this.backendIdentifierResolver.resolve(
-      args
-    );
+    const backendIdentifier =
+      await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
+        args
+      );
 
     if (!backendIdentifier) {
       throw new Error('Could not resolve the backend identifier');

@@ -20,9 +20,20 @@ export class BackendIdentifierResolverWithFallback
   /**
    * resolves the backend id, falling back to the sandbox id if there is an error
    */
-  resolve = async (args: BackendIdentifierParameters) => {
+  resolveDeployedBackendIdentifier = async (
+    args: BackendIdentifierParameters
+  ) => {
     return (
-      (await this.defaultResolver.resolve(args)) ??
+      (await this.defaultResolver.resolveDeployedBackendIdentifier(args)) ??
+      (await this.fallbackResolver.resolve())
+    );
+  };
+  /**
+   * Resolves deployed backend id to backend id, falling back to the sandbox id if there is an error
+   */
+  resolveBackendIdentifier = async (args: BackendIdentifierParameters) => {
+    return (
+      (await this.defaultResolver.resolveBackendIdentifier(args)) ??
       (await this.fallbackResolver.resolve())
     );
   };

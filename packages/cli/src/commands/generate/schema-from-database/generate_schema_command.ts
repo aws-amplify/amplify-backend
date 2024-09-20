@@ -2,7 +2,6 @@ import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SecretClient } from '@aws-amplify/backend-secret';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { SchemaGenerator } from '@aws-amplify/schema-generator';
 import { AmplifyFault } from '@aws-amplify/platform-core';
 
@@ -54,9 +53,8 @@ export class GenerateSchemaCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateSchemaCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier = await this.backendIdentifierResolver.resolve(
-      args
-    );
+    const backendIdentifier =
+      await this.backendIdentifierResolver.resolveBackendIdentifier(args);
 
     if (!backendIdentifier) {
       throw new AmplifyFault('BackendIdentifierFault', {
@@ -68,7 +66,7 @@ export class GenerateSchemaCommand
     const outputFile = args.out as string;
 
     const connectionUriSecret = await this.secretClient.getSecret(
-      backendIdentifier as BackendIdentifier,
+      backendIdentifier,
       {
         name: connectionUriSecretName,
       }
@@ -77,12 +75,9 @@ export class GenerateSchemaCommand
     const sslCertSecretName = args.sslCertSecret as string;
     let sslCertSecret;
     if (sslCertSecretName) {
-      sslCertSecret = await this.secretClient.getSecret(
-        backendIdentifier as BackendIdentifier,
-        {
-          name: sslCertSecretName,
-        }
-      );
+      sslCertSecret = await this.secretClient.getSecret(backendIdentifier, {
+        name: sslCertSecretName,
+      });
     }
 
     await this.schemaGenerator.generate({
