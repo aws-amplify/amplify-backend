@@ -11,6 +11,7 @@ import {
   ResourceNameValidator,
   ResourceProvider,
   SsmEnvironmentEntry,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -64,7 +65,8 @@ export const defineFunction = (
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
-    AddEnvironmentFactory
+    AddEnvironmentFactory &
+    StackProvider
 > => new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {
@@ -308,6 +310,7 @@ class AmplifyFunction
     AddEnvironmentFactory
 {
   readonly resources: FunctionResources;
+  readonly stack: Stack;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
@@ -317,6 +320,8 @@ class AmplifyFunction
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
     super(scope, id);
+
+    this.stack = Stack.of(scope);
 
     const runtime = nodeVersionMap[props.runtime];
 

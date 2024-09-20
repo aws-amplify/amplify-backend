@@ -238,6 +238,11 @@ export type StableBackendIdentifiers = {
     getStableBackendHash: () => string;
 };
 
+// @public (undocumented)
+export type StackProvider = {
+    stack: Stack;
+};
+
 // (No @packageDocumentation comment for this package)
 
 ```

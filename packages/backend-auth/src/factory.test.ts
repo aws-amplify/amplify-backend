@@ -79,12 +79,15 @@ void describe('AmplifyAuthFactory', () => {
     assert.strictEqual(instance1, instance2);
   });
 
+  void it('verifies stack property exists and is equivalent to auth stack', () => {
+    const backendAuth = authFactory.getInstance(getInstanceProps);
+    assert.equal(backendAuth.stack, Stack.of(backendAuth.resources.userPool));
+  });
+
   void it('adds construct to stack', () => {
     const backendAuth = authFactory.getInstance(getInstanceProps);
 
-    const template = Template.fromStack(
-      Stack.of(backendAuth.resources.userPool)
-    );
+    const template = Template.fromStack(backendAuth.stack);
 
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
   });
@@ -98,9 +101,7 @@ void describe('AmplifyAuthFactory', () => {
 
     const backendAuth = authFactory.getInstance(getInstanceProps);
 
-    const template = Template.fromStack(
-      Stack.of(backendAuth.resources.userPool)
-    );
+    const template = Template.fromStack(backendAuth.stack);
 
     template.resourceCountIs('AWS::Cognito::UserPool', 1);
     template.hasResourceProperties('AWS::Cognito::UserPool', {
@@ -247,9 +248,7 @@ void describe('AmplifyAuthFactory', () => {
 
       const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
 
-      const template = Template.fromStack(
-        Stack.of(backendAuth.resources.userPool)
-      );
+      const template = Template.fromStack(backendAuth.stack);
       template.hasResourceProperties('AWS::Cognito::UserPool', {
         LambdaConfig: {
           // The key in the CFN template is the trigger event name with the first character uppercase

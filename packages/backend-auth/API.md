@@ -20,6 +20,7 @@ import { OidcProviderProps } from '@aws-amplify/auth-construct';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { StackProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct';
 
 // @public
@@ -77,7 +78,7 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
 };
 
 // @public (undocumented)
-export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string>;
+export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string> & StackProvider;
 
 // @public
 export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth>;
