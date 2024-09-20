@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 1.0.3
+
+### Patch Changes
+
+- e325044: Prefer amplify errors in generators
+
 ## 1.0.2
 
 ### Patch Changes
