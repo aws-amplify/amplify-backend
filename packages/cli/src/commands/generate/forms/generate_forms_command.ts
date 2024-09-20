@@ -69,7 +69,11 @@ export class GenerateFormsCommand
       );
 
     if (!backendIdentifier) {
-      throw new Error('Could not resolve the backend identifier');
+      throw new AmplifyUserError('BackendIdentifierResolverError', {
+        message: 'Could not resolve the backend identifier.',
+        resolution:
+          'Ensure stack name or Amplify App ID and branch specified are correct and exists, then re-run this command.',
+      });
     }
 
     const backendOutputClient = this.backendOutputClientBuilder();
