@@ -32,7 +32,7 @@ export class FunctionEnvironmentTypeGenerator {
   /**
    * Clear existing files and subdirectories in the generated env directory
    */
-  clearGeneratedEnvDirectory(): void {
+  public clearGeneratedEnvDirectory(): void {
     const pathToDelete = path.join(
       process.cwd(),
       '.amplify',
