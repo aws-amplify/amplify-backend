@@ -509,9 +509,7 @@ void describe('AmplifyFunctionFactory', () => {
       entry: './test-assets/default-lambda/handler.ts',
       name: 'anotherName',
     });
-    const functionStack = Stack.of(
-      functionFactory.getInstance(getInstanceProps).stack
-    );
+    const functionStack = functionFactory.getInstance(getInstanceProps).stack;
     anotherFunction.getInstance(getInstanceProps);
     const template = Template.fromStack(functionStack);
     assert.equal(
