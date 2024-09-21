@@ -12,6 +12,7 @@ import {
   ConstructFactory,
   FunctionResources,
   ResourceProvider,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
@@ -78,8 +79,9 @@ export type StorageResources = {
  */
 export class AmplifyStorage
   extends Construct
-  implements ResourceProvider<StorageResources>
+  implements ResourceProvider<StorageResources>, StackProvider
 {
+  readonly stack: Stack;
   readonly resources: StorageResources;
   readonly isDefault: boolean;
   readonly name: string;
@@ -91,6 +93,7 @@ export class AmplifyStorage
     super(scope, id);
     this.isDefault = props.isDefault || false;
     this.name = props.name;
+    this.stack = Stack.of(scope);
 
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,

@@ -33,6 +33,7 @@ export class StackMetadataGraphqlModelsGenerator
     const schema = await this.fetchSchema();
 
     if (!schema) {
+      // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
       throw new Error('Invalid schema');
     }
 

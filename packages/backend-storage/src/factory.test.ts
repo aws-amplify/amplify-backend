@@ -149,6 +149,16 @@ void describe('AmplifyStorageFactory', () => {
     };
   });
 
+  void it('verifies stack property exists and is equal to storage stack', () => {
+    const storageConstruct = defineStorage({ name: 'testName' }).getInstance(
+      getInstanceProps
+    );
+    assert.equal(
+      storageConstruct.stack,
+      Stack.of(storageConstruct.resources.bucket)
+    );
+  });
+
   void it('if more than one default bucket, throw', () => {
     storageFactory = defineStorage({ name: 'testName', isDefault: true });
     storageFactory2 = defineStorage({ name: 'testName2', isDefault: true });

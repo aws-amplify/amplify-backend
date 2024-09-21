@@ -27,6 +27,9 @@ export const configs = {
           'packages/backend-auth/src/**',
           'packages/backend-deployer/src/**',
           'packages/create-amplify/src/**',
+          'packages/form-generator/src/**',
+          'packages/model-generator/src/**',
+          'packages/schema-generator/src/**',
         ],
         excludedFiles: ['**/*.test.ts'],
         rules: {
@@ -39,9 +42,6 @@ export const configs = {
           'packages/ai-constructs/src/**',
           'packages/backend-output-storage/src/**',
           'packages/deployed-backend-client/src/**',
-          'packages/form-generator/src/**',
-          'packages/model-generator/src/**',
-          'packages/schema-generator/src/**',
         ],
         rules: {
           'amplify-backend-rules/no-amplify-errors': 'error',

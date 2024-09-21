@@ -29,9 +29,11 @@ export const createGraphqlDocumentGenerator = ({
   awsClientProvider,
 }: GraphqlDocumentGeneratorFactoryParams): GraphqlDocumentGenerator => {
   if (!backendIdentifier) {
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     throw new Error('`backendIdentifier` must be defined');
   }
   if (!awsClientProvider) {
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     throw new Error('`awsClientProvider` must be defined');
   }
 
@@ -44,6 +46,7 @@ export const createGraphqlDocumentGenerator = ({
     );
     const apiId = output[graphqlOutputKey]?.payload.awsAppsyncApiId;
     if (!apiId) {
+      // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
       throw new Error(`Unable to determine AppSync API ID.`);
     }
 
