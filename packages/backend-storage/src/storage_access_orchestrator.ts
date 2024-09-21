@@ -128,10 +128,10 @@ export class StorageAccessOrchestrator {
             }
           );
           // make the owner placeholder substitution in the s3 prefix
-          const prefix = s3Prefix.replaceAll(
-            entityIdPathToken,
+          const prefix = placeholderSubstitution(
+            s3Prefix,
             permission.idSubstitution
-          ) as StoragePath;
+          );
 
           storageOutputAccessDefinition[prefix] = {
             ...storageOutputAccessDefinition[prefix],
@@ -212,7 +212,11 @@ export class StorageAccessOrchestrator {
     const allPaths = Array.from(this.prefixDenyMap.keys());
     allPaths.forEach((storagePath) => {
       const parent = findParent(storagePath, allPaths);
-      if (!parent) {
+      if (
+        !parent ||
+        parent ===
+          storagePath.replaceAll('${cognito-identity.amazonaws.com:sub}/', '')
+      ) {
         return;
       }
       // if a parent path is defined, invoke the denyByDefault callback on this subpath for all policies that exist on the parent path
@@ -274,6 +278,26 @@ export class StorageAccessOrchestratorFactory {
       policyFactory
     );
 }
+
+/**
+ * Performs the owner placeholder substitution in the s3 prefix
+ */
+const placeholderSubstitution = (
+  s3Prefix: string,
+  idSubstitution: string
+): StoragePath => {
+  const prefix = s3Prefix.replaceAll(
+    entityIdPathToken,
+    idSubstitution
+  ) as StoragePath;
+
+  // for auth/unauth roles where prefix ends with '/*/*' remove the last wildcard
+  if (prefix.endsWith('/*/*')) {
+    return prefix.slice(0, -2) as StoragePath;
+  }
+
+  return prefix as StoragePath;
+};
 
 /**
  * Returns the element in paths that is a prefix of path, if any

@@ -299,7 +299,7 @@ void describe('StorageAccessOrchestrator', () => {
                   acceptResourceAccess: acceptResourceAccessMock,
                 }),
               ],
-              idSubstitution: '{testOwnerSub}',
+              idSubstitution: '${cognito-identity.amazonaws.com:sub}',
               uniqueDefinitionIdValidations:
                 accessDefinitionTestDefaults('acceptor')
                   .uniqueDefinitionIdValidations,
@@ -321,12 +321,12 @@ void describe('StorageAccessOrchestrator', () => {
             {
               Action: 's3:GetObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/test/{testOwnerSub}/*`,
+              Resource: `${bucket.bucketArn}/test/\${cognito-identity.amazonaws.com:sub}/*`,
             },
             {
               Action: 's3:PutObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/test/{testOwnerSub}/*`,
+              Resource: `${bucket.bucketArn}/test/\${cognito-identity.amazonaws.com:sub}/*`,
             },
           ],
           Version: '2012-10-17',
@@ -337,7 +337,7 @@ void describe('StorageAccessOrchestrator', () => {
         ssmEnvironmentEntriesStub
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
-        'test/{testOwnerSub}/*': {
+        'test/${cognito-identity.amazonaws.com:sub}/*': {
           acceptor: ['get', 'write'],
         },
       });
@@ -451,7 +451,7 @@ void describe('StorageAccessOrchestrator', () => {
             {
               actions: ['write', 'delete'],
               getResourceAccessAcceptors: [authenticatedResourceAccessAcceptor],
-              idSubstitution: '{idSub}',
+              idSubstitution: '${cognito-identity.amazonaws.com:sub}',
               uniqueDefinitionIdValidations:
                 accessDefinitionTestDefaults('auth-with-id')
                   .uniqueDefinitionIdValidations,
@@ -478,17 +478,17 @@ void describe('StorageAccessOrchestrator', () => {
             {
               Action: 's3:PutObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/foo/{idSub}/*`,
+              Resource: `${bucket.bucketArn}/foo/\${cognito-identity.amazonaws.com:sub}/*`,
             },
             {
               Action: 's3:DeleteObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/foo/{idSub}/*`,
+              Resource: `${bucket.bucketArn}/foo/\${cognito-identity.amazonaws.com:sub}/*`,
             },
             {
               Action: 's3:GetObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/foo/*/*`,
+              Resource: `${bucket.bucketArn}/foo/*`,
             },
           ],
           Version: '2012-10-17',
@@ -499,11 +499,11 @@ void describe('StorageAccessOrchestrator', () => {
         ssmEnvironmentEntriesStub
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
-        'foo/*/*': {
+        'foo/*': {
           'auth-with-id': ['write', 'delete'],
           auth: ['get'],
         },
-        'foo/{idSub}/*': {
+        'foo/${cognito-identity.amazonaws.com:sub}/*': {
           'auth-with-id': ['write', 'delete'],
         },
       });
@@ -538,7 +538,7 @@ void describe('StorageAccessOrchestrator', () => {
             {
               actions: ['get'],
               getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
-              idSubstitution: '{idSub}',
+              idSubstitution: '${cognito-identity.amazonaws.com:sub}',
               uniqueDefinitionIdValidations:
                 accessDefinitionTestDefaults('stub2')
                   .uniqueDefinitionIdValidations,
@@ -559,7 +559,7 @@ void describe('StorageAccessOrchestrator', () => {
             {
               actions: ['get', 'write', 'delete'],
               getResourceAccessAcceptors: [getResourceAccessAcceptorStub2],
-              idSubstitution: '{idSub}',
+              idSubstitution: '${cognito-identity.amazonaws.com:sub}',
               uniqueDefinitionIdValidations:
                 accessDefinitionTestDefaults('stub2')
                   .uniqueDefinitionIdValidations,
@@ -588,7 +588,7 @@ void describe('StorageAccessOrchestrator', () => {
               Effect: 'Allow',
               Resource: [
                 `${bucket.bucketArn}/foo/*`,
-                `${bucket.bucketArn}/other/*/*`,
+                `${bucket.bucketArn}/other/*`,
               ],
             },
             {
@@ -628,18 +628,18 @@ void describe('StorageAccessOrchestrator', () => {
               Effect: 'Allow',
               Resource: [
                 `${bucket.bucketArn}/foo/bar/*`,
-                `${bucket.bucketArn}/other/{idSub}/*`,
+                `${bucket.bucketArn}/other/\${cognito-identity.amazonaws.com:sub}/*`,
               ],
             },
             {
               Action: 's3:PutObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/other/{idSub}/*`,
+              Resource: `${bucket.bucketArn}/other/\${cognito-identity.amazonaws.com:sub}/*`,
             },
             {
               Action: 's3:DeleteObject',
               Effect: 'Allow',
-              Resource: `${bucket.bucketArn}/other/{idSub}/*`,
+              Resource: `${bucket.bucketArn}/other/\${cognito-identity.amazonaws.com:sub}/*`,
             },
           ],
           Version: '2012-10-17',
@@ -655,11 +655,11 @@ void describe('StorageAccessOrchestrator', () => {
         'foo/baz/*': {
           stub1: ['get'],
         },
-        'other/*/*': {
+        'other/*': {
           stub1: ['get'],
           stub2: ['get', 'write', 'delete'],
         },
-        'other/{idSub}/*': {
+        'other/${cognito-identity.amazonaws.com:sub}/*': {
           stub2: ['get', 'write', 'delete'],
         },
       });
