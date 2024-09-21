@@ -8,7 +8,7 @@ import {
   StorageAccessGenerator,
   StoragePath,
 } from './types.js';
-import { entityIdPathToken } from './constants.js';
+import { entityIdPathToken, entityIdSubstitution } from './constants.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
@@ -214,8 +214,7 @@ export class StorageAccessOrchestrator {
       const parent = findParent(storagePath, allPaths);
       if (
         !parent ||
-        parent ===
-          storagePath.replaceAll('${cognito-identity.amazonaws.com:sub}/', '')
+        parent === storagePath.replaceAll(`${entityIdSubstitution}/`, '')
       ) {
         return;
       }
