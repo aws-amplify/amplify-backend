@@ -133,7 +133,6 @@ export type FunctionProps = {
  */
 class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private generator: ConstructContainerEntryGenerator;
-
   /**
    * Create a new AmplifyFunctionFactory
    */
