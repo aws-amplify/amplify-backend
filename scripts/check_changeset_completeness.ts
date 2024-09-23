@@ -34,15 +34,15 @@ const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
   const versionBumpOfWrongKind: string[] = [];
   let backendMaxVersionType: string = 'none';
 
-  for (const release of releasePlan.releases) {
-    for (const changeset of release.changesets) {
-      if (changeset.includes(backendName)) {
+  for (const changeset of releasePlan.changesets) {
+    for (const release of changeset.releases) {
+      if (release.name === backendName) {
         if (
-          changeset.includes('major') ||
+          release.type === 'major' ||
           backendMaxVersionType === 'none' ||
-          (backendMaxVersionType === 'patch' && changeset.includes('minor'))
+          (backendMaxVersionType === 'patch' && release.type === 'minor')
         ) {
-          backendMaxVersionType = changeset.split(': ')[1];
+          backendMaxVersionType = release.type;
         }
       }
     }
@@ -50,17 +50,16 @@ const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
 
   // check if dependencies have a changeset
   // if they do, check if backend has a changeset of the same kind
-  for (const release of releasePlan.releases) {
-    for (const changeset of release.changesets) {
-      const changesetName = changeset.split(':')[0];
-      if (backendDependencies.includes(changesetName)) {
+  for (const changeset of releasePlan.changesets) {
+    for (const release of changeset.releases) {
+      if (backendDependencies.includes(release.name)) {
         if (
-          (!changeset.includes(backendMaxVersionType) &&
-            (changedFiles.includes('major') ||
-              backendMaxVersionType === 'none')) ||
-          (backendMaxVersionType === 'patch' && changeset.includes('minor'))
+          backendMaxVersionType !== release.type &&
+          (release.type === 'major' ||
+            backendMaxVersionType === 'none' ||
+            (backendMaxVersionType === 'patch' && release.type === 'minor'))
         ) {
-          versionBumpOfWrongKind.push(changesetName);
+          versionBumpOfWrongKind.push(release.name);
         }
       }
     }
