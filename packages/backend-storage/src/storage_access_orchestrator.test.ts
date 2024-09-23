@@ -500,7 +500,6 @@ void describe('StorageAccessOrchestrator', () => {
       );
       assert.deepStrictEqual(storageAccessDefinitionOutput, {
         'foo/*': {
-          'auth-with-id': ['write', 'delete'],
           auth: ['get'],
         },
         [`foo/${entityIdSubstitution}/*`]: {
@@ -657,7 +656,6 @@ void describe('StorageAccessOrchestrator', () => {
         },
         'other/*': {
           stub1: ['get'],
-          stub2: ['get', 'write', 'delete'],
         },
         [`other/${entityIdSubstitution}/*`]: {
           stub2: ['get', 'write', 'delete'],

@@ -100,8 +100,8 @@ export class StorageAccessOrchestrator {
       ([s3Prefix, accessPermissions]) => {
         const uniqueDefinitionIdSet = new Set<string>();
         // iterate over all of the access definitions for a given prefix
-        const accessConfig: StorageAccessConfig = {};
         accessPermissions.forEach((permission) => {
+          const accessConfig: StorageAccessConfig = {};
           // replace "read" with "get" and "list" in actions
           const replaceReadWithGetAndList = permission.actions.flatMap(
             (action) => (action === 'read' ? ['get', 'list'] : [action])
@@ -291,7 +291,7 @@ const placeholderSubstitution = (
     idSubstitution
   ) as StoragePath;
 
-  // for auth/unauth roles where prefix ends with '/*/*' remove the last wildcard
+  // for owner paths where prefix ends with '/*/*' remove the last wildcard
   if (prefix.endsWith('/*/*')) {
     return prefix.slice(0, -2) as StoragePath;
   }

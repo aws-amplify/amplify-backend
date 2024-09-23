@@ -58,10 +58,6 @@ export type AmplifyStorageAccessActions =
  */
 export interface AWSAmplifyBackendOutputs {
   /**
-   * JSON schema
-   */
-  $schema?: string;
-  /**
    * Version of this schema
    */
   version: '1.2';
@@ -246,6 +242,10 @@ export interface AWSAmplifyBackendOutputs {
  * via the `patternProperty` ".*".
  */
 export interface AmazonLocationServiceConfig {
+  /**
+   * Map resource name
+   */
+  name?: string;
   /**
    * Map style
    */
