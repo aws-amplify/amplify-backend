@@ -27,7 +27,7 @@ const getModifiedPackages = (changedFiles: string[]): Set<string> => {
   return modifiedPackageDirs;
 };
 
-const versionTypeConverter = (version: VersionType): VersionTypeEnum => {
+const convertVersionType = (version: VersionType): VersionTypeEnum => {
   switch (version) {
     case 'major':
       return VersionTypeEnum.MAJOR;
@@ -49,7 +49,7 @@ const findEffectiveVersion = (
   for (const changeset of releasePlan.changesets) {
     for (const release of changeset.releases) {
       if (release.name === packageName) {
-        const releaseVersionType = versionTypeConverter(release.type);
+        const releaseVersionType = convertVersionType(release.type);
         if (releaseVersionType > effectiveVersion) {
           effectiveVersion = releaseVersionType;
         }
@@ -57,15 +57,6 @@ const findEffectiveVersion = (
     }
   }
   return effectiveVersion;
-};
-
-const maxVersion = (
-  version1: VersionTypeEnum,
-  version2: VersionTypeEnum,
-  version3: VersionTypeEnum,
-  version4: VersionTypeEnum
-) => {
-  return Math.max(version1, version2, version3, version4);
 };
 
 const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
@@ -92,7 +83,7 @@ const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
 
   if (
     backendVersion <
-    maxVersion(
+    Math.max(
       backendAuthVersion,
       backendDataVersion,
       backendFunctionVersion,
@@ -100,7 +91,7 @@ const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
     )
   ) {
     throw new Error(
-      `@aws-amplify/backend has a version bump of a different kind from its dependencies (@aws-amplify/backend-auth, @aws-amplify/backend-data, @aws-amplify/backend-function, and @aws-amplify/backend-storage) but is expected to have a version bump of the same kind.${EOL}`
+      `@aws-amplify/backend has a version bump of a different kind from its dependencies (@aws-amplify/backend-auth, @aws-amplify/backend-data, @aws-amplify/backend-function, or @aws-amplify/backend-storage) but is expected to have a version bump of the same kind.${EOL}`
     );
   }
 };
