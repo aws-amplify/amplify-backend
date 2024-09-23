@@ -21,12 +21,10 @@ const getModifiedPackages = (changedFiles: string[]) => {
   return modifiedPackageDirs;
 };
 
-// one function checks if there are version bumps that should affect backend and whether backend is getting the right type of bump as a result
-//first check for presence of dependencies, if they are not present don't need to keep going
 const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
   const backendDependencies: string[] = [
     '@aws-amplify/backend-auth',
-    '@aws-amplify-backend/data',
+    '@aws-amplify/backend-data',
     '@aws-amplify/backend-function',
     '@aws-amplify/backend-storage',
   ];
@@ -48,8 +46,6 @@ const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
     }
   }
 
-  // check if dependencies have a changeset
-  // if they do, check if backend has a changeset of the same kind
   for (const changeset of releasePlan.changesets) {
     for (const release of changeset.releases) {
       if (backendDependencies.includes(release.name)) {
@@ -65,7 +61,6 @@ const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
     }
   }
 
-  // will aggregate the errors if multiple appear
   if (versionBumpOfWrongKind.length > 0) {
     throw new Error(
       `${backendName} has a version bump of a different kind of the following packages but is expected to have a version bump of the same kind:${EOL}${versionBumpOfWrongKind.join(
