@@ -350,7 +350,7 @@ class AmplifyFunction
       new FunctionEnvironmentTypeGenerator(id);
 
     // Clear the shim generation directory
-    functionEnvironmentTypeGenerator.clearGeneratedEnvDirectory();
+    FunctionEnvironmentTypeGenerator.clearGeneratedEnvDirectory();
 
     // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
     // This will be overwritten with the typed file at the end of synthesis

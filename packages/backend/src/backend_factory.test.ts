@@ -10,7 +10,6 @@ import { BackendFactory } from './backend_factory.js';
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { ClientConfig } from '@aws-amplify/client-config';
-import assert from 'node:assert';
 
 const createStackAndSetContext = (deploymentType: DeploymentType): Stack => {
   const app = new App();

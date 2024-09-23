@@ -28,6 +28,20 @@ export class FunctionEnvironmentTypeGenerator {
       `${this.functionName}.ts`
     );
   }
+  /**
+   * Clear existing files and subdirectories in the generated env directory
+   */
+  public static clearGeneratedEnvDirectory = (): void => {
+    const pathToDelete = path.join(
+      process.cwd(),
+      '.amplify',
+      'generated',
+      'env'
+    );
+    if (fs.existsSync(pathToDelete)) {
+      fs.rmSync(pathToDelete, { recursive: true, force: true });
+    }
+  };
 
   /**
    * Generate a typed process.env shim
@@ -86,21 +100,6 @@ export class FunctionEnvironmentTypeGenerator {
     const content = `${this.header}${EOL}${this.envAssignment} as any;`;
     this.writeShimFile(content);
   };
-
-  /**
-   * Clear existing files and subdirectories in the generated env directory
-   */
-  clearGeneratedEnvDirectory(): void {
-    const pathToDelete = path.join(
-      process.cwd(),
-      '.amplify',
-      'generated',
-      'env'
-    );
-    if (fs.existsSync(pathToDelete)) {
-      fs.rmSync(pathToDelete, { recursive: true, force: true });
-    }
-  }
 
   private writeShimFile = (content: string) => {
     const typeDefFileDirname = path.dirname(this.typeDefFilePath);

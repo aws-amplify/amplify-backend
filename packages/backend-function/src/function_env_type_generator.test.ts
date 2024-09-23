@@ -73,9 +73,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     const fsExistsSyncMock = mock.method(fs, 'existsSync', () => true);
     const fsRmSyncMock = mock.method(fs, 'rmSync', () => {});
 
-    const functionEnvironmentTypeGenerator =
-      new FunctionEnvironmentTypeGenerator('testFunction');
-    functionEnvironmentTypeGenerator.clearGeneratedEnvDirectory();
+    FunctionEnvironmentTypeGenerator.clearGeneratedEnvDirectory();
 
     assert.equal(fsExistsSyncMock.mock.calls.length, 1);
     assert.equal(fsRmSyncMock.mock.calls.length, 1);
