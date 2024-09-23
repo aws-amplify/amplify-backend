@@ -2,7 +2,6 @@ import getReleasePlan from '@changesets/get-release-plan';
 import { GitClient } from './components/git_client.js';
 import { readPackageJson } from './components/package-json/package_json.js';
 import { EOL } from 'os';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { ReleasePlan } from '@changesets/types';
 
 const getModifiedPackages = (changedFiles: string[]): Set<string> => {
