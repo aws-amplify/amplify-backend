@@ -133,6 +133,7 @@ export type FunctionProps = {
  */
 class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private generator: ConstructContainerEntryGenerator;
+
   /**
    * Create a new AmplifyFunctionFactory
    */
@@ -353,9 +354,6 @@ class AmplifyFunction
 
     const functionEnvironmentTypeGenerator =
       new FunctionEnvironmentTypeGenerator(id);
-
-    // Clear the shim generation directory
-    FunctionEnvironmentTypeGenerator.clearGeneratedEnvDirectory();
 
     // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
     // This will be overwritten with the typed file at the end of synthesis
