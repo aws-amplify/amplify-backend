@@ -34,35 +34,38 @@ const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
   const versionBumpOfWrongKind: string[] = [];
   let backendMaxVersionType: string = 'none';
 
-  for (const changeset of releasePlan.changesets) {
-    for (const release of changeset.releases) {
-      if (release.name === backendName) {
+  for (const release of releasePlan.releases) {
+    for (const changeset of release.changesets) {
+      if (changeset.includes(backendName)) {
         if (
-          release.type === 'major' ||
+          changeset.includes('major') ||
           backendMaxVersionType === 'none' ||
-          (backendMaxVersionType === 'patch' && release.type === 'minor')
+          (backendMaxVersionType === 'patch' && changeset.includes('minor'))
         ) {
-          backendMaxVersionType = release.type;
+          backendMaxVersionType = changeset.split(': ')[1];
         }
       }
     }
   }
 
-  for (const changeset of releasePlan.changesets) {
-    for (const release of changeset.releases) {
-      if (backendDependencies.includes(release.name)) {
+  // check if dependencies have a changeset
+  // if they do, check if backend has a changeset of the same kind
+  for (const release of releasePlan.releases) {
+    for (const changeset of release.changesets) {
+      const changesetName = changeset.split(':')[0];
+      if (backendDependencies.includes(changesetName)) {
         if (
-          (release.type !== backendMaxVersionType &&
-            (release.type === 'major' || backendMaxVersionType === 'none')) ||
-          (backendMaxVersionType === 'patch' && release.type === 'minor')
+          (!changeset.includes(backendMaxVersionType) &&
+            (changedFiles.includes('major') ||
+              backendMaxVersionType === 'none')) ||
+          (backendMaxVersionType === 'patch' && changeset.includes('minor'))
         ) {
-          versionBumpOfWrongKind.push(release.name);
+          versionBumpOfWrongKind.push(changesetName);
         }
       }
     }
   }
-  // check if dependencies have a changeset
-  // if they do, check if backend has a changeset of the same kind
+
   // will aggregate the errors if multiple appear
   if (versionBumpOfWrongKind.length > 0) {
     throw new Error(
