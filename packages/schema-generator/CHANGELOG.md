@@ -1,5 +1,12 @@
 # @aws-amplify/schema-generator
 
+## 1.2.4
+
+### Patch Changes
+
+- e325044: Prefer amplify errors in generators
+- f6b1943: Handle schema errors
+
 ## 1.2.3
 
 ### Patch Changes

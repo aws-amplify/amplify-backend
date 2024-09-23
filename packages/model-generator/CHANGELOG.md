@@ -1,5 +1,13 @@
 # @aws-amplify/model-generator
 
+## 1.0.8
+
+### Patch Changes
+
+- e325044: Prefer amplify errors in generators
+- Updated dependencies [87dbf41]
+  - @aws-amplify/plugin-types@1.3.0
+
 ## 1.0.7
 
 ### Patch Changes
