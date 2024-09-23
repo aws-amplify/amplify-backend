@@ -212,6 +212,7 @@ export class StorageAccessOrchestrator {
     const allPaths = Array.from(this.prefixDenyMap.keys());
     allPaths.forEach((storagePath) => {
       const parent = findParent(storagePath, allPaths);
+      // do not add to prefix deny map if there is no parent or the path is a subpath with entity id
       if (
         !parent ||
         parent === storagePath.replaceAll(`${entityIdSubstitution}/`, '')
