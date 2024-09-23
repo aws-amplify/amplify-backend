@@ -46,7 +46,7 @@ type AmazonPinpointChannels_2 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 
 type AmazonPinpointChannels_3 = 'IN_APP_MESSAGING' | 'FCM' | 'APNS' | 'EMAIL' | 'SMS';
 
 // @public (undocumented)
-type AmplifyStorageAccessActions = 'get' | 'list' | 'write' | 'delete';
+type AmplifyStorageAccessActions = 'read' | 'get' | 'list' | 'write' | 'delete';
 
 // @public
 interface AmplifyStorageAccessRule {
@@ -473,7 +473,7 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "0" | "1" | "1.1" | "1.2">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
+export const generateClientConfig: <T extends "1.2" | "1.1" | "1" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
