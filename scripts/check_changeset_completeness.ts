@@ -2,7 +2,14 @@ import getReleasePlan from '@changesets/get-release-plan';
 import { GitClient } from './components/git_client.js';
 import { readPackageJson } from './components/package-json/package_json.js';
 import { EOL } from 'os';
-import { ReleasePlan } from '@changesets/types';
+import { ReleasePlan, VersionType } from '@changesets/types';
+
+enum VersionTypeEnum {
+  'NONE' = 0,
+  'PATCH' = 1,
+  'MINOR' = 2,
+  'MAJOR' = 3,
+}
 
 const getModifiedPackages = (changedFiles: string[]): Set<string> => {
   const modifiedPackageDirs = new Set<string>();
@@ -20,51 +27,80 @@ const getModifiedPackages = (changedFiles: string[]): Set<string> => {
   return modifiedPackageDirs;
 };
 
+const versionTypeConverter = (version: VersionType): VersionTypeEnum => {
+  switch (version) {
+    case 'major':
+      return VersionTypeEnum.MAJOR;
+    case 'minor':
+      return VersionTypeEnum.MINOR;
+    case 'patch':
+      return VersionTypeEnum.PATCH;
+    case 'none':
+      return VersionTypeEnum.NONE;
+  }
+};
+
+const findEffectiveVersion = (
+  releasePlan: ReleasePlan,
+  packageName: string
+): VersionTypeEnum => {
+  let effectiveVersion: VersionTypeEnum = VersionTypeEnum.NONE;
+
+  for (const changeset of releasePlan.changesets) {
+    for (const release of changeset.releases) {
+      if (release.name === packageName) {
+        const releaseVersionType = versionTypeConverter(release.type);
+        if (releaseVersionType > effectiveVersion) {
+          effectiveVersion = releaseVersionType;
+        }
+      }
+    }
+  }
+  return effectiveVersion;
+};
+
+const maxVersion = (
+  version1: VersionTypeEnum,
+  version2: VersionTypeEnum,
+  version3: VersionTypeEnum,
+  version4: VersionTypeEnum
+) => {
+  return Math.max(version1, version2, version3, version4);
+};
+
 const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
-  const backendDependencies: string[] = [
-    '@aws-amplify/backend-auth',
-    '@aws-amplify/backend-data',
-    '@aws-amplify/backend-function',
-    '@aws-amplify/backend-storage',
-  ];
-  const backendName: string = '@aws-amplify/backend';
-  const versionBumpOfWrongKind: string[] = [];
-  let backendMaxVersionType: string = 'none';
+  const backendVersion: VersionTypeEnum = findEffectiveVersion(
+    releasePlan,
+    '@aws-amplify/backend'
+  );
+  const backendAuthVersion: VersionTypeEnum = findEffectiveVersion(
+    releasePlan,
+    '@aws-amplify/backend-auth'
+  );
+  const backendDataVersion: VersionTypeEnum = findEffectiveVersion(
+    releasePlan,
+    '@aws-amplify/backend-data'
+  );
+  const backendFunctionVersion: VersionTypeEnum = findEffectiveVersion(
+    releasePlan,
+    '@aws-amplify/backend-function'
+  );
+  const backendStorageVersion: VersionTypeEnum = findEffectiveVersion(
+    releasePlan,
+    '@aws-amplify/backend-storage'
+  );
 
-  for (const changeset of releasePlan.changesets) {
-    for (const release of changeset.releases) {
-      if (release.name === backendName) {
-        if (
-          release.type === 'major' ||
-          backendMaxVersionType === 'none' ||
-          (backendMaxVersionType === 'patch' && release.type === 'minor')
-        ) {
-          backendMaxVersionType = release.type;
-        }
-      }
-    }
-  }
-
-  for (const changeset of releasePlan.changesets) {
-    for (const release of changeset.releases) {
-      if (backendDependencies.includes(release.name)) {
-        if (
-          backendMaxVersionType !== release.type &&
-          (release.type === 'major' ||
-            backendMaxVersionType === 'none' ||
-            (backendMaxVersionType === 'patch' && release.type === 'minor'))
-        ) {
-          versionBumpOfWrongKind.push(release.name);
-        }
-      }
-    }
-  }
-
-  if (versionBumpOfWrongKind.length > 0) {
+  if (
+    backendVersion <
+    maxVersion(
+      backendAuthVersion,
+      backendDataVersion,
+      backendFunctionVersion,
+      backendStorageVersion
+    )
+  ) {
     throw new Error(
-      `${backendName} has a version bump of a different kind of the following packages but is expected to have a version bump of the same kind:${EOL}${versionBumpOfWrongKind.join(
-        EOL
-      )}`
+      `@aws-amplify/backend has a version bump of a different kind from its dependencies (@aws-amplify/backend-auth, @aws-amplify/backend-data, @aws-amplify/backend-function, and @aws-amplify/backend-storage) but is expected to have a version bump of the same kind.${EOL}`
     );
   }
 };
