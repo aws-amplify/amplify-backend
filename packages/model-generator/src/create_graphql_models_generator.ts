@@ -61,9 +61,11 @@ const createGraphqlModelsGeneratorFromBackendIdentifier = ({
   awsClientProvider,
 }: GraphqlModelsFromBackendIdentifierParams): GraphqlModelsGenerator => {
   if (!backendIdentifier) {
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     throw new Error('`backendIdentifier` must be defined');
   }
   if (!awsClientProvider) {
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     throw new Error('`awsClientProvider` must be defined');
   }
 
@@ -90,9 +92,11 @@ export const createGraphqlModelsFromS3UriGenerator = ({
   awsClientProvider,
 }: GraphqlModelsFromS3UriGeneratorFactoryParams): GraphqlModelsGenerator => {
   if (!modelSchemaS3Uri) {
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     throw new Error('`modelSchemaS3Uri` must be defined');
   }
   if (!awsClientProvider) {
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     throw new Error('`awsClientProvider` must be defined');
   }
   return new StackMetadataGraphqlModelsGenerator(
@@ -118,6 +122,7 @@ const getModelSchema = async (
   const modelSchemaS3Uri =
     output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
   if (!modelSchemaS3Uri) {
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     throw new Error(`Cannot find model schema at amplifyApiModelSchemaS3Uri`);
   }
 

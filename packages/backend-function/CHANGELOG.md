@@ -1,5 +1,16 @@
 # @aws-amplify/backend-function
 
+## 1.5.0
+
+### Minor Changes
+
+- 87dbf41: expose stack property for backend, function resource, storage resource, and auth resource
+
+### Patch Changes
+
+- Updated dependencies [87dbf41]
+  - @aws-amplify/plugin-types@1.3.0
+
 ## 1.4.1
 
 ### Patch Changes
