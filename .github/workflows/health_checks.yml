@@ -436,6 +436,7 @@ jobs:
   check_package_versions:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs:
       - install
     steps:
