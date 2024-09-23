@@ -5,7 +5,7 @@ import { EOL } from 'os';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ReleasePlan } from '@changesets/types';
 
-const getModifiedPackages = (changedFiles: string[]) => {
+const getModifiedPackages = (changedFiles: string[]): Set<string> => {
   const modifiedPackageDirs = new Set<string>();
 
   changedFiles
