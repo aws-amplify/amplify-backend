@@ -1,4 +1,4 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
@@ -7,6 +7,9 @@ import { pathToFileURL } from 'url';
 import path from 'path';
 
 void describe('FunctionEnvironmentTypeGenerator', () => {
+  beforeEach(() => {
+    resetFactoryCount();
+  });
   void it('generates a type definition file', () => {
     const fsOpenSyncMock = mock.method(fs, 'openSync');
     const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);
@@ -122,4 +125,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     fsExistsSyncMock.mock.restore();
     fsRmSyncMock.mock.restore();
   });
+  const resetFactoryCount = () => {
+    FunctionEnvironmentTypeGenerator.isEnvDirectoryInitialized = false;
+  };
 });
