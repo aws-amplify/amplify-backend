@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.3.0
+
+### Minor Changes
+
+- 87dbf41: add new type to handle exposing stack
+
 ## 1.2.2
 
 ### Patch Changes
