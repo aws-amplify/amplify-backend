@@ -8,7 +8,7 @@ import path from 'path';
 
 void describe('FunctionEnvironmentTypeGenerator', () => {
   beforeEach(() => {
-    resetFactoryCount();
+    resetFactoryGlobalState();
   });
   void it('generates a type definition file', () => {
     const fsOpenSyncMock = mock.method(fs, 'openSync');
@@ -125,7 +125,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
     fsExistsSyncMock.mock.restore();
     fsRmSyncMock.mock.restore();
   });
-  const resetFactoryCount = () => {
+  const resetFactoryGlobalState = () => {
     FunctionEnvironmentTypeGenerator.isEnvDirectoryInitialized = false;
   };
 });
