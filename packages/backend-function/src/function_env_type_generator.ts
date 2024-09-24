@@ -31,24 +31,6 @@ export class FunctionEnvironmentTypeGenerator {
     );
     this.clearGeneratedEnvDirectory();
   }
-  /**
-   * Clear existing files and subdirectories in the generated env directory
-   */
-  public clearGeneratedEnvDirectory = (): void => {
-    if (FunctionEnvironmentTypeGenerator.isEnvDirectoryInitialized) {
-      return;
-    }
-    const pathToDelete = path.join(
-      process.cwd(),
-      '.amplify',
-      'generated',
-      'env'
-    );
-    if (fs.existsSync(pathToDelete)) {
-      fs.rmSync(pathToDelete, { recursive: true, force: true });
-      FunctionEnvironmentTypeGenerator.isEnvDirectoryInitialized = true;
-    }
-  };
 
   /**
    * Generate a typed process.env shim
@@ -116,5 +98,23 @@ export class FunctionEnvironmentTypeGenerator {
     }
 
     fs.writeFileSync(this.typeDefFilePath, content);
+  };
+  /**
+   * Clear existing files and subdirectories in the generated env directory
+   */
+  private clearGeneratedEnvDirectory = (): void => {
+    if (FunctionEnvironmentTypeGenerator.isEnvDirectoryInitialized) {
+      return;
+    }
+    const pathToDelete = path.join(
+      process.cwd(),
+      '.amplify',
+      'generated',
+      'env'
+    );
+    if (fs.existsSync(pathToDelete)) {
+      fs.rmSync(pathToDelete, { recursive: true, force: true });
+      FunctionEnvironmentTypeGenerator.isEnvDirectoryInitialized = true;
+    }
   };
 }
