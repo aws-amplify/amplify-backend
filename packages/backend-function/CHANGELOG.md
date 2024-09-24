@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.5.1
+
+### Patch Changes
+
+- f4348e6: Clear generated env directory before shim generation
+
 ## 1.5.0
 
 ### Minor Changes
