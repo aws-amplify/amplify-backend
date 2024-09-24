@@ -53,6 +53,8 @@ type ConversationHandlerFunctionProps = {
 
 // @public (undocumented)
 type ConversationMessage = {
+    id?: string;
+    conversationId?: string;
     role: 'user' | 'assistant';
     content: Array<ConversationMessageContentBlock>;
 };
@@ -91,7 +93,14 @@ type ConversationTurnEvent = {
             authorization: string;
         };
     };
-    messages: Array<ConversationMessage>;
+    messages?: Array<ConversationMessage>;
+    messageHistoryQuery: {
+        getQueryName: string;
+        getQueryInputTypeName: string;
+        listQueryName: string;
+        listQueryInputTypeName: string;
+        listQueryLimit?: number;
+    };
     toolsConfiguration?: {
         dataTools?: Array<ToolDefinition & {
             graphqlRequestInputDescriptor: {

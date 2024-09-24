@@ -12,6 +12,12 @@ void describe('Conversation turn executor', () => {
     currentMessageId: 'testCurrentMessageId',
     graphqlApiEndpoint: '',
     messages: [],
+    messageHistoryQuery: {
+      getQueryName: '',
+      getQueryInputTypeName: '',
+      listQueryName: '',
+      listQueryInputTypeName: '',
+    },
     modelConfiguration: { modelId: '', systemPrompt: '' },
     request: { headers: { authorization: '' } },
     responseMutation: {

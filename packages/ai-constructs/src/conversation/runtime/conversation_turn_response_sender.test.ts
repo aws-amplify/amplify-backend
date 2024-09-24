@@ -11,6 +11,12 @@ void describe('Conversation turn response sender', () => {
     currentMessageId: 'testCurrentMessageId',
     graphqlApiEndpoint: 'http://fake.endpoint/',
     messages: [],
+    messageHistoryQuery: {
+      getQueryName: '',
+      getQueryInputTypeName: '',
+      listQueryName: '',
+      listQueryInputTypeName: '',
+    },
     modelConfiguration: { modelId: '', systemPrompt: '' },
     request: { headers: { authorization: 'testToken' } },
     responseMutation: {

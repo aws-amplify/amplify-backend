@@ -7,7 +7,10 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import { ConversationTurnEvent } from '@aws-amplify/ai-constructs/conversation/runtime';
+import {
+  ConversationMessageContentBlock,
+  ConversationTurnEvent,
+} from '@aws-amplify/ai-constructs/conversation/runtime';
 import { randomUUID } from 'crypto';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
@@ -48,6 +51,13 @@ type ConversationTurnAppSyncResponse = {
   content: string;
 };
 
+type CreateConversationMessageChatInput = {
+  id: string;
+  conversationId: string;
+  role: 'user' | 'assistant';
+  content: Array<ConversationMessageContentBlock>;
+};
+
 const commonEventProperties = {
   responseMutation: {
     name: 'createConversationMessageAssistantResponse',
@@ -56,11 +66,16 @@ const commonEventProperties = {
       'id',
       'conversationId',
       'content',
-      'sender',
       'owner',
       'createdAt',
       'updatedAt',
     ].join('\n'),
+  },
+  messageHistoryQuery: {
+    getQueryName: 'getConversationMessageChat',
+    getQueryInputTypeName: 'ID',
+    listQueryName: 'listConversationMessageChats',
+    listQueryInputTypeName: 'ModelConversationMessageChatFilterInput',
   },
   modelConfiguration: {
     modelId: bedrockModelId,
@@ -189,7 +204,16 @@ class ConversationHandlerTestProject extends TestProjectBase {
       backendId,
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
-      apolloClient
+      apolloClient,
+      false
+    );
+
+    await this.assertDefaultConversationHandlerCanExecuteTurn(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient,
+      true
     );
 
     await this.assertCustomConversationHandlerCanExecuteTurn(
@@ -225,7 +249,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
     backendId: BackendIdentifier,
     accessToken: string,
     graphqlApiEndpoint: string,
-    apolloClient: ApolloClient<NormalizedCacheObject>
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    useMessageHistory: boolean
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -235,26 +260,48 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     )[0];
 
-    // send event
-    const event: ConversationTurnEvent = {
+    const message: CreateConversationMessageChatInput = {
+      id: randomUUID().toString(),
       conversationId: randomUUID().toString(),
-      currentMessageId: randomUUID().toString(),
-      graphqlApiEndpoint: graphqlApiEndpoint,
-      messages: [
+      role: 'user',
+      content: [
         {
-          role: 'user',
-          content: [
-            {
-              text: 'What is the value of PI?',
-            },
-          ],
+          text: 'What is the value of PI?',
         },
       ],
+    };
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: message.conversationId,
+      currentMessageId: message.id,
+      graphqlApiEndpoint: graphqlApiEndpoint,
+      messages: [],
       request: {
         headers: { authorization: accessToken },
       },
       ...commonEventProperties,
     };
+
+    if (useMessageHistory) {
+      await this.insertMessage(apolloClient, message);
+    } else {
+      event.messageHistoryQuery = {
+        getQueryName: '',
+        getQueryInputTypeName: '',
+        listQueryName: '',
+        listQueryInputTypeName: '',
+      };
+      event.messages = [
+        {
+          id: message.id,
+          conversationId: message.conversationId,
+          role: message.role,
+          content: message.content,
+        },
+      ];
+    }
+
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
@@ -538,7 +585,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
           listConversationMessageAssistantResponses {
             items {
               conversationId
-              sender
               id
               updatedAt
               createdAt
@@ -556,5 +602,23 @@ class ConversationHandlerTestProject extends TestProjectBase {
       );
     assert.ok(response);
     return response;
+  };
+
+  private insertMessage = async (
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    message: CreateConversationMessageChatInput
+  ): Promise<void> => {
+    await apolloClient.mutate({
+      mutation: gql`
+        mutation InsertMessage($input: CreateConversationMessageChatInput!) {
+          createConversationMessageChat(input: $input) {
+            id
+          }
+        }
+      `,
+      variables: {
+        input: message,
+      },
+    });
   };
 }
