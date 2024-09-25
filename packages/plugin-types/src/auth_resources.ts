@@ -72,6 +72,32 @@ export type AuthResources = {
   };
 };
 
+/**
+ * Reference auth resources
+ */
+export type ReferenceAuthResources = {
+  /**
+   * The referenced UserPool L2 Resource.
+   */
+  userPool: IUserPool;
+  /**
+   * The referenced UserPoolClient L2 Resource.
+   */
+  userPoolClient: IUserPoolClient;
+  /**
+   * The referenced auth role.
+   */
+  authenticatedUserIamRole: IRole;
+  /**
+   * The referenced unauth role.
+   */
+  unauthenticatedUserIamRole: IRole;
+  /**
+   * Identity pool Id
+   */
+  identityPoolId: string;
+};
+
 export type AuthRoleName = keyof Pick<
   AuthResources,
   'authenticatedUserIamRole' | 'unauthenticatedUserIamRole'
