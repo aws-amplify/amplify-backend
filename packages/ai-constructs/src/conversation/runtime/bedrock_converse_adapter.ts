@@ -133,7 +133,8 @@ export class BedrockConverseAdapter {
     Array<Message>
   > => {
     const messages: Array<Message> = [];
-    const eventMessages = await this.messageHistoryRetriever.getEventMessages();
+    const eventMessages =
+      await this.messageHistoryRetriever.getMessageHistory();
     for (const message of eventMessages) {
       const messageContent: Array<ContentBlock> = [];
       for (const contentElement of message.content) {

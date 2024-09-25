@@ -84,7 +84,7 @@ void describe('Conversation message history retriever', () => {
       event,
       graphqlRequestExecutor
     );
-    const messages = await retriever.getEventMessages();
+    const messages = await retriever.getMessageHistory();
 
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
     const request = executeGraphqlMock.mock.calls[0]
@@ -140,7 +140,7 @@ void describe('Conversation message history retriever', () => {
       eventWithLimit,
       graphqlRequestExecutor
     );
-    await retriever.getEventMessages();
+    await retriever.getMessageHistory();
 
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
     const request = executeGraphqlMock.mock.calls[0]
@@ -221,7 +221,7 @@ void describe('Conversation message history retriever', () => {
       event,
       graphqlRequestExecutor
     );
-    const messages = await retriever.getEventMessages();
+    const messages = await retriever.getMessageHistory();
 
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 2);
     const request1 = executeGraphqlMock.mock.calls[0]

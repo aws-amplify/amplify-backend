@@ -102,7 +102,7 @@ export class ConversationMessageHistoryRetriever {
     )
   ) {}
 
-  getEventMessages = async (): Promise<Array<ConversationMessage>> => {
+  getMessageHistory = async (): Promise<Array<ConversationMessage>> => {
     if (this.event.messages?.length) {
       // This is for backwards compatibility and should be removed with messages property.
       return this.event.messages;

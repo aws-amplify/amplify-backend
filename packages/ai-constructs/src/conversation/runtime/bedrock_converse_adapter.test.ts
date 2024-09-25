@@ -63,7 +63,7 @@ void describe('Bedrock converse adapter', () => {
   );
   const messageHistoryRetrieverMockGetEventMessages = mock.method(
     messageHistoryRetriever,
-    'getEventMessages',
+    'getMessageHistory',
     () => {
       return Promise.resolve(messages);
     }
