@@ -200,6 +200,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
       apolloClient,
+      // Does not use message history lookup.
+      // This case should be removed when event.messages field is removed.
       false
     );
 
@@ -208,6 +210,16 @@ class ConversationHandlerTestProject extends TestProjectBase {
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
       apolloClient,
+      true
+    );
+
+    await this.assertDefaultConversationHandlerCanExecuteTurn(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient,
+      true,
+      // Simulate eventual consistency
       true
     );
 
@@ -254,7 +266,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    useMessageHistory: boolean
+    useMessageHistory: boolean,
+    withoutMessageAvailableInTheMessageList = false
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -287,6 +300,12 @@ class ConversationHandlerTestProject extends TestProjectBase {
     };
 
     if (useMessageHistory) {
+      if (withoutMessageAvailableInTheMessageList) {
+        // This tricks conversation handler to think that message is not available in the list.
+        // I.e. it simulates eventually consistency read at list operation where item is not yet visible.
+        // In this case handler should fall back to lookup by current message id.
+        message.conversationId = randomUUID().toString();
+      }
       await this.insertMessage(apolloClient, message);
     } else {
       event.messageHistoryQuery = {
