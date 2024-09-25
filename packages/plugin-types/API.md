@@ -192,6 +192,15 @@ export type PackageManagerController = {
 // @public (undocumented)
 export type ProjectName = string;
 
+// @public
+export type ReferenceAuthResources = {
+    userPool: IUserPool;
+    userPoolClient: IUserPoolClient;
+    authenticatedUserIamRole: IRole;
+    unauthenticatedUserIamRole: IRole;
+    identityPoolId: string;
+};
+
 // @public (undocumented)
 export type ResolvePathResult = {
     branchSecretPath: string;
