@@ -1,4 +1,5 @@
 import { ConversationMessage, ConversationTurnEvent } from './types';
+import { GraphqlRequestExecutor } from './graphql_request_executor';
 
 type ListQueryInput = {
   filter: {
@@ -27,7 +28,10 @@ export class ConversationMessageHistoryRetriever {
    */
   constructor(
     private readonly event: ConversationTurnEvent,
-    private readonly _fetch = fetch
+    private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
+      event.graphqlApiEndpoint,
+      event.request.headers.authorization
+    )
   ) {}
 
   getEventMessages = async (): Promise<Array<ConversationMessage>> => {
@@ -35,30 +39,17 @@ export class ConversationMessageHistoryRetriever {
       // This is for backwards compatibility and should be removed with messages property.
       return this.event.messages;
     }
-    const request = this.createQueryRequest();
-    const res = await this._fetch(request);
-    const responseHeaders: Record<string, string> = {};
-    res.headers.forEach((value, key) => (responseHeaders[key] = value));
-    if (!res.ok) {
-      const body = await res.text();
-      throw new Error(
-        `Attempt to fetch message history was not successful, response headers=${JSON.stringify(
-          responseHeaders
-        )}, body=${body}`
-      );
-    }
-    const body = await res.json();
-    if (body && typeof body === 'object' && 'errors' in body) {
-      throw new Error(
-        `Attempt to fetch message history was not successful, response headers=${JSON.stringify(
-          responseHeaders
-        )}, body=${JSON.stringify(body)}`
-      );
-    }
+    const { query, variables } = this.createQueryRequest();
+    const response = await this.graphqlRequestExecutor.executeGraphql<
+      ListQueryInput,
+      ListQueryOutput
+    >({
+      query,
+      variables,
+      onErrorMessage: 'Attempt to fetch message history failed',
+    });
 
-    return (body as ListQueryOutput).data[
-      this.event.messageHistoryQuery.listQueryName
-    ].items;
+    return response.data[this.event.messageHistoryQuery.listQueryName].items;
   };
 
   private createQueryRequest = () => {
@@ -124,13 +115,6 @@ export class ConversationMessageHistoryRetriever {
       limit: this.event.messageHistoryQuery.listQueryLimit ?? 1000,
     };
 
-    return new Request(this.event.graphqlApiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/graphql',
-        Authorization: this.event.request.headers.authorization,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
+    return { query, variables };
   };
 }
