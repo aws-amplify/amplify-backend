@@ -14,12 +14,12 @@ await execa('npm', ['config', 'set', 'registry', NPM_REGISTRY]);
 let pid: number;
 try {
   if (process.platform === 'win32') {
-    const netstatResult = await execaCommand(
+    const winResult = await execaCommand(
       `netstat -n -a -o | grep ${VERDACCIO_PORT}`,
       { shell: true }
     );
     pid = Number.parseInt(
-      netstatResult.stdout.toString().split(/(\s)/).slice(-1)[0]
+      winResult.stdout.toString().split(/(\s)/).slice(-1)[0]
     );
   } else {
     const lsofResult = await execaCommand(
