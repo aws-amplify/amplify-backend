@@ -16,16 +16,17 @@ import { AsyncLock } from './async_lock.js';
  * This class is safe to use in concurrent settings, i.e. tests running in parallel.
  */
 export class AmplifyAuthCredentialsFactory {
-  private readonly userPoolId: string;
-  private readonly userPoolClientId: string;
-  private readonly identityPoolId: string;
-  private readonly allowGuestAccess: boolean | undefined;
   /**
    * Asynchronous lock is used to assure that all calls to Amplify JS library are
    * made in single transaction. This is because that library maintains global state,
    * for example auth session.
    */
-  private readonly lock: AsyncLock = new AsyncLock(60 * 1000);
+  private static readonly lock: AsyncLock = new AsyncLock(60 * 1000);
+
+  private readonly userPoolId: string;
+  private readonly userPoolClientId: string;
+  private readonly identityPoolId: string;
+  private readonly allowGuestAccess: boolean | undefined;
 
   /**
    * Creates Amplify Auth credentials factory.
@@ -43,8 +44,11 @@ export class AmplifyAuthCredentialsFactory {
     this.allowGuestAccess = authConfig.unauthenticated_identities_enabled;
   }
 
-  getNewAuthenticatedUserCredentials = async (): Promise<IamCredentials> => {
-    await this.lock.acquire();
+  getNewAuthenticatedUserCredentials = async (): Promise<{
+    iamCredentials: IamCredentials;
+    accessToken: string;
+  }> => {
+    await AmplifyAuthCredentialsFactory.lock.acquire();
     try {
       const username = `amplify-backend-${shortUuid()}@amazon.com`;
       const temporaryPassword = `Test1@Temp${shortUuid()}`;
@@ -91,15 +95,21 @@ export class AmplifyAuthCredentialsFactory {
       if (!authSession.credentials) {
         throw new Error('No credentials in auth session');
       }
+      if (!authSession.tokens?.accessToken) {
+        throw new Error('No accessToken in auth session');
+      }
 
-      return authSession.credentials;
+      return {
+        iamCredentials: authSession.credentials,
+        accessToken: authSession.tokens.accessToken.toString(),
+      };
     } finally {
-      this.lock.release();
+      AmplifyAuthCredentialsFactory.lock.release();
     }
   };
 
   getGuestAccessCredentials = async (): Promise<IamCredentials> => {
-    await this.lock.acquire();
+    await AmplifyAuthCredentialsFactory.lock.acquire();
     try {
       Amplify.configure({
         Auth: {
@@ -122,7 +132,7 @@ export class AmplifyAuthCredentialsFactory {
 
       return authSession.credentials;
     } finally {
-      this.lock.release();
+      AmplifyAuthCredentialsFactory.lock.release();
     }
   };
 }

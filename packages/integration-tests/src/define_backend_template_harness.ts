@@ -66,8 +66,12 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
   } as Partial<{ [K in keyof T]: Template }> & { root: Template };
 
   for (const [key, resourceRecord] of Object.entries(backend)) {
-    // skip over the methods that we add on to the backend object
+    // skip over the properties and methods that we add on to the backend object
     if (typeof resourceRecord === 'function') {
+      continue;
+    }
+    // skip non-resource properties
+    if (!('resources' in resourceRecord)) {
       continue;
     }
     // find some construct in the resources exposed by the resourceRecord

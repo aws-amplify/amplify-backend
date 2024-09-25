@@ -1,5 +1,36 @@
 # @aws-amplify/backend-function
 
+## 1.5.0
+
+### Minor Changes
+
+- 87dbf41: expose stack property for backend, function resource, storage resource, and auth resource
+
+### Patch Changes
+
+- Updated dependencies [87dbf41]
+  - @aws-amplify/plugin-types@1.3.0
+
+## 1.4.1
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- c9c873c: throw ESBuild error with correct messages
+- Updated dependencies [8dd7286]
+  - @aws-amplify/backend-output-storage@1.1.2
+  - @aws-amplify/plugin-types@1.2.2
+
+## 1.4.0
+
+### Minor Changes
+
+- 038b54d: update cron jsdoc example
+
+### Patch Changes
+
+- 99c8b6a: Add new @aws-amplify/ai-constructs and @aws-amplify/backend-ai packages with a conversation handler.
+
 ## 1.3.4
 
 ### Patch Changes

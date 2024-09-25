@@ -41,8 +41,19 @@ export class ImportStatementsRenderer {
            To work around this we use 'index.internal.ts' files where we export entry points as namespaces.
            Api validator uses special naming convention for these special exports and converts them into start imports
            so that they look like imported namespace.
+
+           The convention in 'index.internal.ts' files is as follows.
+           Assume that package exports 'someEntryPoint/someSubEntryPoint' pointing to 'someSubEntryPoint.js' (arbitrary file).
+           'index.internal.ts' should:
+           1. 'import * as __exports__someEntryPoint__someSubEntryPoint from './someSubEntryPoint.js'
+           2. export { __exports__someEntryPoint__someSubEntryPoint }
+           3. Where:
+              1. __exports__ indicates this workaround to our tooling (e.g. this code)
+              2. __ is a convention to express nesting and is translated to /
          */
-        const entryPointPath = namespaceName.replace('__export__', '');
+        const entryPointPath = namespaceName
+          .replace('__export__', '') // strip prefix
+          .replaceAll('__', '/'); // replace __ with /
         importStatements.push(
           `import * as ${namespaceName} from '${this.packageName}/${entryPointPath}';`
         );

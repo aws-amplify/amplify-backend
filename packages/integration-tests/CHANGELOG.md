@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.5.9
+
+### Patch Changes
+
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+
 ## 0.5.8
 
 ### Patch Changes

@@ -12,9 +12,14 @@ type SomeTypeUnderSubNamespace = {
   someOtherProperty: string;
 }
 
+type SomeOtherTypeUnderSubNamespace = {
+  someProperty: SomeTypeUnderSubNamespace;
+};
+
 declare namespace someSubNamespace {
   export {
-    SomeTypeUnderSubNamespace
+    SomeTypeUnderSubNamespace,
+    SomeOtherTypeUnderSubNamespace
   }
 }
 
@@ -43,6 +48,16 @@ type SomeTypeUnderOtherEntryPoint = {
 declare namespace __export__other_entry_point {
   export {
     SomeTypeUnderOtherEntryPoint
+  }
+}
+
+export type SomeTypeUnderNestedEntryPoint = {
+  somePropertyUnderNestedEntryPoint: string;
+}
+
+declare namespace __export__other_entry_point__some_nested_entry_point {
+  export {
+    SomeTypeUnderNestedEntryPoint
   }
 }
 

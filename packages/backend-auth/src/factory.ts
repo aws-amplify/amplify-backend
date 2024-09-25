@@ -18,6 +18,7 @@ import {
   ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
@@ -28,10 +29,11 @@ import {
   Expand,
 } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
-import { Tags } from 'aws-cdk-lib';
+import { Stack, Tags } from 'aws-cdk-lib';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
-  ResourceAccessAcceptorFactory<AuthRoleName | string>;
+  ResourceAccessAcceptorFactory<AuthRoleName | string> &
+  StackProvider;
 
 export type AmplifyAuthProps = Expand<
   Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
@@ -79,6 +81,7 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
    */
   constructor(
     private readonly props: AmplifyAuthProps,
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     private readonly importStack = new Error().stack
   ) {
     if (AmplifyAuthFactory.factoryCount > 0) {
@@ -194,6 +197,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
           policy.attachToRole(role);
         },
       }),
+      stack: Stack.of(authConstruct),
     };
     if (!this.props.access) {
       return authConstructMixin;
@@ -235,4 +239,5 @@ const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
 export const defineAuth = (
   props: AmplifyAuthProps
 ): ConstructFactory<BackendAuth> =>
+  // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
   new AmplifyAuthFactory(props, new Error().stack);

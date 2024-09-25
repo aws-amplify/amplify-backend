@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-deployer",
-  "version": "1.1.0",
+  "version": "1.1.4",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -12,6 +12,7 @@
       "require": "./lib/index.js"
     }
   },
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
@@ -19,7 +20,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/platform-core": "^1.0.6",
-    "@aws-amplify/plugin-types": "^1.2.1",
+    "@aws-amplify/plugin-types": "^1.2.2",
     "execa": "^8.0.1",
     "tsx": "^4.6.1"
   },

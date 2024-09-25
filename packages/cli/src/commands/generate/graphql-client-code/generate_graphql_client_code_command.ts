@@ -89,9 +89,10 @@ export class GenerateGraphqlClientCodeCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier = await this.backendIdentifierResolver.resolve(
-      args
-    );
+    const backendIdentifier =
+      await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
+        args
+      );
     const out = this.getOutDir(args);
     const format = args.format ?? GenerateApiCodeFormat.GRAPHQL_CODEGEN;
     const formatParams = this.formatParamBuilders[format](args);

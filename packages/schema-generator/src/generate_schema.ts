@@ -1,4 +1,8 @@
-import { TypescriptDataSchemaGenerator } from '@aws-amplify/graphql-schema-generator';
+import {
+  EmptySchemaError,
+  InvalidSchemaError,
+  TypescriptDataSchemaGenerator,
+} from '@aws-amplify/graphql-schema-generator';
 import fs from 'fs/promises';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
@@ -16,6 +20,8 @@ export type SchemaGeneratorConfig = {
 
 type AmplifyGenerateSchemaError =
   | 'DatabaseConnectionError'
+  | 'DatabaseSchemaError'
+  | 'DatabaseUnsupportedEngineError'
   | 'DatabaseUrlParseError';
 
 /**
@@ -37,6 +43,20 @@ export class SchemaGenerator {
       });
       await fs.writeFile(props.out, schema);
     } catch (err) {
+      if (
+        err instanceof EmptySchemaError ||
+        err instanceof InvalidSchemaError
+      ) {
+        throw new AmplifyUserError<AmplifyGenerateSchemaError>(
+          'DatabaseSchemaError',
+          {
+            // the message already contains descriptive error.
+            message: err.message,
+            resolution: 'Check the database schema.',
+          },
+          err
+        );
+      }
       const databaseError = err as DatabaseConnectError;
       if (databaseError.code === 'ETIMEDOUT') {
         throw new AmplifyUserError<AmplifyGenerateSchemaError>(
@@ -150,7 +170,14 @@ const constructDBEngine = (engine: string): SQLEngine => {
     case 'postgres':
       return 'postgresql';
     default:
-      throw new Error(`Unsupported database engine: ${engine}`);
+      throw new AmplifyUserError<AmplifyGenerateSchemaError>(
+        'DatabaseUnsupportedEngineError',
+        {
+          message: `Unsupported database engine: ${engine}`,
+          resolution:
+            'Ensure that database URL specifies supported engine. Supported engines are "mysql", "postgresql", "postgres".',
+        }
+      );
   }
 };
 
