@@ -53,8 +53,6 @@ type ConversationHandlerFunctionProps = {
 
 // @public (undocumented)
 type ConversationMessage = {
-    id?: string;
-    conversationId?: string;
     role: 'user' | 'assistant';
     content: Array<ConversationMessageContentBlock>;
 };

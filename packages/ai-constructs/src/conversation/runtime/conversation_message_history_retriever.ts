@@ -1,12 +1,17 @@
 import { ConversationMessage, ConversationTurnEvent } from './types';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
 
+export type ConversationHistoryMessageItem = ConversationMessage & {
+  id: string;
+  conversationId: string;
+};
+
 export type GetQueryInput = {
   id: string;
 };
 
 export type GetQueryOutput = {
-  data: Record<string, ConversationMessage>;
+  data: Record<string, ConversationHistoryMessageItem>;
 };
 
 export type ListQueryInput = {
@@ -22,7 +27,7 @@ export type ListQueryOutput = {
   data: Record<
     string,
     {
-      items: Array<ConversationMessage>;
+      items: Array<ConversationHistoryMessageItem>;
     }
   >;
 };
@@ -119,30 +124,33 @@ export class ConversationMessageHistoryRetriever {
     return messages;
   };
 
-  private getCurrentMessage = async (): Promise<ConversationMessage> => {
-    const query = `
+  private getCurrentMessage =
+    async (): Promise<ConversationHistoryMessageItem> => {
+      const query = `
         query GetMessage($id: ${this.event.messageHistoryQuery.getQueryInputTypeName}!) {
             ${this.event.messageHistoryQuery.getQueryName}(id: $id) {
               ${messageItemSelectionSet}
             }
         }
     `;
-    const variables: GetQueryInput = {
-      id: this.event.currentMessageId,
+      const variables: GetQueryInput = {
+        id: this.event.currentMessageId,
+      };
+
+      const response = await this.graphqlRequestExecutor.executeGraphql<
+        GetQueryInput,
+        GetQueryOutput
+      >({
+        query,
+        variables,
+      });
+
+      return response.data[this.event.messageHistoryQuery.getQueryName];
     };
 
-    const response = await this.graphqlRequestExecutor.executeGraphql<
-      GetQueryInput,
-      GetQueryOutput
-    >({
-      query,
-      variables,
-    });
-
-    return response.data[this.event.messageHistoryQuery.getQueryName];
-  };
-
-  private listMessages = async (): Promise<Array<ConversationMessage>> => {
+  private listMessages = async (): Promise<
+    Array<ConversationHistoryMessageItem>
+  > => {
     const query = `
         query ListMessages($filter: ${this.event.messageHistoryQuery.listQueryInputTypeName}!, $limit: Int) {
             ${this.event.messageHistoryQuery.listQueryName}(filter: $filter, limit: $limit) {

@@ -51,7 +51,10 @@ type ConversationTurnAppSyncResponse = {
   content: string;
 };
 
-type CreateConversationMessageChatInput = Required<ConversationMessage>;
+type CreateConversationMessageChatInput = ConversationMessage & {
+  conversationId: string;
+  id: string;
+};
 
 const commonEventProperties = {
   responseMutation: {
@@ -316,8 +319,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       };
       event.messages = [
         {
-          id: message.id,
-          conversationId: message.conversationId,
           role: message.role,
           content: message.content,
         },
@@ -399,8 +400,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       };
       event.messages = [
         {
-          id: message.id,
-          conversationId: message.conversationId,
           role: message.role,
           content: message.content,
         },

@@ -12,8 +12,6 @@ export type ToolResultContentBlock = bedrock.ToolResultContentBlock;
 export type ToolExecutionInput = smithy.DocumentType;
 
 export type ConversationMessage = {
-  id?: string;
-  conversationId?: string;
   role: 'user' | 'assistant';
   content: Array<ConversationMessageContentBlock>;
 };

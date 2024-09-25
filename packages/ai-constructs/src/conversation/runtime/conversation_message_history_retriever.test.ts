@@ -1,12 +1,13 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { MutationResponseInput } from './conversation_turn_response_sender';
-import { ConversationMessage, ConversationTurnEvent } from './types';
+import { ConversationTurnEvent } from './types';
 import {
   GraphqlRequest,
   GraphqlRequestExecutor,
 } from './graphql_request_executor';
 import {
+  ConversationHistoryMessageItem,
   ConversationMessageHistoryRetriever,
   GetQueryOutput,
   ListQueryOutput,
@@ -33,7 +34,7 @@ void describe('Conversation message history retriever', () => {
   };
 
   void it('Retrieves message history that includes current message', async () => {
-    const mockListResponseMessages: Array<ConversationMessage> = [
+    const mockListResponseMessages: Array<ConversationHistoryMessageItem> = [
       {
         id: 'someNonCurrentMessageId1',
         conversationId: event.conversationId,
@@ -101,7 +102,7 @@ void describe('Conversation message history retriever', () => {
   });
 
   void it('Retrieves message history that includes current message with custom limit', async () => {
-    const mockListResponseMessages: Array<ConversationMessage> = [
+    const mockListResponseMessages: Array<ConversationHistoryMessageItem> = [
       {
         id: event.currentMessageId,
         conversationId: event.conversationId,
@@ -156,7 +157,7 @@ void describe('Conversation message history retriever', () => {
   });
 
   void it('Retrieves message history that does not include current message with fallback to get it directly', async () => {
-    const mockListResponseMessages: Array<ConversationMessage> = [
+    const mockListResponseMessages: Array<ConversationHistoryMessageItem> = [
       {
         id: 'someNonCurrentMessageId1',
         conversationId: event.conversationId,
@@ -178,7 +179,7 @@ void describe('Conversation message history retriever', () => {
         ],
       },
     ];
-    const mockCurrentMessage: ConversationMessage = {
+    const mockCurrentMessage: ConversationHistoryMessageItem = {
       id: event.currentMessageId,
       conversationId: event.conversationId,
       role: 'user',
