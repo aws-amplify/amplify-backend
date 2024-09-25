@@ -1,15 +1,15 @@
 import { ConversationMessage, ConversationTurnEvent } from './types';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
 
-type GetQueryInput = {
+export type GetQueryInput = {
   id: string;
 };
 
-type GetQueryOutput = {
+export type GetQueryOutput = {
   data: Record<string, ConversationMessage>;
 };
 
-type ListQueryInput = {
+export type ListQueryInput = {
   filter: {
     conversationId: {
       eq: string;
@@ -18,7 +18,7 @@ type ListQueryInput = {
   limit: number;
 };
 
-type ListQueryOutput = {
+export type ListQueryOutput = {
   data: Record<
     string,
     {
