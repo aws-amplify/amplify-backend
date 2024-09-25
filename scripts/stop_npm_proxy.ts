@@ -16,7 +16,7 @@ try {
   if (process.platform === 'win32') {
     const netStatResult = await execaCommand(
       `netstat -n -a -o | grep ${VERDACCIO_PORT}`,
-      { shell: true }
+      { shell: 'bash' }
     );
     pid = Number.parseInt(
       netStatResult.stdout.toString().split(/(\s)/).slice(-1)[0]
