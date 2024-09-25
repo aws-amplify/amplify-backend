@@ -38,7 +38,7 @@ import {
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Rule } from 'aws-cdk-lib/aws-events';
-import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 const functionStackType = 'function-Lambda';
 
@@ -132,7 +132,7 @@ export type FunctionProps = {
    * The log group to send the function logs to
    * @default undefined - use the default CDK generated log group
    */
-  logGroup?: LogGroup;
+  logRetention?: RetentionDays;
 };
 
 /**
@@ -179,7 +179,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
-      logGroup: this.resolveLogGroup(),
+      logRetention: this.resolveRetentionDays(),
     };
   };
 
@@ -286,16 +286,15 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     return this.props.schedule;
   };
 
-  private resolveLogGroup = () => {
-    if (!this.props.logGroup) {
-      return;
+  private resolveRetentionDays = () => {
+    if (!this.props.logRetention) {
+      return RetentionDays.INFINITE;
     }
-    return this.props.logGroup;
+    return this.props.logRetention;
   };
 }
 
-type HydratedFunctionProps = Required<Omit<FunctionProps, 'logGroup'>> &
-  Pick<FunctionProps, 'logGroup'>;
+type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
@@ -383,7 +382,7 @@ class AmplifyFunction
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
         runtime: nodeVersionMap[props.runtime],
-        logGroup: props.logGroup,
+        logRetention: props.logRetention,
         bundling: {
           format: OutputFormat.ESM,
           banner: bannerCode,

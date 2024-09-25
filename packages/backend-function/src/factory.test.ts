@@ -17,7 +17,7 @@ import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -297,32 +297,25 @@ void describe('AmplifyFunctionFactory', () => {
 
   void describe('logGroup property', () => {
     void it('sets valid logGroup', () => {
-      const logGroup = new LogGroup(rootStack, 'LambdaLogGroup', {
-        retention: RetentionDays.ONE_WEEK,
-      });
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
-        logGroup,
+        logRetention: RetentionDays.ONE_WEEK,
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
-      template.hasResourceProperties('AWS::Lambda::Function', {
-        LoggingConfig: Match.objectLike({
-          LogGroup: {
-            Ref: Match.stringLikeRegexp('referencetoLambdaLogGroup'),
-          },
-        }),
+      template.hasResourceProperties('Custom::LogRetention', {
+        RetentionInDays: 7,
       });
     });
 
-    void it('doesnt set LogGroup if not provided', () => {
+    void it('doesnt set retention days if not provided', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
-      template.hasResourceProperties('AWS::Lambda::Function', {
-        LoggingConfig: Match.absent(),
+      template.hasResourceProperties('Custom::LogRetention', {
+        RetentionInDays: Match.absent(),
       });
     });
   });
