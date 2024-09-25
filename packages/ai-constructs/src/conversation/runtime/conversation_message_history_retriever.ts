@@ -56,7 +56,6 @@ export class ConversationMessageHistoryRetriever {
       );
     }
 
-    console.log(body);
     return (body as ListQueryOutput).data[
       this.event.messageHistoryQuery.listQueryName
     ].items;
@@ -125,7 +124,6 @@ export class ConversationMessageHistoryRetriever {
       limit: this.event.messageHistoryQuery.listQueryLimit ?? 1000,
     };
 
-    console.log(JSON.stringify({ query, variables }, null, 2));
     return new Request(this.event.graphqlApiEndpoint, {
       method: 'POST',
       headers: {
