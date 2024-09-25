@@ -54,6 +54,7 @@ type ConversationTurnAppSyncResponse = {
 type CreateConversationMessageChatInput = ConversationMessage & {
   conversationId: string;
   id: string;
+  associatedUserMessageId?: string;
 };
 
 const commonEventProperties = {

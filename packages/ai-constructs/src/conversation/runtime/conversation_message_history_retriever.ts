@@ -4,6 +4,8 @@ import { GraphqlRequestExecutor } from './graphql_request_executor';
 export type ConversationHistoryMessageItem = ConversationMessage & {
   id: string;
   conversationId: string;
+  associatedUserMessageId?: string;
+  aiContext?: unknown;
 };
 
 export type GetQueryInput = {
@@ -40,6 +42,8 @@ export type ListQueryOutput = {
 const messageItemSelectionSet = `
                 id
                 conversationId
+                associatedUserMessageId
+                aiContext
                 role
                 content {
                   text
@@ -120,6 +124,61 @@ export class ConversationMessageHistoryRetriever {
       currentMessage = await this.getCurrentMessage();
       messages.push(currentMessage);
     }
+
+    // Index assistant messages by corresponding user message.
+    const assistantMessageByUserMessageId: Map<
+      string,
+      ConversationHistoryMessageItem
+    > = new Map();
+    messages.forEach((message) => {
+      if (message.role === 'assistant' && message.associatedUserMessageId) {
+        assistantMessageByUserMessageId.set(
+          message.associatedUserMessageId,
+          message
+        );
+      }
+    });
+
+    // Reconcile history and inject aiContext
+    messages.reduce((acc, current) => {
+      // Bedrock expects that message history is user->assistant->user->assistant->... and so on.
+      // The chronological order doesn't assure this ordering if there were any concurrent messages sent.
+      // Therefore, conversation is ordered by user's messages only and corresponding assistant messages are inserted
+      // into right place regardless of their createdAt value.
+      // This algorithm assumes that GQL query returns messages sorted by createdAt.
+      if (current.role === 'assistant') {
+        // Initially, skip assistant messages, these might be out of chronological order.
+        return acc;
+      }
+      if (
+        current.role === 'user' &&
+        !assistantMessageByUserMessageId.has(current.id) &&
+        current.id !== this.event.currentMessageId
+      ) {
+        // Skip user messages that didn't get answer from assistant yet.
+        // These might be still "in-flight", i.e. assistant is still working on them in separate invocation.
+        // Except current message, we want to process that one.
+        return acc;
+      }
+      const aiContext = current.aiContext;
+      const content = aiContext
+        ? [...current.content, { text: JSON.stringify(aiContext) }]
+        : current.content;
+
+      acc.push({ role: current.role, content });
+
+      // Find and insert corresponding assistant message.
+      const correspondingAssistantMessage = assistantMessageByUserMessageId.get(
+        current.id
+      );
+      if (correspondingAssistantMessage) {
+        acc.push({
+          role: correspondingAssistantMessage.role,
+          content: correspondingAssistantMessage.content,
+        });
+      }
+      return acc;
+    }, [] as Array<ConversationMessage>);
 
     return messages;
   };

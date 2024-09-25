@@ -97,6 +97,7 @@ const schema = a.schema({
   ConversationMessageChat: a
     .model({
       conversationId: a.id(),
+      associatedUserMessageId: a.id(),
       role: a.ref('MockConversationParticipantRole'),
       content: a.ref('MockContentBlock').array(),
       aiContext: a.json(),
