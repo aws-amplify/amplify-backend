@@ -77,7 +77,6 @@ void describe('Conversation turn response sender', () => {
           associatedUserMessageId: event.currentMessageId,
         },
       },
-      onErrorMessage: 'Assistant response mutation request was not successful',
     });
   });
 
@@ -133,7 +132,6 @@ void describe('Conversation turn response sender', () => {
           associatedUserMessageId: event.currentMessageId,
         },
       },
-      onErrorMessage: 'Assistant response mutation request was not successful',
     });
   });
 });

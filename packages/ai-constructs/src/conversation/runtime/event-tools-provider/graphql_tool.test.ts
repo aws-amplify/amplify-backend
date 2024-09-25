@@ -49,7 +49,6 @@ void describe('GraphQl tool', () => {
       variables: {
         test: 'input',
       },
-      onErrorMessage: "GraphQl tool 'testName' failed",
     });
     assert.deepStrictEqual(toolResult, {
       json: {

@@ -1,7 +1,6 @@
 export type GraphqlRequest<TVariables> = {
   query: string;
   variables: TVariables;
-  onErrorMessage: string;
 };
 
 /**
@@ -38,7 +37,7 @@ export class GraphqlRequestExecutor {
     if (!res.ok) {
       const body = await res.text();
       throw new Error(
-        `${request.onErrorMessage}, response headers=${JSON.stringify(
+        `GraphQL request failed, response headers=${JSON.stringify(
           responseHeaders
         )}, body=${body}`
       );
@@ -46,7 +45,7 @@ export class GraphqlRequestExecutor {
     const body = await res.json();
     if (body && typeof body === 'object' && 'errors' in body) {
       throw new Error(
-        `${request.onErrorMessage}, response headers=${JSON.stringify(
+        `GraphQL request failed, response headers=${JSON.stringify(
           responseHeaders
         )}, body=${JSON.stringify(body)}`
       );

@@ -97,10 +97,6 @@ void describe('Conversation message history retriever', () => {
       },
       limit: 1000,
     });
-    assert.strictEqual(
-      request.onErrorMessage,
-      'Attempt to fetch message history failed'
-    );
     assert.deepStrictEqual(messages, mockListResponseMessages);
   });
 
@@ -238,20 +234,12 @@ void describe('Conversation message history retriever', () => {
       },
       limit: 1000,
     });
-    assert.strictEqual(
-      request1.onErrorMessage,
-      'Attempt to fetch message history failed'
-    );
     const request2 = executeGraphqlMock.mock.calls[1]
       .arguments[0] as GraphqlRequest<MutationResponseInput>;
     assert.match(request2.query, /GetMessage/);
     assert.deepStrictEqual(request2.variables, {
       id: event.currentMessageId,
     });
-    assert.strictEqual(
-      request2.onErrorMessage,
-      'Attempt to fetch current message failed'
-    );
     assert.deepStrictEqual(messages, [
       ...mockListResponseMessages,
       mockCurrentMessage,

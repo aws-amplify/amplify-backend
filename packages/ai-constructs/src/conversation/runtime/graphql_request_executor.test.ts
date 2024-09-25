@@ -23,11 +23,9 @@ void describe('Graphql executor test', () => {
     const variables = {
       testVariableKey: 'testVariableValue',
     };
-    const onErrorMessage = 'testOnErrorMessage';
     await executor.executeGraphql({
       query,
       variables,
-      onErrorMessage,
     });
 
     assert.strictEqual(fetchMock.mock.calls.length, 1);
@@ -67,14 +65,13 @@ void describe('Graphql executor test', () => {
     const variables = {
       testVariableKey: 'testVariableValue',
     };
-    const onErrorMessage = 'testOnErrorMessage';
     await assert.rejects(
-      () => executor.executeGraphql({ query, variables, onErrorMessage }),
+      () => executor.executeGraphql({ query, variables }),
       (error: Error) => {
         assert.strictEqual(
           error.message,
           // eslint-disable-next-line spellcheck/spell-checker
-          'testOnErrorMessage, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body=Body with error'
+          'GraphQL request failed, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body=Body with error'
         );
         return true;
       }
@@ -107,14 +104,13 @@ void describe('Graphql executor test', () => {
     const variables = {
       testVariableKey: 'testVariableValue',
     };
-    const onErrorMessage = 'testOnErrorMessage';
     await assert.rejects(
-      () => executor.executeGraphql({ query, variables, onErrorMessage }),
+      () => executor.executeGraphql({ query, variables }),
       (error: Error) => {
         assert.strictEqual(
           error.message,
           // eslint-disable-next-line spellcheck/spell-checker
-          'testOnErrorMessage, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body={"errors":["Some GQL error"]}'
+          'GraphQL request failed, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body={"errors":["Some GQL error"]}'
         );
         return true;
       }

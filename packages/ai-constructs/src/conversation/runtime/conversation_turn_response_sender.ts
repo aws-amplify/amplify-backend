@@ -34,7 +34,6 @@ export class ConversationTurnResponseSender {
     >({
       query,
       variables,
-      onErrorMessage: 'Assistant response mutation request was not successful',
     });
   };
 

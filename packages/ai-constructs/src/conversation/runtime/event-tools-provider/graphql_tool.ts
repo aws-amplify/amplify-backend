@@ -39,7 +39,6 @@ export class GraphQlTool implements ExecutableTool {
     >({
       query: this.query,
       variables: input,
-      onErrorMessage: `GraphQl tool '${this.name}' failed`,
     });
     return { json: response as DocumentType };
   };

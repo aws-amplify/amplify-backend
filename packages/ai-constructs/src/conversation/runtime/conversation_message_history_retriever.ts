@@ -135,7 +135,6 @@ export class ConversationMessageHistoryRetriever {
     >({
       query,
       variables,
-      onErrorMessage: 'Attempt to fetch current message failed',
     });
 
     return response.data[this.event.messageHistoryQuery.getQueryName];
@@ -166,7 +165,6 @@ export class ConversationMessageHistoryRetriever {
     >({
       query,
       variables,
-      onErrorMessage: 'Attempt to fetch message history failed',
     });
 
     return response.data[this.event.messageHistoryQuery.listQueryName].items;
