@@ -1,6 +1,5 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { text } from 'node:stream/consumers';
 import {
   ConversationTurnResponseSender,
   MutationResponseInput,
