@@ -6,7 +6,7 @@ export type GraphqlRequest<TVariables> = {
 /**
  * This class is responsible for executing GraphQL requests.
  * Serializing query and it's inputs, adding authorization headers,
- * inspecting response for errors and deserializing output.
+ * inspecting response for errors and de-serializing output.
  */
 export class GraphqlRequestExecutor {
   /**
