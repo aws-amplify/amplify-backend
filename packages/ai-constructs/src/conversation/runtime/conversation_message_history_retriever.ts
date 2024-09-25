@@ -81,7 +81,9 @@ const messageItemSelectionSet = `
 `;
 
 /**
- * TODO
+ * This class is responsible for retrieving message history that belongs to conversation turn event.
+ * It queries AppSync to list messages that belong to conversation.
+ * Additionally, it looks up a current message in case it's missing in the list due to eventual consistency.
  */
 export class ConversationMessageHistoryRetriever {
   /**

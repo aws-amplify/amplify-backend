@@ -4,11 +4,13 @@ export type GraphqlRequest<TVariables> = {
 };
 
 /**
- * TODO
+ * This class is responsible for executing GraphQL requests.
+ * Serializing query and it's inputs, adding authorization headers,
+ * inspecting response for errors and deserializing output.
  */
 export class GraphqlRequestExecutor {
   /**
-   * TODO
+   * Creates GraphQL request executor.
    */
   constructor(
     private readonly graphQlEndpoint: string,
