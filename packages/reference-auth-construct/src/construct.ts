@@ -1,5 +1,11 @@
 import { Construct } from 'constructs';
-import { Stack, aws_cognito, aws_iam } from 'aws-cdk-lib';
+import {
+  CustomResource,
+  Duration,
+  Stack,
+  aws_cognito,
+  aws_iam,
+} from 'aws-cdk-lib';
 import {
   BackendOutputStorageStrategy,
   ReferenceAuthResources,
@@ -11,7 +17,23 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
-import { ReferenceAuthProps } from './types';
+import { ReferenceAuthProps } from './types.js';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { fileURLToPath } from 'url';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Provider } from 'aws-cdk-lib/custom-resources';
+
+const REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID =
+  'AmplifyRefAuthConfigCustomResourceProvider';
+const REFERENCE_AUTH_CUSTOM_RESOURCE_ID = 'AmplifyRefAuthConfigCustomResource';
+const RESOURCE_TYPE = 'Custom::AmplifyReferenceAuthConfigurationResource';
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
+const configurationLambdaFilePath = path.join(
+  resourcesRoot,
+  'reference_auth_initializer.ts'
+);
 
 const authStackType = 'auth-Cognito';
 /**
@@ -22,6 +44,8 @@ export class AmplifyReferenceAuth
   implements ResourceProvider<ReferenceAuthResources>
 {
   resources: ReferenceAuthResources;
+
+  private configurationCustomResource: CustomResource;
 
   /**
    * Create a new AmplifyConstruct
@@ -53,11 +77,45 @@ export class AmplifyReferenceAuth
       identityPoolId: props.identityPoolId,
     };
 
+    // custom resource provider
+    const configurationLambda = new NodejsFunction(
+      scope,
+      `${REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID}Lambda`,
+      {
+        runtime: Runtime.NODEJS_18_X,
+        timeout: Duration.seconds(10),
+        entry: configurationLambdaFilePath,
+        handler: 'handler',
+      }
+    );
+    const provider = new Provider(
+      scope,
+      REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID,
+      {
+        onEventHandler: configurationLambda,
+      }
+    );
+    // custom resource
+    this.configurationCustomResource = new CustomResource(
+      scope,
+      REFERENCE_AUTH_CUSTOM_RESOURCE_ID,
+      {
+        serviceToken: provider.serviceToken,
+        properties: {
+          userPoolId: props.userPoolId,
+          identityPoolId: props.identityPoolId,
+          userPoolClientId: props.userPoolClientId,
+          lastUpdated: Date.now(),
+        },
+        resourceType: RESOURCE_TYPE,
+      }
+    );
+
     this.storeOutput(props.outputStorageStrategy);
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       authStackType,
-      path.resolve(__dirname, '..', 'package.json')
+      path.resolve(dirname, '..', 'package.json')
     );
   }
 
@@ -76,6 +134,12 @@ export class AmplifyReferenceAuth
       identityPoolId: this.resources.identityPoolId,
       authRegion: Stack.of(this).region,
     };
+
+    output.allowUnauthenticatedIdentities =
+      this.configurationCustomResource.getAttString(
+        'allowUnauthenticatedIdentities'
+      );
+
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
       payload: output,

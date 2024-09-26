@@ -1,7 +1,7 @@
 {
   "name": "@aws-amplify/reference-auth-construct",
   "version": "0.1.0",
-  "type": "commonjs",
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },
@@ -12,6 +12,7 @@
       "require": "./lib/index.js"
     }
   },
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
@@ -19,11 +20,13 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^1.1.0",
-    "@aws-amplify/backend-output-storage": "^1.0.2",
-    "@aws-amplify/plugin-types": "^1.0.1"
+    "@aws-amplify/backend-output-storage": "^1.1.2",
+    "@aws-amplify/plugin-types": "^1.2.2",
+    "@types/aws-lambda": "^8.10.119",
+    "aws-lambda": "^1.0.7"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.132.0",
+    "aws-cdk-lib": "^2.152.0",
     "constructs": "^10.0.0"
   }
 }

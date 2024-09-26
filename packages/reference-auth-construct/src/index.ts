@@ -1,2 +1,2 @@
-export { ReferenceAuthProps } from './types';
-export { AmplifyReferenceAuth } from './construct';
+export * from './types.js';
+export { AmplifyReferenceAuth } from './construct.js';
