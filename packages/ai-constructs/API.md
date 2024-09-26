@@ -91,7 +91,14 @@ type ConversationTurnEvent = {
             authorization: string;
         };
     };
-    messages: Array<ConversationMessage>;
+    messages?: Array<ConversationMessage>;
+    messageHistoryQuery: {
+        getQueryName: string;
+        getQueryInputTypeName: string;
+        listQueryName: string;
+        listQueryInputTypeName: string;
+        listQueryLimit?: number;
+    };
     toolsConfiguration?: {
         dataTools?: Array<ToolDefinition & {
             graphqlRequestInputDescriptor: {

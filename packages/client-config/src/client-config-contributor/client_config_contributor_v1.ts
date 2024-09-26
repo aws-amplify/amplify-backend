@@ -9,18 +9,34 @@ import {
 import {
   ClientConfig,
   ClientConfigVersionOption,
+  clientConfigTypesV1,
   clientConfigTypesV1_1,
+  clientConfigTypesV1_2,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.1.js';
+import { AmplifyStorageAccessRule } from '../client-config-schema/client_config_v1.2.js';
 
 // All categories client config contributors are included here to mildly enforce them using
 // the same schema (version and other types)
 
 /**
- * Translator for the version number of ClientConfig of V1.1
+ * Translator for the version number of ClientConfig of V1.2
  */
 export class VersionContributor implements ClientConfigContributor {
+  /**
+   * Return the version of the schema types that this contributor uses
+   */
+  contribute = (): ClientConfig => {
+    return { version: ClientConfigVersionOption.V1_2 };
+  };
+}
+
+/**
+ * Translator for the version number of ClientConfig of V1.1
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class VersionContributorV1_1 implements ClientConfigContributor {
   /**
    * Return the version of the schema types that this contributor uses
    */
@@ -66,7 +82,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       obj[key] = JSON.parse(value);
     };
 
-    const authClientConfig: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> =
+    const authClientConfig: Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs> =
       {};
 
     authClientConfig.auth = {
@@ -257,9 +273,59 @@ export class DataClientConfigContributor implements ClientConfigContributor {
 }
 
 /**
+ * Translator for the Storage portion of ClientConfig in V1.2
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class StorageClientConfigContributor implements ClientConfigContributor {
+  /**
+   * Given some BackendOutput, contribute the Storage portion of the client config
+   */
+  contribute = ({
+    [storageOutputKey]: storageOutput,
+  }: UnifiedBackendOutput): Partial<ClientConfig> | Record<string, never> => {
+    if (storageOutput === undefined) {
+      return {};
+    }
+    const config: Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs> = {};
+    const bucketsStringArray = JSON.parse(
+      storageOutput.payload.buckets ?? '[]'
+    );
+    config.storage = {
+      aws_region: storageOutput.payload.storageRegion,
+      bucket_name: storageOutput.payload.bucketName,
+      buckets: bucketsStringArray
+        .map((b: string) => JSON.parse(b))
+        .map(
+          ({
+            name,
+            bucketName,
+            storageRegion,
+            paths,
+          }: {
+            name: string;
+            bucketName: string;
+            storageRegion: string;
+            paths: Record<string, AmplifyStorageAccessRule>;
+          }) => ({
+            name,
+            bucket_name: bucketName,
+            aws_region: storageRegion,
+            paths,
+          })
+        ),
+    };
+
+    return config;
+  };
+}
+
+/**
  * Translator for the Storage portion of ClientConfig in V1.1
  */
-export class StorageClientConfigContributor implements ClientConfigContributor {
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class StorageClientConfigContributorV1_1
+  implements ClientConfigContributor
+{
   /**
    * Given some BackendOutput, contribute the Storage portion of the client config
    */
@@ -314,7 +380,7 @@ export class StorageClientConfigContributorV1
     if (storageOutput === undefined) {
       return {};
     }
-    const config: Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs> = {};
+    const config: Partial<clientConfigTypesV1.AWSAmplifyBackendOutputs> = {};
 
     config.storage = {
       aws_region: storageOutput.payload.storageRegion,
