@@ -32,7 +32,7 @@ const dirname = path.dirname(filename);
 const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
 const configurationLambdaFilePath = path.join(
   resourcesRoot,
-  'reference_auth_initializer.ts'
+  'reference_auth_initializer.js'
 );
 
 const authStackType = 'auth-Cognito';
