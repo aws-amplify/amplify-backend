@@ -354,7 +354,7 @@ void describe('Api usage generator', () => {
         apiReportAST
       ).generate();
       assert.strictEqual(
-        // .replace() removes line ending differences between Windows and other OS
+        // .replace() removes EOL differences between Windows and other OS
         apiUsage.replace(/[\r]/g, '').trim(),
         testCase.expectedApiUsage.trim()
       );
