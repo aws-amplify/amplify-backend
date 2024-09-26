@@ -78,7 +78,9 @@ export class StorageContainerEntryGenerator
       );
 
     // the orchestrator generates policies according to the accessDefinition and attaches the policies to appropriate roles
-    storageAccessOrchestrator.orchestrateStorageAccess();
+    const storageAccessOutput =
+      storageAccessOrchestrator.orchestrateStorageAccess();
+    amplifyStorage.addAccessDefinition(storageAccessOutput);
 
     return amplifyStorage;
   };
