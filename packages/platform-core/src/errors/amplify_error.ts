@@ -170,7 +170,11 @@ export abstract class AmplifyError<T extends string = string> extends Error {
 }
 
 const isCredentialsError = (err?: Error): boolean => {
-  return !!err && err?.name === 'CredentialsProviderError';
+  return (
+    !!err &&
+    (err?.name === 'CredentialsProviderError' ||
+      err?.name === 'CredentialsError')
+  );
 };
 
 // These validation messages are taken from https://github.com/yargs/yargs/blob/0c95f9c79e1810cf9c8964fbf7d139009412f7e7/lib/validation.ts

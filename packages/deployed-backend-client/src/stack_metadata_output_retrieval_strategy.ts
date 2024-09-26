@@ -67,7 +67,9 @@ export class StackMetadataBackendOutputRetrievalStrategy
       }
       if (
         error instanceof CloudFormationServiceException &&
-        ['ExpiredToken', 'InvalidClientTokenId'].includes(error.name)
+        ['ExpiredToken', 'InvalidClientTokenId', 'CredentialsError'].includes(
+          error.name
+        )
       ) {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.CREDENTIALS_ERROR,
