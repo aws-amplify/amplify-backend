@@ -364,10 +364,10 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   /**
    * There is some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
-   * So we are polling HeadBucket until it returns NotFound or until we time out (after 30 seconds)
+   * So we are polling HeadBucket until it returns NotFound or until we time out (after 60 seconds)
    */
   private waitForBucketDeletion = async (bucketName: string): Promise<void> => {
-    const TIMEOUT_MS = 1000 * 30; // 30 seconds
+    const TIMEOUT_MS = 1000 * 60; // 60 seconds
     const startTime = Date.now();
 
     while (Date.now() - startTime < TIMEOUT_MS) {
