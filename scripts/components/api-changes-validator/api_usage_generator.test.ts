@@ -353,7 +353,10 @@ void describe('Api usage generator', () => {
         'samplePackageName',
         apiReportAST
       ).generate();
-      assert.strictEqual(apiUsage.trim(), testCase.expectedApiUsage.trim());
+      assert.strictEqual(
+        apiUsage.replace(/[\r]/g, '').trim(),
+        testCase.expectedApiUsage.trim()
+      );
     });
   }
 });
