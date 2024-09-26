@@ -11,6 +11,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
+  AdvancedSecurityMode,
   CfnIdentityPool,
   CfnUserPool,
   CfnUserPoolClient,
@@ -19,7 +20,6 @@ import {
   CustomAttributeConfig,
   ICustomAttribute,
   Mfa,
-  MfaSecondFactor,
   OAuthScope,
   OidcAttributeRequestMethod,
   ProviderAttribute,
@@ -44,6 +44,7 @@ import {
   CustomAttribute,
   EmailLoginSettings,
   ExternalProviderOptions,
+  MFAType,
 } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
@@ -87,6 +88,9 @@ const VERIFICATION_SMS_PLACEHOLDERS = {
   CODE: '{####}',
 };
 const MFA_SMS_PLACEHOLDERS = {
+  CODE: '{####}',
+};
+const MFA_EMAIL_PLACEHOLDERS = {
   CODE: '{####}',
 };
 const DEFAULT_OAUTH_SCOPES = [
@@ -153,6 +157,26 @@ export class AmplifyAuth
       this.computedUserPoolProps
     );
 
+    const cfnUserPool = this.userPool.node.findChild('Resource') as CfnUserPool;
+    if (!(cfnUserPool instanceof CfnUserPool)) {
+      throw Error('Could not find CfnUserPool resource in stack.');
+    }
+
+    // This is an escape hatch using L1 construct to setup Email MFA until L2 construct makes it available directly
+    if (
+      props.multifactor?.mode !== 'OFF' &&
+      this.getMFAType(props.multifactor)?.email
+    ) {
+      (cfnUserPool.enabledMfas ??= []).push('EMAIL_MFA');
+      cfnUserPool.emailAuthenticationMessage = this.getMFAEmailMessage(
+        props.multifactor
+      );
+      cfnUserPool.emailAuthenticationSubject =
+        typeof props.multifactor?.email === 'object'
+          ? props.multifactor.email.emailSubject
+          : undefined; // TBD: Confirm that undefined is fine here.
+    }
+
     // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
     this.providerSetupResult = this.setupExternalProviders(
       this.userPool,
@@ -185,10 +209,6 @@ export class AmplifyAuth
     // Setup UserPool groups
     this.setupUserPoolGroups(props.groups, identityPool);
 
-    const cfnUserPool = this.userPool.node.findChild('Resource') as CfnUserPool;
-    if (!(cfnUserPool instanceof CfnUserPool)) {
-      throw Error('Could not find CfnUserPool resource in stack.');
-    }
     const cfnUserPoolClient = userPoolClient.node.findChild(
       'Resource'
     ) as CfnUserPoolClient;
@@ -453,6 +473,14 @@ export class AmplifyAuth
       );
     }
 
+    // If email MFA is enabled, cognito requires email configuration to be setup
+    // https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pool-settings-advanced-security-email-mfa.html
+    if (mfaMode && mfaMode !== 'OFF' && mfaType?.email && !props.senders) {
+      throw new Error(
+        'Invalid MFA settings. Senders must be configured in the defineAuth to enable Email MFA.'
+      );
+    }
+
     const { standardAttributes, customAttributes } = Object.entries(
       props.userAttributes ?? {}
     ).reduce(
@@ -514,13 +542,16 @@ export class AmplifyAuth
 
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
-      mfaMessage: this.getMFAMessage(props.multifactor),
+      mfaMessage: this.getMFASMSMessage(props.multifactor),
       mfaSecondFactor: mfaType,
       accountRecovery: this.getAccountRecoverySetting(
         emailEnabled,
         phoneEnabled,
         props.accountRecovery
       ),
+      advancedSecurityMode: mfaType?.email
+        ? AdvancedSecurityMode.ENFORCED
+        : undefined,
       removalPolicy: RemovalPolicy.DESTROY,
       userInvitation:
         typeof props.loginWith.email !== 'boolean'
@@ -674,15 +705,14 @@ export class AmplifyAuth
    * Convert user friendly Mfa type to cognito Mfa type.
    * This eliminates the need for users to import cognito.Mfa.
    * @param mfa - MFA settings
-   * @returns cognito MFA type (sms or totp)
+   * @returns MFA type (sms, email or totp)
    */
-  private getMFAType = (
-    mfa: AuthProps['multifactor']
-  ): MfaSecondFactor | undefined => {
+  private getMFAType = (mfa: AuthProps['multifactor']): MFAType | undefined => {
     return typeof mfa === 'object' && mfa.mode !== 'OFF'
       ? {
           sms: mfa.sms ? true : false,
           otp: mfa.totp ? true : false,
+          email: mfa.email ? true : false,
         }
       : undefined;
   };
@@ -703,11 +733,11 @@ export class AmplifyAuth
   };
 
   /**
-   * Extract the MFA message settings and perform validation.
+   * Extract the MFA message settings for sms mfa and perform validation.
    * @param mfa - MFA settings
    * @returns mfa message
    */
-  private getMFAMessage = (
+  private getMFASMSMessage = (
     mfa: AuthProps['multifactor']
   ): string | undefined => {
     if (mfa && mfa.mode !== 'OFF' && typeof mfa.sms === 'object') {
@@ -719,6 +749,27 @@ export class AmplifyAuth
       }
       return message;
     }
+    return undefined;
+  };
+
+  /**
+   * Extract the MFA message settings for email mfa and perform validation.
+   * @param mfa - MFA settings
+   * @returns mfa message
+   */
+  private getMFAEmailMessage = (
+    mfa: AuthProps['multifactor']
+  ): string | undefined => {
+    if (mfa && mfa.mode !== 'OFF' && typeof mfa.email === 'object') {
+      const message = mfa.email.emailMessage(() => MFA_EMAIL_PLACEHOLDERS.CODE);
+      if (!message.includes(MFA_EMAIL_PLACEHOLDERS.CODE)) {
+        throw Error(
+          "Invalid MFA settings. Property 'emailMessage' must utilize the 'code' parameter at least once as a placeholder for the verification code."
+        );
+      }
+      return message;
+    }
+    // TBD: Confirm that undefined is right here.
     return undefined;
   };
 
@@ -1002,6 +1053,7 @@ export class AmplifyAuth
     const cfnUserPool = this.resources.cfnResources.cfnUserPool;
     const cfnUserPoolClient = this.resources.cfnResources.cfnUserPoolClient;
     const cfnIdentityPool = this.resources.cfnResources.cfnIdentityPool;
+
     // these properties cannot be overwritten
     const output: AuthOutput['payload'] = {
       userPoolId: this.resources.userPool.userPoolId,
@@ -1090,6 +1142,9 @@ export class AmplifyAuth
         (cfnUserPool.enabledMfas ?? []).forEach((type) => {
           if (type === 'SMS_MFA') {
             mfaTypes.push('SMS');
+          }
+          if (type === 'EMAIL_MFA') {
+            mfaTypes.push('EMAIL');
           }
           if (type === 'SOFTWARE_TOKEN_MFA') {
             mfaTypes.push('TOTP');

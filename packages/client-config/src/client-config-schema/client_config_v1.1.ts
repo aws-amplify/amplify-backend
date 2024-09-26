@@ -46,15 +46,25 @@ export type AmazonPinpointChannels =
   | 'APNS'
   | 'EMAIL'
   | 'SMS';
+export type AmplifyStorageAccessActions =
+  | 'read'
+  | 'get'
+  | 'list'
+  | 'write'
+  | 'delete';
 
 /**
  * Config format for Amplify Gen 2 client libraries to communicate with backend services.
  */
 export interface AWSAmplifyBackendOutputs {
   /**
+   * JSON schema
+   */
+  $schema?: string;
+  /**
    * Version of this schema
    */
-  version: '1.1';
+  version: '1.2';
   /**
    * Outputs manually specified by developers for use with frontend library
    */
@@ -63,7 +73,7 @@ export interface AWSAmplifyBackendOutputs {
       /**
        * AWS Region of Amazon Pinpoint resources
        */
-      aws_region: AwsRegion;
+      aws_region: string;
       app_id: string;
     };
   };
@@ -74,7 +84,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * AWS Region of Amazon Cognito resources
      */
-    aws_region: AwsRegion;
+    aws_region: string;
     /**
      * Cognito User Pool ID
      */
@@ -174,7 +184,7 @@ export interface AWSAmplifyBackendOutputs {
     /**
      * AWS Region of Amazon Location Service resources
      */
-    aws_region: AwsRegion;
+    aws_region: string;
     /**
      * Maps from Amazon Location Service
      */
@@ -188,6 +198,9 @@ export interface AWSAmplifyBackendOutputs {
      * Location search (search by places, addresses, coordinates)
      */
     search_indices?: {
+      /**
+       * @minItems 1
+       */
       items: string[];
       default: string;
     };
@@ -195,6 +208,9 @@ export interface AWSAmplifyBackendOutputs {
      * Geofencing (visualize virtual perimeters)
      */
     geofence_collections?: {
+      /**
+       * @minItems 1
+       */
       items: string[];
       default: string;
     };
@@ -231,10 +247,6 @@ export interface AWSAmplifyBackendOutputs {
  */
 export interface AmazonLocationServiceConfig {
   /**
-   * Map resource name
-   */
-  name?: string;
-  /**
    * Map style
    */
   style?: string;
@@ -243,4 +255,18 @@ export interface AmplifyStorageBucket {
   name: string;
   bucket_name: string;
   aws_region: string;
+  paths?: {
+    [k: string]: AmplifyStorageAccessRule;
+  };
+}
+/**
+ * This interface was referenced by `undefined`'s JSON-Schema definition
+ * via the `patternProperty` ".*".
+ */
+export interface AmplifyStorageAccessRule {
+  guest?: AmplifyStorageAccessActions[];
+  authenticated?: AmplifyStorageAccessActions[];
+  groups?: AmplifyStorageAccessActions[];
+  entity?: AmplifyStorageAccessActions[];
+  resource?: AmplifyStorageAccessActions[];
 }

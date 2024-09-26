@@ -30,7 +30,7 @@
   },
   "peerDependencies": {
     "@smithy/types": "^3.3.0",
-    "aws-cdk-lib": "^2.152.0",
+    "aws-cdk-lib": "^2.159.0",
     "constructs": "^10.0.0"
   }
 }
