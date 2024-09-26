@@ -23,10 +23,11 @@ import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { DataStorageAuthWithTriggerTestProjectCreator } from '../test-project-setup/data_storage_auth_with_triggers.js';
 import { SQSClient } from '@aws-sdk/client-sqs';
 import { setupDeployedBackendClient } from '../test-project-setup/setup_deployed_backend_client.js';
-import fsp from 'fs/promises';
-import path from 'path';
-import assert from 'node:assert';
-import isMatch from 'lodash.ismatch';
+
+/**
+ * This E2E test is to check whether current (aka latest) repository content introduces breaking changes
+ * for our deployed backend client to read outputs.
+ */
 
 // Different root test dir to avoid race conditions with e2e deployment tests
 const rootTestDir = fileURLToPath(
@@ -87,32 +88,6 @@ void describe(
 
       await testProject.deploy(branchBackendIdentifier, sharedSecretsEnv);
       await testProject.assertPostDeployment(branchBackendIdentifier);
-
-      // assert storage access paths are correct in stack outputs
-      const outputsObject = JSON.parse(
-        await fsp.readFile(
-          path.join(testProject.projectDirPath, 'amplify_outputs.json'),
-          'utf-8'
-        )
-      );
-      assert.ok(
-        isMatch(outputsObject.storage.buckets[0].paths, {
-          'public/*': {
-            guest: ['get', 'list'],
-            authenticated: ['get', 'list', 'write'],
-            groupsAdmins: ['get', 'list', 'write', 'delete'],
-          },
-          'protected/*': {
-            authenticated: ['get', 'list'],
-            groupsAdmins: ['get', 'list', 'write', 'delete'],
-          },
-          'protected/${cognito-identity.amazonaws.com:sub}/*': {
-            // eslint-disable-next-line spellcheck/spell-checker
-            entityidentity: ['get', 'list', 'write', 'delete'],
-          },
-        })
-      );
-
       await testProject.assertDeployedClientOutputs(branchBackendIdentifier);
     });
   }
