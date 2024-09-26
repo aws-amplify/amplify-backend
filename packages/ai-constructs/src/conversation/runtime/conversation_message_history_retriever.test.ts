@@ -313,6 +313,35 @@ void describe('Conversation message history retriever', () => {
         },
       ],
     },
+    {
+      name: 'Injects aiContext',
+      mockListResponseMessages: [
+        {
+          id: event.currentMessageId,
+          conversationId: event.conversationId,
+          role: 'user',
+          aiContext: { some: { ai: 'context' } },
+          content: [
+            {
+              text: 'currentUserMessage',
+            },
+          ],
+        },
+      ],
+      expectedMessages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'currentUserMessage',
+            },
+            {
+              text: '{"some":{"ai":"context"}}',
+            },
+          ],
+        },
+      ],
+    },
   ];
 
   for (const testCase of testCases) {
