@@ -39,6 +39,11 @@ const initializeYarnClassic = async (execaOptions: {
     ['config', 'set', 'registry', customRegistry],
     execaOptions
   );
+  await execa(
+    packageManager,
+    ['config', 'set', 'network-timeout', '60000'],
+    execaOptions
+  );
   await execa(packageManager, ['config', 'get', 'registry'], execaOptions);
   await execa(packageManager, ['cache', 'clean'], execaOptions);
 };
@@ -63,6 +68,11 @@ const initializeYarnModern = async (execaOptions: {
   await execa(
     packageManager,
     ['config', 'set', 'nodeLinker', 'node-modules'],
+    execaOptions
+  );
+  await execa(
+    packageManager,
+    ['config', 'set', 'network-timeout', '60000'],
     execaOptions
   );
   await execa(packageManager, ['cache', 'clean'], execaOptions);
