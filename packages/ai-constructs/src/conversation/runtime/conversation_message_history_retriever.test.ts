@@ -165,6 +165,154 @@ void describe('Conversation message history retriever', () => {
         },
       ],
     },
+    {
+      name: 'Re-orders delayed assistant responses',
+      mockListResponseMessages: [
+        // Simulate that two first messages were sent without waiting for assistant response
+        {
+          id: 'userMessage1',
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              text: 'userMessage1',
+            },
+          ],
+        },
+        {
+          id: 'userMessage2',
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              text: 'userMessage2',
+            },
+          ],
+        },
+        // also simulate that responses came back out of order
+        {
+          id: 'assistantResponse2',
+          associatedUserMessageId: 'userMessage2',
+          conversationId: event.conversationId,
+          role: 'assistant',
+          content: [
+            {
+              text: 'assistantResponse2',
+            },
+          ],
+        },
+        {
+          id: 'assistantResponse1',
+          associatedUserMessageId: 'userMessage1',
+          conversationId: event.conversationId,
+          role: 'assistant',
+          content: [
+            {
+              text: 'assistantResponse1',
+            },
+          ],
+        },
+        {
+          id: event.currentMessageId,
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              text: 'currentUserMessage',
+            },
+          ],
+        },
+      ],
+      expectedMessages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'userMessage1',
+            },
+          ],
+        },
+        {
+          role: 'assistant',
+          content: [
+            {
+              text: 'assistantResponse1',
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'userMessage2',
+            },
+          ],
+        },
+        {
+          role: 'assistant',
+          content: [
+            {
+              text: 'assistantResponse2',
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'currentUserMessage',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'Skips user message that does not have response yet',
+      mockListResponseMessages: [
+        // Simulate that two first messages were sent without waiting for assistant response
+        // and none was responded to yet.
+        {
+          id: 'userMessage1',
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              text: 'userMessage1',
+            },
+          ],
+        },
+        {
+          id: 'userMessage2',
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              text: 'userMessage2',
+            },
+          ],
+        },
+        {
+          id: event.currentMessageId,
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              text: 'currentUserMessage',
+            },
+          ],
+        },
+      ],
+      expectedMessages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'currentUserMessage',
+            },
+          ],
+        },
+      ],
+    },
   ];
 
   for (const testCase of testCases) {
