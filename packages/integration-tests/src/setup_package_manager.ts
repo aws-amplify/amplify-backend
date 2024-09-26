@@ -70,11 +70,6 @@ const initializeYarnModern = async (execaOptions: {
     ['config', 'set', 'nodeLinker', 'node-modules'],
     execaOptions
   );
-  await execa(
-    packageManager,
-    ['config', 'set', 'network-timeout', '60000'],
-    execaOptions
-  );
   await execa(packageManager, ['cache', 'clean'], execaOptions);
 };
 
