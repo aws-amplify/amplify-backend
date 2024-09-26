@@ -140,7 +140,7 @@ export class ConversationMessageHistoryRetriever {
     });
 
     // Reconcile history and inject aiContext
-    messages.reduce((acc, current) => {
+    return messages.reduce((acc, current) => {
       // Bedrock expects that message history is user->assistant->user->assistant->... and so on.
       // The chronological order doesn't assure this ordering if there were any concurrent messages sent.
       // Therefore, conversation is ordered by user's messages only and corresponding assistant messages are inserted
@@ -179,8 +179,6 @@ export class ConversationMessageHistoryRetriever {
       }
       return acc;
     }, [] as Array<ConversationMessage>);
-
-    return messages;
   };
 
   private getCurrentMessage =
