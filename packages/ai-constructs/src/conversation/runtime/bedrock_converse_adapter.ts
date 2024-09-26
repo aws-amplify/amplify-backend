@@ -14,6 +14,7 @@ import {
   ToolDefinition,
 } from './types.js';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
+import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -36,7 +37,10 @@ export class BedrockConverseAdapter {
     private readonly bedrockClient: BedrockRuntimeClient = new BedrockRuntimeClient(
       { region: event.modelConfiguration.region }
     ),
-    eventToolsProvider = new ConversationTurnEventToolsProvider(event)
+    eventToolsProvider = new ConversationTurnEventToolsProvider(event),
+    private readonly messageHistoryRetriever = new ConversationMessageHistoryRetriever(
+      event
+    )
   ) {
     this.executableTools = [
       ...eventToolsProvider.getEventTools(),
@@ -73,7 +77,8 @@ export class BedrockConverseAdapter {
     const { modelId, systemPrompt, inferenceConfiguration } =
       this.event.modelConfiguration;
 
-    const messages: Array<Message> = this.getEventMessagesAsBedrockMessages();
+    const messages: Array<Message> =
+      await this.getEventMessagesAsBedrockMessages();
 
     let bedrockResponse: ConverseCommandOutput;
     do {
@@ -124,9 +129,13 @@ export class BedrockConverseAdapter {
    * 1. Makes a copy so that we don't mutate event.
    * 2. Decodes Base64 encoded images.
    */
-  private getEventMessagesAsBedrockMessages = (): Array<Message> => {
+  private getEventMessagesAsBedrockMessages = async (): Promise<
+    Array<Message>
+  > => {
     const messages: Array<Message> = [];
-    for (const message of this.event.messages) {
+    const eventMessages =
+      await this.messageHistoryRetriever.getMessageHistory();
+    for (const message of eventMessages) {
       const messageContent: Array<ContentBlock> = [];
       for (const contentElement of message.content) {
         if (typeof contentElement.image?.source?.bytes === 'string') {

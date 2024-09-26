@@ -8,11 +8,15 @@ import {
   StorageAccessGenerator,
   StoragePath,
 } from './types.js';
-import { entityIdPathToken } from './constants.js';
+import { entityIdPathToken, entityIdSubstitution } from './constants.js';
 import { StorageAccessPolicyFactory } from './storage_access_policy_factory.js';
 import { validateStorageAccessPaths as _validateStorageAccessPaths } from './validate_storage_access_paths.js';
 import { roleAccessBuilder as _roleAccessBuilder } from './access_builder.js';
-import { InternalStorageAction, StorageError } from './private_types.js';
+import {
+  InternalStorageAction,
+  StorageAccessConfig,
+  StorageError,
+} from './private_types.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /* some types internal to this file to improve readability */
@@ -88,12 +92,26 @@ export class StorageAccessOrchestrator {
     // verify that the paths in the access definition are valid
     this.validateStorageAccessPaths(Object.keys(storageAccessDefinition));
 
+    const storageOutputAccessDefinition: Record<string, StorageAccessConfig> =
+      {};
+
     // iterate over the access definition and group permissions by ResourceAccessAcceptor
     Object.entries(storageAccessDefinition).forEach(
       ([s3Prefix, accessPermissions]) => {
         const uniqueDefinitionIdSet = new Set<string>();
         // iterate over all of the access definitions for a given prefix
         accessPermissions.forEach((permission) => {
+          const accessConfig: StorageAccessConfig = {};
+          // replace "read" with "get" and "list" in actions
+          const replaceReadWithGetAndList = permission.actions.flatMap(
+            (action) => (action === 'read' ? ['get', 'list'] : [action])
+          ) as InternalStorageAction[];
+
+          // ensure the actions list has no duplicates
+          const noDuplicateActions = Array.from(
+            new Set(replaceReadWithGetAndList)
+          );
+
           // iterate over all uniqueDefinitionIdValidations and ensure uniqueness within this path prefix
           permission.uniqueDefinitionIdValidations.forEach(
             ({ uniqueDefinitionId, validationErrorOptions }) => {
@@ -105,23 +123,20 @@ export class StorageAccessOrchestrator {
               } else {
                 uniqueDefinitionIdSet.add(uniqueDefinitionId);
               }
+
+              accessConfig[uniqueDefinitionId] = noDuplicateActions;
             }
           );
           // make the owner placeholder substitution in the s3 prefix
-          const prefix = s3Prefix.replaceAll(
-            entityIdPathToken,
+          const prefix = placeholderSubstitution(
+            s3Prefix,
             permission.idSubstitution
-          ) as StoragePath;
-
-          // replace "read" with "get" and "list" in actions
-          const replaceReadWithGetAndList = permission.actions.flatMap(
-            (action) => (action === 'read' ? ['get', 'list'] : [action])
-          ) as InternalStorageAction[];
-
-          // ensure the actions list has no duplicates
-          const noDuplicateActions = Array.from(
-            new Set(replaceReadWithGetAndList)
           );
+
+          storageOutputAccessDefinition[prefix] = {
+            ...storageOutputAccessDefinition[prefix],
+            ...accessConfig,
+          };
 
           // set an entry that maps this permission to each resource acceptor
           permission.getResourceAccessAcceptors.forEach(
@@ -139,6 +154,8 @@ export class StorageAccessOrchestrator {
 
     // iterate over the access map entries and invoke each ResourceAccessAcceptor to accept the permissions
     this.attachPolicies(this.ssmEnvironmentEntries);
+
+    return storageOutputAccessDefinition;
   };
 
   /**
@@ -195,7 +212,11 @@ export class StorageAccessOrchestrator {
     const allPaths = Array.from(this.prefixDenyMap.keys());
     allPaths.forEach((storagePath) => {
       const parent = findParent(storagePath, allPaths);
-      if (!parent) {
+      // do not add to prefix deny map if there is no parent or the path is a subpath with entity id
+      if (
+        !parent ||
+        parent === storagePath.replaceAll(`${entityIdSubstitution}/`, '')
+      ) {
         return;
       }
       // if a parent path is defined, invoke the denyByDefault callback on this subpath for all policies that exist on the parent path
@@ -257,6 +278,26 @@ export class StorageAccessOrchestratorFactory {
       policyFactory
     );
 }
+
+/**
+ * Performs the owner placeholder substitution in the s3 prefix
+ */
+const placeholderSubstitution = (
+  s3Prefix: string,
+  idSubstitution: string
+): StoragePath => {
+  const prefix = s3Prefix.replaceAll(
+    entityIdPathToken,
+    idSubstitution
+  ) as StoragePath;
+
+  // for owner paths where prefix ends with '/*/*' remove the last wildcard
+  if (prefix.endsWith('/*/*')) {
+    return prefix.slice(0, -2) as StoragePath;
+  }
+
+  return prefix as StoragePath;
+};
 
 /**
  * Returns the element in paths that is a prefix of path, if any

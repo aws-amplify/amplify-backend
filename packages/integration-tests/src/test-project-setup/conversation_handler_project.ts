@@ -7,7 +7,10 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import { ConversationTurnEvent } from '@aws-amplify/ai-constructs/conversation/runtime';
+import {
+  ConversationMessage,
+  ConversationTurnEvent,
+} from '@aws-amplify/ai-constructs/conversation/runtime';
 import { randomUUID } from 'crypto';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
@@ -48,6 +51,12 @@ type ConversationTurnAppSyncResponse = {
   content: string;
 };
 
+type CreateConversationMessageChatInput = ConversationMessage & {
+  conversationId: string;
+  id: string;
+  associatedUserMessageId?: string;
+};
+
 const commonEventProperties = {
   responseMutation: {
     name: 'createConversationMessageAssistantResponse',
@@ -56,11 +65,16 @@ const commonEventProperties = {
       'id',
       'conversationId',
       'content',
-      'sender',
       'owner',
       'createdAt',
       'updatedAt',
     ].join('\n'),
+  },
+  messageHistoryQuery: {
+    getQueryName: 'getConversationMessageChat',
+    getQueryInputTypeName: 'ID',
+    listQueryName: 'listConversationMessageChats',
+    listQueryInputTypeName: 'ModelConversationMessageChatFilterInput',
   },
   modelConfiguration: {
     modelId: bedrockModelId,
@@ -189,7 +203,28 @@ class ConversationHandlerTestProject extends TestProjectBase {
       backendId,
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
-      apolloClient
+      apolloClient,
+      // Does not use message history lookup.
+      // This case should be removed when event.messages field is removed.
+      false
+    );
+
+    await this.assertDefaultConversationHandlerCanExecuteTurn(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient,
+      true
+    );
+
+    await this.assertDefaultConversationHandlerCanExecuteTurn(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient,
+      true,
+      // Simulate eventual consistency
+      true
     );
 
     await this.assertCustomConversationHandlerCanExecuteTurn(
@@ -217,7 +252,16 @@ class ConversationHandlerTestProject extends TestProjectBase {
       backendId,
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
-      apolloClient
+      apolloClient,
+      false
+    );
+
+    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
+      backendId,
+      authenticatedUserCredentials.accessToken,
+      clientConfig.data.url,
+      apolloClient,
+      true
     );
   }
 
@@ -225,7 +269,9 @@ class ConversationHandlerTestProject extends TestProjectBase {
     backendId: BackendIdentifier,
     accessToken: string,
     graphqlApiEndpoint: string,
-    apolloClient: ApolloClient<NormalizedCacheObject>
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    useMessageHistory: boolean,
+    withoutMessageAvailableInTheMessageList = false
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -235,26 +281,51 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     )[0];
 
-    // send event
-    const event: ConversationTurnEvent = {
+    const message: CreateConversationMessageChatInput = {
+      id: randomUUID().toString(),
       conversationId: randomUUID().toString(),
-      currentMessageId: randomUUID().toString(),
-      graphqlApiEndpoint: graphqlApiEndpoint,
-      messages: [
+      role: 'user',
+      content: [
         {
-          role: 'user',
-          content: [
-            {
-              text: 'What is the value of PI?',
-            },
-          ],
+          text: 'What is the value of PI?',
         },
       ],
+    };
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: message.conversationId,
+      currentMessageId: message.id,
+      graphqlApiEndpoint: graphqlApiEndpoint,
       request: {
         headers: { authorization: accessToken },
       },
       ...commonEventProperties,
     };
+
+    if (useMessageHistory) {
+      if (withoutMessageAvailableInTheMessageList) {
+        // This tricks conversation handler to think that message is not available in the list.
+        // I.e. it simulates eventually consistency read at list operation where item is not yet visible.
+        // In this case handler should fall back to lookup by current message id.
+        message.conversationId = randomUUID().toString();
+      }
+      await this.insertMessage(apolloClient, message);
+    } else {
+      event.messageHistoryQuery = {
+        getQueryName: '',
+        getQueryInputTypeName: '',
+        listQueryName: '',
+        listQueryInputTypeName: '',
+      };
+      event.messages = [
+        {
+          role: message.role,
+          content: message.content,
+        },
+      ];
+    }
+
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
@@ -267,7 +338,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
     backendId: BackendIdentifier,
     accessToken: string,
     graphqlApiEndpoint: string,
-    apolloClient: ApolloClient<NormalizedCacheObject>
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    useMessageHistory: boolean
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -291,32 +363,49 @@ class ConversationHandlerTestProject extends TestProjectBase {
 
     const imageSource = await fs.readFile(imagePath, 'base64');
 
-    // send event
-    const event: ConversationTurnEvent = {
+    const message: CreateConversationMessageChatInput = {
+      id: randomUUID().toString(),
       conversationId: randomUUID().toString(),
-      currentMessageId: randomUUID().toString(),
-      graphqlApiEndpoint: graphqlApiEndpoint,
-      messages: [
+      role: 'user',
+      content: [
         {
-          role: 'user',
-          content: [
-            {
-              text: 'What is on the attached image?',
-            },
-            {
-              image: {
-                format: 'png',
-                source: { bytes: imageSource },
-              },
-            },
-          ],
+          text: 'What is on the attached image?',
+        },
+        {
+          image: {
+            format: 'png',
+            source: { bytes: imageSource },
+          },
         },
       ],
+    };
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: message.conversationId,
+      currentMessageId: message.id,
+      graphqlApiEndpoint: graphqlApiEndpoint,
       request: {
         headers: { authorization: accessToken },
       },
       ...commonEventProperties,
     };
+    if (useMessageHistory) {
+      await this.insertMessage(apolloClient, message);
+    } else {
+      event.messageHistoryQuery = {
+        getQueryName: '',
+        getQueryInputTypeName: '',
+        listQueryName: '',
+        listQueryInputTypeName: '',
+      };
+      event.messages = [
+        {
+          role: message.role,
+          content: message.content,
+        },
+      ];
+    }
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
@@ -341,21 +430,23 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     )[0];
 
-    // send event
-    const event: ConversationTurnEvent = {
+    const message: CreateConversationMessageChatInput = {
       conversationId: randomUUID().toString(),
-      currentMessageId: randomUUID().toString(),
-      graphqlApiEndpoint: graphqlApiEndpoint,
-      messages: [
+      id: randomUUID().toString(),
+      role: 'user',
+      content: [
         {
-          role: 'user',
-          content: [
-            {
-              text: 'What is the temperature in Seattle?',
-            },
-          ],
+          text: 'What is the temperature in Seattle?',
         },
       ],
+    };
+    await this.insertMessage(apolloClient, message);
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: message.conversationId,
+      currentMessageId: message.id,
+      graphqlApiEndpoint: graphqlApiEndpoint,
       request: {
         headers: { authorization: accessToken },
       },
@@ -414,21 +505,23 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     )[0];
 
-    // send event
-    const event: ConversationTurnEvent = {
+    const message: CreateConversationMessageChatInput = {
       conversationId: randomUUID().toString(),
-      currentMessageId: randomUUID().toString(),
-      graphqlApiEndpoint: graphqlApiEndpoint,
-      messages: [
+      id: randomUUID().toString(),
+      role: 'user',
+      content: [
         {
-          role: 'user',
-          content: [
-            {
-              text: 'What is the temperature in Seattle?',
-            },
-          ],
+          text: 'What is the temperature in Seattle?',
         },
       ],
+    };
+    await this.insertMessage(apolloClient, message);
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: message.conversationId,
+      currentMessageId: message.id,
+      graphqlApiEndpoint: graphqlApiEndpoint,
       request: {
         headers: { authorization: accessToken },
       },
@@ -482,21 +575,23 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     )[0];
 
-    // send event
-    const event: ConversationTurnEvent = {
+    const message: CreateConversationMessageChatInput = {
       conversationId: randomUUID().toString(),
-      currentMessageId: randomUUID().toString(),
-      graphqlApiEndpoint: graphqlApiEndpoint,
-      messages: [
+      id: randomUUID().toString(),
+      role: 'user',
+      content: [
         {
-          role: 'user',
-          content: [
-            {
-              text: 'What is the temperature in Seattle?',
-            },
-          ],
+          text: 'What is the temperature in Seattle?',
         },
       ],
+    };
+    await this.insertMessage(apolloClient, message);
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: message.conversationId,
+      currentMessageId: message.id,
+      graphqlApiEndpoint: graphqlApiEndpoint,
       request: {
         headers: { authorization: accessToken },
       },
@@ -535,10 +630,9 @@ class ConversationHandlerTestProject extends TestProjectBase {
     }>({
       query: gql`
         query ListMessages {
-          listConversationMessageAssistantResponses {
+          listConversationMessageAssistantResponses(limit: 1000) {
             items {
               conversationId
-              sender
               id
               updatedAt
               createdAt
@@ -556,5 +650,23 @@ class ConversationHandlerTestProject extends TestProjectBase {
       );
     assert.ok(response);
     return response;
+  };
+
+  private insertMessage = async (
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    message: CreateConversationMessageChatInput
+  ): Promise<void> => {
+    await apolloClient.mutate({
+      mutation: gql`
+        mutation InsertMessage($input: CreateConversationMessageChatInput!) {
+          createConversationMessageChat(input: $input) {
+            id
+          }
+        }
+      `,
+      variables: {
+        input: message,
+      },
+    });
   };
 }

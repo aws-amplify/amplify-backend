@@ -12,6 +12,12 @@ void describe('events tool provider', () => {
       currentMessageId: '',
       graphqlApiEndpoint: '',
       messages: [],
+      messageHistoryQuery: {
+        getQueryName: '',
+        getQueryInputTypeName: '',
+        listQueryName: '',
+        listQueryInputTypeName: '',
+      },
       modelConfiguration: { modelId: '', systemPrompt: '' },
       request: { headers: { authorization: '' } },
       responseMutation: {
@@ -62,6 +68,12 @@ void describe('events tool provider', () => {
       currentMessageId: '',
       graphqlApiEndpoint: '',
       messages: [],
+      messageHistoryQuery: {
+        getQueryName: '',
+        getQueryInputTypeName: '',
+        listQueryName: '',
+        listQueryInputTypeName: '',
+      },
       modelConfiguration: { modelId: '', systemPrompt: '' },
       request: { headers: { authorization: '' } },
       responseMutation: {
