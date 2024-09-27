@@ -9,5 +9,6 @@
     "outDir": "lib",
     "allowJs": true
   },
+  "exclude": ["prepublish.ts"],
   "references": [{ "path": "../plugin-types" }]
 }
