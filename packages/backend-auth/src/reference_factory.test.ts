@@ -100,7 +100,10 @@ void describe('AmplifyReferenceAuthFactory', () => {
 
     const template = Template.fromStack(backendAuth.stack);
 
-    template.resourceCountIs('AWS::Cognito::UserPool', 1);
+    template.resourceCountIs(
+      'Custom::AmplifyReferenceAuthConfigurationResource',
+      1
+    );
   });
 
   void it('verifies constructor import path', () => {
@@ -150,11 +153,7 @@ void describe('AmplifyReferenceAuthFactory', () => {
     resetFactoryCount();
 
     authFactory = referenceAuth({
-      userPoolId: '',
-      userPoolClientId: '',
-      identityPoolId: '',
-      authRoleArn: '',
-      unauthRoleArn: '',
+      ...defaultReferenceAuthProps,
       access: (allow) => [
         allow.resource(lambdaResourceStub).to(['managePasswordRecovery']),
         allow.resource(lambdaResourceStub).to(['createUser']),
@@ -236,16 +235,7 @@ void describe('AmplifyReferenceAuthFactory', () => {
             },
           ],
         },
-        Roles: [
-          {
-            'Fn::GetAtt': [
-              // eslint-disable-next-line spellcheck/spell-checker
-              'authNestedStackauthNestedStackResource179371D7',
-              // eslint-disable-next-line spellcheck/spell-checker
-              'Outputs.authamplifyAuthauthenticatedUserRoleF3353E83Ref',
-            ],
-          },
-        ],
+        Roles: [backendAuth.resources.authenticatedUserIamRole.roleName],
       });
     });
 
@@ -283,16 +273,7 @@ void describe('AmplifyReferenceAuthFactory', () => {
             },
           ],
         },
-        Roles: [
-          {
-            'Fn::GetAtt': [
-              // eslint-disable-next-line spellcheck/spell-checker
-              'authNestedStackauthNestedStackResource179371D7',
-              // eslint-disable-next-line spellcheck/spell-checker
-              'Outputs.authamplifyAuthunauthenticatedUserRoleE350B280Ref',
-            ],
-          },
-        ],
+        Roles: [backendAuth.resources.unauthenticatedUserIamRole.roleName],
       });
     });
   });
