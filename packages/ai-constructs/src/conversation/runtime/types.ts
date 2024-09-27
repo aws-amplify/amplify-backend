@@ -1,5 +1,6 @@
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import * as smithy from '@smithy/types';
+import { FromSchema, JSONSchema } from 'json-schema-to-ts';
 
 /*
   Notice: This file contains types that are exposed publicly.
@@ -86,4 +87,37 @@ export type ExecutableTool = ToolDefinition & {
   execute: (
     input: ToolExecutionInput | undefined
   ) => Promise<ToolResultContentBlock>;
+};
+
+export type ToolDefinition2<TSchema = ToolInputSchema> = {
+  name: string;
+  description: string;
+  inputSchema: TSchema;
+};
+
+export type ExecutableTool2<
+  TSchema = ToolInputSchema,
+  TInput = any
+> = ToolDefinition2<TSchema> & {
+  execute: (input: TInput | undefined) => Promise<ToolResultContentBlock>;
+};
+
+export type ToolDefinition3<TSchema extends JSONSchema> = {
+  name: string;
+  description: string;
+  inputSchema: TSchema;
+};
+
+export type ExecutableTool3<
+  TSchema extends JSONSchema,
+  TInput = FromSchema<TSchema>
+> = ToolDefinition3<TSchema> & {
+  execute: (input: TInput | undefined) => Promise<ToolResultContentBlock>;
+};
+
+
+export type ExecutableTool4<
+  TInput = any
+> = ToolDefinition & {
+  execute: (input: TInput | undefined) => Promise<ToolResultContentBlock>;
 };
