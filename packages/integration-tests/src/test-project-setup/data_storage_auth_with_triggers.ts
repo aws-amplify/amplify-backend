@@ -23,6 +23,7 @@ import {
   SQSClient,
 } from '@aws-sdk/client-sqs';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import isMatch from 'lodash.ismatch';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -298,6 +299,31 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
     assert.ok(fileContent.includes('newKey: string;')); // Env var added via addEnvironment
     assert.ok(fileContent.includes('TEST_SECRET: string;')); // Env var added via defineFunction
+
+    // assert storage access paths are correct in stack outputs
+    const outputsObject = JSON.parse(
+      await fs.readFile(
+        path.join(this.projectDirPath, 'amplify_outputs.json'),
+        'utf-8'
+      )
+    );
+    assert.ok(
+      isMatch(outputsObject.storage.buckets[0].paths, {
+        'public/*': {
+          guest: ['get', 'list'],
+          authenticated: ['get', 'list', 'write'],
+          groupsAdmins: ['get', 'list', 'write', 'delete'],
+        },
+        'protected/*': {
+          authenticated: ['get', 'list'],
+          groupsAdmins: ['get', 'list', 'write', 'delete'],
+        },
+        'protected/${cognito-identity.amazonaws.com:sub}/*': {
+          // eslint-disable-next-line spellcheck/spell-checker
+          entityidentity: ['get', 'list', 'write', 'delete'],
+        },
+      })
+    );
   }
 
   private getUpdateReplacementDefinition = (suffix: string) => ({
