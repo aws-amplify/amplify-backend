@@ -109,15 +109,44 @@ export type ToolDefinition3<TSchema extends JSONSchema> = {
 };
 
 export type ExecutableTool3<
-  TSchema extends JSONSchema,
+  TSchema extends JSONSchema = JSONSchema,
   TInput = FromSchema<TSchema>
 > = ToolDefinition3<TSchema> & {
   execute: (input: TInput | undefined) => Promise<ToolResultContentBlock>;
 };
 
-
-export type ExecutableTool4<
-  TInput = any
-> = ToolDefinition & {
+export type ExecutableTool4<TInput = any> = ToolDefinition & {
   execute: (input: TInput | undefined) => Promise<ToolResultContentBlock>;
+};
+
+export abstract class ExecutableTool5<
+  TSchema extends JSONSchema = JSONSchema,
+  TInput = FromSchema<TSchema>
+> implements ToolDefinition3<TSchema>
+{
+  abstract execute: (
+    input: TInput | undefined
+  ) => Promise<ToolResultContentBlock>;
+  protected constructor(
+    public name: string,
+    public description: string,
+    public inputSchema: TSchema
+  ) {}
+}
+
+export const defineExecutableTool = <
+  TSchema extends JSONSchema = JSONSchema,
+  TInput = FromSchema<TSchema>
+>(
+  name: string,
+  description: string,
+  inputSchema: TSchema,
+  handler: (input: TInput | undefined) => Promise<ToolResultContentBlock>
+): ExecutableTool3<TSchema, TInput> => {
+  return {
+    name,
+    description,
+    inputSchema,
+    execute: handler,
+  };
 };

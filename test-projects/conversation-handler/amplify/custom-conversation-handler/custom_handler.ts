@@ -4,7 +4,9 @@ import {
   ExecutableTool2,
   ExecutableTool3,
   ExecutableTool4,
+  ExecutableTool5,
   ToolInputSchema,
+  defineExecutableTool,
   handleConversationTurnEvent,
 } from '@aws-amplify/ai-constructs/conversation/runtime';
 import { ToolResultContentBlock } from '@aws-sdk/client-bedrock-runtime';
@@ -59,6 +61,22 @@ const dogSchema = {
   required: ['name', 'age'],
 } as const;
 
+const theTool = defineExecutableTool('foo', 'bar', dogSchema, (input) => {
+  console.log(input?.age);
+  throw Error();
+});
+
+
+export const tool3: ExecutableTool3<typeof dogSchema> = {
+  description: '',
+  execute(input): Promise<ToolResultContentBlock> {
+    console.log(input?.age);
+    throw Error();
+  },
+  inputSchema: dogSchema,
+  name: '',
+};
+
 export const tool2: ExecutableTool2<
   typeof dogSchema,
   FromSchema<typeof dogSchema>
@@ -72,15 +90,7 @@ export const tool2: ExecutableTool2<
   name: '',
 };
 
-export const tool3: ExecutableTool3<typeof dogSchema> = {
-  description: '',
-  execute(input): Promise<ToolResultContentBlock> {
-    console.log(input?.age);
-    throw Error();
-  },
-  inputSchema: dogSchema,
-  name: '',
-};
+
 
 type MyOwnType = {
   age: number;
