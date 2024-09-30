@@ -410,9 +410,15 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     while (Date.now() - startTime < TIMEOUT_MS) {
       const bucketExists = await this.checkBucketExists(bucketName);
+      if (!bucketExists) {
+        // bucket has been deleted
+        return;
+      }
+      // This is intentionally after checkBucketExists, so that we don't burn
+      // CloudTrail quota unnecessarily.
       const deleteBucketEventArrived =
         await this.checkIfDeleteBucketEventArrived(bucketName);
-      if (!bucketExists || deleteBucketEventArrived) {
+      if (deleteBucketEventArrived) {
         // bucket has been deleted
         return;
       }
@@ -461,6 +467,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       return (lookupEventsResponse.Events?.length ?? 0) > 0;
     } catch (err) {
       if (err instanceof Error && err.name === 'ThrottlingException') {
+        // This is a best effort check.
         // If we get throttled pretend that we haven't seen event yet.
         return false;
       }
