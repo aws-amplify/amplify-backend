@@ -43,6 +43,7 @@ export type AuthResources = {
     userPoolClient: IUserPoolClient;
     authenticatedUserIamRole: IRole;
     unauthenticatedUserIamRole: IRole;
+    identityPoolId: string;
     cfnResources: AuthCfnResources;
     groups: {
         [groupName: string]: {
@@ -199,6 +200,11 @@ export type ReferenceAuthResources = {
     authenticatedUserIamRole: IRole;
     unauthenticatedUserIamRole: IRole;
     identityPoolId: string;
+    groups: {
+        [groupName: string]: {
+            role: IRole;
+        };
+    };
 };
 
 // @public (undocumented)

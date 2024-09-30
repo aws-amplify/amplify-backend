@@ -25,6 +25,9 @@ export type ReferenceAuthProps = {
     userPoolClientId: string;
     authRoleArn: string;
     unauthRoleArn: string;
+    groups?: {
+        [groupName: string]: string;
+    };
 };
 
 // (No @packageDocumentation comment for this package)
