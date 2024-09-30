@@ -24,6 +24,11 @@ import { DataStorageAuthWithTriggerTestProjectCreator } from '../test-project-se
 import { SQSClient } from '@aws-sdk/client-sqs';
 import { setupDeployedBackendClient } from '../test-project-setup/setup_deployed_backend_client.js';
 
+/**
+ * This E2E test is to check whether current (aka latest) repository content introduces breaking changes
+ * for our deployed backend client to read outputs.
+ */
+
 // Different root test dir to avoid race conditions with e2e deployment tests
 const rootTestDir = fileURLToPath(
   new URL('../e2e-outputs-tests', import.meta.url)
@@ -83,7 +88,6 @@ void describe(
 
       await testProject.deploy(branchBackendIdentifier, sharedSecretsEnv);
       await testProject.assertPostDeployment(branchBackendIdentifier);
-
       await testProject.assertDeployedClientOutputs(branchBackendIdentifier);
     });
   }
