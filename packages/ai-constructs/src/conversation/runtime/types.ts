@@ -57,7 +57,17 @@ export type ConversationTurnEvent = {
       authorization: string;
     };
   };
-  messages: Array<ConversationMessage>;
+  /**
+   * @deprecated This field is going to be removed in upcoming releases.
+   */
+  messages?: Array<ConversationMessage>;
+  messageHistoryQuery: {
+    getQueryName: string;
+    getQueryInputTypeName: string;
+    listQueryName: string;
+    listQueryInputTypeName: string;
+    listQueryLimit?: number;
+  };
   toolsConfiguration?: {
     dataTools?: Array<
       ToolDefinition & {
