@@ -408,24 +408,31 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const TIMEOUT_MS = 1000 * 60 * 3;
     const startTime = Date.now();
 
-    while (Date.now() - startTime < TIMEOUT_MS) {
+    let elapsedTimeMs = 0;
+    let pollingIntervalMs = 1000;
+    do {
       const bucketExists = await this.checkBucketExists(bucketName);
       if (!bucketExists) {
         // bucket has been deleted
         return;
       }
-      // This is intentionally after checkBucketExists, so that we don't burn
-      // CloudTrail quota unnecessarily.
-      const deleteBucketEventArrived =
-        await this.checkIfDeleteBucketEventArrived(bucketName);
-      if (deleteBucketEventArrived) {
-        // bucket has been deleted
-        return;
+      // Start querying Cloud Trail after a minute.
+      // So that we don't burn down request quota unnecessarily.
+      if (elapsedTimeMs >= 1000 * 60) {
+        // Bump polling interval to wait 10 seconds before polling again.
+        // Cloud trail has low TPS quota.
+        pollingIntervalMs = 10000;
+        const deleteBucketEventArrived =
+          await this.checkIfDeleteBucketEventArrived(bucketName);
+        if (deleteBucketEventArrived) {
+          // bucket has been deleted
+          return;
+        }
       }
-      // wait 10 seconds before polling again
-      // do not poll too frequently, cloud trail has low TPS quota.
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-    }
+
+      await new Promise((resolve) => setTimeout(resolve, pollingIntervalMs));
+      elapsedTimeMs = Date.now() - startTime;
+    } while (elapsedTimeMs < TIMEOUT_MS);
     assert.fail(`Timed out waiting for ${bucketName} to be deleted`);
   };
 
