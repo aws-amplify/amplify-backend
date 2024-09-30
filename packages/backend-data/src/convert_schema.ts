@@ -319,10 +319,12 @@ export const extractImportedModels = (
       }
     );
 
-    const nonImportedSchema = nonImportedDefinitionNodes.length ? print({
-      definitions: nonImportedDefinitionNodes,
-      kind: 'Document' as const,
-    }) : undefined;
+    const nonImportedSchema = nonImportedDefinitionNodes.length
+      ? print({
+          definitions: nonImportedDefinitionNodes,
+          kind: 'Document' as const,
+        })
+      : undefined;
     return {
       importedSchemas,
       nonImportedSchema,

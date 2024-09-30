@@ -818,8 +818,6 @@ void describe('Table Import', () => {
     });
   });
 
-
-
   void it('fails when importedModels is not supplied', () => {
     const schema = /* GraphQL */ `
       type Blog @model {
