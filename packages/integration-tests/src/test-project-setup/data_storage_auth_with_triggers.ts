@@ -397,24 +397,27 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   /**
    * There is some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
-   * So we are polling HeadBucket until it returns NotFound or until we time out (after 60 seconds)
+   * So we are polling HeadBucket and CloudTrail events
+   * until it returns NotFound or until we time out (after 3 minutes)
    */
   private waitForBucketDeletion = async (bucketName: string): Promise<void> => {
-    const TIMEOUT_MS = 1000 * 60 * 3; // 3 minutes
+    // Poll for 3 minutes.
+    // If HeadBucket doesn't become eventually consistent then
+    // there's at least pretty good chance that BucketDelete event
+    // managed to arrive at CloudTrail.
+    const TIMEOUT_MS = 1000 * 60 * 3;
     const startTime = Date.now();
 
     while (Date.now() - startTime < TIMEOUT_MS) {
-      // const bucketExists = await this.checkBucketExists(bucketName);
-      // if (!bucketExists) {
-      //   // bucket has been deleted
-      //   return;
-      // }
+      const bucketExists = await this.checkBucketExists(bucketName);
       const deleteBucketEventArrived =
         await this.checkIfDeleteBucketEventArrived(bucketName);
-      if (deleteBucketEventArrived) {
+      if (!bucketExists || deleteBucketEventArrived) {
+        // bucket has been deleted
         return;
       }
       // wait 10 seconds before polling again
+      // do not poll too frequently, cloud trail has low TPS quota.
       await new Promise((resolve) => setTimeout(resolve, 10000));
     }
     assert.fail(`Timed out waiting for ${bucketName} to be deleted`);
@@ -436,25 +439,33 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   private checkIfDeleteBucketEventArrived = async (
     bucketName: string
   ): Promise<boolean> => {
-    const lookupEventsResponse = await this.cloudTrailClient.send(
-      new LookupEventsCommand({
-        LookupAttributes: [
-          {
-            AttributeKey: 'EventName',
-            AttributeValue: 'DeleteBucket',
-          },
-          {
-            AttributeKey: 'ResourceType',
-            AttributeValue: 'AWS::S3::Bucket',
-          },
-          {
-            AttributeKey: 'ResourceName',
-            AttributeValue: bucketName,
-          },
-        ],
-      })
-    );
-    return (lookupEventsResponse.Events?.length ?? 0) > 0;
+    try {
+      const lookupEventsResponse = await this.cloudTrailClient.send(
+        new LookupEventsCommand({
+          LookupAttributes: [
+            {
+              AttributeKey: 'EventName',
+              AttributeValue: 'DeleteBucket',
+            },
+            {
+              AttributeKey: 'ResourceType',
+              AttributeValue: 'AWS::S3::Bucket',
+            },
+            {
+              AttributeKey: 'ResourceName',
+              AttributeValue: bucketName,
+            },
+          ],
+        })
+      );
+      return (lookupEventsResponse.Events?.length ?? 0) > 0;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'ThrottlingException') {
+        // If we get throttled pretend that we haven't seen event yet.
+        return false;
+      }
+      throw err;
+    }
   };
 
   private assertRolesDoNotExist = async (roleNames: string[]) => {
