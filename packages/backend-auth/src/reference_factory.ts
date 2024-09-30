@@ -146,13 +146,9 @@ class AmplifyReferenceAuthGenerator
       ): ResourceAccessAcceptor => ({
         identifier: `${roleIdentifier}ResourceAccessAcceptor`,
         acceptResourceAccess: (policy: Policy) => {
-          // TODO: figure out how we're going to handle group roles for reference auth
-          //   const role = roleNameIsAuthRoleName(roleIdentifier)
-          //     ? authConstruct.resources[roleIdentifier]
-          //     : authConstruct.resources.groups?.[roleIdentifier]?.role;
           const role = roleNameIsAuthRoleName(roleIdentifier)
             ? authConstruct.resources[roleIdentifier]
-            : undefined;
+            : authConstruct.resources.groups?.[roleIdentifier]?.role;
           if (!role) {
             throw new AmplifyUserError('InvalidResourceAccessConfigError', {
               message: `No auth IAM role found for "${roleIdentifier}".`,

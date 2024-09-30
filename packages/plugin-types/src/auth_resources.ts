@@ -52,6 +52,10 @@ export type AuthResources = {
    */
   unauthenticatedUserIamRole: IRole;
   /**
+   * Identity pool Id
+   */
+  identityPoolId: string;
+  /**
    * L1 Cfn Resources, for when dipping down a level of abstraction is desirable.
    */
   cfnResources: AuthCfnResources;
@@ -96,6 +100,17 @@ export type ReferenceAuthResources = {
    * Identity pool Id
    */
   identityPoolId: string;
+  /**
+   * A map of existing group names and their associated group role.
+   */
+  groups: {
+    [groupName: string]: {
+      /**
+       * The generated Role for this group
+       */
+      role: IRole;
+    };
+  };
 };
 
 export type AuthRoleName = keyof Pick<

@@ -22,6 +22,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { fileURLToPath } from 'url';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
+import { Role } from 'aws-cdk-lib/aws-iam';
 
 const REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID =
   'AmplifyRefAuthConfigCustomResourceProvider';
@@ -75,7 +76,17 @@ export class AmplifyReferenceAuth
         props.unauthRoleArn
       ),
       identityPoolId: props.identityPoolId,
+      groups: {},
     };
+
+    // mapping of existing group roles
+    if (props.groups) {
+      Object.entries(props.groups).forEach(([groupName, roleArn]) => {
+        this.resources.groups[groupName] = {
+          role: Role.fromRoleArn(this, `${groupName}GroupRole`, roleArn),
+        };
+      });
+    }
 
     // custom resource provider
     const configurationLambda = new NodejsFunction(

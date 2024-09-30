@@ -85,6 +85,7 @@ const createConstructContainerWithUserPoolAuthRegistered = (
         authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
           assumedBy: new ServicePrincipal('test.amazon.com'),
         }),
+        identityPoolId: 'identityPoolId',
         cfnResources: {
           cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
           cfnUserPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
