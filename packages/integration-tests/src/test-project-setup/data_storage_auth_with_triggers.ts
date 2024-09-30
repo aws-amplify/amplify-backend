@@ -22,6 +22,10 @@ import {
   ReceiveMessageCommand,
   SQSClient,
 } from '@aws-sdk/client-sqs';
+import {
+  CloudTrailClient,
+  LookupEventsCommand,
+} from '@aws-sdk/client-cloudtrail';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import isMatch from 'lodash.ismatch';
 
@@ -44,6 +48,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
     private readonly s3Client: S3Client,
     private readonly iamClient: IAMClient,
     private readonly sqsClient: SQSClient,
+    private readonly cloudTrailClient: CloudTrailClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
@@ -62,6 +67,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.s3Client,
       this.iamClient,
       this.sqsClient,
+      this.cloudTrailClient,
       this.resourceFinder
     );
     await fs.cp(
@@ -128,6 +134,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly s3Client: S3Client,
     private readonly iamClient: IAMClient,
     private readonly sqsClient: SQSClient,
+    private readonly cloudTrailClient: CloudTrailClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(
@@ -393,17 +400,22 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
    * So we are polling HeadBucket until it returns NotFound or until we time out (after 60 seconds)
    */
   private waitForBucketDeletion = async (bucketName: string): Promise<void> => {
-    const TIMEOUT_MS = 1000 * 60; // 60 seconds
+    const TIMEOUT_MS = 1000 * 60 * 3; // 3 minutes
     const startTime = Date.now();
 
     while (Date.now() - startTime < TIMEOUT_MS) {
-      const bucketExists = await this.checkBucketExists(bucketName);
-      if (!bucketExists) {
-        // bucket has been deleted
+      // const bucketExists = await this.checkBucketExists(bucketName);
+      // if (!bucketExists) {
+      //   // bucket has been deleted
+      //   return;
+      // }
+      const deleteBucketEventArrived =
+        await this.checkIfDeleteBucketEventArrived(bucketName);
+      if (deleteBucketEventArrived) {
         return;
       }
-      // wait a second before polling again
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // wait 10 seconds before polling again
+      await new Promise((resolve) => setTimeout(resolve, 10000));
     }
     assert.fail(`Timed out waiting for ${bucketName} to be deleted`);
   };
@@ -419,6 +431,30 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       }
       throw err;
     }
+  };
+
+  private checkIfDeleteBucketEventArrived = async (
+    bucketName: string
+  ): Promise<boolean> => {
+    const lookupEventsResponse = await this.cloudTrailClient.send(
+      new LookupEventsCommand({
+        LookupAttributes: [
+          {
+            AttributeKey: 'EventName',
+            AttributeValue: 'DeleteBucket',
+          },
+          {
+            AttributeKey: 'ResourceType',
+            AttributeValue: 'AWS::S3::Bucket',
+          },
+          {
+            AttributeKey: 'ResourceName',
+            AttributeValue: bucketName,
+          },
+        ],
+      })
+    );
+    return (lookupEventsResponse.Events?.length ?? 0) > 0;
   };
 
   private assertRolesDoNotExist = async (roleNames: string[]) => {
