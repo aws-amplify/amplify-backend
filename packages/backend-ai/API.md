@@ -56,7 +56,7 @@ type ExecutableTool<TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema,
 
 // @public (undocumented)
 const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
-    tools?: Array<ExecutableTool>;
+    tools?: Array<ExecutableTool<runtime.JSONSchema, any>>;
 }) => Promise<void>;
 
 // @public (undocumented)

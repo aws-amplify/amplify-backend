@@ -127,7 +127,7 @@ type FromJSONSchema<TJSONSchema extends JSONSchema> = jsonSchemaToTypeScript.Fro
 
 // @public
 const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
-    tools?: Array<ExecutableTool>;
+    tools?: Array<ExecutableTool<JSONSchema, any>>;
 }) => Promise<void>;
 
 // @public (undocumented)
