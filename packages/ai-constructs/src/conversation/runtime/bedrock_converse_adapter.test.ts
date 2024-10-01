@@ -14,6 +14,7 @@ import {
   ConverseCommandOutput,
   Message,
   ToolConfiguration,
+  ToolInputSchema,
   ToolResultContentBlock,
 } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
@@ -252,14 +253,14 @@ void describe('Bedrock converse adapter', () => {
           toolSpec: {
             name: eventTool.name,
             description: eventTool.description,
-            inputSchema: eventTool.inputSchema,
+            inputSchema: eventTool.inputSchema as ToolInputSchema,
           },
         },
         {
           toolSpec: {
             name: additionalTool.name,
             description: additionalTool.description,
-            inputSchema: additionalTool.inputSchema,
+            inputSchema: additionalTool.inputSchema as ToolInputSchema,
           },
         },
       ],
@@ -689,14 +690,14 @@ void describe('Bedrock converse adapter', () => {
           toolSpec: {
             name: additionalTool.name,
             description: additionalTool.description,
-            inputSchema: additionalTool.inputSchema,
+            inputSchema: additionalTool.inputSchema as ToolInputSchema,
           },
         },
         {
           toolSpec: {
             name: clientTool.name,
             description: clientTool.description,
-            inputSchema: clientTool.inputSchema,
+            inputSchema: clientTool.inputSchema as ToolInputSchema,
           },
         },
       ],
