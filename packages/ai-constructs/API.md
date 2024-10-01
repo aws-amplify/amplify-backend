@@ -9,7 +9,6 @@
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
 import { FunctionResources } from '@aws-amplify/plugin-types';
-import { JSONSchema as JSONSchema_2 } from 'json-schema-to-ts';
 import * as jsonSchemaToTypeScript from 'json-schema-to-ts';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 
@@ -115,7 +114,7 @@ type ConversationTurnEvent = {
 };
 
 // @public
-const createExecutableTool: <TJSONSchema extends JSONSchema_2 = JSONSchema_2, TToolInput = FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: ToolInputSchema<TJSONSchema>, handler: (input: TToolInput | undefined) => Promise<bedrock.ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
+const createExecutableTool: <TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: ToolInputSchema<TJSONSchema>, handler: (input: TToolInput | undefined) => Promise<bedrock.ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
 
 // @public (undocumented)
 type ExecutableTool<TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>> = ToolDefinition<TJSONSchema> & {
