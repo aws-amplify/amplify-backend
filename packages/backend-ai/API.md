@@ -32,7 +32,7 @@ export { __export__conversation__runtime }
 type ConversationTurnEvent = runtime.ConversationTurnEvent;
 
 // @public (undocumented)
-const createExecutableTool: <TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema, TToolInput = runtime.FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: runtime.ToolInputSchema<TJSONSchema>, handler: (input: TToolInput | undefined) => Promise<ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
+const createExecutableTool: <TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema, TToolInput = runtime.FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: runtime.ToolInputSchema<TJSONSchema>, handler: (input: TToolInput) => Promise<ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
 
 // @public
 const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
@@ -51,7 +51,7 @@ type DefineConversationHandlerFunctionProps = {
 
 // @public (undocumented)
 type ExecutableTool<TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema, TToolInput = runtime.FromJSONSchema<TJSONSchema>> = runtime.ToolDefinition<TJSONSchema> & {
-    execute: (input: TToolInput | undefined) => Promise<ToolResultContentBlock>;
+    execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };
 
 // @public (undocumented)

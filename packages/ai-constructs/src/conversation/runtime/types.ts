@@ -89,5 +89,5 @@ export type ExecutableTool<
   TJSONSchema extends JSONSchema = JSONSchema,
   TToolInput = FromJSONSchema<TJSONSchema>
 > = ToolDefinition<TJSONSchema> & {
-  execute: (input: TToolInput | undefined) => Promise<ToolResultContentBlock>;
+  execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };

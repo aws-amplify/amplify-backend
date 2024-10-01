@@ -16,9 +16,7 @@ export const createExecutableTool: <
   name: string,
   description: string,
   inputSchema: ToolInputSchema<TJSONSchema>,
-  handler: (
-    input: TToolInput | undefined
-  ) => Promise<bedrock.ToolResultContentBlock>
+  handler: (input: TToolInput) => Promise<bedrock.ToolResultContentBlock>
 ) => ExecutableTool<TJSONSchema, TToolInput> = (
   name,
   description,

@@ -69,9 +69,6 @@ void describe('Executable Tool Factory', () => {
       toolDescription,
       { json: inputSchema },
       async (input) => {
-        if (!input) {
-          throw Error('No input');
-        }
         const inputText: string = input.testProperty;
         return {
           text: inputText,
@@ -111,9 +108,6 @@ void describe('Executable Tool Factory', () => {
         'testDescription',
         { json: inputSchema },
         async (input) => {
-          if (!input) {
-            throw Error('No input');
-          }
           // This should trigger compiler as properties not in schema are 'unknown'.
           const someNonExistingPropertyValue: string = input.someNonExistingProperty;
           return {
@@ -122,26 +116,6 @@ void describe('Executable Tool Factory', () => {
         }
       );
 `;
-
-    const inputSchema = {
-      type: 'object',
-      properties: {
-        testProperty: { type: 'string' },
-      },
-      required: ['testProperty'],
-    } as const;
-    createExecutableTool(
-      'testName',
-      'testDescription',
-      { json: inputSchema },
-      async (input) => {
-        // attempt to access non-existing property
-        console.log(input?.someNonExistingProperty);
-        return {
-          text: 'testResultText',
-        } satisfies ToolResultContentBlock;
-      }
-    );
 
     const diagnostics = compileInMemory(__dirname, sourceSnippet);
     assert.strictEqual(1, diagnostics.length);
@@ -174,9 +148,6 @@ void describe('Executable Tool Factory', () => {
         'testDescription',
         { json: inputSchema },
         async (input) => {
-          if (!input) {
-            throw Error('No input');
-          }
           // This should not trigger compiler because type is overridden.
           const someOverriddenPropertyValue: string = input.someOverriddenProperty;
           return {
@@ -185,26 +156,6 @@ void describe('Executable Tool Factory', () => {
         }
       );
 `;
-
-    const inputSchema = {
-      type: 'object',
-      properties: {
-        testProperty: { type: 'string' },
-      },
-      required: ['testProperty'],
-    } as const;
-    createExecutableTool(
-      'testName',
-      'testDescription',
-      { json: inputSchema },
-      async (input) => {
-        // attempt to access non-existing property
-        console.log(input?.someNonExistingProperty);
-        return {
-          text: 'testResultText',
-        } satisfies ToolResultContentBlock;
-      }
-    );
 
     const diagnostics = compileInMemory(__dirname, sourceSnippet);
     // Assert that compiler is happy.

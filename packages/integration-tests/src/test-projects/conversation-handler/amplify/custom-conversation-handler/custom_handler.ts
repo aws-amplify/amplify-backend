@@ -20,7 +20,7 @@ const thermometer = createExecutableTool(
     json: thermometerInputSchema,
   },
   (input) => {
-    if (input?.city === 'Seattle') {
+    if (input.city === 'Seattle') {
       return Promise.resolve({
         // We use this value in test assertion.
         // LLM uses tool to get temperature and serves this value in final response.
@@ -28,7 +28,7 @@ const thermometer = createExecutableTool(
         text: `${expectedTemperatureInProgrammaticToolScenario}F`,
       });
     }
-    throw new Error(`Unknown city ${input?.city ?? ''}`);
+    throw new Error(`Unknown city ${input.city}`);
   }
 );
 

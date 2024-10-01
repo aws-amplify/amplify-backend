@@ -114,11 +114,11 @@ type ConversationTurnEvent = {
 };
 
 // @public
-const createExecutableTool: <TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: ToolInputSchema<TJSONSchema>, handler: (input: TToolInput | undefined) => Promise<bedrock.ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
+const createExecutableTool: <TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: ToolInputSchema<TJSONSchema>, handler: (input: TToolInput) => Promise<bedrock.ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
 
 // @public (undocumented)
 type ExecutableTool<TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>> = ToolDefinition<TJSONSchema> & {
-    execute: (input: TToolInput | undefined) => Promise<ToolResultContentBlock>;
+    execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };
 
 // @public (undocumented)

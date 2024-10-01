@@ -9,7 +9,7 @@ export type ExecutableTool<
   TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema,
   TToolInput = runtime.FromJSONSchema<TJSONSchema>
 > = runtime.ToolDefinition<TJSONSchema> & {
-  execute: (input: TToolInput | undefined) => Promise<ToolResultContentBlock>;
+  execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };
 export type ConversationTurnEvent = runtime.ConversationTurnEvent;
 
@@ -28,5 +28,5 @@ export const createExecutableTool: <
   name: string,
   description: string,
   inputSchema: runtime.ToolInputSchema<TJSONSchema>,
-  handler: (input: TToolInput | undefined) => Promise<ToolResultContentBlock>
+  handler: (input: TToolInput) => Promise<ToolResultContentBlock>
 ) => ExecutableTool<TJSONSchema, TToolInput> = runtime.createExecutableTool;
