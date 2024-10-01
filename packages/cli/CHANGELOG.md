@@ -1,5 +1,14 @@
 # @aws-amplify/backend-cli
 
+## 1.2.9
+
+### Patch Changes
+
+- d538ecc: add storage access rules to outputs
+- Updated dependencies [d538ecc]
+  - @aws-amplify/client-config@1.4.0
+  - @aws-amplify/backend-output-schemas@1.2.1
+
 ## 1.2.8
 
 ### Patch Changes
