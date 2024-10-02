@@ -1,7 +1,15 @@
-import { FunctionResources, ResourceProvider } from '@aws-amplify/plugin-types';
-import { Duration, Stack } from 'aws-cdk-lib';
+import {
+  BackendOutputStorageStrategy,
+  FunctionResources,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
+import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { CfnFunction, Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
+import {
+  CfnFunction,
+  Runtime as LambdaRuntime,
+  LoggingFormat,
+} from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
   CustomDataIdentifier,
@@ -11,6 +19,11 @@ import {
 } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import path from 'path';
+import { TagName } from '@aws-amplify/platform-core';
+import {
+  FunctionOutput,
+  functionOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 
 const resourcesRoot = path.normalize(path.join(__dirname, 'runtime'));
 const defaultHandlerFilePath = path.join(resourcesRoot, 'default_handler.js');
@@ -21,6 +34,10 @@ export type ConversationHandlerFunctionProps = {
     modelId: string;
     region?: string;
   }>;
+  /**
+   * @internal
+   */
+  outputStorageStrategy?: BackendOutputStorageStrategy<FunctionOutput>;
 };
 
 /**
@@ -53,6 +70,8 @@ export class ConversationHandlerFunction
       throw new Error('Entry must be absolute path');
     }
 
+    Tags.of(this).add(TagName.FRIENDLY_NAME, id);
+
     const conversationHandler = new NodejsFunction(
       this,
       `conversationHandlerFunction`,
@@ -67,6 +86,7 @@ export class ConversationHandlerFunction
           // For custom entry we do bundle SDK as we can't control version customer is coding against.
           bundleAwsSDK: !!this.props.entry,
         },
+        loggingFormat: LoggingFormat.JSON,
         logGroup: new LogGroup(this, 'conversationHandlerFunctionLogGroup', {
           retention: RetentionDays.INFINITE,
           dataProtectionPolicy: new DataProtectionPolicy({
@@ -97,6 +117,14 @@ export class ConversationHandlerFunction
       );
     }
 
+    // TODO this is a hack
+    if (!this.props.outputStorageStrategy) {
+      this.props.outputStorageStrategy = scope.node.tryGetContext(
+        'amplify-output-storage-strategy'
+      );
+    }
+    this.storeOutput(this.props.outputStorageStrategy, conversationHandler);
+
     this.resources = {
       lambda: conversationHandler,
       cfnResources: {
@@ -106,4 +134,21 @@ export class ConversationHandlerFunction
       },
     };
   }
+
+  /**
+   * Append conversation handler to defined functions.
+   */
+  private storeOutput = (
+    outputStorageStrategy:
+      | BackendOutputStorageStrategy<FunctionOutput>
+      | undefined,
+    lambda: NodejsFunction
+  ): void => {
+    outputStorageStrategy?.appendToBackendOutputList(functionOutputKey, {
+      version: '1',
+      payload: {
+        definedFunctions: lambda.functionName,
+      },
+    });
+  };
 }

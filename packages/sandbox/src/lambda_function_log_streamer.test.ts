@@ -3,21 +3,16 @@ import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import assert from 'node:assert';
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
 
-import {
-  CloudFormationClient,
-  DescribeStacksOutput,
-} from '@aws-sdk/client-cloudformation';
 import { CloudWatchLogsClient } from '@aws-sdk/client-cloudwatch-logs';
 import {
+  GetFunctionCommand,
+  GetFunctionCommandOutput,
   LambdaClient,
-  ListTagsCommand,
-  ListTagsCommandOutput,
 } from '@aws-sdk/client-lambda';
 import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
 import { Printer } from '@aws-amplify/cli-core';
 import { BackendIdentifier, BackendOutput } from '@aws-amplify/plugin-types';
 import { TagName } from '@aws-amplify/platform-core';
-import { parse as parseArn } from '@aws-sdk/util-arn-parser';
 
 void describe('LambdaFunctionLogStreamer', () => {
   const region = 'test-region';
@@ -25,20 +20,6 @@ void describe('LambdaFunctionLogStreamer', () => {
     'func1FullName',
     'func2FullName',
   ]);
-
-  // CFN default implementation
-  const cfnClientMock = new CloudFormationClient({ region });
-  const cfnClientSendMock = mock.fn(() => {
-    return Promise.resolve({
-      Stacks: [
-        {
-          StackId:
-            'arn:aws:cloudformation:us-west-2:123456789012:stack/stack-name/uuid',
-        },
-      ],
-    } as DescribeStacksOutput);
-  });
-  mock.method(cfnClientMock, 'send', cfnClientSendMock);
 
   // CW default implementation
   const cloudWatchClientMock = new CloudWatchLogsClient({ region });
@@ -48,15 +29,26 @@ void describe('LambdaFunctionLogStreamer', () => {
   // Lambda default implementation.
   // Given a resource Arn with lambda function name with `FullName` suffix, this will return the function name with `friendlyName` as suffix
   const lambdaClientMock = new LambdaClient({ region });
-  const lambdaClientSendMock = mock.fn((listTagsCommand: ListTagsCommand) => {
-    return Promise.resolve({
-      Tags: {
-        [TagName.FRIENDLY_NAME]: parseArn(listTagsCommand.input.Resource ?? '')
-          .resource?.split(':')[1]
-          .replace('FullName', 'FriendlyName'),
-      } as unknown as ListTagsCommandOutput,
-    });
-  });
+  const lambdaClientSendMock = mock.fn(
+    (getFunctionCommand: GetFunctionCommand) => {
+      return Promise.resolve({
+        Configuration: {
+          LoggingConfig: {
+            LogGroup: `/aws/lambda/${
+              getFunctionCommand.input.FunctionName ?? ''
+            }`,
+          },
+        },
+        Tags: {
+          [TagName.FRIENDLY_NAME]:
+            getFunctionCommand.input.FunctionName?.replace(
+              'FullName',
+              'FriendlyName'
+            ),
+        } as unknown as GetFunctionCommandOutput,
+      });
+    }
+  );
   mock.method(lambdaClientMock, 'send', lambdaClientSendMock);
 
   // backendOutputClient default implementation
@@ -91,14 +83,12 @@ void describe('LambdaFunctionLogStreamer', () => {
 
   const classUnderTest = new LambdaFunctionLogStreamer(
     lambdaClientMock,
-    cfnClientMock,
     cloudWatchLogMonitorMock as unknown as CloudWatchLogEventMonitor,
     backendOutputClientMock as unknown as BackendOutputClient,
     printer as unknown as Printer
   );
 
   beforeEach(() => {
-    cfnClientSendMock.mock.resetCalls();
     cloudWatchClientSendMock.mock.resetCalls();
     lambdaClientSendMock.mock.resetCalls();
     backendOutputClientMock.getOutput.mock.resetCalls();
@@ -155,12 +145,12 @@ void describe('LambdaFunctionLogStreamer', () => {
     // assert that lambda calls to retrieve tags were with the right function arn
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
     assert.strictEqual(
-      lambdaClientSendMock.mock.calls[0].arguments[0].input.Resource,
-      'arn:aws:lambda:us-west-2:123456789012:function:func1FullName'
+      lambdaClientSendMock.mock.calls[0].arguments[0].input.FunctionName,
+      'func1FullName'
     );
     assert.strictEqual(
-      lambdaClientSendMock.mock.calls[1].arguments[0].input.Resource,
-      'arn:aws:lambda:us-west-2:123456789012:function:func2FullName'
+      lambdaClientSendMock.mock.calls[1].arguments[0].input.FunctionName,
+      'func2FullName'
     );
 
     // assert that logs groups were added to the monitor and was then called activate
@@ -199,12 +189,12 @@ void describe('LambdaFunctionLogStreamer', () => {
     // We do it for all customer defined functions, filtering happens after
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
     assert.strictEqual(
-      lambdaClientSendMock.mock.calls[0].arguments[0].input.Resource,
-      'arn:aws:lambda:us-west-2:123456789012:function:func1FullName'
+      lambdaClientSendMock.mock.calls[0].arguments[0].input.FunctionName,
+      'func1FullName'
     );
     assert.strictEqual(
-      lambdaClientSendMock.mock.calls[1].arguments[0].input.Resource,
-      'arn:aws:lambda:us-west-2:123456789012:function:func2FullName'
+      lambdaClientSendMock.mock.calls[1].arguments[0].input.FunctionName,
+      'func2FullName'
     );
 
     // assert that logs groups were added to the monitor for only filtered functions and was then called activate
@@ -233,12 +223,12 @@ void describe('LambdaFunctionLogStreamer', () => {
     // We do it for all customer defined functions, filtering happens after
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
     assert.strictEqual(
-      lambdaClientSendMock.mock.calls[0].arguments[0].input.Resource,
-      'arn:aws:lambda:us-west-2:123456789012:function:func1FullName'
+      lambdaClientSendMock.mock.calls[0].arguments[0].input.FunctionName,
+      'func1FullName'
     );
     assert.strictEqual(
-      lambdaClientSendMock.mock.calls[1].arguments[0].input.Resource,
-      'arn:aws:lambda:us-west-2:123456789012:function:func2FullName'
+      lambdaClientSendMock.mock.calls[1].arguments[0].input.FunctionName,
+      'func2FullName'
     );
 
     // assert that logs groups were added to the monitor for only filtered functions and was then called activate
@@ -275,12 +265,12 @@ void describe('LambdaFunctionLogStreamer', () => {
     // We do it for all customer defined functions, filtering happens after
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
     assert.strictEqual(
-      lambdaClientSendMock.mock.calls[0].arguments[0].input.Resource,
-      'arn:aws:lambda:us-west-2:123456789012:function:func1FullName'
+      lambdaClientSendMock.mock.calls[0].arguments[0].input.FunctionName,
+      'func1FullName'
     );
     assert.strictEqual(
-      lambdaClientSendMock.mock.calls[1].arguments[0].input.Resource,
-      'arn:aws:lambda:us-west-2:123456789012:function:func2FullName'
+      lambdaClientSendMock.mock.calls[1].arguments[0].input.FunctionName,
+      'func2FullName'
     );
 
     // assert that no logs groups were added to the monitor
