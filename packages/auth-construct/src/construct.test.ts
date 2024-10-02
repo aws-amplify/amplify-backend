@@ -10,6 +10,7 @@ import {
 import { CfnUserPoolClient, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DEFAULTS } from './defaults.js';
+// import { defineFunction } from '@aws-amplify/backend-function';
 
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
@@ -572,6 +573,33 @@ void describe('Auth construct', () => {
       },
     });
   });
+
+  // void it('sets customEmailSender when Lambda function is provided as email sender', () => {
+  //   const app = new App();
+  //   const stack = new Stack(app);
+  //   const mockFunction = defineFunction({
+  //     entry: './test-assets/default-lambda/handler.ts',
+  //     name: 'mock-function',
+  //   });
+  //   new AmplifyAuth(stack, 'test', {
+  //     loginWith: { email: true },
+  //     senders: {
+  //       email: mockFunction,
+  //     },
+  //   });
+  //   // const mockFunctionArn = mockFunction.functionArn;
+
+  //   const template = Template.fromStack(stack);
+  //   template.hasResourceProperties('AWS::Cognito::UserPool', {
+  //     LambdaConfig: Match.objectLike({
+  //       CustomEmailSender: Match.objectLike({
+  //         LambdaArn:
+  //           'arn:aws:lambda:us-west-2:123456789012:function:mock-function',
+  //         LambdaVersion: 'V1_0',
+  //       }),
+  //     }),
+  //   });
+  // });
 
   void it('requires email attribute if email is enabled', () => {
     const app = new App();

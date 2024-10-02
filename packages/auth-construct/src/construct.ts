@@ -51,6 +51,7 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -478,7 +479,6 @@ export class AmplifyAuth
       },
       { standardAttributes: {}, customAttributes: {} }
     );
-
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -511,7 +511,11 @@ export class AmplifyAuth
             sesRegion: Stack.of(this).region,
           })
         : undefined,
-
+      lambdaTriggers: {
+        ...(props.senders?.email instanceof lambda.Function
+          ? { customEmailSender: props.senders.email }
+          : {}),
+      },
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
       mfaMessage: this.getMFAMessage(props.multifactor),

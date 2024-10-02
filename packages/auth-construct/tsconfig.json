@@ -12,6 +12,7 @@
   "references": [
     { "path": "../backend-output-schemas" },
     { "path": "../backend-output-storage" },
-    { "path": "../plugin-types" }
+    { "path": "../plugin-types" },
+    { "path": "../backend-function" }
   ]
 }
