@@ -1,11 +1,15 @@
-import { describe, it, mock } from 'node:test';
+import { beforeEach, describe, it, mock } from 'node:test';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import assert from 'assert';
 import { pathToFileURL } from 'url';
+import path from 'path';
 
 void describe('FunctionEnvironmentTypeGenerator', () => {
+  beforeEach(() => {
+    resetFactoryGlobalState();
+  });
   void it('generates a type definition file', () => {
     const fsOpenSyncMock = mock.method(fs, 'openSync');
     const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);
@@ -69,4 +73,54 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
 
     await fsp.rm(targetDirectory, { recursive: true, force: true });
   });
+  void it('clears the generated env directory', async () => {
+    const fsExistsSyncMock = mock.method(fs, 'existsSync', () => true);
+    const fsRmSyncMock = mock.method(fs, 'rmSync', () => {});
+
+    new FunctionEnvironmentTypeGenerator('testFunction1');
+
+    assert.equal(fsExistsSyncMock.mock.calls.length, 1);
+    assert.equal(fsRmSyncMock.mock.calls.length, 1);
+
+    new FunctionEnvironmentTypeGenerator('testFunction2');
+
+    assert.equal(fsExistsSyncMock.mock.calls.length, 1);
+    assert.equal(fsRmSyncMock.mock.calls.length, 1);
+
+    fsExistsSyncMock.mock.restore();
+    fsRmSyncMock.mock.restore();
+  });
+  void it("don't clear the generated env directory if it doesn't exist", async () => {
+    const fsExistsSyncMock = mock.method(fs, 'existsSync', () => false);
+    const fsRmSyncMock = mock.method(fs, 'rmSync', () => {});
+
+    new FunctionEnvironmentTypeGenerator('testFunction');
+
+    assert.equal(fsExistsSyncMock.mock.calls.length, 1);
+    assert.equal(fsRmSyncMock.mock.calls.length, 0);
+
+    fsExistsSyncMock.mock.restore();
+    fsRmSyncMock.mock.restore();
+  });
+  void it('ensure correct directory is deleted', async () => {
+    const pathToDelete = path.join(
+      process.cwd(),
+      '.amplify',
+      'generated',
+      'env'
+    );
+    const fsExistsSyncMock = mock.method(fs, 'existsSync', () => true);
+    const fsRmSyncMock = mock.method(fs, 'rmSync', () => {});
+
+    new FunctionEnvironmentTypeGenerator('testFunction');
+
+    assert.equal(fsExistsSyncMock.mock.calls.length, 1);
+    assert.equal(fsRmSyncMock.mock.calls[0].arguments[0], pathToDelete);
+
+    fsExistsSyncMock.mock.restore();
+    fsRmSyncMock.mock.restore();
+  });
+  const resetFactoryGlobalState = () => {
+    FunctionEnvironmentTypeGenerator.isEnvDirectoryInitialized = false;
+  };
 });
