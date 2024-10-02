@@ -123,7 +123,6 @@ export class ConversationHandlerFunction
         'amplify-output-storage-strategy'
       );
     }
-    this.storeOutput(this.props.outputStorageStrategy, conversationHandler);
 
     this.resources = {
       lambda: conversationHandler,
@@ -133,6 +132,8 @@ export class ConversationHandlerFunction
         ) as CfnFunction,
       },
     };
+
+    this.storeOutput(this.props.outputStorageStrategy);
   }
 
   /**
@@ -141,13 +142,12 @@ export class ConversationHandlerFunction
   private storeOutput = (
     outputStorageStrategy:
       | BackendOutputStorageStrategy<FunctionOutput>
-      | undefined,
-    lambda: NodejsFunction
+      | undefined
   ): void => {
     outputStorageStrategy?.appendToBackendOutputList(functionOutputKey, {
       version: '1',
       payload: {
-        definedFunctions: lambda.functionName,
+        definedFunctions: this.resources.lambda.functionName,
       },
     });
   };
