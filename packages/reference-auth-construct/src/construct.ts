@@ -23,6 +23,7 @@ import { fileURLToPath } from 'url';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { Role } from 'aws-cdk-lib/aws-iam';
+import { ReferenceAuthInitializerProps } from './lambda/reference_auth_initializer_types.js';
 
 const REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID =
   'AmplifyRefAuthConfigCustomResourceProvider';
@@ -99,6 +100,30 @@ export class AmplifyReferenceAuth
         handler: 'handler',
       }
     );
+    // UserPool & UserPoolClient specific permissions
+    configurationLambda.grantPrincipal.addToPrincipalPolicy(
+      new aws_iam.PolicyStatement({
+        effect: aws_iam.Effect.ALLOW,
+        actions: [
+          'cognito-idp:DescribeUserPool',
+          'cognito-idp:GetUserPoolMfaConfig',
+          'cognito-idp:ListIdentityProviders',
+          'cognito-idp:DescribeUserPoolClient',
+        ],
+        resources: [this.resources.userPool.userPoolArn],
+      })
+    );
+    // IdentityPool specific permissions
+    const stack = Stack.of(this);
+    configurationLambda.grantPrincipal.addToPrincipalPolicy(
+      new aws_iam.PolicyStatement({
+        effect: aws_iam.Effect.ALLOW,
+        actions: ['cognito-identity:DescribeIdentityPool'],
+        resources: [
+          `arn:aws:cognito-identity:${stack.region}:${stack.account}:identitypool/${this.resources.identityPoolId}`,
+        ],
+      })
+    );
     const provider = new Provider(
       scope,
       REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID,
@@ -106,6 +131,11 @@ export class AmplifyReferenceAuth
         onEventHandler: configurationLambda,
       }
     );
+    const initializerProps: ReferenceAuthInitializerProps = {
+      userPoolId: props.userPoolId,
+      identityPoolId: props.identityPoolId,
+      userPoolClientId: props.userPoolClientId,
+    };
     // custom resource
     this.configurationCustomResource = new CustomResource(
       scope,
@@ -113,9 +143,7 @@ export class AmplifyReferenceAuth
       {
         serviceToken: provider.serviceToken,
         properties: {
-          userPoolId: props.userPoolId,
-          identityPoolId: props.identityPoolId,
-          userPoolClientId: props.userPoolClientId,
+          ...initializerProps,
           lastUpdated: Date.now(),
         },
         resourceType: RESOURCE_TYPE,
@@ -150,6 +178,48 @@ export class AmplifyReferenceAuth
       this.configurationCustomResource.getAttString(
         'allowUnauthenticatedIdentities'
       );
+    output.signupAttributes =
+      this.configurationCustomResource.getAttString('signupAttributes');
+    output.usernameAttributes =
+      this.configurationCustomResource.getAttString('usernameAttributes');
+    output.verificationMechanisms =
+      this.configurationCustomResource.getAttString('verificationMechanisms');
+
+    output.passwordPolicyMinLength =
+      this.configurationCustomResource.getAttString('passwordPolicyMinLength');
+
+    output.passwordPolicyRequirements =
+      this.configurationCustomResource.getAttString(
+        'passwordPolicyRequirements'
+      );
+
+    output.mfaConfiguration =
+      this.configurationCustomResource.getAttString('mfaConfiguration');
+
+    output.mfaTypes = this.configurationCustomResource.getAttString('mfaTypes');
+
+    output.socialProviders =
+      this.configurationCustomResource.getAttString('socialProviders');
+
+    output.oauthCognitoDomain =
+      this.configurationCustomResource.getAttString('oauthCognitoDomain');
+
+    output.oauthScope =
+      this.configurationCustomResource.getAttString('oauthScope');
+
+    output.oauthRedirectSignIn = this.configurationCustomResource.getAttString(
+      'oauthRedirectSignIn'
+    );
+
+    output.oauthRedirectSignOut = this.configurationCustomResource.getAttString(
+      'oauthRedirectSignOut'
+    );
+
+    output.oauthResponseType =
+      this.configurationCustomResource.getAttString('oauthResponseType');
+
+    output.oauthClientId =
+      this.configurationCustomResource.getAttString('oauthClientId');
 
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
