@@ -1,5 +1,13 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.5
+
+### Patch Changes
+
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- Updated dependencies [8dd7286]
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 0.3.4
 
 ### Patch Changes

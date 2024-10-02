@@ -2,12 +2,15 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib", "allowJs": true },
   "references": [
+    { "path": "../ai-constructs" },
     { "path": "../auth-construct" },
     { "path": "../backend" },
+    { "path": "../backend-ai" },
     { "path": "../backend-secret" },
     { "path": "../client-config" },
     { "path": "../deployed-backend-client" },
     { "path": "../platform-core" },
+    { "path": "../plugin-types" },
     { "path": "./src/test-projects/data-storage-auth-with-triggers-ts" }
   ],
   "exclude": ["**/node_modules", "**/lib", "src/e2e-tests"]

@@ -1,5 +1,60 @@
 # @aws-amplify/backend
 
+## 1.3.1
+
+### Patch Changes
+
+- d538ecc: add storage access rules to outputs
+- Updated dependencies [d538ecc]
+  - @aws-amplify/client-config@1.4.0
+  - @aws-amplify/backend-output-schemas@1.2.1
+  - @aws-amplify/backend-storage@1.2.1
+
+## 1.3.0
+
+### Minor Changes
+
+- 87dbf41: expose stack property for backend, function resource, storage resource, and auth resource
+
+### Patch Changes
+
+- Updated dependencies [87dbf41]
+- Updated dependencies [87dbf41]
+  - @aws-amplify/backend-function@1.5.0
+  - @aws-amplify/backend-auth@1.2.0
+  - @aws-amplify/backend-storage@1.2.0
+  - @aws-amplify/plugin-types@1.3.0
+
+## 1.2.2
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- Updated dependencies [ffc3b42]
+- Updated dependencies [e648e8e]
+- Updated dependencies [0ff73ec]
+- Updated dependencies [c9c873c]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/backend-data@1.1.4
+  - @aws-amplify/backend-function@1.4.1
+  - @aws-amplify/backend-storage@1.1.3
+  - @aws-amplify/backend-secret@1.1.2
+  - @aws-amplify/client-config@1.3.1
+  - @aws-amplify/backend-auth@1.1.5
+  - @aws-amplify/backend-output-storage@1.1.2
+  - @aws-amplify/plugin-types@1.2.2
+
+## 1.2.1
+
+### Patch Changes
+
+- d4c10fe: add check to `@aws-amplify/backend` entrypoint to throw early in a browser context
+- Updated dependencies [99c8b6a]
+- Updated dependencies [038b54d]
+  - @aws-amplify/backend-function@1.4.0
+  - @aws-amplify/platform-core@1.1.0
+
 ## 1.2.0
 
 ### Minor Changes

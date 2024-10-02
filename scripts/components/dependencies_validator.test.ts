@@ -41,6 +41,7 @@ void describe('Dependency validator', () => {
             },
           },
           [],
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -65,6 +66,7 @@ void describe('Dependency validator', () => {
             },
           },
           [],
+          [],
           execaMock as never
         ).validate(),
       (err: Error) => {
@@ -88,6 +90,7 @@ void describe('Dependency validator', () => {
         },
       },
       [],
+      [],
       execaMock as never
     ).validate();
   });
@@ -105,6 +108,7 @@ void describe('Dependency validator', () => {
               denyAll: true,
             },
           },
+          [],
           [],
           execaMock as never
         ).validate(),
@@ -129,6 +133,7 @@ void describe('Dependency validator', () => {
           packagePaths,
           {},
           [],
+          [],
           execaMock as never
         ).validate();
       },
@@ -148,6 +153,108 @@ void describe('Dependency validator', () => {
     );
   });
 
+  void it('passes if dependency declaration that is known to be inconsistent uses multiple versions', async () => {
+    const packagePaths = await glob(
+      'scripts/components/test-resources/dependency-version-inconsistent-test-packages/*'
+    );
+    await new DependenciesValidator(
+      packagePaths,
+      {},
+      [],
+      [
+        {
+          dependencyName: 'glob',
+          globalDependencyVersion: '^7.2.0',
+          exceptions: [
+            {
+              packageName: 'package2',
+              dependencyVersion: '^3.4.0',
+            },
+            {
+              packageName: 'package3',
+              dependencyVersion: '^1.6.0',
+            },
+          ],
+        },
+      ],
+      execaMock as never
+    ).validate();
+  });
+
+  void it('passes if multiple dependency declarations are known to be inconsistent', async () => {
+    const packagePaths = await glob(
+      'scripts/components/test-resources/dependency-version-multiple-inconsistencies-test-packages/*'
+    );
+    await new DependenciesValidator(
+      packagePaths,
+      {},
+      [],
+      [
+        {
+          dependencyName: 'glob',
+          globalDependencyVersion: '^7.2.0',
+          exceptions: [
+            {
+              packageName: 'package3',
+              dependencyVersion: '^5.3.0',
+            },
+          ],
+        },
+        {
+          dependencyName: 'zod',
+          globalDependencyVersion: '^3.8.2-alpha.6',
+          exceptions: [
+            {
+              packageName: 'package2',
+              dependencyVersion: '^2.0.0',
+            },
+          ],
+        },
+      ],
+      execaMock as never
+    ).validate();
+  });
+
+  void it('can detect unknown inconsistent dependency delcarations when known inconsistent dependency delcarations are present', async () => {
+    await assert.rejects(
+      async () => {
+        const packagePaths = await glob(
+          'scripts/components/test-resources/dependency-version-multiple-inconsistencies-test-packages/*'
+        );
+        await new DependenciesValidator(
+          packagePaths,
+          {},
+          [],
+          [
+            {
+              dependencyName: 'glob',
+              globalDependencyVersion: '^7.2.0',
+              exceptions: [
+                {
+                  packageName: 'package3',
+                  dependencyVersion: '^5.3.0',
+                },
+              ],
+            },
+          ],
+          execaMock as never
+        ).validate();
+      },
+      (err: Error) => {
+        assert.ok(
+          err.message.includes(
+            'dependency declarations must all the on the same semver range'
+          )
+        );
+        assert.ok(err.message.includes('zod'));
+        assert.ok(err.message.includes('package1'));
+        assert.ok(err.message.includes('package2'));
+        assert.ok(err.message.includes('package3'));
+        return true;
+      }
+    );
+  });
+
   void it('can detect inconsistent major versions of repo packages', async () => {
     const packagePaths = await glob(
       'scripts/components/test-resources/inter-repo-dependency-version-consistency-test-packages/*'
@@ -155,6 +262,7 @@ void describe('Dependency validator', () => {
     const validator = await new DependenciesValidator(
       packagePaths,
       {},
+      [],
       [],
       execaMock as never
     );
@@ -185,6 +293,7 @@ void describe('Dependency validator', () => {
           packagePaths,
           {},
           [['aws-cdk', 'aws-cdk-lib']],
+          [],
           execaMock as never
         ).validate();
       },

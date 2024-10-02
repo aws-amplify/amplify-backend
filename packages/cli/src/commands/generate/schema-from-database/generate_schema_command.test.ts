@@ -117,9 +117,15 @@ void describe('generate graphql-client-code command', () => {
 
   void it('generates and writes schema for stack', async () => {
     await commandRunner.runCommand(
-      'schema-from-database --stack stack_name --connection-uri-secret CONN_STRING --out schema.rds.ts'
+      'schema-from-database --stack amplify-reasonableName-userName-sandbox-testHash --connection-uri-secret CONN_STRING --out schema.rds.ts'
     );
     assert.equal(secretClientGetSecret.mock.callCount(), 1);
+    assert.deepEqual(secretClientGetSecret.mock.calls[0].arguments[0], {
+      namespace: 'reasonableName',
+      name: 'userName',
+      type: 'sandbox',
+      hash: 'testHash',
+    });
     assert.equal(schemaGeneratorGenerateMethod.mock.callCount(), 1);
     assert.deepEqual(schemaGeneratorGenerateMethod.mock.calls[0].arguments[0], {
       connectionUri: {

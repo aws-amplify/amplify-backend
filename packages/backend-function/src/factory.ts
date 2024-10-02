@@ -3,7 +3,11 @@ import {
   functionOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  CallerDirectoryExtractor,
+  TagName,
+} from '@aws-amplify/platform-core';
 import {
   BackendOutputStorageStrategy,
   BackendSecret,
@@ -17,6 +21,7 @@ import {
   ResourceNameValidator,
   ResourceProvider,
   SsmEnvironmentEntry,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
@@ -37,7 +42,6 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
-import { getCallerDirectory } from './get_caller_directory.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
@@ -67,7 +71,8 @@ export const defineFunction = (
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
-    AddEnvironmentFactory
+    AddEnvironmentFactory &
+    StackProvider
 > => new FunctionFactory(props, new Error().stack);
 
 export type FunctionProps = {
@@ -124,7 +129,7 @@ export type FunctionProps = {
    * @example
    * schedule: "every week"
    * @example
-   * schedule: "0 9 * * 2" // every Monday at 9am
+   * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
 
@@ -202,13 +207,18 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
 
     // Otherwise, use the directory name where the function is defined
-    return path.basename(getCallerDirectory(this.callerStack));
+    return path.basename(
+      new CallerDirectoryExtractor(this.callerStack).extract()
+    );
   };
 
   private resolveEntry = () => {
     // if entry is not set, default to handler.ts
     if (!this.props.entry) {
-      return path.join(getCallerDirectory(this.callerStack), 'handler.ts');
+      return path.join(
+        new CallerDirectoryExtractor(this.callerStack).extract(),
+        'handler.ts'
+      );
     }
 
     // if entry is absolute use that
@@ -217,7 +227,10 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
 
     // if entry is relative, compute with respect to the caller directory
-    return path.join(getCallerDirectory(this.callerStack), this.props.entry);
+    return path.join(
+      new CallerDirectoryExtractor(this.callerStack).extract(),
+      this.props.entry
+    );
   };
 
   private resolveTimeout = () => {
@@ -328,6 +341,7 @@ class AmplifyFunction
     AddEnvironmentFactory
 {
   readonly resources: FunctionResources;
+  readonly stack: Stack;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
@@ -337,6 +351,8 @@ class AmplifyFunction
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
     super(scope, id);
+
+    this.stack = Stack.of(scope);
 
     const runtime = nodeVersionMap[props.runtime];
 
@@ -395,11 +411,22 @@ class AmplifyFunction
         },
       });
     } catch (error) {
+      // If the error is from ES Bundler which is executed as a child process by CDK,
+      // then the error from CDK contains the command that was executed along with the exit status.
+      // Wrapping it here  would cause the cdk_deployer to re-throw this wrapped exception
+      // instead of scraping the stderr for actual ESBuild error.
+      if (
+        error instanceof Error &&
+        error.message.match(/Failed to bundle asset.*exited with status/)
+      ) {
+        throw error;
+      }
       throw new AmplifyUserError(
         'NodeJSFunctionConstructInitializationError',
         {
           message: 'Failed to instantiate nodejs function construct',
-          resolution: 'See the underlying error message for more details.',
+          resolution:
+            'See the underlying error message for more details. Use `--debug` for additional debugging information.',
         },
         error as Error
       );

@@ -8,7 +8,7 @@ import {
 } from './client_config_contributor_v1.js';
 import {
   ClientConfig,
-  clientConfigTypesV1_1,
+  clientConfigTypesV1_2,
 } from '../client-config-types/client_config.js';
 import assert from 'node:assert';
 import {
@@ -74,7 +74,7 @@ void describe('auth client config contributor v1', () => {
           identity_pool_id: 'testIdentityPoolId',
           unauthenticated_identities_enabled: true,
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs>
     );
   });
 
@@ -99,7 +99,7 @@ void describe('auth client config contributor v1', () => {
           aws_region: 'testRegion',
           identity_pool_id: 'testIdentityPoolId',
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs>
     );
   });
 
@@ -133,7 +133,7 @@ void describe('auth client config contributor v1', () => {
             require_uppercase: true,
           },
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs>
     );
   });
 
@@ -166,7 +166,7 @@ void describe('auth client config contributor v1', () => {
             require_uppercase: false,
           },
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs>
     );
   });
 
@@ -236,7 +236,7 @@ void describe('auth client config contributor v1', () => {
             response_type: 'code',
           },
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs>
     );
   });
 
@@ -300,7 +300,7 @@ void describe('auth client config contributor v1', () => {
             response_type: 'code',
           },
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs>
     );
   });
 
@@ -358,7 +358,7 @@ void describe('auth client config contributor v1', () => {
           response_type: 'code',
         },
       },
-    } as Pick<clientConfigTypesV1_1.AWSAmplifyBackendOutputs, 'auth'>;
+    } as Pick<clientConfigTypesV1_2.AWSAmplifyBackendOutputs, 'auth'>;
 
     void it('returns translated config when mfa is disabled', () => {
       const contributor = new AuthClientConfigContributor();
@@ -459,7 +459,7 @@ void describe('data client config contributor v1', () => {
         url: 'testApiEndpoint',
         aws_region: 'us-east-1',
       },
-    } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>);
+    } as Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs>);
   });
 
   void it('returns translated config with model introspection when resolvable', async () => {
@@ -507,7 +507,7 @@ void describe('data client config contributor v1', () => {
           enums: {},
         },
       },
-    } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>);
+    } as Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs>);
   });
 });
 
@@ -540,6 +540,12 @@ void describe('storage client config contributor v1', () => {
         name: 'testName',
         bucketName: 'testBucketName',
         storageRegion: 'testRegion',
+        paths: {
+          'path/*': {
+            guest: ['get', 'list'],
+            authenticated: ['read', 'write', 'delete'],
+          },
+        },
       }),
     ]);
     assert.deepStrictEqual(
@@ -562,6 +568,12 @@ void describe('storage client config contributor v1', () => {
               name: 'testName',
               bucket_name: 'testBucketName',
               aws_region: 'testRegion',
+              paths: {
+                'path/*': {
+                  guest: ['get', 'list'],
+                  authenticated: ['read', 'write', 'delete'],
+                },
+              },
             },
           ],
         },
@@ -613,6 +625,6 @@ void describe('Custom client config contributor v1', () => {
 
 void describe('Custom client config contributor v1', () => {
   void it('contributes the version correctly', () => {
-    assert.deepEqual(new VersionContributor().contribute(), { version: '1.1' });
+    assert.deepEqual(new VersionContributor().contribute(), { version: '1.2' });
   });
 });

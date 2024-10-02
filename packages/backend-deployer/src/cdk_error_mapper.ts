@@ -111,8 +111,18 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /This CDK CLI is not compatible with the CDK library used by your application\. Please upgrade the CLI to the latest version\./,
+      humanReadableErrorMessage:
+        "Installed 'aws-cdk' is not compatible with installed 'aws-cdk-lib'.",
+      resolutionMessage:
+        "Make sure that version of 'aws-cdk' is greater or equal to version of 'aws-cdk-lib'",
+      errorName: 'CDKVersionMismatchError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
-        `(SyntaxError|ReferenceError|TypeError):((?:.|${this.multiLineEolRegex})*?at .*)`
+        `(SyntaxError|ReferenceError|TypeError)( \\[[A-Z_]+])?:((?:.|${this.multiLineEolRegex})*?at .*)`
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -162,6 +172,18 @@ export class CdkErrorMapper {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
+      ),
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'ESBuildError',
+      classification: 'ERROR',
+    },
+    {
+      // Also extracts the first line in the stack where the error happened
+      errorRegex: new RegExp(
+        `[✘X] \\[ERROR\\] ((?:.|${this.multiLineEolRegex})*error.*)`
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -272,6 +294,7 @@ export type CDKDeploymentError =
   | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
   | 'CDKResolveAWSAccountError'
+  | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
   | 'CloudFormationDeploymentError'
   | 'FilePermissionsError'

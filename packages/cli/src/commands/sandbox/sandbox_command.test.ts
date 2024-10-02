@@ -21,6 +21,7 @@ import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_comm
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
 
@@ -119,6 +120,24 @@ void describe('sandbox command', () => {
       sandboxStartMock.mock.calls[0].arguments[0].identifier,
       'user-app-name'
     );
+  });
+
+  void it('throws AmplifyUserError if invalid identifier is provided', async () => {
+    const invalidIdentifier = 'invalid@';
+    await assert.rejects(
+      () =>
+        commandRunner.runCommand(`sandbox --identifier ${invalidIdentifier}`), // invalid identifier
+      (err: TestCommandError) => {
+        assert.ok(err.error instanceof AmplifyError);
+        assert.strictEqual(
+          err.error.message,
+          'Invalid --identifier provided: invalid@'
+        );
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
+        return true;
+      }
+    );
+    assert.equal(sandboxStartMock.mock.callCount(), 0);
   });
 
   void it('shows available options in help output', async () => {
@@ -408,15 +427,15 @@ void describe('sandbox command', () => {
     );
   });
 
-  void it('sandbox creates an empty client config file if one does not already exist for version 1.1', async (contextual) => {
+  void it('sandbox creates an empty client config file if one does not already exist for version 1.2', async (contextual) => {
     contextual.mock.method(fs, 'existsSync', () => false);
     const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
-    await commandRunner.runCommand('sandbox --outputs-version 1.1');
+    await commandRunner.runCommand('sandbox --outputs-version 1.2');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[1],
-      `{\n  "version": "1.1"\n}`
+      `{\n  "version": "1.2"\n}`
     );
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],

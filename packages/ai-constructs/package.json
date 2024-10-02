@@ -1,0 +1,37 @@
+{
+  "name": "@aws-amplify/ai-constructs",
+  "version": "0.2.0",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./conversation": {
+      "types": "./lib/conversation/index.d.ts",
+      "default": "./lib/conversation/index.js"
+    },
+    "./conversation/runtime": {
+      "types": "./lib/conversation/runtime/index.d.ts",
+      "default": "./lib/conversation/runtime/index.js"
+    }
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-amplify/plugin-types": "^1.0.1",
+    "@aws-sdk/client-bedrock-runtime": "^3.622.0",
+    "@smithy/types": "^3.3.0"
+  },
+  "peerDependencies": {
+    "aws-cdk-lib": "^2.152.0",
+    "constructs": "^10.0.0"
+  }
+}

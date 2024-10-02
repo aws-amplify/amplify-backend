@@ -1,5 +1,34 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.4
+
+### Patch Changes
+
+- 98673b0: Improve type error regex
+
+## 1.1.3
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- c9c873c: throw ESBuild error with correct messages
+- cbac105: Handle CDK version mismatch
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [8dd7286]
+  - @aws-amplify/plugin-types@1.2.2
+
+## 1.1.2
+
+### Patch Changes
+
+- c85d071: updated packages to fix violations of prefer-amplify-errors rule
+
+## 1.1.1
+
+### Patch Changes
+
+- 1505414: surface synth errors if the function declaration files have not been written yet.
+
 ## 1.1.0
 
 ### Minor Changes

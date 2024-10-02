@@ -22,7 +22,12 @@ import {
   ReceiveMessageCommand,
   SQSClient,
 } from '@aws-sdk/client-sqs';
+import {
+  CloudTrailClient,
+  LookupEventsCommand,
+} from '@aws-sdk/client-cloudtrail';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import isMatch from 'lodash.ismatch';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -43,6 +48,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
     private readonly s3Client: S3Client,
     private readonly iamClient: IAMClient,
     private readonly sqsClient: SQSClient,
+    private readonly cloudTrailClient: CloudTrailClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {}
 
@@ -61,6 +67,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.s3Client,
       this.iamClient,
       this.sqsClient,
+      this.cloudTrailClient,
       this.resourceFinder
     );
     await fs.cp(
@@ -127,6 +134,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly s3Client: S3Client,
     private readonly iamClient: IAMClient,
     private readonly sqsClient: SQSClient,
+    private readonly cloudTrailClient: CloudTrailClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(
@@ -298,6 +306,31 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
     assert.ok(fileContent.includes('newKey: string;')); // Env var added via addEnvironment
     assert.ok(fileContent.includes('TEST_SECRET: string;')); // Env var added via defineFunction
+
+    // assert storage access paths are correct in stack outputs
+    const outputsObject = JSON.parse(
+      await fs.readFile(
+        path.join(this.projectDirPath, 'amplify_outputs.json'),
+        'utf-8'
+      )
+    );
+    assert.ok(
+      isMatch(outputsObject.storage.buckets[0].paths, {
+        'public/*': {
+          guest: ['get', 'list'],
+          authenticated: ['get', 'list', 'write'],
+          groupsAdmins: ['get', 'list', 'write', 'delete'],
+        },
+        'protected/*': {
+          authenticated: ['get', 'list'],
+          groupsAdmins: ['get', 'list', 'write', 'delete'],
+        },
+        'protected/${cognito-identity.amazonaws.com:sub}/*': {
+          // eslint-disable-next-line spellcheck/spell-checker
+          entityidentity: ['get', 'list', 'write', 'delete'],
+        },
+      })
+    );
   }
 
   private getUpdateReplacementDefinition = (suffix: string) => ({
@@ -364,21 +397,42 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   /**
    * There is some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
-   * So we are polling HeadBucket until it returns NotFound or until we time out (after 30 seconds)
+   * So we are polling HeadBucket and CloudTrail events
+   * until it returns NotFound or until we time out (after 3 minutes)
    */
   private waitForBucketDeletion = async (bucketName: string): Promise<void> => {
-    const TIMEOUT_MS = 1000 * 30; // 30 seconds
+    // Poll for 3 minutes.
+    // If HeadBucket doesn't become eventually consistent then
+    // there's at least pretty good chance that BucketDelete event
+    // managed to arrive at CloudTrail.
+    const TIMEOUT_MS = 1000 * 60 * 3;
     const startTime = Date.now();
 
-    while (Date.now() - startTime < TIMEOUT_MS) {
+    let elapsedTimeMs = 0;
+    let pollingIntervalMs = 1000;
+    do {
       const bucketExists = await this.checkBucketExists(bucketName);
       if (!bucketExists) {
         // bucket has been deleted
         return;
       }
-      // wait a second before polling again
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
+      // Start querying Cloud Trail after a minute.
+      // So that we don't burn down request quota unnecessarily.
+      if (elapsedTimeMs >= 1000 * 60) {
+        // Bump polling interval to wait 10 seconds before polling again.
+        // Cloud trail has low TPS quota.
+        pollingIntervalMs = 10000;
+        const deleteBucketEventArrived =
+          await this.checkIfDeleteBucketEventArrived(bucketName);
+        if (deleteBucketEventArrived) {
+          // bucket has been deleted
+          return;
+        }
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, pollingIntervalMs));
+      elapsedTimeMs = Date.now() - startTime;
+    } while (elapsedTimeMs < TIMEOUT_MS);
     assert.fail(`Timed out waiting for ${bucketName} to be deleted`);
   };
 
@@ -389,6 +443,39 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       return true;
     } catch (err) {
       if (err instanceof Error && err.name === 'NotFound') {
+        return false;
+      }
+      throw err;
+    }
+  };
+
+  private checkIfDeleteBucketEventArrived = async (
+    bucketName: string
+  ): Promise<boolean> => {
+    try {
+      const lookupEventsResponse = await this.cloudTrailClient.send(
+        new LookupEventsCommand({
+          LookupAttributes: [
+            {
+              AttributeKey: 'EventName',
+              AttributeValue: 'DeleteBucket',
+            },
+            {
+              AttributeKey: 'ResourceType',
+              AttributeValue: 'AWS::S3::Bucket',
+            },
+            {
+              AttributeKey: 'ResourceName',
+              AttributeValue: bucketName,
+            },
+          ],
+        })
+      );
+      return (lookupEventsResponse.Events?.length ?? 0) > 0;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'ThrottlingException') {
+        // This is a best effort check.
+        // If we get throttled pretend that we haven't seen event yet.
         return false;
       }
       throw err;

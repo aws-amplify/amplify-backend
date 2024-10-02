@@ -12,6 +12,7 @@ import {
   ConstructFactory,
   FunctionResources,
   ResourceProvider,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
@@ -19,6 +20,7 @@ import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage'
 import { fileURLToPath } from 'node:url';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { S3EventSourceV2 } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { StorageAccessDefinitionOutput } from './private_types.js';
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Storage in BI metrics
 const storageStackType = 'storage-S3';
@@ -77,11 +79,13 @@ export type StorageResources = {
  */
 export class AmplifyStorage
   extends Construct
-  implements ResourceProvider<StorageResources>
+  implements ResourceProvider<StorageResources>, StackProvider
 {
+  readonly stack: Stack;
   readonly resources: StorageResources;
   readonly isDefault: boolean;
   readonly name: string;
+  accessDefinition: StorageAccessDefinitionOutput;
   /**
    * Create a new AmplifyStorage instance
    */
@@ -89,6 +93,7 @@ export class AmplifyStorage
     super(scope, id);
     this.isDefault = props.isDefault || false;
     this.name = props.name;
+    this.stack = Stack.of(scope);
 
     const bucketProps: BucketProps = {
       versioned: props.versioned || false,
@@ -142,5 +147,12 @@ export class AmplifyStorage
     handler.addEventSource(
       new S3EventSourceV2(this.resources.bucket, { events })
     );
+  };
+
+  /**
+   * Add access definitions to storage
+   */
+  addAccessDefinition = (accessOutput: StorageAccessDefinitionOutput) => {
+    this.accessDefinition = accessOutput;
   };
 }

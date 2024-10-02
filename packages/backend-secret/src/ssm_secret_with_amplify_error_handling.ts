@@ -29,7 +29,7 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
         secretIdentifier
       );
     } catch (e) {
-      throw this.translateToAmplifyError(e, 'Get');
+      throw this.translateToAmplifyError(e, 'Get', secretIdentifier);
     }
   };
 
@@ -73,7 +73,11 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
     }
   };
 
-  private translateToAmplifyError = (error: unknown, apiName: string) => {
+  private translateToAmplifyError = (
+    error: unknown,
+    apiName: string,
+    secretIdentifier?: SecretIdentifier
+  ) => {
     if (error instanceof SecretError && error.cause) {
       if (
         [
@@ -81,7 +85,9 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
           'AccessDeniedException',
           'NotAuthorized',
           'ExpiredTokenException',
+          'ExpiredToken',
           'CredentialsProviderError',
+          'InvalidSignatureException',
         ].includes(error.cause.name)
       ) {
         return new AmplifyUserError('SSMCredentialsError', {
@@ -90,6 +96,16 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
           }: ${error.cause?.message}`,
           resolution:
             'Make sure your AWS credentials are set up correctly, refreshed and have necessary permissions to call SSM service',
+        });
+      }
+      if (
+        error.cause.name === 'ParameterNotFound' &&
+        apiName === 'Get' &&
+        secretIdentifier
+      ) {
+        return new AmplifyUserError('SSMParameterNotFoundError', {
+          message: `Failed to get ${secretIdentifier.name} secret. ${error.cause.name}: ${error.cause?.message}`,
+          resolution: `Make sure that ${secretIdentifier.name} has been set. See https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/.`,
         });
       }
       let downstreamException: Error = error;
