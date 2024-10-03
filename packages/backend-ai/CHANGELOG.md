@@ -1,5 +1,14 @@
 # @aws-amplify/backend-ai
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [d0a90b1]
+- Updated dependencies [d538ecc]
+  - @aws-amplify/ai-constructs@0.2.0
+  - @aws-amplify/backend-output-schemas@1.2.1
+
 ## 0.1.1
 
 ### Patch Changes

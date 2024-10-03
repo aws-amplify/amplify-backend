@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.2.1
+
+### Patch Changes
+
+- d538ecc: add storage access rules to outputs
+
 ## 1.2.0
 
 ### Minor Changes

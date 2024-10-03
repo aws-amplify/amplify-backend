@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 0.2.0
+
+### Minor Changes
+
+- d0a90b1: Use message history instead of event payload for conversational route
+
 ## 0.1.4
 
 ### Patch Changes
