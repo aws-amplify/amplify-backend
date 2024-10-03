@@ -8,6 +8,7 @@ import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
+import { OUTPUT_PROPERTIES_PROVIDED_BY_AUTH_CUSTOM_RESOURCE } from './construct.js';
 const refAuthProps: ReferenceAuthProps = {
   authRoleArn: 'arn:aws:iam::000000000000:role/amplify-sample-auth-role-name',
   unauthRoleArn:
@@ -16,23 +17,7 @@ const refAuthProps: ReferenceAuthProps = {
   userPoolClientId: 'userPoolClientId',
   userPoolId: 'us-east-1_userPoolId',
 };
-const customResourceProperties = [
-  'allowUnauthenticatedIdentities',
-  'signupAttributes',
-  'usernameAttributes',
-  'verificationMechanisms',
-  'passwordPolicyMinLength',
-  'passwordPolicyRequirements',
-  'mfaConfiguration',
-  'mfaTypes',
-  'socialProviders',
-  'oauthCognitoDomain',
-  'oauthScope',
-  'oauthRedirectSignIn',
-  'oauthRedirectSignOut',
-  'oauthResponseType',
-  'oauthClientId',
-];
+
 void describe('AmplifyConstruct', () => {
   // beforeEach(() => {
 
@@ -121,7 +106,7 @@ void describe('AmplifyConstruct', () => {
     const template = Template.fromStack(stack);
     // check that outputs reference custom resource attributes
     const outputs = template.findOutputs('*');
-    for (const property of customResourceProperties) {
+    for (const property of OUTPUT_PROPERTIES_PROVIDED_BY_AUTH_CUSTOM_RESOURCE) {
       const expectedValue = {
         'Fn::GetAtt': ['AmplifyRefAuthCustomResource', `${property}`],
       };
@@ -185,21 +170,7 @@ void describe('AmplifyConstruct', () => {
               'webClientId',
               'identityPoolId',
               'authRegion',
-              'allowUnauthenticatedIdentities',
-              'signupAttributes',
-              'usernameAttributes',
-              'verificationMechanisms',
-              'passwordPolicyMinLength',
-              'passwordPolicyRequirements',
-              'mfaConfiguration',
-              'mfaTypes',
-              'socialProviders',
-              'oauthCognitoDomain',
-              'oauthScope',
-              'oauthRedirectSignIn',
-              'oauthRedirectSignOut',
-              'oauthResponseType',
-              'oauthClientId',
+              ...OUTPUT_PROPERTIES_PROVIDED_BY_AUTH_CUSTOM_RESOURCE,
             ],
           },
         },

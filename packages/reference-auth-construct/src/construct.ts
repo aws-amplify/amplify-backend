@@ -41,7 +41,7 @@ const authStackType = 'auth-Cognito';
  * These properties are fetched by the custom resource and must be accounted for
  * in the final AuthOutput payload.
  */
-const OUTPUT_PROPERTIES_PROVIDED_BY_CUSTOM_RESOURCE: (keyof AuthOutput['payload'])[] =
+export const OUTPUT_PROPERTIES_PROVIDED_BY_AUTH_CUSTOM_RESOURCE: (keyof AuthOutput['payload'])[] =
   [
     'allowUnauthenticatedIdentities',
     'signupAttributes',
@@ -196,7 +196,7 @@ export class AmplifyReferenceAuth
     };
 
     // assign cdk tokens which will be resolved during deployment
-    for (const property of OUTPUT_PROPERTIES_PROVIDED_BY_CUSTOM_RESOURCE) {
+    for (const property of OUTPUT_PROPERTIES_PROVIDED_BY_AUTH_CUSTOM_RESOURCE) {
       output[property] =
         this.configurationCustomResource.getAttString(property);
     }
