@@ -40,7 +40,8 @@ export class BedrockConverseAdapter {
     eventToolsProvider = new ConversationTurnEventToolsProvider(event),
     private readonly messageHistoryRetriever = new ConversationMessageHistoryRetriever(
       event
-    )
+    ),
+    private readonly logger = console
   ) {
     this.executableTools = [
       ...eventToolsProvider.getEventTools(),
@@ -90,9 +91,16 @@ export class BedrockConverseAdapter {
         inferenceConfig: inferenceConfiguration,
         toolConfig,
       };
+      this.logger.info('Sending Bedrock Converse request');
+      this.logger.debug('Bedrock Converse request:', converseCommandInput);
       bedrockResponse = await this.bedrockClient.send(
         new ConverseCommand(converseCommandInput)
       );
+      this.logger.info(
+        `Received Bedrock Converse response, requestId=${bedrockResponse.$metadata.requestId}`,
+        bedrockResponse.usage
+      );
+      this.logger.debug('Bedrock Converse response:', bedrockResponse);
       if (bedrockResponse.output?.message) {
         messages.push(bedrockResponse.output?.message);
       }
@@ -191,7 +199,11 @@ export class BedrockConverseAdapter {
       );
     }
     try {
+      this.logger.info(`Invoking tool ${tool.name}`);
+      this.logger.debug('Tool input:', toolUseBlock.toolUse.input);
       const toolResponse = await tool.execute(toolUseBlock.toolUse.input);
+      this.logger.info(`Received response from ${tool.name} tool`);
+      this.logger.debug(toolResponse);
       return {
         role: 'user',
         content: [
