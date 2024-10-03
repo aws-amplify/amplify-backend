@@ -153,7 +153,9 @@ void describe('Conversation Handler Function construct', () => {
       outputStorageStrategy: undefined,
     });
     const template = Template.fromStack(stack);
-    const output = template.findOutputs('definedFunctions').definedFunctions;
+    const output = template.findOutputs(
+      'definedConversationHandlers'
+    ).definedConversationHandlers;
     assert.ok(!output);
   });
 
@@ -171,8 +173,8 @@ void describe('Conversation Handler Function construct', () => {
       ),
     });
     const template = Template.fromStack(stack);
-    const outputValue =
-      template.findOutputs('definedFunctions').definedFunctions.Value;
+    const outputValue = template.findOutputs('definedConversationHandlers')
+      .definedConversationHandlers.Value;
     assert.deepStrictEqual(outputValue, {
       'Fn::Join': [
         '',

@@ -42,9 +42,17 @@ export class LambdaFunctionLogStreamer {
 
     const definedFunctionsPayload =
       backendOutput['AWS::Amplify::Function']?.payload.definedFunctions;
+    const definedConversationHandlersPayload =
+      backendOutput['AWS::Amplify::AI::Conversation']?.payload
+        .definedConversationHandlers;
     const deployedFunctionNames = definedFunctionsPayload
       ? (JSON.parse(definedFunctionsPayload) as string[])
       : [];
+    deployedFunctionNames.push(
+      ...(definedConversationHandlersPayload
+        ? (JSON.parse(definedConversationHandlersPayload) as string[])
+        : [])
+    );
 
     for (const functionName of deployedFunctionNames) {
       const getFunctionResponse = await this.lambda.send(

@@ -20,6 +20,10 @@ void describe('LambdaFunctionLogStreamer', () => {
     'func1FullName',
     'func2FullName',
   ]);
+  const definedConversationHandlers = JSON.stringify([
+    'conversationHandler1FullName',
+    'conversationHandler2FullName',
+  ]);
 
   // CW default implementation
   const cloudWatchClientMock = new CloudWatchLogsClient({ region });
@@ -63,6 +67,12 @@ void describe('LambdaFunctionLogStreamer', () => {
         ['AWS::Amplify::Function']: {
           payload: {
             definedFunctions: customerDefinedFunctions,
+          },
+          version: '1',
+        },
+        ['AWS::Amplify::AI::Conversation']: {
+          payload: {
+            definedConversationHandlers: definedConversationHandlers,
           },
           version: '1',
         },
@@ -137,13 +147,13 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 0);
   });
 
-  void it('calls logs monitor with all the customer defined functions if no function name filter is provided', async () => {
+  void it('calls logs monitor with all the customer defined functions and conversation handlers if no function name filter is provided', async () => {
     await classUnderTest.startStreamingLogs(testSandboxBackendId, {
       enabled: true,
     });
 
     // assert that lambda calls to retrieve tags were with the right function arn
-    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
+    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 4);
     assert.strictEqual(
       lambdaClientSendMock.mock.calls[0].arguments[0].input.FunctionName,
       'func1FullName'
@@ -152,11 +162,19 @@ void describe('LambdaFunctionLogStreamer', () => {
       lambdaClientSendMock.mock.calls[1].arguments[0].input.FunctionName,
       'func2FullName'
     );
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[2].arguments[0].input.FunctionName,
+      'conversationHandler1FullName'
+    );
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[3].arguments[0].input.FunctionName,
+      'conversationHandler2FullName'
+    );
 
     // assert that logs groups were added to the monitor and was then called activate
     assert.strictEqual(
       cloudWatchLogMonitorMock.addLogGroups.mock.callCount(),
-      2
+      4
     );
     assert.strictEqual(
       cloudWatchLogMonitorMock.addLogGroups.mock.calls[0].arguments[0],
@@ -174,6 +192,22 @@ void describe('LambdaFunctionLogStreamer', () => {
       cloudWatchLogMonitorMock.addLogGroups.mock.calls[1].arguments[1],
       '/aws/lambda/func2FullName'
     );
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.addLogGroups.mock.calls[2].arguments[0],
+      'conversationHandler1FriendlyName'
+    );
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.addLogGroups.mock.calls[2].arguments[1],
+      '/aws/lambda/conversationHandler1FullName'
+    );
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.addLogGroups.mock.calls[3].arguments[0],
+      'conversationHandler2FriendlyName'
+    );
+    assert.strictEqual(
+      cloudWatchLogMonitorMock.addLogGroups.mock.calls[3].arguments[1],
+      '/aws/lambda/conversationHandler2FullName'
+    );
     assert.strictEqual(cloudWatchLogMonitorMock.activate.mock.callCount(), 1);
   });
 
@@ -187,7 +221,7 @@ void describe('LambdaFunctionLogStreamer', () => {
 
     // assert that lambda calls to retrieve tags were with the right function arn
     // We do it for all customer defined functions, filtering happens after
-    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
+    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 4);
     assert.strictEqual(
       lambdaClientSendMock.mock.calls[0].arguments[0].input.FunctionName,
       'func1FullName'
@@ -195,6 +229,14 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(
       lambdaClientSendMock.mock.calls[1].arguments[0].input.FunctionName,
       'func2FullName'
+    );
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[2].arguments[0].input.FunctionName,
+      'conversationHandler1FullName'
+    );
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[3].arguments[0].input.FunctionName,
+      'conversationHandler2FullName'
     );
 
     // assert that logs groups were added to the monitor for only filtered functions and was then called activate
@@ -221,7 +263,7 @@ void describe('LambdaFunctionLogStreamer', () => {
 
     // assert that lambda calls to retrieve tags were with the right function arn
     // We do it for all customer defined functions, filtering happens after
-    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
+    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 4);
     assert.strictEqual(
       lambdaClientSendMock.mock.calls[0].arguments[0].input.FunctionName,
       'func1FullName'
@@ -229,6 +271,14 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(
       lambdaClientSendMock.mock.calls[1].arguments[0].input.FunctionName,
       'func2FullName'
+    );
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[2].arguments[0].input.FunctionName,
+      'conversationHandler1FullName'
+    );
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[3].arguments[0].input.FunctionName,
+      'conversationHandler2FullName'
     );
 
     // assert that logs groups were added to the monitor for only filtered functions and was then called activate
@@ -263,7 +313,7 @@ void describe('LambdaFunctionLogStreamer', () => {
 
     // assert that lambda calls to retrieve tags were with the right function arn
     // We do it for all customer defined functions, filtering happens after
-    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 2);
+    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 4);
     assert.strictEqual(
       lambdaClientSendMock.mock.calls[0].arguments[0].input.FunctionName,
       'func1FullName'
@@ -271,6 +321,14 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(
       lambdaClientSendMock.mock.calls[1].arguments[0].input.FunctionName,
       'func2FullName'
+    );
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[2].arguments[0].input.FunctionName,
+      'conversationHandler1FullName'
+    );
+    assert.strictEqual(
+      lambdaClientSendMock.mock.calls[3].arguments[0].input.FunctionName,
+      'conversationHandler2FullName'
     );
 
     // assert that no logs groups were added to the monitor

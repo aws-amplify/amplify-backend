@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { aiConversationOutputSchema as aiConversationOutputSchemaV1 } from './v1';
 
-export const versionedAiConversationOutputSchema = z.discriminatedUnion(
+export const versionedAIConversationOutputSchema = z.discriminatedUnion(
   'version',
   [
     aiConversationOutputSchemaV1,
@@ -9,6 +9,6 @@ export const versionedAiConversationOutputSchema = z.discriminatedUnion(
   ]
 );
 
-export type AiConversationOutput = z.infer<
-  typeof versionedAiConversationOutputSchema
+export type AIConversationOutput = z.infer<
+  typeof versionedAIConversationOutputSchema
 >;

@@ -21,7 +21,7 @@ import { Construct } from 'constructs';
 import path from 'path';
 import { TagName } from '@aws-amplify/platform-core';
 import {
-  AiConversationOutput,
+  AIConversationOutput,
   aiConversationOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 
@@ -37,7 +37,7 @@ export type ConversationHandlerFunctionProps = {
   /**
    * @internal
    */
-  outputStorageStrategy?: BackendOutputStorageStrategy<AiConversationOutput>;
+  outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
 };
 
 /**
@@ -141,7 +141,7 @@ export class ConversationHandlerFunction
    */
   private storeOutput = (
     outputStorageStrategy:
-      | BackendOutputStorageStrategy<AiConversationOutput>
+      | BackendOutputStorageStrategy<AIConversationOutput>
       | undefined
   ): void => {
     outputStorageStrategy?.appendToBackendOutputList(aiConversationOutputKey, {
