@@ -32,7 +32,7 @@ export const handler = async (
     event.RequestType === 'Create' ? randomUUID() : event.PhysicalResourceId;
 
   let data;
-  if (!(event.RequestType === 'Update' || event.RequestType === 'Create')) {
+  if (event.RequestType === 'Update' || event.RequestType === 'Create') {
     data = await initialize(event);
   }
 
@@ -224,15 +224,15 @@ export const getUserPoolClientOutputs = async (
   }
   const data = {
     oauthScope: JSON.stringify(userPoolClient.AllowedOAuthScopes ?? []),
-    oauthRedirectSignIn: JSON.stringify(
-      userPoolClient.CallbackURLs?.join(',') ?? []
-    ),
-    oauthRedirectSignOut: JSON.stringify(
-      userPoolClient.LogoutURLs?.join(',') ?? []
-    ),
-    oauthResponseType: JSON.stringify(
-      userPoolClient.AllowedOAuthFlows?.join(',') ?? []
-    ),
+    oauthRedirectSignIn: userPoolClient.CallbackURLs
+      ? userPoolClient.CallbackURLs.join(',')
+      : '',
+    oauthRedirectSignOut: userPoolClient.LogoutURLs
+      ? userPoolClient.LogoutURLs.join(',')
+      : '',
+    oauthResponseType: userPoolClient.AllowedOAuthFlows
+      ? userPoolClient.AllowedOAuthFlows.join(',')
+      : '',
     oauthClientId: userPoolClientId,
   };
   return data;
