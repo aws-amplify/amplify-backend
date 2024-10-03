@@ -32,6 +32,9 @@
     "@aws-sdk/client-bedrock-runtime": "^3.622.0",
     "@smithy/types": "^3.3.0"
   },
+  "devDependencies": {
+    "@aws-amplify/backend-output-storage": "^1.1.2"
+  },
   "peerDependencies": {
     "aws-cdk-lib": "^2.152.0",
     "constructs": "^10.0.0"
