@@ -56,7 +56,7 @@ export class LambdaFunctionLogStreamer {
         getFunctionResponse.Configuration?.LoggingConfig?.LogGroup;
       if (!logGroupName) {
         this.printer.log(
-          `[Sandbox] Could not log group for lambda function ${functionName}. Logs will not be streamed for this function.`,
+          `[Sandbox] Could not find logGroup for lambda function ${functionName}. Logs will not be streamed for this function.`,
           LogLevel.DEBUG
         );
         continue;
