@@ -117,13 +117,6 @@ export class ConversationHandlerFunction
       );
     }
 
-    // TODO this is a hack
-    if (!this.props.outputStorageStrategy) {
-      this.props.outputStorageStrategy = scope.node.tryGetContext(
-        'amplify-output-storage-strategy'
-      );
-    }
-
     this.resources = {
       lambda: conversationHandler,
       cfnResources: {
