@@ -6,7 +6,7 @@
 
 /// <reference types="node" />
 
-import { AiConversationOutput } from '@aws-amplify/backend-output-schemas';
+import { AIConversationOutput } from '@aws-amplify/backend-output-schemas';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
@@ -51,7 +51,7 @@ type ConversationHandlerFunctionProps = {
         modelId: string;
         region?: string;
     }>;
-    outputStorageStrategy?: BackendOutputStorageStrategy<AiConversationOutput>;
+    outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
 };
 
 // @public (undocumented)

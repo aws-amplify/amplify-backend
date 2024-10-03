@@ -7,7 +7,7 @@
 import { z } from 'zod';
 
 // @public (undocumented)
-export type AiConversationOutput = z.infer<typeof versionedAiConversationOutputSchema>;
+export type AIConversationOutput = z.infer<typeof versionedAIConversationOutputSchema>;
 
 // @public
 export const aiConversationOutputKey = "AWS::Amplify::AI::Conversation";
@@ -511,7 +511,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
 }>;
 
 // @public (undocumented)
-export const versionedAiConversationOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+export const versionedAIConversationOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
     version: z.ZodLiteral<"1">;
     payload: z.ZodObject<{
         definedConversationHandlers: z.ZodString;
