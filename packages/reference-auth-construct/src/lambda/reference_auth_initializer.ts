@@ -191,7 +191,6 @@ export const getIdentityPoolOutputs = async (identityPoolId: string) => {
   });
 
   const idpResponse = await identityPoolClient.send(idpCommand);
-  idpResponse.SupportedLoginProviders;
   const data = {
     allowUnauthenticatedIdentities:
       idpResponse.AllowUnauthenticatedIdentities === true ? 'true' : 'false',
