@@ -1,15 +1,14 @@
 {
   "name": "@aws-amplify/reference-auth-construct",
   "version": "0.1.0",
-  "type": "module",
+  "type": "commonjs",
   "publishConfig": {
     "access": "public"
   },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "import": "./lib/index.js",
-      "require": "./lib/index.js"
+      "default": "./lib/index.js"
     }
   },
   "main": "lib/index.js",

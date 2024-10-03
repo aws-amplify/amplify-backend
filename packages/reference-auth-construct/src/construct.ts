@@ -19,25 +19,46 @@ import {
 import * as path from 'path';
 import { ReferenceAuthProps } from './types.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { fileURLToPath } from 'url';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { ReferenceAuthInitializerProps } from './lambda/reference_auth_initializer_types.js';
 
 const REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID =
-  'AmplifyRefAuthConfigCustomResourceProvider';
-const REFERENCE_AUTH_CUSTOM_RESOURCE_ID = 'AmplifyRefAuthConfigCustomResource';
-const RESOURCE_TYPE = 'Custom::AmplifyReferenceAuthConfigurationResource';
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
-const configurationLambdaFilePath = path.join(
+  'AmplifyRefAuthCustomResourceProvider';
+const REFERENCE_AUTH_CUSTOM_RESOURCE_ID = 'AmplifyRefAuthCustomResource';
+const RESOURCE_TYPE = 'Custom::AmplifyRefAuth';
+
+const resourcesRoot = path.normalize(path.join(__dirname, 'lambda'));
+const refAuthLambdaFilePath = path.join(
   resourcesRoot,
   'reference_auth_initializer.js'
 );
 
 const authStackType = 'auth-Cognito';
+
+/**
+ * These properties are fetched by the custom resource and must be accounted for
+ * in the final AuthOutput payload.
+ */
+const OUTPUT_PROPERTIES_PROVIDED_BY_CUSTOM_RESOURCE: (keyof AuthOutput['payload'])[] =
+  [
+    'allowUnauthenticatedIdentities',
+    'signupAttributes',
+    'usernameAttributes',
+    'verificationMechanisms',
+    'passwordPolicyMinLength',
+    'passwordPolicyRequirements',
+    'mfaConfiguration',
+    'mfaTypes',
+    'socialProviders',
+    'oauthCognitoDomain',
+    'oauthScope',
+    'oauthRedirectSignIn',
+    'oauthRedirectSignOut',
+    'oauthResponseType',
+    'oauthClientId',
+  ];
 /**
  * Reference Auth construct for using external auth resources
  */
@@ -89,19 +110,19 @@ export class AmplifyReferenceAuth
       });
     }
 
-    // custom resource provider
-    const configurationLambda = new NodejsFunction(
+    // custom resource lambda
+    const refAuthLambda = new NodejsFunction(
       scope,
       `${REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID}Lambda`,
       {
         runtime: Runtime.NODEJS_18_X,
         timeout: Duration.seconds(10),
-        entry: configurationLambdaFilePath,
+        entry: refAuthLambdaFilePath,
         handler: 'handler',
       }
     );
     // UserPool & UserPoolClient specific permissions
-    configurationLambda.grantPrincipal.addToPrincipalPolicy(
+    refAuthLambda.grantPrincipal.addToPrincipalPolicy(
       new aws_iam.PolicyStatement({
         effect: aws_iam.Effect.ALLOW,
         actions: [
@@ -115,7 +136,7 @@ export class AmplifyReferenceAuth
     );
     // IdentityPool specific permissions
     const stack = Stack.of(this);
-    configurationLambda.grantPrincipal.addToPrincipalPolicy(
+    refAuthLambda.grantPrincipal.addToPrincipalPolicy(
       new aws_iam.PolicyStatement({
         effect: aws_iam.Effect.ALLOW,
         actions: ['cognito-identity:DescribeIdentityPool'],
@@ -128,7 +149,7 @@ export class AmplifyReferenceAuth
       scope,
       REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID,
       {
-        onEventHandler: configurationLambda,
+        onEventHandler: refAuthLambda,
       }
     );
     const initializerProps: ReferenceAuthInitializerProps = {
@@ -154,7 +175,7 @@ export class AmplifyReferenceAuth
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       authStackType,
-      path.resolve(dirname, '..', 'package.json')
+      path.resolve(__dirname, '..', 'package.json')
     );
   }
 
@@ -174,52 +195,11 @@ export class AmplifyReferenceAuth
       authRegion: Stack.of(this).region,
     };
 
-    output.allowUnauthenticatedIdentities =
-      this.configurationCustomResource.getAttString(
-        'allowUnauthenticatedIdentities'
-      );
-    output.signupAttributes =
-      this.configurationCustomResource.getAttString('signupAttributes');
-    output.usernameAttributes =
-      this.configurationCustomResource.getAttString('usernameAttributes');
-    output.verificationMechanisms =
-      this.configurationCustomResource.getAttString('verificationMechanisms');
-
-    output.passwordPolicyMinLength =
-      this.configurationCustomResource.getAttString('passwordPolicyMinLength');
-
-    output.passwordPolicyRequirements =
-      this.configurationCustomResource.getAttString(
-        'passwordPolicyRequirements'
-      );
-
-    output.mfaConfiguration =
-      this.configurationCustomResource.getAttString('mfaConfiguration');
-
-    output.mfaTypes = this.configurationCustomResource.getAttString('mfaTypes');
-
-    output.socialProviders =
-      this.configurationCustomResource.getAttString('socialProviders');
-
-    output.oauthCognitoDomain =
-      this.configurationCustomResource.getAttString('oauthCognitoDomain');
-
-    output.oauthScope =
-      this.configurationCustomResource.getAttString('oauthScope');
-
-    output.oauthRedirectSignIn = this.configurationCustomResource.getAttString(
-      'oauthRedirectSignIn'
-    );
-
-    output.oauthRedirectSignOut = this.configurationCustomResource.getAttString(
-      'oauthRedirectSignOut'
-    );
-
-    output.oauthResponseType =
-      this.configurationCustomResource.getAttString('oauthResponseType');
-
-    output.oauthClientId =
-      this.configurationCustomResource.getAttString('oauthClientId');
+    // assign cdk tokens which will be resolved during deployment
+    for (const property of OUTPUT_PROPERTIES_PROVIDED_BY_CUSTOM_RESOURCE) {
+      output[property] =
+        this.configurationCustomResource.getAttString(property);
+    }
 
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',

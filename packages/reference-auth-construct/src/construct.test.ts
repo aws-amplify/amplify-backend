@@ -9,15 +9,30 @@ import {
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
 const refAuthProps: ReferenceAuthProps = {
-  authRoleArn:
-    'arn:aws:cognito-idp:us-east-1:000000000000:userpool/us-east-1_IDSAMPLE1',
+  authRoleArn: 'arn:aws:iam::000000000000:role/amplify-sample-auth-role-name',
   unauthRoleArn:
-    // eslint-disable-next-line spellcheck/spell-checker
-    'arn:aws:cognito-identity:us-east-1:000000000000:identitypool/us-east-1:00000000-abcd-efgh-ijkl-000000000000',
-  identityPoolId: 'identityPoolId',
+    'arn:aws:iam::000000000000:role/amplify-sample-unauth-role-name',
+  identityPoolId: 'us-east-1:identityPoolId',
   userPoolClientId: 'userPoolClientId',
-  userPoolId: 'userPoolId',
+  userPoolId: 'us-east-1_userPoolId',
 };
+const customResourceProperties = [
+  'allowUnauthenticatedIdentities',
+  'signupAttributes',
+  'usernameAttributes',
+  'verificationMechanisms',
+  'passwordPolicyMinLength',
+  'passwordPolicyRequirements',
+  'mfaConfiguration',
+  'mfaTypes',
+  'socialProviders',
+  'oauthCognitoDomain',
+  'oauthScope',
+  'oauthRedirectSignIn',
+  'oauthRedirectSignOut',
+  'oauthResponseType',
+  'oauthClientId',
+];
 void describe('AmplifyConstruct', () => {
   // beforeEach(() => {
 
@@ -26,20 +41,77 @@ void describe('AmplifyConstruct', () => {
     const app = new App();
     const stack = new Stack(app);
     new AmplifyReferenceAuth(stack, 'test', refAuthProps);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const template = Template.fromStack(stack);
     // check that custom resource is created with properties
-    template.hasResourceProperties(
-      'Custom::AmplifyReferenceAuthConfigurationResource',
-      {
-        identityPoolId: 'identityPoolId',
-        userPoolId: 'userPoolId',
-        userPoolClientId: 'userPoolClientId',
-      }
-    );
-    // check custom resource lambda provider permissions
+    template.hasResourceProperties('Custom::AmplifyRefAuth', {
+      identityPoolId: refAuthProps.identityPoolId,
+      userPoolId: refAuthProps.userPoolId,
+      userPoolClientId: refAuthProps.userPoolClientId,
+    });
+  });
 
-    // check custom resource lambda permissions
+  void it('creates policy documents for custom resource', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyReferenceAuth(stack, 'test', refAuthProps);
+    const template = Template.fromStack(stack);
+    const policyStatements = [
+      {
+        Action: [
+          'cognito-idp:DescribeUserPool',
+          'cognito-idp:GetUserPoolMfaConfig',
+          'cognito-idp:ListIdentityProviders',
+          'cognito-idp:DescribeUserPoolClient',
+        ],
+        Effect: 'Allow',
+        Resource: {
+          'Fn::Join': [
+            '',
+            [
+              'arn:',
+              {
+                Ref: 'AWS::Partition',
+              },
+              ':cognito-idp:',
+              {
+                Ref: 'AWS::Region',
+              },
+              ':',
+              {
+                Ref: 'AWS::AccountId',
+              },
+              `:userpool/${refAuthProps.userPoolId}`,
+            ],
+          ],
+        },
+      },
+      {
+        Action: 'cognito-identity:DescribeIdentityPool',
+        Effect: 'Allow',
+        Resource: {
+          'Fn::Join': [
+            '',
+            [
+              'arn:aws:cognito-identity:',
+              {
+                Ref: 'AWS::Region',
+              },
+              ':',
+              {
+                Ref: 'AWS::AccountId',
+              },
+              `:identitypool/${refAuthProps.identityPoolId}`,
+            ],
+          ],
+        },
+      },
+    ];
+    template.hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: policyStatements,
+        Version: '2012-10-17',
+      },
+    });
   });
 
   void it('generates the correct output values', () => {
@@ -49,17 +121,14 @@ void describe('AmplifyConstruct', () => {
     const template = Template.fromStack(stack);
     // check that outputs reference custom resource attributes
     const outputs = template.findOutputs('*');
-    const allowUnauthenticatedIdentitiesRef =
-      outputs['allowUnauthenticatedIdentities']['Value'];
-    assert.deepEqual(
-      {
-        'Fn::GetAtt': [
-          'AmplifyRefAuthConfigCustomResource',
-          'allowUnauthenticatedIdentities',
-        ],
-      },
-      allowUnauthenticatedIdentitiesRef
-    );
+    for (const property of customResourceProperties) {
+      const expectedValue = {
+        'Fn::GetAtt': ['AmplifyRefAuthCustomResource', `${property}`],
+      };
+      assert.ok(outputs[property]);
+      const actualValue = outputs[property]['Value'];
+      assert.deepEqual(actualValue, expectedValue);
+    }
   });
 
   void describe('storeOutput strategy', () => {
@@ -117,20 +186,20 @@ void describe('AmplifyConstruct', () => {
               'identityPoolId',
               'authRegion',
               'allowUnauthenticatedIdentities',
-              // 'signupAttributes',
-              // 'usernameAttributes',
-              // 'verificationMechanisms',
-              // 'passwordPolicyMinLength',
-              // 'passwordPolicyRequirements',
-              // 'mfaConfiguration',
-              // 'mfaTypes',
-              // 'socialProviders',
-              // 'oauthCognitoDomain',
-              // 'oauthScope',
-              // 'oauthRedirectSignIn',
-              // 'oauthRedirectSignOut',
-              // 'oauthResponseType',
-              // 'oauthClientId',
+              'signupAttributes',
+              'usernameAttributes',
+              'verificationMechanisms',
+              'passwordPolicyMinLength',
+              'passwordPolicyRequirements',
+              'mfaConfiguration',
+              'mfaTypes',
+              'socialProviders',
+              'oauthCognitoDomain',
+              'oauthScope',
+              'oauthRedirectSignIn',
+              'oauthRedirectSignOut',
+              'oauthResponseType',
+              'oauthClientId',
             ],
           },
         },
