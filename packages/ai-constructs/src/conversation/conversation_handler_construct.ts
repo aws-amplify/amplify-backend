@@ -21,8 +21,8 @@ import { Construct } from 'constructs';
 import path from 'path';
 import { TagName } from '@aws-amplify/platform-core';
 import {
-  FunctionOutput,
-  functionOutputKey,
+  AiConversationOutput,
+  aiConversationOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 
 const resourcesRoot = path.normalize(path.join(__dirname, 'runtime'));
@@ -37,7 +37,7 @@ export type ConversationHandlerFunctionProps = {
   /**
    * @internal
    */
-  outputStorageStrategy?: BackendOutputStorageStrategy<FunctionOutput>;
+  outputStorageStrategy?: BackendOutputStorageStrategy<AiConversationOutput>;
 };
 
 /**
@@ -134,13 +134,13 @@ export class ConversationHandlerFunction
    */
   private storeOutput = (
     outputStorageStrategy:
-      | BackendOutputStorageStrategy<FunctionOutput>
+      | BackendOutputStorageStrategy<AiConversationOutput>
       | undefined
   ): void => {
-    outputStorageStrategy?.appendToBackendOutputList(functionOutputKey, {
+    outputStorageStrategy?.appendToBackendOutputList(aiConversationOutputKey, {
       version: '1',
       payload: {
-        definedFunctions: this.resources.lambda.functionName,
+        definedConversationHandlers: this.resources.lambda.functionName,
       },
     });
   };

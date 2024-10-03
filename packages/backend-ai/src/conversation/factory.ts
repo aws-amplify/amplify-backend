@@ -1,4 +1,4 @@
-import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
+import { AiConversationOutput } from '@aws-amplify/backend-output-schemas';
 import {
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
@@ -22,7 +22,7 @@ class ConversationHandlerFunctionGenerator
 
   constructor(
     private readonly props: DefineConversationHandlerFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<AiConversationOutput>
   ) {}
 
   generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
