@@ -1,5 +1,5 @@
 import { ConversationTurnResponseSender } from './conversation_turn_response_sender.js';
-import { ConversationTurnEvent, ExecutableTool } from './types.js';
+import { ConversationTurnEvent, ExecutableTool, JSONSchema } from './types.js';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter.js';
 
 /**
@@ -55,7 +55,10 @@ export class ConversationTurnExecutor {
  */
 export const handleConversationTurnEvent = async (
   event: ConversationTurnEvent,
-  props?: { tools?: Array<ExecutableTool> }
+  // This is by design, so that tools with different input types can be added
+  // to single arrays. Downstream code doesn't use these types.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  props?: { tools?: Array<ExecutableTool<JSONSchema, any>> }
 ): Promise<void> => {
   await new ConversationTurnExecutor(event, props?.tools ?? []).execute();
 };

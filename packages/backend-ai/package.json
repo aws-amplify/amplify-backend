@@ -29,7 +29,6 @@
     "@aws-amplify/plugin-types": "^1.0.1"
   },
   "peerDependencies": {
-    "@smithy/types": "^3.3.0",
     "aws-cdk-lib": "^2.152.0",
     "constructs": "^10.0.0"
   }
