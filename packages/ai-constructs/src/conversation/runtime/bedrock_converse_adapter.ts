@@ -7,6 +7,7 @@ import {
   Message,
   Tool,
   ToolConfiguration,
+  ToolInputSchema,
 } from '@aws-sdk/client-bedrock-runtime';
 import {
   ConversationTurnEvent,
@@ -171,7 +172,9 @@ export class BedrockConverseAdapter {
           toolSpec: {
             name: t.name,
             description: t.description,
-            inputSchema: t.inputSchema,
+            // We have to cast to bedrock type as we're using different types to describe JSON schema in our API.
+            // These types are runtime compatible.
+            inputSchema: t.inputSchema as ToolInputSchema,
           },
         };
       }),

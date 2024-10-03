@@ -9,8 +9,8 @@
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import * as jsonSchemaToTypeScript from 'json-schema-to-ts';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import * as smithy from '@smithy/types';
 
 declare namespace __export__conversation {
     export {
@@ -25,10 +25,12 @@ declare namespace __export__conversation__runtime {
         ConversationMessage,
         ConversationMessageContentBlock,
         ConversationTurnEvent,
+        createExecutableTool,
         ExecutableTool,
+        FromJSONSchema,
+        JSONSchema,
         handleConversationTurnEvent,
         ToolDefinition,
-        ToolExecutionInput,
         ToolInputSchema,
         ToolResultContentBlock
     }
@@ -111,28 +113,36 @@ type ConversationTurnEvent = {
     };
 };
 
+// @public
+const createExecutableTool: <TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: ToolInputSchema<TJSONSchema>, handler: (input: TToolInput) => Promise<bedrock.ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
+
 // @public (undocumented)
-type ExecutableTool = ToolDefinition & {
-    execute: (input: ToolExecutionInput | undefined) => Promise<ToolResultContentBlock>;
+type ExecutableTool<TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>> = ToolDefinition<TJSONSchema> & {
+    execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };
+
+// @public (undocumented)
+type FromJSONSchema<TJSONSchema extends JSONSchema> = jsonSchemaToTypeScript.FromSchema<TJSONSchema>;
 
 // @public
 const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
-    tools?: Array<ExecutableTool>;
+    tools?: Array<ExecutableTool<JSONSchema, any>>;
 }) => Promise<void>;
 
 // @public (undocumented)
-type ToolDefinition = {
+type JSONSchema = jsonSchemaToTypeScript.JSONSchema;
+
+// @public (undocumented)
+type ToolDefinition<TJSONSchema extends JSONSchema = JSONSchema> = {
     name: string;
     description: string;
-    inputSchema: ToolInputSchema;
+    inputSchema: ToolInputSchema<TJSONSchema>;
 };
 
 // @public (undocumented)
-type ToolExecutionInput = smithy.DocumentType;
-
-// @public (undocumented)
-type ToolInputSchema = bedrock.ToolInputSchema;
+type ToolInputSchema<TJSONSchema extends JSONSchema> = {
+    json: TJSONSchema;
+};
 
 // @public (undocumented)
 type ToolResultContentBlock = bedrock.ToolResultContentBlock;
