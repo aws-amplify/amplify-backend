@@ -30,14 +30,12 @@ import {
 } from './reference_factory.js';
 
 const defaultReferenceAuthProps: AmplifyReferenceAuthProps = {
-  authRoleArn:
-    'arn:aws:cognito-idp:us-east-1:000000000000:userpool/us-east-1_IDSAMPLE1',
+  authRoleArn: 'arn:aws:iam::000000000000:role/amplify-sample-auth-role-name',
   unauthRoleArn:
-    // eslint-disable-next-line spellcheck/spell-checker
-    'arn:aws:cognito-identity:us-east-1:000000000000:identitypool/us-east-1:00000000-abcd-efgh-ijkl-000000000000',
-  identityPoolId: 'identityPoolId',
+    'arn:aws:iam::000000000000:role/amplify-sample-unauth-role-name',
+  identityPoolId: 'us-east-1:identityPoolId',
   userPoolClientId: 'userPoolClientId',
-  userPoolId: 'userPoolId',
+  userPoolId: 'us-east-1_userPoolId',
 };
 
 const createStackAndSetContext = (): Stack => {
@@ -100,10 +98,7 @@ void describe('AmplifyReferenceAuthFactory', () => {
 
     const template = Template.fromStack(backendAuth.stack);
 
-    template.resourceCountIs(
-      'Custom::AmplifyReferenceAuthConfigurationResource',
-      1
-    );
+    template.resourceCountIs('Custom::AmplifyRefAuth', 1);
   });
 
   void it('verifies constructor import path', () => {
