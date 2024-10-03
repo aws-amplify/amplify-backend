@@ -76,6 +76,12 @@ export class BackendFactory<
       stack
     );
 
+    // TODO this is a hack
+    stack.node.setContext(
+      'amplify-output-storage-strategy',
+      outputStorageStrategy
+    );
+
     this.customOutputsAccumulator = new CustomOutputsAccumulator(
       outputStorageStrategy,
       new ObjectAccumulator<ClientConfig>({})
