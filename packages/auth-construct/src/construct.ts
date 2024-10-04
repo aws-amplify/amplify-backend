@@ -510,10 +510,9 @@ export class AmplifyAuth
                 replyTo: props.senders.email.replyTo,
                 sesRegion: Stack.of(this).region,
               });
-            } 
-              // This handles the ConstructFactory<ResourceProvider<FunctionResources>> case
-              return undefined;
-            
+            }
+            // This handles the ConstructFactory<ResourceProvider<FunctionResources>> case
+            return undefined;
           })()
         : undefined,
       lambdaTriggers: {

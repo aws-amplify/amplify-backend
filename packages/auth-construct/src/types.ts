@@ -1,10 +1,8 @@
 import { SecretValue, aws_cognito as cognito } from 'aws-cdk-lib';
 import { triggerEvents } from './trigger_events.js';
 import {
+  AmplifyFunction,
   BackendOutputStorageStrategy,
-  ConstructFactory,
-  FunctionResources,
-  ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import {
@@ -14,6 +12,7 @@ import {
   UserPoolIdentityProviderSamlMetadata,
   UserPoolSESOptions,
 } from 'aws-cdk-lib/aws-cognito';
+import { IFunction } from 'aws-cdk-lib/aws-lambda/index.js';
 export type VerificationEmailWithLink = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
@@ -428,7 +427,9 @@ export type AuthProps = {
      */
     email:
       | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
-      | ConstructFactory<ResourceProvider<FunctionResources>>;
+      // | ConstructFactory<ResourceProvider<FunctionResources>>;
+      | IFunction
+      | AmplifyFunction;
   };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html

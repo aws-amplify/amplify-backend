@@ -10,6 +10,7 @@ import {
 import { CfnUserPoolClient, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DEFAULTS } from './defaults.js';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda/index.js';
 // import { defineFunction } from '@aws-amplify/backend-function';
 
 const googleClientId = 'googleClientId';
@@ -574,32 +575,34 @@ void describe('Auth construct', () => {
     });
   });
 
-  // void it('sets customEmailSender when Lambda function is provided as email sender', () => {
-  //   const app = new App();
-  //   const stack = new Stack(app);
-  //   const mockFunction = defineFunction({
-  //     entry: './test-assets/default-lambda/handler.ts',
-  //     name: 'mock-function',
-  //   });
-  //   new AmplifyAuth(stack, 'test', {
-  //     loginWith: { email: true },
-  //     senders: {
-  //       email: mockFunction,
-  //     },
-  //   });
-  //   // const mockFunctionArn = mockFunction.functionArn;
+  void it('sets customEmailSender when Lambda function is provided as email sender', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const testFunc = new Function(stack, 'testFunc', {
+      code: Code.fromInline('test code'),
+      handler: 'index.handler',
+      runtime: Runtime.NODEJS_18_X,
+    });
+    new AmplifyAuth(stack, 'test', {
+      loginWith: { email: true },
+      senders: {
+        email: testFunc,
+      },
+    });
 
-  //   const template = Template.fromStack(stack);
-  //   template.hasResourceProperties('AWS::Cognito::UserPool', {
-  //     LambdaConfig: Match.objectLike({
-  //       CustomEmailSender: Match.objectLike({
-  //         LambdaArn:
-  //           'arn:aws:lambda:us-west-2:123456789012:function:mock-function',
-  //         LambdaVersion: 'V1_0',
-  //       }),
-  //     }),
-  //   });
-  // });
+    const template = Template.fromStack(stack);
+    const lambdas = template.findResources('AWS::Lambda::Function');
+    if (Object.keys(lambdas).length !== 1) {
+      assert.fail('Expected one Lambda function resource in the template');
+    }
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        CustomEmailSender: {
+          LambdaArn: lambdas[Object.keys(lambdas)[0]].Properties.Arn,
+        },
+      },
+    });
+  });
 
   void it('requires email attribute if email is enabled', () => {
     const app = new App();
