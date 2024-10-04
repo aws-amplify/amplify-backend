@@ -22,7 +22,7 @@ import { UserPoolSESOptions } from 'aws-cdk-lib/aws-cognito';
 // @public
 export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazonProps, 'userPool' | 'attributeMapping'> & IdentityProviderProps;
 
-// @public (undocumented)
+// @public
 export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
     readonly resources: AuthResources;

@@ -427,7 +427,6 @@ export type AuthProps = {
      */
     email:
       | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
-      // | ConstructFactory<ResourceProvider<FunctionResources>>;
       | IFunction
       | AmplifyFunction;
   };
