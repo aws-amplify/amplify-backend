@@ -1,7 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyAuth } from './construct.js';
 import { App, SecretValue, Stack, aws_cognito } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import {
   BackendOutputEntry,
@@ -590,16 +590,16 @@ void describe('Auth construct', () => {
     });
 
     const template = Template.fromStack(stack);
-    const lambdas = template.findResources('AWS::Lambda::Function');
-    if (Object.keys(lambdas).length !== 1) {
-      assert.fail('Expected one Lambda function resource in the template');
-    }
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       LambdaConfig: {
         CustomEmailSender: {
-          LambdaArn: lambdas[Object.keys(lambdas)[0]].Properties.Arn,
+          LambdaArn: {
+            'Fn::GetAtt': [Match.anyValue(), 'Arn'],
+          },
+          LambdaVersion: 'V1_0',
         },
       },
+      CustomSenderKmsKeyId: Match.anyValue(),
     });
   });
 
