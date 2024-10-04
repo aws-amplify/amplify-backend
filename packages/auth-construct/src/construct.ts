@@ -511,7 +511,6 @@ export class AmplifyAuth
                 sesRegion: Stack.of(this).region,
               });
             }
-            // This handles the ConstructFactory<ResourceProvider<FunctionResources>> case
             return undefined;
           })()
         : undefined,

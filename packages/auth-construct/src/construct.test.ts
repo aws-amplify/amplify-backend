@@ -11,7 +11,6 @@ import { CfnUserPoolClient, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DEFAULTS } from './defaults.js';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda/index.js';
-// import { defineFunction } from '@aws-amplify/backend-function';
 
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
@@ -575,7 +574,7 @@ void describe('Auth construct', () => {
     });
   });
 
-  void it('sets customEmailSender when Lambda function is provided as email sender', () => {
+  void it('sets customEmailSender when function is provided as email sender', () => {
     const app = new App();
     const stack = new Stack(app);
     const testFunc = new Function(stack, 'testFunc', {
