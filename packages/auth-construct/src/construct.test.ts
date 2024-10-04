@@ -594,10 +594,11 @@ void describe('Auth construct', () => {
     if (Object.keys(lambdas).length !== 1) {
       assert.fail('Expected one Lambda function resource in the template');
     }
+    const handlerLogicalId = Object.keys(lambdas)[0];
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       LambdaConfig: {
-        CustomEmailSender: {
-          LambdaArn: lambdas[Object.keys(lambdas)[0]].Properties.Arn,
+        CreateAuthChallenge: {
+          ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
         },
       },
     });
