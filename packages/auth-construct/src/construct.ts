@@ -35,7 +35,6 @@ import {
   UserPoolIdentityProviderSaml,
   UserPoolIdentityProviderSamlMetadataType,
   UserPoolProps,
-  UserPoolSESOptions,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
@@ -101,21 +100,6 @@ const DEFAULT_OAUTH_SCOPES = [
 
 // Be very careful editing this value. It is the string that is used to attribute stacks to Amplify Auth in BI metrics
 const authStackType = 'auth-Cognito';
-
-/**
- * Amplify Auth CDK Construct
- */
-const isSESEmailConfig = (
-  email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
-): email is Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> => {
-  return (
-    typeof email === 'object' &&
-    email !== null &&
-    'fromEmail' in email &&
-    'fromName' in email &&
-    'replyTo' in email
-  );
-};
 
 /**
  *
@@ -517,36 +501,27 @@ export class AmplifyAuth
       customAttributes: {
         ...customAttributes,
       },
-      email: props.senders?.email
-        ? isSESEmailConfig(props.senders.email)
-          ? cognito.UserPoolEmail.withSES({
-              fromEmail: (
-                props.senders.email as Pick<
-                  UserPoolSESOptions,
-                  'fromEmail' | 'fromName' | 'replyTo'
-                >
-              ).fromEmail,
-              fromName: (
-                props.senders.email as Pick<
-                  UserPoolSESOptions,
-                  'fromEmail' | 'fromName' | 'replyTo'
-                >
-              ).fromName,
-              replyTo: (
-                props.senders.email as Pick<
-                  UserPoolSESOptions,
-                  'fromEmail' | 'fromName' | 'replyTo'
-                >
-              ).replyTo,
-              sesRegion: Stack.of(this).region,
-            })
-          : undefined
+      email: props.senders
+        ? (() => {
+            if ('fromEmail' in props.senders.email) {
+              return cognito.UserPoolEmail.withSES({
+                fromEmail: props.senders.email.fromEmail,
+                fromName: props.senders.email.fromName,
+                replyTo: props.senders.email.replyTo,
+                sesRegion: Stack.of(this).region,
+              });
+            } 
+              // This handles the ConstructFactory<ResourceProvider<FunctionResources>> case
+              return undefined;
+            
+          })()
         : undefined,
       lambdaTriggers: {
         ...(props.senders?.email instanceof lambda.Function
           ? { customEmailSender: props.senders.email }
           : {}),
       },
+
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
       mfaMessage: this.getMFAMessage(props.multifactor),
