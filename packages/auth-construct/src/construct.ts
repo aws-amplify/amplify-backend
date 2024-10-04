@@ -52,6 +52,7 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Key } from 'aws-cdk-lib/aws-kms';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -131,6 +132,8 @@ export class AmplifyAuth
       role: Role;
     };
   } = {};
+
+  private customSenderKmsKey: Key | undefined;
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -215,6 +218,13 @@ export class AmplifyAuth
       authStackType,
       path.resolve(__dirname, '..', 'package.json')
     );
+
+    if (props.senders?.email) {
+      this.customSenderKmsKey = new Key(this, 'CustomSenderKey', {
+        description: 'KMS key for Cognito custom sender',
+        enableKeyRotation: true,
+      });
+    }
   }
 
   /**
@@ -519,6 +529,7 @@ export class AmplifyAuth
           ? { customEmailSender: props.senders.email }
           : {}),
       },
+      customSenderKmsKey: this.customSenderKmsKey,
 
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
