@@ -35,6 +35,7 @@ import {
   UserPoolIdentityProviderSaml,
   UserPoolIdentityProviderSamlMetadataType,
   UserPoolProps,
+  UserPoolSESOptions,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
@@ -104,6 +105,21 @@ const authStackType = 'auth-Cognito';
 /**
  * Amplify Auth CDK Construct
  */
+const isSESEmailConfig = (
+  email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
+): email is Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> => {
+  return (
+    typeof email === 'object' &&
+    email !== null &&
+    'fromEmail' in email &&
+    'fromName' in email &&
+    'replyTo' in email
+  );
+};
+
+/**
+ *
+ */
 export class AmplifyAuth
   extends Construct
   implements ResourceProvider<AuthResources>
@@ -142,7 +158,6 @@ export class AmplifyAuth
     props: AuthProps = DEFAULTS.IF_NO_PROPS_PROVIDED
   ) {
     super(scope, id);
-
     this.name = props.name ?? '';
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
 
@@ -159,7 +174,6 @@ export class AmplifyAuth
       this.userPool,
       props.loginWith
     );
-
     // UserPool Client
     const userPoolClient = new cognito.UserPoolClient(
       this,
@@ -503,13 +517,30 @@ export class AmplifyAuth
       customAttributes: {
         ...customAttributes,
       },
-      email: props.senders
-        ? cognito.UserPoolEmail.withSES({
-            fromEmail: props.senders.email.fromEmail,
-            fromName: props.senders.email.fromName,
-            replyTo: props.senders.email.replyTo,
-            sesRegion: Stack.of(this).region,
-          })
+      email: props.senders?.email
+        ? isSESEmailConfig(props.senders.email)
+          ? cognito.UserPoolEmail.withSES({
+              fromEmail: (
+                props.senders.email as Pick<
+                  UserPoolSESOptions,
+                  'fromEmail' | 'fromName' | 'replyTo'
+                >
+              ).fromEmail,
+              fromName: (
+                props.senders.email as Pick<
+                  UserPoolSESOptions,
+                  'fromEmail' | 'fromName' | 'replyTo'
+                >
+              ).fromName,
+              replyTo: (
+                props.senders.email as Pick<
+                  UserPoolSESOptions,
+                  'fromEmail' | 'fromName' | 'replyTo'
+                >
+              ).replyTo,
+              sesRegion: Stack.of(this).region,
+            })
+          : undefined
         : undefined,
       lambdaTriggers: {
         ...(props.senders?.email instanceof lambda.Function
