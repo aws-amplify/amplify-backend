@@ -36,7 +36,11 @@ import {
   UserPoolIdentityProviderSamlMetadataType,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
-import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
+import {
+  FederatedPrincipal,
+  Role,
+  ServicePrincipal,
+} from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
   AttributeMapping,
@@ -219,10 +223,18 @@ export class AmplifyAuth
       path.resolve(__dirname, '..', 'package.json')
     );
 
-    if (props.senders?.email) {
+    if (
+      props.senders?.email &&
+      props.senders.email instanceof lambda.Function
+    ) {
       this.customSenderKmsKey = new Key(this, 'CustomSenderKey', {
         description: 'KMS key for Cognito custom sender',
         enableKeyRotation: true,
+      });
+      this.customSenderKmsKey.grantDecrypt(props.senders.email);
+      props.senders.email.addPermission('CognitoInvokeEmail', {
+        principal: new ServicePrincipal('cognito-idp.amazonaws.com'),
+        action: 'lambda:InvokeFunction',
       });
     }
   }
