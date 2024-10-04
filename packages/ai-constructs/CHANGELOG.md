@@ -1,5 +1,17 @@
 # @aws-amplify/ai-constructs
 
+## 0.3.0
+
+### Minor Changes
+
+- 300a72d: Infer executable tool input type from input schema
+- 0a5e51c: Stream conversation logs in sandbox
+
+### Patch Changes
+
+- Updated dependencies [0a5e51c]
+  - @aws-amplify/backend-output-schemas@1.3.0
+
 ## 0.2.0
 
 ### Minor Changes

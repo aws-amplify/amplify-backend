@@ -1,5 +1,11 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.3.0
+
+### Minor Changes
+
+- 0a5e51c: Stream conversation logs in sandbox
+
 ## 1.2.1
 
 ### Patch Changes
