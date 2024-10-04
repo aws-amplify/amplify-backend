@@ -598,7 +598,9 @@ void describe('Auth construct', () => {
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       LambdaConfig: {
         CustomEmailSender: {
-          ['Fn::GetAtt']: [handlerLogicalId, 'Arn'],
+          LambdaArn: {
+            'Fn::GetAtt': [handlerLogicalId, 'Arn'],
+          },
         },
       },
     });
