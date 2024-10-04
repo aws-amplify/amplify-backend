@@ -36,11 +36,7 @@ import {
   UserPoolIdentityProviderSamlMetadataType,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
-import {
-  FederatedPrincipal,
-  Role,
-  ServicePrincipal,
-} from 'aws-cdk-lib/aws-iam';
+import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
   AttributeMapping,
@@ -151,13 +147,27 @@ export class AmplifyAuth
     super(scope, id);
     this.name = props.name ?? '';
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
-
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
+
+    const userPoolProps = {
+      ...this.computedUserPoolProps,
+    };
+
+    if (props.senders?.email) {
+      if (!this.customSenderKmsKey) {
+        this.customSenderKmsKey = new Key(this, 'CustomSenderKey', {
+          description: 'KMS key for Cognito custom sender',
+          enableKeyRotation: true,
+        });
+      }
+      userPoolProps.customSenderKmsKey = this.customSenderKmsKey;
+    }
+
     this.userPool = new cognito.UserPool(
       this,
       `${this.name}UserPool`,
-      this.computedUserPoolProps
+      userPoolProps
     );
 
     // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
@@ -223,20 +233,7 @@ export class AmplifyAuth
       path.resolve(__dirname, '..', 'package.json')
     );
 
-    if (
-      props.senders?.email &&
-      props.senders.email instanceof lambda.Function
-    ) {
-      this.customSenderKmsKey = new Key(this, 'CustomSenderKey', {
-        description: 'KMS key for Cognito custom sender',
-        enableKeyRotation: true,
-      });
-      this.customSenderKmsKey.grantDecrypt(props.senders.email);
-      props.senders.email.addPermission('CognitoInvokeEmail', {
-        principal: new ServicePrincipal('cognito-idp.amazonaws.com'),
-        action: 'lambda:InvokeFunction',
-      });
-    }
+    // Custom sender KMS key is now created earlier in the constructor
   }
 
   /**
@@ -541,7 +538,6 @@ export class AmplifyAuth
           ? { customEmailSender: props.senders.email }
           : {}),
       },
-      customSenderKmsKey: this.customSenderKmsKey,
 
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
