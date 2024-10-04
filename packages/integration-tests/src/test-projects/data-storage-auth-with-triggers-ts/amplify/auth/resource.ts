@@ -24,5 +24,5 @@ export const auth = defineAuth({
   triggers: {
     postConfirmation: defaultNodeFunc,
   },
-  groups: ['Admins'],
+  groups: ['Editors', 'Admins'],
 });
