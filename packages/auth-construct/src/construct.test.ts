@@ -10,7 +10,7 @@ import {
 import { CfnUserPoolClient, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DEFAULTS } from './defaults.js';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda/index.js';
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';

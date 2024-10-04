@@ -12,7 +12,7 @@ import {
   UserPoolIdentityProviderSamlMetadata,
   UserPoolSESOptions,
 } from 'aws-cdk-lib/aws-cognito';
-import { IFunction } from 'aws-cdk-lib/aws-lambda/index.js';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 export type VerificationEmailWithLink = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
