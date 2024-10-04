@@ -47,6 +47,18 @@ console.log(
 
 const packagePaths = await glob(`${latestRepositoryPath}/packages/*`);
 
+const excludedTypesByPackageName: Record<string, Array<string>> = {
+  'ai-constructs': [
+    // FromJSONSchema is complex enough to trigger
+    // index.ts(113,9): error TS2589: Type instantiation is excessively deep and possibly infinite.
+    // index.ts(113,87): error TS2589: Type instantiation is excessively deep and possibly infinite.
+    // index.ts(113,87): error TS2590: Expression produces a union type that is too complex to represent.
+    // See https://github.com/ThomasAribart/json-schema-to-ts/blob/main/documentation/FAQs/i-get-a-type-instantiation-is-excessively-deep-and-potentially-infinite-error-what-should-i-do.md.
+    // Therefore, excluding this type from checks.
+    'FromJSONSchema',
+  ],
+};
+
 const validationResults = await Promise.allSettled(
   packagePaths.map(async (packagePath) => {
     const packageName = path.basename(packagePath);
@@ -70,7 +82,8 @@ const validationResults = await Promise.allSettled(
     await new ApiChangesValidator(
       packagePath,
       baselinePackageApiReportPath,
-      workingDirectory
+      workingDirectory,
+      excludedTypesByPackageName[packageName]
     ).validate();
     console.log(`Validation of ${packageName} completed successfully`);
   })
