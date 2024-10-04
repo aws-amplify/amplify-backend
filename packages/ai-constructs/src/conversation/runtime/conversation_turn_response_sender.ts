@@ -23,18 +23,17 @@ export class ConversationTurnResponseSender {
     private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
       event.graphqlApiEndpoint,
       event.request.headers.authorization
-    )
+    ),
+    private readonly logger = console
   ) {}
 
   sendResponse = async (message: ContentBlock[]) => {
-    const { query, variables } = this.createMutationRequest(message);
+    const responseMutationRequest = this.createMutationRequest(message);
+    this.logger.debug('Sending response mutation:', responseMutationRequest);
     await this.graphqlRequestExecutor.executeGraphql<
       MutationResponseInput,
       void
-    >({
-      query,
-      variables,
-    });
+    >(responseMutationRequest);
   };
 
   private createMutationRequest = (content: ContentBlock[]) => {

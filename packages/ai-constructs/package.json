@@ -26,12 +26,15 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-amplify/backend-output-schemas": "^1.2.1",
+    "@aws-amplify/platform-core": "^1.1.0",
     "@aws-amplify/plugin-types": "^1.0.1",
     "@aws-sdk/client-bedrock-runtime": "^3.622.0",
     "@smithy/types": "^3.3.0",
     "json-schema-to-ts": "^3.1.1"
   },
   "devDependencies": {
+    "@aws-amplify/backend-output-storage": "^1.1.2",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {

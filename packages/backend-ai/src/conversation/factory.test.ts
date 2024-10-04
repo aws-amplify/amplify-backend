@@ -158,8 +158,8 @@ void describe('ConversationHandlerFactory', () => {
       });
       factory.getInstance(getInstanceProps);
       const template = Template.fromStack(rootStack);
-      const outputValue =
-        template.findOutputs('definedFunctions').definedFunctions.Value;
+      const outputValue = template.findOutputs('definedConversationHandlers')
+        .definedConversationHandlers.Value;
       assert.deepStrictEqual(outputValue, {
         ['Fn::Join']: [
           '',

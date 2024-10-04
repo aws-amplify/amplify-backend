@@ -29,6 +29,7 @@ export class ConversationTurnExecutor {
       this.logger.log(
         `Handling conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
       );
+      this.logger.debug('Event received:', this.event);
 
       const assistantResponse = await this.bedrockConverseAdapter.askBedrock();
 

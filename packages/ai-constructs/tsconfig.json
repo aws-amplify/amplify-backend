@@ -9,5 +9,10 @@
     "outDir": "lib",
     "allowJs": true
   },
-  "references": [{ "path": "../plugin-types" }]
+  "references": [
+    { "path": "../backend-output-schemas" },
+    { "path": "../platform-core" },
+    { "path": "../plugin-types" },
+    { "path": "../backend-output-storage" }
+  ]
 }

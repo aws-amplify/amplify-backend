@@ -1,7 +1,4 @@
-import {
-  FunctionOutput,
-  functionOutputKey,
-} from '@aws-amplify/backend-output-schemas';
+import { AIConversationOutput } from '@aws-amplify/backend-output-schemas';
 import {
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
@@ -25,7 +22,7 @@ class ConversationHandlerFunctionGenerator
 
   constructor(
     private readonly props: DefineConversationHandlerFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<AIConversationOutput>
   ) {}
 
   generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
@@ -43,32 +40,14 @@ class ConversationHandlerFunctionGenerator
           region: model.region,
         };
       }),
+      outputStorageStrategy: this.outputStorageStrategy,
     };
     const conversationHandlerFunction = new ConversationHandlerFunction(
       scope,
       this.props.name,
       constructProps
     );
-    this.storeOutput(this.outputStorageStrategy, conversationHandlerFunction);
     return conversationHandlerFunction;
-  };
-
-  /**
-   * Append conversation handler to defined functions.
-   * Explicitly defined custom handler is customer's function and should be visible
-   * in the outputs.
-   */
-  private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
-    conversationHandlerFunction: ConversationHandlerFunction
-  ): void => {
-    outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
-      version: '1',
-      payload: {
-        definedFunctions:
-          conversationHandlerFunction.resources.lambda.functionName,
-      },
-    });
   };
 }
 
