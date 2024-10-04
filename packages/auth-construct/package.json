@@ -22,8 +22,7 @@
     "@aws-amplify/backend-output-schemas": "^1.1.0",
     "@aws-amplify/backend-output-storage": "^1.1.2",
     "@aws-amplify/plugin-types": "^1.2.2",
-    "@aws-sdk/util-arn-parser": "^3.568.0",
-    "@aws-amplify/backend-function": "^1.1.0"
+    "@aws-sdk/util-arn-parser": "^3.568.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.152.0",
