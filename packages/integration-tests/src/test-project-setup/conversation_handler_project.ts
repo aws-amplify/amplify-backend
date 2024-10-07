@@ -30,7 +30,7 @@ import { NormalizedCacheObject } from '@apollo/client';
 import {
   bedrockModelId,
   expectedTemperatureInDataToolScenario,
-  expectedTemperatureInProgrammaticToolScenario,
+  expectedTemperaturesInProgrammaticToolScenario,
 } from '../test-projects/conversation-handler/amplify/constants.js';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -581,7 +581,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       role: 'user',
       content: [
         {
-          text: 'What is the temperature in Seattle?',
+          text: 'What is the temperature in Seattle, Boston and Miami?',
         },
       ],
     };
@@ -605,7 +605,21 @@ class ConversationHandlerTestProject extends TestProjectBase {
     // Assert that tool was used. I.e. LLM used value provided by the tool.
     assert.match(
       response.content,
-      new RegExp(expectedTemperatureInProgrammaticToolScenario.toString())
+      new RegExp(
+        expectedTemperaturesInProgrammaticToolScenario.Seattle.toString()
+      )
+    );
+    assert.match(
+      response.content,
+      new RegExp(
+        expectedTemperaturesInProgrammaticToolScenario.Boston.toString()
+      )
+    );
+    assert.match(
+      response.content,
+      new RegExp(
+        expectedTemperaturesInProgrammaticToolScenario.Miami.toString()
+      )
     );
   };
 

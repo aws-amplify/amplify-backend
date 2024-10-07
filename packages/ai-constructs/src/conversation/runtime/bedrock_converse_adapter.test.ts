@@ -174,7 +174,14 @@ void describe('Bedrock converse adapter', () => {
               toolUse: {
                 toolUseId: randomUUID().toString(),
                 name: additionalTool.name,
-                input: 'additionalToolInput',
+                input: 'additionalToolInput1',
+              },
+            },
+            {
+              toolUse: {
+                toolUseId: randomUUID().toString(),
+                name: additionalTool.name,
+                input: 'additionalToolInput2',
               },
             },
           ],
@@ -195,7 +202,14 @@ void describe('Bedrock converse adapter', () => {
               toolUse: {
                 toolUseId: randomUUID().toString(),
                 name: eventTool.name,
-                input: 'eventToolToolInput',
+                input: 'eventToolToolInput1',
+              },
+            },
+            {
+              toolUse: {
+                toolUseId: randomUUID().toString(),
+                name: eventTool.name,
+                input: 'eventToolToolInput2',
               },
             },
           ],
@@ -289,6 +303,10 @@ void describe('Bedrock converse adapter', () => {
       additionalToolUseBedrockResponse.output?.message?.content[0].toolUse
         ?.toolUseId
     );
+    assert.ok(
+      additionalToolUseBedrockResponse.output?.message?.content[1].toolUse
+        ?.toolUseId
+    );
     const expectedBedrockInput2: ConverseCommandInput = {
       messages: [
         ...(messages as Array<Message>),
@@ -305,6 +323,15 @@ void describe('Bedrock converse adapter', () => {
                     .toolUse.toolUseId,
               },
             },
+            {
+              toolResult: {
+                content: [additionalToolOutput],
+                status: 'success',
+                toolUseId:
+                  additionalToolUseBedrockResponse.output?.message.content[1]
+                    .toolUse.toolUseId,
+              },
+            },
           ],
         },
       ],
@@ -316,6 +343,9 @@ void describe('Bedrock converse adapter', () => {
     assert.ok(eventToolUseBedrockResponse.output?.message?.content);
     assert.ok(
       eventToolUseBedrockResponse.output?.message?.content[0].toolUse?.toolUseId
+    );
+    assert.ok(
+      eventToolUseBedrockResponse.output?.message?.content[1].toolUse?.toolUseId
     );
     assert.ok(expectedBedrockInput2.messages);
     const expectedBedrockInput3: ConverseCommandInput = {
@@ -331,6 +361,15 @@ void describe('Bedrock converse adapter', () => {
                 status: 'success',
                 toolUseId:
                   eventToolUseBedrockResponse.output?.message.content[0].toolUse
+                    .toolUseId,
+              },
+            },
+            {
+              toolResult: {
+                content: [eventToolOutput],
+                status: 'success',
+                toolUseId:
+                  eventToolUseBedrockResponse.output?.message.content[1].toolUse
                     .toolUseId,
               },
             },

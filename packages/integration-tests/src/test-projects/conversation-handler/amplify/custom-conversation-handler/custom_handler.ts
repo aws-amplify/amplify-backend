@@ -3,7 +3,7 @@ import {
   createExecutableTool,
   handleConversationTurnEvent,
 } from '@aws-amplify/backend-ai/conversation/runtime';
-import { expectedTemperatureInProgrammaticToolScenario } from '../constants.js';
+import { expectedTemperaturesInProgrammaticToolScenario } from '../constants.js';
 
 const thermometerInputSchema = {
   type: 'object',
@@ -20,12 +20,13 @@ const thermometer = createExecutableTool(
     json: thermometerInputSchema,
   },
   (input) => {
-    if (input.city === 'Seattle') {
+    const city = input.city;
+    if (city === 'Seattle' || city === 'Boston' || city === 'Miami') {
       return Promise.resolve({
         // We use this value in test assertion.
         // LLM uses tool to get temperature and serves this value in final response.
         // We're matching number only as LLM may translate unit to something more descriptive.
-        text: `${expectedTemperatureInProgrammaticToolScenario}F`,
+        text: `${expectedTemperaturesInProgrammaticToolScenario[city]}F`,
       });
     }
     throw new Error(`Unknown city ${input.city}`);
