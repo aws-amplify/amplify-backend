@@ -31,9 +31,22 @@ export class ConversationTurnExecutor {
       );
       this.logger.debug('Event received:', this.event);
 
-      const assistantResponse = await this.bedrockConverseAdapter.askBedrock();
+      const responseStream = await this.bedrockConverseAdapter.askBedrock();
+      console.log('responseStream', responseStream);
+      if (!responseStream.stream) {
+        throw new Error('Bedrock Converse response is missing a stream');
+      }
+      let chunkIndex = 0;
+      for await (const chunk of responseStream.stream) {
+        this.logger.debug(`chunk ${chunkIndex}`, JSON.stringify(chunk));
+        const text = chunk.contentBlockDelta?.delta?.text;
 
-      await this.responseSender.sendResponse(assistantResponse);
+        this.logger.debug(`text ${chunkIndex++}`, text);
+        if (text) {
+          await this.responseSender.sendResponse([{ text }]);
+        }
+      }
+
 
       this.logger.log(
         `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`

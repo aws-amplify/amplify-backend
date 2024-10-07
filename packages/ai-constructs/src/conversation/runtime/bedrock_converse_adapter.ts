@@ -4,6 +4,9 @@ import {
   ConverseCommand,
   ConverseCommandInput,
   ConverseCommandOutput,
+  ConverseStreamCommand,
+  ConverseStreamCommandInput,
+  ConverseStreamCommandOutput,
   Message,
   Tool,
   ToolConfiguration,
@@ -75,62 +78,32 @@ export class BedrockConverseAdapter {
     }
   }
 
-  askBedrock = async (): Promise<ContentBlock[]> => {
+  askBedrock = async (): Promise<ConverseStreamCommandOutput> => {
     const { modelId, systemPrompt, inferenceConfiguration } =
       this.event.modelConfiguration;
 
     const messages: Array<Message> =
       await this.getEventMessagesAsBedrockMessages();
 
-    let bedrockResponse: ConverseCommandOutput;
-    do {
-      const toolConfig = this.createToolConfiguration();
-      const converseCommandInput: ConverseCommandInput = {
-        modelId,
-        messages: [...messages],
-        system: [{ text: systemPrompt }],
-        inferenceConfig: inferenceConfiguration,
-        toolConfig,
-      };
-      this.logger.info('Sending Bedrock Converse request');
-      this.logger.debug('Bedrock Converse request:', converseCommandInput);
-      bedrockResponse = await this.bedrockClient.send(
-        new ConverseCommand(converseCommandInput)
-      );
-      this.logger.info(
-        `Received Bedrock Converse response, requestId=${bedrockResponse.$metadata.requestId}`,
-        bedrockResponse.usage
-      );
-      this.logger.debug('Bedrock Converse response:', bedrockResponse);
-      if (bedrockResponse.output?.message) {
-        messages.push(bedrockResponse.output?.message);
-      }
-      if (bedrockResponse.stopReason === 'tool_use') {
-        const responseContentBlocks =
-          bedrockResponse.output?.message?.content ?? [];
-        const toolUseBlocks = responseContentBlocks.filter(
-          (block) => 'toolUse' in block
-        ) as Array<ContentBlock.ToolUseMember>;
-        const clientToolUseBlocks = responseContentBlocks.filter(
-          (block) =>
-            block.toolUse?.name &&
-            this.clientToolByName.has(block.toolUse?.name)
-        );
-        if (clientToolUseBlocks.length > 0) {
-          // For now if any of client tools is used we ignore executable tools
-          // and propagate result back to client.
-          return clientToolUseBlocks;
-        }
-        for (const responseContentBlock of toolUseBlocks) {
-          const toolUseBlock =
-            responseContentBlock as ContentBlock.ToolUseMember;
-          const toolMessage = await this.executeTool(toolUseBlock);
-          messages.push(toolMessage);
-        }
-      }
-    } while (bedrockResponse.stopReason === 'tool_use');
+    let bedrockResponse: ConverseStreamCommandOutput;
+    const toolConfig = this.createToolConfiguration();
+    const converseStreamCommandInput: ConverseStreamCommandInput = {
+      modelId,
+      messages: [...messages],
+      system: [{ text: systemPrompt }],
+      inferenceConfig: inferenceConfiguration,
+      toolConfig,
+    };
+    this.logger.info('Sending Bedrock Converse request');
+    this.logger.debug('Bedrock Converse request:', converseStreamCommandInput);
+    bedrockResponse = await this.bedrockClient.send(
+      new ConverseStreamCommand(converseStreamCommandInput)
+    );
 
-    return bedrockResponse.output?.message?.content ?? [];
+    if (!bedrockResponse.stream) {
+      throw new Error('Bedrock Converse response is missing a stream');
+    }
+    return bedrockResponse;
   };
 
   /**
