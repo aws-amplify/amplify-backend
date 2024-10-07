@@ -121,12 +121,17 @@ export class BedrockConverseAdapter {
           // and propagate result back to client.
           return clientToolUseBlocks;
         }
+        const toolResponseContentBlocks: Array<ContentBlock> = [];
         for (const responseContentBlock of toolUseBlocks) {
           const toolUseBlock =
             responseContentBlock as ContentBlock.ToolUseMember;
-          const toolMessage = await this.executeTool(toolUseBlock);
-          messages.push(toolMessage);
+          const toolResultContentBlock = await this.executeTool(toolUseBlock);
+          toolResponseContentBlocks.push(toolResultContentBlock);
         }
+        messages.push({
+          role: 'user',
+          content: toolResponseContentBlocks,
+        });
       }
     } while (bedrockResponse.stopReason === 'tool_use');
 
@@ -191,7 +196,7 @@ export class BedrockConverseAdapter {
 
   private executeTool = async (
     toolUseBlock: ContentBlock.ToolUseMember
-  ): Promise<Message> => {
+  ): Promise<ContentBlock> => {
     if (!toolUseBlock.toolUse.name) {
       throw Error('Bedrock tool use response is missing a tool name');
     }
@@ -208,43 +213,28 @@ export class BedrockConverseAdapter {
       this.logger.info(`Received response from ${tool.name} tool`);
       this.logger.debug(toolResponse);
       return {
-        role: 'user',
-        content: [
-          {
-            toolResult: {
-              toolUseId: toolUseBlock.toolUse.toolUseId,
-              content: [toolResponse],
-              status: 'success',
-            },
-          },
-        ],
+        toolResult: {
+          toolUseId: toolUseBlock.toolUse.toolUseId,
+          content: [toolResponse],
+          status: 'success',
+        },
       };
     } catch (e) {
       if (e instanceof Error) {
         return {
-          role: 'user',
-          content: [
-            {
-              toolResult: {
-                toolUseId: toolUseBlock.toolUse.toolUseId,
-                content: [{ text: e.toString() }],
-                status: 'error',
-              },
-            },
-          ],
+          toolResult: {
+            toolUseId: toolUseBlock.toolUse.toolUseId,
+            content: [{ text: e.toString() }],
+            status: 'error',
+          },
         };
       }
       return {
-        role: 'user',
-        content: [
-          {
-            toolResult: {
-              toolUseId: toolUseBlock.toolUse.toolUseId,
-              content: [{ text: 'unknown error occurred' }],
-              status: 'error',
-            },
-          },
-        ],
+        toolResult: {
+          toolUseId: toolUseBlock.toolUse.toolUseId,
+          content: [{ text: 'unknown error occurred' }],
+          status: 'error',
+        },
       };
     }
   };
