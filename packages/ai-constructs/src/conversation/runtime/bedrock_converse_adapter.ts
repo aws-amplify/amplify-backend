@@ -44,6 +44,21 @@ export class BedrockConverseAdapter {
     ),
     private readonly logger = console
   ) {
+    if (event.request.headers['x-amz-user-agent']) {
+      this.bedrockClient.middlewareStack.add(
+        (next) => (args) => {
+          // @ts-expect-error Request is typed as unknown.
+          // But this is recommended way to alter headers per https://github.com/aws/aws-sdk-js-v3/blob/main/README.md.
+          args.request.headers['x-amz-user-agent'] =
+            event.request.headers['x-amz-user-agent'];
+          return next(args);
+        },
+        {
+          step: 'build',
+          name: 'amplify-user-agent-injector',
+        }
+      );
+    }
     this.executableTools = [
       ...eventToolsProvider.getEventTools(),
       ...additionalTools,

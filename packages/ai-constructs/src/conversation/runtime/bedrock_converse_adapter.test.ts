@@ -801,4 +801,43 @@ void describe('Bedrock converse adapter', () => {
       },
     ]);
   });
+
+  void it('adds user agent middleware', async () => {
+    const event: ConversationTurnEvent = {
+      ...commonEvent,
+    };
+
+    event.request.headers['x-amz-user-agent'] = 'testUserAgent';
+
+    const bedrockClient = new BedrockRuntimeClient();
+    const addMiddlewareMock = mock.method(bedrockClient.middlewareStack, 'add');
+
+    new BedrockConverseAdapter(
+      event,
+      [],
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever
+    );
+
+    assert.strictEqual(addMiddlewareMock.mock.calls.length, 1);
+    const middlewareHandler = addMiddlewareMock.mock.calls[0].arguments[0];
+    const options = addMiddlewareMock.mock.calls[0].arguments[1];
+    assert.strictEqual(options.name, 'amplify-user-agent-injector');
+    const args: {
+      request: {
+        headers: Record<string, string>;
+      };
+    } = {
+      request: {
+        headers: {},
+      },
+    };
+    // @ts-expect-error We mock subset of middleware inputs here.
+    await middlewareHandler(mock.fn(), {})(args);
+    assert.strictEqual(
+      args.request.headers['x-amz-user-agent'],
+      'testUserAgent'
+    );
+  });
 });

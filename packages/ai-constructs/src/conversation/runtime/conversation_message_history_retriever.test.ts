@@ -346,7 +346,7 @@ void describe('Conversation message history retriever', () => {
 
   for (const testCase of testCases) {
     void it(testCase.name, async () => {
-      const graphqlRequestExecutor = new GraphqlRequestExecutor('', '');
+      const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
       const executeGraphqlMock = mock.method(
         graphqlRequestExecutor,
         'executeGraphql',

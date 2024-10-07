@@ -6,6 +6,7 @@ import { GraphqlRequestExecutor } from './graphql_request_executor';
 void describe('Graphql executor test', () => {
   const graphqlEndpoint = 'http://fake.endpoint/';
   const accessToken = 'testToken';
+  const userAgent = 'testUserAgent';
 
   void it('sends request to appsync', async () => {
     const fetchMock = mock.fn(
@@ -17,6 +18,7 @@ void describe('Graphql executor test', () => {
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
+      userAgent,
       fetchMock
     );
     const query = 'testQuery';
@@ -37,6 +39,7 @@ void describe('Graphql executor test', () => {
       'application/graphql'
     );
     assert.strictEqual(request.headers.get('Authorization'), accessToken);
+    assert.strictEqual(request.headers.get('x-amz-user-agent'), userAgent);
     assert.ok(request.body);
     assert.deepStrictEqual(JSON.parse(await text(request.body)), {
       query: 'testQuery',
@@ -59,6 +62,7 @@ void describe('Graphql executor test', () => {
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
+      userAgent,
       fetchMock
     );
     const query = 'testQuery';
@@ -98,6 +102,7 @@ void describe('Graphql executor test', () => {
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
+      userAgent,
       fetchMock
     );
     const query = 'testQuery';
