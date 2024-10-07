@@ -107,7 +107,7 @@ const DEFAULT_OAUTH_SCOPES = [
 const authStackType = 'auth-Cognito';
 
 /**
- *
+ * Amplify Auth CDK Construct
  */
 export class AmplifyAuth
   extends Construct
