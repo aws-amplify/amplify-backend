@@ -73,7 +73,7 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
 
     await fsp.rm(targetDirectory, { recursive: true, force: true });
   });
-  void it('clears the generated env directory', async () => {
+  void it('clears the generated env directory even if there are multiple calls', async () => {
     const fsExistsSyncMock = mock.method(fs, 'existsSync', () => true);
     const fsRmSyncMock = mock.method(fs, 'rmSync', () => {});
 
