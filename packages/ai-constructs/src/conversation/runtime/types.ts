@@ -56,9 +56,7 @@ export type ConversationTurnEvent = {
     };
   };
   request: {
-    headers: {
-      authorization: string;
-    };
+    headers: Record<string, string>;
   };
   /**
    * @deprecated This field is going to be removed in upcoming releases.

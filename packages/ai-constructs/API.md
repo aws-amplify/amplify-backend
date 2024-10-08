@@ -95,9 +95,7 @@ type ConversationTurnEvent = {
         };
     };
     request: {
-        headers: {
-            authorization: string;
-        };
+        headers: Record<string, string>;
     };
     messages?: Array<ConversationMessage>;
     messageHistoryQuery: {
