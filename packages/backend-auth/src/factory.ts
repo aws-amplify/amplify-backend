@@ -8,6 +8,7 @@ import {
   TriggerEvent,
 } from '@aws-amplify/auth-construct';
 import {
+  AmplifyFunction,
   AuthResources,
   AuthRoleName,
   ConstructContainerEntryGenerator,
@@ -18,7 +19,7 @@ import {
   ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
-  StackProvider,
+  StackProvider
 } from '@aws-amplify/plugin-types';
 import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
 import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
@@ -30,13 +31,14 @@ import {
 } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
 import { Stack, Tags } from 'aws-cdk-lib';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName | string> &
   StackProvider;
 
 export type AmplifyAuthProps = Expand<
-  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
+  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith' | 'senders'> & {
     /**
      * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
      */
@@ -51,6 +53,14 @@ export type AmplifyAuthProps = Expand<
         ConstructFactory<ResourceProvider<FunctionResources>>
       >
     >;
+
+    // Or any other transformation that rewrites `senders` and adds ability to consume return type from `defineFunction`.
+    // This one is just to show idea, but we should pretty much figure out how to transform this type here so that it takes
+    // Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | ConstructFactory<AmplifyFunction> here.
+   // But not necessarily IFunction.
+    senders?: AuthProps['senders'] & {
+      email: ConstructFactory<AmplifyFunction>
+    }
     /**
      * Configure access to auth for other Amplify resources
      * @see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/
@@ -136,12 +146,25 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     ssmEnvironmentEntriesGenerator,
     stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
+    // This is not complete but here should happen conversation from
+    // AmplifyAuthProps.senders.email to AuthProps.senders.email
+    let senders: AuthProps['senders'] | undefined;
+    if (this.props.senders?.email && 'getInstance' in this.props.senders.email) {
+      const lambda: IFunction = this.props.senders.email.getInstance(this.getInstanceProps).resources.lambda;
+      senders = {
+        email: lambda
+      }
+    }
     const authProps: AuthProps = {
       ...this.props,
       loginWith: translateToAuthConstructLoginWith(
         this.props.loginWith,
         backendSecretResolver
       ),
+      // TODO this could be done like translateToAuthConstructLoginWith above.
+      // I.e. we need translateToAuthConstructSenders
+      // And once this is passed to construct as IFunction it should be easy to reuse code you already have there.
+      senders: senders,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
     if (authProps.loginWith.externalProviders) {

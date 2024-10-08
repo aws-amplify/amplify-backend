@@ -9,6 +9,7 @@ import {
   UserPoolIdentityProviderSamlMetadata,
   UserPoolSESOptions,
 } from 'aws-cdk-lib/aws-cognito';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 export type VerificationEmailWithLink = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
@@ -421,7 +422,8 @@ export type AuthProps = {
      * SES configurations enable the use of customized email sender addresses and names
      * @see https://docs.amplify.aws/react/build-a-backend/auth/moving-to-production/#email
      */
-    email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
+    // TODO we add IFunction here. But we should probably not expose IFunction in defineAuth props.
+    email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | IFunction;
   };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
