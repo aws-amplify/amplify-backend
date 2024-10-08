@@ -1,9 +1,10 @@
 import {
   BedrockRuntimeClient,
   ContentBlock,
-  ConverseCommand,
-  ConverseCommandInput,
-  ConverseCommandOutput,
+  ConverseStreamCommand,
+  ConverseStreamCommandInput,
+  ConverseStreamCommandOutput,
+  ConverseStreamOutput,
   Message,
   Tool,
   ToolConfiguration,
@@ -97,10 +98,12 @@ export class BedrockConverseAdapter {
     const messages: Array<Message> =
       await this.getEventMessagesAsBedrockMessages();
 
-    let bedrockResponse: ConverseCommandOutput;
+    let bedrockResponse: ConverseStreamCommandOutput;
+    let assistantMessage: Message;
+    let stopReason: string;
     do {
       const toolConfig = this.createToolConfiguration();
-      const converseCommandInput: ConverseCommandInput = {
+      const converseCommandInput: ConverseStreamCommandInput = {
         modelId,
         messages: [...messages],
         system: [{ text: systemPrompt }],
@@ -110,19 +113,34 @@ export class BedrockConverseAdapter {
       this.logger.info('Sending Bedrock Converse request');
       this.logger.debug('Bedrock Converse request:', converseCommandInput);
       bedrockResponse = await this.bedrockClient.send(
-        new ConverseCommand(converseCommandInput)
+        new ConverseStreamCommand(converseCommandInput)
       );
       this.logger.info(
-        `Received Bedrock Converse response, requestId=${bedrockResponse.$metadata.requestId}`,
-        bedrockResponse.usage
+        `Received Bedrock Converse response, requestId=${bedrockResponse.$metadata.requestId}`
       );
-      this.logger.debug('Bedrock Converse response:', bedrockResponse);
-      if (bedrockResponse.output?.message) {
-        messages.push(bedrockResponse.output?.message);
+      this.logger.debug(
+        'Bedrock Converse response metadata:',
+        bedrockResponse.$metadata
+      );
+      if (!bedrockResponse.stream) {
+        throw new Error('Bedrock response is missing stream');
       }
-      if (bedrockResponse.stopReason === 'tool_use') {
-        const responseContentBlocks =
-          bedrockResponse.output?.message?.content ?? [];
+
+      const response = await this.streamAssistantMessage(
+        bedrockResponse.stream
+      );
+      assistantMessage = response.assistantMessage;
+      stopReason = response.stopReason;
+      this.logger.info(`Bedrock Converse response stopReason=${stopReason}`);
+      this.logger.debug(
+        'Bedrock Converse assistant message:',
+        assistantMessage
+      );
+
+      messages.push(assistantMessage);
+
+      if (stopReason === 'tool_use') {
+        const responseContentBlocks = assistantMessage.content ?? [];
         const toolUseBlocks = responseContentBlocks.filter(
           (block) => 'toolUse' in block
         ) as Array<ContentBlock.ToolUseMember>;
@@ -148,9 +166,65 @@ export class BedrockConverseAdapter {
           content: toolResponseContentBlocks,
         });
       }
-    } while (bedrockResponse.stopReason === 'tool_use');
+    } while (stopReason === 'tool_use');
 
-    return bedrockResponse.output?.message?.content ?? [];
+    return assistantMessage.content ?? [];
+  };
+
+  /**
+   * Handles bedrock response stream.
+   *
+   * See: https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use-examples.html
+   */
+  private streamAssistantMessage = async (
+    stream: AsyncIterable<ConverseStreamOutput>
+  ) => {
+    let stopReason = '';
+    let toolUseBlock: ContentBlock.ToolUseMember | undefined;
+    let text: string = '';
+    let toolUseInput: string = '';
+    const assistantMessage: Message = {
+      role: undefined,
+      content: [],
+    };
+    for await (const chunk of stream) {
+      if (chunk.messageStart) {
+        assistantMessage.role = chunk.messageStart.role;
+      } else if (chunk.contentBlockStart) {
+        if (chunk.contentBlockStart.start?.toolUse) {
+          toolUseBlock = {
+            toolUse: {
+              ...chunk.contentBlockStart.start?.toolUse,
+              input: undefined,
+            },
+          };
+        }
+      } else if (chunk.contentBlockDelta) {
+        if (chunk.contentBlockDelta.delta?.toolUse) {
+          if (!chunk.contentBlockDelta.delta.toolUse.input) {
+            toolUseInput = '';
+          }
+          toolUseInput += chunk.contentBlockDelta.delta.toolUse.input;
+        } else if (chunk.contentBlockDelta.delta?.text) {
+          text += chunk.contentBlockDelta.delta?.text;
+        }
+      } else if (chunk.contentBlockStop) {
+        if (toolUseBlock) {
+          toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
+          assistantMessage.content?.push(toolUseBlock);
+          toolUseBlock = undefined;
+          toolUseInput = '';
+        } else {
+          assistantMessage.content?.push({
+            text,
+          });
+          text = '';
+        }
+      } else if (chunk.messageStop) {
+        stopReason = chunk.messageStop.stopReason ?? '';
+      }
+    }
+    return { assistantMessage, stopReason };
   };
 
   /**

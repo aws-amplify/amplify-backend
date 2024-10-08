@@ -117,7 +117,7 @@ export class ConversationHandlerFunction
       conversationHandler.addToRolePolicy(
         new PolicyStatement({
           effect: Effect.ALLOW,
-          actions: ['bedrock:InvokeModel'],
+          actions: ['bedrock:InvokeModelWithResponseStream'],
           resources,
         })
       );
