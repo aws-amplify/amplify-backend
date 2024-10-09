@@ -14,7 +14,11 @@ import {
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
+import {
+  type NodejsFunctionProps as CDKNodejsFunctionProps,
+  NodejsFunction,
+  OutputFormat,
+} from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -61,7 +65,7 @@ export type FunctionSchedule = TimeInterval | CronSchedule;
  * Entry point for defining a function in the Amplify ecosystem
  */
 export const defineFunction = (
-  props: FunctionProps = {}
+  props: FunctionPropsWithOptional = {}
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
@@ -128,6 +132,12 @@ export type FunctionProps = {
   schedule?: FunctionSchedule | FunctionSchedule[];
 };
 
+export type FunctionPropsWithOptional = Omit<
+  Partial<CDKNodejsFunctionProps>,
+  keyof FunctionProps
+> &
+  FunctionProps;
+
 /**
  * Create Lambda functions in the context of an Amplify backend definition
  */
@@ -137,7 +147,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
    * Create a new AmplifyFunctionFactory
    */
   constructor(
-    private readonly props: FunctionProps,
+    private readonly props: FunctionPropsWithOptional,
     private readonly callerStack?: string
   ) {}
 
@@ -163,7 +173,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   ): HydratedFunctionProps => {
     const name = this.resolveName();
     resourceNameValidator?.validate(name);
-    return {
+    const hydratedProps = {
       name,
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
@@ -171,6 +181,10 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+    };
+    return {
+      ...this.props,
+      ...hydratedProps,
     };
   };
 
@@ -279,12 +293,14 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
+type HydratedFunctionPropsWithOptional = FunctionPropsWithOptional &
+  HydratedFunctionProps;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'function';
 
   constructor(
-    private readonly props: HydratedFunctionProps,
+    private readonly props: HydratedFunctionPropsWithOptional,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {}
 
@@ -315,7 +331,7 @@ class AmplifyFunction
   constructor(
     scope: Construct,
     id: string,
-    props: HydratedFunctionProps,
+    props: HydratedFunctionPropsWithOptional,
     backendSecretResolver: BackendSecretResolver,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
@@ -360,7 +376,7 @@ class AmplifyFunction
 
     let functionLambda: NodejsFunction;
     try {
-      functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
+      const nodejsFunctionFunctionProps: CDKNodejsFunctionProps = {
         entry: props.entry,
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
@@ -376,7 +392,21 @@ class AmplifyFunction
           minify: true,
           sourceMap: true,
         },
-      });
+      };
+
+      // Copy all props to optionalProps to allow for deletion of keys
+      const optionalProps: Partial<FunctionPropsWithOptional> = { ...props };
+      // Remove hydrated props from optional props
+      for (const key of Object.keys(nodejsFunctionFunctionProps)) {
+        delete optionalProps[key as keyof FunctionPropsWithOptional];
+      }
+      // as CDKNodejsFunctionProps is necessary because of a type conflict with runtime
+      const functionProps = {
+        ...optionalProps,
+        ...nodejsFunctionFunctionProps,
+      } as CDKNodejsFunctionProps;
+
+      functionLambda = new NodejsFunction(scope, `${id}-lambda`, functionProps);
     } catch (error) {
       // If the error is from ES Bundler which is executed as a child process by CDK,
       // then the error from CDK contains the command that was executed along with the exit status.
