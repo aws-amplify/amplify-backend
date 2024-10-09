@@ -1,5 +1,18 @@
 # @aws-amplify/backend-ai
 
+## 0.3.0
+
+### Minor Changes
+
+- 4781704: Add information about event version to conversation components
+
+### Patch Changes
+
+- Updated dependencies [4781704]
+- Updated dependencies [3a29d43]
+- Updated dependencies [6e4a62f]
+  - @aws-amplify/ai-constructs@0.4.0
+
 ## 0.2.0
 
 ### Minor Changes
