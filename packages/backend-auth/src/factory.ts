@@ -1,6 +1,10 @@
 import * as path from 'path';
 import { Policy } from 'aws-cdk-lib/aws-iam';
-import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
+import {
+  UserPool,
+  UserPoolOperation,
+  UserPoolSESOptions,
+} from 'aws-cdk-lib/aws-cognito';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import {
   AmplifyAuth,
@@ -8,6 +12,7 @@ import {
   TriggerEvent,
 } from '@aws-amplify/auth-construct';
 import {
+  AmplifyFunction,
   AuthResources,
   AuthRoleName,
   ConstructContainerEntryGenerator,
@@ -20,7 +25,10 @@ import {
   ResourceProvider,
   StackProvider,
 } from '@aws-amplify/plugin-types';
-import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
+import {
+  translateToAuthConstructLoginWith,
+  translateToAuthConstructSenders,
+} from './translate_auth_props.js';
 import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
 import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js';
 import {
@@ -36,7 +44,7 @@ export type BackendAuth = ResourceProvider<AuthResources> &
   StackProvider;
 
 export type AmplifyAuthProps = Expand<
-  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
+  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith' | 'senders'> & {
     /**
      * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
      */
@@ -60,6 +68,14 @@ export type AmplifyAuthProps = Expand<
      * access: (allow) => [allow.resource(groupManager).to(["manageGroups"])]
      */
     access?: AuthAccessGenerator;
+    /**
+     * Configure email sender options
+     */
+    senders?: {
+      email:
+        | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
+        | ConstructFactory<AmplifyFunction>;
+    };
   }
 >;
 
@@ -141,6 +157,10 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       loginWith: translateToAuthConstructLoginWith(
         this.props.loginWith,
         backendSecretResolver
+      ),
+      senders: translateToAuthConstructSenders(
+        this.props.senders,
+        this.getInstanceProps
       ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };

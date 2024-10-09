@@ -136,9 +136,6 @@ export class AmplifyAuth
       role: Role;
     };
   } = {};
-
-  private customSenderKmsKey: Key | undefined;
-
   /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
@@ -157,23 +154,23 @@ export class AmplifyAuth
     const userPoolProps = {
       ...this.computedUserPoolProps,
     };
-
+    let customSenderKmsKey: Key | undefined;
     if (
       props.senders?.email &&
       props.senders.email instanceof lambda.Function
     ) {
-      if (!this.customSenderKmsKey) {
-        this.customSenderKmsKey = new Key(this, 'CustomSenderKey', {
-          description: 'KMS key for Cognito custom sender',
+      if (!customSenderKmsKey) {
+        customSenderKmsKey = new Key(this, 'CustomSenderKey', {
+          description: `KMS key for Cognito custom sender (User Pool ID: ${this.userPool.userPoolId})`,
           enableKeyRotation: true,
         });
       }
-      this.customSenderKmsKey.grantDecrypt(props.senders.email);
+      customSenderKmsKey.grantDecrypt(props.senders.email);
       props.senders.email.addPermission('CognitoInvokeEmail', {
         principal: new ServicePrincipal('cognito-idp.amazonaws.com'),
         action: 'lambda:InvokeFunction',
       });
-      userPoolProps.customSenderKmsKey = this.customSenderKmsKey;
+      userPoolProps.customSenderKmsKey = customSenderKmsKey;
     }
 
     this.userPool = new cognito.UserPool(

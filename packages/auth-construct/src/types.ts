@@ -1,9 +1,6 @@
 import { SecretValue, aws_cognito as cognito } from 'aws-cdk-lib';
 import { triggerEvents } from './trigger_events.js';
-import {
-  AmplifyFunction,
-  BackendOutputStorageStrategy,
-} from '@aws-amplify/plugin-types';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import {
   NumberAttributeConstraints,
@@ -421,14 +418,15 @@ export type AuthProps = {
    */
   senders?: {
     /**
-     * Configure Cognito to send emails from SES
+     * Configure Cognito to send emails from SES or a custom message trigger
      * SES configurations enable the use of customized email sender addresses and names
+     * Custom message triggers enable the use of third-party email providers when sending email notifications to users
      * @see https://docs.amplify.aws/react/build-a-backend/auth/moving-to-production/#email
+     * @see https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-custom-email-sender.html
      */
     email:
       | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
-      | IFunction
-      | AmplifyFunction;
+      | IFunction;
   };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
