@@ -94,6 +94,24 @@ const schema = a.schema({
     })
     .authorization((allow) => [allow.authenticated(), allow.owner()]),
 
+  ConversationMessageAssistantStreamingResponse: a
+    .model({
+      // always
+      conversationId: a.id().required(),
+      associatedUserMessageId: a.id().required(),
+
+      // these describe chunks or end of block
+      contentBlockText: a.string(),
+      contentBlockToolUse: a.string(),
+      contentBlockIndex: a.integer().required(),
+      contentBlockDeltaIndex: a.integer(),
+      contentBlockDoneAtIndex: a.integer(),
+
+      // when message is complete
+      stopReason: a.string(),
+    })
+    .authorization((allow) => [allow.authenticated(), allow.owner()]),
+
   ConversationMessageChat: a
     .model({
       conversationId: a.id(),
