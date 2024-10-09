@@ -411,6 +411,23 @@ void describe('AmplifyFunctionFactory', () => {
     });
   });
 
+  void describe('minify property', () => {
+    void it('sets minify to false', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        minify: false,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+      // There isn't a way to check the contents of the bundled lambda using the CDK Template utility
+      // So we just check that the lambda was created properly in the CFN template.
+      // There is an e2e test that validates proper lambda bundling
+      template.resourceCountIs('AWS::Lambda::Function', 1);
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Handler: 'index.handler',
+      });
+    });
+  });
+
   void describe('resourceAccessAcceptor', () => {
     void it('attaches policy to execution role and configures ssm environment context', () => {
       const functionFactory = defineFunction({
