@@ -355,6 +355,51 @@ void describe('AmplifyAuthFactory', () => {
       });
     });
   });
+
+  void it('sets customEmailSender when function is provided as email sender', () => {
+    const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+      code: aws_lambda.Code.fromInline('test placeholder'),
+      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+    });
+    const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+      getInstance: () => {
+        return {
+          resources: {
+            lambda: testFunc,
+            cfnResources: {
+              cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+            },
+          },
+        };
+      },
+    };
+
+    resetFactoryCount();
+
+    const authWithTriggerFactory = defineAuth({
+      loginWith: { email: true },
+      senders: { email: funcStub },
+    });
+
+    const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(backendAuth.stack);
+    const lambdas = template.findResources('AWS::Lambda::Function');
+    if (Object.keys(lambdas).length !== 1) {
+      assert.fail('Expected one Lambda function resource in the template');
+    }
+    const handlerLogicalId = Object.keys(lambdas)[0];
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        CustomEmailSender: {
+          LambdaArn: {
+            'Fn::GetAtt': [handlerLogicalId, 'Arn'],
+          },
+        },
+      },
+    });
+  });
 });
 
 const upperCaseFirstChar = (str: string) => {

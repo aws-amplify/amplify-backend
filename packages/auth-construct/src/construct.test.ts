@@ -10,7 +10,6 @@ import {
 import { CfnUserPoolClient, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DEFAULTS } from './defaults.js';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
@@ -573,39 +572,6 @@ void describe('Auth construct', () => {
       },
     });
   });
-
-  void it('sets customEmailSender when function is provided as email sender', () => {
-    const app = new App();
-    const stack = new Stack(app);
-    const testFunc = new Function(stack, 'testFunc', {
-      code: Code.fromInline('test code'),
-      handler: 'index.handler',
-      runtime: Runtime.NODEJS_18_X,
-    });
-    new AmplifyAuth(stack, 'test', {
-      loginWith: { email: true },
-      senders: {
-        email: testFunc,
-      },
-    });
-
-    const template = Template.fromStack(stack);
-    const lambdas = template.findResources('AWS::Lambda::Function');
-    if (Object.keys(lambdas).length !== 1) {
-      assert.fail('Expected one Lambda function resource in the template');
-    }
-    const handlerLogicalId = Object.keys(lambdas)[0];
-    template.hasResourceProperties('AWS::Cognito::UserPool', {
-      LambdaConfig: {
-        CustomEmailSender: {
-          LambdaArn: {
-            'Fn::GetAtt': [handlerLogicalId, 'Arn'],
-          },
-        },
-      },
-    });
-  });
-
   void it('requires email attribute if email is enabled', () => {
     const app = new App();
     const stack = new Stack(app);
