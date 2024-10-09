@@ -4,7 +4,6 @@
 
 ```ts
 
-import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
@@ -49,7 +48,7 @@ export type AuthProps = {
         externalProviders?: ExternalProviderOptions;
     };
     senders?: {
-        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | IFunction | AmplifyFunction;
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | IFunction;
     };
     userAttributes?: UserAttributes;
     multifactor?: MFA;
