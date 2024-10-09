@@ -31,6 +31,7 @@ export type FunctionProps = {
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
+    minify?: boolean;
 };
 
 // @public (undocumented)
