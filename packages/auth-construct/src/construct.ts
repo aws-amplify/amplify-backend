@@ -165,9 +165,15 @@ export class AmplifyAuth
         });
       }
       customSenderKmsKey.grantDecrypt(props.senders.email);
-      props.senders.email.addPermission('CognitoInvokeEmail', {
+      const stack = Stack.of(this);
+      const accountId = stack.account;
+      const userPoolArn = this.userPool.userPoolArn;
+
+      props.senders.email.addPermission('CognitoInvokeEmailSenderHandler', {
         principal: new ServicePrincipal('cognito-idp.amazonaws.com'),
         action: 'lambda:InvokeFunction',
+        sourceAccount: accountId,
+        sourceArn: userPoolArn,
       });
       userPoolProps.customSenderKmsKey = customSenderKmsKey;
     }
