@@ -161,7 +161,6 @@ export class AmplifyAuth
     ) {
       if (!customSenderKmsKey) {
         customSenderKmsKey = new Key(this, 'CustomSenderKey', {
-          description: `KMS key for Cognito custom sender (User Pool ID: ${this.userPool.userPoolId})`,
           enableKeyRotation: true,
         });
       }
