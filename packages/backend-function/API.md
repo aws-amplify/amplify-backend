@@ -9,6 +9,7 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { StackProvider } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
@@ -31,6 +32,7 @@ export type FunctionProps = {
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
+    logRetention?: RetentionDays;
 };
 
 // @public (undocumented)

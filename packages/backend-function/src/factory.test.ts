@@ -12,11 +12,12 @@ import {
   StackResolverStub,
 } from '@aws-amplify/backend-platform-test-stubs';
 import { defaultLambda } from './test-assets/default-lambda/resource.js';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -291,6 +292,31 @@ void describe('AmplifyFunctionFactory', () => {
           'memoryMB must be a whole number between 128 and 10240 inclusive'
         )
       );
+    });
+  });
+
+  void describe('logGroup property', () => {
+    void it('sets valid logGroup', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        logRetention: RetentionDays.ONE_WEEK,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('Custom::LogRetention', {
+        RetentionInDays: 7,
+      });
+    });
+
+    void it('doesnt set retention days if not provided', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('Custom::LogRetention', {
+        RetentionInDays: Match.absent(),
+      });
     });
   });
 

@@ -38,6 +38,7 @@ import {
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Rule } from 'aws-cdk-lib/aws-events';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 const functionStackType = 'function-Lambda';
 
@@ -126,6 +127,12 @@ export type FunctionProps = {
    * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
+
+  /**
+   * The log group to send the function logs to
+   * @default undefined - use the default CDK generated log group
+   */
+  logRetention?: RetentionDays;
 };
 
 /**
@@ -133,6 +140,7 @@ export type FunctionProps = {
  */
 class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   private generator: ConstructContainerEntryGenerator;
+
   /**
    * Create a new AmplifyFunctionFactory
    */
@@ -171,6 +179,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      logRetention: this.resolveRetentionDays(),
     };
   };
 
@@ -276,6 +285,13 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 
     return this.props.schedule;
   };
+
+  private resolveRetentionDays = () => {
+    if (!this.props.logRetention) {
+      return RetentionDays.INFINITE;
+    }
+    return this.props.logRetention;
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -312,6 +328,7 @@ class AmplifyFunction
   readonly resources: FunctionResources;
   readonly stack: Stack;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
+
   constructor(
     scope: Construct,
     id: string,
@@ -365,6 +382,7 @@ class AmplifyFunction
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
         runtime: nodeVersionMap[props.runtime],
+        logRetention: props.logRetention,
         bundling: {
           format: OutputFormat.ESM,
           banner: bannerCode,
