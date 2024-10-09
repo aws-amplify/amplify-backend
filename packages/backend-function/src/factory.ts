@@ -126,6 +126,13 @@ export type FunctionProps = {
    * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
+
+  /**
+   * Whether to minify the function code.
+   *
+   * Defaults to true.
+   */
+  minify?: boolean;
 };
 
 /**
@@ -171,6 +178,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      minify: this.resolveMinify(),
     };
   };
 
@@ -276,6 +284,14 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 
     return this.props.schedule;
   };
+
+  private resolveMinify = () => {
+    if (this.props.minify === undefined) {
+      return true;
+    }
+
+    return this.props.minify;
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -373,7 +389,7 @@ class AmplifyFunction
           loader: {
             '.node': 'file',
           },
-          minify: true,
+          minify: props.minify,
           sourceMap: true,
         },
       });
