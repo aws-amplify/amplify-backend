@@ -11,6 +11,7 @@ import {
 import {
   ConversationHandlerFunction,
   ConversationHandlerFunctionProps,
+  ConversationTurnEventVersion,
 } from '@aws-amplify/ai-constructs/conversation';
 import path from 'path';
 import { CallerDirectoryExtractor } from '@aws-amplify/platform-core';
@@ -51,9 +52,17 @@ class ConversationHandlerFunctionGenerator
   };
 }
 
-class ConversationHandlerFunctionFactory
-  implements ConstructFactory<ConversationHandlerFunction>
+export type ConversationHandlerFunctionFactory = ConstructFactory<
+  ResourceProvider<FunctionResources>
+> & {
+  readonly eventVersion: ConversationTurnEventVersion;
+};
+
+class DefaultConversationHandlerFunctionFactory
+  implements ConversationHandlerFunctionFactory
 {
+  readonly eventVersion: ConversationTurnEventVersion =
+    ConversationHandlerFunction.eventVersion;
   private generator: ConstructContainerEntryGenerator;
 
   constructor(
@@ -121,6 +130,6 @@ export type DefineConversationHandlerFunctionProps = {
  */
 export const defineConversationHandlerFunction = (
   props: DefineConversationHandlerFunctionProps
-): ConstructFactory<ResourceProvider<FunctionResources>> =>
+): ConversationHandlerFunctionFactory =>
   // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-  new ConversationHandlerFunctionFactory(props, new Error().stack);
+  new DefaultConversationHandlerFunctionFactory(props, new Error().stack);

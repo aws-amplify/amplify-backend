@@ -40,6 +40,11 @@ export type ConversationHandlerFunctionProps = {
   outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
 };
 
+// Event is a protocol between AppSync and Lambda handler. Therefore, X.Y subset of semver is enough.
+// Typing this as 1.X so that major version changes are caught by compiler if consumer of this construct inspects
+// event version.
+export type ConversationTurnEventVersion = `1.${number}`;
+
 /**
  * Conversation Handler Function CDK construct.
  * This construct deploys resources that integrate conversation routes
@@ -54,6 +59,7 @@ export class ConversationHandlerFunction
   extends Construct
   implements ResourceProvider<FunctionResources>
 {
+  static readonly eventVersion: ConversationTurnEventVersion = '1.0';
   resources: FunctionResources;
 
   /**
