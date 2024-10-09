@@ -399,6 +399,7 @@ void describe('AmplifyAuthFactory', () => {
         },
       },
     });
+    template.resourceCountIs('AWS::KMS::Key', 1);
   });
 });
 

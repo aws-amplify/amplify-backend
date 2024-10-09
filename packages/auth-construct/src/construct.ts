@@ -154,13 +154,6 @@ export class AmplifyAuth
     const userPoolProps = {
       ...this.computedUserPoolProps,
     };
-
-    this.userPool = new cognito.UserPool(
-      this,
-      `${this.name}UserPool`,
-      userPoolProps
-    );
-
     let customSenderKmsKey: Key | undefined;
     if (
       props.senders?.email &&
@@ -179,7 +172,11 @@ export class AmplifyAuth
       });
       userPoolProps.customSenderKmsKey = customSenderKmsKey;
     }
-
+    this.userPool = new cognito.UserPool(
+      this,
+      `${this.name}UserPool`,
+      userPoolProps
+    );
     // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
     this.providerSetupResult = this.setupExternalProviders(
       this.userPool,
