@@ -108,6 +108,7 @@ const schema = a.schema({
       contentBlockDoneAtIndex: a.integer(),
 
       // when message is complete
+      lastBlockIndex: a.integer(),
       stopReason: a.string(),
     })
     .authorization((allow) => [allow.authenticated(), allow.owner()]),
