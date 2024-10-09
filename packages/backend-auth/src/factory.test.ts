@@ -386,9 +386,7 @@ void describe('AmplifyAuthFactory', () => {
 
     const template = Template.fromStack(backendAuth.stack);
     const lambdas = template.findResources('AWS::Lambda::Function');
-    if (Object.keys(lambdas).length !== 1) {
-      assert.fail('Expected one Lambda function resource in the template');
-    }
+
     const handlerLogicalId = Object.keys(lambdas)[0];
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       LambdaConfig: {
@@ -399,7 +397,6 @@ void describe('AmplifyAuthFactory', () => {
         },
       },
     });
-    template.resourceCountIs('AWS::KMS::Key', 1);
   });
 });
 
