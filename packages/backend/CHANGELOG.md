@@ -1,5 +1,16 @@
 # @aws-amplify/backend
 
+## 1.4.0
+
+### Minor Changes
+
+- f5d0ab4: adds support to reference existing layers in defineFunction
+
+### Patch Changes
+
+- Updated dependencies [f5d0ab4]
+  - @aws-amplify/backend-function@1.6.0
+
 ## 1.3.2
 
 ### Patch Changes

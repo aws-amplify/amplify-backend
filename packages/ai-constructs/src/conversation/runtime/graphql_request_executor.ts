@@ -15,6 +15,7 @@ export class GraphqlRequestExecutor {
   constructor(
     private readonly graphQlEndpoint: string,
     private readonly accessToken: string,
+    private readonly userAgent: string,
     private readonly _fetch = fetch
   ) {}
 
@@ -26,6 +27,7 @@ export class GraphqlRequestExecutor {
       headers: {
         'Content-Type': 'application/graphql',
         Authorization: this.accessToken,
+        'x-amz-user-agent': this.userAgent,
       },
       body: JSON.stringify({
         query: request.query,

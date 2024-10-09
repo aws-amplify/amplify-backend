@@ -22,6 +22,7 @@ void describe('GraphQl tool', () => {
       graphQlEndpoint,
       query,
       accessToken,
+      '',
       graphqlRequestExecutor
     );
   };
@@ -30,7 +31,7 @@ void describe('GraphQl tool', () => {
     const testResponse = {
       test: 'response',
     };
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
