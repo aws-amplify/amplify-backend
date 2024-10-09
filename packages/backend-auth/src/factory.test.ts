@@ -385,14 +385,12 @@ void describe('AmplifyAuthFactory', () => {
     const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(backendAuth.stack);
-    const lambdas = template.findResources('AWS::Lambda::Function');
 
-    const handlerLogicalId = Object.keys(lambdas)[0];
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       LambdaConfig: {
         CustomEmailSender: {
           LambdaArn: {
-            'Fn::GetAtt': [handlerLogicalId, 'Arn'],
+            Ref: Match.stringLikeRegexp('testFunc'),
           },
         },
       },
