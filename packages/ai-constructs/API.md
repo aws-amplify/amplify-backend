@@ -64,6 +64,12 @@ type ConversationMessageContentBlock = bedrock.ContentBlock | {
             bytes: string;
         };
     };
+    text?: never;
+    document?: never;
+    toolUse?: never;
+    toolResult?: never;
+    guardContent?: never;
+    $unknown?: never;
 };
 
 // @public (undocumented)
