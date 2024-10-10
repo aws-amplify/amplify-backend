@@ -193,8 +193,10 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // If there are multiple errors, capture all lines containing the errors and exclude the stack trace
       errorRegex: new RegExp(
-        `\\[TransformError\\]: Transform failed with .* error:${this.multiLineEolRegex}(?<esBuildErrorMessage>.*)`
+        `\\[TransformError\\]: Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>.*(?=${this.multiLineEolRegex}\\s*at\\s+))`,
+        's'
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
