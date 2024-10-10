@@ -158,7 +158,11 @@ export class AmplifyAuth
       `${this.name}UserPool`,
       this.computedUserPoolProps
     );
-
+    /**
+     * Configure custom email sender for Cognito User Pool
+     * Grant necessary permissions for Lambda function to decrypt emails
+     * and allow Cognito to invoke the Lambda function
+     */
     if (
       props.senders?.email &&
       props.senders.email instanceof lambda.Function &&

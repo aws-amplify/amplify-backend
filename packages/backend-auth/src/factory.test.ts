@@ -396,6 +396,46 @@ void describe('AmplifyAuthFactory', () => {
       },
     });
   });
+  void it('ensures empty lambdaTriggers do not remove triggers added elsewhere', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+      code: aws_lambda.Code.fromInline('test placeholder'),
+      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+    });
+    const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+      getInstance: () => {
+        return {
+          resources: {
+            lambda: testFunc,
+            cfnResources: {
+              cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+            },
+          },
+        };
+      },
+    };
+
+    resetFactoryCount();
+
+    const authWithTriggerFactory = defineAuth({
+      loginWith: { email: true },
+      //if senders aren't passed its essentially lambdaTriggers={}
+      triggers: { preSignUp: funcStub },
+    });
+
+    const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(backendAuth.stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        PreSignUp: {
+          Ref: Match.stringLikeRegexp('testFunc'),
+        },
+      },
+    });
+  });
 });
 
 const upperCaseFirstChar = (str: string) => {
