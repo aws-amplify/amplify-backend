@@ -20,6 +20,10 @@ class SomeClassUnderNamespace {
   static readonly someStaticProperty: string;
 }
 
+type SomeTypeUnderNamespaceWithGenerics<TPropertyType> = {
+  someGenericProperty: TPropertyType;
+};
+
 declare namespace someSubNamespace {
   export {
     SomeTypeUnderSubNamespace,
@@ -34,6 +38,7 @@ declare namespace someNamespace {
   export {
     SomeClassUnderNamespace,
     SomeTypeUnderNamespace,
+    SomeTypeUnderNamespaceWithGenerics,
     someSubNamespace,
     functionUsingTypes1,
     functionUsingTypes2

@@ -18,3 +18,7 @@ export const functionUsingTypes2 = (
 export class SomeClassUnderNamespace {
   static readonly someStaticProperty: string;
 }
+
+export type SomeTypeUnderNamespaceWithGenerics<TPropertyType> = {
+  someGenericProperty: TPropertyType;
+};
