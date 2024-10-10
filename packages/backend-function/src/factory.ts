@@ -332,11 +332,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveMinify = (bundling?: FunctionBundlingOptions) => {
-    if (bundling === undefined) {
-      return true;
-    }
-
-    return bundling.minify === undefined ? true : bundling.minify;
+    return bundling?.minify === undefined ? true : bundling.minify;
   };
 }
 
