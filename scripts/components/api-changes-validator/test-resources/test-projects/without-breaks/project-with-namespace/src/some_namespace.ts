@@ -14,3 +14,7 @@ export const functionUsingTypes2 = (
 ): Array<someSubNamespace.SomeTypeUnderSubNamespace> => {
   throw new Error();
 };
+
+export class SomeClassUnderNamespace {
+  static readonly someStaticProperty: string;
+}

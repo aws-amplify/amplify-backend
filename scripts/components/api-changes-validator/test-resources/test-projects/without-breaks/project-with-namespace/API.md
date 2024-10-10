@@ -16,6 +16,10 @@ type SomeOtherTypeUnderSubNamespace = {
   someProperty: SomeTypeUnderSubNamespace;
 };
 
+class SomeClassUnderNamespace {
+  static readonly someStaticProperty: string;
+}
+
 declare namespace someSubNamespace {
   export {
     SomeTypeUnderSubNamespace,
@@ -28,6 +32,7 @@ export const functionUsingTypes2: (props: SomeTypeUnderNamespace, extraArg: stri
 
 declare namespace someNamespace {
   export {
+    SomeClassUnderNamespace,
     SomeTypeUnderNamespace,
     someSubNamespace,
     functionUsingTypes1,
