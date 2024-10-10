@@ -70,6 +70,9 @@ export class UsageStatementsRenderer {
       // characters that can be found before or after symbol
       // this is to prevent partial matches in case one symbol's characters are subset of longer one
       const possibleSymbolPrefix = '[\\s\\,\\(<;]';
+      // Notes about non-obvious suffixes:
+      // '.' is possible suffix if static class member is accessed
+      // '(' bracket is possible for callable like constructor calls.
       const possibleSymbolSuffix = '[\\s\\,\\(\\)>;\\.]';
       const regex = new RegExp(
         `(${possibleSymbolPrefix})(${symbolName})(${possibleSymbolSuffix})`,
