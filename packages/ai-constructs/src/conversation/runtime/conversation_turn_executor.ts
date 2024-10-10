@@ -1,4 +1,3 @@
-import { ConversationTurnResponseSender } from './conversation_turn_response_sender.js';
 import { ConversationTurnEvent, ExecutableTool, JSONSchema } from './types.js';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter.js';
 
