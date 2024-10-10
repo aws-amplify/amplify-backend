@@ -25,7 +25,8 @@ export class ApiUsageGenerator {
    */
   constructor(
     private readonly packageName: string,
-    private readonly apiReportAST: ts.SourceFile
+    private readonly apiReportAST: ts.SourceFile,
+    private readonly excludedTypes: Array<string>
   ) {
     this.namespaceDefinitions = this.getNamespaceDefinitions();
   }
@@ -65,7 +66,8 @@ export class ApiUsageGenerator {
       case ts.SyntaxKind.TypeAliasDeclaration:
         return new TypeUsageStatementsGenerator(
           node as ts.TypeAliasDeclaration,
-          this.packageName
+          this.packageName,
+          this.excludedTypes
         ).generate();
       case ts.SyntaxKind.EnumDeclaration:
         return new EnumUsageStatementsGenerator(

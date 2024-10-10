@@ -7,6 +7,7 @@ import {
   Message,
   Tool,
   ToolConfiguration,
+  ToolInputSchema,
 } from '@aws-sdk/client-bedrock-runtime';
 import {
   ConversationTurnEvent,
@@ -14,6 +15,7 @@ import {
   ToolDefinition,
 } from './types.js';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
+import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -36,8 +38,27 @@ export class BedrockConverseAdapter {
     private readonly bedrockClient: BedrockRuntimeClient = new BedrockRuntimeClient(
       { region: event.modelConfiguration.region }
     ),
-    eventToolsProvider = new ConversationTurnEventToolsProvider(event)
+    eventToolsProvider = new ConversationTurnEventToolsProvider(event),
+    private readonly messageHistoryRetriever = new ConversationMessageHistoryRetriever(
+      event
+    ),
+    private readonly logger = console
   ) {
+    if (event.request.headers['x-amz-user-agent']) {
+      this.bedrockClient.middlewareStack.add(
+        (next) => (args) => {
+          // @ts-expect-error Request is typed as unknown.
+          // But this is recommended way to alter headers per https://github.com/aws/aws-sdk-js-v3/blob/main/README.md.
+          args.request.headers['x-amz-user-agent'] =
+            event.request.headers['x-amz-user-agent'];
+          return next(args);
+        },
+        {
+          step: 'build',
+          name: 'amplify-user-agent-injector',
+        }
+      );
+    }
     this.executableTools = [
       ...eventToolsProvider.getEventTools(),
       ...additionalTools,
@@ -73,7 +94,8 @@ export class BedrockConverseAdapter {
     const { modelId, systemPrompt, inferenceConfiguration } =
       this.event.modelConfiguration;
 
-    const messages: Array<Message> = this.getEventMessagesAsBedrockMessages();
+    const messages: Array<Message> =
+      await this.getEventMessagesAsBedrockMessages();
 
     let bedrockResponse: ConverseCommandOutput;
     do {
@@ -85,9 +107,16 @@ export class BedrockConverseAdapter {
         inferenceConfig: inferenceConfiguration,
         toolConfig,
       };
+      this.logger.info('Sending Bedrock Converse request');
+      this.logger.debug('Bedrock Converse request:', converseCommandInput);
       bedrockResponse = await this.bedrockClient.send(
         new ConverseCommand(converseCommandInput)
       );
+      this.logger.info(
+        `Received Bedrock Converse response, requestId=${bedrockResponse.$metadata.requestId}`,
+        bedrockResponse.usage
+      );
+      this.logger.debug('Bedrock Converse response:', bedrockResponse);
       if (bedrockResponse.output?.message) {
         messages.push(bedrockResponse.output?.message);
       }
@@ -107,12 +136,17 @@ export class BedrockConverseAdapter {
           // and propagate result back to client.
           return clientToolUseBlocks;
         }
+        const toolResponseContentBlocks: Array<ContentBlock> = [];
         for (const responseContentBlock of toolUseBlocks) {
           const toolUseBlock =
             responseContentBlock as ContentBlock.ToolUseMember;
-          const toolMessage = await this.executeTool(toolUseBlock);
-          messages.push(toolMessage);
+          const toolResultContentBlock = await this.executeTool(toolUseBlock);
+          toolResponseContentBlocks.push(toolResultContentBlock);
         }
+        messages.push({
+          role: 'user',
+          content: toolResponseContentBlocks,
+        });
       }
     } while (bedrockResponse.stopReason === 'tool_use');
 
@@ -124,9 +158,13 @@ export class BedrockConverseAdapter {
    * 1. Makes a copy so that we don't mutate event.
    * 2. Decodes Base64 encoded images.
    */
-  private getEventMessagesAsBedrockMessages = (): Array<Message> => {
+  private getEventMessagesAsBedrockMessages = async (): Promise<
+    Array<Message>
+  > => {
     const messages: Array<Message> = [];
-    for (const message of this.event.messages) {
+    const eventMessages =
+      await this.messageHistoryRetriever.getMessageHistory();
+    for (const message of eventMessages) {
       const messageContent: Array<ContentBlock> = [];
       for (const contentElement of message.content) {
         if (typeof contentElement.image?.source?.bytes === 'string') {
@@ -162,7 +200,9 @@ export class BedrockConverseAdapter {
           toolSpec: {
             name: t.name,
             description: t.description,
-            inputSchema: t.inputSchema,
+            // We have to cast to bedrock type as we're using different types to describe JSON schema in our API.
+            // These types are runtime compatible.
+            inputSchema: t.inputSchema as ToolInputSchema,
           },
         };
       }),
@@ -171,7 +211,7 @@ export class BedrockConverseAdapter {
 
   private executeTool = async (
     toolUseBlock: ContentBlock.ToolUseMember
-  ): Promise<Message> => {
+  ): Promise<ContentBlock> => {
     if (!toolUseBlock.toolUse.name) {
       throw Error('Bedrock tool use response is missing a tool name');
     }
@@ -182,45 +222,34 @@ export class BedrockConverseAdapter {
       );
     }
     try {
+      this.logger.info(`Invoking tool ${tool.name}`);
+      this.logger.debug('Tool input:', toolUseBlock.toolUse.input);
       const toolResponse = await tool.execute(toolUseBlock.toolUse.input);
+      this.logger.info(`Received response from ${tool.name} tool`);
+      this.logger.debug(toolResponse);
       return {
-        role: 'user',
-        content: [
-          {
-            toolResult: {
-              toolUseId: toolUseBlock.toolUse.toolUseId,
-              content: [toolResponse],
-              status: 'success',
-            },
-          },
-        ],
+        toolResult: {
+          toolUseId: toolUseBlock.toolUse.toolUseId,
+          content: [toolResponse],
+          status: 'success',
+        },
       };
     } catch (e) {
       if (e instanceof Error) {
         return {
-          role: 'user',
-          content: [
-            {
-              toolResult: {
-                toolUseId: toolUseBlock.toolUse.toolUseId,
-                content: [{ text: e.toString() }],
-                status: 'error',
-              },
-            },
-          ],
+          toolResult: {
+            toolUseId: toolUseBlock.toolUse.toolUseId,
+            content: [{ text: e.toString() }],
+            status: 'error',
+          },
         };
       }
       return {
-        role: 'user',
-        content: [
-          {
-            toolResult: {
-              toolUseId: toolUseBlock.toolUse.toolUseId,
-              content: [{ text: 'unknown error occurred' }],
-              status: 'error',
-            },
-          },
-        ],
+        toolResult: {
+          toolUseId: toolUseBlock.toolUse.toolUseId,
+          content: [{ text: 'unknown error occurred' }],
+          status: 'error',
+        },
       };
     }
   };

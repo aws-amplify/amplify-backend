@@ -1,5 +1,11 @@
 # @aws-amplify/sandbox
 
+## 1.2.3
+
+### Patch Changes
+
+- 0a5e51c: Stream conversation logs in sandbox
+
 ## 1.2.2
 
 ### Patch Changes

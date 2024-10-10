@@ -12,6 +12,12 @@ void describe('Conversation turn executor', () => {
     currentMessageId: 'testCurrentMessageId',
     graphqlApiEndpoint: '',
     messages: [],
+    messageHistoryQuery: {
+      getQueryName: '',
+      getQueryInputTypeName: '',
+      listQueryName: '',
+      listQueryInputTypeName: '',
+    },
     modelConfiguration: { modelId: '', systemPrompt: '' },
     request: { headers: { authorization: '' } },
     responseMutation: {
@@ -41,9 +47,11 @@ void describe('Conversation turn executor', () => {
 
     const consoleErrorMock = mock.fn();
     const consoleLogMock = mock.fn();
+    const consoleDebugMock = mock.fn();
     const consoleMock = {
       error: consoleErrorMock,
       log: consoleLogMock,
+      debug: consoleDebugMock,
     } as unknown as Console;
 
     await new ConversationTurnExecutor(
@@ -94,9 +102,11 @@ void describe('Conversation turn executor', () => {
 
     const consoleErrorMock = mock.fn();
     const consoleLogMock = mock.fn();
+    const consoleDebugMock = mock.fn();
     const consoleMock = {
       error: consoleErrorMock,
       log: consoleLogMock,
+      debug: consoleDebugMock,
     } as unknown as Console;
 
     await assert.rejects(
@@ -158,9 +168,11 @@ void describe('Conversation turn executor', () => {
 
     const consoleErrorMock = mock.fn();
     const consoleLogMock = mock.fn();
+    const consoleDebugMock = mock.fn();
     const consoleMock = {
       error: consoleErrorMock,
       log: consoleLogMock,
+      debug: consoleDebugMock,
     } as unknown as Console;
 
     await assert.rejects(

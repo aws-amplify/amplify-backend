@@ -1,5 +1,41 @@
 # @aws-amplify/backend-ai
 
+## 0.3.0
+
+### Minor Changes
+
+- 4781704: Add information about event version to conversation components
+
+### Patch Changes
+
+- Updated dependencies [4781704]
+- Updated dependencies [3a29d43]
+- Updated dependencies [6e4a62f]
+  - @aws-amplify/ai-constructs@0.4.0
+
+## 0.2.0
+
+### Minor Changes
+
+- 300a72d: Infer executable tool input type from input schema
+- 0a5e51c: Stream conversation logs in sandbox
+
+### Patch Changes
+
+- Updated dependencies [300a72d]
+- Updated dependencies [0a5e51c]
+  - @aws-amplify/ai-constructs@0.3.0
+  - @aws-amplify/backend-output-schemas@1.3.0
+
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [d0a90b1]
+- Updated dependencies [d538ecc]
+  - @aws-amplify/ai-constructs@0.2.0
+  - @aws-amplify/backend-output-schemas@1.2.1
+
 ## 0.1.1
 
 ### Patch Changes

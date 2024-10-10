@@ -122,10 +122,14 @@ export class TypeUsageStatementsGenerator implements UsageStatementsGenerator {
    */
   constructor(
     private readonly typeAliasDeclaration: ts.TypeAliasDeclaration,
-    private readonly packageName: string
+    private readonly packageName: string,
+    private readonly excludedTypes: Array<string>
   ) {}
   generate = (): UsageStatementsGeneratorOutput => {
     const typeName = this.typeAliasDeclaration.name.getText();
+    if (this.excludedTypes.includes(typeName)) {
+      return {};
+    }
     const constName = toLowerCamelCase(typeName);
     const genericTypeParametersDeclaration =
       new GenericTypeParameterDeclarationUsageStatementsGenerator(

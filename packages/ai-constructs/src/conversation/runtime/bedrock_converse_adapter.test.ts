@@ -1,6 +1,11 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { ConversationTurnEvent, ExecutableTool, ToolDefinition } from './types';
+import {
+  ConversationMessage,
+  ConversationTurnEvent,
+  ExecutableTool,
+  ToolDefinition,
+} from './types';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter';
 import {
   BedrockRuntimeClient,
@@ -9,26 +14,24 @@ import {
   ConverseCommandOutput,
   Message,
   ToolConfiguration,
+  ToolInputSchema,
   ToolResultContentBlock,
 } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { randomBytes, randomUUID } from 'node:crypto';
+import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
 
 void describe('Bedrock converse adapter', () => {
   const commonEvent: Readonly<ConversationTurnEvent> = {
     conversationId: '',
     currentMessageId: '',
     graphqlApiEndpoint: '',
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            text: 'event message',
-          },
-        ],
-      },
-    ],
+    messageHistoryQuery: {
+      getQueryName: '',
+      getQueryInputTypeName: '',
+      listQueryName: '',
+      listQueryInputTypeName: '',
+    },
     modelConfiguration: {
       modelId: 'testModelId',
       systemPrompt: 'testSystemPrompt',
@@ -45,6 +48,27 @@ void describe('Bedrock converse adapter', () => {
       selectionSet: '',
     },
   };
+
+  const messages: Array<ConversationMessage> = [
+    {
+      role: 'user',
+      content: [
+        {
+          text: 'event message',
+        },
+      ],
+    },
+  ];
+  const messageHistoryRetriever = new ConversationMessageHistoryRetriever(
+    commonEvent
+  );
+  const messageHistoryRetrieverMockGetEventMessages = mock.method(
+    messageHistoryRetriever,
+    'getMessageHistory',
+    () => {
+      return Promise.resolve(messages);
+    }
+  );
 
   void it('calls bedrock to get conversation response', async () => {
     const event: ConversationTurnEvent = {
@@ -78,7 +102,9 @@ void describe('Bedrock converse adapter', () => {
     const responseContent = await new BedrockConverseAdapter(
       event,
       [],
-      bedrockClient
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever
     ).askBedrock();
 
     assert.deepStrictEqual(
@@ -90,7 +116,7 @@ void describe('Bedrock converse adapter', () => {
     const bedrockRequest = bedrockClientSendMock.mock.calls[0]
       .arguments[0] as unknown as ConverseCommand;
     const expectedBedrockInput: ConverseCommandInput = {
-      messages: event.messages as Array<Message>,
+      messages: messages as Array<Message>,
       modelId: event.modelConfiguration.modelId,
       inferenceConfig: event.modelConfiguration.inferenceConfiguration,
       system: [
@@ -148,7 +174,14 @@ void describe('Bedrock converse adapter', () => {
               toolUse: {
                 toolUseId: randomUUID().toString(),
                 name: additionalTool.name,
-                input: 'additionalToolInput',
+                input: 'additionalToolInput1',
+              },
+            },
+            {
+              toolUse: {
+                toolUseId: randomUUID().toString(),
+                name: additionalTool.name,
+                input: 'additionalToolInput2',
               },
             },
           ],
@@ -169,7 +202,14 @@ void describe('Bedrock converse adapter', () => {
               toolUse: {
                 toolUseId: randomUUID().toString(),
                 name: eventTool.name,
-                input: 'eventToolToolInput',
+                input: 'eventToolToolInput1',
+              },
+            },
+            {
+              toolUse: {
+                toolUseId: randomUUID().toString(),
+                name: eventTool.name,
+                input: 'eventToolToolInput2',
               },
             },
           ],
@@ -211,7 +251,8 @@ void describe('Bedrock converse adapter', () => {
       event,
       [additionalTool],
       bedrockClient,
-      eventToolsProvider
+      eventToolsProvider,
+      messageHistoryRetriever
     ).askBedrock();
 
     assert.deepStrictEqual(
@@ -226,14 +267,14 @@ void describe('Bedrock converse adapter', () => {
           toolSpec: {
             name: eventTool.name,
             description: eventTool.description,
-            inputSchema: eventTool.inputSchema,
+            inputSchema: eventTool.inputSchema as ToolInputSchema,
           },
         },
         {
           toolSpec: {
             name: additionalTool.name,
             description: additionalTool.description,
-            inputSchema: additionalTool.inputSchema,
+            inputSchema: additionalTool.inputSchema as ToolInputSchema,
           },
         },
       ],
@@ -251,7 +292,7 @@ void describe('Bedrock converse adapter', () => {
     const bedrockRequest1 = bedrockClientSendMock.mock.calls[0]
       .arguments[0] as unknown as ConverseCommand;
     const expectedBedrockInput1: ConverseCommandInput = {
-      messages: event.messages as Array<Message>,
+      messages: messages as Array<Message>,
       ...expectedBedrockInputCommonProperties,
     };
     assert.deepStrictEqual(bedrockRequest1.input, expectedBedrockInput1);
@@ -262,9 +303,13 @@ void describe('Bedrock converse adapter', () => {
       additionalToolUseBedrockResponse.output?.message?.content[0].toolUse
         ?.toolUseId
     );
+    assert.ok(
+      additionalToolUseBedrockResponse.output?.message?.content[1].toolUse
+        ?.toolUseId
+    );
     const expectedBedrockInput2: ConverseCommandInput = {
       messages: [
-        ...(event.messages as Array<Message>),
+        ...(messages as Array<Message>),
         additionalToolUseBedrockResponse.output?.message,
         {
           role: 'user',
@@ -275,6 +320,15 @@ void describe('Bedrock converse adapter', () => {
                 status: 'success',
                 toolUseId:
                   additionalToolUseBedrockResponse.output?.message.content[0]
+                    .toolUse.toolUseId,
+              },
+            },
+            {
+              toolResult: {
+                content: [additionalToolOutput],
+                status: 'success',
+                toolUseId:
+                  additionalToolUseBedrockResponse.output?.message.content[1]
                     .toolUse.toolUseId,
               },
             },
@@ -290,6 +344,9 @@ void describe('Bedrock converse adapter', () => {
     assert.ok(
       eventToolUseBedrockResponse.output?.message?.content[0].toolUse?.toolUseId
     );
+    assert.ok(
+      eventToolUseBedrockResponse.output?.message?.content[1].toolUse?.toolUseId
+    );
     assert.ok(expectedBedrockInput2.messages);
     const expectedBedrockInput3: ConverseCommandInput = {
       messages: [
@@ -304,6 +361,15 @@ void describe('Bedrock converse adapter', () => {
                 status: 'success',
                 toolUseId:
                   eventToolUseBedrockResponse.output?.message.content[0].toolUse
+                    .toolUseId,
+              },
+            },
+            {
+              toolResult: {
+                content: [eventToolOutput],
+                status: 'success',
+                toolUseId:
+                  eventToolUseBedrockResponse.output?.message.content[1].toolUse
                     .toolUseId,
               },
             },
@@ -447,7 +513,9 @@ void describe('Bedrock converse adapter', () => {
     const responseContent = await new BedrockConverseAdapter(
       event,
       [tool],
-      bedrockClient
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever
     ).askBedrock();
 
     assert.deepStrictEqual(
@@ -543,7 +611,9 @@ void describe('Bedrock converse adapter', () => {
     const responseContent = await new BedrockConverseAdapter(
       event,
       [tool],
-      bedrockClient
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever
     ).askBedrock();
 
     assert.deepStrictEqual(
@@ -645,7 +715,9 @@ void describe('Bedrock converse adapter', () => {
     const responseContent = await new BedrockConverseAdapter(
       event,
       [additionalTool],
-      bedrockClient
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever
     ).askBedrock();
 
     assert.deepStrictEqual(responseContent, [clientToolUseBlock]);
@@ -657,14 +729,14 @@ void describe('Bedrock converse adapter', () => {
           toolSpec: {
             name: additionalTool.name,
             description: additionalTool.description,
-            inputSchema: additionalTool.inputSchema,
+            inputSchema: additionalTool.inputSchema as ToolInputSchema,
           },
         },
         {
           toolSpec: {
             name: clientTool.name,
             description: clientTool.description,
-            inputSchema: clientTool.inputSchema,
+            inputSchema: clientTool.inputSchema as ToolInputSchema,
           },
         },
       ],
@@ -682,7 +754,7 @@ void describe('Bedrock converse adapter', () => {
     const bedrockRequest = bedrockClientSendMock.mock.calls[0]
       .arguments[0] as unknown as ConverseCommand;
     const expectedBedrockInput: ConverseCommandInput = {
-      messages: event.messages as Array<Message>,
+      messages: messages as Array<Message>,
       ...expectedBedrockInputCommonProperties,
     };
     assert.deepStrictEqual(bedrockRequest.input, expectedBedrockInput);
@@ -695,21 +767,27 @@ void describe('Bedrock converse adapter', () => {
 
     const fakeImagePayload = randomBytes(32);
 
-    event.messages = [
-      {
-        role: 'user',
-        content: [
+    messageHistoryRetrieverMockGetEventMessages.mock.mockImplementationOnce(
+      () => {
+        return Promise.resolve([
           {
-            image: {
-              format: 'png',
-              source: {
-                bytes: fakeImagePayload.toString('base64'),
+            id: '',
+            conversationId: '',
+            role: 'user',
+            content: [
+              {
+                image: {
+                  format: 'png',
+                  source: {
+                    bytes: fakeImagePayload.toString('base64'),
+                  },
+                },
               },
-            },
+            ],
           },
-        ],
-      },
-    ];
+        ]);
+      }
+    );
 
     const bedrockClient = new BedrockRuntimeClient();
     const bedrockResponse: ConverseCommandOutput = {
@@ -735,7 +813,13 @@ void describe('Bedrock converse adapter', () => {
       Promise.resolve(bedrockResponse)
     );
 
-    await new BedrockConverseAdapter(event, [], bedrockClient).askBedrock();
+    await new BedrockConverseAdapter(
+      event,
+      [],
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever
+    ).askBedrock();
 
     assert.strictEqual(bedrockClientSendMock.mock.calls.length, 1);
     const bedrockRequest = bedrockClientSendMock.mock.calls[0]
@@ -755,5 +839,44 @@ void describe('Bedrock converse adapter', () => {
         ],
       },
     ]);
+  });
+
+  void it('adds user agent middleware', async () => {
+    const event: ConversationTurnEvent = {
+      ...commonEvent,
+    };
+
+    event.request.headers['x-amz-user-agent'] = 'testUserAgent';
+
+    const bedrockClient = new BedrockRuntimeClient();
+    const addMiddlewareMock = mock.method(bedrockClient.middlewareStack, 'add');
+
+    new BedrockConverseAdapter(
+      event,
+      [],
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever
+    );
+
+    assert.strictEqual(addMiddlewareMock.mock.calls.length, 1);
+    const middlewareHandler = addMiddlewareMock.mock.calls[0].arguments[0];
+    const options = addMiddlewareMock.mock.calls[0].arguments[1];
+    assert.strictEqual(options.name, 'amplify-user-agent-injector');
+    const args: {
+      request: {
+        headers: Record<string, string>;
+      };
+    } = {
+      request: {
+        headers: {},
+      },
+    };
+    // @ts-expect-error We mock subset of middleware inputs here.
+    await middlewareHandler(mock.fn(), {})(args);
+    assert.strictEqual(
+      args.request.headers['x-amz-user-agent'],
+      'testUserAgent'
+    );
   });
 });
