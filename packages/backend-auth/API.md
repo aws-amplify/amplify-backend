@@ -17,6 +17,8 @@ import { FacebookProviderProps } from '@aws-amplify/auth-construct';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct';
 import { OidcProviderProps } from '@aws-amplify/auth-construct';
+import { ReferenceAuthProps } from '@aws-amplify/reference-auth-construct';
+import { ReferenceAuthResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -39,6 +41,11 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+    access?: AuthAccessGenerator;
+}>;
+
+// @public (undocumented)
+export type AmplifyReferenceAuthProps = Expand<Omit<ReferenceAuthProps, 'outputStorageStrategy'> & {
     access?: AuthAccessGenerator;
 }>;
 
@@ -80,6 +87,9 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
 // @public (undocumented)
 export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string> & StackProvider;
 
+// @public (undocumented)
+export type BackendReferenceAuth = ResourceProvider<ReferenceAuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string> & StackProvider;
+
 // @public
 export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth>;
 
@@ -117,6 +127,9 @@ export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientId' | 'cli
     clientId: BackendSecret;
     clientSecret: BackendSecret;
 };
+
+// @public
+export const referenceAuth: (props: AmplifyReferenceAuthProps) => ConstructFactory<BackendReferenceAuth>;
 
 // (No @packageDocumentation comment for this package)
 
