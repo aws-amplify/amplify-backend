@@ -1,7 +1,8 @@
 import { ConversationTurnEvent } from './types.js';
 import type { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
+import { GraphqlRequestExecutor } from './graphql_request_executor';
 
-type MutationResponseInput = {
+export type MutationResponseInput = {
   input: {
     conversationId: string;
     content: ContentBlock[];
@@ -19,30 +20,21 @@ export class ConversationTurnResponseSender {
    */
   constructor(
     private readonly event: ConversationTurnEvent,
-    private readonly _fetch = fetch
+    private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
+      event.graphqlApiEndpoint,
+      event.request.headers.authorization,
+      event.request.headers['x-amz-user-agent']
+    ),
+    private readonly logger = console
   ) {}
 
   sendResponse = async (message: ContentBlock[]) => {
-    const request = this.createMutationRequest(message);
-    const res = await this._fetch(request);
-    const responseHeaders: Record<string, string> = {};
-    res.headers.forEach((value, key) => (responseHeaders[key] = value));
-    if (!res.ok) {
-      const body = await res.text();
-      throw new Error(
-        `Assistant response mutation request was not successful, response headers=${JSON.stringify(
-          responseHeaders
-        )}, body=${body}`
-      );
-    }
-    const body = await res.json();
-    if (body && typeof body === 'object' && 'errors' in body) {
-      throw new Error(
-        `Assistant response mutation request was not successful, response headers=${JSON.stringify(
-          responseHeaders
-        )}, body=${JSON.stringify(body)}`
-      );
-    }
+    const responseMutationRequest = this.createMutationRequest(message);
+    this.logger.debug('Sending response mutation:', responseMutationRequest);
+    await this.graphqlRequestExecutor.executeGraphql<
+      MutationResponseInput,
+      void
+    >(responseMutationRequest);
   };
 
   private createMutationRequest = (content: ContentBlock[]) => {
@@ -70,13 +62,6 @@ export class ConversationTurnResponseSender {
         associatedUserMessageId: this.event.currentMessageId,
       },
     };
-    return new Request(this.event.graphqlApiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/graphql',
-        Authorization: this.event.request.headers.authorization,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
+    return { query, variables };
   };
 }

@@ -7,6 +7,12 @@
 import { z } from 'zod';
 
 // @public (undocumented)
+export type AIConversationOutput = z.infer<typeof versionedAIConversationOutputSchema>;
+
+// @public
+export const aiConversationOutputKey = "AWS::Amplify::AI::Conversation";
+
+// @public (undocumented)
 export type AuthOutput = z.infer<typeof versionedAuthOutputSchema>;
 
 // @public
@@ -340,6 +346,26 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             definedFunctions: string;
         };
     }>]>>;
+    "AWS::Amplify::AI::Conversation": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            definedConversationHandlers: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            definedConversationHandlers: string;
+        }, {
+            definedConversationHandlers: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    }>]>>;
 }, "strip", z.ZodTypeAny, {
     "AWS::Amplify::Platform"?: {
         version: "1";
@@ -403,6 +429,12 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             definedFunctions: string;
+        };
+    } | undefined;
+    "AWS::Amplify::AI::Conversation"?: {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
         };
     } | undefined;
 }, {
@@ -470,7 +502,35 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             definedFunctions: string;
         };
     } | undefined;
+    "AWS::Amplify::AI::Conversation"?: {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    } | undefined;
 }>;
+
+// @public (undocumented)
+export const versionedAIConversationOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        definedConversationHandlers: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        definedConversationHandlers: string;
+    }, {
+        definedConversationHandlers: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        definedConversationHandlers: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        definedConversationHandlers: string;
+    };
+}>]>;
 
 // @public (undocumented)
 export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{

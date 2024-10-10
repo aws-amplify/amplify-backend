@@ -7,6 +7,7 @@ import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 import { App, Stack } from 'aws-cdk-lib';
 import { IConstruct } from 'constructs';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { StorageAccessDefinitionOutput } from './private_types.js';
 
 void describe('StorageOutputsAspect', () => {
   let app: App;
@@ -126,6 +127,49 @@ void describe('StorageOutputsAspect', () => {
           name: node.name,
           bucketName: node.resources.bucket.bucketName,
           storageRegion: Stack.of(node).region,
+        })
+      );
+    });
+
+    void it('should add access paths if the storage has access rules configured', () => {
+      const accessDefinition = {
+        'path/*': {
+          authenticated: ['get', 'list', 'write', 'delete'],
+          guest: ['get', 'list'],
+        },
+      };
+      const node = new AmplifyStorage(stack, 'test', { name: 'testName' });
+      node.addAccessDefinition(
+        accessDefinition as StorageAccessDefinitionOutput
+      );
+      aspect = new StorageOutputsAspect(outputStorageStrategy);
+      aspect.visit(node);
+
+      assert.equal(
+        addBackendOutputEntryMock.mock.calls[0].arguments[0],
+        'AWS::Amplify::Storage'
+      );
+      assert.equal(
+        addBackendOutputEntryMock.mock.calls[0].arguments[1].payload
+          .storageRegion,
+        Stack.of(node).region
+      );
+      assert.equal(
+        addBackendOutputEntryMock.mock.calls[0].arguments[1].payload.bucketName,
+        node.resources.bucket.bucketName
+      );
+      assert.equal(
+        appendToBackendOutputListMock.mock.calls[0].arguments[0],
+        'AWS::Amplify::Storage'
+      );
+      assert.equal(
+        appendToBackendOutputListMock.mock.calls[0].arguments[1].payload
+          .buckets,
+        JSON.stringify({
+          name: node.name,
+          bucketName: node.resources.bucket.bucketName,
+          storageRegion: Stack.of(node).region,
+          paths: accessDefinition,
         })
       );
     });

@@ -30,6 +30,7 @@ export class ApiChangesValidator {
     private readonly latestPackagePath: string,
     private readonly baselinePackageApiReportPath: string,
     private readonly workingDirectory: string,
+    private readonly excludedTypes: Array<string> = [],
     private readonly latestPackageDependencyDeclarationStrategy:
       | 'npmRegistry'
       | 'npmLocalLink' = 'npmRegistry'
@@ -103,7 +104,8 @@ export class ApiChangesValidator {
     const apiReportAST = ApiReportParser.parse(apiReportContent);
     const usage = new ApiUsageGenerator(
       latestPackageJson.name,
-      apiReportAST
+      apiReportAST,
+      this.excludedTypes
     ).generate();
     await fsp.writeFile(path.join(this.testProjectPath, 'index.ts'), usage);
     await execa('npm', ['install'], { cwd: this.testProjectPath });

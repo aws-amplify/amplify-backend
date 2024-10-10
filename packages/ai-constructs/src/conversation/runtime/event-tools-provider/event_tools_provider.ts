@@ -28,7 +28,8 @@ export class ConversationTurnEventToolsProvider {
         inputSchema,
         graphqlApiEndpoint,
         query,
-        this.event.request.headers.authorization
+        this.event.request.headers.authorization,
+        this.event.request.headers['x-amz-user-agent']
       );
     });
     return tools ?? [];
