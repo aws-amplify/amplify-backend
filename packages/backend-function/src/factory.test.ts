@@ -415,7 +415,9 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets minify to false', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
-        minify: false,
+        bundling: {
+          minify: false,
+        },
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
       // There isn't a way to check the contents of the bundled lambda using the CDK Template utility

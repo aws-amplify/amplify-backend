@@ -54,5 +54,7 @@ export const funcWithSchedule = defineFunction({
 export const funcNoMinify = defineFunction({
   name: 'funcNoMinify',
   entry: './func-src/handler_no_minify.ts',
-  minify: false,
+  bundling: {
+    minify: false,
+  },
 });

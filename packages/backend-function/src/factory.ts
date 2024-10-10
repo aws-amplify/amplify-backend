@@ -128,6 +128,13 @@ export type FunctionProps = {
   schedule?: FunctionSchedule | FunctionSchedule[];
 
   /**
+   * Options for bundling the function code.
+   */
+  bundling?: FunctionBundlingOptions;
+};
+
+export type FunctionBundlingOptions = {
+  /**
    * Whether to minify the function code.
    *
    * Defaults to true.
@@ -178,7 +185,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
-      minify: this.resolveMinify(),
+      bundling: this.resolveBundling(),
     };
   };
 
@@ -285,12 +292,29 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     return this.props.schedule;
   };
 
-  private resolveMinify = () => {
-    if (this.props.minify === undefined) {
+  private resolveBundling = () => {
+    const bundlingDefault = {
+      format: OutputFormat.ESM,
+      bundleAwsSDK: true,
+      loader: {
+        '.node': 'file',
+      },
+      minify: true,
+      sourceMap: true,
+    };
+
+    return {
+      ...bundlingDefault,
+      minify: this.resolveMinify(this.props.bundling),
+    };
+  };
+
+  private resolveMinify = (bundling?: FunctionBundlingOptions) => {
+    if (bundling === undefined) {
       return true;
     }
 
-    return this.props.minify;
+    return bundling.minify === undefined ? true : bundling.minify;
   };
 }
 
@@ -382,15 +406,9 @@ class AmplifyFunction
         memorySize: props.memoryMB,
         runtime: nodeVersionMap[props.runtime],
         bundling: {
-          format: OutputFormat.ESM,
+          ...props.bundling,
           banner: bannerCode,
-          bundleAwsSDK: true,
           inject: shims,
-          loader: {
-            '.node': 'file',
-          },
-          minify: props.minify,
-          sourceMap: true,
         },
       });
     } catch (error) {
