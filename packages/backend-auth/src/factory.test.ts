@@ -397,8 +397,6 @@ void describe('AmplifyAuthFactory', () => {
     });
   });
   void it('ensures empty lambdaTriggers do not remove triggers added elsewhere', () => {
-    const app = new App();
-    const stack = new Stack(app);
     const testFunc = new aws_lambda.Function(stack, 'testFunc', {
       code: aws_lambda.Code.fromInline('test placeholder'),
       runtime: aws_lambda.Runtime.NODEJS_18_X,
