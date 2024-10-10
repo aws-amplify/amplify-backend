@@ -50,6 +50,12 @@ export class CdkErrorMapper {
               underlyingError = undefined;
             }
           }
+          // remove any trailing EOL
+          matchingError.humanReadableErrorMessage =
+            matchingError.humanReadableErrorMessage.replace(
+              new RegExp(`${this.multiLineEolRegex}$`),
+              ''
+            );
         } else {
           underlyingError.message = matchGroups[0];
         }
@@ -193,10 +199,9 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      // If there are multiple errors, capture all lines containing the errors and exclude the stack trace
+      // If there are multiple errors, capture all lines containing the errors
       errorRegex: new RegExp(
-        `\\[TransformError\\]: Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>.*(?=${this.multiLineEolRegex}\\s*at\\s+))`,
-        's'
+        `\\[TransformError\\]: Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
