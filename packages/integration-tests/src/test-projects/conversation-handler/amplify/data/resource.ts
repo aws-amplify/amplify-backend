@@ -99,7 +99,6 @@ const schema = a.schema({
       // always
       conversationId: a.id().required(),
       associatedUserMessageId: a.id().required(),
-      assistantMessageIndex: a.integer().required(),
       contentBlockIndex: a.integer().required(),
 
       // these describe chunks or end of block

@@ -50,7 +50,6 @@ type ConversationTurnAppSyncResponseChunk = {
   // always required
   conversationId: string;
   associatedUserMessageId: string;
-  assistantMessageIndex: number;
   contentBlockIndex: number;
   contentBlockText?: string;
   contentBlockDeltaIndex?: number;
@@ -666,7 +665,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
             ) {
               items {
                 associatedUserMessageId
-                assistantMessageIndex
                 contentBlockDeltaIndex
                 contentBlockDoneAtIndex
                 contentBlockIndex
@@ -703,13 +701,11 @@ class ConversationHandlerTestProject extends TestProjectBase {
 
     chunks.sort((a, b) => {
       // This is very simplified sort by message,block and delta indexes;
-      let aValue =
-        1000 * 1000 * a.assistantMessageIndex + 1000 * a.contentBlockIndex;
+      let aValue = 1000 * 1000 * a.contentBlockIndex;
       if (a.contentBlockDeltaIndex) {
         aValue += a.contentBlockDeltaIndex;
       }
-      let bValue =
-        1000 * 1000 * b.assistantMessageIndex + 1000 * b.contentBlockIndex;
+      let bValue = 1000 * 1000 * b.contentBlockIndex;
       if (b.contentBlockDeltaIndex) {
         bValue += b.contentBlockDeltaIndex;
       }

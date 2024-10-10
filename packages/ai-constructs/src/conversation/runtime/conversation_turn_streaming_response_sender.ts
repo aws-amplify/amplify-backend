@@ -6,7 +6,6 @@ export type StreamingResponseChunk = {
   conversationId: string;
   associatedUserMessageId: string;
   contentBlockIndex: number;
-  assistantMessageIndex: number;
 } & (
   | {
       // text chunk
