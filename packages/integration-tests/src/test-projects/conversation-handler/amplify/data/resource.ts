@@ -99,17 +99,21 @@ const schema = a.schema({
       // always
       conversationId: a.id().required(),
       associatedUserMessageId: a.id().required(),
+      assistantMessageIndex: a.integer().required(),
+      contentBlockIndex: a.integer().required(),
 
       // these describe chunks or end of block
       contentBlockText: a.string(),
       contentBlockToolUse: a.string(),
-      contentBlockIndex: a.integer().required(),
       contentBlockDeltaIndex: a.integer(),
       contentBlockDoneAtIndex: a.integer(),
 
       // when message is complete
       stopReason: a.string(),
     })
+    .secondaryIndexes((index) => [
+      index('conversationId').sortKeys(['associatedUserMessageId']),
+    ])
     .authorization((allow) => [allow.authenticated(), allow.owner()]),
 
   ConversationMessageChat: a

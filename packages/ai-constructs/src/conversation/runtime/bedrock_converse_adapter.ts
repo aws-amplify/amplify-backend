@@ -17,6 +17,7 @@ import {
 } from './types.js';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
+import { ConversationTurnStreamingResponseSender } from './conversation_turn_streaming_response_sender';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -41,6 +42,9 @@ export class BedrockConverseAdapter {
     ),
     eventToolsProvider = new ConversationTurnEventToolsProvider(event),
     private readonly messageHistoryRetriever = new ConversationMessageHistoryRetriever(
+      event
+    ),
+    private readonly streamingResponseSender = new ConversationTurnStreamingResponseSender(
       event
     ),
     private readonly logger = console
@@ -101,6 +105,7 @@ export class BedrockConverseAdapter {
     let bedrockResponse: ConverseStreamCommandOutput;
     let assistantMessage: Message;
     let stopReason: string;
+    let assistantMessageIndex = 0;
     do {
       const toolConfig = this.createToolConfiguration();
       const converseCommandInput: ConverseStreamCommandInput = {
@@ -126,11 +131,12 @@ export class BedrockConverseAdapter {
         throw new Error('Bedrock response is missing stream');
       }
 
-      const response = await this.streamAssistantMessage(
-        bedrockResponse.stream
+      const streamingResult = await this.streamAssistantMessage(
+        bedrockResponse.stream,
+        assistantMessageIndex++
       );
-      assistantMessage = response.assistantMessage;
-      stopReason = response.stopReason;
+      assistantMessage = streamingResult.assistantMessage;
+      stopReason = streamingResult.stopReason;
       this.logger.info(`Bedrock Converse response stopReason=${stopReason}`);
       this.logger.debug(
         'Bedrock Converse assistant message:',
@@ -177,12 +183,19 @@ export class BedrockConverseAdapter {
    * See: https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use-examples.html
    */
   private streamAssistantMessage = async (
-    stream: AsyncIterable<ConverseStreamOutput>
+    stream: AsyncIterable<ConverseStreamOutput>,
+    assistantMessageIndex: number
   ) => {
     let stopReason = '';
     let toolUseBlock: ContentBlock.ToolUseMember | undefined;
     let text: string = '';
     let toolUseInput: string = '';
+    let clientToolsRequested = false;
+    // keep our own indexing for blocks and chunks since we stream subset of these upstream.
+    let blockIndex = 0;
+    let lastBlockIndex = 0;
+    let blockDeltaIndex = 0;
+    let lastBlockDeltaIndex = 0;
     const assistantMessage: Message = {
       role: undefined,
       content: [],
@@ -191,6 +204,8 @@ export class BedrockConverseAdapter {
       if (chunk.messageStart) {
         assistantMessage.role = chunk.messageStart.role;
       } else if (chunk.contentBlockStart) {
+        blockDeltaIndex = 0;
+        lastBlockDeltaIndex = 0;
         if (chunk.contentBlockStart.start?.toolUse) {
           toolUseBlock = {
             toolUse: {
@@ -206,25 +221,66 @@ export class BedrockConverseAdapter {
           }
           toolUseInput += chunk.contentBlockDelta.delta.toolUse.input;
         } else if (chunk.contentBlockDelta.delta?.text) {
-          text += chunk.contentBlockDelta.delta?.text;
+          text += chunk.contentBlockDelta.delta.text;
+          await this.streamingResponseSender.sendResponseChunk({
+            conversationId: this.event.conversationId,
+            associatedUserMessageId: this.event.currentMessageId,
+            assistantMessageIndex,
+            contentBlockText: chunk.contentBlockDelta.delta.text,
+            contentBlockIndex: blockIndex,
+            contentBlockDeltaIndex: blockDeltaIndex,
+          });
+          lastBlockDeltaIndex = blockDeltaIndex;
+          blockDeltaIndex++;
         }
       } else if (chunk.contentBlockStop) {
         if (toolUseBlock) {
           toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
           assistantMessage.content?.push(toolUseBlock);
+          if (
+            toolUseBlock.toolUse.name &&
+            this.clientToolByName.has(toolUseBlock.toolUse.name)
+          ) {
+            clientToolsRequested = true;
+            await this.streamingResponseSender.sendResponseChunk({
+              conversationId: this.event.conversationId,
+              associatedUserMessageId: this.event.currentMessageId,
+              assistantMessageIndex,
+              contentBlockIndex: blockIndex,
+              contentBlockToolUse: JSON.stringify(toolUseBlock),
+            });
+            lastBlockIndex = blockIndex;
+            blockIndex++;
+          }
           toolUseBlock = undefined;
           toolUseInput = '';
         } else {
           assistantMessage.content?.push({
             text,
           });
+          await this.streamingResponseSender.sendResponseChunk({
+            conversationId: this.event.conversationId,
+            associatedUserMessageId: this.event.currentMessageId,
+            assistantMessageIndex,
+            contentBlockIndex: blockIndex,
+            contentBlockDoneAtIndex: lastBlockDeltaIndex,
+          });
           text = '';
+          lastBlockIndex = blockIndex;
+          blockIndex++;
         }
       } else if (chunk.messageStop) {
         stopReason = chunk.messageStop.stopReason ?? '';
+        await this.streamingResponseSender.sendResponseChunk({
+          conversationId: this.event.conversationId,
+          associatedUserMessageId: this.event.currentMessageId,
+          assistantMessageIndex,
+          contentBlockIndex: lastBlockIndex,
+          stopReason: stopReason,
+        });
       }
     }
-    return { assistantMessage, stopReason };
+    return { assistantMessage, stopReason, clientToolsRequested };
   };
 
   /**

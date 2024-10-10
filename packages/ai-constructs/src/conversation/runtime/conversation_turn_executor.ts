@@ -20,7 +20,6 @@ export class ConversationTurnExecutor {
       event,
       additionalTools
     ),
-    private readonly responseSender = new ConversationTurnResponseSender(event),
     private readonly logger = console
   ) {}
 
@@ -31,13 +30,13 @@ export class ConversationTurnExecutor {
       );
       this.logger.debug('Event received:', this.event);
 
-      const assistantResponse = await this.bedrockConverseAdapter.askBedrock();
-
-      await this.responseSender.sendResponse(assistantResponse);
+      const assistantResponseContent =
+        await this.bedrockConverseAdapter.askBedrock();
 
       this.logger.log(
         `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
       );
+      this.logger.debug('Accumulated content', assistantResponseContent);
     } catch (e) {
       this.logger.error(
         `Failed to handle conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`,

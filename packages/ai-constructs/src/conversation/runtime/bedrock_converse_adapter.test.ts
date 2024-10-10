@@ -23,6 +23,7 @@ import {
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
+import { ConversationTurnStreamingResponseSender } from './conversation_turn_streaming_response_sender';
 
 void describe('Bedrock converse adapter', () => {
   const commonEvent: Readonly<ConversationTurnEvent> = {
@@ -73,116 +74,12 @@ void describe('Bedrock converse adapter', () => {
     }
   );
 
-  // Mocks streaming response using input blocks.
-  const mockBedrockStreamResponse = (
-    contentBlocks:
-      | Array<ContentBlock.TextMember>
-      | Array<ContentBlock.ToolUseMember>
-  ): ConverseStreamCommandOutput => {
-    const streamItems: Array<ConverseStreamOutput> = [];
-    let stopReason: StopReason | undefined;
-    streamItems.push({
-      messageStart: {
-        role: 'assistant',
-      },
-    });
-    for (let i = 0; i < contentBlocks.length; i++) {
-      const block = contentBlocks[i];
-      if (block.toolUse) {
-        stopReason = 'tool_use';
-        streamItems.push({
-          contentBlockStart: {
-            contentBlockIndex: i,
-            start: {
-              toolUse: {
-                toolUseId: block.toolUse.toolUseId,
-                name: block.toolUse.name,
-              },
-            },
-          },
-        });
-        const input = JSON.stringify(block.toolUse.input);
-        streamItems.push({
-          contentBlockDelta: {
-            contentBlockIndex: i,
-            delta: {
-              toolUse: {
-                // simulate chunked input
-                input: input.substring(0, 1),
-              },
-            },
-          },
-        });
-        if (input.length > 1) {
-          streamItems.push({
-            contentBlockDelta: {
-              contentBlockIndex: i,
-              delta: {
-                toolUse: {
-                  // simulate chunked input
-                  input: input.substring(1),
-                },
-              },
-            },
-          });
-        }
-        streamItems.push({
-          contentBlockStop: {
-            contentBlockIndex: i,
-          },
-        });
-      } else if (block.text) {
-        stopReason = 'end_turn';
-        streamItems.push({
-          contentBlockStart: {
-            contentBlockIndex: i,
-            start: undefined,
-          },
-        });
-        const input = block.text;
-        streamItems.push({
-          contentBlockDelta: {
-            contentBlockIndex: i,
-            delta: {
-              // simulate chunked input
-              text: input.substring(0, 1),
-            },
-          },
-        });
-        if (input.length > 1) {
-          streamItems.push({
-            contentBlockDelta: {
-              contentBlockIndex: i,
-              delta: {
-                // simulate chunked input
-                text: input.substring(1),
-              },
-            },
-          });
-        }
-        streamItems.push({
-          contentBlockStop: {
-            contentBlockIndex: i,
-          },
-        });
-      } else {
-        throw new Error('Unsupported block type');
-      }
-    }
-    streamItems.push({
-      messageStop: {
-        stopReason: stopReason,
-      },
-    });
-    return {
-      $metadata: {},
-      stream: (async function* (): AsyncGenerator<ConverseStreamOutput> {
-        for (const streamItem of streamItems) {
-          yield streamItem;
-        }
-      })(),
-    };
-  };
+  const streamingResponseSender = new ConversationTurnStreamingResponseSender(
+    commonEvent
+  );
+  mock.method(streamingResponseSender, 'sendResponseChunk', () =>
+    Promise.resolve()
+  );
 
   void it('calls bedrock to get conversation response', async () => {
     const event: ConversationTurnEvent = {
@@ -201,7 +98,8 @@ void describe('Bedrock converse adapter', () => {
       [],
       bedrockClient,
       undefined,
-      messageHistoryRetriever
+      messageHistoryRetriever,
+      streamingResponseSender
     ).askBedrock();
 
     assert.deepStrictEqual(responseContent, content);
@@ -316,7 +214,8 @@ void describe('Bedrock converse adapter', () => {
       [additionalTool],
       bedrockClient,
       eventToolsProvider,
-      messageHistoryRetriever
+      messageHistoryRetriever,
+      streamingResponseSender
     ).askBedrock();
 
     assert.deepStrictEqual(responseContent, content);
@@ -537,7 +436,8 @@ void describe('Bedrock converse adapter', () => {
       [tool],
       bedrockClient,
       undefined,
-      messageHistoryRetriever
+      messageHistoryRetriever,
+      streamingResponseSender
     ).askBedrock();
 
     assert.deepStrictEqual(responseContent, content);
@@ -605,7 +505,8 @@ void describe('Bedrock converse adapter', () => {
       [tool],
       bedrockClient,
       undefined,
-      messageHistoryRetriever
+      messageHistoryRetriever,
+      streamingResponseSender
     ).askBedrock();
 
     assert.deepStrictEqual(responseContent, content);
@@ -691,7 +592,8 @@ void describe('Bedrock converse adapter', () => {
       [additionalTool],
       bedrockClient,
       undefined,
-      messageHistoryRetriever
+      messageHistoryRetriever,
+      streamingResponseSender
     ).askBedrock();
 
     assert.deepStrictEqual(responseContent, [
@@ -779,7 +681,8 @@ void describe('Bedrock converse adapter', () => {
       [],
       bedrockClient,
       undefined,
-      messageHistoryRetriever
+      messageHistoryRetriever,
+      streamingResponseSender
     ).askBedrock();
 
     assert.strictEqual(bedrockClientSendMock.mock.calls.length, 1);
@@ -817,7 +720,8 @@ void describe('Bedrock converse adapter', () => {
       [],
       bedrockClient,
       undefined,
-      messageHistoryRetriever
+      messageHistoryRetriever,
+      streamingResponseSender
     );
 
     assert.strictEqual(addMiddlewareMock.mock.calls.length, 1);
@@ -841,3 +745,114 @@ void describe('Bedrock converse adapter', () => {
     );
   });
 });
+
+// Mocks streaming response using input blocks.
+const mockBedrockStreamResponse = (
+  contentBlocks:
+    | Array<ContentBlock.TextMember>
+    | Array<ContentBlock.ToolUseMember>
+): ConverseStreamCommandOutput => {
+  const streamItems: Array<ConverseStreamOutput> = [];
+  let stopReason: StopReason | undefined;
+  streamItems.push({
+    messageStart: {
+      role: 'assistant',
+    },
+  });
+  for (let i = 0; i < contentBlocks.length; i++) {
+    const block = contentBlocks[i];
+    if (block.toolUse) {
+      stopReason = 'tool_use';
+      streamItems.push({
+        contentBlockStart: {
+          contentBlockIndex: i,
+          start: {
+            toolUse: {
+              toolUseId: block.toolUse.toolUseId,
+              name: block.toolUse.name,
+            },
+          },
+        },
+      });
+      const input = JSON.stringify(block.toolUse.input);
+      streamItems.push({
+        contentBlockDelta: {
+          contentBlockIndex: i,
+          delta: {
+            toolUse: {
+              // simulate chunked input
+              input: input.substring(0, 1),
+            },
+          },
+        },
+      });
+      if (input.length > 1) {
+        streamItems.push({
+          contentBlockDelta: {
+            contentBlockIndex: i,
+            delta: {
+              toolUse: {
+                // simulate chunked input
+                input: input.substring(1),
+              },
+            },
+          },
+        });
+      }
+      streamItems.push({
+        contentBlockStop: {
+          contentBlockIndex: i,
+        },
+      });
+    } else if (block.text) {
+      stopReason = 'end_turn';
+      streamItems.push({
+        contentBlockStart: {
+          contentBlockIndex: i,
+          start: undefined,
+        },
+      });
+      const input = block.text;
+      streamItems.push({
+        contentBlockDelta: {
+          contentBlockIndex: i,
+          delta: {
+            // simulate chunked input
+            text: input.substring(0, 1),
+          },
+        },
+      });
+      if (input.length > 1) {
+        streamItems.push({
+          contentBlockDelta: {
+            contentBlockIndex: i,
+            delta: {
+              // simulate chunked input
+              text: input.substring(1),
+            },
+          },
+        });
+      }
+      streamItems.push({
+        contentBlockStop: {
+          contentBlockIndex: i,
+        },
+      });
+    } else {
+      throw new Error('Unsupported block type');
+    }
+  }
+  streamItems.push({
+    messageStop: {
+      stopReason: stopReason,
+    },
+  });
+  return {
+    $metadata: {},
+    stream: (async function* (): AsyncGenerator<ConverseStreamOutput> {
+      for (const streamItem of streamItems) {
+        yield streamItem;
+      }
+    })(),
+  };
+};

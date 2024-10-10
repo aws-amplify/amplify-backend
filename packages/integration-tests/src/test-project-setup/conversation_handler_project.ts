@@ -46,8 +46,20 @@ if (process.versions.node) {
   }
 }
 
-type ConversationTurnAppSyncResponse = {
+type ConversationTurnAppSyncResponseChunk = {
+  // always required
+  conversationId: string;
   associatedUserMessageId: string;
+  assistantMessageIndex: number;
+  contentBlockIndex: number;
+  contentBlockText?: string;
+  contentBlockDeltaIndex?: number;
+  contentBlockDoneAtIndex?: number;
+  contentBlockToolUse?: string;
+  stopReason?: string;
+};
+
+type ConversationTurnAppSyncResponse = {
   content: string;
 };
 
@@ -59,16 +71,9 @@ type CreateConversationMessageChatInput = ConversationMessage & {
 
 const commonEventProperties = {
   responseMutation: {
-    name: 'createConversationMessageAssistantResponse',
-    inputTypeName: 'CreateConversationMessageAssistantResponseInput',
-    selectionSet: [
-      'id',
-      'conversationId',
-      'content',
-      'owner',
-      'createdAt',
-      'updatedAt',
-    ].join('\n'),
+    name: 'createConversationMessageAssistantStreamingResponse',
+    inputTypeName: 'CreateConversationMessageAssistantStreamingResponseInput',
+    selectionSet: ['id', 'conversationId', 'createdAt', 'updatedAt'].join('\n'),
   },
   messageHistoryQuery: {
     getQueryName: 'getConversationMessageChat',
@@ -636,34 +641,100 @@ class ConversationHandlerTestProject extends TestProjectBase {
     );
 
     // assert that response came back
-
-    const queryResult = await apolloClient.query<{
-      listConversationMessageAssistantResponses: {
-        items: Array<ConversationTurnAppSyncResponse>;
-      };
-    }>({
-      query: gql`
-        query ListMessages {
-          listConversationMessageAssistantResponses(limit: 1000) {
-            items {
-              conversationId
-              id
-              updatedAt
-              createdAt
-              content
-              associatedUserMessageId
+    let nextToken: string | undefined;
+    const chunks: Array<ConversationTurnAppSyncResponseChunk> = [];
+    do {
+      const queryResult = await apolloClient.query<{
+        listConversationMessageAssistantStreamingResponses: {
+          items: Array<ConversationTurnAppSyncResponseChunk>;
+          nextToken: string | undefined;
+        };
+      }>({
+        query: gql`
+          query ListMessageChunks(
+            $conversationId: ID
+            $associatedUserMessageId: ID
+            $nextToken: String
+          ) {
+            listConversationMessageAssistantStreamingResponses(
+              limit: 1000
+              nextToken: $nextToken
+              filter: {
+                conversationId: { eq: $conversationId }
+                associatedUserMessageId: { eq: $associatedUserMessageId }
+              }
+            ) {
+              items {
+                associatedUserMessageId
+                assistantMessageIndex
+                contentBlockDeltaIndex
+                contentBlockDoneAtIndex
+                contentBlockIndex
+                contentBlockText
+                contentBlockToolUse
+                conversationId
+                createdAt
+                id
+                owner
+                stopReason
+                updatedAt
+              }
+              nextToken
             }
           }
-        }
-      `,
-      fetchPolicy: 'no-cache',
-    });
-    const response =
-      queryResult.data.listConversationMessageAssistantResponses.items.find(
-        (item) => item.associatedUserMessageId === event.currentMessageId
+        `,
+        variables: {
+          conversationId: event.conversationId,
+          associatedUserMessageId: event.currentMessageId,
+          nextToken,
+        },
+        fetchPolicy: 'no-cache',
+      });
+      nextToken =
+        queryResult.data.listConversationMessageAssistantStreamingResponses
+          .nextToken;
+      chunks.push(
+        ...queryResult.data.listConversationMessageAssistantStreamingResponses
+          .items
       );
-    assert.ok(response);
-    return response;
+    } while (nextToken);
+
+    assert.ok(chunks);
+
+    chunks.sort((a, b) => {
+      // This is very simplified sort by message,block and delta indexes;
+      let aValue =
+        1000 * 1000 * a.assistantMessageIndex + 1000 * a.contentBlockIndex;
+      if (a.contentBlockDeltaIndex) {
+        aValue += a.contentBlockDeltaIndex;
+      }
+      let bValue =
+        1000 * 1000 * b.assistantMessageIndex + 1000 * b.contentBlockIndex;
+      if (b.contentBlockDeltaIndex) {
+        bValue += b.contentBlockDeltaIndex;
+      }
+      return aValue - bValue;
+    });
+
+    const content = chunks.reduce((accumulated, current) => {
+      if (current.contentBlockText) {
+        accumulated += current.contentBlockText;
+      }
+      if (current.contentBlockToolUse) {
+        accumulated += current.contentBlockToolUse;
+      }
+      return accumulated;
+    }, '');
+    console.log('##################');
+    console.log(
+      `conversationId ${event.conversationId}, currentMessageId ${event.currentMessageId}`
+    );
+    console.log(content);
+    console.log('##################');
+
+    return {
+      content,
+    };
   };
 
   private insertMessage = async (
