@@ -150,37 +150,10 @@ export class AmplifyAuth
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
-
-    const userPoolProps = {
-      ...this.computedUserPoolProps,
-    };
-    let customSenderKmsKey: Key | undefined;
-    if (
-      props.senders?.email &&
-      props.senders.email instanceof lambda.Function
-    ) {
-      if (!customSenderKmsKey) {
-        customSenderKmsKey = new Key(this, 'CustomSenderKey', {
-          enableKeyRotation: true,
-        });
-      }
-      customSenderKmsKey.grantDecrypt(props.senders.email);
-      const stack = Stack.of(this);
-      const accountId = stack.account;
-      const userPoolArn = this.userPool.userPoolArn;
-
-      props.senders.email.addPermission('CognitoInvokeEmailSenderHandler', {
-        principal: new ServicePrincipal('cognito-idp.amazonaws.com'),
-        action: 'lambda:InvokeFunction',
-        sourceAccount: accountId,
-        sourceArn: userPoolArn,
-      });
-      userPoolProps.customSenderKmsKey = customSenderKmsKey;
-    }
     this.userPool = new cognito.UserPool(
       this,
       `${this.name}UserPool`,
-      userPoolProps
+      this.computedUserPoolProps
     );
     // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
     this.providerSetupResult = this.setupExternalProviders(
@@ -506,6 +479,29 @@ export class AmplifyAuth
       },
       { standardAttributes: {}, customAttributes: {} }
     );
+    let customSenderKmsKey: Key | undefined;
+    if (
+      props.senders?.email &&
+      props.senders.email instanceof lambda.Function
+    ) {
+      if (!customSenderKmsKey) {
+        customSenderKmsKey = new Key(this, `${this.name}CustomSenderKey`, {
+          enableKeyRotation: true,
+        });
+      }
+      customSenderKmsKey.grantDecrypt(props.senders.email);
+      const stack = Stack.of(this);
+      const accountId = stack.account;
+      const userPoolArn = this.userPool.userPoolArn;
+
+      props.senders.email.addPermission('CognitoInvokeEmailSenderHandler', {
+        principal: new ServicePrincipal('cognito-idp.amazonaws.com'),
+        action: 'lambda:InvokeFunction',
+        sourceAccount: accountId,
+        sourceArn: userPoolArn,
+      });
+    }
+
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -530,19 +526,15 @@ export class AmplifyAuth
       customAttributes: {
         ...customAttributes,
       },
-      email: props.senders
-        ? (() => {
-            if ('fromEmail' in props.senders.email) {
-              return cognito.UserPoolEmail.withSES({
-                fromEmail: props.senders.email.fromEmail,
-                fromName: props.senders.email.fromName,
-                replyTo: props.senders.email.replyTo,
-                sesRegion: Stack.of(this).region,
-              });
-            }
-            return undefined;
-          })()
-        : undefined,
+      email:
+        props.senders && 'fromEmail' in props.senders.email
+          ? cognito.UserPoolEmail.withSES({
+              fromEmail: props.senders.email.fromEmail,
+              fromName: props.senders.email.fromName,
+              replyTo: props.senders.email.replyTo,
+              sesRegion: Stack.of(this).region,
+            })
+          : undefined,
       lambdaTriggers: {
         ...(props.senders?.email instanceof lambda.Function
           ? { customEmailSender: props.senders.email }
@@ -565,6 +557,7 @@ export class AmplifyAuth
               props.loginWith.email?.userInvitation
             )
           : undefined,
+      customSenderKmsKey: customSenderKmsKey,
     };
     return userPoolProps;
   };
