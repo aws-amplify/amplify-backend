@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.5
+
+### Patch Changes
+
+- 93d419f: detect more generic CFN deployment failure errors
+
 ## 1.1.4
 
 ### Patch Changes
