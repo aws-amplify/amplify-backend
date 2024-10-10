@@ -1,5 +1,16 @@
 # @aws-amplify/ai-constructs
 
+## 0.4.0
+
+### Minor Changes
+
+- 4781704: Add information about event version to conversation components
+- 3a29d43: Pass user agent in conversation handler lambda
+
+### Patch Changes
+
+- 6e4a62f: Fix multi tool usage in single turn.
+
 ## 0.3.0
 
 ### Minor Changes

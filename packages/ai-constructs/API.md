@@ -17,7 +17,8 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 declare namespace __export__conversation {
     export {
         ConversationHandlerFunction,
-        ConversationHandlerFunctionProps
+        ConversationHandlerFunctionProps,
+        ConversationTurnEventVersion
     }
 }
 export { __export__conversation }
@@ -42,6 +43,8 @@ export { __export__conversation__runtime }
 // @public
 class ConversationHandlerFunction extends Construct implements ResourceProvider<FunctionResources> {
     constructor(scope: Construct, id: string, props: ConversationHandlerFunctionProps);
+    // (undocumented)
+    static readonly eventVersion: ConversationTurnEventVersion;
     // (undocumented)
     resources: FunctionResources;
 }
@@ -113,6 +116,9 @@ type ConversationTurnEvent = {
         clientTools?: Array<ToolDefinition>;
     };
 };
+
+// @public (undocumented)
+type ConversationTurnEventVersion = `1.${number}`;
 
 // @public
 const createExecutableTool: <TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: ToolInputSchema<TJSONSchema>, handler: (input: TToolInput) => Promise<bedrock.ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;

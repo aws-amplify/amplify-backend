@@ -36,6 +36,7 @@ export type FunctionProps = {
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
+    layers?: Record<string, string>;
     bundling?: FunctionBundlingOptions;
 };
 
