@@ -26,6 +26,14 @@ export type ConversationMessageContentBlock =
         // Upstream (Appsync) may send images in a form of Base64 encoded strings
         source: { bytes: string };
       };
+      // These are needed so that union with other content block types works.
+      // See https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-bedrock-runtime/TypeAlias/ContentBlock/.
+      text?: never;
+      document?: never;
+      toolUse?: never;
+      toolResult?: never;
+      guardContent?: never;
+      $unknown?: never;
     };
 
 export type ToolDefinition<TJSONSchema extends JSONSchema = JSONSchema> = {

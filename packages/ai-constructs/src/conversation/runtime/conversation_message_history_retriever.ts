@@ -235,6 +235,24 @@ export class ConversationMessageHistoryRetriever {
       variables,
     });
 
-    return response.data[this.event.messageHistoryQuery.listQueryName].items;
+    const items =
+      response.data[this.event.messageHistoryQuery.listQueryName].items;
+
+    items.forEach((item) => {
+      item.content?.forEach((contentBlock) => {
+        let property: keyof typeof contentBlock;
+        for (property in contentBlock) {
+          // Deserialization of GraphQl query result sets these properties to 'null'
+          // This can trigger Bedrock SDK validation as it expects 'undefined' if properties are not set.
+          // We can't fix how GraphQl response is deserialized.
+          // Therefore, we apply this transformation to fix the data.
+          if (contentBlock[property] === null) {
+            contentBlock[property] = undefined;
+          }
+        }
+      });
+    });
+
+    return items;
   };
 }
