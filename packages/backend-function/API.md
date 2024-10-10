@@ -23,6 +23,11 @@ export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` |
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
 
 // @public (undocumented)
+export type FunctionBundlingOptions = {
+    minify?: boolean;
+};
+
+// @public (undocumented)
 export type FunctionProps = {
     name?: string;
     entry?: string;
@@ -32,6 +37,7 @@ export type FunctionProps = {
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
     layers?: Record<string, string>;
+    bundling?: FunctionBundlingOptions;
 };
 
 // @public (undocumented)

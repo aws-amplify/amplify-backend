@@ -30,6 +30,7 @@
     "@aws-sdk/credential-providers": "^3.624.0",
     "@smithy/shared-ini-file-loader": "^2.2.5",
     "@types/lodash.ismatch": "^4.4.9",
+    "@zip.js/zip.js": "^2.7.52",
     "aws-amplify": "^6.0.16",
     "aws-appsync-auth-link": "^3.0.7",
     "aws-cdk-lib": "^2.152.0",
