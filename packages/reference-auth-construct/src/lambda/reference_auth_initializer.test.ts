@@ -472,4 +472,21 @@ void describe('ReferenceAuthInitializer', () => {
   });
 
   // fails gracefully if client is not a web client
+  void it('fails gracefully if user pool client is not a web client', async () => {
+    describeUserPoolClientResponse = {
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      UserPoolClient: {
+        ...UserPoolClient,
+        ClientSecret: 'sample',
+      },
+    };
+    const result = await handler.handleEvent(createCfnEvent);
+    assert.equal(result.Status, 'FAILED');
+    assert.equal(
+      result.Reason,
+      'The specified user pool client is not configured as a web client.'
+    );
+  });
 });

@@ -361,7 +361,7 @@ export const IdentityPoolRoles = {
 /**
  * Sample data from describe user pool client
  */
-export const UserPoolClient: UserPoolClientType = {
+export const UserPoolClient: Readonly<UserPoolClientType> = {
   UserPoolId: SampleInputProperties.userPoolId,
   ClientName: 'ref-auth-app-client-1',
   ClientId: SampleInputProperties.userPoolClientId,
