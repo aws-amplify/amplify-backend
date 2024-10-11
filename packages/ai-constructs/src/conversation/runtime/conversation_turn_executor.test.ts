@@ -1,7 +1,7 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { ConversationTurnExecutor } from './conversation_turn_executor';
-import { ConversationTurnEvent } from './types';
+import { ConversationTurnEvent, StreamingResponseChunk } from './types';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter';
 import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnResponseSender } from './conversation_turn_response_sender';
@@ -86,6 +86,107 @@ void describe('Conversation turn executor', () => {
       responseSenderSendResponseMock.mock.calls[0].arguments[0],
       bedrockResponse
     );
+
+    assert.strictEqual(consoleLogMock.mock.calls.length, 2);
+    assert.strictEqual(
+      consoleLogMock.mock.calls[0].arguments[0],
+      'Handling conversation turn event, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+    );
+    assert.strictEqual(
+      consoleLogMock.mock.calls[1].arguments[0],
+      'Conversation turn event handled successfully, currentMessageId=testCurrentMessageId, conversationId=testConversationId'
+    );
+
+    assert.strictEqual(consoleErrorMock.mock.calls.length, 0);
+  });
+
+  void it('executes turn successfully with streaming response', async () => {
+    const streamingEvent: ConversationTurnEvent = {
+      ...event,
+      streamResponse: true,
+    };
+    const bedrockConverseAdapter = new BedrockConverseAdapter(
+      streamingEvent,
+      []
+    );
+    const chunks: Array<StreamingResponseChunk> = [
+      {
+        contentBlockText: 'chunk1',
+        contentBlockIndex: 0,
+        contentBlockDeltaIndex: 1,
+        conversationId: 'testConversationId',
+        associatedUserMessageId: 'testCurrentMessageId',
+      },
+      {
+        contentBlockText: 'chunk2',
+        contentBlockIndex: 0,
+        contentBlockDeltaIndex: 1,
+        conversationId: 'testConversationId',
+        associatedUserMessageId: 'testCurrentMessageId',
+      },
+    ];
+    const bedrockConverseAdapterAskBedrockMock = mock.method(
+      bedrockConverseAdapter,
+      'askBedrockStreaming',
+      () =>
+        (async function* (): AsyncGenerator<StreamingResponseChunk> {
+          for (const chunk of chunks) {
+            yield chunk;
+          }
+        })()
+    );
+    const responseSender = new ConversationTurnResponseSender(streamingEvent);
+    const responseSenderSendResponseMock = mock.method(
+      responseSender,
+      'sendResponse',
+      () => Promise.resolve()
+    );
+
+    const streamResponseSender = new ConversationTurnStreamingResponseSender(
+      event
+    );
+    const streamResponseSenderSendResponseMock = mock.method(
+      streamResponseSender,
+      'sendResponseChunk',
+      () => Promise.resolve()
+    );
+
+    const consoleErrorMock = mock.fn();
+    const consoleLogMock = mock.fn();
+    const consoleDebugMock = mock.fn();
+    const consoleMock = {
+      error: consoleErrorMock,
+      log: consoleLogMock,
+      debug: consoleDebugMock,
+    } as unknown as Console;
+
+    await new ConversationTurnExecutor(
+      streamingEvent,
+      [],
+      bedrockConverseAdapter,
+      responseSender,
+      streamResponseSender,
+      consoleMock
+    ).execute();
+
+    assert.strictEqual(
+      bedrockConverseAdapterAskBedrockMock.mock.calls.length,
+      1
+    );
+    assert.strictEqual(
+      streamResponseSenderSendResponseMock.mock.calls.length,
+      2
+    );
+    assert.deepStrictEqual(
+      streamResponseSenderSendResponseMock.mock.calls[0].arguments[0],
+      chunks[0]
+    );
+    assert.deepStrictEqual(
+      streamResponseSenderSendResponseMock.mock.calls[1].arguments[0],
+      chunks[1]
+    );
+
+    assert.strictEqual(responseSenderSendResponseMock.mock.calls.length, 0);
 
     assert.strictEqual(consoleLogMock.mock.calls.length, 2);
     assert.strictEqual(

@@ -1,7 +1,7 @@
 import { ConversationTurnEvent, StreamingResponseChunk } from './types.js';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
 
-type MutationStreamingResponseInput = {
+export type MutationStreamingResponseInput = {
   input: StreamingResponseChunk;
 };
 
