@@ -13,16 +13,17 @@ const packageLockPath = fileURLToPath(
 export const setupDeployedBackendClient = async (
   projectRootDirPath: string
 ) => {
-  // copy lock file to assure that CDK dependencies don't diverge.
-  await fsp.copyFile(
-    packageLockPath,
-    path.join(projectRootDirPath, 'package-lock.json')
-  );
-  await execa(
-    'npm',
-    ['install', '@aws-amplify/deployed-backend-client@latest'],
-    {
-      cwd: projectRootDirPath,
-    }
-  );
+  await execa('npm', ['install', '@aws-amplify/deployed-backend-client'], {
+    cwd: projectRootDirPath,
+  });
+
+  // Install construct version that is matching our package lock.
+  // Otherwise, the test might fail due to incompatible properties
+  // when two definitions are present.
+  const packageLock = JSON.parse(await fsp.readFile(packageLockPath, 'utf-8'));
+  const constructsVersion =
+    packageLock.packages['node_modules/constructs'].version;
+  await execa('npm', ['install', `constructs@${constructsVersion}`], {
+    cwd: projectRootDirPath,
+  });
 };
