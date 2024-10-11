@@ -109,17 +109,32 @@ export type StreamingResponseChunk = {
       // text chunk
       contentBlockText: string;
       contentBlockDeltaIndex: number;
+      contentBlockDoneAtIndex?: never;
+      contentBlockToolUse?: never;
+      stopReason?: never;
     }
   | {
       // end of block. applicable to text blocks
       contentBlockDoneAtIndex: number;
+      contentBlockText?: never;
+      contentBlockDeltaIndex?: never;
+      contentBlockToolUse?: never;
+      stopReason?: never;
     }
   | {
       // tool use
       contentBlockToolUse: string; // serialized json with full tool use block
+      contentBlockDoneAtIndex?: never;
+      contentBlockText?: never;
+      contentBlockDeltaIndex?: never;
+      stopReason?: never;
     }
   | {
       // turn complete
       stopReason: string;
+      contentBlockDoneAtIndex?: never;
+      contentBlockText?: never;
+      contentBlockDeltaIndex?: never;
+      contentBlockToolUse?: never;
     }
 );

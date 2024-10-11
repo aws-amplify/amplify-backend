@@ -45,14 +45,11 @@ void describe('Conversation turn streaming response sender', () => {
       graphqlRequestExecutor
     );
     const chunk: StreamingResponseChunk = {
-      stopReason: 'testStopReason',
       associatedUserMessageId: 'testAssociatedUserMessageId',
       contentBlockIndex: 1,
       contentBlockDeltaIndex: 2,
-      contentBlockDoneAtIndex: 3,
       conversationId: 'testConversationId',
       contentBlockText: 'testBlockText',
-      contentBlockToolUse: 'testToolUse',
     };
     await sender.sendResponseChunk(chunk);
 
