@@ -1,3 +1,4 @@
+import { IdentityPool as IdentityPoolType } from '@aws-sdk/client-cognito-identity';
 import {
   GetUserPoolMfaConfigCommandOutput,
   ProviderDescription,
@@ -319,7 +320,7 @@ export const IdentityProviders: Readonly<ProviderDescription[]> = [
 /**
  * Sample data for describe identity pool
  */
-export const IdentityPool = {
+export const IdentityPool: Readonly<IdentityPoolType> = {
   IdentityPoolId: 'us-east-1:sample-identity-pool-id',
   IdentityPoolName: 'sample-identity-pool-name',
   AllowUnauthenticatedIdentities: true,

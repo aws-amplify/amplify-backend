@@ -17,7 +17,9 @@ import {
 import {
   CognitoIdentityClient,
   DescribeIdentityPoolCommand,
+  DescribeIdentityPoolCommandOutput,
   GetIdentityPoolRolesCommand,
+  GetIdentityPoolRolesCommandOutput,
 } from '@aws-sdk/client-cognito-identity';
 import {
   IdentityPool,
@@ -103,7 +105,8 @@ void describe('ReferenceAuthInitializer', () => {
   let getUserPoolMfaConfigResponse: GetUserPoolMfaConfigCommandOutput;
   let listIdentityProvidersResponse: ListIdentityProvidersCommandOutput;
   let describeUserPoolClientResponse: DescribeUserPoolClientCommandOutput;
-
+  let describeIdentityPoolResponse: DescribeIdentityPoolCommandOutput;
+  let getIdentityPoolRolesResponse: GetIdentityPoolRolesCommandOutput;
   beforeEach(() => {
     handler = new ReferenceAuthInitializer(
       identityClient,
@@ -133,6 +136,18 @@ void describe('ReferenceAuthInitializer', () => {
         httpStatusCode: 200,
       },
       UserPoolClient: UserPoolClient,
+    };
+    describeIdentityPoolResponse = {
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      ...IdentityPool,
+    };
+    getIdentityPoolRolesResponse = {
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      ...IdentityPoolRoles,
     };
     mock.method(
       identityProviderClient,
@@ -166,20 +181,10 @@ void describe('ReferenceAuthInitializer', () => {
         request: DescribeIdentityPoolCommand | GetIdentityPoolRolesCommand
       ) => {
         if (request instanceof DescribeIdentityPoolCommand) {
-          return {
-            $metadata: {
-              httpStatusCode: 200,
-            },
-            ...IdentityPool,
-          };
+          return describeIdentityPoolResponse;
         }
         if (request instanceof GetIdentityPoolRolesCommand) {
-          return {
-            $metadata: {
-              httpStatusCode: 200,
-            },
-            ...IdentityPoolRoles,
-          };
+          return getIdentityPoolRolesResponse;
         }
         return undefined;
       }
@@ -217,7 +222,7 @@ void describe('ReferenceAuthInitializer', () => {
     assert.equal(result.Reason, 'Failed to retrieve the specified UserPool.');
   });
 
-  void it('fails gracefully if fetching user pool fails', async () => {
+  void it('fails gracefully if user pool has no password policy', async () => {
     describeUserPoolResponse = {
       $metadata: {
         httpStatusCode: 200,
@@ -301,6 +306,67 @@ void describe('ReferenceAuthInitializer', () => {
     assert.equal(
       undefinedUserPoolClientResult.Reason,
       'An error occurred while retrieving the user pool client details.'
+    );
+  });
+
+  void it('fails gracefully if fetching identity pool fails', async () => {
+    describeIdentityPoolResponse = {
+      $metadata: {
+        httpStatusCode: 500,
+      },
+      IdentityPoolId: undefined,
+      IdentityPoolName: undefined,
+      AllowUnauthenticatedIdentities: undefined,
+    };
+    const result = await handler.handleEvent(createCfnEvent);
+    assert.equal(result.Status, 'FAILED');
+    assert.equal(
+      result.Reason,
+      'An error occurred while retrieving the identity pool details.'
+    );
+    describeIdentityPoolResponse = {
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      IdentityPoolId: undefined,
+      IdentityPoolName: undefined,
+      AllowUnauthenticatedIdentities: undefined,
+    };
+    const undefinedIdentityPoolIdResult = await handler.handleEvent(
+      createCfnEvent
+    );
+    assert.equal(undefinedIdentityPoolIdResult.Status, 'FAILED');
+    assert.equal(
+      undefinedIdentityPoolIdResult.Reason,
+      'An error occurred while retrieving the identity pool details.'
+    );
+  });
+
+  void it('fails gracefully if fetching identity pool roles fails', async () => {
+    getIdentityPoolRolesResponse = {
+      $metadata: {
+        httpStatusCode: 500,
+      },
+    };
+    const result = await handler.handleEvent(createCfnEvent);
+    assert.equal(result.Status, 'FAILED');
+    assert.equal(
+      result.Reason,
+      'An error occurred while retrieving the roles for the identity pool.'
+    );
+    getIdentityPoolRolesResponse = {
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      Roles: undefined,
+    };
+    const undefinedIdentityPoolIdResult = await handler.handleEvent(
+      createCfnEvent
+    );
+    assert.equal(undefinedIdentityPoolIdResult.Status, 'FAILED');
+    assert.equal(
+      undefinedIdentityPoolIdResult.Reason,
+      'An error occurred while retrieving the roles for the identity pool.'
     );
   });
 });
