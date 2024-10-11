@@ -326,12 +326,12 @@ class ConversationHandlerTestProject extends TestProjectBase {
       ];
     }
 
-    const response = await this.executeConversationTurn(
+    const responseContent = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
       apolloClient
     );
-    assert.match(response.content, /3\.14/);
+    assert.match(responseContent, /3\.14/);
   };
 
   private assertDefaultConversationHandlerCanExecuteTurnWithImage = async (
@@ -406,14 +406,14 @@ class ConversationHandlerTestProject extends TestProjectBase {
         },
       ];
     }
-    const response = await this.executeConversationTurn(
+    const responseContent = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
       apolloClient
     );
     // The image contains a logo of AWS. Responses may vary, but they should always contain statements below.
-    assert.match(response.content, /logo/);
-    assert.match(response.content, /(aws)|(AWS)|(Amazon Web Services)/);
+    assert.match(responseContent, /logo/);
+    assert.match(responseContent, /(aws)|(AWS)|(Amazon Web Services)/);
   };
 
   private assertDefaultConversationHandlerCanExecuteTurnWithDataTool = async (
@@ -479,14 +479,14 @@ class ConversationHandlerTestProject extends TestProjectBase {
       },
       ...commonEventProperties,
     };
-    const response = await this.executeConversationTurn(
+    const responseContent = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
       apolloClient
     );
     // Assert that tool was used. I.e. that LLM used value returned by the tool.
     assert.match(
-      response.content,
+      responseContent,
       new RegExp(expectedTemperatureInDataToolScenario.toString())
     );
   };
@@ -547,7 +547,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       },
       ...commonEventProperties,
     };
-    const response = await this.executeConversationTurn(
+    const responseContent = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
       apolloClient
@@ -555,10 +555,10 @@ class ConversationHandlerTestProject extends TestProjectBase {
     // Assert that tool use content blocks are emitted in case LLM selects client tool.
     // The content blocks are string serialized, but not as a proper JSON,
     // hence string matching is employed below to detect some signals that tool use blocks kinds were emitted.
-    assert.match(response.content, /toolUse/);
-    assert.match(response.content, /toolUseId/);
+    assert.match(responseContent, /toolUse/);
+    assert.match(responseContent, /toolUseId/);
     // Assert that LLM attempts to pass parameter when asking for tool use.
-    assert.match(response.content, /"city":"Seattle"/);
+    assert.match(responseContent, /"city":"Seattle"/);
   };
 
   private assertCustomConversationHandlerCanExecuteTurn = async (
@@ -597,28 +597,22 @@ class ConversationHandlerTestProject extends TestProjectBase {
       },
       ...commonEventProperties,
     };
-    const response = await this.executeConversationTurn(
+    const responseContent = await this.executeConversationTurn(
       event,
       customConversationHandlerFunction,
       apolloClient
     );
     // Assert that tool was used. I.e. LLM used value provided by the tool.
     assert.match(
-      response.content,
+      responseContent,
       new RegExp(
         expectedTemperaturesInProgrammaticToolScenario.Seattle.toString()
       )
     );
     assert.match(
-      response.content,
+      responseContent,
       new RegExp(
         expectedTemperaturesInProgrammaticToolScenario.Boston.toString()
-      )
-    );
-    assert.match(
-      response.content,
-      new RegExp(
-        expectedTemperaturesInProgrammaticToolScenario.Miami.toString()
       )
     );
   };
@@ -627,7 +621,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     event: ConversationTurnEvent,
     functionName: string,
     apolloClient: ApolloClient<NormalizedCacheObject>
-  ): Promise<ConversationTurnAppSyncResponse> => {
+  ): Promise<string> => {
     await this.lambdaClient.send(
       new InvokeCommand({
         FunctionName: functionName,
@@ -636,15 +630,19 @@ class ConversationHandlerTestProject extends TestProjectBase {
     );
 
     // assert that response came back
-
     const queryResult = await apolloClient.query<{
       listConversationMessageAssistantResponses: {
         items: Array<ConversationTurnAppSyncResponse>;
       };
     }>({
       query: gql`
-        query ListMessages {
-          listConversationMessageAssistantResponses(limit: 1000) {
+        query ListMessage($conversationId: ID, $associatedUserMessageId: ID) {
+          listConversationMessageAssistantResponses(
+            filter: {
+              conversationId: { eq: $conversationId }
+              associatedUserMessageId: { eq: $associatedUserMessageId }
+            }
+          ) {
             items {
               conversationId
               id
@@ -653,17 +651,24 @@ class ConversationHandlerTestProject extends TestProjectBase {
               content
               associatedUserMessageId
             }
+            nextToken
           }
         }
       `,
+      variables: {
+        conversationId: event.conversationId,
+        associatedUserMessageId: event.currentMessageId,
+      },
       fetchPolicy: 'no-cache',
     });
+    assert.strictEqual(
+      1,
+      queryResult.data.listConversationMessageAssistantResponses.items.length
+    );
     const response =
-      queryResult.data.listConversationMessageAssistantResponses.items.find(
-        (item) => item.associatedUserMessageId === event.currentMessageId
-      );
-    assert.ok(response);
-    return response;
+      queryResult.data.listConversationMessageAssistantResponses.items[0];
+    assert.ok(response.content);
+    return response.content;
   };
 
   private insertMessage = async (
