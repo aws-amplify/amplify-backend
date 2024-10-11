@@ -1,7 +1,6 @@
 import { execa } from 'execa';
 import fsp from 'fs/promises';
 import { fileURLToPath } from 'node:url';
-import path from 'path';
 
 const packageLockPath = fileURLToPath(
   new URL('../../../../package-lock.json', import.meta.url)
