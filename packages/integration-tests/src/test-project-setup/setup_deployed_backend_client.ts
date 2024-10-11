@@ -17,7 +17,7 @@ export const setupDeployedBackendClient = async (
     cwd: projectRootDirPath,
   });
 
-  // Install construct version that is matching our package lock.
+  // Install constructs version that is matching our package lock.
   // Otherwise, the test might fail due to incompatible properties
   // when two definitions are present.
   const packageLock = JSON.parse(await fsp.readFile(packageLockPath, 'utf-8'));
