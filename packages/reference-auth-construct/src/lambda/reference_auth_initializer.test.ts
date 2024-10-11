@@ -381,6 +381,18 @@ void describe('ReferenceAuthInitializer', () => {
       'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
     );
   });
+  void it('fails gracefully if identity pool does not have cognito identity providers configured', async () => {
+    describeIdentityPoolResponse = {
+      ...describeIdentityPoolResponse,
+      CognitoIdentityProviders: [],
+    };
+    const result = await handler.handleEvent(createCfnEvent);
+    assert.equal(result.Status, 'FAILED');
+    assert.equal(
+      result.Reason,
+      'The specified identity pool does not have any cognito identity providers.'
+    );
+  });
   void it('fails gracefully if the client id does not match any cognito provider on the identity pool', async () => {
     describeIdentityPoolResponse = {
       ...describeIdentityPoolResponse,
@@ -400,19 +412,64 @@ void describe('ReferenceAuthInitializer', () => {
       'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
     );
   });
-  void it('fails gracefully if identity pool does not have cognito identity providers configured', async () => {
-    describeIdentityPoolResponse = {
-      ...describeIdentityPoolResponse,
-      CognitoIdentityProviders: [],
+  // fails gracefully if roles don't match identity pool
+  void it('fails gracefully if fetching identity pool roles fails', async () => {
+    getIdentityPoolRolesResponse = {
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      IdentityPoolId: SampleInputProperties.identityPoolId,
+      Roles: {
+        authenticated: 'wrongAuthRole',
+        unauthenticated: SampleInputProperties.unauthRoleArn,
+      },
     };
-    const result = await handler.handleEvent(createCfnEvent);
-    assert.equal(result.Status, 'FAILED');
+    const undefinedIdentityPoolIdResult = await handler.handleEvent(
+      createCfnEvent
+    );
+    assert.equal(undefinedIdentityPoolIdResult.Status, 'FAILED');
     assert.equal(
-      result.Reason,
-      'The specified identity pool does not have any cognito identity providers.'
+      undefinedIdentityPoolIdResult.Reason,
+      'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
     );
   });
-  // fails gracefully if roles don't match identity pool
+
+  void it('fails gracefully if auth role ARN does not match', async () => {
+    getIdentityPoolRolesResponse = {
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      IdentityPoolId: SampleInputProperties.identityPoolId,
+      Roles: {
+        authenticated: 'wrongAuthRole',
+        unauthenticated: SampleInputProperties.unauthRoleArn,
+      },
+    };
+    const badAuthRoleResult = await handler.handleEvent(createCfnEvent);
+    assert.equal(badAuthRoleResult.Status, 'FAILED');
+    assert.equal(
+      badAuthRoleResult.Reason,
+      'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
+    );
+  });
+  void it('fails gracefully if auth role ARN does not match', async () => {
+    getIdentityPoolRolesResponse = {
+      $metadata: {
+        httpStatusCode: 200,
+      },
+      IdentityPoolId: SampleInputProperties.identityPoolId,
+      Roles: {
+        authenticated: SampleInputProperties.authRoleArn,
+        unauthenticated: 'wrongUnauthRole',
+      },
+    };
+    const badUnAuthRoleResult = await handler.handleEvent(createCfnEvent);
+    assert.equal(badUnAuthRoleResult.Status, 'FAILED');
+    assert.equal(
+      badUnAuthRoleResult.Reason,
+      'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.'
+    );
+  });
 
   // fails gracefully if client is not a web client
 });
