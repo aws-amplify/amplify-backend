@@ -412,8 +412,7 @@ void describe('ReferenceAuthInitializer', () => {
       'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
     );
   });
-  // fails gracefully if roles don't match identity pool
-  void it('fails gracefully if fetching identity pool roles fails', async () => {
+  void it('fails gracefully if auth role ARN does not match', async () => {
     getIdentityPoolRolesResponse = {
       $metadata: {
         httpStatusCode: 200,
@@ -433,26 +432,7 @@ void describe('ReferenceAuthInitializer', () => {
       'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
     );
   });
-
-  void it('fails gracefully if auth role ARN does not match', async () => {
-    getIdentityPoolRolesResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
-      IdentityPoolId: SampleInputProperties.identityPoolId,
-      Roles: {
-        authenticated: 'wrongAuthRole',
-        unauthenticated: SampleInputProperties.unauthRoleArn,
-      },
-    };
-    const badAuthRoleResult = await handler.handleEvent(createCfnEvent);
-    assert.equal(badAuthRoleResult.Status, 'FAILED');
-    assert.equal(
-      badAuthRoleResult.Reason,
-      'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
-    );
-  });
-  void it('fails gracefully if auth role ARN does not match', async () => {
+  void it('fails gracefully if unauth role ARN does not match', async () => {
     getIdentityPoolRolesResponse = {
       $metadata: {
         httpStatusCode: 200,
@@ -470,8 +450,6 @@ void describe('ReferenceAuthInitializer', () => {
       'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.'
     );
   });
-
-  // fails gracefully if client is not a web client
   void it('fails gracefully if user pool client is not a web client', async () => {
     describeUserPoolClientResponse = {
       $metadata: {
