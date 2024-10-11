@@ -84,6 +84,7 @@ type ConversationMessageContentBlock = bedrock.ContentBlock | {
 type ConversationTurnEvent = {
     conversationId: string;
     currentMessageId: string;
+    streamResponse?: boolean;
     responseMutation: {
         name: string;
         inputTypeName: string;
