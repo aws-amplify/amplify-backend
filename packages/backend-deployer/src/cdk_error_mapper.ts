@@ -284,7 +284,7 @@ export class CdkErrorMapper {
     {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: new RegExp(
-        `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed to deploy: (.*)`
+        `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed (to deploy:|creation,) (.*)`
       ),
       humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
       resolutionMessage:
