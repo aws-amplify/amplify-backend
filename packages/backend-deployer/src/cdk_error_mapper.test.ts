@@ -223,6 +223,22 @@ const testErrorMappings = [
   },
   {
     errorMessage:
+      `Error [TransformError]: Transform failed with 2 errors:` +
+      EOL +
+      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Multiple exports with the same name auth` +
+      EOL +
+      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: The symbol auth has already been declared` +
+      EOL +
+      `    at failureErrorWithLog (/Users/user/work-space/amplify-app/node_modules/tsx/node_modules/esbuild/lib/main.js:1472:15)`,
+    expectedTopLevelErrorMessage:
+      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Multiple exports with the same name auth` +
+      EOL +
+      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: The symbol auth has already been declared`,
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
       `some rubbish before` +
       EOL +
       `Error: some cdk synth error` +
