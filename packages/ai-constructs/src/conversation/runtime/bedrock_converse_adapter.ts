@@ -195,7 +195,7 @@ export class BedrockConverseAdapter {
         throw new Error('Bedrock response is missing stream');
       }
       let toolUseBlock: ContentBlock.ToolUseMember | undefined;
-      let clientToolsRequested = true;
+      let clientToolsRequested = false;
       let text: string = '';
       let toolUseInput: string = '';
       // keep our own indexing for blocks and chunks since we stream subset of these upstream.
