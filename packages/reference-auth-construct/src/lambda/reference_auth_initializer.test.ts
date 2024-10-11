@@ -82,7 +82,7 @@ const expectedData = {
   mfaConfiguration: 'ON',
   mfaTypes: '["TOTP"]',
   socialProviders: '["FACEBOOK","GOOGLE","LOGIN_WITH_AMAZON"]',
-  oauthCognitoDomain: 'ref-auth-userpool-1',
+  oauthCognitoDomain: 'ref-auth-userpool-1.auth.us-east-1.amazoncognito.com',
   allowUnauthenticatedIdentities: 'true',
   oauthScope: '["email","openid","phone"]',
   oauthRedirectSignIn: 'https://redirect.com,https://redirect2.com',
