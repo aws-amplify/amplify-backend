@@ -5,14 +5,13 @@
 ```ts
 
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { ConversationTurnEventVersion } from '@aws-amplify/ai-constructs/conversation';
+import { DocumentType } from '@smithy/types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import * as runtime from '@aws-amplify/ai-constructs/conversation/runtime';
 
 declare namespace __export__conversation {
     export {
-        ConversationHandlerFunctionFactory,
         DefineConversationHandlerFunctionProps,
         defineConversationHandlerFunction
     }
@@ -24,25 +23,16 @@ declare namespace __export__conversation__runtime {
         ToolResultContentBlock,
         ExecutableTool,
         ConversationTurnEvent,
-        handleConversationTurnEvent,
-        createExecutableTool
+        handleConversationTurnEvent
     }
 }
 export { __export__conversation__runtime }
 
 // @public (undocumented)
-type ConversationHandlerFunctionFactory = ConstructFactory<ResourceProvider<FunctionResources>> & {
-    readonly eventVersion: ConversationTurnEventVersion;
-};
-
-// @public (undocumented)
 type ConversationTurnEvent = runtime.ConversationTurnEvent;
 
-// @public (undocumented)
-const createExecutableTool: <TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema, TToolInput = runtime.FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: runtime.ToolInputSchema<TJSONSchema>, handler: (input: TToolInput) => Promise<ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
-
 // @public
-const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConversationHandlerFunctionFactory;
+const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
 
 // @public (undocumented)
 type DefineConversationHandlerFunctionProps = {
@@ -57,13 +47,13 @@ type DefineConversationHandlerFunctionProps = {
 };
 
 // @public (undocumented)
-type ExecutableTool<TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema, TToolInput = runtime.FromJSONSchema<TJSONSchema>> = runtime.ToolDefinition<TJSONSchema> & {
-    execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
+type ExecutableTool = runtime.ToolDefinition & {
+    execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
 };
 
 // @public (undocumented)
 const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
-    tools?: Array<ExecutableTool<runtime.JSONSchema, any>>;
+    tools?: Array<ExecutableTool>;
 }) => Promise<void>;
 
 // @public (undocumented)
