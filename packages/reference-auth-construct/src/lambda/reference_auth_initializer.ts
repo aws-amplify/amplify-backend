@@ -1,6 +1,7 @@
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceFailedResponse,
+  CloudFormationCustomResourceResponse,
   CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
 import {
@@ -8,232 +9,496 @@ import {
   DescribeUserPoolClientCommand,
   DescribeUserPoolCommand,
   GetUserPoolMfaConfigCommand,
+  GetUserPoolMfaConfigCommandOutput,
   ListIdentityProvidersCommand,
+  PasswordPolicyType,
+  ProviderDescription,
+  UserPoolClientType,
+  UserPoolType,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
   CognitoIdentityClient,
   DescribeIdentityPoolCommand,
+  DescribeIdentityPoolCommandOutput,
+  GetIdentityPoolRolesCommand,
 } from '@aws-sdk/client-cognito-identity';
 import { randomUUID } from 'node:crypto';
 import { ReferenceAuthInitializerProps } from './reference_auth_initializer_types.js';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 
 /**
- * Entry point for the lambda-backend custom resource to retrieve a backend secret.
+ * Initializer that fetches and process auth resources.
+ */
+export class ReferenceAuthInitializer {
+  /**
+   * Create a new initializer
+   * @param cognitoIdentityClient identity client
+   * @param cognitoIdentityProviderClient identity provider client
+   */
+  constructor(
+    private cognitoIdentityClient: CognitoIdentityClient,
+    private cognitoIdentityProviderClient: CognitoIdentityProviderClient,
+    private uuidGenerator: () => string
+  ) {}
+
+  /**
+   * Handles custom resource events
+   * @param event event to process
+   * @returns custom resource response
+   */
+  public handleEvent = async (event: CloudFormationCustomResourceEvent) => {
+    console.info(`Received '${event.RequestType}' event`);
+    // physical id is only generated on create, otherwise it must stay the same
+    const physicalId =
+      event.RequestType === 'Create'
+        ? this.uuidGenerator()
+        : event.PhysicalResourceId;
+
+    // on delete, just respond with success since we don't need to do anything
+    if (event.RequestType === 'Delete') {
+      return {
+        RequestId: event.RequestId,
+        LogicalResourceId: event.LogicalResourceId,
+        PhysicalResourceId: physicalId,
+        StackId: event.StackId,
+        NoEcho: true,
+        Status: 'SUCCESS',
+      } as CloudFormationCustomResourceSuccessResponse;
+    }
+    // for create or update events, we will fetch and validate resource properties
+    const props =
+      event.ResourceProperties as unknown as ReferenceAuthInitializerProps;
+    try {
+      const {
+        userPool,
+        userPoolPasswordPolicy,
+        userPoolClient,
+        userPoolMFA,
+        userPoolProviders,
+        identityPool,
+        roles,
+      } = await this.getResourceDetails(
+        props.userPoolId,
+        props.identityPoolId,
+        props.userPoolClientId
+      );
+
+      this.validateResourceAssociations(
+        userPool,
+        userPoolClient,
+        identityPool,
+        roles,
+        props
+      );
+
+      const userPoolOutputs = await this.getUserPoolOutputs(
+        userPool,
+        userPoolPasswordPolicy,
+        userPoolProviders,
+        userPoolMFA
+      );
+      const identityPoolOutputs = await this.getIdentityPoolOutputs(
+        identityPool
+      );
+      const userPoolClientOutputs = await this.getUserPoolClientOutputs(
+        userPoolClient
+      );
+      const data: Omit<AuthOutput['payload'], 'authRegion'> = {
+        userPoolId: props.userPoolId,
+        webClientId: props.userPoolClientId,
+        identityPoolId: props.identityPoolId,
+        ...userPoolOutputs,
+        ...identityPoolOutputs,
+        ...userPoolClientOutputs,
+      };
+      return {
+        RequestId: event.RequestId,
+        LogicalResourceId: event.LogicalResourceId,
+        PhysicalResourceId: physicalId,
+        StackId: event.StackId,
+        NoEcho: true,
+        Data: data,
+        Status: 'SUCCESS',
+      } as CloudFormationCustomResourceSuccessResponse;
+    } catch (e) {
+      if (e instanceof Error) {
+        return this.failureResponse(event, physicalId, e.message);
+      }
+      return this.failureResponse(
+        event,
+        physicalId,
+        'An unknown error occurred while initializing auth resources.'
+      );
+    }
+  };
+
+  private failureResponse = (
+    event: CloudFormationCustomResourceEvent,
+    physicalId: string,
+    reason: string
+  ): CloudFormationCustomResourceFailedResponse => {
+    return {
+      RequestId: event.RequestId,
+      LogicalResourceId: event.LogicalResourceId,
+      PhysicalResourceId: physicalId,
+      StackId: event.StackId,
+      NoEcho: true,
+      Reason: reason,
+      Status: 'FAILED',
+    } as CloudFormationCustomResourceFailedResponse;
+  };
+
+  private getUserPool = async (userPoolId: string) => {
+    const userPoolCommand = new DescribeUserPoolCommand({
+      UserPoolId: userPoolId,
+    });
+    const userPoolResponse = await this.cognitoIdentityProviderClient.send(
+      userPoolCommand
+    );
+    if (
+      userPoolResponse.$metadata.httpStatusCode !== 200 ||
+      !userPoolResponse.UserPool
+    ) {
+      throw new Error('Failed to retrieve the specified UserPool.');
+    }
+    const userPool = userPoolResponse.UserPool;
+    const policy = userPool.Policies?.PasswordPolicy;
+    if (!policy) {
+      throw new Error('Failed to retrieve password policy.');
+    }
+    return {
+      userPool: userPoolResponse.UserPool,
+      userPoolPasswordPolicy: policy,
+    };
+  };
+
+  private getUserPoolMFASettings = async (userPoolId: string) => {
+    // mfa types
+    const mfaCommand = new GetUserPoolMfaConfigCommand({
+      UserPoolId: userPoolId,
+    });
+    const mfaResponse = await this.cognitoIdentityProviderClient.send(
+      mfaCommand
+    );
+    if (mfaResponse.$metadata.httpStatusCode !== 200) {
+      throw new Error(
+        'Failed to retrieve the MFA configuration for the specified UserPool.'
+      );
+    }
+    return mfaResponse;
+  };
+
+  private getUserPoolProviders = async (userPoolId: string) => {
+    const providers: ProviderDescription[] = [];
+    let nextToken: string | undefined;
+    do {
+      const providersResponse = await this.cognitoIdentityProviderClient.send(
+        new ListIdentityProvidersCommand({
+          UserPoolId: userPoolId,
+          NextToken: nextToken,
+        })
+      );
+      if (
+        providersResponse.$metadata.httpStatusCode !== 200 ||
+        providersResponse.Providers === undefined
+      ) {
+        throw new Error(
+          'An error occurred while retrieving identity providers for the user pool.'
+        );
+      }
+      providers.push(...providersResponse.Providers);
+      nextToken = providersResponse.NextToken;
+    } while (nextToken);
+    return providers;
+  };
+
+  private getIdentityPool = async (identityPoolId: string) => {
+    const idpResponse = await this.cognitoIdentityClient.send(
+      new DescribeIdentityPoolCommand({
+        IdentityPoolId: identityPoolId,
+      })
+    );
+    if (
+      idpResponse.$metadata.httpStatusCode !== 200 ||
+      !idpResponse.IdentityPoolId
+    ) {
+      throw new Error(
+        'An error occurred while retrieving the identity pool details.'
+      );
+    }
+    return idpResponse;
+  };
+
+  private getIdentityPoolRoles = async (identityPoolId: string) => {
+    const rolesCommand = new GetIdentityPoolRolesCommand({
+      IdentityPoolId: identityPoolId,
+    });
+    const rolesResponse = await this.cognitoIdentityClient.send(rolesCommand);
+    if (
+      rolesResponse.$metadata.httpStatusCode !== 200 ||
+      !rolesResponse.Roles
+    ) {
+      throw new Error(
+        'An error occurred while retrieving the roles for the identity pool.'
+      );
+    }
+    return rolesResponse.Roles;
+  };
+
+  private getUserPoolClient = async (
+    userPoolId: string,
+    userPoolClientId: string
+  ) => {
+    const userPoolClientCommand = new DescribeUserPoolClientCommand({
+      UserPoolId: userPoolId,
+      ClientId: userPoolClientId,
+    });
+    const userPoolClientResponse =
+      await this.cognitoIdentityProviderClient.send(userPoolClientCommand);
+    if (
+      userPoolClientResponse.$metadata.httpStatusCode !== 200 ||
+      !userPoolClientResponse.UserPoolClient
+    ) {
+      throw new Error(
+        'An error occurred while retrieving the user pool client details.'
+      );
+    }
+    return userPoolClientResponse.UserPoolClient;
+  };
+
+  /**
+   * Retrieves all of the resource data that is necessary for validation and output generation.
+   * @param userPoolId userPoolId
+   * @param identityPoolId identityPoolId
+   * @param userPoolClientId userPoolClientId
+   * @returns all necessary resource data
+   */
+  private getResourceDetails = async (
+    userPoolId: string,
+    identityPoolId: string,
+    userPoolClientId: string
+  ) => {
+    const { userPool, userPoolPasswordPolicy } = await this.getUserPool(
+      userPoolId
+    );
+    const userPoolMFA = await this.getUserPoolMFASettings(userPoolId);
+    const userPoolProviders = await this.getUserPoolProviders(userPoolId);
+    const userPoolClient = await this.getUserPoolClient(
+      userPoolId,
+      userPoolClientId
+    );
+    const identityPool = await this.getIdentityPool(identityPoolId);
+    const roles = await this.getIdentityPoolRoles(identityPoolId);
+    return {
+      userPool,
+      userPoolPasswordPolicy,
+      userPoolClient,
+      userPoolMFA,
+      userPoolProviders,
+      identityPool,
+      roles,
+    };
+  };
+
+  /**
+   * Validate the resource associations.
+   * 1. make sure the user pool & user pool client pair are a cognito provider for the identity pool
+   * 2. make sure the provided auth/unauth role ARNs match the roles for the identity pool
+   * 3. make sure the user pool client is a web client
+   * @param userPool userPool
+   * @param userPoolClient userPoolClient
+   * @param identityPool identityPool
+   * @param identityPoolRoles identityPool roles
+   * @param props props that include the roles which we compare with the actual roles for the identity pool
+   */
+  private validateResourceAssociations = (
+    userPool: UserPoolType,
+    userPoolClient: UserPoolClientType,
+    identityPool: DescribeIdentityPoolCommandOutput,
+    identityPoolRoles: Record<string, string>,
+    props: ReferenceAuthInitializerProps
+  ) => {
+    // verify the user pool is a cognito provider for this identity pool
+    if (!identityPool.CognitoIdentityProviders) {
+      throw new Error(
+        'The specified identity pool does not have any cognito identity providers.'
+      );
+    }
+    // verify that the user pool + user pool client pair are configured with the identity pool
+    const matchingProvider = identityPool.CognitoIdentityProviders.find((p) => {
+      const matchingUserPool: boolean =
+        p.ProviderName ===
+        `cognito-idp.${props.region}.amazonaws.com/${userPool.Id}`;
+      const matchingUserPoolClient: boolean =
+        p.ClientId === userPoolClient.ClientId;
+      return matchingUserPool && matchingUserPoolClient;
+    });
+    if (!matchingProvider) {
+      throw new Error(
+        'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
+      );
+    }
+    // verify the auth / unauth roles from the props match the identity pool roles that we retrieved
+    const authRoleArn = identityPoolRoles['authenticated'];
+    const unauthRoleArn = identityPoolRoles['unauthenticated'];
+    if (authRoleArn !== props.authRoleArn) {
+      throw new Error(
+        'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
+      );
+    }
+    if (unauthRoleArn !== props.unauthRoleArn) {
+      throw new Error(
+        'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.'
+      );
+    }
+
+    // make sure the client is a web client here (web clients shouldn't have client secrets)
+    if (userPoolClient?.ClientSecret) {
+      throw new Error(
+        'The specified user pool client is not configured as a web client.'
+      );
+    }
+  };
+
+  /**
+   * Transform the userPool data into outputs.
+   * @param userPool user pool
+   * @param userPoolPasswordPolicy user pool password policy
+   * @param userPoolProviders user pool providers
+   * @param userPoolMFA user pool MFA settings
+   * @returns formatted outputs
+   */
+  private getUserPoolOutputs = (
+    userPool: UserPoolType,
+    userPoolPasswordPolicy: PasswordPolicyType,
+    userPoolProviders: ProviderDescription[],
+    userPoolMFA: GetUserPoolMfaConfigCommandOutput
+  ) => {
+    // password policy requirements
+    const requirements: string[] = [];
+    userPoolPasswordPolicy.RequireNumbers &&
+      requirements.push('REQUIRES_NUMBERS');
+    userPoolPasswordPolicy.RequireLowercase &&
+      requirements.push('REQUIRES_LOWERCASE');
+    userPoolPasswordPolicy.RequireUppercase &&
+      requirements.push('REQUIRES_UPPERCASE');
+    userPoolPasswordPolicy.RequireSymbols &&
+      requirements.push('REQUIRES_SYMBOLS');
+    // mfa types
+    const mfaTypes: string[] = [];
+    if (
+      userPoolMFA.SmsMfaConfiguration &&
+      userPoolMFA.SmsMfaConfiguration.SmsConfiguration
+    ) {
+      mfaTypes.push('SMS_MFA');
+    }
+    if (userPoolMFA.SoftwareTokenMfaConfiguration?.Enabled) {
+      mfaTypes.push('TOTP');
+    }
+    // social providers
+    const socialProviders: string[] = [];
+    if (userPoolProviders) {
+      for (const provider of userPoolProviders) {
+        const providerType = provider.ProviderType;
+        const providerName = provider.ProviderName;
+        if (providerType === 'Google') {
+          socialProviders.push('GOOGLE');
+        }
+        if (providerType === 'Facebook') {
+          socialProviders.push('FACEBOOK');
+        }
+        if (providerType === 'SignInWithApple') {
+          socialProviders.push('SIGN_IN_WITH_APPLE');
+        }
+        if (providerType === 'LoginWithAmazon') {
+          socialProviders.push('LOGIN_WITH_AMAZON');
+        }
+        if (providerType === 'OIDC' && providerName) {
+          socialProviders.push(providerName);
+        }
+        if (providerType === 'SAML' && providerName) {
+          socialProviders.push(providerName);
+        }
+      }
+    }
+
+    // domain
+    const oauthDomain = userPool.CustomDomain ?? userPool.Domain ?? '';
+    const data = {
+      signupAttributes: JSON.stringify(
+        userPool.SchemaAttributes?.filter(
+          (attribute) => attribute.Required && attribute.Name
+        ).map((attribute) => attribute.Name?.toLowerCase()) || []
+      ),
+      usernameAttributes: JSON.stringify(
+        userPool.UsernameAttributes?.map((attribute) =>
+          attribute.toLowerCase()
+        ) || []
+      ),
+      verificationMechanisms: JSON.stringify(
+        userPool.AutoVerifiedAttributes ?? []
+      ),
+      passwordPolicyMinLength:
+        userPoolPasswordPolicy.MinimumLength === undefined
+          ? ''
+          : userPoolPasswordPolicy.MinimumLength.toString(),
+      passwordPolicyRequirements: JSON.stringify(requirements),
+      mfaConfiguration: userPool.MfaConfiguration ?? 'OFF',
+      mfaTypes: JSON.stringify(mfaTypes),
+      socialProviders: JSON.stringify(socialProviders),
+      oauthCognitoDomain: oauthDomain,
+    };
+    return data;
+  };
+
+  /**
+   * Transforms identityPool info into outputs.
+   * @param identityPool identity pool data
+   * @returns formatted outputs
+   */
+  private getIdentityPoolOutputs = (
+    identityPool: DescribeIdentityPoolCommandOutput
+  ) => {
+    const data = {
+      allowUnauthenticatedIdentities:
+        identityPool.AllowUnauthenticatedIdentities === true ? 'true' : 'false',
+    };
+    return data;
+  };
+
+  /**
+   * Transforms userPoolClient info into outputs.
+   * @param userPoolClient userPoolClient data
+   * @returns formatted outputs
+   */
+  private getUserPoolClientOutputs = (userPoolClient: UserPoolClientType) => {
+    const data = {
+      oauthScope: JSON.stringify(userPoolClient.AllowedOAuthScopes ?? []),
+      oauthRedirectSignIn: userPoolClient.CallbackURLs
+        ? userPoolClient.CallbackURLs.join(',')
+        : '',
+      oauthRedirectSignOut: userPoolClient.LogoutURLs
+        ? userPoolClient.LogoutURLs.join(',')
+        : '',
+      oauthResponseType: userPoolClient.AllowedOAuthFlows
+        ? userPoolClient.AllowedOAuthFlows.join(',')
+        : '',
+      oauthClientId: userPoolClient.ClientId,
+    };
+    return data;
+  };
+}
+
+/**
+ * Entry point for the lambda-backend custom resource to retrieve auth outputs.
  */
 export const handler = async (
   event: CloudFormationCustomResourceEvent
-): Promise<
-  | CloudFormationCustomResourceSuccessResponse
-  | CloudFormationCustomResourceFailedResponse
-> => {
-  console.info(`Received '${event.RequestType}' event`);
-  const physicalId =
-    event.RequestType === 'Create' ? randomUUID() : event.PhysicalResourceId;
-
-  let data;
-  if (event.RequestType === 'Update' || event.RequestType === 'Create') {
-    data = await initialize(event);
-  }
-
-  return {
-    RequestId: event.RequestId,
-    LogicalResourceId: event.LogicalResourceId,
-    PhysicalResourceId: physicalId,
-    Data: data,
-    StackId: event.StackId,
-    NoEcho: true,
-    Status: 'SUCCESS',
-  } as CloudFormationCustomResourceSuccessResponse;
-};
-
-/**
- * Fetches relevant information required for auth outputs.
- * @param event the CloudFormationCustomResourceEvent
- */
-export const initialize = async (event: CloudFormationCustomResourceEvent) => {
-  const props =
-    event.ResourceProperties as unknown as ReferenceAuthInitializerProps;
-
-  const userPoolOutputs = await getUserPoolOutputs(props.userPoolId);
-  const identityPoolOutputs = await getIdentityPoolOutputs(
-    props.identityPoolId
+): Promise<CloudFormationCustomResourceResponse> => {
+  const initializer = new ReferenceAuthInitializer(
+    new CognitoIdentityClient(),
+    new CognitoIdentityProviderClient(),
+    randomUUID
   );
-  const userPoolClientOutputs = await getUserPoolClientOutputs(
-    props.userPoolId,
-    props.userPoolClientId
-  );
-  const data: Omit<AuthOutput['payload'], 'authRegion'> = {
-    userPoolId: props.userPoolId,
-    webClientId: props.userPoolClientId,
-    identityPoolId: props.identityPoolId,
-    ...userPoolOutputs,
-    ...identityPoolOutputs,
-    ...userPoolClientOutputs,
-  };
-  return data;
-};
-
-/**
- * Fetch UserPool information and transform it into outputs.
- * @param userPoolId the ID of the userPool
- * @returns formatted outputs
- */
-export const getUserPoolOutputs = async (userPoolId: string) => {
-  const userPoolClient = new CognitoIdentityProviderClient();
-  const userPoolCommand = new DescribeUserPoolCommand({
-    UserPoolId: userPoolId,
-  });
-
-  const userPoolResponse = await userPoolClient.send(userPoolCommand);
-  const userPool = userPoolResponse.UserPool;
-  if (!userPool) {
-    return undefined;
-  }
-  const mfaCommand = new GetUserPoolMfaConfigCommand({
-    UserPoolId: userPoolId,
-  });
-  const mfaResponse = await userPoolClient.send(mfaCommand);
-  // TBD - what to do with userpool containing lots of providers? ie, pagination
-  const providersCommand = new ListIdentityProvidersCommand({
-    UserPoolId: userPoolId,
-    MaxResults: 20,
-  });
-  const providersResponse = await userPoolClient.send(providersCommand);
-  const policy = userPool.Policies?.PasswordPolicy;
-  if (!policy) {
-    return undefined;
-  }
-  // password policy requirements
-  const requirements: string[] = [];
-  policy.RequireNumbers && requirements.push('REQUIRES_NUMBERS');
-  policy.RequireLowercase && requirements.push('REQUIRES_LOWERCASE');
-  policy.RequireUppercase && requirements.push('REQUIRES_UPPERCASE');
-  policy.RequireSymbols && requirements.push('REQUIRES_SYMBOLS');
-
-  // mfa types
-  const mfaTypes: string[] = [];
-  if (
-    mfaResponse.SmsMfaConfiguration &&
-    mfaResponse.SmsMfaConfiguration.SmsConfiguration
-  ) {
-    mfaTypes.push('SMS_MFA');
-  }
-  if (mfaResponse.SoftwareTokenMfaConfiguration?.Enabled) {
-    mfaTypes.push('TOTP');
-  }
-
-  // social providers
-  const socialProviders: string[] = [];
-  if (providersResponse.Providers) {
-    for (const provider of providersResponse.Providers) {
-      const providerType = provider.ProviderType;
-      const providerName = provider.ProviderName;
-      if (providerType === 'Google') {
-        socialProviders.push('GOOGLE');
-      }
-      if (providerType === 'Facebook') {
-        socialProviders.push('FACEBOOK');
-      }
-      if (providerType === 'SignInWithApple') {
-        socialProviders.push('SIGN_IN_WITH_APPLE');
-      }
-      if (providerType === 'LoginWithAmazon') {
-        socialProviders.push('LOGIN_WITH_AMAZON');
-      }
-      if (providerType === 'OIDC' && providerName) {
-        socialProviders.push(providerName);
-      }
-      if (providerType === 'SAML' && providerName) {
-        socialProviders.push(providerName);
-      }
-    }
-  }
-
-  // domain
-  const oauthDomain = userPool.CustomDomain ?? userPool.Domain ?? '';
-
-  const data = {
-    signupAttributes: JSON.stringify(
-      userPool.SchemaAttributes?.filter(
-        (attribute) => attribute.Required && attribute.Name
-      ).map((attribute) => attribute.Name?.toLowerCase()) || []
-    ),
-    usernameAttributes: JSON.stringify(
-      userPool.UsernameAttributes?.map((attribute) =>
-        attribute.toLowerCase()
-      ) || []
-    ),
-    verificationMechanisms: JSON.stringify(
-      userPool.AutoVerifiedAttributes ?? []
-    ),
-    passwordPolicyMinLength:
-      policy.MinimumLength === undefined ? '' : policy.MinimumLength.toString(),
-    passwordPolicyRequirements: JSON.stringify(requirements),
-    mfaConfiguration: userPool.MfaConfiguration ?? 'OFF',
-    mfaTypes: JSON.stringify(mfaTypes),
-    socialProviders: JSON.stringify(socialProviders),
-    oauthCognitoDomain: oauthDomain,
-  };
-  return data;
-};
-
-/**
- * Fetch IdentityPool information and transform it into outputs.
- * @param identityPoolId the ID of the identityPool
- * @returns formatted outputs
- */
-export const getIdentityPoolOutputs = async (identityPoolId: string) => {
-  const identityPoolClient = new CognitoIdentityClient();
-
-  const idpCommand = new DescribeIdentityPoolCommand({
-    IdentityPoolId: identityPoolId,
-  });
-
-  const idpResponse = await identityPoolClient.send(idpCommand);
-  const data = {
-    allowUnauthenticatedIdentities:
-      idpResponse.AllowUnauthenticatedIdentities === true ? 'true' : 'false',
-  };
-  return data;
-};
-
-/**
- * Fetch UserPoolClient information and transform it into outputs.
- * @param userPoolId the ID of the userPool
- * @param userPoolClientId the ID of the userPoolClient
- * @returns formatted outputs
- */
-export const getUserPoolClientOutputs = async (
-  userPoolId: string,
-  userPoolClientId: string
-) => {
-  const identityProviderClient = new CognitoIdentityProviderClient();
-
-  const userPoolClientCommand = new DescribeUserPoolClientCommand({
-    UserPoolId: userPoolId,
-    ClientId: userPoolClientId,
-  });
-
-  const userPoolClientResponse = await identityProviderClient.send(
-    userPoolClientCommand
-  );
-  const userPoolClient = userPoolClientResponse.UserPoolClient;
-  if (!userPoolClient) {
-    return undefined;
-  }
-  const data = {
-    oauthScope: JSON.stringify(userPoolClient.AllowedOAuthScopes ?? []),
-    oauthRedirectSignIn: userPoolClient.CallbackURLs
-      ? userPoolClient.CallbackURLs.join(',')
-      : '',
-    oauthRedirectSignOut: userPoolClient.LogoutURLs
-      ? userPoolClient.LogoutURLs.join(',')
-      : '',
-    oauthResponseType: userPoolClient.AllowedOAuthFlows
-      ? userPoolClient.AllowedOAuthFlows.join(',')
-      : '',
-    oauthClientId: userPoolClientId,
-  };
-  return data;
+  return initializer.handleEvent(event);
 };

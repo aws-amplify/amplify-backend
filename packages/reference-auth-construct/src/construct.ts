@@ -156,6 +156,9 @@ export class AmplifyReferenceAuth
       userPoolId: props.userPoolId,
       identityPoolId: props.identityPoolId,
       userPoolClientId: props.userPoolClientId,
+      authRoleArn: props.authRoleArn,
+      unauthRoleArn: props.unauthRoleArn,
+      region: Stack.of(this).region,
     };
     // custom resource
     this.configurationCustomResource = new CustomResource(
