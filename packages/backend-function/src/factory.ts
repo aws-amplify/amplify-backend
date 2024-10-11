@@ -145,6 +145,20 @@ export type FunctionProps = {
    * @see [AWS documentation for Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
    */
   layers?: Record<string, string>;
+
+  /*
+   * Options for bundling the function code.
+   */
+  bundling?: FunctionBundlingOptions;
+};
+
+export type FunctionBundlingOptions = {
+  /**
+   * Whether to minify the function code.
+   *
+   * Defaults to true.
+   */
+  minify?: boolean;
 };
 
 /**
@@ -192,6 +206,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      bundling: this.resolveBundling(),
       layers,
     };
   };
@@ -298,6 +313,27 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 
     return this.props.schedule;
   };
+
+  private resolveBundling = () => {
+    const bundlingDefault = {
+      format: OutputFormat.ESM,
+      bundleAwsSDK: true,
+      loader: {
+        '.node': 'file',
+      },
+      minify: true,
+      sourceMap: true,
+    };
+
+    return {
+      ...bundlingDefault,
+      minify: this.resolveMinify(this.props.bundling),
+    };
+  };
+
+  private resolveMinify = (bundling?: FunctionBundlingOptions) => {
+    return bundling?.minify === undefined ? true : bundling.minify;
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -398,15 +434,9 @@ class AmplifyFunction
         runtime: nodeVersionMap[props.runtime],
         layers: props.resolvedLayers,
         bundling: {
-          format: OutputFormat.ESM,
+          ...props.bundling,
           banner: bannerCode,
-          bundleAwsSDK: true,
           inject: shims,
-          loader: {
-            '.node': 'file',
-          },
-          minify: true,
-          sourceMap: true,
           externalModules: Object.keys(props.layers),
         },
       });
