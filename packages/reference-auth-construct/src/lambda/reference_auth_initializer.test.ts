@@ -1,7 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { ReferenceAuthInitializer } from './reference_auth_initializer';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
-import { ReferenceAuthInitializerProps } from './reference_auth_initializer_types';
 import assert from 'node:assert';
 import {
   CognitoIdentityProviderClient,
@@ -26,18 +25,11 @@ import {
   IdentityPoolRoles,
   IdentityProviders,
   MFAResponse,
+  SampleInputProperties,
   UserPool,
   UserPoolClient,
 } from './sample_data';
 
-const inputProperties: ReferenceAuthInitializerProps = {
-  authRoleArn: 'arn:aws:iam::000000000000:role/service-role/ref-auth-role-1',
-  unauthRoleArn: 'arn:aws:iam::000000000000:role/service-role/ref-unauth-role1',
-  identityPoolId: 'us-east-1:sample-identity-pool-id',
-  userPoolClientId: 'sampleUserPoolClientId',
-  userPoolId: 'us-east-1_userpoolTest',
-  region: 'us-east-1',
-};
 const customResourceEventCommon: Omit<
   CloudFormationCustomResourceEvent,
   'RequestType'
@@ -49,7 +41,7 @@ const customResourceEventCommon: Omit<
   LogicalResourceId: 'logicalId',
   ResourceType: 'AWS::CloudFormation::CustomResource',
   ResourceProperties: {
-    ...inputProperties,
+    ...SampleInputProperties,
     ServiceToken: 'token',
   },
 };
@@ -62,7 +54,7 @@ const updateCfnEvent: CloudFormationCustomResourceEvent = {
   RequestType: 'Update',
   PhysicalResourceId: 'physicalId',
   OldResourceProperties: {
-    ...inputProperties,
+    ...SampleInputProperties,
     ServiceToken: 'token',
   },
   ...customResourceEventCommon,
@@ -78,9 +70,9 @@ const uuidMock = () => '00000000-0000-0000-0000-000000000000';
 const identityProviderClient = new CognitoIdentityProviderClient();
 const identityClient = new CognitoIdentityClient();
 const expectedData = {
-  userPoolId: 'us-east-1_userpoolTest',
-  webClientId: 'sampleUserPoolClientId',
-  identityPoolId: 'us-east-1:sample-identity-pool-id',
+  userPoolId: SampleInputProperties.userPoolId,
+  webClientId: SampleInputProperties.userPoolClientId,
+  identityPoolId: SampleInputProperties.identityPoolId,
   signupAttributes: '["sub","email","name"]',
   usernameAttributes: '[]',
   verificationMechanisms: '["email"]',
@@ -96,7 +88,7 @@ const expectedData = {
   oauthRedirectSignIn: 'https://redirect.com,https://redirect2.com',
   oauthRedirectSignOut: 'https://anotherlogouturl.com,https://logouturl.com',
   oauthResponseType: 'code',
-  oauthClientId: 'sampleUserPoolClientId',
+  oauthClientId: SampleInputProperties.userPoolClientId,
 };
 
 void describe('ReferenceAuthInitializer', () => {
@@ -369,4 +361,58 @@ void describe('ReferenceAuthInitializer', () => {
       'An error occurred while retrieving the roles for the identity pool.'
     );
   });
+  // fails gracefully if userPool or client doesn't match identity pool
+  void it('fails gracefully there is not matching userPool for the identity pool', async () => {
+    describeIdentityPoolResponse = {
+      ...describeIdentityPoolResponse,
+      CognitoIdentityProviders: [
+        {
+          ProviderName:
+            'cognito-idp.us-east-1.amazonaws.com/us-east-1_wrongUserPool',
+          ClientId: 'sampleUserPoolClientId',
+          ServerSideTokenCheck: false,
+        },
+      ],
+    };
+    const result = await handler.handleEvent(createCfnEvent);
+    assert.equal(result.Status, 'FAILED');
+    assert.equal(
+      result.Reason,
+      'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
+    );
+  });
+  void it('fails gracefully if the client id does not match any cognito provider on the identity pool', async () => {
+    describeIdentityPoolResponse = {
+      ...describeIdentityPoolResponse,
+      CognitoIdentityProviders: [
+        {
+          ProviderName:
+            'cognito-idp.us-east-1.amazonaws.com/us-east-1_userpoolTest',
+          ClientId: 'wrongClientId',
+          ServerSideTokenCheck: false,
+        },
+      ],
+    };
+    const result = await handler.handleEvent(createCfnEvent);
+    assert.equal(result.Status, 'FAILED');
+    assert.equal(
+      result.Reason,
+      'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
+    );
+  });
+  void it('fails gracefully if identity pool does not have cognito identity providers configured', async () => {
+    describeIdentityPoolResponse = {
+      ...describeIdentityPoolResponse,
+      CognitoIdentityProviders: [],
+    };
+    const result = await handler.handleEvent(createCfnEvent);
+    assert.equal(result.Status, 'FAILED');
+    assert.equal(
+      result.Reason,
+      'The specified identity pool does not have any cognito identity providers.'
+    );
+  });
+  // fails gracefully if roles don't match identity pool
+
+  // fails gracefully if client is not a web client
 });

@@ -5,12 +5,24 @@ import {
   UserPoolClientType,
   UserPoolType,
 } from '@aws-sdk/client-cognito-identity-provider';
+import { ReferenceAuthInitializerProps } from './reference_auth_initializer_types';
 
+/**
+ * Sample referenceAuth properties
+ */
+export const SampleInputProperties: ReferenceAuthInitializerProps = {
+  authRoleArn: 'arn:aws:iam::000000000000:role/service-role/ref-auth-role-1',
+  unauthRoleArn: 'arn:aws:iam::000000000000:role/service-role/ref-unauth-role1',
+  identityPoolId: 'us-east-1:sample-identity-pool-id',
+  userPoolClientId: 'sampleUserPoolClientId',
+  userPoolId: 'us-east-1_userpoolTest',
+  region: 'us-east-1',
+};
 /**
  * Sample response from describe user pool command
  */
 export const UserPool: Readonly<UserPoolType> = {
-  Id: 'us-east-1_userpoolTest',
+  Id: SampleInputProperties.userPoolId,
   Name: 'ref-auth-userpool-1',
   Policies: {
     PasswordPolicy: {
@@ -276,7 +288,7 @@ export const UserPool: Readonly<UserPoolType> = {
   UsernameConfiguration: {
     CaseSensitive: false,
   },
-  Arn: 'arn:aws:cognito-idp:us-east-1:000000000000:userpool/us-east-1_userpoolTest',
+  Arn: `arn:aws:cognito-idp:us-east-1:000000000000:userpool/${SampleInputProperties.userPoolId}`,
   AccountRecoverySetting: {
     RecoveryMechanisms: [
       {
@@ -321,15 +333,14 @@ export const IdentityProviders: Readonly<ProviderDescription[]> = [
  * Sample data for describe identity pool
  */
 export const IdentityPool: Readonly<IdentityPoolType> = {
-  IdentityPoolId: 'us-east-1:sample-identity-pool-id',
+  IdentityPoolId: SampleInputProperties.identityPoolId,
   IdentityPoolName: 'sample-identity-pool-name',
   AllowUnauthenticatedIdentities: true,
   AllowClassicFlow: false,
   CognitoIdentityProviders: [
     {
-      ProviderName:
-        'cognito-idp.us-east-1.amazonaws.com/us-east-1_userpoolTest',
-      ClientId: 'sampleUserPoolClientId',
+      ProviderName: `cognito-idp.us-east-1.amazonaws.com/${SampleInputProperties.userPoolId}`,
+      ClientId: SampleInputProperties.userPoolClientId,
       ServerSideTokenCheck: false,
     },
   ],
@@ -340,12 +351,10 @@ export const IdentityPool: Readonly<IdentityPoolType> = {
  * Sample data for get identity pool roles
  */
 export const IdentityPoolRoles = {
-  IdentityPoolId: 'us-east-1:sample-identity-pool-id',
+  IdentityPoolId: SampleInputProperties.identityPoolId,
   Roles: {
-    authenticated:
-      'arn:aws:iam::000000000000:role/service-role/ref-auth-role-1',
-    unauthenticated:
-      'arn:aws:iam::000000000000:role/service-role/ref-unauth-role1',
+    authenticated: SampleInputProperties.authRoleArn,
+    unauthenticated: SampleInputProperties.unauthRoleArn,
   },
 };
 
@@ -353,9 +362,9 @@ export const IdentityPoolRoles = {
  * Sample data from describe user pool client
  */
 export const UserPoolClient: UserPoolClientType = {
-  UserPoolId: 'us-east-1_userpoolTest',
+  UserPoolId: SampleInputProperties.userPoolId,
   ClientName: 'ref-auth-app-client-1',
-  ClientId: 'sampleUserPoolClientId',
+  ClientId: SampleInputProperties.userPoolClientId,
   RefreshTokenValidity: 30,
   AccessTokenValidity: 60,
   IdTokenValidity: 60,

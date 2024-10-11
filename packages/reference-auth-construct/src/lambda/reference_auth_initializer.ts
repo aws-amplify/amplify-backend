@@ -95,7 +95,8 @@ export class ReferenceAuthInitializer {
         userPool,
         userPoolPasswordPolicy,
         userPoolProviders,
-        userPoolMFA
+        userPoolMFA,
+        props.region
       );
       const identityPoolOutputs = await this.getIdentityPoolOutputs(
         identityPool
@@ -319,7 +320,10 @@ export class ReferenceAuthInitializer {
     props: ReferenceAuthInitializerProps
   ) => {
     // verify the user pool is a cognito provider for this identity pool
-    if (!identityPool.CognitoIdentityProviders) {
+    if (
+      !identityPool.CognitoIdentityProviders ||
+      identityPool.CognitoIdentityProviders.length === 0
+    ) {
       throw new Error(
         'The specified identity pool does not have any cognito identity providers.'
       );
@@ -372,7 +376,8 @@ export class ReferenceAuthInitializer {
     userPool: UserPoolType,
     userPoolPasswordPolicy: PasswordPolicyType,
     userPoolProviders: ProviderDescription[],
-    userPoolMFA: GetUserPoolMfaConfigCommandOutput
+    userPoolMFA: GetUserPoolMfaConfigCommandOutput,
+    region: string
   ) => {
     // password policy requirements
     const requirements: string[] = [];
@@ -424,6 +429,7 @@ export class ReferenceAuthInitializer {
 
     // domain
     const oauthDomain = userPool.CustomDomain ?? userPool.Domain ?? '';
+    const fullDomainPath = `${oauthDomain}.auth.${region}.amazoncognito.com`;
     const data = {
       signupAttributes: JSON.stringify(
         userPool.SchemaAttributes?.filter(
@@ -446,7 +452,7 @@ export class ReferenceAuthInitializer {
       mfaConfiguration: userPool.MfaConfiguration ?? 'OFF',
       mfaTypes: JSON.stringify(mfaTypes),
       socialProviders: JSON.stringify(socialProviders),
-      oauthCognitoDomain: oauthDomain,
+      oauthCognitoDomain: fullDomainPath,
     };
     return data;
   };
