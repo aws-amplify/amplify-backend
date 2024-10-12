@@ -22,7 +22,11 @@
     "@aws-amplify/backend-output-schemas": "^1.1.0",
     "@aws-amplify/backend-output-storage": "^1.1.2",
     "@aws-amplify/plugin-types": "^1.2.2",
-    "@aws-sdk/util-arn-parser": "^3.568.0"
+    "@aws-sdk/util-arn-parser": "^3.568.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.624.0",
+    "@aws-sdk/client-cognito-identity": "^3.624.0",
+    "@types/aws-lambda": "^8.10.119",
+    "aws-lambda": "^1.0.7"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.152.0",

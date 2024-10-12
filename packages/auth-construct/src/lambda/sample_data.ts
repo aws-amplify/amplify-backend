@@ -5,7 +5,7 @@ import {
   UserPoolClientType,
   UserPoolType,
 } from '@aws-sdk/client-cognito-identity-provider';
-import { ReferenceAuthInitializerProps } from './reference_auth_initializer_types';
+import { ReferenceAuthInitializerProps } from '../types.js';
 
 /**
  * Sample referenceAuth properties

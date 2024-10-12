@@ -17,13 +17,11 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
-import { ReferenceAuthProps } from './types.js';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { Role } from 'aws-cdk-lib/aws-iam';
-import { ReferenceAuthInitializerProps } from './lambda/reference_auth_initializer_types.js';
-
+import { ReferenceAuthInitializerProps, ReferenceAuthProps } from './types.js';
 const REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID =
   'AmplifyRefAuthCustomResourceProvider';
 const REFERENCE_AUTH_CUSTOM_RESOURCE_ID = 'AmplifyRefAuthCustomResource';

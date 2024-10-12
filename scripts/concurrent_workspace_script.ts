@@ -47,21 +47,30 @@ const runInDir = (dir: string) =>
 
 // iterate over all the packages in the project
 const runPromises = packagePaths.map(async (packagePath) => {
-  const packageTsBuildInfoPath = path.join(packagePath, 'tsconfig.tsbuildinfo');
-  // if the package doesn't have a tsbuildinfo file, execute the command
-  if (!existsSync(packageTsBuildInfoPath)) {
-    return runInDir(packagePath);
+  try {
+    const packageTsBuildInfoPath = path.join(
+      packagePath,
+      'tsconfig.tsbuildinfo'
+    );
+    // if the package doesn't have a tsbuildinfo file, execute the command
+    if (!existsSync(packageTsBuildInfoPath)) {
+      return runInDir(packagePath);
+    }
+    const packageTsBuildInfoHash = createHash('sha512')
+      .update(await fs.readFile(packageTsBuildInfoPath))
+      .digest('hex');
+    // if the tsbuildinfo file has a different hash than the last time the command ran, run it again
+    if (commandHashCache[packagePath] !== packageTsBuildInfoHash) {
+      await runInDir(packagePath);
+    }
+    // store the new hash in the cache
+    commandHashCache[packagePath] = packageTsBuildInfoHash;
+    return undefined;
+  } catch (e) {
+    console.error('command failed for package:', packagePath);
+    console.log(e);
+    return undefined;
   }
-  const packageTsBuildInfoHash = createHash('sha512')
-    .update(await fs.readFile(packageTsBuildInfoPath))
-    .digest('hex');
-  // if the tsbuildinfo file has a different hash than the last time the command ran, run it again
-  if (commandHashCache[packagePath] !== packageTsBuildInfoHash) {
-    await runInDir(packagePath);
-  }
-  // store the new hash in the cache
-  commandHashCache[packagePath] = packageTsBuildInfoHash;
-  return undefined;
 });
 
 await Promise.all(runPromises);

@@ -23,7 +23,7 @@ import {
   GetIdentityPoolRolesCommand,
 } from '@aws-sdk/client-cognito-identity';
 import { randomUUID } from 'node:crypto';
-import { ReferenceAuthInitializerProps } from './reference_auth_initializer_types.js';
+import { ReferenceAuthInitializerProps } from '../types.js';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 
 /**

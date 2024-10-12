@@ -1,5 +1,4 @@
 ---
-'@aws-amplify/reference-auth-construct': minor
 '@aws-amplify/auth-construct': minor
 '@aws-amplify/backend-auth': minor
 '@aws-amplify/backend-data': minor
