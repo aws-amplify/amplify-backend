@@ -137,7 +137,10 @@ export class AmplifyReferenceAuth
     refAuthLambda.grantPrincipal.addToPrincipalPolicy(
       new aws_iam.PolicyStatement({
         effect: aws_iam.Effect.ALLOW,
-        actions: ['cognito-identity:DescribeIdentityPool'],
+        actions: [
+          'cognito-identity:DescribeIdentityPool',
+          'cognito-identity:GetIdentityPoolRoles',
+        ],
         resources: [
           `arn:aws:cognito-identity:${stack.region}:${stack.account}:identitypool/${this.resources.identityPoolId}`,
         ],
