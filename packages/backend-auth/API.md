@@ -6,11 +6,9 @@
 
 import { AmazonProviderProps } from '@aws-amplify/auth-construct';
 import { AppleProviderProps } from '@aws-amplify/auth-construct';
-import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import { AuthProps } from '@aws-amplify/auth-construct';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { AuthRoleName } from '@aws-amplify/plugin-types';
-import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
@@ -19,6 +17,7 @@ import { FacebookProviderProps } from '@aws-amplify/auth-construct';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct';
 import { OidcProviderProps } from '@aws-amplify/auth-construct';
+import { ReferenceAuthProps } from '@aws-amplify/auth-construct';
 import { ReferenceAuthResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
@@ -45,8 +44,6 @@ export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 
     access?: AuthAccessGenerator;
 }>;
 
-// Warning: (ae-forgotten-export) The symbol "ReferenceAuthProps" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export type AmplifyReferenceAuthProps = Expand<Omit<ReferenceAuthProps, 'outputStorageStrategy'> & {
     access?: AuthAccessGenerator;
