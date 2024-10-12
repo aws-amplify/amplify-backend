@@ -74,7 +74,10 @@ void describe('AmplifyConstruct', () => {
         },
       },
       {
-        Action: 'cognito-identity:DescribeIdentityPool',
+        Action: [
+          'cognito-identity:DescribeIdentityPool',
+          'cognito-identity:GetIdentityPoolRoles',
+        ],
         Effect: 'Allow',
         Resource: {
           'Fn::Join': [
