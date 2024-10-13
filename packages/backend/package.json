@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -27,9 +27,9 @@
   "dependencies": {
     "@aws-amplify/data-schema": "^1.0.0",
     "@aws-amplify/backend-auth": "^1.2.0",
-    "@aws-amplify/backend-function": "^1.5.0",
+    "@aws-amplify/backend-function": "^1.6.0",
     "@aws-amplify/backend-data": "^1.1.4",
-    "@aws-amplify/backend-output-schemas": "^1.2.1",
+    "@aws-amplify/backend-output-schemas": "^1.3.0",
     "@aws-amplify/backend-output-storage": "^1.1.2",
     "@aws-amplify/backend-secret": "^1.1.2",
     "@aws-amplify/backend-storage": "^1.2.1",

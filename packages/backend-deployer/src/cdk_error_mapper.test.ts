@@ -134,6 +134,18 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: undefined,
   },
   {
+    errorMessage: `[31m  some-stack failed: The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
+    expectedTopLevelErrorMessage: 'The CloudFormation deployment has failed.',
+    errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage: `The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
+  },
+  {
+    errorMessage: `[31m  some-stack failed: The stack named some-stack failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE`,
+    expectedTopLevelErrorMessage: 'The CloudFormation deployment has failed.',
+    errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage: `The stack named some-stack failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE`,
+  },
+  {
     errorMessage:
       'CFN error happened: Updates are not allowed for property: some property',
     expectedTopLevelErrorMessage:
@@ -212,6 +224,22 @@ const testErrorMappings = [
       `    at failureErrorWithLog (/Users/user/work-space/amplify-app/node_modules/tsx/node_modules/esbuild/lib/main.js:1472:15)`,
     expectedTopLevelErrorMessage:
       '/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Expected "}" but found "email"',
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      `Error [TransformError]: Transform failed with 2 errors:` +
+      EOL +
+      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Multiple exports with the same name auth` +
+      EOL +
+      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: The symbol auth has already been declared` +
+      EOL +
+      `    at failureErrorWithLog (/Users/user/work-space/amplify-app/node_modules/tsx/node_modules/esbuild/lib/main.js:1472:15)`,
+    expectedTopLevelErrorMessage:
+      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: Multiple exports with the same name auth` +
+      EOL +
+      `/Users/user/work-space/amplify-app/amplify/auth/resource.ts:48:4: ERROR: The symbol auth has already been declared`,
     errorName: 'ESBuildError',
     expectedDownstreamErrorMessage: undefined,
   },

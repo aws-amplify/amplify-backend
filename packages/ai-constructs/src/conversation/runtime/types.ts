@@ -1,15 +1,18 @@
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
-import * as smithy from '@smithy/types';
+import * as jsonSchemaToTypeScript from 'json-schema-to-ts';
 
 /*
   Notice: This file contains types that are exposed publicly.
   Therefore, we avoid eager introduction of types that wouldn't be useful for
   public API consumer and potentially pollute syntax assist in IDEs.
  */
-
-export type ToolInputSchema = bedrock.ToolInputSchema;
+export type JSONSchema = jsonSchemaToTypeScript.JSONSchema;
+export type FromJSONSchema<TJSONSchema extends JSONSchema> =
+  jsonSchemaToTypeScript.FromSchema<TJSONSchema>;
+export type ToolInputSchema<TJSONSchema extends JSONSchema> = {
+  json: TJSONSchema;
+};
 export type ToolResultContentBlock = bedrock.ToolResultContentBlock;
-export type ToolExecutionInput = smithy.DocumentType;
 
 export type ConversationMessage = {
   role: 'user' | 'assistant';
@@ -23,12 +26,20 @@ export type ConversationMessageContentBlock =
         // Upstream (Appsync) may send images in a form of Base64 encoded strings
         source: { bytes: string };
       };
+      // These are needed so that union with other content block types works.
+      // See https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-bedrock-runtime/TypeAlias/ContentBlock/.
+      text?: never;
+      document?: never;
+      toolUse?: never;
+      toolResult?: never;
+      guardContent?: never;
+      $unknown?: never;
     };
 
-export type ToolDefinition = {
+export type ToolDefinition<TJSONSchema extends JSONSchema = JSONSchema> = {
   name: string;
   description: string;
-  inputSchema: ToolInputSchema;
+  inputSchema: ToolInputSchema<TJSONSchema>;
 };
 
 // Customers are not expected to create events themselves, therefore
@@ -53,14 +64,8 @@ export type ConversationTurnEvent = {
     };
   };
   request: {
-    headers: {
-      authorization: string;
-    };
+    headers: Record<string, string>;
   };
-  /**
-   * @deprecated This field is going to be removed in upcoming releases.
-   */
-  messages?: Array<ConversationMessage>;
   messageHistoryQuery: {
     getQueryName: string;
     getQueryInputTypeName: string;
@@ -82,8 +87,9 @@ export type ConversationTurnEvent = {
   };
 };
 
-export type ExecutableTool = ToolDefinition & {
-  execute: (
-    input: ToolExecutionInput | undefined
-  ) => Promise<ToolResultContentBlock>;
+export type ExecutableTool<
+  TJSONSchema extends JSONSchema = JSONSchema,
+  TToolInput = FromJSONSchema<TJSONSchema>
+> = ToolDefinition<TJSONSchema> & {
+  execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };

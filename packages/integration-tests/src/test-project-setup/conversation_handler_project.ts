@@ -7,10 +7,7 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import {
-  ConversationMessage,
-  ConversationTurnEvent,
-} from '@aws-amplify/ai-constructs/conversation/runtime';
+import { ConversationTurnEvent } from '@aws-amplify/ai-constructs/conversation/runtime';
 import { randomUUID } from 'crypto';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
@@ -30,10 +27,11 @@ import { NormalizedCacheObject } from '@apollo/client';
 import {
   bedrockModelId,
   expectedTemperatureInDataToolScenario,
-  expectedTemperatureInProgrammaticToolScenario,
+  expectedTemperaturesInProgrammaticToolScenario,
 } from '../test-projects/conversation-handler/amplify/constants.js';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
+import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -50,6 +48,28 @@ type ConversationTurnAppSyncResponse = {
   associatedUserMessageId: string;
   content: string;
 };
+
+type ConversationMessage = {
+  role: 'user' | 'assistant';
+  content: Array<ConversationMessageContentBlock>;
+};
+
+type ConversationMessageContentBlock =
+  | bedrock.ContentBlock
+  | {
+      image: Omit<bedrock.ImageBlock, 'source'> & {
+        // Upstream (Appsync) may send images in a form of Base64 encoded strings
+        source: { bytes: string };
+      };
+      // These are needed so that union with other content block types works.
+      // See https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-bedrock-runtime/TypeAlias/ContentBlock/.
+      text?: never;
+      document?: never;
+      toolUse?: never;
+      toolResult?: never;
+      guardContent?: never;
+      $unknown?: never;
+    };
 
 type CreateConversationMessageChatInput = ConversationMessage & {
   conversationId: string;
@@ -203,10 +223,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       backendId,
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
-      apolloClient,
-      // Does not use message history lookup.
-      // This case should be removed when event.messages field is removed.
-      false
+      apolloClient
     );
 
     await this.assertDefaultConversationHandlerCanExecuteTurn(
@@ -214,15 +231,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
       apolloClient,
-      true
-    );
-
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true,
       // Simulate eventual consistency
       true
     );
@@ -252,16 +260,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       backendId,
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
-      apolloClient,
-      false
-    );
-
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+      apolloClient
     );
   }
 
@@ -270,7 +269,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    useMessageHistory: boolean,
     withoutMessageAvailableInTheMessageList = false
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
@@ -303,28 +301,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
       ...commonEventProperties,
     };
 
-    if (useMessageHistory) {
-      if (withoutMessageAvailableInTheMessageList) {
-        // This tricks conversation handler to think that message is not available in the list.
-        // I.e. it simulates eventually consistency read at list operation where item is not yet visible.
-        // In this case handler should fall back to lookup by current message id.
-        message.conversationId = randomUUID().toString();
-      }
-      await this.insertMessage(apolloClient, message);
-    } else {
-      event.messageHistoryQuery = {
-        getQueryName: '',
-        getQueryInputTypeName: '',
-        listQueryName: '',
-        listQueryInputTypeName: '',
-      };
-      event.messages = [
-        {
-          role: message.role,
-          content: message.content,
-        },
-      ];
+    if (withoutMessageAvailableInTheMessageList) {
+      // This tricks conversation handler to think that message is not available in the list.
+      // I.e. it simulates eventually consistency read at list operation where item is not yet visible.
+      // In this case handler should fall back to lookup by current message id.
+      message.conversationId = randomUUID().toString();
     }
+    await this.insertMessage(apolloClient, message);
 
     const response = await this.executeConversationTurn(
       event,
@@ -338,8 +321,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     backendId: BackendIdentifier,
     accessToken: string,
     graphqlApiEndpoint: string,
-    apolloClient: ApolloClient<NormalizedCacheObject>,
-    useMessageHistory: boolean
+    apolloClient: ApolloClient<NormalizedCacheObject>
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -390,22 +372,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
       },
       ...commonEventProperties,
     };
-    if (useMessageHistory) {
-      await this.insertMessage(apolloClient, message);
-    } else {
-      event.messageHistoryQuery = {
-        getQueryName: '',
-        getQueryInputTypeName: '',
-        listQueryName: '',
-        listQueryInputTypeName: '',
-      };
-      event.messages = [
-        {
-          role: message.role,
-          content: message.content,
-        },
-      ];
-    }
+
+    await this.insertMessage(apolloClient, message);
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
@@ -581,7 +549,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       role: 'user',
       content: [
         {
-          text: 'What is the temperature in Seattle?',
+          text: 'What is the temperature in Seattle, Boston and Miami?',
         },
       ],
     };
@@ -605,7 +573,21 @@ class ConversationHandlerTestProject extends TestProjectBase {
     // Assert that tool was used. I.e. LLM used value provided by the tool.
     assert.match(
       response.content,
-      new RegExp(expectedTemperatureInProgrammaticToolScenario.toString())
+      new RegExp(
+        expectedTemperaturesInProgrammaticToolScenario.Seattle.toString()
+      )
+    );
+    assert.match(
+      response.content,
+      new RegExp(
+        expectedTemperaturesInProgrammaticToolScenario.Boston.toString()
+      )
+    );
+    assert.match(
+      response.content,
+      new RegExp(
+        expectedTemperaturesInProgrammaticToolScenario.Miami.toString()
+      )
     );
   };
 

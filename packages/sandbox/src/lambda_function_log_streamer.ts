@@ -1,17 +1,10 @@
 import { LogLevel, Printer } from '@aws-amplify/cli-core';
 import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
-import {
-  BackendIdentifierConversions,
-  TagName,
-} from '@aws-amplify/platform-core';
+import { TagName } from '@aws-amplify/platform-core';
 import { BackendIdentifier, BackendOutput } from '@aws-amplify/plugin-types';
-import {
-  CloudFormationClient,
-  DescribeStacksCommand,
-} from '@aws-sdk/client-cloudformation';
-import { LambdaClient, ListTagsCommand } from '@aws-sdk/client-lambda';
+
+import { GetFunctionCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { CloudWatchLogEventMonitor } from './cloudwatch_logs_monitor.js';
-import { build as buildArn, parse as parseArn } from '@aws-sdk/util-arn-parser';
 import { SandboxFunctionStreamingOptions } from './sandbox.js';
 
 /**
@@ -24,7 +17,6 @@ export class LambdaFunctionLogStreamer {
    */
   constructor(
     private readonly lambda: LambdaClient,
-    private readonly cfnClient: CloudFormationClient,
     private readonly logsMonitor: CloudWatchLogEventMonitor,
     private readonly backendOutputClient: BackendOutputClient,
     private readonly printer: Printer
@@ -50,37 +42,38 @@ export class LambdaFunctionLogStreamer {
 
     const definedFunctionsPayload =
       backendOutput['AWS::Amplify::Function']?.payload.definedFunctions;
+    const definedConversationHandlersPayload =
+      backendOutput['AWS::Amplify::AI::Conversation']?.payload
+        .definedConversationHandlers;
     const deployedFunctionNames = definedFunctionsPayload
       ? (JSON.parse(definedFunctionsPayload) as string[])
       : [];
-
-    // To use list-tags API we need to convert function name to function Arn since it only accepts ARN as input
-    const deployedFunctionNameToArnMap = await this.getFunctionArnFromNames(
-      sandboxBackendId,
-      deployedFunctionNames
+    deployedFunctionNames.push(
+      ...(definedConversationHandlersPayload
+        ? (JSON.parse(definedConversationHandlersPayload) as string[])
+        : [])
     );
 
-    if (!deployedFunctionNameToArnMap) {
-      this.printer.log(
-        `[Sandbox] Could not find any function in stack ${BackendIdentifierConversions.toStackName(
-          sandboxBackendId
-        )}. Streaming function logs will be turned off.`,
-        LogLevel.DEBUG
-      );
-      return;
-    }
-
-    for (const entry of deployedFunctionNameToArnMap) {
-      const listTagsResponse = await this.lambda.send(
-        new ListTagsCommand({
-          Resource: entry.arn,
+    for (const functionName of deployedFunctionNames) {
+      const getFunctionResponse = await this.lambda.send(
+        new GetFunctionCommand({
+          FunctionName: functionName,
         })
       );
+      const logGroupName =
+        getFunctionResponse.Configuration?.LoggingConfig?.LogGroup;
+      if (!logGroupName) {
+        this.printer.log(
+          `[Sandbox] Could not find logGroup for lambda function ${functionName}. Logs will not be streamed for this function.`,
+          LogLevel.DEBUG
+        );
+        continue;
+      }
       const friendlyFunctionName =
-        listTagsResponse.Tags?.[TagName.FRIENDLY_NAME];
+        getFunctionResponse.Tags?.[TagName.FRIENDLY_NAME];
       if (!friendlyFunctionName) {
         this.printer.log(
-          `[Sandbox] Could not find user defined name for lambda function ${entry.name}. Logs will not be streamed for this function.`,
+          `[Sandbox] Could not find user defined name for lambda function ${functionName}. Logs will not be streamed for this function.`,
           LogLevel.DEBUG
         );
         continue;
@@ -109,11 +102,7 @@ export class LambdaFunctionLogStreamer {
       }
 
       if (shouldStreamLogs) {
-        this.logsMonitor?.addLogGroups(
-          friendlyFunctionName,
-          // a CW log group is implicitly created for each lambda function with the lambda function's name
-          `/aws/lambda/${entry.name}`
-        );
+        this.logsMonitor?.addLogGroups(friendlyFunctionName, logGroupName);
       } else {
         this.printer.log(
           `[Sandbox] Skipping logs streaming for function ${friendlyFunctionName} since it did not match any filters. To stream logs for this function, ensure at least one of your logs-filters match this function name.`,
@@ -135,51 +124,5 @@ export class LambdaFunctionLogStreamer {
       LogLevel.DEBUG
     );
     this.logsMonitor?.pause();
-  };
-
-  /**
-   * Adds functionArn for each function name provided. All the ARN components are taken from the root stack Arn
-   * @param sandboxBackendId backendId for retrieving the root stack
-   * @param functionNames Name of the functions for which ARN needs to be generated
-   * @returns An object containing function name and ARN for each function name provided
-   */
-  private getFunctionArnFromNames = async (
-    sandboxBackendId: BackendIdentifier,
-    functionNames?: string[]
-  ) => {
-    if (!functionNames || functionNames.length === 0) {
-      return;
-    }
-
-    const rootStackResources = await this.cfnClient.send(
-      new DescribeStacksCommand({
-        StackName: BackendIdentifierConversions.toStackName(sandboxBackendId),
-      })
-    );
-
-    if (!rootStackResources?.Stacks?.[0]?.StackId) {
-      this.printer.log(
-        `[Sandbox] Cannot load root stack for Id ${BackendIdentifierConversions.toStackName(
-          sandboxBackendId
-        )}. Streaming function logs will be turned off.`,
-        LogLevel.DEBUG
-      );
-      return;
-    }
-
-    const arnParts = parseArn(rootStackResources.Stacks[0].StackId);
-
-    return functionNames.map((name) => {
-      return {
-        name,
-        arn: buildArn({
-          resource: `function:${name}`,
-          service: 'lambda',
-          accountId: arnParts.accountId,
-          partition: arnParts.partition,
-          region: arnParts.region,
-        }),
-      };
-    });
   };
 }

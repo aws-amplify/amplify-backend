@@ -342,11 +342,63 @@ void describe('Conversation message history retriever', () => {
         },
       ],
     },
+    {
+      name: 'Replaces null values with undefined',
+      mockListResponseMessages: [
+        {
+          id: event.currentMessageId,
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              text: 'some_text',
+              // @ts-expect-error Intentionally providing null outside of typing
+              image: null,
+              // @ts-expect-error Intentionally providing null outside of typing
+              document: null,
+              // @ts-expect-error Intentionally providing null outside of typing
+              toolUse: null,
+              // @ts-expect-error Intentionally providing null outside of typing
+              toolResult: null,
+              // @ts-expect-error Intentionally providing null outside of typing
+              guardContent: null,
+              // @ts-expect-error Intentionally providing null outside of typing
+              $unknown: null,
+            },
+            {
+              // @ts-expect-error Intentionally providing null outside of typing
+              text: null,
+              document: { format: 'csv', name: 'test_name', source: undefined },
+            },
+          ],
+        },
+      ],
+      expectedMessages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'some_text',
+              image: undefined,
+              document: undefined,
+              toolUse: undefined,
+              toolResult: undefined,
+              guardContent: undefined,
+              $unknown: undefined,
+            },
+            {
+              text: undefined,
+              document: { format: 'csv', name: 'test_name', source: undefined },
+            },
+          ],
+        },
+      ],
+    },
   ];
 
   for (const testCase of testCases) {
     void it(testCase.name, async () => {
-      const graphqlRequestExecutor = new GraphqlRequestExecutor('', '');
+      const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
       const executeGraphqlMock = mock.method(
         graphqlRequestExecutor,
         'executeGraphql',
