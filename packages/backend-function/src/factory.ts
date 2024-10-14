@@ -1,4 +1,14 @@
 import {
+  FunctionOutput,
+  functionOutputKey,
+} from '@aws-amplify/backend-output-schemas';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import {
+  AmplifyUserError,
+  CallerDirectoryExtractor,
+  TagName,
+} from '@aws-amplify/platform-core';
+import {
   BackendOutputStorageStrategy,
   BackendSecret,
   BackendSecretResolver,
@@ -13,31 +23,27 @@ import {
   SsmEnvironmentEntry,
   StackProvider,
 } from '@aws-amplify/plugin-types';
-import { Construct } from 'constructs';
-import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
-import * as path from 'path';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
-import { CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { createRequire } from 'module';
-import { FunctionEnvironmentTranslator } from './function_env_translator.js';
-import { Policy } from 'aws-cdk-lib/aws-iam';
-import { readFileSync } from 'fs';
-import { EOL } from 'os';
-import {
-  FunctionOutput,
-  functionOutputKey,
-} from '@aws-amplify/backend-output-schemas';
-import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
-import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'node:url';
-import {
-  AmplifyUserError,
-  CallerDirectoryExtractor,
-  TagName,
-} from '@aws-amplify/platform-core';
-import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Rule } from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+import {
+  CfnFunction,
+  ILayerVersion,
+  LayerVersion,
+  Runtime,
+} from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Construct } from 'constructs';
+import { readFileSync } from 'fs';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'node:url';
+import { EOL } from 'os';
+import * as path from 'path';
+import { FunctionEnvironmentTranslator } from './function_env_translator.js';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
+import { FunctionLayerArnParser } from './layer_parser.js';
+import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
 const functionStackType = 'function-Lambda';
 
@@ -126,6 +132,33 @@ export type FunctionProps = {
    * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
+
+  /**
+   * Attach Lambda layers to a function
+   * - A Lambda layer is represented by an object of key/value pair where the key is the module name that is exported from your layer and the value is the ARN of the layer. The key (module name) is used to externalize the module dependency so it doesn't get bundled with your lambda function
+   * - Maximum of 5 layers can be attached to a function and must be in the same region as the function.
+   * @example
+   * layers: {
+   *    "@aws-lambda-powertools/logger": "arn:aws:lambda:<current-region>:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:11"
+   * },
+   * @see [Amplify documentation for Lambda layers](https://docs.amplify.aws/react/build-a-backend/functions/add-lambda-layers)
+   * @see [AWS documentation for Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
+   */
+  layers?: Record<string, string>;
+
+  /*
+   * Options for bundling the function code.
+   */
+  bundling?: FunctionBundlingOptions;
+};
+
+export type FunctionBundlingOptions = {
+  /**
+   * Whether to minify the function code.
+   *
+   * Defaults to true.
+   */
+  minify?: boolean;
 };
 
 /**
@@ -163,6 +196,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   ): HydratedFunctionProps => {
     const name = this.resolveName();
     resourceNameValidator?.validate(name);
+    const parser = new FunctionLayerArnParser();
+    const layers = parser.parseLayers(this.props.layers ?? {}, name);
     return {
       name,
       entry: this.resolveEntry(),
@@ -171,6 +206,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      bundling: this.resolveBundling(),
+      layers,
     };
   };
 
@@ -276,6 +313,27 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 
     return this.props.schedule;
   };
+
+  private resolveBundling = () => {
+    const bundlingDefault = {
+      format: OutputFormat.ESM,
+      bundleAwsSDK: true,
+      loader: {
+        '.node': 'file',
+      },
+      minify: true,
+      sourceMap: true,
+    };
+
+    return {
+      ...bundlingDefault,
+      minify: this.resolveMinify(this.props.bundling),
+    };
+  };
+
+  private resolveMinify = (bundling?: FunctionBundlingOptions) => {
+    return bundling?.minify === undefined ? true : bundling.minify;
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -292,10 +350,19 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps) => {
+    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
+    const resolvedLayers = Object.entries(this.props.layers).map(([key, arn]) =>
+      LayerVersion.fromLayerVersionArn(
+        scope,
+        `${this.props.name}-${key}-layer`,
+        arn
+      )
+    );
+
     return new AmplifyFunction(
       scope,
       this.props.name,
-      this.props,
+      { ...this.props, resolvedLayers },
       backendSecretResolver,
       this.outputStorageStrategy
     );
@@ -315,7 +382,7 @@ class AmplifyFunction
   constructor(
     scope: Construct,
     id: string,
-    props: HydratedFunctionProps,
+    props: HydratedFunctionProps & { resolvedLayers: ILayerVersion[] },
     backendSecretResolver: BackendSecretResolver,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
@@ -365,16 +432,12 @@ class AmplifyFunction
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
         runtime: nodeVersionMap[props.runtime],
+        layers: props.resolvedLayers,
         bundling: {
-          format: OutputFormat.ESM,
+          ...props.bundling,
           banner: bannerCode,
-          bundleAwsSDK: true,
           inject: shims,
-          loader: {
-            '.node': 'file',
-          },
-          minify: true,
-          sourceMap: true,
+          externalModules: Object.keys(props.layers),
         },
       });
     } catch (error) {

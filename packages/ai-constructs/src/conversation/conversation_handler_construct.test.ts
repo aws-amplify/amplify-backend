@@ -4,6 +4,7 @@ import { App, Stack } from 'aws-cdk-lib';
 import { ConversationHandlerFunction } from './conversation_handler_construct';
 import { Template } from 'aws-cdk-lib/assertions';
 import path from 'path';
+import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 
 void describe('Conversation Handler Function construct', () => {
   void it('creates handler with log group with JWT token redacting policy', () => {
@@ -136,6 +137,56 @@ void describe('Conversation Handler Function construct', () => {
           // eslint-disable-next-line spellcheck/spell-checker
           Ref: 'conversationHandlerconversationHandlerFunctionServiceRole49C4C6FB',
         },
+      ],
+    });
+  });
+
+  void it('does not store output if output strategy is absent', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new ConversationHandlerFunction(stack, 'conversationHandler', {
+      models: [
+        {
+          modelId: 'testModelId',
+        },
+      ],
+      outputStorageStrategy: undefined,
+    });
+    const template = Template.fromStack(stack);
+    const output = template.findOutputs(
+      'definedConversationHandlers'
+    ).definedConversationHandlers;
+    assert.ok(!output);
+  });
+
+  void it('stores output if output strategy is present', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new ConversationHandlerFunction(stack, 'conversationHandler', {
+      models: [
+        {
+          modelId: 'testModelId',
+        },
+      ],
+      outputStorageStrategy: new StackMetadataBackendOutputStorageStrategy(
+        stack
+      ),
+    });
+    const template = Template.fromStack(stack);
+    const outputValue = template.findOutputs('definedConversationHandlers')
+      .definedConversationHandlers.Value;
+    assert.deepStrictEqual(outputValue, {
+      'Fn::Join': [
+        '',
+        [
+          '["',
+          {
+            /* eslint-disable spellcheck/spell-checker */
+            Ref: 'conversationHandlerconversationHandlerFunction45BC2E1F',
+            /* eslint-enable spellcheck/spell-checker */
+          },
+          '"]',
+        ],
       ],
     });
   });

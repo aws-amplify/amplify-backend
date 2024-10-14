@@ -11,7 +11,12 @@ void describe('events tool provider', () => {
       conversationId: '',
       currentMessageId: '',
       graphqlApiEndpoint: '',
-      messages: [],
+      messageHistoryQuery: {
+        getQueryName: '',
+        getQueryInputTypeName: '',
+        listQueryName: '',
+        listQueryInputTypeName: '',
+      },
       modelConfiguration: { modelId: '', systemPrompt: '' },
       request: { headers: { authorization: '' } },
       responseMutation: {
@@ -30,14 +35,17 @@ void describe('events tool provider', () => {
       description: 'toolDescription1',
       inputSchema: {
         json: {
-          tool1: 'value1',
+          type: 'object',
+          properties: {
+            tool1Property: { type: 'string' },
+          },
         },
       },
       graphqlRequestInputDescriptor: {
         queryName: 'queryName1',
         selectionSet: 'selection1',
         propertyTypes: {
-          property1: 'type1',
+          tool1Property: 'type1',
         },
       },
     };
@@ -46,14 +54,17 @@ void describe('events tool provider', () => {
       description: 'toolDescription2',
       inputSchema: {
         json: {
-          tool1: 'value2',
+          type: 'object',
+          properties: {
+            tool2Property: { type: 'string' },
+          },
         },
       },
       graphqlRequestInputDescriptor: {
         queryName: 'queryName2',
         selectionSet: 'selection2',
         propertyTypes: {
-          property1: 'type2',
+          tool2Property: 'type2',
         },
       },
     };
@@ -61,7 +72,12 @@ void describe('events tool provider', () => {
       conversationId: '',
       currentMessageId: '',
       graphqlApiEndpoint: '',
-      messages: [],
+      messageHistoryQuery: {
+        getQueryName: '',
+        getQueryInputTypeName: '',
+        listQueryName: '',
+        listQueryInputTypeName: '',
+      },
       modelConfiguration: { modelId: '', systemPrompt: '' },
       request: { headers: { authorization: '' } },
       responseMutation: {

@@ -1,16 +1,27 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { text } from 'node:stream/consumers';
-import { ConversationTurnResponseSender } from './conversation_turn_response_sender';
+import {
+  ConversationTurnResponseSender,
+  MutationResponseInput,
+} from './conversation_turn_response_sender';
 import { ConversationTurnEvent } from './types';
 import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
+import {
+  GraphqlRequest,
+  GraphqlRequestExecutor,
+} from './graphql_request_executor';
 
 void describe('Conversation turn response sender', () => {
   const event: ConversationTurnEvent = {
     conversationId: 'testConversationId',
     currentMessageId: 'testCurrentMessageId',
     graphqlApiEndpoint: 'http://fake.endpoint/',
-    messages: [],
+    messageHistoryQuery: {
+      getQueryName: '',
+      getQueryInputTypeName: '',
+      listQueryName: '',
+      listQueryInputTypeName: '',
+    },
     modelConfiguration: { modelId: '', systemPrompt: '' },
     request: { headers: { authorization: 'testToken' } },
     responseMutation: {
@@ -21,13 +32,18 @@ void describe('Conversation turn response sender', () => {
   };
 
   void it('sends response back to appsync', async () => {
-    const fetchMock = mock.fn(
-      fetch,
-      (): Promise<Response> =>
+    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const executeGraphqlMock = mock.method(
+      graphqlRequestExecutor,
+      'executeGraphql',
+      () =>
         // Mock successful Appsync response
-        Promise.resolve(new Response('{}', { status: 200 }))
+        Promise.resolve()
     );
-    const sender = new ConversationTurnResponseSender(event, fetchMock);
+    const sender = new ConversationTurnResponseSender(
+      event,
+      graphqlRequestExecutor
+    );
     const response: Array<ContentBlock> = [
       {
         text: 'block1',
@@ -36,20 +52,10 @@ void describe('Conversation turn response sender', () => {
     ];
     await sender.sendResponse(response);
 
-    assert.strictEqual(fetchMock.mock.calls.length, 1);
-    const request: Request = fetchMock.mock.calls[0].arguments[0] as Request;
-    assert.strictEqual(request.url, event.graphqlApiEndpoint);
-    assert.strictEqual(request.method, 'POST');
-    assert.strictEqual(
-      request.headers.get('Content-Type'),
-      'application/graphql'
-    );
-    assert.strictEqual(
-      request.headers.get('Authorization'),
-      event.request.headers.authorization
-    );
-    assert.ok(request.body);
-    assert.deepStrictEqual(JSON.parse(await text(request.body)), {
+    assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    const request = executeGraphqlMock.mock.calls[0]
+      .arguments[0] as GraphqlRequest<MutationResponseInput>;
+    assert.deepStrictEqual(request, {
       query:
         '\n' +
         '        mutation PublishModelResponse($input: testResponseMutationInputTypeName!) {\n' +
@@ -73,73 +79,19 @@ void describe('Conversation turn response sender', () => {
     });
   });
 
-  void it('throws if response is not 2xx', async () => {
-    const fetchMock = mock.fn(
-      fetch,
-      (): Promise<Response> =>
-        // Mock successful Appsync response
-        Promise.resolve(
-          new Response('Body with error', {
-            status: 400,
-            headers: { testHeaderKey: 'testHeaderValue' },
-          })
-        )
-    );
-    const sender = new ConversationTurnResponseSender(event, fetchMock);
-    const response: Array<ContentBlock> = [];
-    await assert.rejects(
-      () => sender.sendResponse(response),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          // eslint-disable-next-line spellcheck/spell-checker
-          'Assistant response mutation request was not successful, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body=Body with error'
-        );
-        return true;
-      }
-    );
-  });
-
-  void it('throws if graphql returns errors', async () => {
-    const fetchMock = mock.fn(
-      fetch,
-      (): Promise<Response> =>
-        // Mock successful Appsync response
-        Promise.resolve(
-          new Response(
-            JSON.stringify({
-              errors: ['Some GQL error'],
-            }),
-            {
-              status: 200,
-              headers: { testHeaderKey: 'testHeaderValue' },
-            }
-          )
-        )
-    );
-    const sender = new ConversationTurnResponseSender(event, fetchMock);
-    const response: Array<ContentBlock> = [];
-    await assert.rejects(
-      () => sender.sendResponse(response),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          // eslint-disable-next-line spellcheck/spell-checker
-          'Assistant response mutation request was not successful, response headers={"content-type":"text/plain;charset=UTF-8","testheaderkey":"testHeaderValue"}, body={"errors":["Some GQL error"]}'
-        );
-        return true;
-      }
-    );
-  });
-
   void it('serializes tool use input to JSON', async () => {
-    const fetchMock = mock.fn(
-      fetch,
-      (): Promise<Response> =>
+    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const executeGraphqlMock = mock.method(
+      graphqlRequestExecutor,
+      'executeGraphql',
+      () =>
         // Mock successful Appsync response
-        Promise.resolve(new Response('{}', { status: 200 }))
+        Promise.resolve()
     );
-    const sender = new ConversationTurnResponseSender(event, fetchMock);
+    const sender = new ConversationTurnResponseSender(
+      event,
+      graphqlRequestExecutor
+    );
     const toolUseBlock: ContentBlock.ToolUseMember = {
       toolUse: {
         name: 'testTool',
@@ -152,10 +104,10 @@ void describe('Conversation turn response sender', () => {
     const response: Array<ContentBlock> = [toolUseBlock];
     await sender.sendResponse(response);
 
-    assert.strictEqual(fetchMock.mock.calls.length, 1);
-    const request: Request = fetchMock.mock.calls[0].arguments[0] as Request;
-    assert.ok(request.body);
-    assert.deepStrictEqual(JSON.parse(await text(request.body)), {
+    assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    const request = executeGraphqlMock.mock.calls[0]
+      .arguments[0] as GraphqlRequest<MutationResponseInput>;
+    assert.deepStrictEqual(request, {
       query:
         '\n' +
         '        mutation PublishModelResponse($input: testResponseMutationInputTypeName!) {\n' +

@@ -1,7 +1,15 @@
-import { FunctionResources, ResourceProvider } from '@aws-amplify/plugin-types';
-import { Duration, Stack } from 'aws-cdk-lib';
+import {
+  BackendOutputStorageStrategy,
+  FunctionResources,
+  ResourceProvider,
+} from '@aws-amplify/plugin-types';
+import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
-import { CfnFunction, Runtime as LambdaRuntime } from 'aws-cdk-lib/aws-lambda';
+import {
+  CfnFunction,
+  Runtime as LambdaRuntime,
+  LoggingFormat,
+} from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
   CustomDataIdentifier,
@@ -11,6 +19,11 @@ import {
 } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import path from 'path';
+import { TagName } from '@aws-amplify/platform-core';
+import {
+  AIConversationOutput,
+  aiConversationOutputKey,
+} from '@aws-amplify/backend-output-schemas';
 
 const resourcesRoot = path.normalize(path.join(__dirname, 'runtime'));
 const defaultHandlerFilePath = path.join(resourcesRoot, 'default_handler.js');
@@ -21,7 +34,16 @@ export type ConversationHandlerFunctionProps = {
     modelId: string;
     region?: string;
   }>;
+  /**
+   * @internal
+   */
+  outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
 };
+
+// Event is a protocol between AppSync and Lambda handler. Therefore, X.Y subset of semver is enough.
+// Typing this as 1.X so that major version changes are caught by compiler if consumer of this construct inspects
+// event version.
+export type ConversationTurnEventVersion = `1.${number}`;
 
 /**
  * Conversation Handler Function CDK construct.
@@ -37,6 +59,7 @@ export class ConversationHandlerFunction
   extends Construct
   implements ResourceProvider<FunctionResources>
 {
+  static readonly eventVersion: ConversationTurnEventVersion = '1.0';
   resources: FunctionResources;
 
   /**
@@ -53,6 +76,8 @@ export class ConversationHandlerFunction
       throw new Error('Entry must be absolute path');
     }
 
+    Tags.of(this).add(TagName.FRIENDLY_NAME, id);
+
     const conversationHandler = new NodejsFunction(
       this,
       `conversationHandlerFunction`,
@@ -67,6 +92,7 @@ export class ConversationHandlerFunction
           // For custom entry we do bundle SDK as we can't control version customer is coding against.
           bundleAwsSDK: !!this.props.entry,
         },
+        loggingFormat: LoggingFormat.JSON,
         logGroup: new LogGroup(this, 'conversationHandlerFunctionLogGroup', {
           retention: RetentionDays.INFINITE,
           dataProtectionPolicy: new DataProtectionPolicy({
@@ -105,5 +131,23 @@ export class ConversationHandlerFunction
         ) as CfnFunction,
       },
     };
+
+    this.storeOutput(this.props.outputStorageStrategy);
   }
+
+  /**
+   * Append conversation handler to defined functions.
+   */
+  private storeOutput = (
+    outputStorageStrategy:
+      | BackendOutputStorageStrategy<AIConversationOutput>
+      | undefined
+  ): void => {
+    outputStorageStrategy?.appendToBackendOutputList(aiConversationOutputKey, {
+      version: '1',
+      payload: {
+        definedConversationHandlers: this.resources.lambda.functionName,
+      },
+    });
+  };
 }
