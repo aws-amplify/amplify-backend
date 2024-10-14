@@ -100,6 +100,15 @@ void describe('ReferenceAuthInitializer', () => {
   let describeUserPoolClientResponse: DescribeUserPoolClientCommandOutput;
   let describeIdentityPoolResponse: DescribeIdentityPoolCommandOutput;
   let getIdentityPoolRolesResponse: GetIdentityPoolRolesCommandOutput;
+  const rejectsAndMatchError = async (
+    fn: Promise<unknown>,
+    expectedErrorMessage: string
+  ) => {
+    await assert.rejects(fn, (error: Error) => {
+      assert.strictEqual(error.message, expectedErrorMessage);
+      return true;
+    });
+  };
   beforeEach(() => {
     handler = new ReferenceAuthInitializer(
       identityClient,
@@ -228,12 +237,9 @@ void describe('ReferenceAuthInitializer', () => {
         httpStatusCode: 500,
       },
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(error.message, awsSDKErrorMessageMock.message);
-        return true;
-      }
+      awsSDKErrorMessageMock.message
     );
   });
 
@@ -244,15 +250,9 @@ void describe('ReferenceAuthInitializer', () => {
       },
       UserPool: undefined,
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'Failed to retrieve the specified UserPool.'
-        );
-        return true;
-      }
+      'Failed to retrieve the specified UserPool.'
     );
   });
 
@@ -266,16 +266,9 @@ void describe('ReferenceAuthInitializer', () => {
         Policies: undefined,
       },
     };
-
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'Failed to retrieve password policy.'
-        );
-        return true;
-      }
+      'Failed to retrieve password policy.'
     );
   });
 
@@ -285,12 +278,9 @@ void describe('ReferenceAuthInitializer', () => {
         httpStatusCode: 500,
       },
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(error.message, awsSDKErrorMessageMock.message);
-        return true;
-      }
+      awsSDKErrorMessageMock.message
     );
   });
 
@@ -301,28 +291,21 @@ void describe('ReferenceAuthInitializer', () => {
       },
       Providers: [],
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(error.message, awsSDKErrorMessageMock.message);
-        return true;
-      }
+      awsSDKErrorMessageMock.message
     );
+  });
+  void it('fails gracefully if fetching user pool providers returns undefined', async () => {
     listIdentityProvidersResponse = {
       $metadata: {
         httpStatusCode: 200,
       },
       Providers: undefined,
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'An error occurred while retrieving identity providers for the user pool.'
-        );
-        return true;
-      }
+      'An error occurred while retrieving identity providers for the user pool.'
     );
   });
 
@@ -332,28 +315,21 @@ void describe('ReferenceAuthInitializer', () => {
         httpStatusCode: 500,
       },
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(error.message, awsSDKErrorMessageMock.message);
-        return true;
-      }
+      awsSDKErrorMessageMock.message
     );
+  });
+  void it('fails gracefully if fetching user pool client returns undefined', async () => {
     describeUserPoolClientResponse = {
       $metadata: {
         httpStatusCode: 200,
       },
       UserPoolClient: undefined,
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'An error occurred while retrieving the user pool client details.'
-        );
-        return true;
-      }
+      'An error occurred while retrieving the user pool client details.'
     );
   });
 
@@ -366,13 +342,12 @@ void describe('ReferenceAuthInitializer', () => {
       IdentityPoolName: undefined,
       AllowUnauthenticatedIdentities: undefined,
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(error.message, awsSDKErrorMessageMock.message);
-        return true;
-      }
+      awsSDKErrorMessageMock.message
     );
+  });
+  void it('fails gracefully if fetching identity pool returns undefined', async () => {
     describeIdentityPoolResponse = {
       $metadata: {
         httpStatusCode: 200,
@@ -381,15 +356,9 @@ void describe('ReferenceAuthInitializer', () => {
       IdentityPoolName: undefined,
       AllowUnauthenticatedIdentities: undefined,
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'An error occurred while retrieving the identity pool details.'
-        );
-        return true;
-      }
+      'An error occurred while retrieving the identity pool details.'
     );
   });
 
@@ -399,28 +368,21 @@ void describe('ReferenceAuthInitializer', () => {
         httpStatusCode: 500,
       },
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(error.message, awsSDKErrorMessageMock.message);
-        return true;
-      }
+      awsSDKErrorMessageMock.message
     );
+  });
+  void it('fails gracefully if fetching identity pool roles return undefined', async () => {
     getIdentityPoolRolesResponse = {
       $metadata: {
         httpStatusCode: 200,
       },
       Roles: undefined,
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'An error occurred while retrieving the roles for the identity pool.'
-        );
-        return true;
-      }
+      'An error occurred while retrieving the roles for the identity pool.'
     );
   });
   // fails gracefully if userPool or client doesn't match identity pool
@@ -436,15 +398,9 @@ void describe('ReferenceAuthInitializer', () => {
         },
       ],
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
-        );
-        return true;
-      }
+      'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
     );
   });
   void it('fails gracefully if identity pool does not have cognito identity providers configured', async () => {
@@ -452,15 +408,9 @@ void describe('ReferenceAuthInitializer', () => {
       ...describeIdentityPoolResponse,
       CognitoIdentityProviders: [],
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'The specified identity pool does not have any cognito identity providers.'
-        );
-        return true;
-      }
+      'The specified identity pool does not have any cognito identity providers.'
     );
   });
   void it('fails gracefully if the client id does not match any cognito provider on the identity pool', async () => {
@@ -475,15 +425,9 @@ void describe('ReferenceAuthInitializer', () => {
         },
       ],
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
-        );
-        return true;
-      }
+      'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
     );
   });
   void it('fails gracefully if auth role ARN does not match', async () => {
@@ -497,15 +441,9 @@ void describe('ReferenceAuthInitializer', () => {
         unauthenticated: SampleInputProperties.unauthRoleArn,
       },
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
-        );
-        return true;
-      }
+      'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
     );
   });
   void it('fails gracefully if unauth role ARN does not match', async () => {
@@ -519,15 +457,9 @@ void describe('ReferenceAuthInitializer', () => {
         unauthenticated: 'wrongUnauthRole',
       },
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.'
-        );
-        return true;
-      }
+      'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.'
     );
   });
   void it('fails gracefully if user pool client is not a web client', async () => {
@@ -540,15 +472,9 @@ void describe('ReferenceAuthInitializer', () => {
         ClientSecret: 'sample',
       },
     };
-    await assert.rejects(
+    await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      (error: Error) => {
-        assert.strictEqual(
-          error.message,
-          'The specified user pool client is not configured as a web client.'
-        );
-        return true;
-      }
+      'The specified user pool client is not configured as a web client.'
     );
   });
 });
