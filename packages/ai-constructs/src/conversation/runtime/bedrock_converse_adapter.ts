@@ -168,6 +168,8 @@ export class BedrockConverseAdapter {
       await this.getEventMessagesAsBedrockMessages();
 
     let bedrockResponse: ConverseStreamCommandOutput;
+    // keep our own indexing for blocks instead of using Bedrock's indexes
+    // since we stream subset of these upstream.
     let blockIndex = 0;
     let lastBlockIndex = 0;
     let stopReason = '';
@@ -198,7 +200,6 @@ export class BedrockConverseAdapter {
       let clientToolsRequested = false;
       let text: string = '';
       let toolUseInput: string = '';
-      // keep our own indexing for blocks and chunks since we stream subset of these upstream.
       let blockDeltaIndex = 0;
       let lastBlockDeltaIndex = 0;
       const accumulatedAssistantMessage: Message = {
