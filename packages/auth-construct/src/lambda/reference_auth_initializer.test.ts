@@ -65,6 +65,16 @@ const deleteCfnEvent: CloudFormationCustomResourceEvent = {
   PhysicalResourceId: 'physicalId',
   ...customResourceEventCommon,
 };
+const httpError = {
+  $metadata: {
+    httpStatusCode: 500,
+  },
+};
+const httpSuccess = {
+  $metadata: {
+    httpStatusCode: 200,
+  },
+};
 // aws sdk will throw with error message for any non 200 status so we don't need to re-package it
 const awsSDKErrorMessageMock = new Error('this message comes from the aws sdk');
 const uuidMock = () => '00000000-0000-0000-0000-000000000000';
@@ -116,39 +126,27 @@ void describe('ReferenceAuthInitializer', () => {
       uuidMock
     );
     describeUserPoolResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       UserPool: UserPool,
     };
     getUserPoolMfaConfigResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       ...MFAResponse,
     };
     listIdentityProvidersResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       Providers: [...IdentityProviders],
     };
     describeUserPoolClientResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       UserPoolClient: UserPoolClient,
     };
     describeIdentityPoolResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       ...IdentityPool,
     };
     getIdentityPoolRolesResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       ...IdentityPoolRoles,
     };
     mock.method(
@@ -232,11 +230,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
 
   void it('fails gracefully if fetching user pool fails', async () => {
-    describeUserPoolResponse = {
-      $metadata: {
-        httpStatusCode: 500,
-      },
-    };
+    describeUserPoolResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
       awsSDKErrorMessageMock.message
@@ -245,9 +239,7 @@ void describe('ReferenceAuthInitializer', () => {
 
   void it('fails gracefully if fetching user pool fails', async () => {
     describeUserPoolResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       UserPool: undefined,
     };
     await rejectsAndMatchError(
@@ -258,9 +250,7 @@ void describe('ReferenceAuthInitializer', () => {
 
   void it('fails gracefully if user pool has no password policy', async () => {
     describeUserPoolResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       UserPool: {
         ...UserPool,
         Policies: undefined,
@@ -273,11 +263,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
 
   void it('fails gracefully if fetching user pool MFA config fails', async () => {
-    getUserPoolMfaConfigResponse = {
-      $metadata: {
-        httpStatusCode: 500,
-      },
-    };
+    getUserPoolMfaConfigResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
       awsSDKErrorMessageMock.message
@@ -298,9 +284,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
   void it('fails gracefully if fetching user pool providers returns undefined', async () => {
     listIdentityProvidersResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       Providers: undefined,
     };
     await rejectsAndMatchError(
@@ -310,11 +294,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
 
   void it('fails gracefully if fetching user pool client fails', async () => {
-    describeUserPoolClientResponse = {
-      $metadata: {
-        httpStatusCode: 500,
-      },
-    };
+    describeUserPoolClientResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
       awsSDKErrorMessageMock.message
@@ -322,9 +302,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
   void it('fails gracefully if fetching user pool client returns undefined', async () => {
     describeUserPoolClientResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       UserPoolClient: undefined,
     };
     await rejectsAndMatchError(
@@ -349,9 +327,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
   void it('fails gracefully if fetching identity pool returns undefined', async () => {
     describeIdentityPoolResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       IdentityPoolId: undefined,
       IdentityPoolName: undefined,
       AllowUnauthenticatedIdentities: undefined,
@@ -363,11 +339,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
 
   void it('fails gracefully if fetching identity pool roles fails', async () => {
-    getIdentityPoolRolesResponse = {
-      $metadata: {
-        httpStatusCode: 500,
-      },
-    };
+    getIdentityPoolRolesResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
       awsSDKErrorMessageMock.message
@@ -375,9 +347,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
   void it('fails gracefully if fetching identity pool roles return undefined', async () => {
     getIdentityPoolRolesResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       Roles: undefined,
     };
     await rejectsAndMatchError(
@@ -432,9 +402,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
   void it('fails gracefully if auth role ARN does not match', async () => {
     getIdentityPoolRolesResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       IdentityPoolId: SampleInputProperties.identityPoolId,
       Roles: {
         authenticated: 'wrongAuthRole',
@@ -448,9 +416,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
   void it('fails gracefully if unauth role ARN does not match', async () => {
     getIdentityPoolRolesResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       IdentityPoolId: SampleInputProperties.identityPoolId,
       Roles: {
         authenticated: SampleInputProperties.authRoleArn,
@@ -464,9 +430,7 @@ void describe('ReferenceAuthInitializer', () => {
   });
   void it('fails gracefully if user pool client is not a web client', async () => {
     describeUserPoolClientResponse = {
-      $metadata: {
-        httpStatusCode: 200,
-      },
+      ...httpSuccess,
       UserPoolClient: {
         ...UserPoolClient,
         ClientSecret: 'sample',
