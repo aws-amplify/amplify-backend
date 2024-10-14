@@ -432,7 +432,9 @@ void describe('AmplifyAuthFactory', () => {
           Ref: Match.stringLikeRegexp('testFunc'),
         },
         CustomEmailSender: {
-          Ref: Match.stringLikeRegexp('testFunc'),
+          LambdaArn: {
+            Ref: Match.stringLikeRegexp('testFunc'),
+          },
         },
       },
     });
