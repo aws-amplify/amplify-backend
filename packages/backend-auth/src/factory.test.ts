@@ -393,6 +393,9 @@ void describe('AmplifyAuthFactory', () => {
             Ref: Match.stringLikeRegexp('testFunc'),
           },
         },
+        KMSKeyID: {
+          'Fn::GetAtt': [Match.anyValue(), 'Arn'],
+        },
       },
     });
   });
@@ -435,6 +438,9 @@ void describe('AmplifyAuthFactory', () => {
           LambdaArn: {
             Ref: Match.stringLikeRegexp('testFunc'),
           },
+        },
+        KMSKeyID: {
+          'Fn::GetAtt': [Match.anyValue(), 'Arn'],
         },
       },
     });
