@@ -419,7 +419,7 @@ void describe('AmplifyAuthFactory', () => {
 
     const authWithTriggerFactory = defineAuth({
       loginWith: { email: true },
-      //if senders aren't passed its essentially lambdaTriggers={}
+      senders: { email: funcStub },
       triggers: { preSignUp: funcStub },
     });
 
@@ -429,6 +429,9 @@ void describe('AmplifyAuthFactory', () => {
     template.hasResourceProperties('AWS::Cognito::UserPool', {
       LambdaConfig: {
         PreSignUp: {
+          Ref: Match.stringLikeRegexp('testFunc'),
+        },
+        CustomEmailSender: {
           Ref: Match.stringLikeRegexp('testFunc'),
         },
       },
