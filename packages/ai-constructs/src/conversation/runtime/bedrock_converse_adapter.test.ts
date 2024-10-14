@@ -76,6 +76,7 @@ void describe('Bedrock converse adapter', () => {
   );
 
   [false, true].forEach((streamResponse) => {
+    // This is a common set of use cases that both streaming and non-streaming version must support.
     void describe(`${streamResponse ? 'with' : 'without'} streaming`, () => {
       void it('calls bedrock to get conversation response', async () => {
         const event: ConversationTurnEvent = {
