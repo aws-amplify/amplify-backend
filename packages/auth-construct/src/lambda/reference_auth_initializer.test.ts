@@ -113,7 +113,7 @@ void describe('ReferenceAuthInitializer', () => {
   const rejectsAndMatchError = async (
     fn: Promise<unknown>,
     expectedErrorMessage: string
-  ) => {
+  ): Promise<void> => {
     await assert.rejects(fn, (error: Error) => {
       assert.strictEqual(error.message, expectedErrorMessage);
       return true;
@@ -229,7 +229,7 @@ void describe('ReferenceAuthInitializer', () => {
     assert.deepEqual(result.Status, 'SUCCESS');
   });
 
-  void it('fails gracefully if fetching user pool fails', async () => {
+  void it('throws if fetching user pool fails', async () => {
     describeUserPoolResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
@@ -237,7 +237,7 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
-  void it('fails gracefully if fetching user pool fails', async () => {
+  void it('throws if fetching user pool fails', async () => {
     describeUserPoolResponse = {
       ...httpSuccess,
       UserPool: undefined,
@@ -248,7 +248,7 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
-  void it('fails gracefully if user pool has no password policy', async () => {
+  void it('throws if user pool has no password policy', async () => {
     describeUserPoolResponse = {
       ...httpSuccess,
       UserPool: {
@@ -262,7 +262,7 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
-  void it('fails gracefully if fetching user pool MFA config fails', async () => {
+  void it('throws if fetching user pool MFA config fails', async () => {
     getUserPoolMfaConfigResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
@@ -270,7 +270,7 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
-  void it('fails gracefully if fetching user pool providers fails', async () => {
+  void it('throws if fetching user pool providers fails', async () => {
     listIdentityProvidersResponse = {
       $metadata: {
         httpStatusCode: 500,
@@ -282,7 +282,7 @@ void describe('ReferenceAuthInitializer', () => {
       awsSDKErrorMessageMock.message
     );
   });
-  void it('fails gracefully if fetching user pool providers returns undefined', async () => {
+  void it('throws if fetching user pool providers returns undefined', async () => {
     listIdentityProvidersResponse = {
       ...httpSuccess,
       Providers: undefined,
@@ -293,14 +293,14 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
-  void it('fails gracefully if fetching user pool client fails', async () => {
+  void it('throws if fetching user pool client fails', async () => {
     describeUserPoolClientResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
       awsSDKErrorMessageMock.message
     );
   });
-  void it('fails gracefully if fetching user pool client returns undefined', async () => {
+  void it('throws if fetching user pool client returns undefined', async () => {
     describeUserPoolClientResponse = {
       ...httpSuccess,
       UserPoolClient: undefined,
@@ -311,7 +311,7 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
-  void it('fails gracefully if fetching identity pool fails', async () => {
+  void it('throws if fetching identity pool fails', async () => {
     describeIdentityPoolResponse = {
       $metadata: {
         httpStatusCode: 500,
@@ -325,7 +325,7 @@ void describe('ReferenceAuthInitializer', () => {
       awsSDKErrorMessageMock.message
     );
   });
-  void it('fails gracefully if fetching identity pool returns undefined', async () => {
+  void it('throws if fetching identity pool returns undefined', async () => {
     describeIdentityPoolResponse = {
       ...httpSuccess,
       IdentityPoolId: undefined,
@@ -338,14 +338,14 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
-  void it('fails gracefully if fetching identity pool roles fails', async () => {
+  void it('throws if fetching identity pool roles fails', async () => {
     getIdentityPoolRolesResponse = httpError;
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
       awsSDKErrorMessageMock.message
     );
   });
-  void it('fails gracefully if fetching identity pool roles return undefined', async () => {
+  void it('throws if fetching identity pool roles return undefined', async () => {
     getIdentityPoolRolesResponse = {
       ...httpSuccess,
       Roles: undefined,
@@ -355,8 +355,8 @@ void describe('ReferenceAuthInitializer', () => {
       'An error occurred while retrieving the roles for the identity pool.'
     );
   });
-  // fails gracefully if userPool or client doesn't match identity pool
-  void it('fails gracefully there is not matching userPool for the identity pool', async () => {
+  // throws if userPool or client doesn't match identity pool
+  void it('throws there is not matching userPool for the identity pool', async () => {
     describeIdentityPoolResponse = {
       ...describeIdentityPoolResponse,
       CognitoIdentityProviders: [
@@ -373,7 +373,7 @@ void describe('ReferenceAuthInitializer', () => {
       'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
     );
   });
-  void it('fails gracefully if identity pool does not have cognito identity providers configured', async () => {
+  void it('throws if identity pool does not have cognito identity providers configured', async () => {
     describeIdentityPoolResponse = {
       ...describeIdentityPoolResponse,
       CognitoIdentityProviders: [],
@@ -383,7 +383,7 @@ void describe('ReferenceAuthInitializer', () => {
       'The specified identity pool does not have any cognito identity providers.'
     );
   });
-  void it('fails gracefully if the client id does not match any cognito provider on the identity pool', async () => {
+  void it('throws if the client id does not match any cognito provider on the identity pool', async () => {
     describeIdentityPoolResponse = {
       ...describeIdentityPoolResponse,
       CognitoIdentityProviders: [
@@ -400,7 +400,7 @@ void describe('ReferenceAuthInitializer', () => {
       'The user pool and user pool client pair do not match any cognito identity providers for the specified identity pool.'
     );
   });
-  void it('fails gracefully if auth role ARN does not match', async () => {
+  void it('throws if auth role ARN does not match', async () => {
     getIdentityPoolRolesResponse = {
       ...httpSuccess,
       IdentityPoolId: SampleInputProperties.identityPoolId,
@@ -414,7 +414,7 @@ void describe('ReferenceAuthInitializer', () => {
       'The provided authRoleArn does not match the authenticated role for the specified identity pool.'
     );
   });
-  void it('fails gracefully if unauth role ARN does not match', async () => {
+  void it('throws if unauth role ARN does not match', async () => {
     getIdentityPoolRolesResponse = {
       ...httpSuccess,
       IdentityPoolId: SampleInputProperties.identityPoolId,
@@ -428,7 +428,7 @@ void describe('ReferenceAuthInitializer', () => {
       'The provided unauthRoleArn does not match the unauthenticated role for the specified identity pool.'
     );
   });
-  void it('fails gracefully if user pool client is not a web client', async () => {
+  void it('throws if user pool client is not a web client', async () => {
     describeUserPoolClientResponse = {
       ...httpSuccess,
       UserPoolClient: {
