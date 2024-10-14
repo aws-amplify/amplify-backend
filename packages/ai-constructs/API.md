@@ -25,8 +25,6 @@ export { __export__conversation }
 
 declare namespace __export__conversation__runtime {
     export {
-        ConversationMessage,
-        ConversationMessageContentBlock,
         ConversationTurnEvent,
         createExecutableTool,
         ExecutableTool,
@@ -60,21 +58,6 @@ type ConversationHandlerFunctionProps = {
 };
 
 // @public (undocumented)
-type ConversationMessage = {
-    role: 'user' | 'assistant';
-    content: Array<ConversationMessageContentBlock>;
-};
-
-// @public (undocumented)
-type ConversationMessageContentBlock = bedrock.ContentBlock | {
-    image: Omit<bedrock.ImageBlock, 'source'> & {
-        source: {
-            bytes: string;
-        };
-    };
-};
-
-// @public (undocumented)
 type ConversationTurnEvent = {
     conversationId: string;
     currentMessageId: string;
@@ -97,7 +80,6 @@ type ConversationTurnEvent = {
     request: {
         headers: Record<string, string>;
     };
-    messages?: Array<ConversationMessage>;
     messageHistoryQuery: {
         getQueryName: string;
         getQueryInputTypeName: string;
