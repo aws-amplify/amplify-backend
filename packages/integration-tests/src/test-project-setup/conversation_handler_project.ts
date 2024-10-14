@@ -659,12 +659,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
         }
         return accumulated;
       }, '');
-      console.log('##################');
-      console.log(
-        `conversationId ${event.conversationId}, currentMessageId ${event.currentMessageId}`
-      );
-      console.log(content);
-      console.log('##################');
 
       return content;
     }
