@@ -1,6 +1,5 @@
 import {
   CloudFormationCustomResourceEvent,
-  CloudFormationCustomResourceFailedResponse,
   CloudFormationCustomResourceResponse,
   CloudFormationCustomResourceSuccessResponse,
 } from 'aws-lambda';
@@ -68,85 +67,56 @@ export class ReferenceAuthInitializer {
     // for create or update events, we will fetch and validate resource properties
     const props =
       event.ResourceProperties as unknown as ReferenceAuthInitializerProps;
-    try {
-      const {
-        userPool,
-        userPoolPasswordPolicy,
-        userPoolClient,
-        userPoolMFA,
-        userPoolProviders,
-        identityPool,
-        roles,
-      } = await this.getResourceDetails(
-        props.userPoolId,
-        props.identityPoolId,
-        props.userPoolClientId
-      );
+    const {
+      userPool,
+      userPoolPasswordPolicy,
+      userPoolClient,
+      userPoolMFA,
+      userPoolProviders,
+      identityPool,
+      roles,
+    } = await this.getResourceDetails(
+      props.userPoolId,
+      props.identityPoolId,
+      props.userPoolClientId
+    );
 
-      this.validateResourceAssociations(
-        userPool,
-        userPoolClient,
-        identityPool,
-        roles,
-        props
-      );
+    this.validateResourceAssociations(
+      userPool,
+      userPoolClient,
+      identityPool,
+      roles,
+      props
+    );
 
-      const userPoolOutputs = await this.getUserPoolOutputs(
-        userPool,
-        userPoolPasswordPolicy,
-        userPoolProviders,
-        userPoolMFA,
-        props.region
-      );
-      const identityPoolOutputs = await this.getIdentityPoolOutputs(
-        identityPool
-      );
-      const userPoolClientOutputs = await this.getUserPoolClientOutputs(
-        userPoolClient
-      );
-      const data: Omit<AuthOutput['payload'], 'authRegion'> = {
-        userPoolId: props.userPoolId,
-        webClientId: props.userPoolClientId,
-        identityPoolId: props.identityPoolId,
-        ...userPoolOutputs,
-        ...identityPoolOutputs,
-        ...userPoolClientOutputs,
-      };
-      return {
-        RequestId: event.RequestId,
-        LogicalResourceId: event.LogicalResourceId,
-        PhysicalResourceId: physicalId,
-        StackId: event.StackId,
-        NoEcho: true,
-        Data: data,
-        Status: 'SUCCESS',
-      } as CloudFormationCustomResourceSuccessResponse;
-    } catch (e) {
-      if (e instanceof Error) {
-        return this.failureResponse(event, physicalId, e.message);
-      }
-      return this.failureResponse(
-        event,
-        physicalId,
-        'An unknown error occurred while initializing auth resources.'
-      );
-    }
-  };
-
-  private failureResponse = (
-    event: CloudFormationCustomResourceEvent,
-    physicalId: string,
-    reason: string
-  ): CloudFormationCustomResourceFailedResponse => {
+    const userPoolOutputs = await this.getUserPoolOutputs(
+      userPool,
+      userPoolPasswordPolicy,
+      userPoolProviders,
+      userPoolMFA,
+      props.region
+    );
+    const identityPoolOutputs = await this.getIdentityPoolOutputs(identityPool);
+    const userPoolClientOutputs = await this.getUserPoolClientOutputs(
+      userPoolClient
+    );
+    const data: Omit<AuthOutput['payload'], 'authRegion'> = {
+      userPoolId: props.userPoolId,
+      webClientId: props.userPoolClientId,
+      identityPoolId: props.identityPoolId,
+      ...userPoolOutputs,
+      ...identityPoolOutputs,
+      ...userPoolClientOutputs,
+    };
     return {
       RequestId: event.RequestId,
       LogicalResourceId: event.LogicalResourceId,
       PhysicalResourceId: physicalId,
       StackId: event.StackId,
       NoEcho: true,
-      Reason: reason,
-      Status: 'FAILED',
-    } as CloudFormationCustomResourceFailedResponse;
+      Data: data,
+      Status: 'SUCCESS',
+    } as CloudFormationCustomResourceSuccessResponse;
   };
 
   private getUserPool = async (userPoolId: string) => {
@@ -156,10 +126,7 @@ export class ReferenceAuthInitializer {
     const userPoolResponse = await this.cognitoIdentityProviderClient.send(
       userPoolCommand
     );
-    if (
-      userPoolResponse.$metadata.httpStatusCode !== 200 ||
-      !userPoolResponse.UserPool
-    ) {
+    if (!userPoolResponse.UserPool) {
       throw new Error('Failed to retrieve the specified UserPool.');
     }
     const userPool = userPoolResponse.UserPool;
@@ -181,11 +148,6 @@ export class ReferenceAuthInitializer {
     const mfaResponse = await this.cognitoIdentityProviderClient.send(
       mfaCommand
     );
-    if (mfaResponse.$metadata.httpStatusCode !== 200) {
-      throw new Error(
-        'Failed to retrieve the MFA configuration for the specified UserPool.'
-      );
-    }
     return mfaResponse;
   };
 
@@ -199,10 +161,7 @@ export class ReferenceAuthInitializer {
           NextToken: nextToken,
         })
       );
-      if (
-        providersResponse.$metadata.httpStatusCode !== 200 ||
-        providersResponse.Providers === undefined
-      ) {
+      if (providersResponse.Providers === undefined) {
         throw new Error(
           'An error occurred while retrieving identity providers for the user pool.'
         );
@@ -219,10 +178,7 @@ export class ReferenceAuthInitializer {
         IdentityPoolId: identityPoolId,
       })
     );
-    if (
-      idpResponse.$metadata.httpStatusCode !== 200 ||
-      !idpResponse.IdentityPoolId
-    ) {
+    if (!idpResponse.IdentityPoolId) {
       throw new Error(
         'An error occurred while retrieving the identity pool details.'
       );
@@ -235,10 +191,7 @@ export class ReferenceAuthInitializer {
       IdentityPoolId: identityPoolId,
     });
     const rolesResponse = await this.cognitoIdentityClient.send(rolesCommand);
-    if (
-      rolesResponse.$metadata.httpStatusCode !== 200 ||
-      !rolesResponse.Roles
-    ) {
+    if (!rolesResponse.Roles) {
       throw new Error(
         'An error occurred while retrieving the roles for the identity pool.'
       );
@@ -256,10 +209,7 @@ export class ReferenceAuthInitializer {
     });
     const userPoolClientResponse =
       await this.cognitoIdentityProviderClient.send(userPoolClientCommand);
-    if (
-      userPoolClientResponse.$metadata.httpStatusCode !== 200 ||
-      !userPoolClientResponse.UserPoolClient
-    ) {
+    if (!userPoolClientResponse.UserPoolClient) {
       throw new Error(
         'An error occurred while retrieving the user pool client details.'
       );
