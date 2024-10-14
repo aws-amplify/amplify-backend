@@ -134,7 +134,7 @@ export class AmplifyAuth
     };
   } = {};
 
-  private readonly customEmailSenderKMSkey: Key | undefined;
+  private customEmailSenderKMSkey: Key | undefined;
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -163,17 +163,9 @@ export class AmplifyAuth
      */
     if (
       props.senders?.email &&
-      props.senders.email instanceof lambda.Function
+      props.senders.email instanceof lambda.Function &&
+      this.customEmailSenderKMSkey
     ) {
-      if (!this.customEmailSenderKMSkey) {
-        this.customEmailSenderKMSkey = new Key(
-          this,
-          `${this.name}CustomSenderKey`,
-          {
-            enableKeyRotation: true,
-          }
-        );
-      }
       this.customEmailSenderKMSkey.grantDecrypt(props.senders.email);
       this.customEmailSenderKMSkey.grantEncrypt(props.senders.email);
       this.userPool.addTrigger(
@@ -506,7 +498,20 @@ export class AmplifyAuth
       },
       { standardAttributes: {}, customAttributes: {} }
     );
-
+    if (
+      props.senders?.email &&
+      props.senders.email instanceof lambda.Function
+    ) {
+      if (!this.customEmailSenderKMSkey) {
+        this.customEmailSenderKMSkey = new Key(
+          this,
+          `${this.name}CustomSenderKey`,
+          {
+            enableKeyRotation: true,
+          }
+        );
+      }
+    }
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
