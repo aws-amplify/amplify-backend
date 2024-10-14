@@ -572,6 +572,7 @@ void describe('Auth construct', () => {
       },
     });
   });
+
   void it('requires email attribute if email is enabled', () => {
     const app = new App();
     const stack = new Stack(app);

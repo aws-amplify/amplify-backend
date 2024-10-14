@@ -34,13 +34,10 @@ import {
   UserPoolIdentityProviderOidc,
   UserPoolIdentityProviderSaml,
   UserPoolIdentityProviderSamlMetadataType,
+  UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
-import {
-  FederatedPrincipal,
-  Role,
-  ServicePrincipal,
-} from 'aws-cdk-lib/aws-iam';
+import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
   AttributeMapping,
@@ -56,7 +53,6 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { Key } from 'aws-cdk-lib/aws-kms';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -137,7 +133,6 @@ export class AmplifyAuth
     };
   } = {};
 
-  private customEmailSenderKmsKey: Key | undefined;
   /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
@@ -165,21 +160,14 @@ export class AmplifyAuth
      */
     if (
       props.senders?.email &&
-      props.senders.email instanceof lambda.Function &&
-      this.customEmailSenderKmsKey
+      props.senders.email instanceof lambda.Function
     ) {
-      this.customEmailSenderKmsKey.grantDecrypt(props.senders.email);
-      const stack = Stack.of(this);
-      const accountId = stack.account;
-      const userPoolArn = this.userPool.userPoolArn;
-
-      props.senders.email.addPermission('CognitoInvokeEmailSenderHandler', {
-        principal: new ServicePrincipal('cognito-idp.amazonaws.com'),
-        action: 'lambda:InvokeFunction',
-        sourceAccount: accountId,
-        sourceArn: userPoolArn,
-      });
+      this.userPool.addTrigger(
+        UserPoolOperation.of('customEmailSender'),
+        props.senders.email
+      );
     }
+
     // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
     this.providerSetupResult = this.setupExternalProviders(
       this.userPool,
@@ -504,20 +492,6 @@ export class AmplifyAuth
       },
       { standardAttributes: {}, customAttributes: {} }
     );
-    if (
-      props.senders?.email &&
-      props.senders.email instanceof lambda.Function
-    ) {
-      if (!this.customEmailSenderKmsKey) {
-        this.customEmailSenderKmsKey = new Key(
-          this,
-          `${this.name}CustomSenderKey`,
-          {
-            enableKeyRotation: true,
-          }
-        );
-      }
-    }
 
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
@@ -552,12 +526,6 @@ export class AmplifyAuth
               sesRegion: Stack.of(this).region,
             })
           : undefined,
-      lambdaTriggers: {
-        ...(props.senders?.email instanceof lambda.Function
-          ? { customEmailSender: props.senders.email }
-          : {}),
-      },
-
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
       mfaMessage: this.getMFAMessage(props.multifactor),
@@ -574,7 +542,6 @@ export class AmplifyAuth
               props.loginWith.email?.userInvitation
             )
           : undefined,
-      customSenderKmsKey: this.customEmailSenderKmsKey,
     };
     return userPoolProps;
   };
