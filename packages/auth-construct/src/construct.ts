@@ -53,6 +53,7 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import { Key } from 'aws-cdk-lib/aws-kms';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -133,6 +134,8 @@ export class AmplifyAuth
     };
   } = {};
 
+  private readonly customEmailSenderKMSkey: Key | undefined;
+
   /**
    * Create a new Auth construct with AuthProps.
    * If no props are provided, email login and defaults will be used.
@@ -162,6 +165,17 @@ export class AmplifyAuth
       props.senders?.email &&
       props.senders.email instanceof lambda.Function
     ) {
+      if (!this.customEmailSenderKMSkey) {
+        this.customEmailSenderKMSkey = new Key(
+          this,
+          `${this.name}CustomSenderKey`,
+          {
+            enableKeyRotation: true,
+          }
+        );
+      }
+      this.customEmailSenderKMSkey.grantDecrypt(props.senders.email);
+      this.customEmailSenderKMSkey.grantEncrypt(props.senders.email);
       this.userPool.addTrigger(
         UserPoolOperation.of('customEmailSender'),
         props.senders.email
@@ -542,6 +556,7 @@ export class AmplifyAuth
               props.loginWith.email?.userInvitation
             )
           : undefined,
+      customSenderKmsKey: this.customEmailSenderKMSkey,
     };
     return userPoolProps;
   };
