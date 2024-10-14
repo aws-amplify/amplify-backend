@@ -15,7 +15,6 @@ void describe('Conversation turn streaming response sender', () => {
     conversationId: 'testConversationId',
     currentMessageId: 'testCurrentMessageId',
     graphqlApiEndpoint: 'http://fake.endpoint/',
-    messages: [],
     messageHistoryQuery: {
       getQueryName: '',
       getQueryInputTypeName: '',

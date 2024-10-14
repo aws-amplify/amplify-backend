@@ -16,7 +16,6 @@ void describe('Conversation turn response sender', () => {
     conversationId: 'testConversationId',
     currentMessageId: 'testCurrentMessageId',
     graphqlApiEndpoint: 'http://fake.endpoint/',
-    messages: [],
     messageHistoryQuery: {
       getQueryName: '',
       getQueryInputTypeName: '',

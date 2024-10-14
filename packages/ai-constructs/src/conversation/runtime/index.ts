@@ -1,6 +1,4 @@
 import {
-  ConversationMessage,
-  ConversationMessageContentBlock,
   ConversationTurnEvent,
   ExecutableTool,
   FromJSONSchema,
@@ -14,8 +12,6 @@ import { handleConversationTurnEvent } from './conversation_turn_executor.js';
 import { createExecutableTool } from './executable_tool_factory.js';
 
 export {
-  ConversationMessage,
-  ConversationMessageContentBlock,
   ConversationTurnEvent,
   createExecutableTool,
   ExecutableTool,

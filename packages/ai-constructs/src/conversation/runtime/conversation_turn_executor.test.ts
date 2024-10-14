@@ -12,7 +12,6 @@ void describe('Conversation turn executor', () => {
     conversationId: 'testConversationId',
     currentMessageId: 'testCurrentMessageId',
     graphqlApiEndpoint: '',
-    messages: [],
     messageHistoryQuery: {
       getQueryName: '',
       getQueryInputTypeName: '',

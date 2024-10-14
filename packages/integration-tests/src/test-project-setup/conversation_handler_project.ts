@@ -7,10 +7,7 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import {
-  ConversationMessage,
-  ConversationTurnEvent,
-} from '@aws-amplify/ai-constructs/conversation/runtime';
+import { ConversationTurnEvent } from '@aws-amplify/ai-constructs/conversation/runtime';
 import { randomUUID } from 'crypto';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
@@ -34,6 +31,7 @@ import {
 } from '../test-projects/conversation-handler/amplify/constants.js';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
+import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -50,6 +48,28 @@ type ConversationTurnAppSyncResponse = {
   associatedUserMessageId: string;
   content: string;
 };
+
+type ConversationMessage = {
+  role: 'user' | 'assistant';
+  content: Array<ConversationMessageContentBlock>;
+};
+
+type ConversationMessageContentBlock =
+  | bedrock.ContentBlock
+  | {
+      image: Omit<bedrock.ImageBlock, 'source'> & {
+        // Upstream (Appsync) may send images in a form of Base64 encoded strings
+        source: { bytes: string };
+      };
+      // These are needed so that union with other content block types works.
+      // See https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-bedrock-runtime/TypeAlias/ContentBlock/.
+      text?: never;
+      document?: never;
+      toolUse?: never;
+      toolResult?: never;
+      guardContent?: never;
+      $unknown?: never;
+    };
 
 type CreateConversationMessageChatInput = ConversationMessage & {
   conversationId: string;
@@ -190,9 +210,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
       apolloClient,
-      // Does not use message history lookup.
-      // This case should be removed when event.messages field is removed.
-      false,
       false
     );
 
@@ -201,16 +218,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
       apolloClient,
-      true,
-      false
-    );
-
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true,
       true
     );
 
@@ -219,9 +226,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
       apolloClient,
-      true,
+      false,
       // Simulate eventual consistency
-      false,
       true
     );
 
@@ -278,7 +284,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
       apolloClient,
-      false,
       false
     );
 
@@ -287,16 +292,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       authenticatedUserCredentials.accessToken,
       clientConfig.data.url,
       apolloClient,
-      true,
-      false
-    );
-
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true,
       true
     );
   }
@@ -306,7 +301,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    useMessageHistory: boolean,
     streamResponse: boolean,
     withoutMessageAvailableInTheMessageList = false
   ): Promise<void> => {
@@ -340,28 +334,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
       ...this.getCommonEventProperties(streamResponse),
     };
 
-    if (useMessageHistory) {
-      if (withoutMessageAvailableInTheMessageList) {
-        // This tricks conversation handler to think that message is not available in the list.
-        // I.e. it simulates eventually consistency read at list operation where item is not yet visible.
-        // In this case handler should fall back to lookup by current message id.
-        message.conversationId = randomUUID().toString();
-      }
-      await this.insertMessage(apolloClient, message);
-    } else {
-      event.messageHistoryQuery = {
-        getQueryName: '',
-        getQueryInputTypeName: '',
-        listQueryName: '',
-        listQueryInputTypeName: '',
-      };
-      event.messages = [
-        {
-          role: message.role,
-          content: message.content,
-        },
-      ];
+    if (withoutMessageAvailableInTheMessageList) {
+      // This tricks conversation handler to think that message is not available in the list.
+      // I.e. it simulates eventually consistency read at list operation where item is not yet visible.
+      // In this case handler should fall back to lookup by current message id.
+      message.conversationId = randomUUID().toString();
     }
+    await this.insertMessage(apolloClient, message);
 
     const responseContent = await this.executeConversationTurn(
       event,
@@ -376,7 +355,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    useMessageHistory: boolean,
     streamResponse: boolean
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
@@ -428,22 +406,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       },
       ...this.getCommonEventProperties(streamResponse),
     };
-    if (useMessageHistory) {
-      await this.insertMessage(apolloClient, message);
-    } else {
-      event.messageHistoryQuery = {
-        getQueryName: '',
-        getQueryInputTypeName: '',
-        listQueryName: '',
-        listQueryInputTypeName: '',
-      };
-      event.messages = [
-        {
-          role: message.role,
-          content: message.content,
-        },
-      ];
-    }
+    await this.insertMessage(apolloClient, message);
     const responseContent = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,

@@ -67,10 +67,6 @@ export type ConversationTurnEvent = {
   request: {
     headers: Record<string, string>;
   };
-  /**
-   * @deprecated This field is going to be removed in upcoming releases.
-   */
-  messages?: Array<ConversationMessage>;
   messageHistoryQuery: {
     getQueryName: string;
     getQueryInputTypeName: string;
