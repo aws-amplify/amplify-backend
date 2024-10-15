@@ -1,5 +1,11 @@
 # @aws-amplify/backend-secret
 
+## 1.1.4
+
+### Patch Changes
+
+- f87cc87: fix: internally paginate list secret calls
+
 ## 1.1.3
 
 ### Patch Changes
