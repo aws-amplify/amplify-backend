@@ -1,5 +1,15 @@
 # @aws-amplify/ai-constructs
 
+## 0.5.0
+
+### Minor Changes
+
+- 46a0e85: Remove deprecated messages field from event
+
+### Patch Changes
+
+- faacd1b: Fix case where bedrock content blocks would be populated with 'null' instead of 'undefined.
+
 ## 0.4.0
 
 ### Minor Changes
