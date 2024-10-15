@@ -81,7 +81,7 @@ export class ReferenceAuthInitializer {
       props.userPoolClientId
     );
 
-    this.validateResourceAssociations(
+    this.validateResources(
       userPool,
       userPoolClient,
       identityPool,
@@ -262,7 +262,7 @@ export class ReferenceAuthInitializer {
    * @param identityPoolRoles identityPool roles
    * @param props props that include the roles which we compare with the actual roles for the identity pool
    */
-  private validateResourceAssociations = (
+  private validateResources = (
     userPool: UserPoolType,
     userPoolClient: UserPoolClientType,
     identityPool: DescribeIdentityPoolCommandOutput,
@@ -278,6 +278,13 @@ export class ReferenceAuthInitializer {
         'The specified identity pool does not have any cognito identity providers.'
       );
     }
+    // check for alias attributes, since we don't support this yet
+    if (userPool.AliasAttributes && userPool.AliasAttributes.length > 0) {
+      throw new Error(
+        'The specified user pool is configured with alias attributes which are not currently supported.'
+      );
+    }
+
     // verify that the user pool + user pool client pair are configured with the identity pool
     const matchingProvider = identityPool.CognitoIdentityProviders.find((p) => {
       const matchingUserPool: boolean =

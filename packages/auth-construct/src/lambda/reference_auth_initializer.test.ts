@@ -84,8 +84,8 @@ const expectedData = {
   userPoolId: SampleInputProperties.userPoolId,
   webClientId: SampleInputProperties.userPoolClientId,
   identityPoolId: SampleInputProperties.identityPoolId,
-  signupAttributes: '["sub","email","name"]',
-  usernameAttributes: '[]',
+  signupAttributes: '["sub","email"]',
+  usernameAttributes: '["email"]',
   verificationMechanisms: '["email"]',
   passwordPolicyMinLength: '10',
   passwordPolicyRequirements:
@@ -259,6 +259,21 @@ void describe('ReferenceAuthInitializer', () => {
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
       'Failed to retrieve password policy.'
+    );
+  });
+
+  void it('throws if user pool uses alias attributes', async () => {
+    describeUserPoolResponse = {
+      ...httpSuccess,
+      UserPool: {
+        ...UserPool,
+        UsernameAttributes: [],
+        AliasAttributes: ['email', 'phone_number'],
+      },
+    };
+    await rejectsAndMatchError(
+      handler.handleEvent(createCfnEvent),
+      'The specified user pool is configured with alias attributes which are not currently supported.'
     );
   });
 

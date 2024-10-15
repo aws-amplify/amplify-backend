@@ -248,7 +248,7 @@ export const UserPool: Readonly<UserPoolType> = {
       AttributeDataType: 'String',
       DeveloperOnlyAttribute: false,
       Mutable: true,
-      Required: true,
+      Required: false,
       StringAttributeConstraints: {
         MinLength: '0',
         MaxLength: '2048',
@@ -267,7 +267,7 @@ export const UserPool: Readonly<UserPoolType> = {
     },
   ],
   AutoVerifiedAttributes: ['email'],
-  AliasAttributes: ['email'],
+  UsernameAttributes: ['email'],
   VerificationMessageTemplate: {
     DefaultEmailOption: 'CONFIRM_WITH_CODE',
   },
