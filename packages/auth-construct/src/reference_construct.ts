@@ -171,7 +171,6 @@ export class AmplifyReferenceAuth
         serviceToken: provider.serviceToken,
         properties: {
           ...initializerProps,
-          lastUpdated: Date.now(),
         },
         resourceType: RESOURCE_TYPE,
       }
