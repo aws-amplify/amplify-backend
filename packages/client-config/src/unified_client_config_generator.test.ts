@@ -27,14 +27,18 @@ const stubClientProvider = {
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
     void it('transforms backend output into client config for V1.3', async () => {
-      const groups = {
-        ADMINS: {
-          precedence: 0,
+      const groups = [
+        {
+          ADMINS: {
+            precedence: 0,
+          },
         },
-        EDITORS: {
-          precedence: 1,
+        {
+          EDITORS: {
+            precedence: 1,
+          },
         },
-      };
+      ];
       const stubOutput: UnifiedBackendOutput = {
         [platformOutputKey]: {
           version: '1',
@@ -126,14 +130,18 @@ void describe('UnifiedClientConfigGenerator', () => {
           },
 
           unauthenticated_identities_enabled: true,
-          groups: {
-            ADMINS: {
-              precedence: 0,
+          groups: [
+            {
+              ADMINS: {
+                precedence: 0,
+              },
             },
-            EDITORS: {
-              precedence: 1,
+            {
+              EDITORS: {
+                precedence: 1,
+              },
             },
-          },
+          ],
         },
         data: {
           url: 'testApiEndpoint',

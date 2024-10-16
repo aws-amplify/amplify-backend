@@ -171,14 +171,18 @@ void describe('auth client config contributor v1', () => {
   });
 
   void it('returns translated config when output has auth with zero-config attributes', () => {
-    const groups = {
-      ADMINS: {
-        precedence: 0,
+    const groups = [
+      {
+        ADMINS: {
+          precedence: 0,
+        },
       },
-      EDITORS: {
-        precedence: 1,
+      {
+        EDITORS: {
+          precedence: 1,
+        },
       },
-    };
+    ];
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
@@ -244,28 +248,36 @@ void describe('auth client config contributor v1', () => {
             redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
             response_type: 'code',
           },
-          groups: {
-            ADMINS: {
-              precedence: 0,
+          groups: [
+            {
+              ADMINS: {
+                precedence: 0,
+              },
             },
-            EDITORS: {
-              precedence: 1,
+            {
+              EDITORS: {
+                precedence: 1,
+              },
             },
-          },
+          ],
         },
       } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
     );
   });
 
   void it('returns translated config when output has oauth settings but no social providers', () => {
-    const groups = {
-      ADMINS: {
-        precedence: 0,
+    const groups = [
+      {
+        ADMINS: {
+          precedence: 0,
+        },
       },
-      EDITORS: {
-        precedence: 1,
+      {
+        EDITORS: {
+          precedence: 1,
+        },
       },
-    };
+    ];
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
@@ -325,28 +337,36 @@ void describe('auth client config contributor v1', () => {
             redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
             response_type: 'code',
           },
-          groups: {
-            ADMINS: {
-              precedence: 0,
+          groups: [
+            {
+              ADMINS: {
+                precedence: 0,
+              },
             },
-            EDITORS: {
-              precedence: 1,
+            {
+              EDITORS: {
+                precedence: 1,
+              },
             },
-          },
+          ],
         },
       } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
     );
   });
 
   void describe('auth outputs with mfa', () => {
-    const groups = {
-      ADMINS: {
-        precedence: 0,
+    const groups = [
+      {
+        ADMINS: {
+          precedence: 0,
+        },
       },
-      EDITORS: {
-        precedence: 1,
+      {
+        EDITORS: {
+          precedence: 1,
+        },
       },
-    };
+    ];
     const contribution = {
       version: '1' as const,
       payload: {
@@ -400,14 +420,18 @@ void describe('auth client config contributor v1', () => {
           redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
           response_type: 'code',
         },
-        groups: {
-          ADMINS: {
-            precedence: 0,
+        groups: [
+          {
+            ADMINS: {
+              precedence: 0,
+            },
           },
-          EDITORS: {
-            precedence: 1,
+          {
+            EDITORS: {
+              precedence: 1,
+            },
           },
-        },
+        ],
       },
     } as Pick<clientConfigTypesV1_3.AWSAmplifyBackendOutputs, 'auth'>;
 

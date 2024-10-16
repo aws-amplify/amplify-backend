@@ -191,14 +191,17 @@
           }
         },
         "groups": {
-          "type": "object",
-          "additionalProperties": false,
-          "propertyNames": {
-            "type": "string"
-          },
-          "patternProperties": {
-            ".*": {
-              "$ref": "#/$defs/amplify_user_group_config"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "propertyNames": {
+              "type": "string"
+            },
+            "patternProperties": {
+              ".*": {
+                "$ref": "#/$defs/amplify_user_group_config"
+              }
             }
           }
         }

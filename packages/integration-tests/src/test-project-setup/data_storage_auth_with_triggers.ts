@@ -333,14 +333,18 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
 
     assert.ok(
-      isMatch(outputsObject.auth.groups, {
-        Admins: {
-          precedence: 1,
+      isMatch(outputsObject.auth.groups, [
+        {
+          Admins: {
+            precedence: 1,
+          },
         },
-        Editors: {
-          precedence: 2, // previously 0 but was overwritten
+        {
+          Editors: {
+            precedence: 2, // previously 0 but was overwritten
+          },
         },
-      })
+      ])
     );
   }
 

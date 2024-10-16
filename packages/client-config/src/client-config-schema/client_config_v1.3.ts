@@ -155,7 +155,7 @@ export interface AWSAmplifyBackendOutputs {
     mfa_methods?: ('SMS' | 'TOTP')[];
     groups?: {
       [k: string]: AmplifyUserGroupConfig;
-    };
+    }[];
   };
   /**
    * Outputs generated from defineData

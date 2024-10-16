@@ -27,6 +27,6 @@ export const authOutputSchema = z.object({
     oauthRedirectSignOut: z.string().optional(),
     oauthClientId: z.string().optional(),
     oauthResponseType: z.string().optional(),
-    groups: z.string().optional(), // serialized Partial groups type
+    groups: z.string().optional(), // JSON array as string
   }),
 });
