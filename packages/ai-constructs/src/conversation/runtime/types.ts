@@ -47,6 +47,7 @@ export type ToolDefinition<TJSONSchema extends JSONSchema = JSONSchema> = {
 export type ConversationTurnEvent = {
   conversationId: string;
   currentMessageId: string;
+  streamResponse?: boolean;
   responseMutation: {
     name: string;
     inputTypeName: string;
@@ -93,3 +94,43 @@ export type ExecutableTool<
 > = ToolDefinition<TJSONSchema> & {
   execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };
+
+export type StreamingResponseChunk = {
+  // always required
+  conversationId: string;
+  associatedUserMessageId: string;
+  contentBlockIndex: number;
+} & (
+  | {
+      // text chunk
+      contentBlockText: string;
+      contentBlockDeltaIndex: number;
+      contentBlockDoneAtIndex?: never;
+      contentBlockToolUse?: never;
+      stopReason?: never;
+    }
+  | {
+      // end of block. applicable to text blocks
+      contentBlockDoneAtIndex: number;
+      contentBlockText?: never;
+      contentBlockDeltaIndex?: never;
+      contentBlockToolUse?: never;
+      stopReason?: never;
+    }
+  | {
+      // tool use
+      contentBlockToolUse: string; // serialized json with full tool use block
+      contentBlockDoneAtIndex?: never;
+      contentBlockText?: never;
+      contentBlockDeltaIndex?: never;
+      stopReason?: never;
+    }
+  | {
+      // turn complete
+      stopReason: string;
+      contentBlockDoneAtIndex?: never;
+      contentBlockText?: never;
+      contentBlockDeltaIndex?: never;
+      contentBlockToolUse?: never;
+    }
+);

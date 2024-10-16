@@ -82,7 +82,10 @@ void describe('Conversation Handler Function construct', () => {
       PolicyDocument: {
         Statement: [
           {
-            Action: 'bedrock:InvokeModel',
+            Action: [
+              'bedrock:InvokeModel',
+              'bedrock:InvokeModelWithResponseStream',
+            ],
             Effect: 'Allow',
             Resource: [
               'arn:aws:bedrock:region1::foundation-model/model1',
@@ -115,7 +118,10 @@ void describe('Conversation Handler Function construct', () => {
       PolicyDocument: {
         Statement: [
           {
-            Action: 'bedrock:InvokeModel',
+            Action: [
+              'bedrock:InvokeModel',
+              'bedrock:InvokeModelWithResponseStream',
+            ],
             Effect: 'Allow',
             Resource: {
               'Fn::Join': [

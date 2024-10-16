@@ -160,6 +160,7 @@ module.exports = {
       },
     ],
     'jsdoc/require-param': 'off',
+    'jsdoc/require-yields': 'off',
     'jsdoc/require-returns': 'off',
     'spellcheck/spell-checker': [
       'warn',
