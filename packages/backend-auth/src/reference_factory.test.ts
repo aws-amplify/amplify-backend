@@ -1,21 +1,18 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { AmplifyAuthFactory, BackendAuth, defineAuth } from './factory.js';
-import { App, Stack, aws_lambda } from 'aws-cdk-lib';
+import { App, Stack } from 'aws-cdk-lib';
 import assert from 'node:assert';
-import { Match, Template } from 'aws-cdk-lib/assertions';
+import { Template } from 'aws-cdk-lib/assertions';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
   ConstructContainer,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
-  FunctionResources,
   ImportPathVerifier,
   ResourceAccessAcceptorFactory,
   ResourceNameValidator,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { triggerEvents } from '@aws-amplify/auth-construct';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
@@ -25,7 +22,21 @@ import {
 } from '@aws-amplify/backend-platform-test-stubs';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
+import {
+  AmplifyReferenceAuthProps,
+  BackendReferenceAuth,
+  referenceAuth,
+} from './reference_factory.js';
+import { AmplifyAuthFactory } from './factory.js';
+
+const defaultReferenceAuthProps: AmplifyReferenceAuthProps = {
+  authRoleArn: 'arn:aws:iam::000000000000:role/amplify-sample-auth-role-name',
+  unauthRoleArn:
+    'arn:aws:iam::000000000000:role/amplify-sample-unauth-role-name',
+  identityPoolId: 'us-east-1:identityPoolId',
+  userPoolClientId: 'userPoolClientId',
+  userPoolId: 'us-east-1_userPoolId',
+};
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -36,8 +47,8 @@ const createStackAndSetContext = (): Stack => {
   return stack;
 };
 
-void describe('AmplifyAuthFactory', () => {
-  let authFactory: ConstructFactory<BackendAuth>;
+void describe('AmplifyReferenceAuthFactory', () => {
+  let authFactory: ConstructFactory<BackendReferenceAuth>;
   let constructContainer: ConstructContainer;
   let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   let importPathVerifier: ImportPathVerifier;
@@ -46,9 +57,7 @@ void describe('AmplifyAuthFactory', () => {
   let stack: Stack;
   beforeEach(() => {
     resetFactoryCount();
-    authFactory = defineAuth({
-      loginWith: { email: true },
-    });
+    authFactory = referenceAuth(defaultReferenceAuthProps);
 
     stack = createStackAndSetContext();
 
@@ -89,40 +98,7 @@ void describe('AmplifyAuthFactory', () => {
 
     const template = Template.fromStack(backendAuth.stack);
 
-    template.resourceCountIs('AWS::Cognito::UserPool', 1);
-  });
-
-  void it('tags resources with friendly name', () => {
-    resetFactoryCount();
-    const authFactory = defineAuth({
-      loginWith: { email: true },
-      name: 'testNameFoo',
-    });
-
-    const backendAuth = authFactory.getInstance(getInstanceProps);
-
-    const template = Template.fromStack(backendAuth.stack);
-
-    template.resourceCountIs('AWS::Cognito::UserPool', 1);
-    template.hasResourceProperties('AWS::Cognito::UserPool', {
-      UserPoolTags: { 'amplify:friendly-name': 'testNameFoo' },
-    });
-  });
-
-  void it('throws on invalid name', () => {
-    mock
-      .method(resourceNameValidator, 'validate')
-      .mock.mockImplementationOnce(() => {
-        throw new Error('test validation error');
-      });
-    resetFactoryCount();
-    const authFactory = defineAuth({
-      loginWith: { email: true },
-      name: 'this!is@wrong$',
-    });
-    assert.throws(() => authFactory.getInstance(getInstanceProps), {
-      message: 'test validation error',
-    });
+    template.resourceCountIs('Custom::AmplifyRefAuth', 1);
   });
 
   void it('verifies constructor import path', () => {
@@ -134,19 +110,19 @@ void describe('AmplifyAuthFactory', () => {
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
-        'defineAuth'
+        'referenceAuth'
       )
     );
   });
 
-  void it('should throw TooManyAmplifyAuthFactoryError when defineAuth is called multiple times', () => {
+  void it('should throw TooManyAmplifyAuthFactoryError when referenceAuth is called multiple times', () => {
     assert.throws(
       () => {
-        defineAuth({
-          loginWith: { email: true },
+        referenceAuth({
+          ...defaultReferenceAuthProps,
         });
-        defineAuth({
-          loginWith: { email: true },
+        referenceAuth({
+          ...defaultReferenceAuthProps,
         });
       },
       new AmplifyUserError('MultipleSingletonResourcesError', {
@@ -171,8 +147,8 @@ void describe('AmplifyAuthFactory', () => {
 
     resetFactoryCount();
 
-    authFactory = defineAuth({
-      loginWith: { email: true },
+    authFactory = referenceAuth({
+      ...defaultReferenceAuthProps,
       access: (allow) => [
         allow.resource(lambdaResourceStub).to(['managePasswordRecovery']),
         allow.resource(lambdaResourceStub).to(['createUser']),
@@ -219,47 +195,6 @@ void describe('AmplifyAuthFactory', () => {
     );
   });
 
-  triggerEvents.forEach((event) => {
-    void it(`resolves ${event} trigger and attaches handler to auth construct`, () => {
-      const testFunc = new aws_lambda.Function(stack, 'testFunc', {
-        code: aws_lambda.Code.fromInline('test placeholder'),
-        runtime: aws_lambda.Runtime.NODEJS_18_X,
-        handler: 'index.handler',
-      });
-      const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
-        getInstance: () => {
-          return {
-            resources: {
-              lambda: testFunc,
-              cfnResources: {
-                cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
-              },
-            },
-          };
-        },
-      };
-
-      resetFactoryCount();
-
-      const authWithTriggerFactory = defineAuth({
-        loginWith: { email: true },
-        triggers: { [event]: funcStub },
-      });
-
-      const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
-
-      const template = Template.fromStack(backendAuth.stack);
-      template.hasResourceProperties('AWS::Cognito::UserPool', {
-        LambdaConfig: {
-          // The key in the CFN template is the trigger event name with the first character uppercase
-          [upperCaseFirstChar(event)]: {
-            Ref: Match.stringLikeRegexp('testFunc'),
-          },
-        },
-      });
-    });
-  });
-
   void describe('getResourceAccessAcceptor', () => {
     void it('attaches policies to the authenticated role', () => {
       const backendAuth = authFactory.getInstance(getInstanceProps);
@@ -295,16 +230,7 @@ void describe('AmplifyAuthFactory', () => {
             },
           ],
         },
-        Roles: [
-          {
-            'Fn::GetAtt': [
-              // eslint-disable-next-line spellcheck/spell-checker
-              'authNestedStackauthNestedStackResource179371D7',
-              // eslint-disable-next-line spellcheck/spell-checker
-              'Outputs.authamplifyAuthauthenticatedUserRoleF3353E83Ref',
-            ],
-          },
-        ],
+        Roles: [backendAuth.resources.authenticatedUserIamRole.roleName],
       });
     });
 
@@ -342,24 +268,11 @@ void describe('AmplifyAuthFactory', () => {
             },
           ],
         },
-        Roles: [
-          {
-            'Fn::GetAtt': [
-              // eslint-disable-next-line spellcheck/spell-checker
-              'authNestedStackauthNestedStackResource179371D7',
-              // eslint-disable-next-line spellcheck/spell-checker
-              'Outputs.authamplifyAuthunauthenticatedUserRoleE350B280Ref',
-            ],
-          },
-        ],
+        Roles: [backendAuth.resources.unauthenticatedUserIamRole.roleName],
       });
     });
   });
 });
-
-const upperCaseFirstChar = (str: string) => {
-  return `${str.charAt(0).toUpperCase()}${str.slice(1)}`;
-};
 
 const resetFactoryCount = () => {
   AmplifyAuthFactory.factoryCount = 0;

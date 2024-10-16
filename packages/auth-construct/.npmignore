@@ -10,5 +10,6 @@
 # Then ignore test js and ts declaration files
 *.test.js
 *.test.d.ts
+**/test-resources/**
 
 # This leaves us with including only js and ts declaration files of functional code
