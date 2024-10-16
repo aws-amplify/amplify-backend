@@ -31,7 +31,7 @@ import {
   UserPool,
   UserPoolClient,
   UserPoolGroups,
-} from './sample_data';
+} from '../test-resources/sample_data';
 
 const customResourceEventCommon: Omit<
   CloudFormationCustomResourceEvent,
