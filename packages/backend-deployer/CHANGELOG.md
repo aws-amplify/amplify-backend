@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.5
+
+### Patch Changes
+
+- 93d419f: detect more generic CFN deployment failure errors
+- 777c80d: detect transform errors with multiple errors
+- b35f01d: detect generic CFN stack creation errors
+
 ## 1.1.4
 
 ### Patch Changes

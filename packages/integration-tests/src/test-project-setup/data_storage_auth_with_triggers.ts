@@ -9,7 +9,11 @@ import path from 'path';
 import { TestProjectCreator } from './test_project_creator.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
-import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import {
+  GetFunctionCommand,
+  InvokeCommand,
+  LambdaClient,
+} from '@aws-sdk/client-lambda';
 import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
@@ -28,6 +32,7 @@ import {
 } from '@aws-sdk/client-cloudtrail';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import isMatch from 'lodash.ismatch';
+import { TextWriter, ZipReader } from '@zip.js/zip.js';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -238,6 +243,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       (name) => name.includes('funcWithSchedule')
     );
 
+    const funcNoMinify = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Lambda::Function',
+      (name) => name.includes('funcNoMinify')
+    );
+
     assert.equal(defaultNodeLambda.length, 1);
     assert.equal(node16Lambda.length, 1);
     assert.equal(funcWithSsm.length, 1);
@@ -257,6 +268,13 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
 
     await this.assertScheduleInvokesFunction(backendId);
+
+    const expectedNoMinifyChunk = [
+      'var handler = async () => {',
+      '  return "No minify";',
+      '};',
+    ].join('\n');
+    await this.checkLambdaCode(funcNoMinify[0], expectedNoMinifyChunk);
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -403,6 +421,25 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     // check expected response
     assert.deepStrictEqual(responsePayload, expectedResponse);
+  };
+
+  private checkLambdaCode = async (
+    lambdaName: string,
+    expectedCode: string
+  ) => {
+    // get the lambda code
+    const response = await this.lambdaClient.send(
+      new GetFunctionCommand({ FunctionName: lambdaName })
+    );
+    const codeUrl = response.Code?.Location;
+    assert(codeUrl !== undefined);
+    const fetchResponse = await fetch(codeUrl);
+    const zipReader = new ZipReader(fetchResponse.body!);
+    const entries = await zipReader.getEntries();
+    const entry = entries.find((entry) => entry.filename.endsWith('index.mjs'));
+    assert(entry !== undefined);
+    const sourceCode = await entry.getData!(new TextWriter());
+    assert(sourceCode.includes(expectedCode));
   };
 
   private assertExpectedCleanup = async () => {

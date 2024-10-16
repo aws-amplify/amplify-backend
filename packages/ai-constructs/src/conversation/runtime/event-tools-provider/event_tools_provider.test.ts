@@ -11,7 +11,6 @@ void describe('events tool provider', () => {
       conversationId: '',
       currentMessageId: '',
       graphqlApiEndpoint: '',
-      messages: [],
       messageHistoryQuery: {
         getQueryName: '',
         getQueryInputTypeName: '',
@@ -73,7 +72,6 @@ void describe('events tool provider', () => {
       conversationId: '',
       currentMessageId: '',
       graphqlApiEndpoint: '',
-      messages: [],
       messageHistoryQuery: {
         getQueryName: '',
         getQueryInputTypeName: '',

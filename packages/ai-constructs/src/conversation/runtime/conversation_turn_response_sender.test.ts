@@ -16,7 +16,6 @@ void describe('Conversation turn response sender', () => {
     conversationId: 'testConversationId',
     currentMessageId: 'testCurrentMessageId',
     graphqlApiEndpoint: 'http://fake.endpoint/',
-    messages: [],
     messageHistoryQuery: {
       getQueryName: '',
       getQueryInputTypeName: '',
@@ -33,7 +32,7 @@ void describe('Conversation turn response sender', () => {
   };
 
   void it('sends response back to appsync', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -81,7 +80,7 @@ void describe('Conversation turn response sender', () => {
   });
 
   void it('serializes tool use input to JSON', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
