@@ -186,4 +186,37 @@ void describe('Deployed Backend Client list sandboxes', () => {
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
   });
+
+  void it('filter stacks that do not have deploymentType tag in it', async () => {
+    cfnClientSendMock.mock.mockImplementation(
+      (request: ListStacksCommand | DescribeStacksCommand) => {
+        if (request instanceof ListStacksCommand) {
+          return listStacksMockFn(request.input);
+        }
+        if (request instanceof DescribeStacksCommand) {
+          const matchingStack = listStacksMock.StackSummaries.find((stack) => {
+            return stack.StackName === request.input.StackName;
+          });
+          return {
+            Stacks: [
+              {
+                ...matchingStack,
+                Tags: [],
+              },
+            ],
+          };
+        }
+        throw request;
+      }
+    );
+    const sandboxes = deployedBackendClient.listBackends({
+      deploymentType: 'sandbox',
+    });
+    assert.deepEqual(
+      (await sandboxes.getBackendSummaryByPage().next()).done,
+      true
+    );
+
+    assert.equal(listStacksMockFn.mock.callCount(), 1);
+  });
 });
