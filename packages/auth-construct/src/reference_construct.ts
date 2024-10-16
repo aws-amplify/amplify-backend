@@ -127,6 +127,7 @@ export class AmplifyReferenceAuth
           'cognito-idp:DescribeUserPool',
           'cognito-idp:GetUserPoolMfaConfig',
           'cognito-idp:ListIdentityProviders',
+          'cognito-idp:ListGroups',
           'cognito-idp:DescribeUserPoolClient',
         ],
         resources: [this.resources.userPool.userPoolArn],
@@ -159,6 +160,7 @@ export class AmplifyReferenceAuth
       userPoolClientId: props.userPoolClientId,
       authRoleArn: props.authRoleArn,
       unauthRoleArn: props.unauthRoleArn,
+      groups: props.groups ?? {},
       region: Stack.of(this).region,
     };
     // custom resource

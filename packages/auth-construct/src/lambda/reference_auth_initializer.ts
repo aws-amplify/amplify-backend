@@ -9,6 +9,8 @@ import {
   DescribeUserPoolCommand,
   GetUserPoolMfaConfigCommand,
   GetUserPoolMfaConfigCommandOutput,
+  GroupType,
+  ListGroupsCommand,
   ListIdentityProvidersCommand,
   PasswordPolicyType,
   ProviderDescription,
@@ -70,9 +72,10 @@ export class ReferenceAuthInitializer {
     const {
       userPool,
       userPoolPasswordPolicy,
-      userPoolClient,
       userPoolMFA,
+      userPoolGroups,
       userPoolProviders,
+      userPoolClient,
       identityPool,
       roles,
     } = await this.getResourceDetails(
@@ -83,6 +86,7 @@ export class ReferenceAuthInitializer {
 
     this.validateResources(
       userPool,
+      userPoolGroups,
       userPoolClient,
       identityPool,
       roles,
@@ -149,6 +153,27 @@ export class ReferenceAuthInitializer {
       mfaCommand
     );
     return mfaResponse;
+  };
+
+  private getUserPoolGroups = async (userPoolId: string) => {
+    let nextToken: string | undefined;
+    const groups: GroupType[] = [];
+    do {
+      const listGroupsResponse = await this.cognitoIdentityProviderClient.send(
+        new ListGroupsCommand({
+          UserPoolId: userPoolId,
+          NextToken: nextToken,
+        })
+      );
+      if (!listGroupsResponse.Groups) {
+        throw new Error(
+          'An error occurred while retrieving the groups for the user pool.'
+        );
+      }
+      groups.push(...listGroupsResponse.Groups);
+      nextToken = listGroupsResponse.NextToken;
+    } while (nextToken);
+    return groups;
   };
 
   private getUserPoolProviders = async (userPoolId: string) => {
@@ -234,6 +259,7 @@ export class ReferenceAuthInitializer {
     );
     const userPoolMFA = await this.getUserPoolMFASettings(userPoolId);
     const userPoolProviders = await this.getUserPoolProviders(userPoolId);
+    const userPoolGroups = await this.getUserPoolGroups(userPoolId);
     const userPoolClient = await this.getUserPoolClient(
       userPoolId,
       userPoolClientId
@@ -243,9 +269,10 @@ export class ReferenceAuthInitializer {
     return {
       userPool,
       userPoolPasswordPolicy,
-      userPoolClient,
       userPoolMFA,
       userPoolProviders,
+      userPoolGroups,
+      userPoolClient,
       identityPool,
       roles,
     };
@@ -257,6 +284,7 @@ export class ReferenceAuthInitializer {
    * 2. make sure the provided auth/unauth role ARNs match the roles for the identity pool
    * 3. make sure the user pool client is a web client
    * @param userPool userPool
+   * @param userPoolGroups the existing groups for the userPool
    * @param userPoolClient userPoolClient
    * @param identityPool identityPool
    * @param identityPoolRoles identityPool roles
@@ -264,6 +292,7 @@ export class ReferenceAuthInitializer {
    */
   private validateResources = (
     userPool: UserPoolType,
+    userPoolGroups: GroupType[],
     userPoolClient: UserPoolClientType,
     identityPool: DescribeIdentityPoolCommandOutput,
     identityPoolRoles: Record<string, string>,
@@ -284,7 +313,16 @@ export class ReferenceAuthInitializer {
         'The specified user pool is configured with alias attributes which are not currently supported.'
       );
     }
-
+    // make sure props groups Roles actually exist for the user pool
+    const groupEntries = Object.entries(props.groups);
+    for (const [groupName, groupRoleARN] of groupEntries) {
+      const match = userPoolGroups.find((g) => g.RoleArn === groupRoleARN);
+      if (match === undefined) {
+        throw new Error(
+          `The group '${groupName}' with role '${groupRoleARN}' does not match any group for the specified user pool.`
+        );
+      }
+    }
     // verify that the user pool + user pool client pair are configured with the identity pool
     const matchingProvider = identityPool.CognitoIdentityProviders.find((p) => {
       const matchingUserPool: boolean =

@@ -49,6 +49,7 @@ void describe('AmplifyConstruct', () => {
           'cognito-idp:DescribeUserPool',
           'cognito-idp:GetUserPoolMfaConfig',
           'cognito-idp:ListIdentityProviders',
+          'cognito-idp:ListGroups',
           'cognito-idp:DescribeUserPoolClient',
         ],
         Effect: 'Allow',

@@ -10,6 +10,8 @@ import {
   DescribeUserPoolCommandOutput,
   GetUserPoolMfaConfigCommand,
   GetUserPoolMfaConfigCommandOutput,
+  ListGroupsCommand,
+  ListGroupsCommandOutput,
   ListIdentityProvidersCommand,
   ListIdentityProvidersCommandOutput,
 } from '@aws-sdk/client-cognito-identity-provider';
@@ -28,6 +30,7 @@ import {
   SampleInputProperties,
   UserPool,
   UserPoolClient,
+  UserPoolGroups,
 } from './sample_data';
 
 const customResourceEventCommon: Omit<
@@ -75,6 +78,10 @@ const httpSuccess = {
     httpStatusCode: 200,
   },
 };
+const groupName = 'ADMINS';
+const groupRoleARN = 'arn:aws:iam::000000000000:role/sample-group-role';
+const groupRoleARNNotOnUserPool =
+  'arn:aws:iam::000000000000:role/sample-bad-group-role';
 // aws sdk will throw with error message for any non 200 status so we don't need to re-package it
 const awsSDKErrorMessageMock = new Error('this message comes from the aws sdk');
 const uuidMock = () => '00000000-0000-0000-0000-000000000000';
@@ -110,6 +117,7 @@ void describe('ReferenceAuthInitializer', () => {
   let describeUserPoolClientResponse: DescribeUserPoolClientCommandOutput;
   let describeIdentityPoolResponse: DescribeIdentityPoolCommandOutput;
   let getIdentityPoolRolesResponse: GetIdentityPoolRolesCommandOutput;
+  let listGroupsResponse: ListGroupsCommandOutput;
   const rejectsAndMatchError = async (
     fn: Promise<unknown>,
     expectedErrorMessage: string
@@ -149,6 +157,10 @@ void describe('ReferenceAuthInitializer', () => {
       ...httpSuccess,
       ...IdentityPoolRoles,
     };
+    listGroupsResponse = {
+      ...httpSuccess,
+      ...UserPoolGroups,
+    };
     mock.method(
       identityProviderClient,
       'send',
@@ -158,6 +170,7 @@ void describe('ReferenceAuthInitializer', () => {
           | GetUserPoolMfaConfigCommand
           | ListIdentityProvidersCommand
           | DescribeUserPoolClientCommand
+          | ListGroupsCommand
       ) => {
         if (request instanceof DescribeUserPoolCommand) {
           if (describeUserPoolResponse.$metadata.httpStatusCode !== 200) {
@@ -182,6 +195,12 @@ void describe('ReferenceAuthInitializer', () => {
             throw awsSDKErrorMessageMock;
           }
           return describeUserPoolClientResponse;
+        }
+        if (request instanceof ListGroupsCommand) {
+          if (listGroupsResponse.$metadata.httpStatusCode !== 200) {
+            throw awsSDKErrorMessageMock;
+          }
+          return listGroupsResponse;
         }
         return undefined;
       }
@@ -277,6 +296,44 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
+  void it('throws if user pool group is not found', async () => {
+    listGroupsResponse = {
+      ...httpSuccess,
+      Groups: [
+        {
+          GroupName: 'OTHERGROUP',
+          RoleArn: groupRoleARNNotOnUserPool,
+        },
+      ],
+    };
+    await rejectsAndMatchError(
+      handler.handleEvent(createCfnEvent),
+      `The group '${groupName}' with role '${groupRoleARN}' does not match any group for the specified user pool.`
+    );
+  });
+
+  void it('throws if user pool groups request fails', async () => {
+    listGroupsResponse = {
+      ...httpError,
+      Groups: undefined,
+    };
+    await rejectsAndMatchError(
+      handler.handleEvent(createCfnEvent),
+      awsSDKErrorMessageMock.message
+    );
+  });
+
+  void it('throws if user pool groups response is undefined', async () => {
+    listGroupsResponse = {
+      ...httpSuccess,
+      Groups: undefined,
+    };
+    await rejectsAndMatchError(
+      handler.handleEvent(createCfnEvent),
+      'An error occurred while retrieving the groups for the user pool.'
+    );
+  });
+
   void it('throws if fetching user pool MFA config fails', async () => {
     getUserPoolMfaConfigResponse = httpError;
     await rejectsAndMatchError(
@@ -297,6 +354,7 @@ void describe('ReferenceAuthInitializer', () => {
       awsSDKErrorMessageMock.message
     );
   });
+
   void it('throws if fetching user pool providers returns undefined', async () => {
     listIdentityProvidersResponse = {
       ...httpSuccess,

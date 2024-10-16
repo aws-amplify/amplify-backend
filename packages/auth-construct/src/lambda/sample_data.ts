@@ -1,6 +1,7 @@
 import { IdentityPool as IdentityPoolType } from '@aws-sdk/client-cognito-identity';
 import {
   GetUserPoolMfaConfigCommandOutput,
+  ListGroupsResponse,
   ProviderDescription,
   UserPoolClientType,
   UserPoolType,
@@ -16,6 +17,9 @@ export const SampleInputProperties: ReferenceAuthInitializerProps = {
   identityPoolId: 'us-east-1:sample-identity-pool-id',
   userPoolClientId: 'sampleUserPoolClientId',
   userPoolId: 'us-east-1_userpoolTest',
+  groups: {
+    ADMINS: 'arn:aws:iam::000000000000:role/sample-group-role',
+  },
   region: 'us-east-1',
 };
 /**
@@ -297,6 +301,15 @@ export const UserPool: Readonly<UserPoolType> = {
       },
     ],
   },
+};
+
+export const UserPoolGroups: Readonly<ListGroupsResponse> = {
+  Groups: [
+    {
+      GroupName: 'sample-group-name',
+      RoleArn: 'arn:aws:iam::000000000000:role/sample-group-role',
+    },
+  ],
 };
 
 /**

@@ -514,5 +514,6 @@ export type ReferenceAuthInitializerProps = {
   authRoleArn: string;
   unauthRoleArn: string;
   userPoolClientId: string;
+  groups: Record<string, string>;
   region: string;
 };
