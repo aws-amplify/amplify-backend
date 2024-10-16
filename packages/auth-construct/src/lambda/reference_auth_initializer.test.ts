@@ -296,6 +296,21 @@ void describe('ReferenceAuthInitializer', () => {
     );
   });
 
+  void it('throws if user pool does not have a domain configured and external login providers are enabled', async () => {
+    describeUserPoolResponse = {
+      ...httpSuccess,
+      UserPool: {
+        ...UserPool,
+        Domain: undefined,
+        CustomDomain: undefined,
+      },
+    };
+    await rejectsAndMatchError(
+      handler.handleEvent(createCfnEvent),
+      'You must configure a domain for your UserPool if external login providers are enabled.'
+    );
+  });
+
   void it('throws if user pool group is not found', async () => {
     listGroupsResponse = {
       ...httpSuccess,
@@ -381,6 +396,32 @@ void describe('ReferenceAuthInitializer', () => {
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
       'An error occurred while retrieving the user pool client details.'
+    );
+  });
+  void it('throws if user pool client does not have sign-out / logout URLs configured and external login providers are enabled', async () => {
+    describeUserPoolClientResponse = {
+      ...httpSuccess,
+      UserPoolClient: {
+        ...UserPoolClient,
+        LogoutURLs: [],
+      },
+    };
+    await rejectsAndMatchError(
+      handler.handleEvent(createCfnEvent),
+      'You UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.'
+    );
+  });
+  void it('throws if user pool client does not have callback URLs configured and external login providers are enabled', async () => {
+    describeUserPoolClientResponse = {
+      ...httpSuccess,
+      UserPoolClient: {
+        ...UserPoolClient,
+        CallbackURLs: [],
+      },
+    };
+    await rejectsAndMatchError(
+      handler.handleEvent(createCfnEvent),
+      'You UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.'
     );
   });
 

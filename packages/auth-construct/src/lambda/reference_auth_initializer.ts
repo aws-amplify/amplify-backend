@@ -86,6 +86,7 @@ export class ReferenceAuthInitializer {
 
     this.validateResources(
       userPool,
+      userPoolProviders,
       userPoolGroups,
       userPoolClient,
       identityPool,
@@ -284,6 +285,7 @@ export class ReferenceAuthInitializer {
    * 2. make sure the provided auth/unauth role ARNs match the roles for the identity pool
    * 3. make sure the user pool client is a web client
    * @param userPool userPool
+   * @param userPoolProviders the user pool providers
    * @param userPoolGroups the existing groups for the userPool
    * @param userPoolClient userPoolClient
    * @param identityPool identityPool
@@ -292,6 +294,7 @@ export class ReferenceAuthInitializer {
    */
   private validateResources = (
     userPool: UserPoolType,
+    userPoolProviders: ProviderDescription[],
     userPoolGroups: GroupType[],
     userPoolClient: UserPoolClientType,
     identityPool: DescribeIdentityPoolCommandOutput,
@@ -313,6 +316,34 @@ export class ReferenceAuthInitializer {
         'The specified user pool is configured with alias attributes which are not currently supported.'
       );
     }
+
+    // check OAuth settings
+    if (userPoolProviders.length > 0) {
+      // validate user pool
+      const domainSpecified = userPool.Domain || userPool.CustomDomain;
+      if (!domainSpecified) {
+        throw new Error(
+          'You must configure a domain for your UserPool if external login providers are enabled.'
+        );
+      }
+
+      // validate user pool client
+      const hasLogoutUrls =
+        userPoolClient.LogoutURLs && userPoolClient.LogoutURLs.length > 0;
+      const hasCallbackUrls =
+        userPoolClient.CallbackURLs && userPoolClient.CallbackURLs.length > 0;
+      if (!hasLogoutUrls) {
+        throw new Error(
+          'You UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.'
+        );
+      }
+      if (!hasCallbackUrls) {
+        throw new Error(
+          'You UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.'
+        );
+      }
+    }
+
     // make sure props groups Roles actually exist for the user pool
     const groupEntries = Object.entries(props.groups);
     for (const [groupName, groupRoleARN] of groupEntries) {
