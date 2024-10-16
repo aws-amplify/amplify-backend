@@ -151,8 +151,8 @@ void describe('AmplifyAuthFactory', () => {
       },
       new AmplifyUserError('MultipleSingletonResourcesError', {
         message:
-          'Multiple `defineAuth` calls are not allowed within an Amplify backend',
-        resolution: 'Remove all but one `defineAuth` call',
+          'Multiple `defineAuth` or `referenceAuth` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineAuth` or `referenceAuth` call',
       })
     );
   });

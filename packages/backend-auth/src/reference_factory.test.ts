@@ -23,11 +23,11 @@ import {
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import {
-  AmplifyReferenceAuthFactory,
   AmplifyReferenceAuthProps,
   BackendReferenceAuth,
   referenceAuth,
 } from './reference_factory.js';
+import { AmplifyAuthFactory } from './factory.js';
 
 const defaultReferenceAuthProps: AmplifyReferenceAuthProps = {
   authRoleArn: 'arn:aws:iam::000000000000:role/amplify-sample-auth-role-name',
@@ -127,8 +127,8 @@ void describe('AmplifyReferenceAuthFactory', () => {
       },
       new AmplifyUserError('MultipleSingletonResourcesError', {
         message:
-          'Multiple `referenceAuth` calls are not allowed within an Amplify backend',
-        resolution: 'Remove all but one `referenceAuth` call',
+          'Multiple `defineAuth` or `referenceAuth` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineAuth` or `referenceAuth` call',
       })
     );
   });
@@ -275,5 +275,5 @@ void describe('AmplifyReferenceAuthFactory', () => {
 });
 
 const resetFactoryCount = () => {
-  AmplifyReferenceAuthFactory.factoryCount = 0;
+  AmplifyAuthFactory.factoryCount = 0;
 };

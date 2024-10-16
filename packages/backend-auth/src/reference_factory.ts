@@ -22,6 +22,7 @@ import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js'
 import { Stack, Tags } from 'aws-cdk-lib';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
+import { AmplifyAuthFactory } from './factory.js';
 
 export type BackendReferenceAuth = ResourceProvider<ReferenceAuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName | string> &
@@ -48,9 +49,6 @@ export type AmplifyReferenceAuthProps = Expand<
 export class AmplifyReferenceAuthFactory
   implements ConstructFactory<BackendReferenceAuth>
 {
-  // publicly accessible for testing purpose only.
-  static factoryCount = 0;
-
   readonly provides = 'AuthResources';
 
   private generator: ConstructContainerEntryGenerator;
@@ -63,14 +61,14 @@ export class AmplifyReferenceAuthFactory
     // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     private readonly importStack = new Error().stack
   ) {
-    if (AmplifyReferenceAuthFactory.factoryCount > 0) {
+    if (AmplifyAuthFactory.factoryCount > 0) {
       throw new AmplifyUserError('MultipleSingletonResourcesError', {
         message:
-          'Multiple `referenceAuth` calls are not allowed within an Amplify backend',
-        resolution: 'Remove all but one `referenceAuth` call',
+          'Multiple `defineAuth` or `referenceAuth` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineAuth` or `referenceAuth` call',
       });
     }
-    AmplifyReferenceAuthFactory.factoryCount++;
+    AmplifyAuthFactory.factoryCount++;
   }
   /**
    * Get a singleton instance of AmplifyReferenceAuth
