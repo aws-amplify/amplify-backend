@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 0.6.0
+
+### Minor Changes
+
+- b6761b0: Stream Bedrock responses
+
 ## 0.5.0
 
 ### Minor Changes
