@@ -22,9 +22,6 @@ const refAuthProps: ReferenceAuthProps = {
 };
 
 void describe('AmplifyConstruct', () => {
-  // beforeEach(() => {
-
-  // })
   void it('creates custom resource initializer', () => {
     const app = new App();
     const stack = new Stack(app);
