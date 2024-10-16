@@ -334,12 +334,12 @@ export class ReferenceAuthInitializer {
         userPoolClient.CallbackURLs && userPoolClient.CallbackURLs.length > 0;
       if (!hasLogoutUrls) {
         throw new Error(
-          'You UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.'
+          'Your UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.'
         );
       }
       if (!hasCallbackUrls) {
         throw new Error(
-          'You UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.'
+          'Your UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.'
         );
       }
     }

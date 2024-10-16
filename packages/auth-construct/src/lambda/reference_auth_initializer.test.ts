@@ -408,7 +408,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'You UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.'
+      'Your UserPool client must have "Allowed sign-out URLs" configured if external login providers are enabled.'
     );
   });
   void it('throws if user pool client does not have callback URLs configured and external login providers are enabled', async () => {
@@ -421,7 +421,7 @@ void describe('ReferenceAuthInitializer', () => {
     };
     await rejectsAndMatchError(
       handler.handleEvent(createCfnEvent),
-      'You UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.'
+      'Your UserPool client must have "Allowed callback URLs" configured if external login providers are enabled.'
     );
   });
 
