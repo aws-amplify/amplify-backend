@@ -7,6 +7,7 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
+  ReferenceAuthResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
@@ -97,9 +98,9 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
         this.props,
         buildConstructFactoryProvidedAuthConfig(
           props.constructContainer
-            .getConstructFactory<ResourceProvider<AuthResources>>(
-              'AuthResources'
-            )
+            .getConstructFactory<
+              ResourceProvider<AuthResources | ReferenceAuthResources>
+            >('AuthResources')
             ?.getInstance(props)
         ),
         props,

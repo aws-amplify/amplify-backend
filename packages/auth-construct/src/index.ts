@@ -1,5 +1,6 @@
 export {
   AuthProps,
+  ReferenceAuthProps,
   EmailLogin,
   EmailLoginSettings,
   GoogleProviderProps,
@@ -28,4 +29,5 @@ export {
   CustomAttributeBase,
 } from './types.js';
 export { AmplifyAuth } from './construct.js';
+export { AmplifyReferenceAuth } from './reference_construct.js';
 export { triggerEvents } from './trigger_events.js';

@@ -10,6 +10,7 @@ import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { NumberAttributeConstraints } from 'aws-cdk-lib/aws-cognito';
+import { ReferenceAuthResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
 import { StandardAttributes } from 'aws-cdk-lib/aws-cognito';
@@ -24,6 +25,13 @@ export type AmazonProviderProps = Omit<aws_cognito.UserPoolIdentityProviderAmazo
 export class AmplifyAuth extends Construct implements ResourceProvider<AuthResources> {
     constructor(scope: Construct, id: string, props?: AuthProps);
     readonly resources: AuthResources;
+}
+
+// @public
+export class AmplifyReferenceAuth extends Construct implements ResourceProvider<ReferenceAuthResources> {
+    constructor(scope: Construct, id: string, props: ReferenceAuthProps);
+    // (undocumented)
+    resources: ReferenceAuthResources;
 }
 
 // @public
@@ -155,6 +163,19 @@ export type OidcProviderProps = Omit<aws_cognito.UserPoolIdentityProviderOidcPro
 // @public
 export type PhoneNumberLogin = true | {
     verificationMessage?: (createCode: () => string) => string;
+};
+
+// @public (undocumented)
+export type ReferenceAuthProps = {
+    outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
+    userPoolId: string;
+    identityPoolId: string;
+    userPoolClientId: string;
+    authRoleArn: string;
+    unauthRoleArn: string;
+    groups?: {
+        [groupName: string]: string;
+    };
 };
 
 // @public

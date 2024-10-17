@@ -201,6 +201,7 @@ export class AmplifyAuth
       userPoolClient,
       authenticatedUserIamRole: auth,
       unauthenticatedUserIamRole: unAuth,
+      identityPoolId: identityPool.ref,
       cfnResources: {
         cfnUserPool,
         cfnUserPoolClient,
