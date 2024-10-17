@@ -350,6 +350,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       })
     );
 
+    console.log('actual outputs', outputsObject.auth.groups);
+
     assert.ok(
       isMatch(outputsObject.auth.groups, [
         {
