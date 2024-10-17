@@ -1,5 +1,11 @@
 # @aws-amplify/deployed-backend-client
 
+## 1.4.2
+
+### Patch Changes
+
+- fdf28bd: fix: detect deploymentType from Stack Tags
+
 ## 1.4.1
 
 ### Patch Changes

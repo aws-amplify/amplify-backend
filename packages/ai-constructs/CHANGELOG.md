@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 0.6.1
+
+### Patch Changes
+
+- 91e7f3c: Parse client side tool json elements
+
 ## 0.6.0
 
 ### Minor Changes
