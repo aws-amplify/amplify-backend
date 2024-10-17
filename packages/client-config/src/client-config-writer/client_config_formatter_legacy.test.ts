@@ -20,7 +20,7 @@ void describe('client config formatter', () => {
 
   const sampleUserPoolId = randomUUID();
   const clientConfig: ClientConfig = {
-    version: '1.2',
+    version: '1.3',
     auth: {
       aws_region: sampleRegion,
       identity_pool_id: sampleIdentityPoolId,

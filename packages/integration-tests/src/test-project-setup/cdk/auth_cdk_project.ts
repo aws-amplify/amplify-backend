@@ -78,7 +78,7 @@ class AuthTestCdkProject extends TestCdkProjectBase {
       {
         stackName: this.stackName,
       },
-      '1.2', //version of the config
+      '1.3', //version of the config
       awsClientProvider
     );
 

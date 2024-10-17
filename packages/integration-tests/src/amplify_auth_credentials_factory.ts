@@ -33,7 +33,7 @@ export class AmplifyAuthCredentialsFactory {
    */
   constructor(
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    authConfig: NonNullable<ClientConfigVersionTemplateType<'1.2'>['auth']>
+    authConfig: NonNullable<ClientConfigVersionTemplateType<'1.3'>['auth']>
   ) {
     if (!authConfig.identity_pool_id) {
       throw new Error('Client config must have identity pool id.');

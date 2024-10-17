@@ -427,15 +427,15 @@ void describe('sandbox command', () => {
     );
   });
 
-  void it('sandbox creates an empty client config file if one does not already exist for version 1.2', async (contextual) => {
+  void it('sandbox creates an empty client config file if one does not already exist for version 1.3', async (contextual) => {
     contextual.mock.method(fs, 'existsSync', () => false);
     const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
-    await commandRunner.runCommand('sandbox --outputs-version 1.2');
+    await commandRunner.runCommand('sandbox --outputs-version 1.3');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[1],
-      `{\n  "version": "1.2"\n}`
+      `{\n  "version": "1.3"\n}`
     );
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],

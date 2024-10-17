@@ -12,6 +12,7 @@ import {
   clientConfigTypesV1,
   clientConfigTypesV1_1,
   clientConfigTypesV1_2,
+  clientConfigTypesV1_3,
 } from '../client-config-types/client_config.js';
 import { ModelIntrospectionSchemaAdapter } from '../model_introspection_schema_adapter.js';
 import { AwsAppsyncAuthorizationType } from '../client-config-schema/client_config_v1.1.js';
@@ -21,9 +22,22 @@ import { AmplifyStorageAccessRule } from '../client-config-schema/client_config_
 // the same schema (version and other types)
 
 /**
- * Translator for the version number of ClientConfig of V1.2
+ * Translator for the version number of ClientConfig of V1.3
  */
 export class VersionContributor implements ClientConfigContributor {
+  /**
+   * Return the version of the schema types that this contributor uses
+   */
+  contribute = (): ClientConfig => {
+    return { version: ClientConfigVersionOption.V1_3 };
+  };
+}
+
+/**
+ * Translator for the version number of ClientConfig of V1.2
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export class VersionContributorV1_2 implements ClientConfigContributor {
   /**
    * Return the version of the schema types that this contributor uses
    */
@@ -82,7 +96,7 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       obj[key] = JSON.parse(value);
     };
 
-    const authClientConfig: Partial<clientConfigTypesV1_2.AWSAmplifyBackendOutputs> =
+    const authClientConfig: Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs> =
       {};
 
     authClientConfig.auth = {
@@ -118,6 +132,12 @@ export class AuthClientConfigContributor implements ClientConfigContributor {
       authClientConfig.auth,
       'user_verification_types',
       authOutput.payload.verificationMechanisms
+    );
+
+    parseAndAssignObject(
+      authClientConfig.auth,
+      'groups',
+      authOutput.payload.groups
     );
 
     if (authOutput.payload.mfaConfiguration) {

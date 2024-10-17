@@ -325,7 +325,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.ok(fileContent.includes('newKey: string;')); // Env var added via addEnvironment
     assert.ok(fileContent.includes('TEST_SECRET: string;')); // Env var added via defineFunction
 
-    // assert storage access paths are correct in stack outputs
+    // assert specific config are correct in the outputs file
     const outputsObject = JSON.parse(
       await fs.readFile(
         path.join(this.projectDirPath, 'amplify_outputs.json'),
@@ -348,6 +348,21 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
           entityidentity: ['get', 'list', 'write', 'delete'],
         },
       })
+    );
+
+    assert.ok(
+      isMatch(outputsObject.auth.groups, [
+        {
+          Editors: {
+            precedence: 2, // previously 0 but was overwritten
+          },
+        },
+        {
+          Admins: {
+            precedence: 1,
+          },
+        },
+      ])
     );
   }
 

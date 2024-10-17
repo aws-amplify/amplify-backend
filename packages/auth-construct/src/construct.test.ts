@@ -1098,6 +1098,7 @@ void describe('Auth construct', () => {
               'oauthRedirectSignOut',
               'oauthResponseType',
               'oauthClientId',
+              'groups',
             ],
           },
         },
@@ -1479,6 +1480,34 @@ void describe('Auth construct', () => {
       });
       const outputs = template.findOutputs('*');
       assert.equal(outputs['socialProviders']['Value'], `["GOOGLE"]`);
+    });
+    void it('can override group precedence and correctly updates stored output', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      const auth = new AmplifyAuth(stack, 'test', {
+        loginWith: { email: true },
+        groups: ['admins', 'managers'],
+      });
+      auth.resources.groups['admins'].cfnUserGroup.precedence = 2;
+      const expectedGroups = [
+        {
+          admins: {
+            precedence: 2,
+          },
+        },
+        {
+          managers: {
+            precedence: 1,
+          },
+        },
+      ];
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::Cognito::UserPoolGroup', {
+        GroupName: 'admins',
+        Precedence: 2,
+      });
+      const outputs = template.findOutputs('*');
+      assert.equal(outputs['groups']['Value'], JSON.stringify(expectedGroups));
     });
   });
 

@@ -13,7 +13,7 @@ void describe('client config formatter', () => {
   const sampleIdentityPoolId = 'test_identity_pool_id';
   const sampleUserPoolClientId = 'test_user_pool_client_id';
   const clientConfig: ClientConfig = {
-    version: '1.2',
+    version: '1.3',
     auth: {
       aws_region: sampleRegion,
       identity_pool_id: sampleIdentityPoolId,
@@ -23,7 +23,7 @@ void describe('client config formatter', () => {
   };
 
   const expectedConfigReturned: ClientConfig = {
-    version: '1.2',
+    version: '1.3',
     auth: {
       aws_region: sampleRegion,
       identity_pool_id: sampleIdentityPoolId,
