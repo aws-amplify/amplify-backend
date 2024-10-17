@@ -15,6 +15,7 @@ import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-
 import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { STSClient } from '@aws-sdk/client-sts';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { ReferenceAuthTestProjectCreator } from './reference_auth_project.js';
 import { SQSClient } from '@aws-sdk/client-sqs';
 import { CloudTrailClient } from '@aws-sdk/client-cloudtrail';
 
@@ -46,6 +47,13 @@ export const getTestProjectCreators = (): TestProjectCreator[] => {
   const stsClient = new STSClient(e2eToolingClientConfig);
   const secretClient = getSecretClient(e2eToolingClientConfig);
   testProjectCreators.push(
+    new ReferenceAuthTestProjectCreator(
+      cfnClient,
+      amplifyClient,
+      cognitoIdentityProviderClient,
+      cognitoIdentityClient,
+      iamClient
+    ),
     new DataStorageAuthWithTriggerTestProjectCreator(
       cfnClient,
       amplifyClient,
