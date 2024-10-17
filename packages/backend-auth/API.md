@@ -5,6 +5,7 @@
 ```ts
 
 import { AmazonProviderProps } from '@aws-amplify/auth-construct';
+import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AppleProviderProps } from '@aws-amplify/auth-construct';
 import { AuthProps } from '@aws-amplify/auth-construct';
 import { AuthResources } from '@aws-amplify/plugin-types';
@@ -22,6 +23,7 @@ import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StackProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct';
+import { UserPoolSESOptions } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export type ActionIam = 'addUserToGroup' | 'createGroup' | 'createUser' | 'deleteGroup' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getGroup' | 'getUser' | 'listUsers' | 'listUsersInGroup' | 'listGroups' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateGroup' | 'updateUserAttributes';
@@ -36,10 +38,13 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 };
 
 // @public (undocumented)
-export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
+export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith' | 'senders'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
     access?: AuthAccessGenerator;
+    senders?: {
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | ConstructFactory<AmplifyFunction>;
+    };
 }>;
 
 // @public
