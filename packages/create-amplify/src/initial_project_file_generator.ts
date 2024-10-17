@@ -29,12 +29,6 @@ export class InitialProjectFileGenerator {
       { recursive: true }
     );
 
-    const packageJsonContent = { type: 'module' };
-    await this.fsp.writeFile(
-      this.path.resolve(targetDir, 'package.json'),
-      JSON.stringify(packageJsonContent, null, 2)
-    );
-
     await this.packageManagerController.initializeTsConfig(targetDir);
   };
 }
