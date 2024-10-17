@@ -1489,14 +1489,18 @@ void describe('Auth construct', () => {
         groups: ['admins', 'managers'],
       });
       auth.resources.groups['admins'].cfnUserGroup.precedence = 2;
-      const expectedGroups = {
-        admins: {
-          precedence: 2,
+      const expectedGroups = [
+        {
+          admins: {
+            precedence: 2,
+          },
         },
-        managers: {
-          precedence: 1,
+        {
+          managers: {
+            precedence: 1,
+          },
         },
-      };
+      ];
       const template = Template.fromStack(stack);
       template.hasResourceProperties('AWS::Cognito::UserPoolGroup', {
         GroupName: 'admins',
