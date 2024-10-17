@@ -246,6 +246,23 @@ export class ConversationMessageHistoryRetriever {
             contentBlock[property] = undefined;
           }
         }
+
+        if (typeof contentBlock.toolUse?.input === 'string') {
+          // toolUse.input may come as serialized JSON for Client Tools.
+          // Parse it in that case.
+          contentBlock.toolUse.input = JSON.parse(contentBlock.toolUse.input);
+        }
+        if (contentBlock.toolResult?.content) {
+          contentBlock.toolResult.content.forEach((toolResultContentBlock) => {
+            if (typeof toolResultContentBlock.json === 'string') {
+              // toolResult.content[].json may come as serialized JSON for Client Tools.
+              // Parse it in that case.
+              toolResultContentBlock.json = JSON.parse(
+                toolResultContentBlock.json
+              );
+            }
+          });
+        }
       });
     });
 
