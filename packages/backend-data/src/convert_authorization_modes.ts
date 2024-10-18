@@ -20,6 +20,7 @@ import {
 import {
   AuthResources,
   ConstructFactoryGetInstanceProps,
+  ReferenceAuthResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
@@ -38,14 +39,14 @@ export type ProvidedAuthConfig = {
  * Function instance provider which uses the
  */
 export const buildConstructFactoryProvidedAuthConfig = (
-  authResourceProvider: ResourceProvider<AuthResources> | undefined
+  authResourceProvider:
+    | ResourceProvider<AuthResources | ReferenceAuthResources>
+    | undefined
 ): ProvidedAuthConfig | undefined => {
   if (!authResourceProvider) return;
-
   return {
     userPool: authResourceProvider.resources.userPool,
-    identityPoolId:
-      authResourceProvider.resources.cfnResources.cfnIdentityPool.ref,
+    identityPoolId: authResourceProvider.resources.identityPoolId,
     authenticatedUserRole:
       authResourceProvider.resources.authenticatedUserIamRole,
     unauthenticatedUserRole:

@@ -1,56 +1,35 @@
-import * as path from 'path';
-import { Policy } from 'aws-cdk-lib/aws-iam';
-import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
-import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import {
-  AmplifyAuth,
-  AuthProps,
-  TriggerEvent,
-} from '@aws-amplify/auth-construct';
-import {
-  AuthResources,
   AuthRoleName,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
-  FunctionResources,
   GenerateContainerEntryProps,
+  ReferenceAuthResources,
   ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
   StackProvider,
 } from '@aws-amplify/plugin-types';
-import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
-import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
-import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js';
+import { AuthAccessGenerator, Expand } from './types.js';
 import {
-  AuthAccessGenerator,
-  AuthLoginWithFactoryProps,
-  Expand,
-} from './types.js';
-import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
+  AmplifyReferenceAuth,
+  ReferenceAuthProps,
+} from '@aws-amplify/auth-construct';
+import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
+import path from 'path';
+import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
+import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js';
 import { Stack, Tags } from 'aws-cdk-lib';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
+import { AmplifyAuthFactory } from './factory.js';
 
-export type BackendAuth = ResourceProvider<AuthResources> &
+export type BackendReferenceAuth = ResourceProvider<ReferenceAuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName | string> &
   StackProvider;
 
-export type AmplifyAuthProps = Expand<
-  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
-    /**
-     * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
-     */
-    loginWith: Expand<AuthLoginWithFactoryProps>;
-    /**
-     * Configure custom auth triggers
-     * @see https://docs.amplify.aws/react/build-a-backend/auth/customize-auth-lifecycle/triggers/
-     */
-    triggers?: Partial<
-      Record<
-        TriggerEvent,
-        ConstructFactory<ResourceProvider<FunctionResources>>
-      >
-    >;
+export type AmplifyReferenceAuthProps = Expand<
+  Omit<ReferenceAuthProps, 'outputStorageStrategy'> & {
     /**
      * Configure access to auth for other Amplify resources
      * @see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/
@@ -62,25 +41,23 @@ export type AmplifyAuthProps = Expand<
     access?: AuthAccessGenerator;
   }
 >;
-
 /**
- * Singleton factory for AmplifyAuth that can be used in Amplify project files.
+ * Singleton factory for AmplifyReferenceAuth that can be used in Amplify project files.
  *
  * Exported for testing purpose only & should NOT be exported out of the package.
  */
-export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
-  // publicly accessible for testing purpose only.
-  static factoryCount = 0;
-
+export class AmplifyReferenceAuthFactory
+  implements ConstructFactory<BackendReferenceAuth>
+{
   readonly provides = 'AuthResources';
 
   private generator: ConstructContainerEntryGenerator;
 
   /**
-   * Set the properties that will be used to initialize AmplifyAuth
+   * Set the properties that will be used to initialize AmplifyReferenceAuth
    */
   constructor(
-    private readonly props: AmplifyAuthProps,
+    private readonly props: AmplifyReferenceAuthProps,
     // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
     private readonly importStack = new Error().stack
   ) {
@@ -93,70 +70,61 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
     }
     AmplifyAuthFactory.factoryCount++;
   }
-
   /**
-   * Get a singleton instance of AmplifyAuth
+   * Get a singleton instance of AmplifyReferenceAuth
    */
   getInstance = (
     getInstanceProps: ConstructFactoryGetInstanceProps
-  ): BackendAuth => {
-    const { constructContainer, importPathVerifier, resourceNameValidator } =
-      getInstanceProps;
+  ): BackendReferenceAuth => {
+    const { constructContainer, importPathVerifier } = getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'auth', 'resource'),
       'Amplify Auth must be defined in amplify/auth/resource.ts'
     );
-    if (this.props.name) {
-      resourceNameValidator?.validate(this.props.name);
-    }
     if (!this.generator) {
-      this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
+      this.generator = new AmplifyReferenceAuthGenerator(
+        this.props,
+        getInstanceProps
+      );
     }
-    return constructContainer.getOrCompute(this.generator) as BackendAuth;
+    return constructContainer.getOrCompute(
+      this.generator
+    ) as BackendReferenceAuth;
   };
 }
-
-class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
+class AmplifyReferenceAuthGenerator
+  implements ConstructContainerEntryGenerator
+{
   readonly resourceGroupName = 'auth';
   private readonly name: string;
 
   constructor(
-    private readonly props: AmplifyAuthProps,
+    private readonly props: AmplifyReferenceAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly authAccessBuilder = _authAccessBuilder,
     private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
   ) {
-    this.name = props.name ?? 'amplifyAuth';
+    this.name = 'amplifyAuth';
   }
 
   generateContainerEntry = ({
     scope,
-    backendSecretResolver,
     ssmEnvironmentEntriesGenerator,
-    stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
-    const authProps: AuthProps = {
+    const authProps: ReferenceAuthProps = {
       ...this.props,
-      loginWith: translateToAuthConstructLoginWith(
-        this.props.loginWith,
-        backendSecretResolver
-      ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
-    if (authProps.loginWith.externalProviders) {
-      authProps.loginWith.externalProviders.domainPrefix =
-        stableBackendIdentifiers.getStableBackendHash();
-    }
 
-    let authConstruct: AmplifyAuth;
+    let authConstruct: AmplifyReferenceAuth;
     try {
-      authConstruct = new AmplifyAuth(scope, this.name, authProps);
+      authConstruct = new AmplifyReferenceAuth(scope, this.name, authProps);
     } catch (error) {
       throw new AmplifyUserError(
-        'AmplifyAuthConstructInitializationError',
+        'AmplifyReferenceAuthConstructInitializationError',
         {
-          message: 'Failed to instantiate auth construct',
+          message: 'Failed to instantiate reference auth construct',
           resolution: 'See the underlying error message for more details.',
         },
         error as Error
@@ -165,16 +133,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
 
     Tags.of(authConstruct).add(TagName.FRIENDLY_NAME, this.name);
 
-    Object.entries(this.props.triggers || {}).forEach(
-      ([triggerEvent, handlerFactory]) => {
-        (authConstruct.resources.userPool as UserPool).addTrigger(
-          UserPoolOperation.of(triggerEvent),
-          handlerFactory.getInstance(this.getInstanceProps).resources.lambda
-        );
-      }
-    );
-
-    const authConstructMixin: BackendAuth = {
+    const authConstructMixin: BackendReferenceAuth = {
       ...authConstruct,
       /**
        * Returns a resourceAccessAcceptor for the given role
@@ -234,10 +193,14 @@ const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
 };
 
 /**
- * Provide the settings that will be used for authentication.
+ * Provide references to existing auth resources.
  */
-export const defineAuth = (
-  props: AmplifyAuthProps
-): ConstructFactory<BackendAuth> =>
-  // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-  new AmplifyAuthFactory(props, new Error().stack);
+export const referenceAuth = (
+  props: AmplifyReferenceAuthProps
+): ConstructFactory<BackendReferenceAuth> => {
+  return new AmplifyReferenceAuthFactory(
+    props,
+    // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
+    new Error().stack
+  );
+};
