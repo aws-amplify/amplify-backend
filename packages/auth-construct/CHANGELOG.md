@@ -1,5 +1,13 @@
 # @aws-amplify/auth-construct
 
+## 1.3.2
+
+### Patch Changes
+
+- 5f46d8d: add user groups to outputs
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
 ## 1.3.1
 
 ### Patch Changes
