@@ -239,6 +239,19 @@ jobs:
           link_cli: true
           run: |
             npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js
+  e2e_find_sandbox_tests:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      testPaths: ${{ steps.findSandboxTests.outputs.sandbox_tests }}
+    timeout-minutes: 5
+    needs:
+      - do_include_e2e
+      - build
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - id: findSandboxTests
+        run: echo "sandbox_tests=$(npx tsx scripts/find_sandbox_tests.ts)" >> "$GITHUB_OUTPUT"
   e2e_sandbox:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -247,6 +260,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-14-xlarge, windows-latest]
         node-version: [18, 20]
+        testPath: ${{ fromJson(needs.e2e_find_sandbox_tests.outputs.testPaths) }}
         # skip multiple node version test on other os
         exclude:
           - os: macos-14-xlarge
@@ -258,6 +272,7 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - e2e_find_sandbox_tests
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write

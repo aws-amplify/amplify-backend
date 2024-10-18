@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { SecretClient } from '@aws-amplify/backend-secret';
+import { getSecretClient, SecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -46,15 +46,29 @@ export class DataStorageAuthWithTriggerTestProjectCreator
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient,
-    private readonly secretClient: SecretClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly s3Client: S3Client,
-    private readonly iamClient: IAMClient,
-    private readonly sqsClient: SQSClient,
-    private readonly cloudTrailClient: CloudTrailClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    ),
+    private readonly secretClient: SecretClient = getSecretClient(
+      e2eToolingClientConfig
+    ),
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly s3Client: S3Client = new S3Client(e2eToolingClientConfig),
+    private readonly iamClient: IAMClient = new IAMClient(
+      e2eToolingClientConfig
+    ),
+    private readonly sqsClient: SQSClient = new SQSClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cloudTrailClient: CloudTrailClient = new CloudTrailClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
