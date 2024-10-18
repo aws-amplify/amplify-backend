@@ -4,6 +4,7 @@ import {
   DescribeStackResourcesCommand,
 } from '@aws-sdk/client-cloudformation';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import { e2eToolingClientConfig } from './e2e_tooling_client_config.js';
 
 export type StringPredicate = (str: string) => boolean;
 
@@ -14,7 +15,11 @@ export class DeployedResourcesFinder {
   /**
    * Construct with a cfnClient
    */
-  constructor(private readonly cfnClient: CloudFormationClient) {}
+  constructor(
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    )
+  ) {}
 
   /**
    * Find resources of type "resourceType" within the stack defined by "backendId"

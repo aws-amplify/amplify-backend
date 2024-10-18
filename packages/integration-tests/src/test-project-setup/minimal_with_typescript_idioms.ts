@@ -4,6 +4,7 @@ import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 /**
  * Creates minimal test projects with typescript idioms.
@@ -17,8 +18,12 @@ export class MinimalWithTypescriptIdiomTestProjectCreator
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    )
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {

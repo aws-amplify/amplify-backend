@@ -22,7 +22,9 @@ export class AuthTestCdkProjectCreator implements TestCdkProjectCreator {
   /**
    * Constructor.
    */
-  constructor(private readonly resourceFinder: DeployedResourcesFinder) {}
+  constructor(
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+  ) {}
 
   createProject = async (
     e2eProjectDir: string
