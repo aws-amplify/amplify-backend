@@ -264,11 +264,11 @@ jobs:
         node-version: [18, 20]
         testPath: ${{ fromJson(needs.e2e_find_sandbox_tests.outputs.testPaths) }}
         # skip multiple node version test on other os
-#        exclude:
-#          - os: macos-14-xlarge
-#            node-version: 20
-#          - os: windows-latest
-#            node-version: 20
+        exclude:
+          - os: macos-14-xlarge
+            node-version: 20
+          - os: windows-latest
+            node-version: 20
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
