@@ -24,7 +24,9 @@ import { testConcurrencyLevel } from '../test_concurrency.js';
 /**
  * Defines deployment test
  */
-export const defineDeploymentTest = (testProjectCreator: TestProjectCreator) => {
+export const defineDeploymentTest = (
+  testProjectCreator: TestProjectCreator
+) => {
   void describe(
     'deployment tests',
     { concurrency: testConcurrencyLevel },
