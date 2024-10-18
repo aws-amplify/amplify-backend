@@ -1,5 +1,6 @@
 // Versions of config schemas supported by this package version
 import {
+  AuthClientConfigContributorV1_1 as Auth1_1,
   AuthClientConfigContributor as Auth1_3,
   CustomClientConfigContributor as Custom1_1,
   DataClientConfigContributor as Data1_1,
@@ -43,7 +44,7 @@ export class ClientConfigContributorFactory {
       ],
 
       [ClientConfigVersionOption.V1_2]: [
-        new Auth1_3(),
+        new Auth1_1(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Storage1_2(),
         new VersionContributorV1_2(),
@@ -51,7 +52,7 @@ export class ClientConfigContributorFactory {
       ],
 
       [ClientConfigVersionOption.V1_1]: [
-        new Auth1_3(),
+        new Auth1_1(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Storage1_1(),
         new VersionContributorV1_1(),
@@ -60,7 +61,7 @@ export class ClientConfigContributorFactory {
 
       // Except for storage and version, other contributors are same as V1
       [ClientConfigVersionOption.V1]: [
-        new Auth1_3(),
+        new Auth1_1(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Storage1(),
         new VersionContributorV1(),
@@ -69,7 +70,7 @@ export class ClientConfigContributorFactory {
 
       // Legacy config is derived from V1.3 (latest) of unified default config
       [ClientConfigVersionOption.V0]: [
-        new Auth1_3(),
+        new Auth1_1(),
         new Data1_1(this.modelIntrospectionSchemaAdapter),
         new Storage1_2(),
         new VersionContributor1_3(),
