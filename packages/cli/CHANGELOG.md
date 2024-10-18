@@ -1,5 +1,14 @@
 # @aws-amplify/backend-cli
 
+## 1.2.10
+
+### Patch Changes
+
+- 5f46d8d: add user groups to outputs
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+  - @aws-amplify/client-config@1.5.0
+
 ## 1.2.9
 
 ### Patch Changes
