@@ -206,6 +206,21 @@ jobs:
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
+  e2e_find_deployment_tests:
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      testPaths: ${{ steps.findDeploymentTests.outputs.deployment_tests }}
+    timeout-minutes: 5
+    needs:
+      - do_include_e2e
+      - build
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+      - uses: ./.github/actions/restore_build_cache
+      - run: echo "$(npx tsx scripts/find_deployment_tests.ts)"
+      - id: findDeploymentTests
+        run: echo "deployment_tests=$(npx tsx scripts/find_deployment_tests.ts)" >> "$GITHUB_OUTPUT"
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -214,6 +229,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-14-xlarge, windows-latest]
         node-version: [18, 20]
+        testPath: ${{ fromJson(needs.e2e_find_deployment_tests.outputs.testPaths) }}
         # skip multiple node version test on other os
         exclude:
           - os: macos-14-xlarge
@@ -225,6 +241,7 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - e2e_find_deployment_tests
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -238,7 +255,7 @@ jobs:
           node_version: ${{ matrix.node-version }}
           link_cli: true
           run: |
-            npm run test:dir packages/integration-tests/lib/test-e2e/deployment.test.js
+            npm run test:dir ${{ matrix.testPath }}
   e2e_find_sandbox_tests:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -334,8 +351,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - uses: ./.github/actions/restore_build_cache
       - run: cd packages/cli && npm link
-#      - name: Run e2e create-amplify tests
-#        run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
+      - name: Run e2e create-amplify tests
+        run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -359,14 +376,14 @@ jobs:
     steps:
       - name: Checkout aws-amplify/amplify-backend repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-#      - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
-#        uses: ./.github/actions/run_with_e2e_account
-#        with:
-#          e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-#          node_version: ${{ matrix.node-version }}
-#          shell: bash
-#          run: |
-#            PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
+      - name: Run E2E flow tests with ${{ matrix.pkg-manager }}
+        uses: ./.github/actions/run_with_e2e_account
+        with:
+          e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
+          node_version: ${{ matrix.node-version }}
+          shell: bash
+          run: |
+            PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
   lint:
     runs-on: ubuntu-latest
     needs:
