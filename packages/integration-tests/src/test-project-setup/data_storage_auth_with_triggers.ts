@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { getSecretClient, SecretClient } from '@aws-amplify/backend-secret';
+import { SecretClient, getSecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
