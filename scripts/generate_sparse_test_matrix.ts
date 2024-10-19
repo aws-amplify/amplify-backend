@@ -38,9 +38,9 @@ for (const test of tests) {
   do {
     matrix.include?.push({
       test,
-      directory,
       os: osKinds[osIndex],
       'node-version': nodeVersions[nodeVersionIndex],
+      directory,
     });
 
     osIndex++;
