@@ -228,7 +228,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.e2e_generate_deployment_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
-    name: E2E Deployment ${{ matrix.tests }} ${{ matrix.node-version }} ${{ matrix.os }}
+    name: e2e_deployment ${{ matrix.tests }} ${{ matrix.node-version }} ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
       - do_include_e2e
@@ -270,7 +270,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.e2e_generate_sandbox_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
-    name: E2E Sandbox ${{ matrix.tests }} ${{ matrix.node-version }} ${{ matrix.os }}
+    name: e2e_sandbox ${{ matrix.tests }} ${{ matrix.node-version }} ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
       - do_include_e2e
