@@ -228,6 +228,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.e2e_generate_deployment_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
+    name: E2E Deployment ${{ matrix.tests }} ${{ matrix.node-version }} ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
       - do_include_e2e
@@ -246,7 +247,7 @@ jobs:
           node_version: ${{ matrix.node-version }}
           link_cli: true
           run: |
-            npm run test:dir ${{ matrix.directory }}/${{ matrix.test }}
+            npm run test:dir ${{ matrix.testPaths }}
   e2e_generate_sandbox_tests_matrix:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -269,6 +270,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.e2e_generate_sandbox_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
+    name: E2E Sandbox ${{ matrix.tests }} ${{ matrix.node-version }} ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
       - do_include_e2e
@@ -286,7 +288,7 @@ jobs:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
           link_cli: true
-          run: npm run test:dir ${{ matrix.directory }}/${{ matrix.test }}
+          run: npm run test:dir ${{ matrix.testPaths }}
   e2e_backend_output:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest

@@ -9,14 +9,15 @@ type JobMatrix = {
 // Every test must run on each type of OS and each version of node.
 // However, we don't have to run every combination.
 
-if (process.argv.length !== 4) {
+if (process.argv.length < 4) {
   console.log(
-    'Usage: npx tsx scripts/generate_sparse_test_matrix.ts <directory> <test-glob-pattern>'
+    'Usage: npx tsx scripts/generate_sparse_test_matrix.ts <directory> <test-glob-pattern> <max-tests-per-job?>'
   );
 }
 
 const directory = process.argv[2];
 const testGlobPattern = process.argv[3];
+const maxTestsPerJob = process.argv[4] ? parseInt(process.argv[4]) : 2;
 
 const tests = await glob(testGlobPattern, {
   cwd: directory,
@@ -29,7 +30,15 @@ matrix.include = [];
 const osKinds = ['ubuntu-latest', 'macos-14-xlarge', 'windows-latest'];
 const nodeVersions = ['18', '20'];
 
-for (const test of tests) {
+const chunks = <T>(array: Array<T>, chunkSize: number) => {
+  const result: Array<Array<T>> = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    result.push(array.slice(i, i + chunkSize));
+  }
+  return result;
+};
+
+for (const testBatch of chunks(tests, maxTestsPerJob)) {
   let allOsCovered = false;
   let allNodeVersionsCovered = false;
   let osIndex = 0;
@@ -37,10 +46,10 @@ for (const test of tests) {
 
   do {
     matrix.include?.push({
-      test,
-      os: osKinds[osIndex],
+      tests: testBatch.join(' '),
       'node-version': nodeVersions[nodeVersionIndex],
-      directory,
+      os: osKinds[osIndex],
+      testPaths: testBatch.map((test) => `${directory}/${test}`).join(' '),
     });
 
     osIndex++;
