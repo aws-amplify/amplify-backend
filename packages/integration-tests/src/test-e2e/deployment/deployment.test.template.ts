@@ -1,7 +1,6 @@
-import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
+import { afterEach, before, beforeEach, describe, it } from 'node:test';
 import {
   createTestDirectory,
-  deleteTestDirectory,
   rootTestDir,
 } from '../../setup_test_directory.js';
 import fs from 'fs/promises';
@@ -33,9 +32,6 @@ export const defineDeploymentTest = (
     () => {
       before(async () => {
         await createTestDirectory(rootTestDir);
-      });
-      after(async () => {
-        await deleteTestDirectory(rootTestDir);
       });
 
       void describe(`branch deploys ${testProjectCreator.name}`, () => {

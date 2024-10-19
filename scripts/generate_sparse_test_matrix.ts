@@ -1,13 +1,13 @@
 import { glob } from 'glob';
 
-// See https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
-type JobMatrix = {
-  include?: Array<Record<string, string>>;
-} & Record<string, string>;
-
 // This script generates a sparse test matrix.
 // Every test must run on each type of OS and each version of node.
 // However, we don't have to run every combination.
+
+// See https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
+export type JobMatrix = {
+  include?: Array<Record<string, string>>;
+} & Record<string, string>;
 
 if (process.argv.length < 4) {
   console.log(

@@ -1,7 +1,6 @@
 import { after, before, describe, it } from 'node:test';
 import {
   createTestDirectory,
-  deleteTestDirectory,
   rootTestDir,
 } from '../../setup_test_directory.js';
 import { TestProjectCreator } from '../../test-project-setup/test_project_creator.js';
@@ -29,9 +28,6 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
   void describe('sandbox test', { concurrency: testConcurrencyLevel }, () => {
     before(async () => {
       await createTestDirectory(rootTestDir);
-    });
-    after(async () => {
-      await deleteTestDirectory(rootTestDir);
     });
 
     void describe(`sandbox deploys ${testProjectCreator.name}`, () => {
