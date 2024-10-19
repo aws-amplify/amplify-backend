@@ -1,6 +1,6 @@
-// See https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
 import { glob } from 'glob';
 
+// See https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
 type JobMatrix = {
   include?: Array<Record<string, string>>;
 } & Record<string, string>;
