@@ -19,6 +19,7 @@
   "birthdate",
   "bundler",
   "callee",
+  "cartesian",
   "cdk",
   "changelog",
   "changeset",
@@ -170,6 +171,7 @@
   "tslint",
   "typename",
   "typeof",
+  "ubuntu",
   "unauth",
   "unix",
   "unlink",
@@ -188,6 +190,7 @@
   "wildcards",
   "workspace",
   "writev",
+  "xlarge",
   "yaml",
   "yargs",
   "zoneinfo"
