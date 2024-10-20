@@ -9,8 +9,7 @@ void describe('Sparse matrix generator', () => {
       new URL('./test-resources/sparse-generator-test-stubs', import.meta.url)
     );
     const matrix = await new SparseTestMatrixGenerator({
-      testGlobPattern: '*.test.ts',
-      testDirectory,
+      testGlobPattern: `${testDirectory}/*.test.ts`,
       dimensions: {
         dimension1: ['dim1val1', 'dim1val2', 'dim1,val3'],
         dimension2: ['dim2val1', 'dim2val2'],
@@ -21,37 +20,37 @@ void describe('Sparse matrix generator', () => {
     assert.deepStrictEqual(matrix, {
       include: [
         {
-          tests: 'test3.test.ts test2.test.ts',
+          displayNames: 'test3.test.ts test2.test.ts',
           dimension1: 'dim1val1',
           dimension2: 'dim2val1',
           testPaths: `${testDirectory}/test3.test.ts ${testDirectory}/test2.test.ts`,
         },
         {
-          tests: 'test3.test.ts test2.test.ts',
+          displayNames: 'test3.test.ts test2.test.ts',
           dimension1: 'dim1val2',
           dimension2: 'dim2val2',
           testPaths: `${testDirectory}/test3.test.ts ${testDirectory}/test2.test.ts`,
         },
         {
-          tests: 'test3.test.ts test2.test.ts',
+          displayNames: 'test3.test.ts test2.test.ts',
           dimension1: 'dim1,val3',
           dimension2: 'dim2val1',
           testPaths: `${testDirectory}/test3.test.ts ${testDirectory}/test2.test.ts`,
         },
         {
-          tests: 'test1.test.ts',
+          displayNames: 'test1.test.ts',
           dimension1: 'dim1val1',
           dimension2: 'dim2val1',
           testPaths: `${testDirectory}/test1.test.ts`,
         },
         {
-          tests: 'test1.test.ts',
+          displayNames: 'test1.test.ts',
           dimension1: 'dim1val2',
           dimension2: 'dim2val2',
           testPaths: `${testDirectory}/test1.test.ts`,
         },
         {
-          tests: 'test1.test.ts',
+          displayNames: 'test1.test.ts',
           dimension1: 'dim1,val3',
           dimension2: 'dim2val1',
           testPaths: `${testDirectory}/test1.test.ts`,

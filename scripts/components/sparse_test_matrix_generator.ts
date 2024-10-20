@@ -1,4 +1,5 @@
 import { glob } from 'glob';
+import path from 'path';
 
 // See https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/running-variations-of-jobs-in-a-workflow
 type JobMatrix = {
@@ -6,7 +7,6 @@ type JobMatrix = {
 } & Record<string, string>;
 
 export type SparseTestMatrixGeneratorProps = {
-  testDirectory: string;
   testGlobPattern: string;
   maxTestsPerJob: number;
   dimensions: Record<string, Array<string>>;
@@ -31,14 +31,15 @@ export class SparseTestMatrixGenerator {
   }
 
   generate = async (): Promise<JobMatrix> => {
-    const tests = await glob(this.props.testGlobPattern, {
-      cwd: this.props.testDirectory,
-    });
+    const testPaths = await glob(this.props.testGlobPattern);
 
     const matrix: JobMatrix = {};
     matrix.include = [];
 
-    for (const testBatch of this.chunkArray(tests, this.props.maxTestsPerJob)) {
+    for (const testPathsBatch of this.chunkArray(
+      testPaths,
+      this.props.maxTestsPerJob
+    )) {
       const dimensionsIndexes: Record<string, number> = {};
       const dimensionCoverageComplete: Record<string, boolean> = {};
 
@@ -51,13 +52,13 @@ export class SparseTestMatrixGenerator {
 
       do {
         const matrixEntry: Record<string, string> = {};
-        matrixEntry.tests = testBatch.join(' ');
+        matrixEntry.displayNames = testPathsBatch
+          .map((testPath) => path.basename(testPath))
+          .join(' ');
         Object.keys(this.props.dimensions).forEach((key) => {
           matrixEntry[key] = this.props.dimensions[key][dimensionsIndexes[key]];
         });
-        matrixEntry.testPaths = testBatch
-          .map((test) => `${this.props.testDirectory}/${test}`)
-          .join(' ');
+        matrixEntry.testPaths = testPathsBatch.join(' ');
         matrix.include?.push(matrixEntry);
 
         Object.keys(this.props.dimensions).forEach((key) => {

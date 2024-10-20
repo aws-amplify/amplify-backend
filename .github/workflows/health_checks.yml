@@ -218,9 +218,9 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
-      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts packages/integration-tests/lib/test-e2e/deployment *.deployment.test.js)"
+      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js')"
       - id: generateMatrix
-        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts packages/integration-tests/lib/test-e2e/deployment *.deployment.test.js)" >> "$GITHUB_OUTPUT"
+        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js')" >> "$GITHUB_OUTPUT"
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -228,7 +228,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.e2e_generate_deployment_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
-    name: e2e_deployment ${{ matrix.tests }} ${{ matrix.node-version }} ${{ matrix.os }}
+    name: e2e_deployment ${{ matrix.displayNames }} ${{ matrix.node-version }} ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
       - do_include_e2e
@@ -260,9 +260,9 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
-      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts packages/integration-tests/lib/test-e2e/sandbox *.sandbox.test.js)"
+      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js')"
       - id: generateMatrix
-        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts packages/integration-tests/lib/test-e2e/sandbox *.sandbox.test.js)" >> "$GITHUB_OUTPUT"
+        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js')" >> "$GITHUB_OUTPUT"
   e2e_sandbox:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -270,7 +270,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.e2e_generate_sandbox_tests_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
-    name: e2e_sandbox ${{ matrix.tests }} ${{ matrix.node-version }} ${{ matrix.os }}
+    name: e2e_sandbox ${{ matrix.displayNames }} ${{ matrix.node-version }} ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
       - do_include_e2e
