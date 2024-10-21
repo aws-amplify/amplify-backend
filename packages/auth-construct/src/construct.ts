@@ -465,6 +465,49 @@ export class AmplifyAuth
     }
     const mfaType = this.getMFAType(props.multifactor);
     const mfaMode = this.getMFAMode(props.multifactor);
+    // Notifying the users if premium features are enabled when ASF is not
+    if (mfaMode && mfaMode !== 'OFF') {
+      // eslint-disable-next-line no-console
+      console.warn(
+        "Warning: [auth] enabling multifactor with email opts into Amazon Cognito's Advanced Security Features, which includes an increase in price per monthly active user. To learn more visit https://aws.amazon.com/cognito/features/."
+      );
+    }
+
+    // Check if email OTP is enabled
+    const isEmailOTPEnabled = mfaMode && mfaMode !== 'OFF' && mfaType?.email;
+    // Check if email is a required attribute
+    const isEmailRequired = (props: AuthProps) => {
+      const emailAttribute = props.userAttributes?.email;
+      if (emailAttribute && typeof emailAttribute === 'object') {
+        return emailAttribute.required === true;
+      }
+      // If email is not explicitly defined in userAttributes, check if it's a login mechanism
+      return props.loginWith.email ? true : false;
+    };
+    // Warning if email OTP is enabled but email is not a login mechanism
+    if (isEmailOTPEnabled && !emailEnabled) {
+      //  eslint-disable-next-line no-console
+      console.warn(
+        'Warning: Email OTP is enabled, but email is not set as a login mechanism. This may cause issues.'
+      );
+    }
+
+    // Warning if email OTP is enabled but email is not a required attribute
+    if (isEmailOTPEnabled && !isEmailRequired) {
+      //  eslint-disable-next-line no-console
+      console.warn(
+        'Warning: Email OTP is enabled, but email is not set as a required attribute. This may cause issues.'
+      );
+    }
+    let advancedSecurityMode = AdvancedSecurityMode.OFF;
+    //Enforcing ASF when premium features are enabled
+    if (mfaMode && mfaMode !== 'OFF' && mfaType?.email) {
+      //  eslint-disable-next-line no-console
+      console.warn(
+        'Premium features are enabled. Advanced Security Features (ASF) will be enforced.'
+      );
+      advancedSecurityMode = AdvancedSecurityMode.ENFORCED;
+    }
 
     // If phone login is enabled along with MFA, cognito requires that mfa SMS type to be enabled.
     if (phoneEnabled && mfaMode && mfaMode !== 'OFF' && !mfaType?.sms) {
@@ -549,9 +592,7 @@ export class AmplifyAuth
         phoneEnabled,
         props.accountRecovery
       ),
-      advancedSecurityMode: mfaType?.email
-        ? AdvancedSecurityMode.ENFORCED
-        : undefined,
+      advancedSecurityMode: advancedSecurityMode,
       removalPolicy: RemovalPolicy.DESTROY,
       userInvitation:
         typeof props.loginWith.email !== 'boolean'

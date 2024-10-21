@@ -544,6 +544,137 @@ void describe('Auth construct', () => {
       }
     );
   });
+  void it('warns when enabling email MFA without ASF', () => {
+    const app = new App();
+    const stack = new Stack(app);
+
+    // Capture console.warn output
+    //  eslint-disable-next-line no-console
+    const originalWarn = console.warn;
+    const warnings: string[] = [];
+    //  eslint-disable-next-line no-console
+    console.warn = (message: string) => warnings.push(message);
+
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      multifactor: {
+        mode: 'OPTIONAL',
+        email: true,
+      },
+      senders: {
+        email: {
+          fromEmail: 'test@example.com',
+          fromName: 'Test',
+          replyTo: 'noreply@example.com',
+        },
+      },
+    });
+
+    // Restore console.warn
+    //  eslint-disable-next-line no-console
+    console.warn = originalWarn;
+
+    assert(
+      warnings.some((warning) =>
+        warning.includes(
+          "Warning: [auth] enabling multifactor with email opts into Amazon Cognito's Advanced Security Features"
+        )
+      )
+    );
+  });
+
+  void it('warns when enabling email MFA without email login', () => {
+    const app = new App();
+    const stack = new Stack(app);
+
+    // Capture console.warn output
+    //  eslint-disable-next-line no-console
+    const originalWarn = console.warn;
+    const warnings: string[] = [];
+    //  eslint-disable-next-line no-console
+    //  eslint-disable-next-line no-console
+    console.warn = (message: string) => warnings.push(message);
+
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        phone: true,
+      },
+      multifactor: {
+        mode: 'OPTIONAL',
+        email: true,
+        sms: true,
+      },
+      senders: {
+        email: {
+          fromEmail: 'test@example.com',
+          fromName: 'Test',
+          replyTo: 'noreply@example.com',
+        },
+      },
+    });
+
+    // Restore console.warn
+    //  eslint-disable-next-line no-console
+    console.warn = originalWarn;
+
+    assert(
+      warnings.some((warning) =>
+        warning.includes(
+          'Warning: Email OTP is enabled, but email is not set as a login mechanism. This may cause issues.'
+        )
+      )
+    );
+  });
+
+  void it('warns when premium features are enabled and enforces ASF', () => {
+    const app = new App();
+    const stack = new Stack(app);
+
+    // Capture console.warn output
+    //  eslint-disable-next-line no-console
+    const originalWarn = console.warn;
+    const warnings: string[] = [];
+    //  eslint-disable-next-line no-console
+    console.warn = (message: string) => warnings.push(message);
+
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      multifactor: {
+        mode: 'OPTIONAL',
+        email: true,
+      },
+      senders: {
+        email: {
+          fromEmail: 'test@example.com',
+          fromName: 'Test',
+          replyTo: 'noreply@example.com',
+        },
+      },
+    });
+
+    // Restore console.warn
+    //  eslint-disable-next-line no-console
+    console.warn = originalWarn;
+
+    assert(
+      warnings.some((warning) =>
+        warning.includes(
+          'Premium features are enabled. Advanced Security Features (ASF) will be enforced.'
+        )
+      )
+    );
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      UserPoolAddOns: {
+        AdvancedSecurityMode: 'ENFORCED',
+      },
+    });
+  });
 
   void it('configures Cognito to send emails with SES when senders field is populated', () => {
     const app = new App();
