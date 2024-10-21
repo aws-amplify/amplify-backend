@@ -32,6 +32,7 @@ import {
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -100,11 +101,19 @@ export class ConversationHandlerTestProjectCreator
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    ),
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -155,9 +164,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
     amplifyClient: AmplifyClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {
     super(
       name,
