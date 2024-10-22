@@ -584,13 +584,9 @@ const listAllStaleTestLogGroups = async (): Promise<Array<LogGroup>> => {
     listLogGroupsResponse.logGroups
       ?.filter(
         (logGroup) =>
-          (logGroup.logGroupName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) ||
-            logGroup.logGroupName?.startsWith(
-              `/${TEST_AMPLIFY_RESOURCE_PREFIX}`
-            ) ||
-            logGroup.logGroupName?.startsWith(
-              `/aws/lambda/${TEST_AMPLIFY_RESOURCE_PREFIX}`
-            )) &&
+          // some log groups have form /aws/lambda/<prefix><rest>
+          // some have <prefix><rest>
+          logGroup.logGroupName?.includes(TEST_AMPLIFY_RESOURCE_PREFIX) &&
           isLogGroupStale(logGroup)
       )
       .forEach((item) => {
