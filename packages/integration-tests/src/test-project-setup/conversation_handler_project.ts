@@ -194,6 +194,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       throw new Error('Conversation handler project must include auth');
     }
 
+    const dataUrl = clientConfig.data?.url;
     const authenticatedUserCredentials =
       await new AmplifyAuthCredentialsFactory(
         this.cognitoIdentityProviderClient,
@@ -218,94 +219,116 @@ class ConversationHandlerTestProject extends TestProjectBase {
       cache: new InMemoryCache(),
     });
 
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false,
-      // Simulate eventual consistency
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false,
+        // Simulate eventual consistency
+        true
+      )
     );
 
-    await this.assertCustomConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertCustomConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertCustomConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertCustomConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
   }
 
@@ -831,5 +854,28 @@ class ConversationHandlerTestProject extends TestProjectBase {
         systemPrompt: 'You are helpful bot.',
       },
     };
+  };
+
+  /**
+   * Bedrock sometimes produces empty response or half backed response.
+   * On the other hand we have to run some assertions on those responses.
+   * Therefore, we wrap transactions in retry loop.
+   */
+  private executeWithRetry = async (
+    callable: () => Promise<void>,
+    maxAttempts = 3
+  ) => {
+    const collectedErrors = [];
+    for (let i = 1; i <= maxAttempts; i++) {
+      try {
+        await callable();
+        // if successful return early;
+        return;
+      } catch (e) {
+        collectedErrors.push(e);
+      }
+    }
+    // if we got here there were only errors
+    throw new AggregateError(collectedErrors);
   };
 }
