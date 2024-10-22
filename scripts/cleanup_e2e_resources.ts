@@ -581,6 +581,7 @@ const listAllStaleTestLogGroups = async (): Promise<Array<LogGroup>> => {
         })
       );
     nextToken = listLogGroupsResponse.nextToken;
+    const logGroupsTmp: Array<LogGroup> = [];
     listLogGroupsResponse.logGroups
       ?.filter(
         (logGroup) =>
@@ -594,8 +595,24 @@ const listAllStaleTestLogGroups = async (): Promise<Array<LogGroup>> => {
           isLogGroupStale(logGroup)
       )
       .forEach((item) => {
-        logGroups.push(item);
+        //logGroups.push(item);
+        logGroupsTmp.push(item);
       });
+    for (const logGroup of logGroupsTmp) {
+      try {
+        await cloudWatchClient.send(
+          new DeleteLogGroupCommand({
+            logGroupName: logGroup.logGroupName,
+          })
+        );
+        console.log(`Successfully deleted ${logGroup.logGroupName} log group`);
+      } catch (e) {
+        const errorMessage = e instanceof Error ? e.message : '';
+        console.log(
+          `Failed to delete ${logGroup.logGroupName} log group. ${errorMessage}`
+        );
+      }
+    }
   } while (nextToken);
   return logGroups;
 };
