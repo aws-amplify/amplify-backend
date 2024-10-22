@@ -582,6 +582,9 @@ class ConversationHandlerTestProject extends TestProjectBase {
     functionName: string,
     apolloClient: ApolloClient<NormalizedCacheObject>
   ): Promise<string> => {
+    console.log(
+      `Sending event conversationId=${event.conversationId} currentMessageId=${event.currentMessageId}`
+    );
     await this.lambdaClient.send(
       new InvokeCommand({
         FunctionName: functionName,
@@ -687,6 +690,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
               conversationId: { eq: $conversationId }
               associatedUserMessageId: { eq: $associatedUserMessageId }
             }
+            limit: 1000
           ) {
             items {
               conversationId

@@ -9,11 +9,24 @@ const backend = defineBackend({ auth, data, customConversationHandler });
 
 const stack = backend.createStack('conversationHandlerStack');
 
-new ConversationHandlerFunction(stack, 'defaultConversationHandlerFunction', {
-  models: [
-    {
-      modelId: bedrockModelId,
-      region: stack.region,
-    },
-  ],
-});
+const defaultConversationHandler = new ConversationHandlerFunction(
+  stack,
+  'defaultConversationHandlerFunction',
+  {
+    models: [
+      {
+        modelId: bedrockModelId,
+        region: stack.region,
+      },
+    ],
+  }
+);
+
+defaultConversationHandler.resources.cfnResources.cfnFunction.addPropertyOverride(
+  'LoggingConfig.ApplicationLogLevel',
+  'DEBUG'
+);
+backend.customConversationHandler.resources.cfnResources.cfnFunction.addPropertyOverride(
+  'LoggingConfig.ApplicationLogLevel',
+  'DEBUG'
+);
