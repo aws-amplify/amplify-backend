@@ -23,6 +23,7 @@ import {
   SsmEnvironmentEntry,
   StackProvider,
 } from '@aws-amplify/plugin-types';
+import type { AmplifyData } from '@aws-amplify/data-construct';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
@@ -184,10 +185,26 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     outputStorageStrategy,
     resourceNameValidator,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
+    // TODO this should be conditional on some signal,
+    // for example that any access to data was granted for this function.
     if (!this.generator) {
+      const dataResources = constructContainer
+        .getConstructFactory<AmplifyData>('DataResources')
+        ?.getInstance({
+          constructContainer,
+          outputStorageStrategy,
+          resourceNameValidator,
+        });
+      let modelIntrospectionSchema: string | undefined;
+
+      if (dataResources && dataResources.modelIntrospectionSchema) {
+        modelIntrospectionSchema = dataResources.modelIntrospectionSchema;
+      }
+
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),
-        outputStorageStrategy
+        outputStorageStrategy,
+        modelIntrospectionSchema
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
@@ -345,7 +362,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: HydratedFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    private readonly modelIntrospectionSchema: string | undefined
   ) {}
 
   generateContainerEntry = ({
@@ -366,7 +384,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
       this.props.name,
       { ...this.props, resolvedLayers },
       backendSecretResolver,
-      this.outputStorageStrategy
+      this.outputStorageStrategy,
+      this.modelIntrospectionSchema
     );
   };
 }
@@ -386,7 +405,8 @@ class AmplifyFunction
     id: string,
     props: HydratedFunctionProps & { resolvedLayers: ILayerVersion[] },
     backendSecretResolver: BackendSecretResolver,
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    modelIntrospectionSchema: string | undefined
   ) {
     super(scope, id);
 
@@ -427,14 +447,19 @@ class AmplifyFunction
     // This will be overwritten with the typed file at the end of synthesis
     functionEnvironmentTypeGenerator.generateProcessEnvShim();
 
-    const functionMISGenerator = new FunctionModelIntrospectionSchemaGenerator(
-      id
-    );
-    functionMISGenerator.generateModelIntrospectionSchema('{}');
+    if (modelIntrospectionSchema) {
+      const functionMISGenerator =
+        new FunctionModelIntrospectionSchemaGenerator(id);
+      functionMISGenerator.generateModelIntrospectionSchema(
+        modelIntrospectionSchema
+      );
 
-    const functionClientConfigGenerator = new FunctionClientConfigGenerator(id);
+      const functionClientConfigGenerator = new FunctionClientConfigGenerator(
+        id
+      );
 
-    functionClientConfigGenerator.generateClientConfig();
+      functionClientConfigGenerator.generateClientConfig();
+    }
 
     let functionLambda: NodejsFunction;
     try {

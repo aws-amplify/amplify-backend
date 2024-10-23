@@ -45,6 +45,8 @@ import {
   FunctionSchemaAccess,
   JsResolver,
 } from '@aws-amplify/data-schema-types';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { generateModelsSync } from '@aws-amplify/graphql-generator';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -54,6 +56,8 @@ import {
 export class DataFactory implements ConstructFactory<AmplifyData> {
   // publicly accessible for testing purpose only.
   static factoryCount = 0;
+
+  readonly provides = 'DataResources';
 
   private generator: ConstructContainerEntryGenerator;
 
@@ -236,9 +240,15 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
 
     try {
+      const combinedSchema = combineCDKSchemas(amplifyGraphqlDefinitions);
+      const modelIntrospectionSchema = generateModelsSync({
+        schema: combinedSchema.schema,
+        target: 'introspection',
+      })['model-introspection.json'];
+
       amplifyApi = new AmplifyData(scope, this.name, {
         apiName: this.name,
-        definition: combineCDKSchemas(amplifyGraphqlDefinitions),
+        definition: combinedSchema,
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
         functionNameMap,
@@ -251,6 +261,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           allowDestructiveGraphqlSchemaUpdates: true,
           _provisionHotswapFriendlyResources: isSandboxDeployment,
         },
+        modelIntrospectionSchema,
       });
     } catch (error) {
       throw new AmplifyUserError(
