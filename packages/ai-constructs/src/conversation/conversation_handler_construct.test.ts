@@ -243,7 +243,6 @@ void describe('Conversation Handler Function construct', () => {
       const stack = new Stack(app);
       new ConversationHandlerFunction(stack, 'conversationHandler', {
         models: [],
-        memoryMB: 512,
       });
       const template = Template.fromStack(stack);
 
