@@ -27,6 +27,17 @@ export class FunctionModelIntrospectionSchemaGenerator {
     this.writeFile(modelIntrospectionSchema);
   };
 
+  /**
+   * Check if the script content has a model-introspection-schema import
+   * @param scriptContent script content to check
+   * @returns true if the script content has a model-introspection-schema import, false otherwise
+   */
+  usedBy(scriptContent: string) {
+    // Matches an import of model-introspection-schema
+    const misImportRegex = /import.*from.*model-introspection-schema/g;
+    return misImportRegex.test(scriptContent);
+  }
+
   private writeFile = (content: string) => {
     const misFileDirname = path.dirname(this.misFilePath);
 

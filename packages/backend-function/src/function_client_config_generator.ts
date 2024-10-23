@@ -1,8 +1,10 @@
 import fs from 'fs';
+import { EOL } from 'os';
 import path from 'path';
 
-const lambdaConfigHelper = (functionName: string) => `
-import { env } from "../env/${functionName}";
+const lambdaConfigHelper = (
+  functionName: string
+) => `import { env } from "../env/${functionName}";
 import modelIntrospection from "../model-introspection-schema/${functionName}.json";
 
 import {
@@ -98,8 +100,21 @@ export class FunctionClientConfigGenerator {
    * Generate a client configuration
    */
   generateClientConfig = () => {
-    this.writeFile(lambdaConfigHelper(this.functionName));
+    this.writeFile(
+      [this.header, lambdaConfigHelper(this.functionName)].join(EOL)
+    );
   };
+
+  /**
+   * Check if the script content has a client-config import
+   * @param scriptContent script content to check
+   * @returns true if the script content has a client-config import, false otherwise
+   */
+  usedBy(scriptContent: string) {
+    // Matches an import of client-config
+    const clientConfigImportRegex = /import.*from.*client-config/g;
+    return clientConfigImportRegex.test(scriptContent);
+  }
 
   private writeFile = (content: string) => {
     const clientConfigFileDirname = path.dirname(this.clientConfigFilePath);

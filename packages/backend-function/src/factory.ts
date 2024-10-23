@@ -416,6 +416,8 @@ class AmplifyFunction
 
     const require = createRequire(import.meta.url);
 
+    const handlerEntryContent = readFileSync(props.entry, 'utf-8');
+
     const shims =
       runtime === Runtime.NODEJS_16_X
         ? []
@@ -450,15 +452,21 @@ class AmplifyFunction
     if (modelIntrospectionSchema) {
       const functionMISGenerator =
         new FunctionModelIntrospectionSchemaGenerator(id);
-      functionMISGenerator.generateModelIntrospectionSchema(
-        modelIntrospectionSchema
-      );
-
       const functionClientConfigGenerator = new FunctionClientConfigGenerator(
         id
       );
 
-      functionClientConfigGenerator.generateClientConfig();
+      if (
+        functionMISGenerator.usedBy(handlerEntryContent) ||
+        functionClientConfigGenerator.usedBy(handlerEntryContent)
+      )
+        functionMISGenerator.generateModelIntrospectionSchema(
+          modelIntrospectionSchema
+        );
+
+      if (functionClientConfigGenerator.usedBy(handlerEntryContent)) {
+        functionClientConfigGenerator.generateClientConfig();
+      }
     }
 
     let functionLambda: NodejsFunction;
