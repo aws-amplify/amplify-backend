@@ -12,6 +12,7 @@ import * as path from 'path';
 export const createMainParser = (libraryVersion: string): Argv => {
   const parser = yargs()
     .version(libraryVersion)
+    .alias('v', 'version')
     // This option is being used indirectly to configure the log level of the Printer instance.
     // refer: https://github.com/aws-amplify/amplify-backend/blob/main/packages/cli/src/printer.ts
     .options('debug', {
@@ -29,6 +30,7 @@ export const createMainParser = (libraryVersion: string): Argv => {
     .command(createConfigureCommand())
     .command(createInfoCommand())
     .help()
+    .alias('h', 'help')
     .demandCommand()
     .strictCommands()
     .recommendCommands()
