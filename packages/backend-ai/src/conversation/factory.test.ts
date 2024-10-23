@@ -188,4 +188,19 @@ void describe('ConversationHandlerFactory', () => {
       });
     });
   });
+
+  void it('passes memory setting to construct', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [],
+      memoryMB: 271,
+    });
+    const lambda = factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      MemorySize: 271,
+    });
+  });
 });
