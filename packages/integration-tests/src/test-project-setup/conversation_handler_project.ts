@@ -32,6 +32,7 @@ import {
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -100,11 +101,19 @@ export class ConversationHandlerTestProjectCreator
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    ),
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -155,9 +164,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
     amplifyClient: AmplifyClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {
     super(
       name,
@@ -181,6 +194,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       throw new Error('Conversation handler project must include auth');
     }
 
+    const dataUrl = clientConfig.data?.url;
     const authenticatedUserCredentials =
       await new AmplifyAuthCredentialsFactory(
         this.cognitoIdentityProviderClient,
@@ -205,94 +219,116 @@ class ConversationHandlerTestProject extends TestProjectBase {
       cache: new InMemoryCache(),
     });
 
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false,
-      // Simulate eventual consistency
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false,
+        // Simulate eventual consistency
+        true
+      )
     );
 
-    await this.assertCustomConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertCustomConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertCustomConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertCustomConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
   }
 
@@ -569,6 +605,9 @@ class ConversationHandlerTestProject extends TestProjectBase {
     functionName: string,
     apolloClient: ApolloClient<NormalizedCacheObject>
   ): Promise<string> => {
+    console.log(
+      `Sending event conversationId=${event.conversationId} currentMessageId=${event.currentMessageId}`
+    );
     await this.lambdaClient.send(
       new InvokeCommand({
         FunctionName: functionName,
@@ -674,6 +713,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
               conversationId: { eq: $conversationId }
               associatedUserMessageId: { eq: $associatedUserMessageId }
             }
+            limit: 1000
           ) {
             items {
               conversationId
@@ -814,5 +854,28 @@ class ConversationHandlerTestProject extends TestProjectBase {
         systemPrompt: 'You are helpful bot.',
       },
     };
+  };
+
+  /**
+   * Bedrock sometimes produces empty response or half backed response.
+   * On the other hand we have to run some assertions on those responses.
+   * Therefore, we wrap transactions in retry loop.
+   */
+  private executeWithRetry = async (
+    callable: () => Promise<void>,
+    maxAttempts = 3
+  ) => {
+    const collectedErrors = [];
+    for (let i = 1; i <= maxAttempts; i++) {
+      try {
+        await callable();
+        // if successful return early;
+        return;
+      } catch (e) {
+        collectedErrors.push(e);
+      }
+    }
+    // if we got here there were only errors
+    throw new AggregateError(collectedErrors);
   };
 }
