@@ -42,6 +42,8 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
+import { FunctionModelIntrospectionSchemaGenerator } from './function_mis_generator.js';
+import { FunctionClientConfigGenerator } from './function_client_config_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
@@ -424,6 +426,15 @@ class AmplifyFunction
     // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
     // This will be overwritten with the typed file at the end of synthesis
     functionEnvironmentTypeGenerator.generateProcessEnvShim();
+
+    const functionMISGenerator = new FunctionModelIntrospectionSchemaGenerator(
+      id
+    );
+    functionMISGenerator.generateModelIntrospectionSchema('{}');
+
+    const functionClientConfigGenerator = new FunctionClientConfigGenerator(id);
+
+    functionClientConfigGenerator.generateClientConfig();
 
     let functionLambda: NodejsFunction;
     try {
