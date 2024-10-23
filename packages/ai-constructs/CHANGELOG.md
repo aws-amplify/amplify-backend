@@ -1,5 +1,13 @@
 # @aws-amplify/ai-constructs
 
+## 0.6.2
+
+### Patch Changes
+
+- bd4ff4d: Add memory setting to conversation handler
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
 ## 0.6.1
 
 ### Patch Changes
