@@ -21,7 +21,7 @@ const thermometer = createExecutableTool(
   },
   (input) => {
     const city = input.city;
-    if (city === 'Seattle' || city === 'Boston' || city === 'Miami') {
+    if (city === 'Seattle' || city === 'Boston') {
       return Promise.resolve({
         // We use this value in test assertion.
         // LLM uses tool to get temperature and serves this value in final response.

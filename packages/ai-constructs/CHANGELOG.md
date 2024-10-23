@@ -1,5 +1,27 @@
 # @aws-amplify/ai-constructs
 
+## 0.6.1
+
+### Patch Changes
+
+- 91e7f3c: Parse client side tool json elements
+
+## 0.6.0
+
+### Minor Changes
+
+- b6761b0: Stream Bedrock responses
+
+## 0.5.0
+
+### Minor Changes
+
+- 46a0e85: Remove deprecated messages field from event
+
+### Patch Changes
+
+- faacd1b: Fix case where bedrock content blocks would be populated with 'null' instead of 'undefined.
+
 ## 0.4.0
 
 ### Minor Changes

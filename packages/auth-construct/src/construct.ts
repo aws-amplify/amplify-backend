@@ -1228,6 +1228,28 @@ export class AmplifyAuth
       },
     });
 
+    // user group precedence can be overwritten, so they are exposed via cdk LAZY
+    output.groups = Lazy.string({
+      produce: () => {
+        const groupsArray: {
+          [key: string]: {
+            precedence?: number;
+          };
+        }[] = [];
+        Object.keys(this.resources.groups).forEach((groupName) => {
+          const precedence =
+            this.resources.groups[groupName].cfnUserGroup.precedence;
+          groupsArray.push({
+            [groupName]: {
+              precedence,
+            },
+          });
+        }, {} as Record<string, { precedence?: number }>);
+
+        return JSON.stringify(groupsArray);
+      },
+    });
+
     outputStorageStrategy.addBackendOutputEntry(authOutputKey, {
       version: '1',
       payload: output,
