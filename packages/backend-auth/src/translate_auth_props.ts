@@ -102,15 +102,19 @@ export const translateToAuthConstructSenders = (
   if (!senders || !senders.email) {
     return undefined;
   }
-
   if ('getInstance' in senders.email) {
     const lambda: IFunction =
       senders.email.getInstance(getInstanceProps).resources.lambda;
+    if (senders.kmsKeyArn) {
+      return {
+        email: lambda,
+        kmsKeyArn: senders.kmsKeyArn,
+      };
+    }
     return {
       email: lambda,
     };
   }
-
   return {
     email: senders.email,
   };

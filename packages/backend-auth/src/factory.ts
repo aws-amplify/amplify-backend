@@ -75,6 +75,7 @@ export type AmplifyAuthProps = Expand<
       email:
         | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
         | ConstructFactory<AmplifyFunction>;
+      kmsKeyArn?: string;
     };
   }
 >;

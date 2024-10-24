@@ -427,6 +427,7 @@ export type AuthProps = {
     email:
       | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
       | IFunction;
+    kmsKeyArn?: string;
   };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html

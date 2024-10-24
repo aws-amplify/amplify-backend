@@ -26,6 +26,7 @@ import {
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
+import { Key } from 'aws-cdk-lib/aws-kms';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -441,6 +442,48 @@ void describe('AmplifyAuthFactory', () => {
         },
         KMSKeyID: {
           'Fn::GetAtt': [Match.anyValue(), 'Arn'],
+        },
+      },
+    });
+  });
+  void it('uses provided KMS key ARN and sets up custom email sender', () => {
+    const customKmsKeyArn = new Key(stack, `CustomSenderKey`, {
+      enableKeyRotation: true,
+    });
+    const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+      code: aws_lambda.Code.fromInline('test placeholder'),
+      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+    });
+    const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+      getInstance: () => ({
+        resources: {
+          lambda: testFunc,
+          cfnResources: {
+            cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+          },
+        },
+      }),
+    };
+
+    resetFactoryCount();
+
+    const authWithTriggerFactory = defineAuth({
+      loginWith: { email: true },
+      senders: {
+        email: funcStub,
+        kmsKeyArn: customKmsKeyArn.keyArn,
+      },
+      triggers: { preSignUp: funcStub },
+    });
+
+    const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(backendAuth.stack);
+
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        KMSKeyID: {
+          Ref: Match.stringLikeRegexp('CustomSenderKey'),
         },
       },
     });

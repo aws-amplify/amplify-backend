@@ -53,7 +53,7 @@ import {
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { Key } from 'aws-cdk-lib/aws-kms';
+import { IKey, Key } from 'aws-cdk-lib/aws-kms';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -134,7 +134,7 @@ export class AmplifyAuth
     };
   } = {};
 
-  private customEmailSenderKMSkey: Key | undefined;
+  private customEmailSenderKMSkey: IKey | undefined;
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -498,19 +498,23 @@ export class AmplifyAuth
       },
       { standardAttributes: {}, customAttributes: {} }
     );
-    if (
+    if (props.senders?.kmsKeyArn) {
+      this.customEmailSenderKMSkey = Key.fromKeyArn(
+        this,
+        `${this.name}CustomSenderKey`,
+        props.senders.kmsKeyArn
+      );
+    } else if (
       props.senders?.email &&
       props.senders.email instanceof lambda.Function
     ) {
-      if (!this.customEmailSenderKMSkey) {
-        this.customEmailSenderKMSkey = new Key(
-          this,
-          `${this.name}CustomSenderKey`,
-          {
-            enableKeyRotation: true,
-          }
-        );
-      }
+      this.customEmailSenderKMSkey = new Key(
+        this,
+        `${this.name}CustomSenderKey`,
+        {
+          enableKeyRotation: true,
+        }
+      );
     }
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
