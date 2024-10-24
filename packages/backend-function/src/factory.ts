@@ -23,6 +23,7 @@ import {
   SsmEnvironmentEntry,
   StackProvider,
 } from '@aws-amplify/plugin-types';
+import type { AmplifyData } from '@aws-amplify/data-construct';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
@@ -42,6 +43,8 @@ import { EOL } from 'os';
 import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
+import { FunctionModelIntrospectionSchemaGenerator } from './function_mis_generator.js';
+import { FunctionClientConfigGenerator } from './function_client_config_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
@@ -182,10 +185,26 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     outputStorageStrategy,
     resourceNameValidator,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
+    // TODO this should be conditional on some signal,
+    // for example that any access to data was granted for this function.
     if (!this.generator) {
+      const dataResources = constructContainer
+        .getConstructFactory<AmplifyData>('DataResources')
+        ?.getInstance({
+          constructContainer,
+          outputStorageStrategy,
+          resourceNameValidator,
+        });
+      let modelIntrospectionSchema: string | undefined;
+
+      if (dataResources && dataResources.modelIntrospectionSchema) {
+        modelIntrospectionSchema = dataResources.modelIntrospectionSchema;
+      }
+
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),
-        outputStorageStrategy
+        outputStorageStrategy,
+        modelIntrospectionSchema
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
@@ -343,7 +362,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: HydratedFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    private readonly modelIntrospectionSchema: string | undefined
   ) {}
 
   generateContainerEntry = ({
@@ -364,7 +384,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
       this.props.name,
       { ...this.props, resolvedLayers },
       backendSecretResolver,
-      this.outputStorageStrategy
+      this.outputStorageStrategy,
+      this.modelIntrospectionSchema
     );
   };
 }
@@ -384,7 +405,8 @@ class AmplifyFunction
     id: string,
     props: HydratedFunctionProps & { resolvedLayers: ILayerVersion[] },
     backendSecretResolver: BackendSecretResolver,
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    modelIntrospectionSchema: string | undefined
   ) {
     super(scope, id);
 
@@ -393,6 +415,8 @@ class AmplifyFunction
     const runtime = nodeVersionMap[props.runtime];
 
     const require = createRequire(import.meta.url);
+
+    const handlerEntryContent = readFileSync(props.entry, 'utf-8');
 
     const shims =
       runtime === Runtime.NODEJS_16_X
@@ -424,6 +448,26 @@ class AmplifyFunction
     // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
     // This will be overwritten with the typed file at the end of synthesis
     functionEnvironmentTypeGenerator.generateProcessEnvShim();
+
+    if (modelIntrospectionSchema) {
+      const functionMISGenerator =
+        new FunctionModelIntrospectionSchemaGenerator(id);
+      const functionClientConfigGenerator = new FunctionClientConfigGenerator(
+        id
+      );
+
+      if (
+        functionMISGenerator.usedBy(handlerEntryContent) ||
+        functionClientConfigGenerator.usedBy(handlerEntryContent)
+      )
+        functionMISGenerator.generateModelIntrospectionSchema(
+          modelIntrospectionSchema
+        );
+
+      if (functionClientConfigGenerator.usedBy(handlerEntryContent)) {
+        functionClientConfigGenerator.generateClientConfig();
+      }
+    }
 
     let functionLambda: NodejsFunction;
     try {

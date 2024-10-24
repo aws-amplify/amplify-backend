@@ -97,7 +97,8 @@
     "tsx": "^4.6.1",
     "typedoc": "^0.25.3",
     "typescript": "~5.2.0",
-    "verdaccio": "^5.24.1"
+    "verdaccio": "^5.24.1",
+    "@graphql-codegen/plugin-helpers": "^3.1.1"
   },
   "workspaces": [
     "packages/*"
