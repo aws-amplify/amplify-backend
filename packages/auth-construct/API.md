@@ -49,6 +49,7 @@ export type AuthProps = {
     };
     senders?: {
         email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | IFunction;
+        kmsKeyArn?: string;
     };
     userAttributes?: UserAttributes;
     multifactor?: MFA;

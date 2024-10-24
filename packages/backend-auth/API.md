@@ -44,6 +44,7 @@ export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 
     access?: AuthAccessGenerator;
     senders?: {
         email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | ConstructFactory<AmplifyFunction>;
+        kmsKeyArn?: string;
     };
 }>;
 
