@@ -1,7 +1,6 @@
 import { ConversationTurnResponseSender } from './conversation_turn_response_sender.js';
 import { ConversationTurnEvent, ExecutableTool, JSONSchema } from './types.js';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter.js';
-import { ConversationTurnStreamingResponseSender } from './conversation_turn_streaming_response_sender';
 
 /**
  * This class is responsible for orchestrating conversation turn execution.
@@ -22,9 +21,6 @@ export class ConversationTurnExecutor {
       additionalTools
     ),
     private readonly responseSender = new ConversationTurnResponseSender(event),
-    private readonly streamingResponseSender = new ConversationTurnStreamingResponseSender(
-      event
-    ),
     private readonly logger = console
   ) {}
 
@@ -38,7 +34,7 @@ export class ConversationTurnExecutor {
       if (this.event.streamResponse) {
         const chunks = this.bedrockConverseAdapter.askBedrockStreaming();
         for await (const chunk of chunks) {
-          await this.streamingResponseSender.sendResponseChunk(chunk);
+          await this.responseSender.sendResponseChunk(chunk);
         }
       } else {
         const assistantResponse =
