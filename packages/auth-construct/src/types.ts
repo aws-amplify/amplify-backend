@@ -9,6 +9,7 @@ import {
   UserPoolIdentityProviderSamlMetadata,
   UserPoolSESOptions,
 } from 'aws-cdk-lib/aws-cognito';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 export type VerificationEmailWithLink = {
   /**
    * The type of verification. Must be one of "CODE" or "LINK".
@@ -417,11 +418,16 @@ export type AuthProps = {
    */
   senders?: {
     /**
-     * Configure Cognito to send emails from SES
+     * Configure Cognito to send emails from SES or a custom message trigger
      * SES configurations enable the use of customized email sender addresses and names
+     * Custom message triggers enable the use of third-party email providers when sending email notifications to users
      * @see https://docs.amplify.aws/react/build-a-backend/auth/moving-to-production/#email
+     * @see https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-custom-email-sender.html
      */
-    email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
+    email:
+      | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
+      | IFunction;
+    kmsKeyArn?: string;
   };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html

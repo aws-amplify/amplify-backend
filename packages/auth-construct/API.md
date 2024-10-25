@@ -9,6 +9,7 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { NumberAttributeConstraints } from 'aws-cdk-lib/aws-cognito';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SecretValue } from 'aws-cdk-lib';
@@ -47,7 +48,8 @@ export type AuthProps = {
         externalProviders?: ExternalProviderOptions;
     };
     senders?: {
-        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | IFunction;
+        kmsKeyArn?: string;
     };
     userAttributes?: UserAttributes;
     multifactor?: MFA;
