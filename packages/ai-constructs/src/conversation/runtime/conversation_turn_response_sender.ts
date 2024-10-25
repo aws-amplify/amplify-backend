@@ -1,4 +1,4 @@
-import { ConversationTurnEvent } from './types.js';
+import { ConversationTurnEvent, StreamingResponseChunk } from './types.js';
 import type { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
 
@@ -8,6 +8,10 @@ export type MutationResponseInput = {
     content: ContentBlock[];
     associatedUserMessageId: string;
   };
+};
+
+export type MutationStreamingResponseInput = {
+  input: StreamingResponseChunk;
 };
 
 /**
@@ -37,6 +41,15 @@ export class ConversationTurnResponseSender {
     >(responseMutationRequest);
   };
 
+  sendResponseChunk = async (chunk: StreamingResponseChunk) => {
+    const responseMutationRequest = this.createStreamingMutationRequest(chunk);
+    this.logger.debug('Sending response mutation:', responseMutationRequest);
+    await this.graphqlRequestExecutor.executeGraphql<
+      MutationStreamingResponseInput,
+      void
+    >(responseMutationRequest);
+  };
+
   private createMutationRequest = (content: ContentBlock[]) => {
     const query = `
         mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
@@ -45,7 +58,39 @@ export class ConversationTurnResponseSender {
             }
         }
     `;
-    content = content.map((block) => {
+    content = this.serializeContent(content);
+    const variables: MutationResponseInput = {
+      input: {
+        conversationId: this.event.conversationId,
+        content,
+        associatedUserMessageId: this.event.currentMessageId,
+      },
+    };
+    return { query, variables };
+  };
+
+  private createStreamingMutationRequest = (chunk: StreamingResponseChunk) => {
+    const query = `
+        mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
+            ${this.event.responseMutation.name}(input: $input) {
+                ${this.event.responseMutation.selectionSet}
+            }
+        }
+    `;
+    chunk = {
+      ...chunk,
+      accumulatedTurnContent: this.serializeContent(
+        chunk.accumulatedTurnContent
+      ),
+    };
+    const variables: MutationStreamingResponseInput = {
+      input: chunk,
+    };
+    return { query, variables };
+  };
+
+  private serializeContent = (content: ContentBlock[]) => {
+    return content.map((block) => {
       if (block.toolUse) {
         // The `input` field is typed as `AWS JSON` in the GraphQL API because it can represent
         // arbitrary JSON values.
@@ -55,13 +100,5 @@ export class ConversationTurnResponseSender {
       }
       return block;
     });
-    const variables: MutationResponseInput = {
-      input: {
-        conversationId: this.event.conversationId,
-        content,
-        associatedUserMessageId: this.event.currentMessageId,
-      },
-    };
-    return { query, variables };
   };
 }

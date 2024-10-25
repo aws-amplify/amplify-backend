@@ -100,6 +100,7 @@ const schema = a.schema({
       conversationId: a.id().required(),
       associatedUserMessageId: a.id().required(),
       contentBlockIndex: a.integer().required(),
+      accumulatedTurnContent: a.ref('MockContentBlock').array(),
 
       // these describe chunks or end of block
       contentBlockText: a.string(),

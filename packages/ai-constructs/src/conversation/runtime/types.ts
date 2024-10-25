@@ -100,6 +100,7 @@ export type StreamingResponseChunk = {
   conversationId: string;
   associatedUserMessageId: string;
   contentBlockIndex: number;
+  accumulatedTurnContent: Array<bedrock.ContentBlock>;
 } & (
   | {
       // text chunk

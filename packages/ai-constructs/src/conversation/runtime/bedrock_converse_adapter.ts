@@ -20,6 +20,7 @@ import {
 } from './types.js';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
+import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -173,6 +174,9 @@ export class BedrockConverseAdapter {
     let blockIndex = 0;
     let lastBlockIndex = 0;
     let stopReason = '';
+    // Accumulates client facing content per turn.
+    // So that upstream can persist full message at the end of the streaming.
+    const accumulatedTurnContent: Array<bedrock.ContentBlock> = [];
     do {
       const toolConfig = this.createToolConfiguration();
       const converseCommandInput: ConverseStreamCommandInput = {
@@ -202,10 +206,12 @@ export class BedrockConverseAdapter {
       let toolUseInput: string = '';
       let blockDeltaIndex = 0;
       let lastBlockDeltaIndex = 0;
+      // Accumulate current message for the tool use loop purpose.
       const accumulatedAssistantMessage: Message = {
         role: undefined,
         content: [],
       };
+
       for await (const chunk of bedrockResponse.stream) {
         this.logger.debug('Bedrock Converse Stream response chunk:', chunk);
         if (chunk.messageStart) {
@@ -230,6 +236,7 @@ export class BedrockConverseAdapter {
           } else if (chunk.contentBlockDelta.delta?.text) {
             text += chunk.contentBlockDelta.delta.text;
             yield {
+              accumulatedTurnContent: [...accumulatedTurnContent, { text }],
               conversationId: this.event.conversationId,
               associatedUserMessageId: this.event.currentMessageId,
               contentBlockText: chunk.contentBlockDelta.delta.text,
@@ -248,7 +255,9 @@ export class BedrockConverseAdapter {
               this.clientToolByName.has(toolUseBlock.toolUse.name)
             ) {
               clientToolsRequested = true;
+              accumulatedTurnContent.push(toolUseBlock);
               yield {
+                accumulatedTurnContent: [...accumulatedTurnContent],
                 conversationId: this.event.conversationId,
                 associatedUserMessageId: this.event.currentMessageId,
                 contentBlockIndex: blockIndex,
@@ -263,7 +272,9 @@ export class BedrockConverseAdapter {
             accumulatedAssistantMessage.content?.push({
               text,
             });
+            accumulatedTurnContent.push({ text });
             yield {
+              accumulatedTurnContent: [...accumulatedTurnContent],
               conversationId: this.event.conversationId,
               associatedUserMessageId: this.event.currentMessageId,
               contentBlockIndex: blockIndex,
@@ -285,6 +296,7 @@ export class BedrockConverseAdapter {
         // For now if any of client tools is used we ignore executable tools
         // and propagate result back to client.
         yield {
+          accumulatedTurnContent: [...accumulatedTurnContent],
           conversationId: this.event.conversationId,
           associatedUserMessageId: this.event.currentMessageId,
           contentBlockIndex: lastBlockIndex,
@@ -313,6 +325,7 @@ export class BedrockConverseAdapter {
     } while (stopReason === 'tool_use');
 
     yield {
+      accumulatedTurnContent: [...accumulatedTurnContent],
       conversationId: this.event.conversationId,
       associatedUserMessageId: this.event.currentMessageId,
       contentBlockIndex: lastBlockIndex,
