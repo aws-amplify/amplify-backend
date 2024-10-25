@@ -603,7 +603,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   ) => {
     const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
     const startTime = Date.now();
-    let sentMessageCount = 0;
+    let receivedMessageCount = 0;
 
     const queue = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -622,7 +622,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       );
 
       if (response.Messages) {
-        sentMessageCount += response.Messages.length;
+        receivedMessageCount += response.Messages.length;
 
         // delete messages afterwards
         for (const message of response.Messages) {
@@ -636,7 +636,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       }
     }
 
-    if (sentMessageCount === 0) {
+    if (receivedMessageCount === 0) {
       assert.fail(
         `The scheduled function failed to invoke and send a message to the queue.`
       );
