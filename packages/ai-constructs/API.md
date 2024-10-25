@@ -54,6 +54,7 @@ type ConversationHandlerFunctionProps = {
         modelId: string;
         region?: string;
     }>;
+    memoryMB?: number;
     outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
 };
 
