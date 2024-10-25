@@ -1,5 +1,13 @@
 # @aws-amplify/backend
 
+## 1.5.2
+
+### Patch Changes
+
+- 601a2c1: dedupe environment variables in amplify env type generator
+- Updated dependencies [601a2c1]
+  - @aws-amplify/backend-function@1.7.2
+
 ## 1.5.1
 
 ### Patch Changes
