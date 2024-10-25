@@ -603,7 +603,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   ) => {
     const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
     const startTime = Date.now();
-    let messageCount = 0;
+    let sentMessageCount = 0;
 
     const queue = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -612,16 +612,17 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
 
     // wait for schedule to invoke the function one time for it to send a message
-    while (Date.now() - startTime < TIMEOUT_MS && messageCount < 1) {
+    while (Date.now() - startTime < TIMEOUT_MS) {
       const response = await this.sqsClient.send(
         new ReceiveMessageCommand({
           QueueUrl: queue[0],
           WaitTimeSeconds: 20,
+          MaxNumberOfMessages: 10,
         })
       );
 
       if (response.Messages) {
-        messageCount += response.Messages.length;
+        sentMessageCount += response.Messages.length;
 
         // delete messages afterwards
         for (const message of response.Messages) {
@@ -633,6 +634,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
           );
         }
       }
+    }
+
+    if (sentMessageCount === 0) {
+      assert.fail(
+        `The scheduled function failed to invoke and send a message to the queue.`
+      );
     }
   };
 }
