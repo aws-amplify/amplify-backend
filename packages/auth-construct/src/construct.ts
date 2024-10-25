@@ -509,7 +509,7 @@ export class AmplifyAuth
       props.senders.email instanceof lambda.Function
     ) {
       this.customEmailSenderKMSkey = new Key(
-        this,
+        props.senders.email.stack,
         `${this.name}CustomSenderKey`,
         {
           enableKeyRotation: true,
