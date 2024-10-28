@@ -14,7 +14,9 @@ export type AmplifyStackBase = {
 
 export type DefineStackProps = Record<
   string,
-  ConstructFactory<ResourceProvider>
+  ConstructFactory<
+    ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>
+  >
 > & { [K in keyof AmplifyStackBase]?: never };
 
 export type AmplifyStackResources = AmplifyStackBase & {
@@ -73,7 +75,7 @@ class StackGenerator<
           this.getInstanceProps,
           scope as Stack
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ).resources as any;
+        ) as any;
       }
     );
     return {

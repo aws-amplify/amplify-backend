@@ -96,7 +96,7 @@ export { defineFunction }
 export const defineStack: (name: string, constructFactories: DefineStackProps) => ConstructFactory<ResourceProvider<AmplifyStackResources>>;
 
 // @public (undocumented)
-export type DefineStackProps = Record<string, ConstructFactory<ResourceProvider>> & {
+export type DefineStackProps = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {
     [K in keyof AmplifyStackBase]?: never;
 };
 
