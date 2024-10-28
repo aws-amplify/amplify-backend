@@ -110,7 +110,7 @@ export type BranchName = string;
 
 // @public
 export type ConstructContainer = {
-    getOrCompute: (generator: ConstructContainerEntryGenerator) => ResourceProvider;
+    getOrCompute: (generator: ConstructContainerEntryGenerator, stack?: Stack) => ResourceProvider;
     registerConstructFactory: (token: string, provider: ConstructFactory) => void;
     getConstructFactory: <T extends ResourceProvider>(token: string) => ConstructFactory<T> | undefined;
 };
@@ -124,7 +124,7 @@ export type ConstructContainerEntryGenerator<T extends object = object> = {
 // @public
 export type ConstructFactory<T extends ResourceProvider = ResourceProvider> = {
     readonly provides?: string;
-    getInstance: (props: ConstructFactoryGetInstanceProps) => T;
+    getInstance: (props: ConstructFactoryGetInstanceProps, stack?: Stack) => T;
 };
 
 // @public (undocumented)

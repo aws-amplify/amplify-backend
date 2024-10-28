@@ -4,6 +4,7 @@ import { BackendSecretResolver } from './backend_secret_resolver.js';
 import { ResourceProvider } from './resource_provider.js';
 import { SsmEnvironmentEntriesGenerator } from './ssm_environment_entries_generator.js';
 import { StableBackendIdentifiers } from './stable_backend_identifiers.js';
+import { Stack } from 'aws-cdk-lib';
 /**
  * Initializes a CDK Construct in a given scope
  */
@@ -34,7 +35,8 @@ export type GenerateContainerEntryProps = {
  */
 export type ConstructContainer = {
   getOrCompute: (
-    generator: ConstructContainerEntryGenerator
+    generator: ConstructContainerEntryGenerator,
+    stack?: Stack
   ) => ResourceProvider;
   registerConstructFactory: (token: string, provider: ConstructFactory) => void;
   getConstructFactory: <T extends ResourceProvider>(

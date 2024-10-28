@@ -34,6 +34,16 @@ import { Stack } from 'aws-cdk-lib';
 
 export { a }
 
+// @public (undocumented)
+export type AmplifyStackBase = {
+    readonly stack: Stack;
+};
+
+// @public (undocumented)
+export type AmplifyStackResources = AmplifyStackBase & {
+    [K in keyof DefineStackProps]: Omit<ReturnType<DefineStackProps[K]['getInstance']>, keyof ResourceAccessAcceptorFactory>;
+};
+
 export { AuthCfnResources }
 
 export { AuthResources }
@@ -81,6 +91,14 @@ export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvide
 export { defineData }
 
 export { defineFunction }
+
+// @public
+export const defineStack: (name: string, constructFactories: DefineStackProps) => ConstructFactory<ResourceProvider<AmplifyStackResources>>;
+
+// @public (undocumented)
+export type DefineStackProps = Record<string, ConstructFactory<ResourceProvider>> & {
+    [K in keyof AmplifyStackBase]?: never;
+};
 
 export { defineStorage }
 
