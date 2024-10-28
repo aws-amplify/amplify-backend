@@ -24,3 +24,6 @@ export { defineStorage } from '@aws-amplify/backend-storage';
 
 // function
 export { defineFunction } from '@aws-amplify/backend-function';
+
+// stack
+export * from './stack_factory.js';

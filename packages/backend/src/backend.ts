@@ -6,9 +6,9 @@ import {
 } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
 import { ClientConfig } from '@aws-amplify/client-config';
+import { AmplifyStackResources } from './stack_factory.js';
 
 export type BackendBase = {
-  createStack: (name: string) => Stack;
   addOutput: (
     clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>
   ) => void;
@@ -18,9 +18,7 @@ export type BackendBase = {
 // Type that allows construct factories to be defined using any keys except those used in BackendHelpers
 export type DefineBackendProps = Record<
   string,
-  ConstructFactory<
-    ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>
-  >
+  ConstructFactory<ResourceProvider<AmplifyStackResources>>
 > & { [K in keyof BackendBase]?: never };
 
 /**

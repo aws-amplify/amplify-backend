@@ -32,7 +32,8 @@ export class AmplifyStorageFactory
    * Get a singleton instance of the Bucket
    */
   getInstance = (
-    getInstanceProps: ConstructFactoryGetInstanceProps
+    getInstanceProps: ConstructFactoryGetInstanceProps,
+    stack?: Stack
   ): AmplifyStorage => {
     const { constructContainer, importPathVerifier, resourceNameValidator } =
       getInstanceProps;
@@ -50,7 +51,8 @@ export class AmplifyStorageFactory
       );
     }
     const amplifyStorage = constructContainer.getOrCompute(
-      this.generator
+      this.generator,
+      stack
     ) as AmplifyStorage;
 
     /*

@@ -98,7 +98,8 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
    * Get a singleton instance of AmplifyAuth
    */
   getInstance = (
-    getInstanceProps: ConstructFactoryGetInstanceProps
+    getInstanceProps: ConstructFactoryGetInstanceProps,
+    stack?: Stack
   ): BackendAuth => {
     const { constructContainer, importPathVerifier, resourceNameValidator } =
       getInstanceProps;
@@ -111,9 +112,16 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
       resourceNameValidator?.validate(this.props.name);
     }
     if (!this.generator) {
-      this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
+      this.generator = new AmplifyAuthGenerator(
+        this.props,
+        getInstanceProps,
+        stack
+      );
     }
-    return constructContainer.getOrCompute(this.generator) as BackendAuth;
+    return constructContainer.getOrCompute(
+      this.generator,
+      stack
+    ) as BackendAuth;
   };
 }
 
@@ -124,6 +132,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: AmplifyAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
+    private readonly stack?: Stack,
     private readonly authAccessBuilder = _authAccessBuilder,
     private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
   ) {
@@ -169,7 +178,8 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       ([triggerEvent, handlerFactory]) => {
         (authConstruct.resources.userPool as UserPool).addTrigger(
           UserPoolOperation.of(triggerEvent),
-          handlerFactory.getInstance(this.getInstanceProps).resources.lambda
+          handlerFactory.getInstance(this.getInstanceProps, this.stack)
+            .resources.lambda
         );
       }
     );

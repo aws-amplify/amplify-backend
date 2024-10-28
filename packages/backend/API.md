@@ -34,6 +34,16 @@ import { Stack } from 'aws-cdk-lib';
 
 export { a }
 
+// @public (undocumented)
+export type AmplifyStackBase = {
+    readonly stack: Stack;
+};
+
+// @public (undocumented)
+export type AmplifyStackResources = AmplifyStackBase & {
+    [K in keyof DefineStackProps]: Omit<ReturnType<DefineStackProps[K]['getInstance']>, keyof ResourceAccessAcceptorFactory>;
+};
+
 export { AuthCfnResources }
 
 export { AuthResources }
@@ -47,7 +57,6 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
 
 // @public (undocumented)
 export type BackendBase = {
-    createStack: (name: string) => Stack;
     addOutput: (clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>) => void;
     stack: Stack;
 };
@@ -74,13 +83,21 @@ export { defineAuth }
 export const defineBackend: <T extends DefineBackendProps>(constructFactories: T) => Backend<T>;
 
 // @public (undocumented)
-export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {
+export type DefineBackendProps = Record<string, ConstructFactory<ResourceProvider<AmplifyStackResources>>> & {
     [K in keyof BackendBase]?: never;
 };
 
 export { defineData }
 
 export { defineFunction }
+
+// @public
+export const defineStack: (name: string, constructFactories: DefineStackProps) => ConstructFactory<ResourceProvider<AmplifyStackResources>>;
+
+// @public (undocumented)
+export type DefineStackProps = Record<string, ConstructFactory<ResourceProvider & Partial<ResourceAccessAcceptorFactory<never>>>> & {
+    [K in keyof AmplifyStackBase]?: never;
+};
 
 export { defineStorage }
 

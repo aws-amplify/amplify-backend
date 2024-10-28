@@ -16,6 +16,7 @@ import {
 import path from 'path';
 import { CallerDirectoryExtractor } from '@aws-amplify/platform-core';
 import { AiModel } from '@aws-amplify/data-schema-types';
+import { Stack } from 'aws-cdk-lib';
 
 class ConversationHandlerFunctionGenerator
   implements ConstructContainerEntryGenerator
@@ -72,11 +73,14 @@ class DefaultConversationHandlerFunctionFactory
     private readonly callerStack: string | undefined
   ) {}
 
-  getInstance = ({
-    constructContainer,
-    outputStorageStrategy,
-    resourceNameValidator,
-  }: ConstructFactoryGetInstanceProps): ConversationHandlerFunction => {
+  getInstance = (
+    {
+      constructContainer,
+      outputStorageStrategy,
+      resourceNameValidator,
+    }: ConstructFactoryGetInstanceProps,
+    stack?: Stack
+  ): ConversationHandlerFunction => {
     resourceNameValidator?.validate(this.props.name);
     if (!this.generator) {
       const props = { ...this.props };
@@ -87,7 +91,8 @@ class DefaultConversationHandlerFunctionFactory
       );
     }
     return constructContainer.getOrCompute(
-      this.generator
+      this.generator,
+      stack
     ) as ConversationHandlerFunction;
   };
 

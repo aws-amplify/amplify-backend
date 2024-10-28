@@ -4,6 +4,7 @@ import { BackendOutputEntry } from './backend_output.js';
 import { ImportPathVerifier } from './import_path_verifier.js';
 import { ResourceProvider } from './resource_provider.js';
 import { ResourceNameValidator } from './resource_name_validator.js';
+import { Stack } from 'aws-cdk-lib';
 
 export type ConstructFactoryGetInstanceProps = {
   constructContainer: ConstructContainer;
@@ -21,5 +22,5 @@ export type ConstructFactory<T extends ResourceProvider = ResourceProvider> = {
    * Registering as a provider allows other construct factories to fetch this one based on the provides token
    */
   readonly provides?: string;
-  getInstance: (props: ConstructFactoryGetInstanceProps) => T;
+  getInstance: (props: ConstructFactoryGetInstanceProps, stack?: Stack) => T;
 };

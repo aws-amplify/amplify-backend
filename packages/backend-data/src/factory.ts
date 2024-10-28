@@ -38,7 +38,7 @@ import {
   CDKContextKey,
   TagName,
 } from '@aws-amplify/platform-core';
-import { Aspects, IAspect, Tags } from 'aws-cdk-lib';
+import { Aspects, IAspect, Stack, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
@@ -77,7 +77,10 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
   /**
    * Gets an instance of the Data construct
    */
-  getInstance = (props: ConstructFactoryGetInstanceProps): AmplifyData => {
+  getInstance = (
+    props: ConstructFactoryGetInstanceProps,
+    stack?: Stack
+  ): AmplifyData => {
     const {
       constructContainer,
       outputStorageStrategy,
@@ -106,7 +109,10 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
         outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyData;
+    return constructContainer.getOrCompute(
+      this.generator,
+      stack
+    ) as AmplifyData;
   };
 }
 

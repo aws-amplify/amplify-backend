@@ -177,18 +177,24 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   /**
    * Creates an instance of AmplifyFunction within the provided Amplify context
    */
-  getInstance = ({
-    constructContainer,
-    outputStorageStrategy,
-    resourceNameValidator,
-  }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
+  getInstance = (
+    {
+      constructContainer,
+      outputStorageStrategy,
+      resourceNameValidator,
+    }: ConstructFactoryGetInstanceProps,
+    stack?: Stack
+  ): AmplifyFunction => {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),
         outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
+    return constructContainer.getOrCompute(
+      this.generator,
+      stack
+    ) as AmplifyFunction;
   };
 
   private hydrateDefaults = (
