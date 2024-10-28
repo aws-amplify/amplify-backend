@@ -19,16 +19,17 @@ export type DefineStackProps = Record<
   >
 > & { [K in keyof AmplifyStackBase]?: never };
 
-export type AmplifyStackResources = AmplifyStackBase & {
-  [K in keyof DefineStackProps]: Omit<
-    ReturnType<DefineStackProps[K]['getInstance']>,
-    keyof ResourceAccessAcceptorFactory
-  >;
-};
+export type AmplifyStackResources<T extends DefineStackProps> =
+  AmplifyStackBase & {
+    [K in keyof T]: Omit<
+      ReturnType<T[K]['getInstance']>,
+      keyof ResourceAccessAcceptorFactory
+    >;
+  };
 
 class StackGenerator<
   T extends Record<string, ConstructFactory<ResourceProvider>>
-> implements ConstructContainerEntryGenerator<AmplifyStackResources>
+> implements ConstructContainerEntryGenerator<AmplifyStackResources<T>>
 {
   readonly resourceGroupName: string;
 
@@ -42,7 +43,9 @@ class StackGenerator<
 
   generateContainerEntry = ({
     scope,
-  }: GenerateContainerEntryProps): ResourceProvider<AmplifyStackResources> => {
+  }: GenerateContainerEntryProps): ResourceProvider<
+    AmplifyStackResources<T>
+  > => {
     // register providers but don't actually execute anything yet
     Object.values(this.constructFactories).forEach((factory) => {
       if (typeof factory.provides === 'string') {
@@ -82,24 +85,24 @@ class StackGenerator<
       resources: {
         ...nestedResources,
         stack: scope as Stack,
-      } as AmplifyStackResources,
+      } as AmplifyStackResources<T>,
     };
   };
 }
 
-class StackFactory
-  implements ConstructFactory<ResourceProvider<AmplifyStackResources>>
+class StackFactory<T extends DefineStackProps>
+  implements ConstructFactory<ResourceProvider<AmplifyStackResources<T>>>
 {
   private generator: ConstructContainerEntryGenerator;
 
   constructor(
     private readonly name: string,
-    private readonly constructFactories: DefineStackProps
+    private readonly constructFactories: T
   ) {}
 
   getInstance(
     props: ConstructFactoryGetInstanceProps
-  ): ResourceProvider<AmplifyStackResources> {
+  ): ResourceProvider<AmplifyStackResources<T>> {
     if (!this.generator) {
       this.generator = new StackGenerator(
         this.name,
@@ -109,15 +112,15 @@ class StackFactory
     }
     return props.constructContainer.getOrCompute(
       this.generator
-    ) as ResourceProvider<AmplifyStackResources>;
+    ) as ResourceProvider<AmplifyStackResources<T>>;
   }
 }
 
 /**
  * TODO
  */
-export const defineStack = (
+export const defineStack = <T extends DefineStackProps>(
   name: string,
-  constructFactories: DefineStackProps
-): ConstructFactory<ResourceProvider<AmplifyStackResources>> =>
+  constructFactories: T
+): ConstructFactory<ResourceProvider<AmplifyStackResources<T>>> =>
   new StackFactory(name, constructFactories);
