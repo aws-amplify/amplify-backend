@@ -382,6 +382,14 @@ export type UserAttributes = StandardAttributes &
   Record<`custom:${string}`, CustomAttribute>;
 
 /**
+ * CustomEmailSender type for configuring a custom Lambda function for email sending
+ */
+export type CustomEmailSender = {
+  handler: IFunction;
+  kmsKeyArn?: string;
+};
+
+/**
  * Input props for the AmplifyAuth construct
  */
 export type AuthProps = {
@@ -426,8 +434,7 @@ export type AuthProps = {
      */
     email:
       | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
-      | IFunction;
-    kmsKeyArn?: string;
+      | CustomEmailSender;
   };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html

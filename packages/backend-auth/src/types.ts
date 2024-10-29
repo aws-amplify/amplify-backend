@@ -8,6 +8,7 @@ import {
   OidcProviderProps,
 } from '@aws-amplify/auth-construct';
 import {
+  AmplifyFunction,
   BackendSecret,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -252,3 +253,11 @@ export type ActionIam =
   | 'updateDeviceStatus'
   | 'updateGroup'
   | 'updateUserAttributes';
+
+/**
+ * CustomEmailSender type for configuring a custom Lambda function for email sending
+ */
+export type CustomEmailSender = {
+  handler: ConstructFactory<AmplifyFunction>;
+  kmsKeyArn?: string;
+};

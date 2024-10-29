@@ -1,6 +1,9 @@
 import { defineAuth, secret } from '@aws-amplify/backend';
-import { defaultNodeFunc } from '../function.js';
-import { sayHello } from '../functions/say-hello/resource.js';
+import { defaultNodeFunc, funcWithSchedule } from '../function.js';
+
+const customEmailSenderFunction = {
+  handler: funcWithSchedule,
+};
 
 export const auth = defineAuth({
   loginWith: {
@@ -23,7 +26,7 @@ export const auth = defineAuth({
     },
   },
   senders: {
-    email: sayHello,
+    email: customEmailSenderFunction,
   },
   triggers: {
     postConfirmation: defaultNodeFunc,

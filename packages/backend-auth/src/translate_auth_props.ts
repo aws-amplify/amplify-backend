@@ -102,19 +102,30 @@ export const translateToAuthConstructSenders = (
   if (!senders || !senders.email) {
     return undefined;
   }
-  if ('getInstance' in senders.email) {
+
+  // Handle CustomEmailSender type
+  if ('handler' in senders.email) {
     const lambda: IFunction =
-      senders.email.getInstance(getInstanceProps).resources.lambda;
-    if (senders.kmsKeyArn) {
-      return {
-        email: lambda,
-        kmsKeyArn: senders.kmsKeyArn,
-      };
-    }
+      'getInstance' in senders.email.handler
+        ? senders.email.handler.getInstance(getInstanceProps).resources.lambda
+        : senders.email.handler;
+
     return {
-      email: lambda,
+      email: {
+        handler: lambda,
+        kmsKeyArn: senders.email.kmsKeyArn,
+      },
     };
   }
+
+  // Handle SES configuration
+  if ('fromEmail' in senders.email) {
+    return {
+      email: senders.email,
+    };
+  }
+
+  // If none of the above, return the email configuration as-is
   return {
     email: senders.email,
   };

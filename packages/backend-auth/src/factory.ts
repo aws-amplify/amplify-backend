@@ -12,7 +12,6 @@ import {
   TriggerEvent,
 } from '@aws-amplify/auth-construct';
 import {
-  AmplifyFunction,
   AuthResources,
   AuthRoleName,
   ConstructContainerEntryGenerator,
@@ -34,6 +33,7 @@ import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js'
 import {
   AuthAccessGenerator,
   AuthLoginWithFactoryProps,
+  CustomEmailSender,
   Expand,
 } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
@@ -74,8 +74,7 @@ export type AmplifyAuthProps = Expand<
     senders?: {
       email:
         | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
-        | ConstructFactory<AmplifyFunction>;
-      kmsKeyArn?: string;
+        | CustomEmailSender;
     };
   }
 >;

@@ -52,7 +52,6 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { IKey, Key } from 'aws-cdk-lib/aws-kms';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
@@ -133,7 +132,10 @@ export class AmplifyAuth
       role: Role;
     };
   } = {};
-
+  /**
+   * The KMS key used for encrypting custom email sender data.
+   * This is only set when using a custom email sender.
+   */
   private customEmailSenderKMSkey: IKey | undefined;
 
   /**
@@ -163,14 +165,14 @@ export class AmplifyAuth
      */
     if (
       props.senders?.email &&
-      props.senders.email instanceof lambda.Function &&
+      'handler' in props.senders.email &&
       this.customEmailSenderKMSkey
     ) {
-      this.customEmailSenderKMSkey.grantDecrypt(props.senders.email);
-      this.customEmailSenderKMSkey.grantEncrypt(props.senders.email);
+      this.customEmailSenderKMSkey.grantDecrypt(props.senders.email.handler);
+      this.customEmailSenderKMSkey.grantEncrypt(props.senders.email.handler);
       this.userPool.addTrigger(
         UserPoolOperation.of('customEmailSender'),
-        props.senders.email
+        props.senders.email.handler
       );
     }
 
@@ -498,23 +500,29 @@ export class AmplifyAuth
       },
       { standardAttributes: {}, customAttributes: {} }
     );
-    if (props.senders?.kmsKeyArn) {
-      this.customEmailSenderKMSkey = Key.fromKeyArn(
-        this,
-        `${this.name}CustomSenderKey`,
-        props.senders.kmsKeyArn
-      );
-    } else if (
-      props.senders?.email &&
-      props.senders.email instanceof lambda.Function
-    ) {
-      this.customEmailSenderKMSkey = new Key(
-        props.senders.email.stack,
-        `${this.name}CustomSenderKey`,
-        {
-          enableKeyRotation: true,
-        }
-      );
+    /**
+     * Handle KMS key for custom email sender
+     * If a custom email sender is provided, we either use the provided KMS key ARN
+     * or create a new KMS key if one is not provided.
+     */
+    if (props.senders?.email && 'handler' in props.senders.email) {
+      if (props.senders.email.kmsKeyArn) {
+        // Use the provided KMS key ARN
+        this.customEmailSenderKMSkey = Key.fromKeyArn(
+          this,
+          `${this.name}CustomSenderKey`,
+          props.senders.email.kmsKeyArn
+        );
+      } else {
+        // Create a new KMS key if not provided
+        this.customEmailSenderKMSkey = new Key(
+          props.senders.email.handler.stack,
+          `${this.name}CustomSenderKey`,
+          {
+            enableKeyRotation: true,
+          }
+        );
+      }
     }
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,

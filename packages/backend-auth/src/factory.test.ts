@@ -27,6 +27,7 @@ import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 import { Key } from 'aws-cdk-lib/aws-kms';
+import { CustomEmailSender } from './types.js';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -375,12 +376,14 @@ void describe('AmplifyAuthFactory', () => {
         };
       },
     };
-
+    const customEmailSender: CustomEmailSender = {
+      handler: funcStub,
+    };
     resetFactoryCount();
 
     const authWithTriggerFactory = defineAuth({
       loginWith: { email: true },
-      senders: { email: funcStub },
+      senders: { email: customEmailSender },
     });
 
     const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
@@ -395,7 +398,7 @@ void describe('AmplifyAuthFactory', () => {
           },
         },
         KMSKeyID: {
-          'Fn::GetAtt': [Match.anyValue(), 'Arn'],
+          Ref: Match.stringLikeRegexp('CustomSenderKey'),
         },
       },
     });
@@ -418,12 +421,14 @@ void describe('AmplifyAuthFactory', () => {
         };
       },
     };
-
+    const customEmailSender: CustomEmailSender = {
+      handler: funcStub,
+    };
     resetFactoryCount();
 
     const authWithTriggerFactory = defineAuth({
       loginWith: { email: true },
-      senders: { email: funcStub },
+      senders: { email: customEmailSender },
       triggers: { preSignUp: funcStub },
     });
 
@@ -441,7 +446,7 @@ void describe('AmplifyAuthFactory', () => {
           },
         },
         KMSKeyID: {
-          'Fn::GetAtt': [Match.anyValue(), 'Arn'],
+          Ref: Match.stringLikeRegexp('CustomSenderKey'),
         },
       },
     });
@@ -465,14 +470,16 @@ void describe('AmplifyAuthFactory', () => {
         },
       }),
     };
-
+    const customEmailSender: CustomEmailSender = {
+      handler: funcStub,
+      kmsKeyArn: customKmsKeyArn.keyArn,
+    };
     resetFactoryCount();
 
     const authWithTriggerFactory = defineAuth({
       loginWith: { email: true },
       senders: {
-        email: funcStub,
-        kmsKeyArn: customKmsKeyArn.keyArn,
+        email: customEmailSender,
       },
       triggers: { preSignUp: funcStub },
     });

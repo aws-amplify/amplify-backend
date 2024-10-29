@@ -53,7 +53,6 @@ type DefineConversationHandlerFunctionProps = {
         modelId: string | AiModel;
         region?: string;
     }>;
-    memoryMB?: number;
 };
 
 // @public (undocumented)
