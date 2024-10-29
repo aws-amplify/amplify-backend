@@ -45,6 +45,7 @@ void describe('invokeCDKCommand', () => {
     installDependencies: mock.fn(() => Promise.resolve()),
     runWithPackageManager: mock.fn(() => Promise.resolve() as never),
     getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
+    allowsSignalPropagation: () => true,
   };
 
   const invoker = new CDKDeployer(

@@ -135,6 +135,13 @@ export abstract class PackageManagerControllerBase
   getCommand = (args: string[]) => `${this.binaryRunner} ${args.join(' ')}`;
 
   /**
+   * allowsSignalPropagation - Determines if the package manager allows the process
+   * signals such as SIGINT to be propagated to the underlying node process.
+   * @deprecated
+   */
+  allowsSignalPropagation = () => true;
+
+  /**
    * Check if a package.json file exists in projectRoot
    */
   private packageJsonExists = (projectRoot: string): boolean => {
