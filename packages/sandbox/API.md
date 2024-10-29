@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { ClientConfigFormat } from '@aws-amplify/client-config';
 import EventEmitter from 'events';
