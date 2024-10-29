@@ -54,6 +54,7 @@ import {
 export class DataFactory implements ConstructFactory<AmplifyData> {
   // publicly accessible for testing purpose only.
   static factoryCount = 0;
+  readonly provides = 'DataResources';
 
   private generator: ConstructContainerEntryGenerator;
 

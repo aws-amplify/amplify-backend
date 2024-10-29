@@ -1,0 +1,15 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "es2022",
+    "paths": {
+      "$amplify/*": [
+        "../.amplify/generated/*"
+      ]
+    }
+  },
+  "include": [
+    "../.amplify"
+  ],
+}
