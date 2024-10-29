@@ -5,7 +5,11 @@ import {
   MutationResponseInput,
   MutationStreamingResponseInput,
 } from './conversation_turn_response_sender';
-import { ConversationTurnEvent, StreamingResponseChunk } from './types';
+import {
+  ConversationTurnEvent,
+  ConversationTurnResponse,
+  StreamingResponseChunk,
+} from './types';
 import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import {
   GraphqlRequest,
@@ -45,12 +49,14 @@ void describe('Conversation turn response sender', () => {
       event,
       graphqlRequestExecutor
     );
-    const response: Array<ContentBlock> = [
-      {
-        text: 'block1',
-      },
-      { text: 'block2' },
-    ];
+    const response: ConversationTurnResponse = {
+      content: [
+        {
+          text: 'block1',
+        },
+        { text: 'block2' },
+      ],
+    };
     await sender.sendResponse(response);
 
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
@@ -102,7 +108,7 @@ void describe('Conversation turn response sender', () => {
         },
       },
     };
-    const response: Array<ContentBlock> = [toolUseBlock];
+    const response: ConversationTurnResponse = { content: [toolUseBlock] };
     await sender.sendResponse(response);
 
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);

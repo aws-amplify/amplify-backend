@@ -86,11 +86,17 @@ const schema = a.schema({
     tools: a.ref('MockTool').array(),
   }),
 
+  MockConversationTurnError: a.customType({
+    errorType: a.string(),
+    message: a.string(),
+  }),
+
   ConversationMessageAssistantResponse: a
     .model({
       conversationId: a.id(),
       associatedUserMessageId: a.id(),
       content: a.string(),
+      errors: a.ref('MockConversationTurnError').array(),
     })
     .authorization((allow) => [allow.authenticated(), allow.owner()]),
 
@@ -110,6 +116,9 @@ const schema = a.schema({
 
       // when message is complete
       stopReason: a.string(),
+
+      // error
+      errors: a.ref('MockConversationTurnError').array(),
     })
     .secondaryIndexes((index) => [
       index('conversationId').sortKeys(['associatedUserMessageId']),

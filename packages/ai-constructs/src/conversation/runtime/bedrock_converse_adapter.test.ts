@@ -200,7 +200,7 @@ void describe('Bedrock converse adapter', () => {
           ]);
         } else {
           const responseContent = await adapter.askBedrock();
-          assert.deepStrictEqual(responseContent, content);
+          assert.deepStrictEqual(responseContent, { content });
         }
 
         assert.strictEqual(bedrockClientSendMock.mock.calls.length, 1);
@@ -339,7 +339,7 @@ void describe('Bedrock converse adapter', () => {
           assert.strictEqual(responseText, 'finalResponse');
         } else {
           const responseContent = await adapter.askBedrock();
-          assert.deepStrictEqual(responseContent, content);
+          assert.deepStrictEqual(responseContent, { content });
         }
 
         assert.strictEqual(bedrockClientSendMock.mock.calls.length, 3);
@@ -510,7 +510,7 @@ void describe('Bedrock converse adapter', () => {
           assert.strictEqual(responseText, 'finalResponse');
         } else {
           const responseContent = await adapter.askBedrock();
-          assert.deepStrictEqual(responseContent, content);
+          assert.deepStrictEqual(responseContent, { content });
         }
 
         assert.strictEqual(bedrockClientSendMock.mock.calls.length, 2);
@@ -598,7 +598,7 @@ void describe('Bedrock converse adapter', () => {
           assert.strictEqual(responseText, 'finalResponse');
         } else {
           const responseContent = await adapter.askBedrock();
-          assert.deepStrictEqual(responseContent, content);
+          assert.deepStrictEqual(responseContent, { content });
         }
 
         assert.strictEqual(bedrockClientSendMock.mock.calls.length, 2);
@@ -711,11 +711,13 @@ void describe('Bedrock converse adapter', () => {
           ]);
         } else {
           const responseContent = await adapter.askBedrock();
-          assert.deepStrictEqual(responseContent, [
-            {
-              toolUse: clientToolUse,
-            },
-          ]);
+          assert.deepStrictEqual(responseContent, {
+            content: [
+              {
+                toolUse: clientToolUse,
+              },
+            ],
+          });
         }
 
         assert.strictEqual(bedrockClientSendMock.mock.calls.length, 1);

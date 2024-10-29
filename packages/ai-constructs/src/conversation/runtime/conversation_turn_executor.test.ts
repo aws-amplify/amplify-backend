@@ -1,9 +1,12 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { ConversationTurnExecutor } from './conversation_turn_executor';
-import { ConversationTurnEvent, StreamingResponseChunk } from './types';
+import {
+  ConversationTurnEvent,
+  ConversationTurnResponse,
+  StreamingResponseChunk,
+} from './types';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter';
-import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnResponseSender } from './conversation_turn_response_sender';
 
 void describe('Conversation turn executor', () => {
@@ -28,10 +31,9 @@ void describe('Conversation turn executor', () => {
 
   void it('executes turn successfully', async () => {
     const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
-    const bedrockResponse: Array<ContentBlock> = [
-      { text: 'block1' },
-      { text: 'block2' },
-    ];
+    const bedrockResponse: ConversationTurnResponse = {
+      content: [{ text: 'block1' }, { text: 'block2' }],
+    };
     const bedrockConverseAdapterAskBedrockMock = mock.method(
       bedrockConverseAdapter,
       'askBedrock',
@@ -267,10 +269,9 @@ void describe('Conversation turn executor', () => {
 
   void it('logs and propagates error if response sender throws', async () => {
     const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
-    const bedrockResponse: Array<ContentBlock> = [
-      { text: 'block1' },
-      { text: 'block2' },
-    ];
+    const bedrockResponse: ConversationTurnResponse = {
+      content: [{ text: 'block1' }, { text: 'block2' }],
+    };
     const bedrockConverseAdapterAskBedrockMock = mock.method(
       bedrockConverseAdapter,
       'askBedrock',

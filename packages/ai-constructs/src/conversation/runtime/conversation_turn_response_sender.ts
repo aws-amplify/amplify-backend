@@ -1,13 +1,26 @@
-import { ConversationTurnEvent, StreamingResponseChunk } from './types.js';
+import {
+  ConversationTurnError,
+  ConversationTurnEvent,
+  ConversationTurnResponse,
+  StreamingResponseChunk,
+} from './types.js';
 import type { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
 
 export type MutationResponseInput = {
-  input: {
-    conversationId: string;
-    content: ContentBlock[];
-    associatedUserMessageId: string;
-  };
+  input:
+    | {
+        associatedUserMessageId: string;
+        conversationId: string;
+        content: ContentBlock[];
+        errors?: never;
+      }
+    | {
+        associatedUserMessageId: string;
+        conversationId: string;
+        content?: never;
+        errors: ConversationTurnError[];
+      };
 };
 
 export type MutationStreamingResponseInput = {
@@ -32,8 +45,8 @@ export class ConversationTurnResponseSender {
     private readonly logger = console
   ) {}
 
-  sendResponse = async (message: ContentBlock[]) => {
-    const responseMutationRequest = this.createMutationRequest(message);
+  sendResponse = async (response: ConversationTurnResponse) => {
+    const responseMutationRequest = this.createMutationRequest(response);
     this.logger.debug('Sending response mutation:', responseMutationRequest);
     await this.graphqlRequestExecutor.executeGraphql<
       MutationResponseInput,
@@ -50,7 +63,7 @@ export class ConversationTurnResponseSender {
     >(responseMutationRequest);
   };
 
-  private createMutationRequest = (content: ContentBlock[]) => {
+  private createMutationRequest = (response: ConversationTurnResponse) => {
     const query = `
         mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
             ${this.event.responseMutation.name}(input: $input) {
@@ -58,14 +71,26 @@ export class ConversationTurnResponseSender {
             }
         }
     `;
-    content = this.serializeContent(content);
-    const variables: MutationResponseInput = {
-      input: {
-        conversationId: this.event.conversationId,
-        content,
-        associatedUserMessageId: this.event.currentMessageId,
-      },
-    };
+    let variables: MutationResponseInput;
+    if (typeof response.content !== 'undefined') {
+      variables = {
+        input: {
+          conversationId: this.event.conversationId,
+          content: this.serializeContent(response.content),
+          associatedUserMessageId: this.event.currentMessageId,
+        },
+      };
+    } else if (typeof response.errors !== 'undefined') {
+      variables = {
+        input: {
+          conversationId: this.event.conversationId,
+          errors: response.errors,
+          associatedUserMessageId: this.event.currentMessageId,
+        },
+      };
+    } else {
+      throw new Error('Response contains neither content nor error');
+    }
     return { query, variables };
   };
 

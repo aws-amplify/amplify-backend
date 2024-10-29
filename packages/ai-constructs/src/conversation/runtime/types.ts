@@ -1,5 +1,6 @@
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import * as jsonSchemaToTypeScript from 'json-schema-to-ts';
+import type { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 
 /*
   Notice: This file contains types that are exposed publicly.
@@ -95,6 +96,21 @@ export type ExecutableTool<
   execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };
 
+export type ConversationTurnError = {
+  errorType: string;
+  message: string;
+};
+
+export type ConversationTurnResponse =
+  | {
+      content: ContentBlock[];
+      errors?: never;
+    }
+  | {
+      content?: never;
+      errors: ConversationTurnError[];
+    };
+
 export type StreamingResponseChunk = {
   // always required
   conversationId: string;
@@ -108,6 +124,7 @@ export type StreamingResponseChunk = {
       contentBlockDeltaIndex: number;
       contentBlockDoneAtIndex?: never;
       contentBlockToolUse?: never;
+      errors?: never;
       stopReason?: never;
     }
   | {
@@ -116,6 +133,7 @@ export type StreamingResponseChunk = {
       contentBlockText?: never;
       contentBlockDeltaIndex?: never;
       contentBlockToolUse?: never;
+      errors?: never;
       stopReason?: never;
     }
   | {
@@ -124,11 +142,22 @@ export type StreamingResponseChunk = {
       contentBlockDoneAtIndex?: never;
       contentBlockText?: never;
       contentBlockDeltaIndex?: never;
+      errors?: never;
       stopReason?: never;
     }
   | {
       // turn complete
       stopReason: string;
+      contentBlockDoneAtIndex?: never;
+      contentBlockText?: never;
+      contentBlockDeltaIndex?: never;
+      contentBlockToolUse?: never;
+      errors?: never;
+    }
+  | {
+      // error
+      errors: ConversationTurnError[];
+      stopReason?: never;
       contentBlockDoneAtIndex?: never;
       contentBlockText?: never;
       contentBlockDeltaIndex?: never;
