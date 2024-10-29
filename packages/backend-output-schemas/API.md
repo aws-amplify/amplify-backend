@@ -22,19 +22,37 @@ export const authOutputKey = "AWS::Amplify::Auth";
 export type AwsAppsyncAuthenticationType = z.infer<typeof AwsAppsyncAuthenticationZodEnum>;
 
 // @public (undocumented)
-export const AwsAppsyncAuthenticationZodEnum: any;
+export const AwsAppsyncAuthenticationZodEnum: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
 
 // @public
 export type BackendOutputEntryStackMetadata = z.infer<typeof backendOutputEntryStackMetadataSchema>;
 
 // @public
-export const backendOutputEntryStackMetadataSchema: any;
+export const backendOutputEntryStackMetadataSchema: z.ZodObject<{
+    version: z.ZodString;
+    stackOutputs: z.ZodArray<z.ZodString, "many">;
+}, "strip", z.ZodTypeAny, {
+    version: string;
+    stackOutputs: string[];
+}, {
+    version: string;
+    stackOutputs: string[];
+}>;
 
 // @public
 export type BackendOutputStackMetadata = z.infer<typeof backendOutputStackMetadataSchema>;
 
 // @public
-export const backendOutputStackMetadataSchema: any;
+export const backendOutputStackMetadataSchema: z.ZodRecord<z.ZodString, z.ZodObject<{
+    version: z.ZodString;
+    stackOutputs: z.ZodArray<z.ZodString, "many">;
+}, "strip", z.ZodTypeAny, {
+    version: string;
+    stackOutputs: string[];
+}, {
+    version: string;
+    stackOutputs: string[];
+}>>;
 
 // @public (undocumented)
 export type CustomOutput = z.infer<typeof versionedCustomOutputSchema>;
@@ -67,25 +85,709 @@ export const storageOutputKey = "AWS::Amplify::Storage";
 export type UnifiedBackendOutput = z.infer<typeof unifiedBackendOutputSchema>;
 
 // @public
-export const unifiedBackendOutputSchema: any;
+export const unifiedBackendOutputSchema: z.ZodObject<{
+    "AWS::Amplify::Platform": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            deploymentType: z.ZodString;
+            region: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            deploymentType: string;
+            region: string;
+        }, {
+            deploymentType: string;
+            region: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            deploymentType: string;
+            region: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            deploymentType: string;
+            region: string;
+        };
+    }>]>>;
+    "AWS::Amplify::Auth": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            authRegion: z.ZodString;
+            userPoolId: z.ZodString;
+            webClientId: z.ZodString;
+            identityPoolId: z.ZodString;
+            allowUnauthenticatedIdentities: z.ZodOptional<z.ZodString>;
+            usernameAttributes: z.ZodOptional<z.ZodString>;
+            signupAttributes: z.ZodOptional<z.ZodString>;
+            passwordPolicyMinLength: z.ZodOptional<z.ZodString>;
+            passwordPolicyRequirements: z.ZodOptional<z.ZodString>;
+            mfaConfiguration: z.ZodOptional<z.ZodString>;
+            mfaTypes: z.ZodOptional<z.ZodString>;
+            verificationMechanisms: z.ZodOptional<z.ZodString>;
+            socialProviders: z.ZodOptional<z.ZodString>;
+            oauthCognitoDomain: z.ZodOptional<z.ZodString>;
+            oauthScope: z.ZodOptional<z.ZodString>;
+            oauthRedirectSignIn: z.ZodOptional<z.ZodString>;
+            oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
+            oauthClientId: z.ZodOptional<z.ZodString>;
+            oauthResponseType: z.ZodOptional<z.ZodString>;
+            groups: z.ZodOptional<z.ZodString>;
+        }, "strip", z.ZodTypeAny, {
+            authRegion: string;
+            userPoolId: string;
+            webClientId: string;
+            identityPoolId: string;
+            allowUnauthenticatedIdentities?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
+            groups?: string | undefined;
+        }, {
+            authRegion: string;
+            userPoolId: string;
+            webClientId: string;
+            identityPoolId: string;
+            allowUnauthenticatedIdentities?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
+            groups?: string | undefined;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            authRegion: string;
+            userPoolId: string;
+            webClientId: string;
+            identityPoolId: string;
+            allowUnauthenticatedIdentities?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
+            groups?: string | undefined;
+        };
+    }, {
+        version: "1";
+        payload: {
+            authRegion: string;
+            userPoolId: string;
+            webClientId: string;
+            identityPoolId: string;
+            allowUnauthenticatedIdentities?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
+            groups?: string | undefined;
+        };
+    }>]>>;
+    "AWS::Amplify::GraphQL": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            awsAppsyncRegion: z.ZodString;
+            awsAppsyncApiEndpoint: z.ZodString;
+            awsAppsyncAuthenticationType: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
+            awsAppsyncAdditionalAuthenticationTypes: z.ZodOptional<z.ZodString>;
+            awsAppsyncConflictResolutionMode: z.ZodOptional<z.ZodString>;
+            awsAppsyncApiKey: z.ZodOptional<z.ZodString>;
+            awsAppsyncApiId: z.ZodString;
+            amplifyApiModelSchemaS3Uri: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiId: string;
+            amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
+            awsAppsyncApiKey?: string | undefined;
+        }, {
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiId: string;
+            amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
+            awsAppsyncApiKey?: string | undefined;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiId: string;
+            amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
+            awsAppsyncApiKey?: string | undefined;
+        };
+    }, {
+        version: "1";
+        payload: {
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiId: string;
+            amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
+            awsAppsyncApiKey?: string | undefined;
+        };
+    }>]>>;
+    "AWS::Amplify::Storage": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            bucketName: z.ZodString;
+            storageRegion: z.ZodString;
+            buckets: z.ZodOptional<z.ZodString>;
+        }, "strip", z.ZodTypeAny, {
+            bucketName: string;
+            storageRegion: string;
+            buckets?: string | undefined;
+        }, {
+            bucketName: string;
+            storageRegion: string;
+            buckets?: string | undefined;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            bucketName: string;
+            storageRegion: string;
+            buckets?: string | undefined;
+        };
+    }, {
+        version: "1";
+        payload: {
+            bucketName: string;
+            storageRegion: string;
+            buckets?: string | undefined;
+        };
+    }>]>>;
+    "AWS::Amplify::Custom": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            customOutputs: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            customOutputs: string;
+        }, {
+            customOutputs: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    }>]>>;
+    "AWS::Amplify::Function": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            definedFunctions: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            definedFunctions: string;
+        }, {
+            definedFunctions: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            definedFunctions: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            definedFunctions: string;
+        };
+    }>]>>;
+    "AWS::Amplify::AI::Conversation": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            definedConversationHandlers: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            definedConversationHandlers: string;
+        }, {
+            definedConversationHandlers: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    }>]>>;
+}, "strip", z.ZodTypeAny, {
+    "AWS::Amplify::Platform"?: {
+        version: "1";
+        payload: {
+            deploymentType: string;
+            region: string;
+        };
+    } | undefined;
+    "AWS::Amplify::Custom"?: {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    } | undefined;
+    "AWS::Amplify::Auth"?: {
+        version: "1";
+        payload: {
+            authRegion: string;
+            userPoolId: string;
+            webClientId: string;
+            identityPoolId: string;
+            allowUnauthenticatedIdentities?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
+            groups?: string | undefined;
+        };
+    } | undefined;
+    "AWS::Amplify::GraphQL"?: {
+        version: "1";
+        payload: {
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiId: string;
+            amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
+            awsAppsyncApiKey?: string | undefined;
+        };
+    } | undefined;
+    "AWS::Amplify::Storage"?: {
+        version: "1";
+        payload: {
+            bucketName: string;
+            storageRegion: string;
+            buckets?: string | undefined;
+        };
+    } | undefined;
+    "AWS::Amplify::Function"?: {
+        version: "1";
+        payload: {
+            definedFunctions: string;
+        };
+    } | undefined;
+    "AWS::Amplify::AI::Conversation"?: {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    } | undefined;
+}, {
+    "AWS::Amplify::Platform"?: {
+        version: "1";
+        payload: {
+            deploymentType: string;
+            region: string;
+        };
+    } | undefined;
+    "AWS::Amplify::Custom"?: {
+        version: "1";
+        payload: {
+            customOutputs: string;
+        };
+    } | undefined;
+    "AWS::Amplify::Auth"?: {
+        version: "1";
+        payload: {
+            authRegion: string;
+            userPoolId: string;
+            webClientId: string;
+            identityPoolId: string;
+            allowUnauthenticatedIdentities?: string | undefined;
+            usernameAttributes?: string | undefined;
+            signupAttributes?: string | undefined;
+            passwordPolicyMinLength?: string | undefined;
+            passwordPolicyRequirements?: string | undefined;
+            mfaConfiguration?: string | undefined;
+            mfaTypes?: string | undefined;
+            verificationMechanisms?: string | undefined;
+            socialProviders?: string | undefined;
+            oauthCognitoDomain?: string | undefined;
+            oauthScope?: string | undefined;
+            oauthRedirectSignIn?: string | undefined;
+            oauthRedirectSignOut?: string | undefined;
+            oauthClientId?: string | undefined;
+            oauthResponseType?: string | undefined;
+            groups?: string | undefined;
+        };
+    } | undefined;
+    "AWS::Amplify::GraphQL"?: {
+        version: "1";
+        payload: {
+            awsAppsyncRegion: string;
+            awsAppsyncApiEndpoint: string;
+            awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+            awsAppsyncApiId: string;
+            amplifyApiModelSchemaS3Uri: string;
+            awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+            awsAppsyncConflictResolutionMode?: string | undefined;
+            awsAppsyncApiKey?: string | undefined;
+        };
+    } | undefined;
+    "AWS::Amplify::Storage"?: {
+        version: "1";
+        payload: {
+            bucketName: string;
+            storageRegion: string;
+            buckets?: string | undefined;
+        };
+    } | undefined;
+    "AWS::Amplify::Function"?: {
+        version: "1";
+        payload: {
+            definedFunctions: string;
+        };
+    } | undefined;
+    "AWS::Amplify::AI::Conversation"?: {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    } | undefined;
+}>;
 
 // @public (undocumented)
-export const versionedAIConversationOutputSchema: any;
+export const versionedAIConversationOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        definedConversationHandlers: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        definedConversationHandlers: string;
+    }, {
+        definedConversationHandlers: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        definedConversationHandlers: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        definedConversationHandlers: string;
+    };
+}>]>;
 
 // @public (undocumented)
-export const versionedAuthOutputSchema: any;
+export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        authRegion: z.ZodString;
+        userPoolId: z.ZodString;
+        webClientId: z.ZodString;
+        identityPoolId: z.ZodString;
+        allowUnauthenticatedIdentities: z.ZodOptional<z.ZodString>;
+        usernameAttributes: z.ZodOptional<z.ZodString>;
+        signupAttributes: z.ZodOptional<z.ZodString>;
+        passwordPolicyMinLength: z.ZodOptional<z.ZodString>;
+        passwordPolicyRequirements: z.ZodOptional<z.ZodString>;
+        mfaConfiguration: z.ZodOptional<z.ZodString>;
+        mfaTypes: z.ZodOptional<z.ZodString>;
+        verificationMechanisms: z.ZodOptional<z.ZodString>;
+        socialProviders: z.ZodOptional<z.ZodString>;
+        oauthCognitoDomain: z.ZodOptional<z.ZodString>;
+        oauthScope: z.ZodOptional<z.ZodString>;
+        oauthRedirectSignIn: z.ZodOptional<z.ZodString>;
+        oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
+        oauthClientId: z.ZodOptional<z.ZodString>;
+        oauthResponseType: z.ZodOptional<z.ZodString>;
+        groups: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        authRegion: string;
+        userPoolId: string;
+        webClientId: string;
+        identityPoolId: string;
+        allowUnauthenticatedIdentities?: string | undefined;
+        usernameAttributes?: string | undefined;
+        signupAttributes?: string | undefined;
+        passwordPolicyMinLength?: string | undefined;
+        passwordPolicyRequirements?: string | undefined;
+        mfaConfiguration?: string | undefined;
+        mfaTypes?: string | undefined;
+        verificationMechanisms?: string | undefined;
+        socialProviders?: string | undefined;
+        oauthCognitoDomain?: string | undefined;
+        oauthScope?: string | undefined;
+        oauthRedirectSignIn?: string | undefined;
+        oauthRedirectSignOut?: string | undefined;
+        oauthClientId?: string | undefined;
+        oauthResponseType?: string | undefined;
+        groups?: string | undefined;
+    }, {
+        authRegion: string;
+        userPoolId: string;
+        webClientId: string;
+        identityPoolId: string;
+        allowUnauthenticatedIdentities?: string | undefined;
+        usernameAttributes?: string | undefined;
+        signupAttributes?: string | undefined;
+        passwordPolicyMinLength?: string | undefined;
+        passwordPolicyRequirements?: string | undefined;
+        mfaConfiguration?: string | undefined;
+        mfaTypes?: string | undefined;
+        verificationMechanisms?: string | undefined;
+        socialProviders?: string | undefined;
+        oauthCognitoDomain?: string | undefined;
+        oauthScope?: string | undefined;
+        oauthRedirectSignIn?: string | undefined;
+        oauthRedirectSignOut?: string | undefined;
+        oauthClientId?: string | undefined;
+        oauthResponseType?: string | undefined;
+        groups?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        authRegion: string;
+        userPoolId: string;
+        webClientId: string;
+        identityPoolId: string;
+        allowUnauthenticatedIdentities?: string | undefined;
+        usernameAttributes?: string | undefined;
+        signupAttributes?: string | undefined;
+        passwordPolicyMinLength?: string | undefined;
+        passwordPolicyRequirements?: string | undefined;
+        mfaConfiguration?: string | undefined;
+        mfaTypes?: string | undefined;
+        verificationMechanisms?: string | undefined;
+        socialProviders?: string | undefined;
+        oauthCognitoDomain?: string | undefined;
+        oauthScope?: string | undefined;
+        oauthRedirectSignIn?: string | undefined;
+        oauthRedirectSignOut?: string | undefined;
+        oauthClientId?: string | undefined;
+        oauthResponseType?: string | undefined;
+        groups?: string | undefined;
+    };
+}, {
+    version: "1";
+    payload: {
+        authRegion: string;
+        userPoolId: string;
+        webClientId: string;
+        identityPoolId: string;
+        allowUnauthenticatedIdentities?: string | undefined;
+        usernameAttributes?: string | undefined;
+        signupAttributes?: string | undefined;
+        passwordPolicyMinLength?: string | undefined;
+        passwordPolicyRequirements?: string | undefined;
+        mfaConfiguration?: string | undefined;
+        mfaTypes?: string | undefined;
+        verificationMechanisms?: string | undefined;
+        socialProviders?: string | undefined;
+        oauthCognitoDomain?: string | undefined;
+        oauthScope?: string | undefined;
+        oauthRedirectSignIn?: string | undefined;
+        oauthRedirectSignOut?: string | undefined;
+        oauthClientId?: string | undefined;
+        oauthResponseType?: string | undefined;
+        groups?: string | undefined;
+    };
+}>]>;
 
 // @public (undocumented)
-export const versionedCustomOutputSchema: any;
+export const versionedCustomOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        customOutputs: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        customOutputs: string;
+    }, {
+        customOutputs: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        customOutputs: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        customOutputs: string;
+    };
+}>]>;
 
 // @public (undocumented)
-export const versionedFunctionOutputSchema: any;
+export const versionedFunctionOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        definedFunctions: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        definedFunctions: string;
+    }, {
+        definedFunctions: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        definedFunctions: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        definedFunctions: string;
+    };
+}>]>;
 
 // @public (undocumented)
-export const versionedGraphqlOutputSchema: any;
+export const versionedGraphqlOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        awsAppsyncRegion: z.ZodString;
+        awsAppsyncApiEndpoint: z.ZodString;
+        awsAppsyncAuthenticationType: z.ZodEnum<["API_KEY", "AWS_LAMBDA", "AWS_IAM", "OPENID_CONNECT", "AMAZON_COGNITO_USER_POOLS"]>;
+        awsAppsyncAdditionalAuthenticationTypes: z.ZodOptional<z.ZodString>;
+        awsAppsyncConflictResolutionMode: z.ZodOptional<z.ZodString>;
+        awsAppsyncApiKey: z.ZodOptional<z.ZodString>;
+        awsAppsyncApiId: z.ZodString;
+        amplifyApiModelSchemaS3Uri: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        awsAppsyncRegion: string;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+        awsAppsyncApiId: string;
+        amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+        awsAppsyncConflictResolutionMode?: string | undefined;
+        awsAppsyncApiKey?: string | undefined;
+    }, {
+        awsAppsyncRegion: string;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+        awsAppsyncApiId: string;
+        amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+        awsAppsyncConflictResolutionMode?: string | undefined;
+        awsAppsyncApiKey?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        awsAppsyncRegion: string;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+        awsAppsyncApiId: string;
+        amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+        awsAppsyncConflictResolutionMode?: string | undefined;
+        awsAppsyncApiKey?: string | undefined;
+    };
+}, {
+    version: "1";
+    payload: {
+        awsAppsyncRegion: string;
+        awsAppsyncApiEndpoint: string;
+        awsAppsyncAuthenticationType: "API_KEY" | "AWS_LAMBDA" | "AWS_IAM" | "OPENID_CONNECT" | "AMAZON_COGNITO_USER_POOLS";
+        awsAppsyncApiId: string;
+        amplifyApiModelSchemaS3Uri: string;
+        awsAppsyncAdditionalAuthenticationTypes?: string | undefined;
+        awsAppsyncConflictResolutionMode?: string | undefined;
+        awsAppsyncApiKey?: string | undefined;
+    };
+}>]>;
 
 // @public (undocumented)
-export const versionedStorageOutputSchema: any;
+export const versionedStorageOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        bucketName: z.ZodString;
+        storageRegion: z.ZodString;
+        buckets: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        bucketName: string;
+        storageRegion: string;
+        buckets?: string | undefined;
+    }, {
+        bucketName: string;
+        storageRegion: string;
+        buckets?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        bucketName: string;
+        storageRegion: string;
+        buckets?: string | undefined;
+    };
+}, {
+    version: "1";
+    payload: {
+        bucketName: string;
+        storageRegion: string;
+        buckets?: string | undefined;
+    };
+}>]>;
 
 // (No @packageDocumentation comment for this package)
 
