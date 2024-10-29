@@ -86,6 +86,12 @@ export type CustomAttributeString = CustomAttributeBase & StringAttributeConstra
 };
 
 // @public
+export type CustomEmailSender = {
+    handler: IFunction;
+    kmsKeyArn?: string;
+};
+
+// @public
 export type EmailLogin = true | EmailLoginSettings;
 
 // @public
@@ -187,10 +193,6 @@ export type VerificationEmailWithLink = {
     verificationEmailBody?: (createLink: (text?: string) => string) => string;
     verificationEmailSubject?: string;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:435:5 - (ae-forgotten-export) The symbol "CustomEmailSender" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
