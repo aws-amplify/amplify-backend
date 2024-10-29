@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { AIConversationOutput } from '@aws-amplify/backend-output-schemas';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';

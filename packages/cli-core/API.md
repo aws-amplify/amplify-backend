@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
 
@@ -32,33 +30,33 @@ export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan"]
 export class Format {
     constructor(packageManagerRunnerName?: string);
     // (undocumented)
-    bold: (message: string) => string;
+    bold: (message: string) => any;
     // (undocumented)
-    color: (message: string, colorName: ColorName) => string;
+    color: (message: string, colorName: ColorName) => any;
     // (undocumented)
-    command: (command: string) => string;
+    command: (command: string) => any;
     // (undocumented)
-    dim: (message: string) => string;
+    dim: (message: string) => any;
     // (undocumented)
     error: (error: string | Error | unknown) => string;
     // (undocumented)
-    highlight: (command: string) => string;
+    highlight: (command: string) => any;
     // (undocumented)
     indent: (message: string) => string;
     // (undocumented)
-    link: (link: string) => string;
+    link: (link: string) => any;
     // (undocumented)
     list: (lines: string[]) => string;
     // (undocumented)
-    normalizeAmpxCommand: (command: string) => string;
+    normalizeAmpxCommand: (command: string) => any;
     // (undocumented)
-    note: (message: string) => string;
+    note: (message: string) => any;
     // (undocumented)
     record: (record: Record<string, string | number | Date>) => string;
     // (undocumented)
-    sectionHeader: (header: string) => string;
+    sectionHeader: (header: string) => any;
     // (undocumented)
-    success: (message: string) => string;
+    success: (message: string) => any;
 }
 
 // @public (undocumented)
@@ -76,7 +74,7 @@ export enum LogLevel {
 
 // @public
 export class PackageManagerControllerFactory {
-    constructor(cwd?: string, printer?: Printer, platform?: NodeJS.Platform);
+    constructor(cwd?: any, printer?: Printer, platform?: any);
     getPackageManagerController(): PackageManagerController;
 }
 
