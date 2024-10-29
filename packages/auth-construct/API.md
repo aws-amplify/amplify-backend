@@ -48,8 +48,7 @@ export type AuthProps = {
         externalProviders?: ExternalProviderOptions;
     };
     senders?: {
-        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | IFunction;
-        kmsKeyArn?: string;
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
     };
     userAttributes?: UserAttributes;
     multifactor?: MFA;
@@ -188,6 +187,10 @@ export type VerificationEmailWithLink = {
     verificationEmailBody?: (createLink: (text?: string) => string) => string;
     verificationEmailSubject?: string;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:435:5 - (ae-forgotten-export) The symbol "CustomEmailSender" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

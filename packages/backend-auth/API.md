@@ -43,8 +43,7 @@ export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
     access?: AuthAccessGenerator;
     senders?: {
-        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | ConstructFactory<AmplifyFunction>;
-        kmsKeyArn?: string;
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
     };
 }>;
 
@@ -85,6 +84,12 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
 
 // @public (undocumented)
 export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string> & StackProvider;
+
+// @public
+export type CustomEmailSender = {
+    handler: ConstructFactory<AmplifyFunction>;
+    kmsKeyArn?: string;
+};
 
 // @public
 export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth>;
