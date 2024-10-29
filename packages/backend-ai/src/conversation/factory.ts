@@ -43,6 +43,7 @@ class ConversationHandlerFunctionGenerator
         };
       }),
       outputStorageStrategy: this.outputStorageStrategy,
+      memoryMB: this.props.memoryMB,
     };
     const conversationHandlerFunction = new ConversationHandlerFunction(
       scope,
@@ -119,6 +120,12 @@ export type DefineConversationHandlerFunctionProps = {
     modelId: string | AiModel;
     region?: string;
   }>;
+  /**
+   * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB.
+   * Must be a whole number.
+   * Default is 512MB.
+   */
+  memoryMB?: number;
 };
 
 /**

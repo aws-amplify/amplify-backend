@@ -105,6 +105,11 @@ void describe('Bedrock converse adapter', () => {
           // See mockConverseStreamCommandOutput below of how split chunks are mocked.
           assert.deepStrictEqual(chunks, [
             {
+              accumulatedTurnContent: [
+                {
+                  text: 'b',
+                },
+              ],
               conversationId: event.conversationId,
               associatedUserMessageId: event.currentMessageId,
               contentBlockText: 'b',
@@ -112,6 +117,11 @@ void describe('Bedrock converse adapter', () => {
               contentBlockDeltaIndex: 0,
             },
             {
+              accumulatedTurnContent: [
+                {
+                  text: 'block1',
+                },
+              ],
               conversationId: event.conversationId,
               associatedUserMessageId: event.currentMessageId,
               contentBlockText: 'lock1',
@@ -119,12 +129,25 @@ void describe('Bedrock converse adapter', () => {
               contentBlockDeltaIndex: 1,
             },
             {
+              accumulatedTurnContent: [
+                {
+                  text: 'block1',
+                },
+              ],
               conversationId: event.conversationId,
               associatedUserMessageId: event.currentMessageId,
               contentBlockIndex: 0,
               contentBlockDoneAtIndex: 1,
             },
             {
+              accumulatedTurnContent: [
+                {
+                  text: 'block1',
+                },
+                {
+                  text: 'b',
+                },
+              ],
               conversationId: event.conversationId,
               associatedUserMessageId: event.currentMessageId,
               contentBlockText: 'b',
@@ -132,6 +155,14 @@ void describe('Bedrock converse adapter', () => {
               contentBlockDeltaIndex: 0,
             },
             {
+              accumulatedTurnContent: [
+                {
+                  text: 'block1',
+                },
+                {
+                  text: 'block2',
+                },
+              ],
               conversationId: event.conversationId,
               associatedUserMessageId: event.currentMessageId,
               contentBlockText: 'lock2',
@@ -139,12 +170,28 @@ void describe('Bedrock converse adapter', () => {
               contentBlockDeltaIndex: 1,
             },
             {
+              accumulatedTurnContent: [
+                {
+                  text: 'block1',
+                },
+                {
+                  text: 'block2',
+                },
+              ],
               conversationId: event.conversationId,
               associatedUserMessageId: event.currentMessageId,
               contentBlockIndex: 1,
               contentBlockDoneAtIndex: 1,
             },
             {
+              accumulatedTurnContent: [
+                {
+                  text: 'block1',
+                },
+                {
+                  text: 'block2',
+                },
+              ],
               conversationId: event.conversationId,
               associatedUserMessageId: event.currentMessageId,
               contentBlockIndex: 1,
@@ -648,12 +695,14 @@ void describe('Bedrock converse adapter', () => {
             await askBedrockWithStreaming(adapter);
           assert.deepStrictEqual(chunks, [
             {
+              accumulatedTurnContent: [{ toolUse: clientToolUse }],
               conversationId: event.conversationId,
               associatedUserMessageId: event.currentMessageId,
               contentBlockIndex: 0,
               contentBlockToolUse: JSON.stringify({ toolUse: clientToolUse }),
             },
             {
+              accumulatedTurnContent: [{ toolUse: clientToolUse }],
               conversationId: event.conversationId,
               associatedUserMessageId: event.currentMessageId,
               contentBlockIndex: 0,

@@ -222,4 +222,66 @@ void describe('Conversation Handler Function construct', () => {
       Handler: 'index.handler',
     });
   });
+
+  void describe('memory property', () => {
+    void it('sets valid memory', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [],
+        memoryMB: 234,
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        MemorySize: 234,
+      });
+    });
+
+    void it('sets default memory', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        MemorySize: 512,
+      });
+    });
+
+    void it('throws on memory below 128 MB', () => {
+      assert.throws(() => {
+        const app = new App();
+        const stack = new Stack(app);
+        new ConversationHandlerFunction(stack, 'conversationHandler', {
+          models: [],
+          memoryMB: 127,
+        });
+      }, new Error('memoryMB must be a whole number between 128 and 10240 inclusive'));
+    });
+
+    void it('throws on memory above 10240 MB', () => {
+      assert.throws(() => {
+        const app = new App();
+        const stack = new Stack(app);
+        new ConversationHandlerFunction(stack, 'conversationHandler', {
+          models: [],
+          memoryMB: 10241,
+        });
+      }, new Error('memoryMB must be a whole number between 128 and 10240 inclusive'));
+    });
+
+    void it('throws on fractional memory', () => {
+      assert.throws(() => {
+        const app = new App();
+        const stack = new Stack(app);
+        new ConversationHandlerFunction(stack, 'conversationHandler', {
+          models: [],
+          memoryMB: 256.2,
+        });
+      }, new Error('memoryMB must be a whole number between 128 and 10240 inclusive'));
+    });
+  });
 });

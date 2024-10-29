@@ -48,7 +48,12 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
       });
 
       after(async () => {
-        await testProject.tearDown(sandboxBackendIdentifier);
+        if (
+          process.env.AMPLIFY_BACKEND_TESTS_RETAIN_TEST_PROJECT_DEPLOYMENT !==
+          'true'
+        ) {
+          await testProject.tearDown(sandboxBackendIdentifier);
+        }
       });
 
       void describe('in sequence', { concurrency: false }, () => {

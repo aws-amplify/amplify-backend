@@ -5,7 +5,6 @@ import { ConversationTurnEvent, StreamingResponseChunk } from './types';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter';
 import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnResponseSender } from './conversation_turn_response_sender';
-import { ConversationTurnStreamingResponseSender } from './conversation_turn_streaming_response_sender';
 
 void describe('Conversation turn executor', () => {
   const event: ConversationTurnEvent = {
@@ -45,11 +44,8 @@ void describe('Conversation turn executor', () => {
       () => Promise.resolve()
     );
 
-    const streamResponseSender = new ConversationTurnStreamingResponseSender(
-      event
-    );
     const streamResponseSenderSendResponseMock = mock.method(
-      streamResponseSender,
+      responseSender,
       'sendResponseChunk',
       () => Promise.resolve()
     );
@@ -68,7 +64,6 @@ void describe('Conversation turn executor', () => {
       [],
       bedrockConverseAdapter,
       responseSender,
-      streamResponseSender,
       consoleMock
     ).execute();
 
@@ -115,6 +110,7 @@ void describe('Conversation turn executor', () => {
         contentBlockDeltaIndex: 1,
         conversationId: 'testConversationId',
         associatedUserMessageId: 'testCurrentMessageId',
+        accumulatedTurnContent: [{ text: 'chunk1' }],
       },
       {
         contentBlockText: 'chunk2',
@@ -122,6 +118,7 @@ void describe('Conversation turn executor', () => {
         contentBlockDeltaIndex: 1,
         conversationId: 'testConversationId',
         associatedUserMessageId: 'testCurrentMessageId',
+        accumulatedTurnContent: [{ text: 'chunk1chunk2' }],
       },
     ];
     const bedrockConverseAdapterAskBedrockMock = mock.method(
@@ -141,11 +138,8 @@ void describe('Conversation turn executor', () => {
       () => Promise.resolve()
     );
 
-    const streamResponseSender = new ConversationTurnStreamingResponseSender(
-      event
-    );
     const streamResponseSenderSendResponseMock = mock.method(
-      streamResponseSender,
+      responseSender,
       'sendResponseChunk',
       () => Promise.resolve()
     );
@@ -164,7 +158,6 @@ void describe('Conversation turn executor', () => {
       [],
       bedrockConverseAdapter,
       responseSender,
-      streamResponseSender,
       consoleMock
     ).execute();
 
@@ -215,11 +208,8 @@ void describe('Conversation turn executor', () => {
       () => Promise.resolve()
     );
 
-    const streamResponseSender = new ConversationTurnStreamingResponseSender(
-      event
-    );
     const streamResponseSenderSendResponseMock = mock.method(
-      streamResponseSender,
+      responseSender,
       'sendResponseChunk',
       () => Promise.resolve()
     );
@@ -240,7 +230,6 @@ void describe('Conversation turn executor', () => {
           [],
           bedrockConverseAdapter,
           responseSender,
-          streamResponseSender,
           consoleMock
         ).execute(),
       (error: Error) => {
@@ -295,11 +284,8 @@ void describe('Conversation turn executor', () => {
       () => Promise.reject(responseSenderError)
     );
 
-    const streamResponseSender = new ConversationTurnStreamingResponseSender(
-      event
-    );
     const streamResponseSenderSendResponseMock = mock.method(
-      streamResponseSender,
+      responseSender,
       'sendResponseChunk',
       () => Promise.resolve()
     );
@@ -320,7 +306,6 @@ void describe('Conversation turn executor', () => {
           [],
           bedrockConverseAdapter,
           responseSender,
-          streamResponseSender,
           consoleMock
         ).execute(),
       (error: Error) => {
