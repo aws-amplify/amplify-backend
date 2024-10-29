@@ -19,5 +19,4 @@ export type PackageManagerController = {
     options?: Options<'utf8'>
   ) => ExecaChildProcess;
   getCommand: (args: string[]) => string;
-  allowsSignalPropagation: () => boolean;
 };
