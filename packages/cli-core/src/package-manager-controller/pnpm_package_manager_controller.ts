@@ -32,10 +32,4 @@ export class PnpmPackageManagerController extends PackageManagerControllerBase {
       existsSync
     );
   }
-
-  /**
-   * Pnpm doesn't handle the node process gracefully during the SIGINT life cycle.
-   * See: https://github.com/pnpm/pnpm/issues/7374
-   */
-  allowsSignalPropagation = () => false;
 }
