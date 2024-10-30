@@ -56,6 +56,21 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
   static factoryCount = 0;
   readonly provides = 'DataResources';
 
+  // The idea here is to separate Schema and MIS generation into separate logical unit so that it can be computed independently
+  // from construct creation. It then becomes input to both functions and data construct.
+  // In addition this requires new functionality in construct container (aka DI container) to register arbitrary provider (aka factory methods).
+  additionalProviders = {
+    // naming POC grade.
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    DataIntrospectionSchema: (generateContainerEntryProps: GenerateContainerEntryProps): string => {
+      const schemaStuff = generateSchema(this.props, generateContainerEntryProps);
+      console.log(schemaStuff);
+      // const mis = computeMis(schemaStuff);
+      const mis = 'SampleMisForTesting';
+      return mis;
+    }
+  }
+
   private generator: ConstructContainerEntryGenerator;
 
   /**
@@ -124,58 +139,19 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     this.name = props.name ?? 'amplifyData';
   }
 
-  generateContainerEntry = ({
-    scope,
-    ssmEnvironmentEntriesGenerator,
-    backendSecretResolver,
-    stableBackendIdentifiers,
-  }: GenerateContainerEntryProps) => {
-    const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
-    const schemasJsFunctions: JsResolver[] = [];
-    const schemasFunctionSchemaAccess: FunctionSchemaAccess[] = [];
-    let schemasLambdaFunctions: Record<
-      string,
-      ConstructFactory<AmplifyFunction>
-    > = {};
-    try {
-      const schemas = isCombinedSchema(this.props.schema)
-        ? this.props.schema.schemas
-        : [this.props.schema];
+  generateContainerEntry = (
+    generateContainerEntryProps: GenerateContainerEntryProps
+  ) => {
+    const scope = generateContainerEntryProps.scope;
+    const ssmEnvironmentEntriesGenerator =
+      generateContainerEntryProps.ssmEnvironmentEntriesGenerator;
 
-      schemas.forEach((schema) => {
-        if (isDataSchema(schema)) {
-          const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
-            schema.transform();
-          schemasJsFunctions.push(...jsFunctions);
-          schemasFunctionSchemaAccess.push(...functionSchemaAccess);
-          schemasLambdaFunctions = {
-            ...schemasLambdaFunctions,
-            ...lambdaFunctions,
-          };
-        }
-
-        amplifyGraphqlDefinitions.push(
-          convertSchemaToCDK(
-            schema,
-            backendSecretResolver,
-            stableBackendIdentifiers
-          )
-        );
-      });
-    } catch (error) {
-      throw new AmplifyUserError<AmplifyDataError>(
-        'InvalidSchemaError',
-        {
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Failed to parse schema definition.',
-          resolution:
-            'Check your data schema definition for syntax and type errors.',
-        },
-        error instanceof Error ? error : undefined
-      );
-    }
+    const {
+      definition,
+      schemasLambdaFunctions,
+      schemasJsFunctions,
+      schemasFunctionSchemaAccess,
+    } = generateSchema(this.props, generateContainerEntryProps);
 
     let authorizationModes;
     try {
@@ -239,7 +215,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     try {
       amplifyApi = new AmplifyData(scope, this.name, {
         apiName: this.name,
-        definition: combineCDKSchemas(amplifyGraphqlDefinitions),
+        definition: definition,
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
         functionNameMap,
@@ -299,6 +275,72 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     return amplifyApi;
   };
 }
+
+// This scrappy and is not optimized, i.e. schema should be cached after first computation.
+// and perhaps should fit in better place in this file.
+// But it's enough to POC.
+const generateSchema = (
+  props: DataProps,
+  {
+    backendSecretResolver,
+    stableBackendIdentifiers,
+  }: GenerateContainerEntryProps
+) => {
+  const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
+  const schemasJsFunctions: JsResolver[] = [];
+  const schemasFunctionSchemaAccess: FunctionSchemaAccess[] = [];
+  let schemasLambdaFunctions: Record<
+    string,
+    ConstructFactory<AmplifyFunction>
+  > = {};
+  try {
+    const schemas = isCombinedSchema(props.schema)
+      ? props.schema.schemas
+      : [props.schema];
+
+    schemas.forEach((schema) => {
+      if (isDataSchema(schema)) {
+        const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
+          schema.transform();
+        schemasJsFunctions.push(...jsFunctions);
+        schemasFunctionSchemaAccess.push(...functionSchemaAccess);
+        schemasLambdaFunctions = {
+          ...schemasLambdaFunctions,
+          ...lambdaFunctions,
+        };
+      }
+
+      amplifyGraphqlDefinitions.push(
+        convertSchemaToCDK(
+          schema,
+          backendSecretResolver,
+          stableBackendIdentifiers
+        )
+      );
+    });
+
+    const definition = combineCDKSchemas(amplifyGraphqlDefinitions);
+    return {
+      definition,
+      schemasLambdaFunctions,
+      schemasJsFunctions,
+      schemasFunctionSchemaAccess,
+    };
+  } catch (error) {
+    throw new AmplifyUserError<AmplifyDataError>(
+      'InvalidSchemaError',
+      {
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Failed to parse schema definition.',
+        resolution:
+          'Check your data schema definition for syntax and type errors.',
+      },
+      error instanceof Error ? error : undefined
+    );
+  }
+};
 
 const REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME: keyof TranslationBehavior =
   'replaceTableUponGsiUpdate';

@@ -105,6 +105,14 @@ export class BackendFactory<
       if (typeof factory.provides === 'string') {
         constructContainer.registerConstructFactory(factory.provides, factory);
       }
+
+      if (factory.additionalProviders) {
+        Object.entries(factory.additionalProviders).forEach(
+          ([token, provider]) => {
+            constructContainer.registerAdditionalProvider(token, provider);
+          }
+        );
+      }
     });
 
     // now invoke all the factories and collect the constructs into this.resources

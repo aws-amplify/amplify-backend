@@ -1,4 +1,7 @@
-import { ConstructContainer } from './construct_container.js';
+import {
+  ConstructContainer,
+  GenerateContainerEntryProps,
+} from './construct_container.js';
 import { BackendOutputStorageStrategy } from './output_storage_strategy.js';
 import { BackendOutputEntry } from './backend_output.js';
 import { ImportPathVerifier } from './import_path_verifier.js';
@@ -21,5 +24,9 @@ export type ConstructFactory<T extends ResourceProvider = ResourceProvider> = {
    * Registering as a provider allows other construct factories to fetch this one based on the provides token
    */
   readonly provides?: string;
+  readonly additionalProviders?: Record<
+    string,
+    (props: GenerateContainerEntryProps) => unknown
+  >;
   getInstance: (props: ConstructFactoryGetInstanceProps) => T;
 };

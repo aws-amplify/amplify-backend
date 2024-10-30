@@ -1,5 +1,7 @@
 import { Construct } from 'constructs';
-import { ConstructFactory } from './construct_factory.js';
+import {
+  ConstructFactory,
+} from './construct_factory.js';
 import { BackendSecretResolver } from './backend_secret_resolver.js';
 import { ResourceProvider } from './resource_provider.js';
 import { SsmEnvironmentEntriesGenerator } from './ssm_environment_entries_generator.js';
@@ -40,4 +42,13 @@ export type ConstructContainer = {
   getConstructFactory: <T extends ResourceProvider>(
     token: string
   ) => ConstructFactory<T> | undefined;
+
+  // This naming is crap.
+  registerAdditionalProvider: (
+    token: string,
+    provider: (props: GenerateContainerEntryProps) => unknown
+  ) => void;
+  getAdditionalProvider: <T = unknown>(
+    token: string
+  ) => ((props: GenerateContainerEntryProps) => T) | undefined;
 };

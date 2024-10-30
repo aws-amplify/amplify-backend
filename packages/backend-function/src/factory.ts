@@ -183,20 +183,13 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     resourceNameValidator,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
-      const dataResources = constructContainer
-        .getConstructFactory<never>('DataResources')
-        ?.getInstance({
-          constructContainer,
-          outputStorageStrategy,
-          resourceNameValidator,
-        });
-
-      // Need something to use dataResources
-      // eslint-disable-next-line no-console
-      console.log(dataResources);
+      const dataMisProvider = constructContainer.getAdditionalProvider<string>(
+        'DataIntrospectionSchema'
+      );
 
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),
+        dataMisProvider,
         outputStorageStrategy
       );
     }
@@ -355,27 +348,35 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: HydratedFunctionProps,
+    private readonly dataMisProvider:
+      | ((props: GenerateContainerEntryProps) => string)
+      | undefined,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {}
 
-  generateContainerEntry = ({
-    scope,
-    backendSecretResolver,
-  }: GenerateContainerEntryProps) => {
+  generateContainerEntry = (
+    generateContainerEntryProps: GenerateContainerEntryProps
+  ) => {
     // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
     const resolvedLayers = Object.entries(this.props.layers).map(([key, arn]) =>
       LayerVersion.fromLayerVersionArn(
-        scope,
+        generateContainerEntryProps.scope,
         `${this.props.name}-${key}-layer`,
         arn
       )
     );
 
+    let mis: string | undefined = undefined;
+    if (this.dataMisProvider) {
+      mis = this.dataMisProvider(generateContainerEntryProps);
+    }
+
     return new AmplifyFunction(
-      scope,
+      generateContainerEntryProps.scope,
       this.props.name,
       { ...this.props, resolvedLayers },
-      backendSecretResolver,
+      generateContainerEntryProps.backendSecretResolver,
+      mis,
       this.outputStorageStrategy
     );
   };
@@ -396,6 +397,7 @@ class AmplifyFunction
     id: string,
     props: HydratedFunctionProps & { resolvedLayers: ILayerVersion[] },
     backendSecretResolver: BackendSecretResolver,
+    mis: string | undefined,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
     super(scope, id);
@@ -508,6 +510,11 @@ class AmplifyFunction
       backendSecretResolver,
       functionEnvironmentTypeGenerator
     );
+
+    // This is just for testing.
+    if (mis) {
+      this.functionEnvironmentTranslator.addEnvironmentEntry('MIS', mis);
+    }
 
     this.resources = {
       lambda: functionLambda,

@@ -3,7 +3,8 @@ import {
   ConstructContainer,
   ConstructContainerEntryGenerator,
   ConstructFactory,
-  ResourceProvider,
+  GenerateContainerEntryProps,
+  ResourceProvider
 } from '@aws-amplify/plugin-types';
 import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
@@ -22,6 +23,11 @@ export class SingletonConstructContainer implements ConstructContainer {
 
   private readonly providerFactoryTokenMap: Record<string, ConstructFactory> =
     {};
+
+  private readonly additionalProviderTokenMap: Record<
+    string,
+    (props: GenerateContainerEntryProps) => unknown
+  > = {};
 
   /**
    * Initialize the BackendBuildState with a root stack
@@ -96,5 +102,29 @@ export class SingletonConstructContainer implements ConstructContainer {
       );
     }
     this.providerFactoryTokenMap[token] = provider;
+  };
+
+  registerAdditionalProvider = (
+    token: string,
+    provider: (props: GenerateContainerEntryProps) => unknown
+  ): void => {
+    if (
+      token in this.additionalProviderTokenMap &&
+      this.additionalProviderTokenMap[token] !== provider
+    ) {
+      throw new Error(`Token ${token} is already registered to a provider`);
+    }
+    this.additionalProviderTokenMap[token] = provider;
+  };
+
+  getAdditionalProvider = <T = unknown>(
+    token: string
+  ): ((props: GenerateContainerEntryProps) => T) | undefined => {
+    if (token in this.additionalProviderTokenMap) {
+      return this.additionalProviderTokenMap[token] as (
+        props: GenerateContainerEntryProps
+      ) => T;
+    }
+    return;
   };
 }
