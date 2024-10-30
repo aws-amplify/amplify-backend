@@ -109,7 +109,10 @@ export enum BackendOutputClientErrorType {
 
 // @public
 export class BackendOutputClientFactory {
-    static getInstance: (awsClientProvider?: any) => BackendOutputClient;
+    static getInstance: (awsClientProvider?: AWSClientProvider<{
+        getAmplifyClient: AmplifyClient;
+        getCloudFormationClient: CloudFormationClient;
+    }>) => BackendOutputClient;
 }
 
 // @public (undocumented)

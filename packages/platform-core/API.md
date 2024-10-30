@@ -21,7 +21,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     // (undocumented)
     readonly details?: string;
     // (undocumented)
-    static fromError: (error: unknown) => AmplifyError<"UnknownFault" | "CredentialsError" | "InvalidCommandInputError" | "DomainNotFoundError" | "SyntaxError">;
+    static fromError: (error: unknown) => AmplifyError<'UnknownFault' | 'CredentialsError' | 'InvalidCommandInputError' | 'DomainNotFoundError' | 'SyntaxError'>;
     // (undocumented)
     static fromStderr: (_stderr: string) => AmplifyError | undefined;
     // (undocumented)
@@ -80,7 +80,7 @@ export class BackendLocator {
 export class CallerDirectoryExtractor {
     constructor(stackTrace: string | undefined);
     // (undocumented)
-    extract: () => any;
+    extract: () => string;
 }
 
 // @public
@@ -159,7 +159,19 @@ export class PackageJsonReader {
 }
 
 // @public
-export const packageJsonSchema: any;
+export const packageJsonSchema: z.ZodObject<{
+    name: z.ZodOptional<z.ZodString>;
+    version: z.ZodOptional<z.ZodString>;
+    type: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"module">, z.ZodLiteral<"commonjs">]>>;
+}, "strip", z.ZodTypeAny, {
+    name?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
+    version?: string | undefined;
+}, {
+    name?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
+    version?: string | undefined;
+}>;
 
 // @public
 export class ParameterPathConversions {
