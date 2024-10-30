@@ -1,30 +1,29 @@
 import {
   ConversationTurnError,
   ConversationTurnEvent,
-  ConversationTurnResponse,
   StreamingResponseChunk,
 } from './types.js';
 import type { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
 
 export type MutationResponseInput = {
-  input:
-    | {
-        associatedUserMessageId: string;
-        conversationId: string;
-        content: ContentBlock[];
-        errors?: never;
-      }
-    | {
-        associatedUserMessageId: string;
-        conversationId: string;
-        content?: never;
-        errors: ConversationTurnError[];
-      };
+  input: {
+    conversationId: string;
+    content: ContentBlock[];
+    associatedUserMessageId: string;
+  };
 };
 
 export type MutationStreamingResponseInput = {
   input: StreamingResponseChunk;
+};
+
+export type MutationErrorsResponseInput = {
+  input: {
+    conversationId: string;
+    errors: ConversationTurnError[];
+    associatedUserMessageId: string;
+  };
 };
 
 /**
@@ -45,8 +44,8 @@ export class ConversationTurnResponseSender {
     private readonly logger = console
   ) {}
 
-  sendResponse = async (response: ConversationTurnResponse) => {
-    const responseMutationRequest = this.createMutationRequest(response);
+  sendResponse = async (message: ContentBlock[]) => {
+    const responseMutationRequest = this.createMutationRequest(message);
     this.logger.debug('Sending response mutation:', responseMutationRequest);
     await this.graphqlRequestExecutor.executeGraphql<
       MutationResponseInput,
@@ -63,7 +62,19 @@ export class ConversationTurnResponseSender {
     >(responseMutationRequest);
   };
 
-  private createMutationRequest = (response: ConversationTurnResponse) => {
+  sendErrors = async (errors: ConversationTurnError[]) => {
+    const responseMutationRequest = this.createMutationErrorsRequest(errors);
+    this.logger.debug(
+      'Sending errors response mutation:',
+      responseMutationRequest
+    );
+    await this.graphqlRequestExecutor.executeGraphql<
+      MutationErrorsResponseInput,
+      void
+    >(responseMutationRequest);
+  };
+
+  private createMutationErrorsRequest = (errors: ConversationTurnError[]) => {
     const query = `
         mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
             ${this.event.responseMutation.name}(input: $input) {
@@ -71,26 +82,32 @@ export class ConversationTurnResponseSender {
             }
         }
     `;
-    let variables: MutationResponseInput;
-    if (typeof response.content !== 'undefined') {
-      variables = {
-        input: {
-          conversationId: this.event.conversationId,
-          content: this.serializeContent(response.content),
-          associatedUserMessageId: this.event.currentMessageId,
-        },
-      };
-    } else if (typeof response.errors !== 'undefined') {
-      variables = {
-        input: {
-          conversationId: this.event.conversationId,
-          errors: response.errors,
-          associatedUserMessageId: this.event.currentMessageId,
-        },
-      };
-    } else {
-      throw new Error('Response contains neither content nor error');
-    }
+    const variables: MutationErrorsResponseInput = {
+      input: {
+        conversationId: this.event.conversationId,
+        errors,
+        associatedUserMessageId: this.event.currentMessageId,
+      },
+    };
+    return { query, variables };
+  };
+
+  private createMutationRequest = (content: ContentBlock[]) => {
+    const query = `
+        mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
+            ${this.event.responseMutation.name}(input: $input) {
+                ${this.event.responseMutation.selectionSet}
+            }
+        }
+    `;
+    content = this.serializeContent(content);
+    const variables: MutationResponseInput = {
+      input: {
+        conversationId: this.event.conversationId,
+        content,
+        associatedUserMessageId: this.event.currentMessageId,
+      },
+    };
     return { query, variables };
   };
 

@@ -1,13 +1,11 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { ConversationTurnExecutor } from './conversation_turn_executor';
-import {
-  ConversationTurnEvent,
-  ConversationTurnResponse,
-  StreamingResponseChunk,
-} from './types';
+import { ConversationTurnEvent, StreamingResponseChunk } from './types';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter';
+import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnResponseSender } from './conversation_turn_response_sender';
+import { Lazy } from './lazy';
 
 void describe('Conversation turn executor', () => {
   const event: ConversationTurnEvent = {
@@ -31,9 +29,10 @@ void describe('Conversation turn executor', () => {
 
   void it('executes turn successfully', async () => {
     const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
-    const bedrockResponse: ConversationTurnResponse = {
-      content: [{ text: 'block1' }, { text: 'block2' }],
-    };
+    const bedrockResponse: Array<ContentBlock> = [
+      { text: 'block1' },
+      { text: 'block2' },
+    ];
     const bedrockConverseAdapterAskBedrockMock = mock.method(
       bedrockConverseAdapter,
       'askBedrock',
@@ -64,8 +63,8 @@ void describe('Conversation turn executor', () => {
     await new ConversationTurnExecutor(
       event,
       [],
-      bedrockConverseAdapter,
-      responseSender,
+      new Lazy(() => responseSender),
+      new Lazy(() => bedrockConverseAdapter),
       consoleMock
     ).execute();
 
@@ -158,8 +157,8 @@ void describe('Conversation turn executor', () => {
     await new ConversationTurnExecutor(
       streamingEvent,
       [],
-      bedrockConverseAdapter,
-      responseSender,
+      new Lazy(() => responseSender),
+      new Lazy(() => bedrockConverseAdapter),
       consoleMock
     ).execute();
 
@@ -219,10 +218,12 @@ void describe('Conversation turn executor', () => {
     const consoleErrorMock = mock.fn();
     const consoleLogMock = mock.fn();
     const consoleDebugMock = mock.fn();
+    const consoleWarnMock = mock.fn();
     const consoleMock = {
       error: consoleErrorMock,
       log: consoleLogMock,
       debug: consoleDebugMock,
+      warn: consoleWarnMock,
     } as unknown as Console;
 
     await assert.rejects(
@@ -230,8 +231,8 @@ void describe('Conversation turn executor', () => {
         new ConversationTurnExecutor(
           event,
           [],
-          bedrockConverseAdapter,
-          responseSender,
+          new Lazy(() => responseSender),
+          new Lazy(() => bedrockConverseAdapter),
           consoleMock
         ).execute(),
       (error: Error) => {
@@ -269,9 +270,10 @@ void describe('Conversation turn executor', () => {
 
   void it('logs and propagates error if response sender throws', async () => {
     const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
-    const bedrockResponse: ConversationTurnResponse = {
-      content: [{ text: 'block1' }, { text: 'block2' }],
-    };
+    const bedrockResponse: Array<ContentBlock> = [
+      { text: 'block1' },
+      { text: 'block2' },
+    ];
     const bedrockConverseAdapterAskBedrockMock = mock.method(
       bedrockConverseAdapter,
       'askBedrock',
@@ -291,6 +293,12 @@ void describe('Conversation turn executor', () => {
       () => Promise.resolve()
     );
 
+    const responseSenderSendErrorsMock = mock.method(
+      responseSender,
+      'sendErrors',
+      () => Promise.resolve()
+    );
+
     const consoleErrorMock = mock.fn();
     const consoleLogMock = mock.fn();
     const consoleDebugMock = mock.fn();
@@ -305,8 +313,8 @@ void describe('Conversation turn executor', () => {
         new ConversationTurnExecutor(
           event,
           [],
-          bedrockConverseAdapter,
-          responseSender,
+          new Lazy(() => responseSender),
+          new Lazy(() => bedrockConverseAdapter),
           consoleMock
         ).execute(),
       (error: Error) => {
@@ -339,6 +347,16 @@ void describe('Conversation turn executor', () => {
     assert.strictEqual(
       consoleErrorMock.mock.calls[0].arguments[1],
       responseSenderError
+    );
+    assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      responseSenderSendErrorsMock.mock.calls[0].arguments[0],
+      [
+        {
+          errorType: 'Error',
+          message: 'Failed to send response',
+        },
+      ]
     );
   });
 });

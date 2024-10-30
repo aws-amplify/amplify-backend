@@ -6,8 +6,8 @@ import {
   MutationStreamingResponseInput,
 } from './conversation_turn_response_sender';
 import {
+  ConversationTurnError,
   ConversationTurnEvent,
-  ConversationTurnResponse,
   StreamingResponseChunk,
 } from './types';
 import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
@@ -49,14 +49,12 @@ void describe('Conversation turn response sender', () => {
       event,
       graphqlRequestExecutor
     );
-    const response: ConversationTurnResponse = {
-      content: [
-        {
-          text: 'block1',
-        },
-        { text: 'block2' },
-      ],
-    };
+    const response: Array<ContentBlock> = [
+      {
+        text: 'block1',
+      },
+      { text: 'block2' },
+    ];
     await sender.sendResponse(response);
 
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
@@ -108,7 +106,7 @@ void describe('Conversation turn response sender', () => {
         },
       },
     };
-    const response: ConversationTurnResponse = { content: [toolUseBlock] };
+    const response: Array<ContentBlock> = [toolUseBlock];
     await sender.sendResponse(response);
 
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
@@ -238,6 +236,62 @@ void describe('Conversation turn response sender', () => {
               },
             },
           ],
+        },
+      },
+    });
+  });
+
+  void it('sends errors response back to appsync', async () => {
+    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const executeGraphqlMock = mock.method(
+      graphqlRequestExecutor,
+      'executeGraphql',
+      () =>
+        // Mock successful Appsync response
+        Promise.resolve()
+    );
+    const sender = new ConversationTurnResponseSender(
+      event,
+      graphqlRequestExecutor
+    );
+    const errors: Array<ConversationTurnError> = [
+      {
+        errorType: 'errorType1',
+        message: 'errorMessage1',
+      },
+      {
+        errorType: 'errorType2',
+        message: 'errorMessage2',
+      },
+    ];
+    await sender.sendErrors(errors);
+
+    assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    const request = executeGraphqlMock.mock.calls[0]
+      .arguments[0] as GraphqlRequest<MutationResponseInput>;
+    assert.deepStrictEqual(request, {
+      query:
+        '\n' +
+        '        mutation PublishModelResponse($input: testResponseMutationInputTypeName!) {\n' +
+        '            testResponseMutationName(input: $input) {\n' +
+        '                testSelectionSet\n' +
+        '            }\n' +
+        '        }\n' +
+        '    ',
+      variables: {
+        input: {
+          conversationId: event.conversationId,
+          errors: [
+            {
+              errorType: 'errorType1',
+              message: 'errorMessage1',
+            },
+            {
+              errorType: 'errorType2',
+              message: 'errorMessage2',
+            },
+          ],
+          associatedUserMessageId: event.currentMessageId,
         },
       },
     });
