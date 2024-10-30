@@ -33,7 +33,7 @@
     "@zip.js/zip.js": "^2.7.52",
     "aws-amplify": "^6.0.16",
     "aws-appsync-auth-link": "^3.0.7",
-    "aws-cdk-lib": "^2.152.0",
+    "aws-cdk-lib": "^2.158.0",
     "constructs": "^10.0.0",
     "execa": "^8.0.1",
     "fs-extra": "^11.1.1",
