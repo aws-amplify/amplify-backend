@@ -429,7 +429,9 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - run: git fetch origin
-      - run: npm run diff:check ${{ github.event.pull_request.base.sha }}
+      - run: npm run diff:check "$BASE_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
   check_pr_changesets:
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'github-actions[bot]'
     runs-on: ubuntu-latest
@@ -443,9 +445,13 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
       - name: Validate that PR has changeset
-        run: npx changeset status --since origin/${{ github.event.pull_request.base.ref }}
+        run: npx changeset status --since origin/"$BASE_REF"
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
       - name: Validate changeset is not missing packages
-        run: npx tsx scripts/check_changeset_completeness.ts ${{ github.event.pull_request.base.sha }}
+        run: npx tsx scripts/check_changeset_completeness.ts "$BASE_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
       - name: Validate that changeset has necessary dependency updates
         run: |
           npx changeset version
