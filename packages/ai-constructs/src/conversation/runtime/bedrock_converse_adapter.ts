@@ -21,6 +21,7 @@ import {
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
+import { ValidationError } from './errors';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -87,7 +88,7 @@ export class BedrockConverseAdapter {
       this.clientToolByName.set(t.name, t);
     });
     if (duplicateTools.size > 0) {
-      throw new Error(
+      throw new ValidationError(
         `Tools must have unique names. Duplicate tools: ${[
           ...duplicateTools,
         ].join(', ')}.`
