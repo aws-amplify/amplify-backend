@@ -4,11 +4,7 @@
 
 ```ts
 
-import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { AWSClientProvider } from '@aws-amplify/plugin-types';
-import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
-import { S3Client } from '@aws-sdk/client-s3';
 
 // @public
 type AmazonCognitoStandardAttributes = 'address' | 'birthdate' | 'email' | 'family_name' | 'gender' | 'given_name' | 'locale' | 'middle_name' | 'name' | 'nickname' | 'phone_number' | 'picture' | 'preferred_username' | 'profile' | 'sub' | 'updated_at' | 'website' | 'zoneinfo';
@@ -604,7 +600,7 @@ export type ClientConfigVersion = `${ClientConfigVersionOption}`;
 // @public (undocumented)
 export enum ClientConfigVersionOption {
     // (undocumented)
-    V0 = "0",
+    V0 = "0",// Legacy client config
     // (undocumented)
     V1 = "1",
     // (undocumented)
@@ -627,18 +623,10 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "1.1" | "1.2" | "1.3" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
-    getS3Client: S3Client;
-    getAmplifyClient: AmplifyClient;
-    getCloudFormationClient: CloudFormationClient;
-}>) => Promise<ClientConfigVersionTemplateType<T>>;
+export const generateClientConfig: <T extends ClientConfigVersion>(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: any) => Promise<ClientConfigVersionTemplateType<T>>;
 
 // @public
-export const generateClientConfigToFile: (backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, awsClientProvider?: AWSClientProvider<{
-    getS3Client: S3Client;
-    getAmplifyClient: AmplifyClient;
-    getCloudFormationClient: CloudFormationClient;
-}>) => Promise<GenerateClientConfigToFileResult>;
+export const generateClientConfigToFile: (backendIdentifier: DeployedBackendIdentifier, version: ClientConfigVersion, outDir?: string, format?: ClientConfigFormat, awsClientProvider?: any) => Promise<GenerateClientConfigToFileResult>;
 
 // @public (undocumented)
 export type GenerateClientConfigToFileResult = {
@@ -675,7 +663,7 @@ export type GeoClientConfig = {
 export const getClientConfigFileName: (version: ClientConfigVersion) => ClientConfigFileBaseName;
 
 // @public
-export const getClientConfigPath: (fileName: ClientConfigFileBaseName, outDir?: string, format?: ClientConfigFormat) => Promise<string>;
+export const getClientConfigPath: (fileName: ClientConfigFileBaseName, outDir?: string, format?: ClientConfigFormat) => Promise<any>;
 
 // @public
 export type GraphqlClientConfig = {
