@@ -1,5 +1,31 @@
 # @aws-amplify/ai-constructs
 
+## 0.7.0
+
+### Minor Changes
+
+- 63fb254: Include accumulated turn content in chunk mutation
+
+## 0.6.2
+
+### Patch Changes
+
+- bd4ff4d: Add memory setting to conversation handler
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
+## 0.6.1
+
+### Patch Changes
+
+- 91e7f3c: Parse client side tool json elements
+
+## 0.6.0
+
+### Minor Changes
+
+- b6761b0: Stream Bedrock responses
+
 ## 0.5.0
 
 ### Minor Changes

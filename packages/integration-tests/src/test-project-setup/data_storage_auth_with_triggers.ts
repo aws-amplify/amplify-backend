@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { SecretClient } from '@aws-amplify/backend-secret';
+import { SecretClient, getSecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -46,15 +46,29 @@ export class DataStorageAuthWithTriggerTestProjectCreator
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient,
-    private readonly secretClient: SecretClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly s3Client: S3Client,
-    private readonly iamClient: IAMClient,
-    private readonly sqsClient: SQSClient,
-    private readonly cloudTrailClient: CloudTrailClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    ),
+    private readonly secretClient: SecretClient = getSecretClient(
+      e2eToolingClientConfig
+    ),
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly s3Client: S3Client = new S3Client(e2eToolingClientConfig),
+    private readonly iamClient: IAMClient = new IAMClient(
+      e2eToolingClientConfig
+    ),
+    private readonly sqsClient: SQSClient = new SQSClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cloudTrailClient: CloudTrailClient = new CloudTrailClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -325,7 +339,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.ok(fileContent.includes('newKey: string;')); // Env var added via addEnvironment
     assert.ok(fileContent.includes('TEST_SECRET: string;')); // Env var added via defineFunction
 
-    // assert storage access paths are correct in stack outputs
+    // assert specific config are correct in the outputs file
     const outputsObject = JSON.parse(
       await fs.readFile(
         path.join(this.projectDirPath, 'amplify_outputs.json'),
@@ -348,6 +362,21 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
           entityidentity: ['get', 'list', 'write', 'delete'],
         },
       })
+    );
+
+    assert.ok(
+      isMatch(outputsObject.auth.groups, [
+        {
+          Editors: {
+            precedence: 2, // previously 0 but was overwritten
+          },
+        },
+        {
+          Admins: {
+            precedence: 1,
+          },
+        },
+      ])
     );
   }
 
@@ -574,7 +603,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   ) => {
     const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
     const startTime = Date.now();
-    let messageCount = 0;
+    let receivedMessageCount = 0;
 
     const queue = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -583,16 +612,17 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
 
     // wait for schedule to invoke the function one time for it to send a message
-    while (Date.now() - startTime < TIMEOUT_MS && messageCount < 1) {
+    while (Date.now() - startTime < TIMEOUT_MS) {
       const response = await this.sqsClient.send(
         new ReceiveMessageCommand({
           QueueUrl: queue[0],
           WaitTimeSeconds: 20,
+          MaxNumberOfMessages: 10,
         })
       );
 
       if (response.Messages) {
-        messageCount += response.Messages.length;
+        receivedMessageCount += response.Messages.length;
 
         // delete messages afterwards
         for (const message of response.Messages) {
@@ -604,6 +634,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
           );
         }
       }
+    }
+
+    if (receivedMessageCount === 0) {
+      assert.fail(
+        `The scheduled function failed to invoke and send a message to the queue.`
+      );
     }
   };
 }

@@ -15,6 +15,7 @@ import {
 } from '@aws-amplify/ai-constructs/conversation';
 import path from 'path';
 import { CallerDirectoryExtractor } from '@aws-amplify/platform-core';
+import { AiModel } from '@aws-amplify/data-schema-types';
 
 class ConversationHandlerFunctionGenerator
   implements ConstructContainerEntryGenerator
@@ -42,6 +43,7 @@ class ConversationHandlerFunctionGenerator
         };
       }),
       outputStorageStrategy: this.outputStorageStrategy,
+      memoryMB: this.props.memoryMB,
     };
     const conversationHandlerFunction = new ConversationHandlerFunction(
       scope,
@@ -115,14 +117,15 @@ export type DefineConversationHandlerFunctionProps = {
   name: string;
   entry?: string;
   models: Array<{
-    modelId:
-      | string
-      | {
-          // This is to match return of 'a.ai.model.anthropic.claude3Haiku()'
-          resourcePath: string;
-        };
+    modelId: string | AiModel;
     region?: string;
   }>;
+  /**
+   * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB.
+   * Must be a whole number.
+   * Default is 512MB.
+   */
+  memoryMB?: number;
 };
 
 /**

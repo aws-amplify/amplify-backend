@@ -1,5 +1,13 @@
 # @aws-amplify/backend-data
 
+## 1.1.5
+
+### Patch Changes
+
+- 0d6489d: Update data-schema-types
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
 ## 1.1.4
 
 ### Patch Changes

@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AiModel } from '@aws-amplify/data-schema-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConversationTurnEventVersion } from '@aws-amplify/ai-constructs/conversation';
 import { FunctionResources } from '@aws-amplify/plugin-types';
@@ -49,11 +50,10 @@ type DefineConversationHandlerFunctionProps = {
     name: string;
     entry?: string;
     models: Array<{
-        modelId: string | {
-            resourcePath: string;
-        };
+        modelId: string | AiModel;
         region?: string;
     }>;
+    memoryMB?: number;
 };
 
 // @public (undocumented)

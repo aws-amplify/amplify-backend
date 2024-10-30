@@ -31,9 +31,16 @@ export class ConversationTurnExecutor {
       );
       this.logger.debug('Event received:', this.event);
 
-      const assistantResponse = await this.bedrockConverseAdapter.askBedrock();
-
-      await this.responseSender.sendResponse(assistantResponse);
+      if (this.event.streamResponse) {
+        const chunks = this.bedrockConverseAdapter.askBedrockStreaming();
+        for await (const chunk of chunks) {
+          await this.responseSender.sendResponseChunk(chunk);
+        }
+      } else {
+        const assistantResponse =
+          await this.bedrockConverseAdapter.askBedrock();
+        await this.responseSender.sendResponse(assistantResponse);
+      }
 
       this.logger.log(
         `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`

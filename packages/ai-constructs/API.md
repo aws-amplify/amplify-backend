@@ -54,6 +54,7 @@ type ConversationHandlerFunctionProps = {
         modelId: string;
         region?: string;
     }>;
+    memoryMB?: number;
     outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
 };
 
@@ -61,6 +62,7 @@ type ConversationHandlerFunctionProps = {
 type ConversationTurnEvent = {
     conversationId: string;
     currentMessageId: string;
+    streamResponse?: boolean;
     responseMutation: {
         name: string;
         inputTypeName: string;
