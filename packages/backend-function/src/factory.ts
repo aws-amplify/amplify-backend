@@ -183,17 +183,20 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     resourceNameValidator,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
-      const dataResources = constructContainer
-        .getConstructFactory<never>('DataResources')
-        ?.getInstance({
-          constructContainer,
-          outputStorageStrategy,
-          resourceNameValidator,
-        });
 
-      // Need something to use dataResources
-      // eslint-disable-next-line no-console
-      console.log(dataResources);
+      // This unfortunately creates a cycle if combined with access grants.
+
+      // const dataResources = constructContainer
+      //   .getConstructFactory<never>('DataResources')
+      //   ?.getInstance({
+      //     constructContainer,
+      //     outputStorageStrategy,
+      //     resourceNameValidator,
+      //   });
+      //
+      // // Need something to use dataResources
+      // // eslint-disable-next-line no-console
+      // console.log(dataResources);
 
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),

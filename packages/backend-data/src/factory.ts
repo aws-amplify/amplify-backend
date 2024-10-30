@@ -237,6 +237,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
 
     try {
+      console.log('new AmplifyData()');
       amplifyApi = new AmplifyData(scope, this.name, {
         apiName: this.name,
         definition: combineCDKSchemas(amplifyGraphqlDefinitions),
@@ -276,10 +277,17 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     convertJsResolverDefinition(scope, amplifyApi, schemasJsFunctions);
 
+    // This is one option to pursue. I.e. since we get references to functions here to get access
+    // and we are able to inject env vars we could leverage that fact and inject MIS this way.
+    const modelIntrospectionSchema: string = 'GENERATE_MIS_HERE';
+
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
         [`${this.name}_GRAPHQL_ENDPOINT`]:
           amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
+        // The SSM has size limit for values, if that's not enough it could potentially be S3 URL instead of exact value.
+        // (S3 bucket deployment construct can be used to get schema to S3).
+        [`${this.name}_MODEL_INTROSPECTION_SCHEMA`]: modelIntrospectionSchema,
       });
 
     const policyGenerator = new AppSyncPolicyGenerator(
