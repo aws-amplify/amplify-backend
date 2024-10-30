@@ -487,4 +487,59 @@ void describe('Conversation turn executor', () => {
       ]
     );
   });
+
+  void it('reports initialization errors', async () => {
+    const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
+    mock.method(bedrockConverseAdapter, 'askBedrock', () => Promise.resolve());
+    const responseSender = new ConversationTurnResponseSender(event);
+    mock.method(responseSender, 'sendResponse', () => Promise.resolve());
+
+    mock.method(responseSender, 'sendResponseChunk', () => Promise.resolve());
+
+    const responseSenderSendErrorsMock = mock.method(
+      responseSender,
+      'sendErrors',
+      () => Promise.resolve()
+    );
+
+    const consoleErrorMock = mock.fn();
+    const consoleLogMock = mock.fn();
+    const consoleDebugMock = mock.fn();
+    const consoleWarnMock = mock.fn();
+    const consoleMock = {
+      error: consoleErrorMock,
+      log: consoleLogMock,
+      debug: consoleDebugMock,
+      warn: consoleWarnMock,
+    } as unknown as Console;
+
+    const initializationError = new Error('initialization error');
+    await assert.rejects(
+      () =>
+        new ConversationTurnExecutor(
+          event,
+          [],
+          new Lazy(() => responseSender),
+          new Lazy(() => {
+            throw initializationError;
+          }),
+          consoleMock
+        ).execute(),
+      (error: Error) => {
+        assert.strictEqual(error, initializationError);
+        return true;
+      }
+    );
+
+    assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      responseSenderSendErrorsMock.mock.calls[0].arguments[0],
+      [
+        {
+          errorType: 'Error',
+          message: 'initialization error',
+        },
+      ]
+    );
+  });
 });
