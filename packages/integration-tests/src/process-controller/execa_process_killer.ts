@@ -21,7 +21,9 @@ export const killExecaProcess = async (processInstance: ExecaChildProcess) => {
       // if process doesn't exist it means that it managed to exit gracefully by now.
       // so don't fail in that case.
       const isProcessNotFoundError =
-        e instanceof Error && e.message.includes('not found');
+        e instanceof Error &&
+        (e.message.includes('not found') ||
+          e.message.includes('There is no running instance of the task'));
       if (!isProcessNotFoundError) {
         throw e;
       }
