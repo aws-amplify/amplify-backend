@@ -384,7 +384,7 @@ export type UserAttributes = StandardAttributes &
 /**
  * CustomEmailSender type for configuring a custom Lambda function for email sending
  */
-export type CustomEmailSender = {
+export type CustomEmailSenderConstruct = {
   handler: IFunction;
   kmsKeyArn?: string;
 };
@@ -434,7 +434,7 @@ export type AuthProps = {
      */
     email:
       | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
-      | CustomEmailSender;
+      | CustomEmailSenderConstruct;
   };
   /**
    * The set of attributes that are required for every user in the user pool. Read more on attributes here - https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html

@@ -48,7 +48,7 @@ export type AuthProps = {
         externalProviders?: ExternalProviderOptions;
     };
     senders?: {
-        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSenderConstruct;
     };
     userAttributes?: UserAttributes;
     multifactor?: MFA;
@@ -86,7 +86,7 @@ export type CustomAttributeString = CustomAttributeBase & StringAttributeConstra
 };
 
 // @public
-export type CustomEmailSender = {
+export type CustomEmailSenderConstruct = {
     handler: IFunction;
     kmsKeyArn?: string;
 };
