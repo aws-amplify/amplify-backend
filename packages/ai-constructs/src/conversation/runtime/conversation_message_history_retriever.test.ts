@@ -449,6 +449,257 @@ void describe('Conversation message history retriever', () => {
         },
       ],
     },
+    {
+      name: 'Removes tool usage from non-current turns',
+      mockListResponseMessages: [
+        {
+          id: 'someNonCurrentMessageId1',
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              text: 'nonCurrentMessage1',
+            },
+          ],
+        },
+        {
+          id: 'someNonCurrentMessageId2',
+          associatedUserMessageId: 'someNonCurrentMessageId1',
+          conversationId: event.conversationId,
+          role: 'assistant',
+          content: [
+            {
+              text: 'nonCurrentMessage2',
+            },
+            {
+              toolUse: {
+                name: 'testToolUse1',
+                toolUseId: 'testToolUseId1',
+                input: undefined,
+              },
+            },
+          ],
+        },
+        {
+          id: 'someNonCurrentMessageId3',
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              toolResult: {
+                status: 'success',
+                toolUseId: 'testToolUseId1',
+                content: undefined,
+              },
+            },
+          ],
+        },
+        {
+          id: 'someNonCurrentMessageId4',
+          associatedUserMessageId: 'someNonCurrentMessageId3',
+          conversationId: event.conversationId,
+          role: 'assistant',
+          content: [
+            {
+              text: 'nonCurrentMessage3',
+            },
+            {
+              toolUse: {
+                name: 'testToolUse2',
+                toolUseId: 'testToolUseId2',
+                input: undefined,
+              },
+            },
+          ],
+        },
+        {
+          id: 'someNonCurrentMessageId5',
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              toolResult: {
+                status: 'success',
+                toolUseId: 'testToolUseId2',
+                content: undefined,
+              },
+            },
+          ],
+        },
+        {
+          id: 'someNonCurrentMessageId5',
+          associatedUserMessageId: 'someNonCurrentMessageId5',
+          conversationId: event.conversationId,
+          role: 'assistant',
+          content: [
+            {
+              text: 'nonCurrentMessage4',
+            },
+          ],
+        },
+        // Current turn with multiple tool use.
+        {
+          id: 'someCurrentMessageId1',
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              text: 'currentMessage1',
+            },
+          ],
+        },
+        {
+          id: 'someCurrentMessageId2',
+          associatedUserMessageId: 'someCurrentMessageId1',
+          conversationId: event.conversationId,
+          role: 'assistant',
+          content: [
+            {
+              text: 'currentMessage2',
+            },
+            {
+              toolUse: {
+                name: 'testToolUse3',
+                toolUseId: 'testToolUseId3',
+                input: undefined,
+              },
+            },
+          ],
+        },
+        {
+          id: 'someCurrentMessageId3',
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              toolResult: {
+                status: 'success',
+                toolUseId: 'testToolUseId3',
+                content: undefined,
+              },
+            },
+          ],
+        },
+        {
+          id: 'someCurrentMessageId4',
+          associatedUserMessageId: 'someCurrentMessageId3',
+          conversationId: event.conversationId,
+          role: 'assistant',
+          content: [
+            {
+              text: 'currentMessage3',
+            },
+            {
+              toolUse: {
+                name: 'testToolUse4',
+                toolUseId: 'testToolUseId4',
+                input: undefined,
+              },
+            },
+          ],
+        },
+        {
+          id: event.currentMessageId,
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              toolResult: {
+                status: 'success',
+                toolUseId: 'testToolUseId2',
+                content: undefined,
+              },
+            },
+          ],
+        },
+      ],
+      expectedMessages: [
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'nonCurrentMessage1',
+            },
+          ],
+        },
+        {
+          role: 'assistant',
+          content: [
+            {
+              text: 'nonCurrentMessage2',
+            },
+            {
+              text: 'nonCurrentMessage3',
+            },
+            {
+              text: 'nonCurrentMessage4',
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              text: 'currentMessage1',
+            },
+          ],
+        },
+        {
+          role: 'assistant',
+          content: [
+            {
+              text: 'currentMessage2',
+            },
+            {
+              toolUse: {
+                name: 'testToolUse3',
+                toolUseId: 'testToolUseId3',
+                input: undefined,
+              },
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              toolResult: {
+                status: 'success',
+                toolUseId: 'testToolUseId3',
+                content: undefined,
+              },
+            },
+          ],
+        },
+        {
+          role: 'assistant',
+          content: [
+            {
+              text: 'currentMessage3',
+            },
+            {
+              toolUse: {
+                name: 'testToolUse4',
+                toolUseId: 'testToolUseId4',
+                input: undefined,
+              },
+            },
+          ],
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              toolResult: {
+                status: 'success',
+                toolUseId: 'testToolUseId2',
+                content: undefined,
+              },
+            },
+          ],
+        },
+      ],
+    },
   ];
 
   for (const testCase of testCases) {
