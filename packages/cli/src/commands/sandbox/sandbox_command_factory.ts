@@ -16,11 +16,7 @@ import {
 } from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
 import { CommandMiddleware } from '../../command_middleware.js';
-import {
-  PackageManagerControllerFactory,
-  format,
-  printer,
-} from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -70,7 +66,6 @@ export const createSandboxCommand = (): CommandModule<
     [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
     clientConfigGeneratorAdapter,
     commandMiddleWare,
-    new PackageManagerControllerFactory().getPackageManagerController(),
     eventHandlerFactory.getSandboxEventHandlers
   );
 };

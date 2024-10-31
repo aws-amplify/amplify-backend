@@ -133,6 +133,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
             oauthClientId: z.ZodOptional<z.ZodString>;
             oauthResponseType: z.ZodOptional<z.ZodString>;
+            groups: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             authRegion: string;
             userPoolId: string;
@@ -153,6 +154,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         }, {
             authRegion: string;
             userPoolId: string;
@@ -173,6 +175,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
@@ -196,6 +199,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         };
     }, {
         version: "1";
@@ -219,6 +223,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         };
     }>]>>;
     "AWS::Amplify::GraphQL": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -402,6 +407,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -473,6 +479,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -555,6 +562,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
         oauthClientId: z.ZodOptional<z.ZodString>;
         oauthResponseType: z.ZodOptional<z.ZodString>;
+        groups: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         authRegion: string;
         userPoolId: string;
@@ -575,6 +583,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut?: string | undefined;
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
+        groups?: string | undefined;
     }, {
         authRegion: string;
         userPoolId: string;
@@ -595,6 +604,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut?: string | undefined;
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
+        groups?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
@@ -618,6 +628,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut?: string | undefined;
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
+        groups?: string | undefined;
     };
 }, {
     version: "1";
@@ -641,6 +652,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut?: string | undefined;
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
+        groups?: string | undefined;
     };
 }>]>;
 

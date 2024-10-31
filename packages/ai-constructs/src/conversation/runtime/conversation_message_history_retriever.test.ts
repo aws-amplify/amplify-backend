@@ -394,6 +394,61 @@ void describe('Conversation message history retriever', () => {
         },
       ],
     },
+    {
+      name: 'Parses client tools json elements',
+      mockListResponseMessages: [
+        {
+          id: event.currentMessageId,
+          conversationId: event.conversationId,
+          role: 'user',
+          content: [
+            {
+              toolUse: {
+                name: 'testToolUse',
+                toolUseId: 'testToolUseId',
+                input: '{ "testKey": "testValue" }',
+              },
+            },
+            {
+              toolResult: {
+                status: 'success',
+                toolUseId: 'testToolUseId',
+                content: [
+                  {
+                    json: '{ "testKey": "testValue" }',
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+      expectedMessages: [
+        {
+          role: 'user',
+          content: [
+            {
+              toolUse: {
+                name: 'testToolUse',
+                toolUseId: 'testToolUseId',
+                input: { testKey: 'testValue' },
+              },
+            },
+            {
+              toolResult: {
+                status: 'success',
+                toolUseId: 'testToolUseId',
+                content: [
+                  {
+                    json: { testKey: 'testValue' },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    },
   ];
 
   for (const testCase of testCases) {

@@ -19,7 +19,12 @@ export const createEmptyAmplifyProject = async (
   projectDotAmplifyDir: string;
 }> => {
   const projectRoot = await fs.mkdtemp(path.join(parentDir, projectDirName));
-  const projectName = `${TEST_PROJECT_PREFIX}-${projectDirName}-${shortUuid()}`;
+  let projectName = `${TEST_PROJECT_PREFIX}-${projectDirName}`;
+  if (
+    process.env.AMPLIFY_BACKEND_TESTS_RETAIN_TEST_PROJECT_DEPLOYMENT !== 'true'
+  ) {
+    projectName += `-${shortUuid()}`;
+  }
   await fs.writeFile(
     path.join(projectRoot, 'package.json'),
     JSON.stringify({ name: projectName, type: 'module' }, null, 2)

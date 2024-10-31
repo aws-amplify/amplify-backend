@@ -9,6 +9,7 @@ import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-
 import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { IAMClient } from '@aws-sdk/client-iam';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 /**
  * Creates a reference auth project
@@ -20,11 +21,21 @@ export class ReferenceAuthTestProjectCreator implements TestProjectCreator {
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient,
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly cognitoIdentityClient: CognitoIdentityClient,
-    private readonly iamClient: IAMClient
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityClient: CognitoIdentityClient = new CognitoIdentityClient(
+      e2eToolingClientConfig
+    ),
+    private readonly iamClient: IAMClient = new IAMClient(
+      e2eToolingClientConfig
+    )
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {

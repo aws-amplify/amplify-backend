@@ -39,12 +39,17 @@ const TEST_RESOURCE_TAGS = {
 const TEST_RESOURCE_TAGS_ARRAY = [
   { Key: RESOURCE_TAG_KEY, Value: RESOURCE_TAG_VALUE },
 ];
+
+type CleanupTask = {
+  run: () => Promise<void>;
+  arn?: string | undefined;
+  id?: string | undefined;
+};
 /**
  * Provides a way to create auth resources using aws sdk
  */
 export class AuthResourceCreator {
-  private cleanup: { run: () => Promise<void>; arn?: string; id?: string }[] =
-    [];
+  private cleanup: CleanupTask[] = [];
 
   /**
    * Setup a new auth resource creator
@@ -70,7 +75,7 @@ export class AuthResourceCreator {
       `Attempting to delete a total of ${this.cleanup.length} resources`
     );
     console.log('Resource descriptions/ARNs/IDs:', list);
-    const failedTasks = [];
+    const failedTasks: CleanupTask[] = [];
     for (let i = this.cleanup.length - 1; i >= 0; i--) {
       const task = this.cleanup[i];
       try {

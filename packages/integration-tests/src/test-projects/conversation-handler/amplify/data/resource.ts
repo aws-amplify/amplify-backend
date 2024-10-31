@@ -94,6 +94,28 @@ const schema = a.schema({
     })
     .authorization((allow) => [allow.authenticated(), allow.owner()]),
 
+  ConversationMessageAssistantStreamingResponse: a
+    .model({
+      // always
+      conversationId: a.id().required(),
+      associatedUserMessageId: a.id().required(),
+      contentBlockIndex: a.integer().required(),
+      accumulatedTurnContent: a.ref('MockContentBlock').array(),
+
+      // these describe chunks or end of block
+      contentBlockText: a.string(),
+      contentBlockToolUse: a.string(),
+      contentBlockDeltaIndex: a.integer(),
+      contentBlockDoneAtIndex: a.integer(),
+
+      // when message is complete
+      stopReason: a.string(),
+    })
+    .secondaryIndexes((index) => [
+      index('conversationId').sortKeys(['associatedUserMessageId']),
+    ])
+    .authorization((allow) => [allow.authenticated(), allow.owner()]),
+
   ConversationMessageChat: a
     .model({
       conversationId: a.id(),
@@ -103,6 +125,9 @@ const schema = a.schema({
       aiContext: a.json(),
       toolConfiguration: a.ref('MockToolConfiguration'),
     })
+    .secondaryIndexes((index) => [
+      index('conversationId').sortKeys(['associatedUserMessageId']),
+    ])
     .authorization((allow) => [allow.authenticated(), allow.owner()]),
 });
 

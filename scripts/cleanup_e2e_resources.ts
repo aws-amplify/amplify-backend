@@ -7,6 +7,13 @@ import {
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
 import {
+  CloudWatchLogsClient,
+  DeleteLogGroupCommand,
+  DescribeLogGroupsCommand,
+  DescribeLogGroupsCommandOutput,
+  LogGroup,
+} from '@aws-sdk/client-cloudwatch-logs';
+import {
   Bucket,
   DeleteBucketCommand,
   DeleteObjectsCommand,
@@ -70,6 +77,9 @@ const amplifyClient = new AmplifyClient({
 const cfnClient = new CloudFormationClient({
   maxAttempts: 5,
 });
+const cloudWatchClient = new CloudWatchLogsClient({
+  maxAttempts: 5,
+});
 const cognitoClient = new CognitoIdentityProviderClient({
   maxAttempts: 5,
 });
@@ -91,6 +101,7 @@ const TEST_CDK_RESOURCE_PREFIX = 'test-cdk';
 
 /**
  * Stacks are considered stale after 2 hours.
+ * Log groups are considered stale after 7 days. For troubleshooting purposes.
  * Other resources are considered stale after 3 hours.
  *
  * Stack deletion triggers asynchronous resource deletion while this script is running.
@@ -100,6 +111,7 @@ const TEST_CDK_RESOURCE_PREFIX = 'test-cdk';
  */
 const stackStaleDurationInMilliseconds = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
 const staleDurationInMilliseconds = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+const logGroupStaleDurationInMilliseconds = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
 const isStackStale = (
   stackSummary: StackSummary | undefined
@@ -110,6 +122,17 @@ const isStackStale = (
   return (
     now.getTime() - stackSummary.CreationTime.getTime() >
     stackStaleDurationInMilliseconds
+  );
+};
+
+const isLogGroupStale = (
+  logGroup: LogGroup | undefined
+): boolean | undefined => {
+  if (!logGroup?.creationTime) {
+    return;
+  }
+  return (
+    now.getTime() - logGroup.creationTime > logGroupStaleDurationInMilliseconds
   );
 };
 
@@ -543,6 +566,50 @@ for (const staleDynamoDBTable of allStaleDynamoDBTables) {
     const errorMessage = e instanceof Error ? e.message : '';
     console.log(
       `Failed to delete ${staleDynamoDBTable.TableName} DDB table. ${errorMessage}`
+    );
+  }
+}
+
+const listAllStaleTestLogGroups = async (): Promise<Array<LogGroup>> => {
+  let nextToken: string | undefined = undefined;
+  const logGroups: Array<LogGroup> = [];
+  do {
+    const listLogGroupsResponse: DescribeLogGroupsCommandOutput =
+      await cloudWatchClient.send(
+        new DescribeLogGroupsCommand({
+          nextToken,
+        })
+      );
+    nextToken = listLogGroupsResponse.nextToken;
+    listLogGroupsResponse.logGroups
+      ?.filter(
+        (logGroup) =>
+          (logGroup.logGroupName?.startsWith(TEST_AMPLIFY_RESOURCE_PREFIX) ||
+            logGroup.logGroupName?.startsWith(
+              `/aws/lambda/${TEST_AMPLIFY_RESOURCE_PREFIX}`
+            )) &&
+          isLogGroupStale(logGroup)
+      )
+      .forEach((item) => {
+        logGroups.push(item);
+      });
+  } while (nextToken);
+  return logGroups;
+};
+
+const allStaleLogGroups = await listAllStaleTestLogGroups();
+for (const logGroup of allStaleLogGroups) {
+  try {
+    await cloudWatchClient.send(
+      new DeleteLogGroupCommand({
+        logGroupName: logGroup.logGroupName,
+      })
+    );
+    console.log(`Successfully deleted ${logGroup.logGroupName} log group`);
+  } catch (e) {
+    const errorMessage = e instanceof Error ? e.message : '';
+    console.log(
+      `Failed to delete ${logGroup.logGroupName} log group. ${errorMessage}`
     );
   }
 }

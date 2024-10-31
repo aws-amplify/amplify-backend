@@ -7,6 +7,9 @@ import { Stack } from 'aws-cdk-lib';
 const backend = defineBackend(dataStorageAuthWithTriggers);
 backend.defaultNodeFunc.addEnvironment('newKey', 'newValue');
 
+// Change precedence of Editors group so Admins group has the lowest precedence
+backend.auth.resources.groups['Editors'].cfnUserGroup.precedence = 2;
+
 const scheduleFunctionLambda = backend.funcWithSchedule.resources.lambda;
 const scheduleFunctionLambdaRole = scheduleFunctionLambda.role;
 const queueStack = Stack.of(scheduleFunctionLambda);
