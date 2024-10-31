@@ -48,7 +48,7 @@ export type AuthProps = {
         externalProviders?: ExternalProviderOptions;
     };
     senders?: {
-        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSenderConstruct;
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
     };
     userAttributes?: UserAttributes;
     multifactor?: MFA;

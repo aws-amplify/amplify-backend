@@ -1,8 +1,8 @@
 import { defineAuth, secret } from '@aws-amplify/backend';
-import { defaultNodeFunc, funcWithSchedule } from '../function.js';
+import { defaultNodeFunc, funcCustomEmailSender } from '../function.js';
 
 const customEmailSenderFunction = {
-  handler: funcWithSchedule,
+  handler: funcCustomEmailSender,
 };
 
 export const auth = defineAuth({

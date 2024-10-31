@@ -271,12 +271,19 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       'AWS::Lambda::Function',
       (name) => name.includes('funcNoMinify')
     );
+    const funcCustomEmailSender =
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('funcCustomEmailSender')
+      );
 
     assert.equal(defaultNodeLambda.length, 1);
     assert.equal(node16Lambda.length, 1);
     assert.equal(funcWithSsm.length, 1);
     assert.equal(funcWithAwsSdk.length, 1);
     assert.equal(funcWithSchedule.length, 1);
+    assert.equal(funcCustomEmailSender.length, 1);
 
     const expectedResponse = {
       s3TestContent: 'this is some test content',
@@ -662,7 +669,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     const queue = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::SQS::Queue',
-      (name) => name.includes('testFuncQueue')
+      (name) => name.includes('customEmailSenderQueue')
     );
 
     assert.strictEqual(queue.length, 1, 'Custom email sender queue not found');
@@ -686,7 +693,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         const messageBody = JSON.parse(response.Messages[0].Body || '{}');
         assert.strictEqual(
           messageBody.message,
-          'Test message from Lambda',
+          'Custom Email Sender is working',
           'Unexpected message content'
         );
 
@@ -724,7 +731,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         UserPoolId: userPoolId[0],
         Username: username,
         TemporaryPassword: password,
-        MessageAction: 'SUPPRESS',
         UserAttributes: [
           { Name: 'email', Value: username },
           { Name: 'email_verified', Value: 'true' },
