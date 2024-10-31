@@ -5,7 +5,11 @@ import {
   MutationResponseInput,
   MutationStreamingResponseInput,
 } from './conversation_turn_response_sender';
-import { ConversationTurnEvent, StreamingResponseChunk } from './types';
+import {
+  ConversationTurnError,
+  ConversationTurnEvent,
+  StreamingResponseChunk,
+} from './types';
 import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import {
   GraphqlRequest,
@@ -232,6 +236,62 @@ void describe('Conversation turn response sender', () => {
               },
             },
           ],
+        },
+      },
+    });
+  });
+
+  void it('sends errors response back to appsync', async () => {
+    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const executeGraphqlMock = mock.method(
+      graphqlRequestExecutor,
+      'executeGraphql',
+      () =>
+        // Mock successful Appsync response
+        Promise.resolve()
+    );
+    const sender = new ConversationTurnResponseSender(
+      event,
+      graphqlRequestExecutor
+    );
+    const errors: Array<ConversationTurnError> = [
+      {
+        errorType: 'errorType1',
+        message: 'errorMessage1',
+      },
+      {
+        errorType: 'errorType2',
+        message: 'errorMessage2',
+      },
+    ];
+    await sender.sendErrors(errors);
+
+    assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    const request = executeGraphqlMock.mock.calls[0]
+      .arguments[0] as GraphqlRequest<MutationResponseInput>;
+    assert.deepStrictEqual(request, {
+      query:
+        '\n' +
+        '        mutation PublishModelResponse($input: testResponseMutationInputTypeName!) {\n' +
+        '            testResponseMutationName(input: $input) {\n' +
+        '                testSelectionSet\n' +
+        '            }\n' +
+        '        }\n' +
+        '    ',
+      variables: {
+        input: {
+          conversationId: event.conversationId,
+          errors: [
+            {
+              errorType: 'errorType1',
+              message: 'errorMessage1',
+            },
+            {
+              errorType: 'errorType2',
+              message: 'errorMessage2',
+            },
+          ],
+          associatedUserMessageId: event.currentMessageId,
         },
       },
     });
