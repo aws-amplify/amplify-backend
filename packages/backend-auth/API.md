@@ -17,6 +17,7 @@ import { ExternalProviderOptions } from '@aws-amplify/auth-construct';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { OidcProviderProps } from '@aws-amplify/auth-construct';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
@@ -87,7 +88,7 @@ export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAccept
 
 // @public
 export type CustomEmailSender = {
-    handler: ConstructFactory<AmplifyFunction>;
+    handler: ConstructFactory<AmplifyFunction> | IFunction;
     kmsKeyArn?: string;
 };
 

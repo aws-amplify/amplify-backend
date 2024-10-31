@@ -16,6 +16,7 @@ import {
   ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 /**
  * This utility allows us to expand nested types in auto complete prompts.
@@ -258,6 +259,6 @@ export type ActionIam =
  * CustomEmailSender type for configuring a custom Lambda function for email sending
  */
 export type CustomEmailSender = {
-  handler: ConstructFactory<AmplifyFunction>;
+  handler: ConstructFactory<AmplifyFunction> | IFunction;
   kmsKeyArn?: string;
 };
