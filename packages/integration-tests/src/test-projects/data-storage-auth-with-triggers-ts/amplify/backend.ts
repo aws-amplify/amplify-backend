@@ -26,3 +26,27 @@ if (scheduleFunctionLambdaRole) {
   );
 }
 backend.funcWithSchedule.addEnvironment('SQS_QUEUE_URL', queue.queueUrl);
+
+// Queue setup for customEmailSender
+
+const customEmailSenderLambda = backend.funcCustomEmailSender.resources.lambda;
+const customEmailSenderLambdaRole = customEmailSenderLambda.role;
+const customEmailSenderQueueStack = Stack.of(customEmailSenderLambda);
+const emailSenderQueue = new Queue(
+  customEmailSenderQueueStack,
+  'amplify-customEmailSenderQueue'
+);
+
+if (customEmailSenderLambdaRole) {
+  emailSenderQueue.grantSendMessages(
+    Role.fromRoleArn(
+      customEmailSenderQueueStack,
+      'CustomEmailSenderLambdaExecutionRole',
+      customEmailSenderLambdaRole.roleArn
+    )
+  );
+}
+backend.funcCustomEmailSender.addEnvironment(
+  'CUSTOM_EMAIL_SENDER_SQS_QUEUE_URL',
+  emailSenderQueue.queueUrl
+);
