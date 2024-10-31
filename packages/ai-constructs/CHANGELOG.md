@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 0.7.0
+
+### Minor Changes
+
+- 63fb254: Include accumulated turn content in chunk mutation
+
 ## 0.6.2
 
 ### Patch Changes
