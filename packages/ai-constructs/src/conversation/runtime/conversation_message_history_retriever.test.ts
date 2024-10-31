@@ -765,7 +765,6 @@ void describe('Conversation message history retriever', () => {
           id: event.currentMessageId,
         });
       }
-      console.log(JSON.stringify(messages, null, 2));
       assert.deepStrictEqual(messages, testCase.expectedMessages);
     });
   }
