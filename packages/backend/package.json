@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -27,7 +27,7 @@
   "dependencies": {
     "@aws-amplify/data-schema": "^1.0.0",
     "@aws-amplify/backend-auth": "^1.2.0",
-    "@aws-amplify/backend-function": "^1.7.1",
+    "@aws-amplify/backend-function": "^1.7.2",
     "@aws-amplify/backend-data": "^1.1.5",
     "@aws-amplify/backend-output-schemas": "^1.4.0",
     "@aws-amplify/backend-output-storage": "^1.1.2",
@@ -40,7 +40,7 @@
     "lodash.snakecase": "^4.1.1"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.152.0",
+    "aws-cdk-lib": "^2.158.0",
     "constructs": "^10.0.0"
   },
   "devDependencies": {
