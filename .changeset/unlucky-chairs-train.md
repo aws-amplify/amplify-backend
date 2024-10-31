@@ -1,6 +1,0 @@
----
-'@aws-amplify/auth-construct': minor
-'@aws-amplify/backend-auth': minor
----
-
-Add support for custom Lambda function email senders in Auth construct
