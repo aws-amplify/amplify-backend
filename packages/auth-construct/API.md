@@ -86,7 +86,7 @@ export type CustomAttributeString = CustomAttributeBase & StringAttributeConstra
 };
 
 // @public
-export type CustomEmailSenderConstruct = {
+export type CustomEmailSender = {
     handler: IFunction;
     kmsKeyArn?: string;
 };
