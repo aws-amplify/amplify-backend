@@ -1,5 +1,14 @@
 # @aws-amplify/backend-function
 
+## 1.7.3
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/plugin-types@1.3.1
+
 ## 1.7.2
 
 ### Patch Changes
