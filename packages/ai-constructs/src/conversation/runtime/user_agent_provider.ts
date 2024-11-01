@@ -15,6 +15,12 @@ const packageVersion = require('../../../package.json').version;
 // Compliant with https://www.rfc-editor.org/rfc/rfc5234.
 const packageName = 'amplify-ai-constructs';
 
+export type UserAgentAdditionalMetadata = {
+  // These keys are user agent friendly intentionally.
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  'turn-response-type'?: 'single' | 'streaming' | 'error';
+};
+
 /**
  * Provides user agent.
  */
@@ -24,7 +30,7 @@ export class UserAgentProvider {
    */
   constructor(private readonly event: ConversationTurnEvent) {}
 
-  getUserAgent = (additionalMetadata?: Record<string, string>): string => {
+  getUserAgent = (additionalMetadata?: UserAgentAdditionalMetadata): string => {
     let userAgent = this.event.request.headers['x-amz-user-agent'];
 
     // append library version
@@ -38,15 +44,6 @@ export class UserAgentProvider {
 
     if (additionalMetadata) {
       Object.entries(additionalMetadata).forEach(([key, value]) => {
-        const validKeyOrValueRegex = /^[a-zA-Z0-9-_]+$/;
-        if (
-          !key.match(validKeyOrValueRegex) ||
-          !value.match(validKeyOrValueRegex)
-        ) {
-          throw new Error(
-            `Additional User Agent metadata must only contain [a-zA-Z0-9-_] characters, entry received ${key}=${value}`
-          );
-        }
         userAgent = `${userAgent} md/${key}#${value}`;
       });
     }

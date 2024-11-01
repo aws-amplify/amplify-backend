@@ -54,41 +54,12 @@ void describe('User Agent provider', () => {
     } as unknown as ConversationTurnEvent);
 
     const userAgent = userAgentProvider.getUserAgent({
-      metadata1: 'value1',
-      metadata2: 'value2',
+      'turn-response-type': 'streaming',
     });
 
     assert.strictEqual(
       userAgent,
-      `lib/amplify-ai-constructs#${packageVersion} md/metadata1#value1 md/metadata2#value2`
-    );
-  });
-
-  void it('throws on invalid metadata key', () => {
-    const userAgentProvider = new UserAgentProvider({
-      request: {
-        headers: {},
-      },
-    } as unknown as ConversationTurnEvent);
-
-    assert.throws(() =>
-      userAgentProvider.getUserAgent({
-        'invalid metadata key': 'value1',
-      })
-    );
-  });
-
-  void it('throws on invalid metadata value', () => {
-    const userAgentProvider = new UserAgentProvider({
-      request: {
-        headers: {},
-      },
-    } as unknown as ConversationTurnEvent);
-
-    assert.throws(() =>
-      userAgentProvider.getUserAgent({
-        metadata: 'invalid metadata value',
-      })
+      `lib/amplify-ai-constructs#${packageVersion} md/turn-response-type#streaming`
     );
   });
 });
