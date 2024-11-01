@@ -89,6 +89,31 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
     );
   });
 
+  void it('throws AmplifyUserError if removeSecret fails due to ParameterNotFound error', async (context) => {
+    const notFoundError = new Error('Parameter not found error');
+    notFoundError.name = 'ParameterNotFound';
+    const secretsError = SecretError.createInstance(notFoundError);
+    context.mock.method(rawSecretClient, 'removeSecret', () => {
+      throw secretsError;
+    });
+    const secretName = 'testSecretName';
+    await assert.rejects(
+      () =>
+        classUnderTest.removeSecret(
+          {
+            namespace: 'testSandboxId',
+            name: 'testSandboxName',
+            type: 'sandbox',
+          },
+          secretName
+        ),
+      new AmplifyUserError('SSMParameterNotFoundError', {
+        message: `Failed to remove ${secretName} secret. ParameterNotFound: Parameter not found error`,
+        resolution: `Make sure that ${secretName} has been set. See https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/.`,
+      })
+    );
+  });
+
   void it('throws AmplifyFault if listSecrets fails due to a non-SSM exception other than expired credentials', async (context) => {
     const underlyingError = new Error('some secret error');
     const secretsError = SecretError.createInstance(underlyingError);

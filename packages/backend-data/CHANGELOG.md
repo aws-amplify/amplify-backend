@@ -1,5 +1,22 @@
 # @aws-amplify/backend-data
 
+## 1.1.6
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.1.5
+
+### Patch Changes
+
+- 0d6489d: Update data-schema-types
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
 ## 1.1.4
 
 ### Patch Changes

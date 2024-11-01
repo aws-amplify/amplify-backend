@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { SecretClient } from '@aws-amplify/backend-secret';
+import { SecretClient, getSecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -9,7 +9,11 @@ import path from 'path';
 import { TestProjectCreator } from './test_project_creator.js';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import assert from 'node:assert';
-import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
+import {
+  GetFunctionCommand,
+  InvokeCommand,
+  LambdaClient,
+} from '@aws-sdk/client-lambda';
 import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
@@ -28,6 +32,11 @@ import {
 } from '@aws-sdk/client-cloudtrail';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import isMatch from 'lodash.ismatch';
+import { TextWriter, ZipReader } from '@zip.js/zip.js';
+import {
+  AdminCreateUserCommand,
+  CognitoIdentityProviderClient,
+} from '@aws-sdk/client-cognito-identity-provider';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -41,15 +50,32 @@ export class DataStorageAuthWithTriggerTestProjectCreator
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient,
-    private readonly secretClient: SecretClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly s3Client: S3Client,
-    private readonly iamClient: IAMClient,
-    private readonly sqsClient: SQSClient,
-    private readonly cloudTrailClient: CloudTrailClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    ),
+    private readonly secretClient: SecretClient = getSecretClient(
+      e2eToolingClientConfig
+    ),
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly s3Client: S3Client = new S3Client(e2eToolingClientConfig),
+    private readonly iamClient: IAMClient = new IAMClient(
+      e2eToolingClientConfig
+    ),
+    private readonly sqsClient: SQSClient = new SQSClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cloudTrailClient: CloudTrailClient = new CloudTrailClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
+    private readonly cognitoClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig
+    )
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -68,7 +94,8 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.iamClient,
       this.sqsClient,
       this.cloudTrailClient,
-      this.resourceFinder
+      this.resourceFinder,
+      this.cognitoClient
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
@@ -135,7 +162,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly iamClient: IAMClient,
     private readonly sqsClient: SQSClient,
     private readonly cloudTrailClient: CloudTrailClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly resourceFinder: DeployedResourcesFinder,
+    private readonly cognitoClient: CognitoIdentityProviderClient
   ) {
     super(
       name,
@@ -238,11 +266,24 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       (name) => name.includes('funcWithSchedule')
     );
 
+    const funcNoMinify = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Lambda::Function',
+      (name) => name.includes('funcNoMinify')
+    );
+    const funcCustomEmailSender =
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('funcCustomEmailSender')
+      );
+
     assert.equal(defaultNodeLambda.length, 1);
     assert.equal(node16Lambda.length, 1);
     assert.equal(funcWithSsm.length, 1);
     assert.equal(funcWithAwsSdk.length, 1);
     assert.equal(funcWithSchedule.length, 1);
+    assert.equal(funcCustomEmailSender.length, 1);
 
     const expectedResponse = {
       s3TestContent: 'this is some test content',
@@ -254,9 +295,18 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
-    await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
+
+    // Custom email sender assertion
+    await this.assertCustomEmailSenderWorks(backendId);
 
     await this.assertScheduleInvokesFunction(backendId);
+
+    const expectedNoMinifyChunk = [
+      'var handler = async () => {',
+      '  return "No minify";',
+      '};',
+    ].join('\n');
+    await this.checkLambdaCode(funcNoMinify[0], expectedNoMinifyChunk);
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -307,7 +357,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     assert.ok(fileContent.includes('newKey: string;')); // Env var added via addEnvironment
     assert.ok(fileContent.includes('TEST_SECRET: string;')); // Env var added via defineFunction
 
-    // assert storage access paths are correct in stack outputs
+    // assert specific config are correct in the outputs file
     const outputsObject = JSON.parse(
       await fs.readFile(
         path.join(this.projectDirPath, 'amplify_outputs.json'),
@@ -330,6 +380,21 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
           entityidentity: ['get', 'list', 'write', 'delete'],
         },
       })
+    );
+
+    assert.ok(
+      isMatch(outputsObject.auth.groups, [
+        {
+          Editors: {
+            precedence: 2, // previously 0 but was overwritten
+          },
+        },
+        {
+          Admins: {
+            precedence: 1,
+          },
+        },
+      ])
     );
   }
 
@@ -388,6 +453,25 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     // check expected response
     assert.deepStrictEqual(responsePayload, expectedResponse);
+  };
+
+  private checkLambdaCode = async (
+    lambdaName: string,
+    expectedCode: string
+  ) => {
+    // get the lambda code
+    const response = await this.lambdaClient.send(
+      new GetFunctionCommand({ FunctionName: lambdaName })
+    );
+    const codeUrl = response.Code?.Location;
+    assert(codeUrl !== undefined);
+    const fetchResponse = await fetch(codeUrl);
+    const zipReader = new ZipReader(fetchResponse.body!);
+    const entries = await zipReader.getEntries();
+    const entry = entries.find((entry) => entry.filename.endsWith('index.mjs'));
+    assert(entry !== undefined);
+    const sourceCode = await entry.getData!(new TextWriter());
+    assert(sourceCode.includes(expectedCode));
   };
 
   private assertExpectedCleanup = async () => {
@@ -537,7 +621,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   ) => {
     const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
     const startTime = Date.now();
-    let messageCount = 0;
+    let receivedMessageCount = 0;
 
     const queue = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -546,16 +630,17 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
 
     // wait for schedule to invoke the function one time for it to send a message
-    while (Date.now() - startTime < TIMEOUT_MS && messageCount < 1) {
+    while (Date.now() - startTime < TIMEOUT_MS) {
       const response = await this.sqsClient.send(
         new ReceiveMessageCommand({
           QueueUrl: queue[0],
           WaitTimeSeconds: 20,
+          MaxNumberOfMessages: 10,
         })
       );
 
       if (response.Messages) {
-        messageCount += response.Messages.length;
+        receivedMessageCount += response.Messages.length;
 
         // delete messages afterwards
         for (const message of response.Messages) {
@@ -568,5 +653,90 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         }
       }
     }
+
+    if (receivedMessageCount === 0) {
+      assert.fail(
+        `The scheduled function failed to invoke and send a message to the queue.`
+      );
+    }
+  };
+
+  private assertCustomEmailSenderWorks = async (
+    backendId: BackendIdentifier
+  ) => {
+    const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
+    const startTime = Date.now();
+    const queue = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::SQS::Queue',
+      (name) => name.includes('customEmailSenderQueue')
+    );
+
+    assert.strictEqual(queue.length, 1, 'Custom email sender queue not found');
+
+    // Trigger an email sending operation
+    await this.triggerEmailSending(backendId);
+
+    // Wait for the SQS message
+    let messageReceived = false;
+    while (Date.now() - startTime < TIMEOUT_MS && !messageReceived) {
+      const response = await this.sqsClient.send(
+        new ReceiveMessageCommand({
+          QueueUrl: queue[0],
+          WaitTimeSeconds: 20,
+        })
+      );
+
+      if (response.Messages && response.Messages.length > 0) {
+        messageReceived = true;
+        // Verify the message content
+        const messageBody = JSON.parse(response.Messages[0].Body || '{}');
+        assert.strictEqual(
+          messageBody.message,
+          'Custom Email Sender is working',
+          'Unexpected message content'
+        );
+
+        // Delete the message
+        await this.sqsClient.send(
+          new DeleteMessageCommand({
+            QueueUrl: queue[0],
+            ReceiptHandle: response.Messages[0].ReceiptHandle!,
+          })
+        );
+      }
+    }
+
+    assert.strictEqual(
+      messageReceived,
+      true,
+      'Custom email sender was not triggered within the timeout period'
+    );
+  };
+
+  private triggerEmailSending = async (backendId: BackendIdentifier) => {
+    const userPoolId = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::Cognito::UserPool',
+      () => true
+    );
+
+    assert.strictEqual(userPoolId.length, 1, 'User pool not found');
+
+    const username = `testuser_${Date.now()}@example.com`;
+    const password = 'TestPassword123!';
+
+    await this.cognitoClient.send(
+      new AdminCreateUserCommand({
+        UserPoolId: userPoolId[0],
+        Username: username,
+        TemporaryPassword: password,
+        UserAttributes: [
+          { Name: 'email', Value: username },
+          { Name: 'email_verified', Value: 'true' },
+        ],
+      })
+    );
+    // The creation of a new user should trigger the custom email sender
   };
 }

@@ -1,5 +1,63 @@
 # @aws-amplify/backend-ai
 
+## 0.3.5
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [37dd87c]
+- Updated dependencies [613bca9]
+- Updated dependencies [b56d344]
+  - @aws-amplify/ai-constructs@0.8.0
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/plugin-types@1.3.1
+
+## 0.3.4
+
+### Patch Changes
+
+- Updated dependencies [63fb254]
+  - @aws-amplify/ai-constructs@0.7.0
+
+## 0.3.3
+
+### Patch Changes
+
+- bd4ff4d: Add memory setting to conversation handler
+- 0d6489d: Use AiModel from data-schema-types as possible input
+- Updated dependencies [5f46d8d]
+- Updated dependencies [bd4ff4d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+  - @aws-amplify/ai-constructs@0.6.2
+
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [b6761b0]
+  - @aws-amplify/ai-constructs@0.6.0
+
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [46a0e85]
+- Updated dependencies [faacd1b]
+  - @aws-amplify/ai-constructs@0.5.0
+
+## 0.3.0
+
+### Minor Changes
+
+- 4781704: Add information about event version to conversation components
+
+### Patch Changes
+
+- Updated dependencies [4781704]
+- Updated dependencies [3a29d43]
+- Updated dependencies [6e4a62f]
+  - @aws-amplify/ai-constructs@0.4.0
+
 ## 0.2.0
 
 ### Minor Changes

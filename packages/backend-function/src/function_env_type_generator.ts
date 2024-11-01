@@ -57,7 +57,11 @@ export class FunctionEnvironmentTypeGenerator {
       `/** Amplify backend environment variables available at runtime, this includes environment variables defined in \`defineFunction\` and by cross resource mechanisms */`
     );
     declarations.push(`type ${amplifyBackendEnvVarTypeName} = {`);
-    amplifyBackendEnvVars.forEach((envName) => {
+
+    // Use a Set to remove duplicates
+    const uniqueEnvVars = new Set(amplifyBackendEnvVars);
+
+    uniqueEnvVars.forEach((envName) => {
       const declaration = `${this.indentation}${envName}: string;`;
 
       declarations.push(declaration);

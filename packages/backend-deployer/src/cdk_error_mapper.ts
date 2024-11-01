@@ -50,6 +50,12 @@ export class CdkErrorMapper {
               underlyingError = undefined;
             }
           }
+          // remove any trailing EOL
+          matchingError.humanReadableErrorMessage =
+            matchingError.humanReadableErrorMessage.replace(
+              new RegExp(`${this.multiLineEolRegex}$`),
+              ''
+            );
         } else {
           underlyingError.message = matchGroups[0];
         }
@@ -84,10 +90,12 @@ export class CdkErrorMapper {
     classification: AmplifyErrorClassification;
   }> => [
     {
-      errorRegex: /ExpiredToken/,
+      errorRegex:
+        /ExpiredToken|Error: The security token included in the request is expired/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
-      resolutionMessage: 'Ensure your local AWS credentials are valid.',
+      resolutionMessage:
+        "Please update your AWS credentials. You can do this by running `aws configure` or by updating your AWS credentials file. If you're using temporary credentials, you may need to obtain new ones.",
       errorName: 'ExpiredTokenError',
       classification: 'ERROR',
     },
@@ -193,8 +201,9 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // If there are multiple errors, capture all lines containing the errors
       errorRegex: new RegExp(
-        `\\[TransformError\\]: Transform failed with .* error:${this.multiLineEolRegex}(?<esBuildErrorMessage>.*)`
+        `\\[TransformError\\]: Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
@@ -275,9 +284,19 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
+      humanReadableErrorMessage:
+        'The CloudFormation deployment failed due to {stackName} being in {state} state.',
+      resolutionMessage:
+        'Find more information in the CloudFormation AWS Console for this stack.',
+      errorName: 'CloudFormationDeploymentError',
+      classification: 'ERROR',
+    },
+    {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: new RegExp(
-        `Deployment failed: (.*)${this.multiLineEolRegex}`
+        `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed (to deploy:|creation,) (.*)`
       ),
       humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
       resolutionMessage:

@@ -11,9 +11,11 @@ import {
 import {
   ConversationHandlerFunction,
   ConversationHandlerFunctionProps,
+  ConversationTurnEventVersion,
 } from '@aws-amplify/ai-constructs/conversation';
 import path from 'path';
 import { CallerDirectoryExtractor } from '@aws-amplify/platform-core';
+import { AiModel } from '@aws-amplify/data-schema-types';
 
 class ConversationHandlerFunctionGenerator
   implements ConstructContainerEntryGenerator
@@ -41,6 +43,7 @@ class ConversationHandlerFunctionGenerator
         };
       }),
       outputStorageStrategy: this.outputStorageStrategy,
+      memoryMB: this.props.memoryMB,
     };
     const conversationHandlerFunction = new ConversationHandlerFunction(
       scope,
@@ -51,9 +54,17 @@ class ConversationHandlerFunctionGenerator
   };
 }
 
-class ConversationHandlerFunctionFactory
-  implements ConstructFactory<ConversationHandlerFunction>
+export type ConversationHandlerFunctionFactory = ConstructFactory<
+  ResourceProvider<FunctionResources>
+> & {
+  readonly eventVersion: ConversationTurnEventVersion;
+};
+
+class DefaultConversationHandlerFunctionFactory
+  implements ConversationHandlerFunctionFactory
 {
+  readonly eventVersion: ConversationTurnEventVersion =
+    ConversationHandlerFunction.eventVersion;
   private generator: ConstructContainerEntryGenerator;
 
   constructor(
@@ -106,14 +117,15 @@ export type DefineConversationHandlerFunctionProps = {
   name: string;
   entry?: string;
   models: Array<{
-    modelId:
-      | string
-      | {
-          // This is to match return of 'a.ai.model.anthropic.claude3Haiku()'
-          resourcePath: string;
-        };
+    modelId: string | AiModel;
     region?: string;
   }>;
+  /**
+   * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB.
+   * Must be a whole number.
+   * Default is 512MB.
+   */
+  memoryMB?: number;
 };
 
 /**
@@ -121,6 +133,6 @@ export type DefineConversationHandlerFunctionProps = {
  */
 export const defineConversationHandlerFunction = (
   props: DefineConversationHandlerFunctionProps
-): ConstructFactory<ResourceProvider<FunctionResources>> =>
+): ConversationHandlerFunctionFactory =>
   // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-  new ConversationHandlerFunctionFactory(props, new Error().stack);
+  new DefaultConversationHandlerFunctionFactory(props, new Error().stack);

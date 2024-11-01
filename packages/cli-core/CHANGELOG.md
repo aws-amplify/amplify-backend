@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 1.2.0
+
+### Minor Changes
+
+- c3c3057: update ctrl+c behavior to always print guidance to delete and exit with no prompt
+
 ## 1.1.3
 
 ### Patch Changes

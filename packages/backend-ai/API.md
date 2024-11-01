@@ -4,13 +4,16 @@
 
 ```ts
 
+import { AiModel } from '@aws-amplify/data-schema-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { ConversationTurnEventVersion } from '@aws-amplify/ai-constructs/conversation';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import * as runtime from '@aws-amplify/ai-constructs/conversation/runtime';
 
 declare namespace __export__conversation {
     export {
+        ConversationHandlerFunctionFactory,
         DefineConversationHandlerFunctionProps,
         defineConversationHandlerFunction
     }
@@ -29,24 +32,28 @@ declare namespace __export__conversation__runtime {
 export { __export__conversation__runtime }
 
 // @public (undocumented)
+type ConversationHandlerFunctionFactory = ConstructFactory<ResourceProvider<FunctionResources>> & {
+    readonly eventVersion: ConversationTurnEventVersion;
+};
+
+// @public (undocumented)
 type ConversationTurnEvent = runtime.ConversationTurnEvent;
 
 // @public (undocumented)
 const createExecutableTool: <TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema, TToolInput = runtime.FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: runtime.ToolInputSchema<TJSONSchema>, handler: (input: TToolInput) => Promise<ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
 
 // @public
-const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
+const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConversationHandlerFunctionFactory;
 
 // @public (undocumented)
 type DefineConversationHandlerFunctionProps = {
     name: string;
     entry?: string;
     models: Array<{
-        modelId: string | {
-            resourcePath: string;
-        };
+        modelId: string | AiModel;
         region?: string;
     }>;
+    memoryMB?: number;
 };
 
 // @public (undocumented)

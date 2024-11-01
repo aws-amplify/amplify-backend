@@ -1,5 +1,69 @@
 # @aws-amplify/backend
 
+## 1.6.0
+
+### Minor Changes
+
+- 11d62fe: Add support for custom Lambda function email senders in Auth construct
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [11d62fe]
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-auth@1.3.0
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/backend-function@1.7.3
+  - @aws-amplify/backend-storage@1.2.2
+  - @aws-amplify/client-config@1.5.1
+  - @aws-amplify/backend-data@1.1.6
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.5.2
+
+### Patch Changes
+
+- 601a2c1: dedupe environment variables in amplify env type generator
+- Updated dependencies [601a2c1]
+  - @aws-amplify/backend-function@1.7.2
+
+## 1.5.1
+
+### Patch Changes
+
+- 5f46d8d: add user groups to outputs
+- Updated dependencies [0d6489d]
+- Updated dependencies [bd4ff4d]
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-data@1.1.5
+  - @aws-amplify/backend-function@1.7.1
+  - @aws-amplify/backend-output-schemas@1.4.0
+  - @aws-amplify/client-config@1.5.0
+
+## 1.5.0
+
+### Minor Changes
+
+- 4720412: Add minify option to defineFunction
+
+### Patch Changes
+
+- Updated dependencies [f87cc87]
+- Updated dependencies [4720412]
+  - @aws-amplify/backend-secret@1.1.4
+  - @aws-amplify/backend-function@1.7.0
+
+## 1.4.0
+
+### Minor Changes
+
+- f5d0ab4: adds support to reference existing layers in defineFunction
+
+### Patch Changes
+
+- Updated dependencies [f5d0ab4]
+  - @aws-amplify/backend-function@1.6.0
+
 ## 1.3.2
 
 ### Patch Changes

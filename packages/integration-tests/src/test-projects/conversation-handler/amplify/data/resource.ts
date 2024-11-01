@@ -86,12 +86,43 @@ const schema = a.schema({
     tools: a.ref('MockTool').array(),
   }),
 
+  MockConversationTurnError: a.customType({
+    errorType: a.string(),
+    message: a.string(),
+  }),
+
   ConversationMessageAssistantResponse: a
     .model({
       conversationId: a.id(),
       associatedUserMessageId: a.id(),
       content: a.string(),
+      errors: a.ref('MockConversationTurnError').array(),
     })
+    .authorization((allow) => [allow.authenticated(), allow.owner()]),
+
+  ConversationMessageAssistantStreamingResponse: a
+    .model({
+      // always
+      conversationId: a.id().required(),
+      associatedUserMessageId: a.id().required(),
+      contentBlockIndex: a.integer(),
+      accumulatedTurnContent: a.ref('MockContentBlock').array(),
+
+      // these describe chunks or end of block
+      contentBlockText: a.string(),
+      contentBlockToolUse: a.string(),
+      contentBlockDeltaIndex: a.integer(),
+      contentBlockDoneAtIndex: a.integer(),
+
+      // when message is complete
+      stopReason: a.string(),
+
+      // error
+      errors: a.ref('MockConversationTurnError').array(),
+    })
+    .secondaryIndexes((index) => [
+      index('conversationId').sortKeys(['associatedUserMessageId']),
+    ])
     .authorization((allow) => [allow.authenticated(), allow.owner()]),
 
   ConversationMessageChat: a
@@ -103,6 +134,9 @@ const schema = a.schema({
       aiContext: a.json(),
       toolConfiguration: a.ref('MockToolConfiguration'),
     })
+    .secondaryIndexes((index) => [
+      index('conversationId').sortKeys(['associatedUserMessageId']),
+    ])
     .authorization((allow) => [allow.authenticated(), allow.owner()]),
 });
 

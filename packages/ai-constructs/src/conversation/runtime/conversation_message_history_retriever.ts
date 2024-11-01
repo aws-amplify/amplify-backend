@@ -1,4 +1,8 @@
-import { ConversationMessage, ConversationTurnEvent } from './types';
+import {
+  ConversationMessage,
+  ConversationMessageContentBlock,
+  ConversationTurnEvent,
+} from './types';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
 
 export type ConversationHistoryMessageItem = ConversationMessage & {
@@ -102,15 +106,12 @@ export class ConversationMessageHistoryRetriever {
     private readonly event: ConversationTurnEvent,
     private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
       event.graphqlApiEndpoint,
-      event.request.headers.authorization
+      event.request.headers.authorization,
+      event.request.headers['x-amz-user-agent']
     )
   ) {}
 
   getMessageHistory = async (): Promise<Array<ConversationMessage>> => {
-    if (this.event.messages?.length) {
-      // This is for backwards compatibility and should be removed with messages property.
-      return this.event.messages;
-    }
     const messages = await this.listMessages();
 
     let currentMessage = messages.find(
@@ -140,7 +141,7 @@ export class ConversationMessageHistoryRetriever {
     });
 
     // Reconcile history and inject aiContext
-    return messages.reduce((acc, current) => {
+    const orderedMessages = messages.reduce((acc, current) => {
       // Bedrock expects that message history is user->assistant->user->assistant->... and so on.
       // The chronological order doesn't assure this ordering if there were any concurrent messages sent.
       // Therefore, conversation is ordered by user's messages only and corresponding assistant messages are inserted
@@ -179,6 +180,81 @@ export class ConversationMessageHistoryRetriever {
       }
       return acc;
     }, [] as Array<ConversationMessage>);
+
+    // Remove tool usage from non-current turn and squash messages.
+    return this.squashNonCurrentTurns(orderedMessages);
+  };
+
+  /**
+   * This function removes tool usage from non-current turns.
+   * The tool usage and result blocks don't matter after a turn is completed,
+   * but do cost extra tokens to process.
+   * The algorithm is as follows:
+   * 1. Find where current turn begins. I.e. last user message that isn't tool block.
+   * 2. Remove toolUse and toolResult blocks before current turn.
+   * 3. Squash continuous sequences of messages that belong to same 'message.role'.
+   */
+  private squashNonCurrentTurns = (messages: Array<ConversationMessage>) => {
+    const isNonToolBlockPredicate = (
+      contentBlock: ConversationMessageContentBlock
+    ) => !contentBlock.toolUse && !contentBlock.toolResult;
+
+    // find where current turn begins. I.e. last user message that is not related to tools
+    const lastNonToolUseUserMessageIndex = messages.findLastIndex((message) => {
+      return (
+        message.role === 'user' && message.content.find(isNonToolBlockPredicate)
+      );
+    });
+
+    // No non-current turns, don't transform.
+    if (lastNonToolUseUserMessageIndex <= 0) {
+      return messages;
+    }
+
+    const squashedMessages: Array<ConversationMessage> = [];
+
+    // Define a "buffer". I.e. a message we keep around and squash content on.
+    let currentSquashedMessage: ConversationMessage | undefined = undefined;
+    // Process messages before current turn begins
+    // Remove tool usage blocks.
+    // Combine content for consecutive message that have same role.
+    for (let i = 0; i < lastNonToolUseUserMessageIndex; i++) {
+      const currentMessage = messages[i];
+      const currentMessageRole = currentMessage.role;
+      const currentMessageNonToolContent = currentMessage.content.filter(
+        isNonToolBlockPredicate
+      );
+      if (currentMessageNonToolContent.length === 0) {
+        // Tool only message. Nothing to squash, skip;
+        continue;
+      }
+
+      if (!currentSquashedMessage) {
+        // Nothing squashed yet, initialize the buffer.
+        currentSquashedMessage = {
+          role: currentMessageRole,
+          content: currentMessageNonToolContent,
+        };
+      } else if (currentSquashedMessage.role === currentMessageRole) {
+        // if role is same append content.
+        currentSquashedMessage.content.push(...currentMessageNonToolContent);
+      } else {
+        // if role flips push current squashed message and re-initialize the buffer.
+        squashedMessages.push(currentSquashedMessage);
+        currentSquashedMessage = {
+          role: currentMessageRole,
+          content: currentMessageNonToolContent,
+        };
+      }
+    }
+    // flush the last buffer.
+    if (currentSquashedMessage) {
+      squashedMessages.push(currentSquashedMessage);
+    }
+
+    // Append current turn as is.
+    squashedMessages.push(...messages.slice(lastNonToolUseUserMessageIndex));
+    return squashedMessages;
   };
 
   private getCurrentMessage =
@@ -234,6 +310,41 @@ export class ConversationMessageHistoryRetriever {
       variables,
     });
 
-    return response.data[this.event.messageHistoryQuery.listQueryName].items;
+    const items =
+      response.data[this.event.messageHistoryQuery.listQueryName].items;
+
+    items.forEach((item) => {
+      item.content?.forEach((contentBlock) => {
+        let property: keyof typeof contentBlock;
+        for (property in contentBlock) {
+          // Deserialization of GraphQl query result sets these properties to 'null'
+          // This can trigger Bedrock SDK validation as it expects 'undefined' if properties are not set.
+          // We can't fix how GraphQl response is deserialized.
+          // Therefore, we apply this transformation to fix the data.
+          if (contentBlock[property] === null) {
+            contentBlock[property] = undefined;
+          }
+        }
+
+        if (typeof contentBlock.toolUse?.input === 'string') {
+          // toolUse.input may come as serialized JSON for Client Tools.
+          // Parse it in that case.
+          contentBlock.toolUse.input = JSON.parse(contentBlock.toolUse.input);
+        }
+        if (contentBlock.toolResult?.content) {
+          contentBlock.toolResult.content.forEach((toolResultContentBlock) => {
+            if (typeof toolResultContentBlock.json === 'string') {
+              // toolResult.content[].json may come as serialized JSON for Client Tools.
+              // Parse it in that case.
+              toolResultContentBlock.json = JSON.parse(
+                toolResultContentBlock.json
+              );
+            }
+          });
+        }
+      });
+    });
+
+    return items;
   };
 }

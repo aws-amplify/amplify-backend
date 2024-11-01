@@ -1,10 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import {
-  AmplifyPrompter,
-  PackageManagerControllerFactory,
-  format,
-  printer,
-} from '@aws-amplify/cli-core';
+import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
 import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
@@ -50,8 +45,7 @@ void describe('sandbox delete command', () => {
       sandboxFactory,
       [sandboxDeleteCommand, createSandboxSecretCommand()],
       clientConfigGeneratorAdapterMock,
-      commandMiddleware,
-      new PackageManagerControllerFactory().getPackageManagerController()
+      commandMiddleware
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);

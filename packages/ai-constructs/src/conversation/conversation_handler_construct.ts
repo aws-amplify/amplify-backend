@@ -35,10 +35,21 @@ export type ConversationHandlerFunctionProps = {
     region?: string;
   }>;
   /**
+   * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB.
+   * Must be a whole number.
+   * Default is 512MB.
+   */
+  memoryMB?: number;
+  /**
    * @internal
    */
   outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
 };
+
+// Event is a protocol between AppSync and Lambda handler. Therefore, X.Y subset of semver is enough.
+// Typing this as 1.X so that major version changes are caught by compiler if consumer of this construct inspects
+// event version.
+export type ConversationTurnEventVersion = `1.${number}`;
 
 /**
  * Conversation Handler Function CDK construct.
@@ -54,6 +65,7 @@ export class ConversationHandlerFunction
   extends Construct
   implements ResourceProvider<FunctionResources>
 {
+  static readonly eventVersion: ConversationTurnEventVersion = '1.0';
   resources: FunctionResources;
 
   /**
@@ -80,6 +92,7 @@ export class ConversationHandlerFunction
         timeout: Duration.seconds(60),
         entry: this.props.entry ?? defaultHandlerFilePath,
         handler: 'handler',
+        memorySize: this.resolveMemory(),
         bundling: {
           // Do not bundle SDK if conversation handler is using our default implementation which is
           // compatible with Lambda provided SDK.
@@ -111,7 +124,10 @@ export class ConversationHandlerFunction
       conversationHandler.addToRolePolicy(
         new PolicyStatement({
           effect: Effect.ALLOW,
-          actions: ['bedrock:InvokeModel'],
+          actions: [
+            'bedrock:InvokeModel',
+            'bedrock:InvokeModelWithResponseStream',
+          ],
           resources,
         })
       );
@@ -144,4 +160,27 @@ export class ConversationHandlerFunction
       },
     });
   };
+
+  private resolveMemory = () => {
+    const memoryMin = 128;
+    const memoryMax = 10240;
+    const memoryDefault = 512;
+    if (this.props.memoryMB === undefined) {
+      return memoryDefault;
+    }
+    if (
+      !isWholeNumberBetweenInclusive(this.props.memoryMB, memoryMin, memoryMax)
+    ) {
+      throw new Error(
+        `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
+      );
+    }
+    return this.props.memoryMB;
+  };
 }
+
+const isWholeNumberBetweenInclusive = (
+  test: number,
+  min: number,
+  max: number
+) => min <= test && test <= max && test % 1 === 0;

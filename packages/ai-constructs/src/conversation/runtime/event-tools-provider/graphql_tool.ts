@@ -17,9 +17,11 @@ export class GraphQlTool implements ExecutableTool<JSONSchema, unknown> {
     readonly graphQlEndpoint: string,
     private readonly query: string,
     readonly accessToken: string,
+    readonly userAgent: string,
     private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
       graphQlEndpoint,
-      accessToken
+      accessToken,
+      userAgent
     )
   ) {}
 

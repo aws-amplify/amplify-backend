@@ -17,15 +17,14 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 declare namespace __export__conversation {
     export {
         ConversationHandlerFunction,
-        ConversationHandlerFunctionProps
+        ConversationHandlerFunctionProps,
+        ConversationTurnEventVersion
     }
 }
 export { __export__conversation }
 
 declare namespace __export__conversation__runtime {
     export {
-        ConversationMessage,
-        ConversationMessageContentBlock,
         ConversationTurnEvent,
         createExecutableTool,
         ExecutableTool,
@@ -43,6 +42,8 @@ export { __export__conversation__runtime }
 class ConversationHandlerFunction extends Construct implements ResourceProvider<FunctionResources> {
     constructor(scope: Construct, id: string, props: ConversationHandlerFunctionProps);
     // (undocumented)
+    static readonly eventVersion: ConversationTurnEventVersion;
+    // (undocumented)
     resources: FunctionResources;
 }
 
@@ -53,28 +54,15 @@ type ConversationHandlerFunctionProps = {
         modelId: string;
         region?: string;
     }>;
+    memoryMB?: number;
     outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
-};
-
-// @public (undocumented)
-type ConversationMessage = {
-    role: 'user' | 'assistant';
-    content: Array<ConversationMessageContentBlock>;
-};
-
-// @public (undocumented)
-type ConversationMessageContentBlock = bedrock.ContentBlock | {
-    image: Omit<bedrock.ImageBlock, 'source'> & {
-        source: {
-            bytes: string;
-        };
-    };
 };
 
 // @public (undocumented)
 type ConversationTurnEvent = {
     conversationId: string;
     currentMessageId: string;
+    streamResponse?: boolean;
     responseMutation: {
         name: string;
         inputTypeName: string;
@@ -92,11 +80,8 @@ type ConversationTurnEvent = {
         };
     };
     request: {
-        headers: {
-            authorization: string;
-        };
+        headers: Record<string, string>;
     };
-    messages?: Array<ConversationMessage>;
     messageHistoryQuery: {
         getQueryName: string;
         getQueryInputTypeName: string;
@@ -115,6 +100,9 @@ type ConversationTurnEvent = {
         clientTools?: Array<ToolDefinition>;
     };
 };
+
+// @public (undocumented)
+type ConversationTurnEventVersion = `1.${number}`;
 
 // @public
 const createExecutableTool: <TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: ToolInputSchema<TJSONSchema>, handler: (input: TToolInput) => Promise<bedrock.ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
