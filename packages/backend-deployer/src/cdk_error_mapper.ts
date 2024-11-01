@@ -282,6 +282,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
+      humanReadableErrorMessage:
+        'The CloudFormation deployment failed due to {stackName} being in {state} state.',
+      resolutionMessage:
+        'Find more information in the CloudFormation AWS Console for this stack.',
+      errorName: 'CloudFormationDeploymentError',
+      classification: 'ERROR',
+    },
+    {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: new RegExp(
         `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed (to deploy:|creation,) (.*)`

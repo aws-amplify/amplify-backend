@@ -1,5 +1,24 @@
 # @aws-amplify/backend
 
+## 1.6.0
+
+### Minor Changes
+
+- 11d62fe: Add support for custom Lambda function email senders in Auth construct
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [11d62fe]
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-auth@1.3.0
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/backend-function@1.7.3
+  - @aws-amplify/backend-storage@1.2.2
+  - @aws-amplify/client-config@1.5.1
+  - @aws-amplify/backend-data@1.1.6
+  - @aws-amplify/plugin-types@1.3.1
+
 ## 1.5.2
 
 ### Patch Changes

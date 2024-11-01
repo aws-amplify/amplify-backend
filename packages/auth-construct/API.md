@@ -9,6 +9,7 @@ import { AuthResources } from '@aws-amplify/plugin-types';
 import { aws_cognito } from 'aws-cdk-lib';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { NumberAttributeConstraints } from 'aws-cdk-lib/aws-cognito';
 import { ReferenceAuthResources } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -55,7 +56,7 @@ export type AuthProps = {
         externalProviders?: ExternalProviderOptions;
     };
     senders?: {
-        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>;
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
     };
     userAttributes?: UserAttributes;
     multifactor?: MFA;
@@ -90,6 +91,12 @@ export type CustomAttributeNumber = CustomAttributeBase & NumberAttributeConstra
 // @public
 export type CustomAttributeString = CustomAttributeBase & StringAttributeConstraints & {
     dataType: 'String';
+};
+
+// @public
+export type CustomEmailSender = {
+    handler: IFunction;
+    kmsKeyArn?: string;
 };
 
 // @public

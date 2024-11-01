@@ -48,6 +48,7 @@ if (process.versions.node) {
 type ConversationTurnAppSyncResponse = {
   associatedUserMessageId: string;
   content: string;
+  errors?: Array<ConversationTurnError>;
 };
 
 type ConversationMessage = {
@@ -78,6 +79,11 @@ type CreateConversationMessageChatInput = ConversationMessage & {
   associatedUserMessageId?: string;
 };
 
+type ConversationTurnError = {
+  errorType: string;
+  message: string;
+};
+
 type ConversationTurnAppSyncResponseChunk = {
   conversationId: string;
   associatedUserMessageId: string;
@@ -87,6 +93,7 @@ type ConversationTurnAppSyncResponseChunk = {
   contentBlockDoneAtIndex?: number;
   contentBlockToolUse?: string;
   stopReason?: string;
+  errors?: Array<ConversationTurnError>;
 };
 
 /**
@@ -330,6 +337,26 @@ class ConversationHandlerTestProject extends TestProjectBase {
         true
       )
     );
+
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanPropagateError(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
+    );
+
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanPropagateError(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
+    );
   }
 
   private assertDefaultConversationHandlerCanExecuteTurn = async (
@@ -378,12 +405,12 @@ class ConversationHandlerTestProject extends TestProjectBase {
     }
     await this.insertMessage(apolloClient, message);
 
-    const responseContent = await this.executeConversationTurn(
+    const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
       apolloClient
     );
-    assert.match(responseContent, /3\.14/);
+    assert.match(response.content, /3\.14/);
   };
 
   private assertDefaultConversationHandlerCanExecuteTurnWithImage = async (
@@ -443,14 +470,14 @@ class ConversationHandlerTestProject extends TestProjectBase {
       ...this.getCommonEventProperties(streamResponse),
     };
     await this.insertMessage(apolloClient, message);
-    const responseContent = await this.executeConversationTurn(
+    const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
       apolloClient
     );
     // The image contains a logo of AWS. Responses may vary, but they should always contain statements below.
-    assert.match(responseContent, /logo/);
-    assert.match(responseContent, /(aws)|(AWS)|(Amazon Web Services)/);
+    assert.match(response.content, /logo/);
+    assert.match(response.content, /(aws)|(AWS)|(Amazon Web Services)/);
   };
 
   private assertDefaultConversationHandlerCanExecuteTurnWithDataTool = async (
@@ -517,14 +544,14 @@ class ConversationHandlerTestProject extends TestProjectBase {
       },
       ...this.getCommonEventProperties(streamResponse),
     };
-    const responseContent = await this.executeConversationTurn(
+    const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
       apolloClient
     );
     // Assert that tool was used. I.e. that LLM used value returned by the tool.
     assert.match(
-      responseContent,
+      response.content,
       new RegExp(expectedTemperatureInDataToolScenario.toString())
     );
   };
@@ -586,7 +613,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       },
       ...this.getCommonEventProperties(streamResponse),
     };
-    const responseContent = await this.executeConversationTurn(
+    const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
       apolloClient
@@ -594,17 +621,20 @@ class ConversationHandlerTestProject extends TestProjectBase {
     // Assert that tool use content blocks are emitted in case LLM selects client tool.
     // The content blocks are string serialized, but not as a proper JSON,
     // hence string matching is employed below to detect some signals that tool use blocks kinds were emitted.
-    assert.match(responseContent, /toolUse/);
-    assert.match(responseContent, /toolUseId/);
+    assert.match(response.content, /toolUse/);
+    assert.match(response.content, /toolUseId/);
     // Assert that LLM attempts to pass parameter when asking for tool use.
-    assert.match(responseContent, /"city":"Seattle"/);
+    assert.match(response.content, /"city":"Seattle"/);
   };
 
   private executeConversationTurn = async (
     event: ConversationTurnEvent,
     functionName: string,
     apolloClient: ApolloClient<NormalizedCacheObject>
-  ): Promise<string> => {
+  ): Promise<{
+    content: string;
+    errors?: Array<ConversationTurnError>;
+  }> => {
     console.log(
       `Sending event conversationId=${event.conversationId} currentMessageId=${event.currentMessageId}`
     );
@@ -649,6 +679,10 @@ class ConversationHandlerTestProject extends TestProjectBase {
                   contentBlockToolUse
                   conversationId
                   createdAt
+                  errors {
+                    errorType
+                    message
+                  }
                   id
                   owner
                   stopReason
@@ -676,6 +710,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
 
       assert.ok(chunks);
 
+      if (chunks.length === 1 && chunks[0].errors) {
+        return {
+          content: '',
+          errors: chunks[0].errors,
+        };
+      }
+
       chunks.sort((a, b) => {
         // This is very simplified sort by message,block and delta indexes;
         let aValue = 1000 * 1000 * a.contentBlockIndex;
@@ -699,7 +740,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
         return accumulated;
       }, '');
 
-      return content;
+      return { content };
     }
     const queryResult = await apolloClient.query<{
       listConversationMessageAssistantResponses: {
@@ -721,6 +762,10 @@ class ConversationHandlerTestProject extends TestProjectBase {
               updatedAt
               createdAt
               content
+              errors {
+                errorType
+                message
+              }
               associatedUserMessageId
             }
             nextToken
@@ -739,8 +784,16 @@ class ConversationHandlerTestProject extends TestProjectBase {
     );
     const response =
       queryResult.data.listConversationMessageAssistantResponses.items[0];
+
+    if (response.errors) {
+      return {
+        content: '',
+        errors: response.errors,
+      };
+    }
+
     assert.ok(response.content);
-    return response.content;
+    return { content: response.content };
   };
 
   private assertCustomConversationHandlerCanExecuteTurn = async (
@@ -780,23 +833,78 @@ class ConversationHandlerTestProject extends TestProjectBase {
       },
       ...this.getCommonEventProperties(streamResponse),
     };
-    const responseContent = await this.executeConversationTurn(
+    const response = await this.executeConversationTurn(
       event,
       customConversationHandlerFunction,
       apolloClient
     );
     // Assert that tool was used. I.e. LLM used value provided by the tool.
     assert.match(
-      responseContent,
+      response.content,
       new RegExp(
         expectedTemperaturesInProgrammaticToolScenario.Seattle.toString()
       )
     );
     assert.match(
-      responseContent,
+      response.content,
       new RegExp(
         expectedTemperaturesInProgrammaticToolScenario.Boston.toString()
       )
+    );
+  };
+
+  private assertDefaultConversationHandlerCanPropagateError = async (
+    backendId: BackendIdentifier,
+    accessToken: string,
+    graphqlApiEndpoint: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    streamResponse: boolean
+  ): Promise<void> => {
+    const defaultConversationHandlerFunction = (
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('default')
+      )
+    )[0];
+
+    const message: CreateConversationMessageChatInput = {
+      id: randomUUID().toString(),
+      conversationId: randomUUID().toString(),
+      role: 'user',
+      content: [
+        {
+          text: 'What is the value of PI?',
+        },
+      ],
+    };
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: message.conversationId,
+      currentMessageId: message.id,
+      graphqlApiEndpoint: graphqlApiEndpoint,
+      request: {
+        headers: { authorization: accessToken },
+      },
+      ...this.getCommonEventProperties(streamResponse),
+    };
+
+    // Inject failure
+    event.modelConfiguration.modelId = 'invalidId';
+    await this.insertMessage(apolloClient, message);
+
+    const response = await this.executeConversationTurn(
+      event,
+      defaultConversationHandlerFunction,
+      apolloClient
+    );
+    assert.ok(response.errors);
+    assert.ok(response.errors[0]);
+    assert.strictEqual(response.errors[0].errorType, 'ValidationException');
+    assert.match(
+      response.errors[0].message,
+      /provided model identifier is invalid/
     );
   };
 

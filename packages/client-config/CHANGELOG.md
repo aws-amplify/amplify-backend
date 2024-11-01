@@ -1,5 +1,13 @@
 # @aws-amplify/client-config
 
+## 1.5.1
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/plugin-types@1.3.1
+
 ## 1.5.0
 
 ### Minor Changes

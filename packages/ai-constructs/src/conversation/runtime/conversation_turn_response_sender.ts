@@ -1,4 +1,8 @@
-import { ConversationTurnEvent, StreamingResponseChunk } from './types.js';
+import {
+  ConversationTurnError,
+  ConversationTurnEvent,
+  StreamingResponseChunk,
+} from './types.js';
 import type { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
 
@@ -12,6 +16,14 @@ export type MutationResponseInput = {
 
 export type MutationStreamingResponseInput = {
   input: StreamingResponseChunk;
+};
+
+export type MutationErrorsResponseInput = {
+  input: {
+    conversationId: string;
+    errors: ConversationTurnError[];
+    associatedUserMessageId: string;
+  };
 };
 
 /**
@@ -48,6 +60,36 @@ export class ConversationTurnResponseSender {
       MutationStreamingResponseInput,
       void
     >(responseMutationRequest);
+  };
+
+  sendErrors = async (errors: ConversationTurnError[]) => {
+    const responseMutationRequest = this.createMutationErrorsRequest(errors);
+    this.logger.debug(
+      'Sending errors response mutation:',
+      responseMutationRequest
+    );
+    await this.graphqlRequestExecutor.executeGraphql<
+      MutationErrorsResponseInput,
+      void
+    >(responseMutationRequest);
+  };
+
+  private createMutationErrorsRequest = (errors: ConversationTurnError[]) => {
+    const query = `
+        mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
+            ${this.event.responseMutation.name}(input: $input) {
+                ${this.event.responseMutation.selectionSet}
+            }
+        }
+    `;
+    const variables: MutationErrorsResponseInput = {
+      input: {
+        conversationId: this.event.conversationId,
+        errors,
+        associatedUserMessageId: this.event.currentMessageId,
+      },
+    };
+    return { query, variables };
   };
 
   private createMutationRequest = (content: ContentBlock[]) => {

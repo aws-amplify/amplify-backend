@@ -6,7 +6,10 @@ import {
   GoogleProviderProps,
   OidcProviderProps,
 } from '@aws-amplify/auth-construct';
-import { BackendSecretResolver } from '@aws-amplify/plugin-types';
+import {
+  BackendSecretResolver,
+  ConstructFactoryGetInstanceProps,
+} from '@aws-amplify/plugin-types';
 import {
   AmazonProviderFactoryProps,
   AppleProviderFactoryProps,
@@ -16,6 +19,8 @@ import {
   GoogleProviderFactoryProps,
   OidcProviderFactoryProps,
 } from './types.js';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { AmplifyAuthProps } from './factory.js';
 
 /**
  * Translate an Auth factory's loginWith to its Auth construct counterpart. Backend secret fields will be resolved
@@ -78,6 +83,52 @@ export const translateToAuthConstructLoginWith = (
   }
 
   return result;
+};
+/**
+ * Translates the senders property from AmplifyAuthProps to AuthProps format.
+ * @param senders - The senders object from AmplifyAuthProps.
+ * @param getInstanceProps - Properties used to get an instance of the sender.
+ * @returns The translated senders object in AuthProps format, or undefined if no valid sender is provided.
+ * @description
+ * This function handles the translation of the 'senders' property, specifically for email senders.
+ * If no senders are provided or if there's no email sender, it returns undefined.
+ * If the email sender has a 'getInstance' method, it retrieves the Lambda function and returns it.
+ * Otherwise, it returns the email sender as is.
+ */
+export const translateToAuthConstructSenders = (
+  senders: AmplifyAuthProps['senders'] | undefined,
+  getInstanceProps: ConstructFactoryGetInstanceProps
+): AuthProps['senders'] | undefined => {
+  if (!senders || !senders.email) {
+    return undefined;
+  }
+
+  // Handle CustomEmailSender type
+  if ('handler' in senders.email) {
+    const lambda: IFunction =
+      'getInstance' in senders.email.handler
+        ? senders.email.handler.getInstance(getInstanceProps).resources.lambda
+        : senders.email.handler;
+
+    return {
+      email: {
+        handler: lambda,
+        kmsKeyArn: senders.email.kmsKeyArn,
+      },
+    };
+  }
+
+  // Handle SES configuration
+  if ('fromEmail' in senders.email) {
+    return {
+      email: senders.email,
+    };
+  }
+
+  // If none of the above, return the email configuration as-is
+  return {
+    email: senders.email,
+  };
 };
 
 const translateAmazonProps = (

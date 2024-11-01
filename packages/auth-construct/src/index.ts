@@ -27,6 +27,7 @@ export {
   CustomAttributeBoolean,
   CustomAttributeDateTime,
   CustomAttributeBase,
+  CustomEmailSender,
 } from './types.js';
 export { AmplifyAuth } from './construct.js';
 export { AmplifyReferenceAuth } from './reference_construct.js';
