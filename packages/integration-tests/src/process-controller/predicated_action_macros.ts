@@ -49,9 +49,10 @@ export const replaceFiles = (replacements: CopyDefinition[]) => {
 };
 
 /**
- * Reusable predicated action: Wait for sandbox to become idle and then quit it (CTRL-C)
+ * Reusable predicated action: Wait for sandbox to become idle and config to be generated and then quit it (CTRL-C)
  */
-export const interruptSandbox = () => waitForSandboxToBecomeIdle().sendCtrlC();
+export const interruptSandbox = () =>
+  waitForConfigUpdateAfterDeployment().sendCtrlC();
 
 /**
  * Reusable predicated action: Wait for sandbox to finish deployment and assert that the deployment time is less
