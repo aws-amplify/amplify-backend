@@ -90,10 +90,12 @@ export class CdkErrorMapper {
     classification: AmplifyErrorClassification;
   }> => [
     {
-      errorRegex: /ExpiredToken/,
+      errorRegex:
+        /ExpiredToken|Error: The security token included in the request is expired/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
-      resolutionMessage: 'Ensure your local AWS credentials are valid.',
+      resolutionMessage:
+        "Please update your AWS credentials. You can do this by running `aws configure` or by updating your AWS credentials file. If you're using temporary credentials, you may need to obtain new ones.",
       errorName: 'ExpiredTokenError',
       classification: 'ERROR',
     },
