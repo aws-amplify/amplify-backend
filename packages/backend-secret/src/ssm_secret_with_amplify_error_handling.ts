@@ -69,7 +69,7 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
         secretName
       );
     } catch (e) {
-      throw this.translateToAmplifyError(e, 'Remove');
+      throw this.translateToAmplifyError(e, 'Remove', { name: secretName });
     }
   };
 
@@ -87,6 +87,7 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
           'ExpiredTokenException',
           'ExpiredToken',
           'CredentialsProviderError',
+          'IncompleteSignatureException',
           'InvalidSignatureException',
         ].includes(error.cause.name)
       ) {
@@ -105,6 +106,16 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
       ) {
         return new AmplifyUserError('SSMParameterNotFoundError', {
           message: `Failed to get ${secretIdentifier.name} secret. ${error.cause.name}: ${error.cause?.message}`,
+          resolution: `Make sure that ${secretIdentifier.name} has been set. See https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/.`,
+        });
+      }
+      if (
+        error.cause.name === 'ParameterNotFound' &&
+        apiName === 'Remove' &&
+        secretIdentifier
+      ) {
+        return new AmplifyUserError('SSMParameterNotFoundError', {
+          message: `Failed to remove ${secretIdentifier.name} secret. ${error.cause.name}: ${error.cause?.message}`,
           resolution: `Make sure that ${secretIdentifier.name} has been set. See https://docs.amplify.aws/react/deploy-and-host/fullstack-branching/secrets-and-vars/.`,
         });
       }
