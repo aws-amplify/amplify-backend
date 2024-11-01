@@ -16,6 +16,7 @@ import {
   TranslationBehavior,
 } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
+import { generateModelsSync } from '@aws-amplify/graphql-generator';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
 import {
@@ -111,9 +112,78 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
   };
 }
 
+class GraphqlSchemaDefinition {
+  amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
+  schemasJsFunctions: JsResolver[] = [];
+  schemasFunctionSchemaAccess: FunctionSchemaAccess[] = [];
+  schemasLambdaFunctions: Record<string, ConstructFactory<AmplifyFunction>> =
+    {};
+
+  constructor({
+    props,
+    backendSecretResolver,
+    stableBackendIdentifiers,
+  }: Pick<
+    GenerateContainerEntryProps,
+    'backendSecretResolver' | 'stableBackendIdentifiers'
+  > & { props: DataProps }) {
+    try {
+      const schemas = isCombinedSchema(props.schema)
+        ? props.schema.schemas
+        : [props.schema];
+
+      schemas.forEach((schema) => {
+        if (isDataSchema(schema)) {
+          const { jsFunctions, functionSchemaAccess, lambdaFunctions } =
+            schema.transform();
+          this.schemasJsFunctions.push(...jsFunctions);
+          this.schemasFunctionSchemaAccess.push(...functionSchemaAccess);
+          this.schemasLambdaFunctions = {
+            ...this.schemasLambdaFunctions,
+            ...lambdaFunctions,
+          };
+        }
+
+        this.amplifyGraphqlDefinitions.push(
+          convertSchemaToCDK(
+            schema,
+            backendSecretResolver,
+            stableBackendIdentifiers
+          )
+        );
+      });
+    } catch (error) {
+      throw new AmplifyUserError<AmplifyDataError>(
+        'InvalidSchemaError',
+        {
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to parse schema definition.',
+          resolution:
+            'Check your data schema definition for syntax and type errors.',
+        },
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+
+  get combinedCDKSchema() {
+    return combineCDKSchemas(this.amplifyGraphqlDefinitions);
+  }
+
+  get modelIntrospectionSchema() {
+    return generateModelsSync({
+      schema: this.combinedCDKSchema.schema,
+      target: 'introspection',
+    })['model-introspection.json'];
+  }
+}
+
 class DataGenerator implements ConstructContainerEntryGenerator {
   readonly resourceGroupName = 'data';
   private readonly name: string;
+  private schemaDefinition?: GraphqlSchemaDefinition;
 
   constructor(
     private readonly props: DataProps,
@@ -124,12 +194,26 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     this.name = props.name ?? 'amplifyData';
   }
 
+  getArtifact(key: string): unknown | undefined {
+    if (key === 'mis') {
+      return this.schemaDefinition?.modelIntrospectionSchema;
+    }
+    return;
+  }
+
   generateContainerEntry = ({
     scope,
     ssmEnvironmentEntriesGenerator,
     backendSecretResolver,
     stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
+    const schemaDefinition = new GraphqlSchemaDefinition({
+      props: this.props,
+      backendSecretResolver,
+      stableBackendIdentifiers,
+    });
+    this.schemaDefinition = schemaDefinition;
+
     const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
     const schemasJsFunctions: JsResolver[] = [];
     const schemasFunctionSchemaAccess: FunctionSchemaAccess[] = [];
@@ -239,7 +323,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     try {
       amplifyApi = new AmplifyData(scope, this.name, {
         apiName: this.name,
-        definition: combineCDKSchemas(amplifyGraphqlDefinitions),
+        definition: schemaDefinition.combinedCDKSchema,
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
         functionNameMap,

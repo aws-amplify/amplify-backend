@@ -22,4 +22,5 @@ export type ConstructFactory<T extends ResourceProvider = ResourceProvider> = {
    */
   readonly provides?: string;
   getInstance: (props: ConstructFactoryGetInstanceProps) => T;
+  getArtifact?: (key: string) => unknown;
 };

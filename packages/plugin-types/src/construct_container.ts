@@ -20,6 +20,8 @@ export type ConstructContainerEntryGenerator<T extends object = object> = {
   generateContainerEntry: (
     props: GenerateContainerEntryProps
   ) => ResourceProvider<T>;
+
+  getArtifact?: (key: string) => unknown;
 };
 
 export type GenerateContainerEntryProps = {
