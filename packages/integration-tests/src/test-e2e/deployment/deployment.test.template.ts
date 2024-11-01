@@ -11,10 +11,7 @@ import { TestProjectBase } from '../../test-project-setup/test_project_base.js';
 import { PredicatedActionBuilder } from '../../process-controller/predicated_action_queue_builder.js';
 import { ampxCli } from '../../process-controller/process_controller.js';
 import path from 'path';
-import {
-  interruptSandbox,
-  rejectCleanupSandbox,
-} from '../../process-controller/predicated_action_macros.js';
+import { waitForSandboxToBecomeIdle } from '../../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../../amplify_app_pool.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -127,17 +124,18 @@ export const defineDeploymentTest = (
 
         void describe('in sequence', { concurrency: false }, () => {
           void it('in sandbox deploy', async () => {
+            const predicatedActionBuilder = new PredicatedActionBuilder();
             await ampxCli(
               ['sandbox', '--dirToWatch', 'amplify'],
               testProject.projectDirPath
             )
               .do(
-                new PredicatedActionBuilder().waitForLineIncludes(
+                predicatedActionBuilder.waitForLineIncludes(
                   'TypeScript validation check failed'
                 )
               )
-              .do(interruptSandbox())
-              .do(rejectCleanupSandbox())
+              .do(waitForSandboxToBecomeIdle())
+              .do(predicatedActionBuilder.sendCtrlC())
               .run();
           });
 

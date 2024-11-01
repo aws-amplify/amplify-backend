@@ -14,7 +14,6 @@ import {
 import {
   confirmDeleteSandbox,
   interruptSandbox,
-  rejectCleanupSandbox,
   waitForSandboxDeploymentToPrintTotalTime,
 } from '../process-controller/predicated_action_macros.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
@@ -123,7 +122,6 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       await ampxCli(['sandbox'], tempDir)
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
-        .do(rejectCleanupSandbox())
         .run();
 
       const clientConfigStats = await fs.stat(
