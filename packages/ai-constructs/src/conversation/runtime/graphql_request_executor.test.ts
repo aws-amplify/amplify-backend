@@ -2,11 +2,17 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { text } from 'node:stream/consumers';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
+import { UserAgentProvider } from './user_agent_provider';
+import { ConversationTurnEvent } from './types';
 
 void describe('Graphql executor test', () => {
   const graphqlEndpoint = 'http://fake.endpoint/';
   const accessToken = 'testToken';
   const userAgent = 'testUserAgent';
+  const userAgentProvider = new UserAgentProvider(
+    {} as unknown as ConversationTurnEvent
+  );
+  mock.method(userAgentProvider, 'getUserAgent', () => userAgent);
 
   void it('sends request to appsync', async () => {
     const fetchMock = mock.fn(
@@ -18,7 +24,7 @@ void describe('Graphql executor test', () => {
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
-      userAgent,
+      userAgentProvider,
       fetchMock
     );
     const query = 'testQuery';
@@ -62,7 +68,7 @@ void describe('Graphql executor test', () => {
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
-      userAgent,
+      userAgentProvider,
       fetchMock
     );
     const query = 'testQuery';
@@ -102,7 +108,7 @@ void describe('Graphql executor test', () => {
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
-      userAgent,
+      userAgentProvider,
       fetchMock
     );
     const query = 'testQuery';

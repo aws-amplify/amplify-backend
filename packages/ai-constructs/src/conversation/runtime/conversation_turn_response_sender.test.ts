@@ -15,6 +15,7 @@ import {
   GraphqlRequest,
   GraphqlRequestExecutor,
 } from './graphql_request_executor';
+import { UserAgentProvider } from './user_agent_provider';
 
 void describe('Conversation turn response sender', () => {
   const event: ConversationTurnEvent = {
@@ -37,7 +38,15 @@ void describe('Conversation turn response sender', () => {
   };
 
   void it('sends response back to appsync', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -47,6 +56,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const response: Array<ContentBlock> = [
@@ -85,7 +95,15 @@ void describe('Conversation turn response sender', () => {
   });
 
   void it('serializes tool use input to JSON', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -95,6 +113,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const toolUseBlock: ContentBlock.ToolUseMember = {
@@ -140,7 +159,15 @@ void describe('Conversation turn response sender', () => {
   });
 
   void it('sends streaming response chunk back to appsync', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -150,6 +177,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const chunk: StreamingResponseChunk = {
@@ -181,7 +209,15 @@ void describe('Conversation turn response sender', () => {
   });
 
   void it('serializes tool use input to JSON when streaming', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -191,6 +227,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const toolUseBlock: ContentBlock.ToolUseMember = {
@@ -242,7 +279,15 @@ void describe('Conversation turn response sender', () => {
   });
 
   void it('sends errors response back to appsync', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -252,6 +297,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const errors: Array<ConversationTurnError> = [
