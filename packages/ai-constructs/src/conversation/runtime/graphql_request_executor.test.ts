@@ -53,6 +53,41 @@ void describe('Graphql executor test', () => {
     });
   });
 
+  void it('method provided user agent takes precedence', async () => {
+    const fetchMock = mock.fn(
+      fetch,
+      (): Promise<Response> =>
+        // Mock successful Appsync response
+        Promise.resolve(new Response('{}', { status: 200 }))
+    );
+    const executor = new GraphqlRequestExecutor(
+      graphqlEndpoint,
+      accessToken,
+      userAgentProvider,
+      fetchMock
+    );
+    const query = 'testQuery';
+    const variables = {
+      testVariableKey: 'testVariableValue',
+    };
+    await executor.executeGraphql(
+      {
+        query,
+        variables,
+      },
+      {
+        userAgent: 'methodScopedUserAgent',
+      }
+    );
+
+    assert.strictEqual(fetchMock.mock.calls.length, 1);
+    const request: Request = fetchMock.mock.calls[0].arguments[0] as Request;
+    assert.strictEqual(
+      request.headers.get('x-amz-user-agent'),
+      'methodScopedUserAgent'
+    );
+  });
+
   void it('throws if response is not 2xx', async () => {
     const fetchMock = mock.fn(
       fetch,

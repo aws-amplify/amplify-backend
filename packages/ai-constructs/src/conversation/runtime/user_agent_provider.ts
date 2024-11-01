@@ -38,7 +38,7 @@ export class UserAgentProvider {
 
     if (additionalMetadata) {
       Object.entries(additionalMetadata).forEach(([key, value]) => {
-        const validKeyOrValueRegex = /^[a-zA-Z0-9-_]&/;
+        const validKeyOrValueRegex = /^[a-zA-Z0-9-_]+$/;
         if (
           !key.match(validKeyOrValueRegex) ||
           !value.match(validKeyOrValueRegex)

@@ -54,7 +54,7 @@ export class ConversationTurnResponseSender {
       void
     >(responseMutationRequest, {
       userAgent: this.userAgentProvider.getUserAgent({
-        'turn-response-mutation-type': 'single',
+        'turn-response-type': 'single',
       }),
     });
   };
@@ -67,7 +67,7 @@ export class ConversationTurnResponseSender {
       void
     >(responseMutationRequest, {
       userAgent: this.userAgentProvider.getUserAgent({
-        'turn-response-mutation-type': 'streaming',
+        'turn-response-type': 'streaming',
       }),
     });
   };
@@ -83,7 +83,7 @@ export class ConversationTurnResponseSender {
       void
     >(responseMutationRequest, {
       userAgent: this.userAgentProvider.getUserAgent({
-        'turn-response-mutation-type': 'error',
+        'turn-response-type': 'error',
       }),
     });
   };
