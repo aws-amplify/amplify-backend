@@ -11,10 +11,7 @@ import { TestProjectBase } from '../../test-project-setup/test_project_base.js';
 import { PredicatedActionBuilder } from '../../process-controller/predicated_action_queue_builder.js';
 import { ampxCli } from '../../process-controller/process_controller.js';
 import path from 'path';
-import {
-  interruptSandbox,
-  rejectCleanupSandbox,
-} from '../../process-controller/predicated_action_macros.js';
+import { interruptSandbox } from '../../process-controller/predicated_action_macros.js';
 import assert from 'node:assert';
 import { TestBranch, amplifyAppPool } from '../../amplify_app_pool.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -137,7 +134,6 @@ export const defineDeploymentTest = (
                 )
               )
               .do(interruptSandbox())
-              .do(rejectCleanupSandbox())
               .run();
           });
 

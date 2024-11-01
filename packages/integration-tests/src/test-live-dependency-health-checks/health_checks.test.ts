@@ -14,7 +14,6 @@ import {
 import {
   confirmDeleteSandbox,
   interruptSandbox,
-  rejectCleanupSandbox,
   waitForConfigUpdateAfterDeployment,
   waitForSandboxDeploymentToPrintTotalTime,
 } from '../process-controller/predicated_action_macros.js';
@@ -125,7 +124,6 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(waitForConfigUpdateAfterDeployment())
         .do(interruptSandbox())
-        .do(rejectCleanupSandbox())
         .run();
 
       const clientConfigStats = await fs.stat(
