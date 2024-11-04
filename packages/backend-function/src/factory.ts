@@ -23,7 +23,7 @@ import {
   SsmEnvironmentEntry,
   StackProvider,
 } from '@aws-amplify/plugin-types';
-import { Duration, Lazy, Stack, Tags } from 'aws-cdk-lib';
+import { Duration, Lazy, Stack, Tags, Token } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Policy } from 'aws-cdk-lib/aws-iam';
@@ -379,9 +379,12 @@ class AmplifyFunction
     // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
     const resolvedLayers = Object.entries(props.layers).map(([key, arn]) => {
       const layerRegion = arn.split(':')[3];
-      const region = Lazy.string({
-        produce: () => this.stack.region,
-      });
+      // If region is an unresolved token, use lazy to get region
+      const region = Token.isUnresolved(this.stack.region)
+        ? Lazy.string({
+            produce: () => this.stack.region,
+          })
+        : this.stack.region;
 
       if (layerRegion !== region) {
         throw new AmplifyUserError('InvalidLayerArnRegionError', {

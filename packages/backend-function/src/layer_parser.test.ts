@@ -9,10 +9,10 @@ import {
   ConstructFactoryGetInstanceProps,
   ResourceNameValidator,
 } from '@aws-amplify/plugin-types';
-import { App, Lazy, Stack } from 'aws-cdk-lib';
+import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import { beforeEach, describe, it, mock } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 import { defineFunction } from './factory.js';
 
 const createStackAndSetContext = (): Stack => {
@@ -20,7 +20,7 @@ const createStackAndSetContext = (): Stack => {
   app.node.setContext('amplify-backend-name', 'testEnvName');
   app.node.setContext('amplify-backend-namespace', 'testBackendId');
   app.node.setContext('amplify-backend-type', 'branch');
-  const stack = new Stack(app);
+  const stack = new Stack(app, 'Stack', { env: { region: 'us-east-1' } });
   return stack;
 };
 
@@ -28,8 +28,6 @@ void describe('AmplifyFunctionFactory - Layers', () => {
   let rootStack: Stack;
   let getInstanceProps: ConstructFactoryGetInstanceProps;
   let resourceNameValidator: ResourceNameValidator;
-  // mock lazy to return same region
-  mock.method(Lazy, 'string', () => 'us-east-1');
 
   beforeEach(() => {
     rootStack = createStackAndSetContext();
