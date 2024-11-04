@@ -346,6 +346,20 @@ const testErrorMappings = [
     errorName: 'CloudFormationDeploymentError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `ENOENT: no such file or directory, open '.amplify/artifacts/cdk.out/manifest.json'`,
+    expectedTopLevelErrorMessage:
+      'The Amplify backend definition is missing `defineBackend` call.',
+    errorName: 'MissingDefineBackendError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `ENOENT: no such file or directory, open '.amplify\\artifacts\\cdk.out\\manifest.json'`,
+    expectedTopLevelErrorMessage:
+      'The Amplify backend definition is missing `defineBackend` call.',
+    errorName: 'MissingDefineBackendError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
