@@ -18,7 +18,7 @@ import {
   BackendLocator,
   CDKContextKey,
 } from '@aws-amplify/platform-core';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 
 /**
  * Commands that can be invoked
@@ -33,11 +33,7 @@ enum InvokableCommand {
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
-  private readonly relativeCloudAssemblyLocation = join(
-    '.amplify',
-    'artifacts',
-    'cdk.out'
-  );
+  private readonly relativeCloudAssemblyLocation = '.amplify/artifacts/cdk.out';
   /**
    * Instantiates instance of CDKDeployer
    */
