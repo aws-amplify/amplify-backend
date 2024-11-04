@@ -98,6 +98,7 @@ export abstract class PackageManagerControllerBase
         target: 'es2022',
         module: 'preserve',
         moduleDetection: 'force',
+        moduleResolution: 'bundler',
         resolveJsonModule: true,
         esModuleInterop: true,
         forceConsistentCasingInFileNames: true,
