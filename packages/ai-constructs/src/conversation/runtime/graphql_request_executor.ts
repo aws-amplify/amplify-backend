@@ -1,3 +1,5 @@
+import { UserAgentProvider } from './user_agent_provider';
+
 export type GraphqlRequest<TVariables> = {
   query: string;
   variables: TVariables;
@@ -15,19 +17,23 @@ export class GraphqlRequestExecutor {
   constructor(
     private readonly graphQlEndpoint: string,
     private readonly accessToken: string,
-    private readonly userAgent: string,
+    private readonly userAgentProvider: UserAgentProvider,
     private readonly _fetch = fetch
   ) {}
 
   executeGraphql = async <TVariables, TReturn>(
-    request: GraphqlRequest<TVariables>
+    request: GraphqlRequest<TVariables>,
+    options?: {
+      userAgent?: string;
+    }
   ): Promise<TReturn> => {
     const httpRequest = new Request(this.graphQlEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/graphql',
         Authorization: this.accessToken,
-        'x-amz-user-agent': this.userAgent,
+        'x-amz-user-agent':
+          options?.userAgent ?? this.userAgentProvider.getUserAgent(),
       },
       body: JSON.stringify({
         query: request.query,

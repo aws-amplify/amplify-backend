@@ -22,6 +22,7 @@ import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { ValidationError } from './errors';
+import { UserAgentProvider } from './user_agent_provider';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -48,23 +49,22 @@ export class BedrockConverseAdapter {
     private readonly messageHistoryRetriever = new ConversationMessageHistoryRetriever(
       event
     ),
+    userAgentProvider = new UserAgentProvider(event),
     private readonly logger = console
   ) {
-    if (event.request.headers['x-amz-user-agent']) {
-      this.bedrockClient.middlewareStack.add(
-        (next) => (args) => {
-          // @ts-expect-error Request is typed as unknown.
-          // But this is recommended way to alter headers per https://github.com/aws/aws-sdk-js-v3/blob/main/README.md.
-          args.request.headers['x-amz-user-agent'] =
-            event.request.headers['x-amz-user-agent'];
-          return next(args);
-        },
-        {
-          step: 'build',
-          name: 'amplify-user-agent-injector',
-        }
-      );
-    }
+    this.bedrockClient.middlewareStack.add(
+      (next) => (args) => {
+        // @ts-expect-error Request is typed as unknown.
+        // But this is recommended way to alter headers per https://github.com/aws/aws-sdk-js-v3/blob/main/README.md.
+        args.request.headers['x-amz-user-agent'] =
+          userAgentProvider.getUserAgent();
+        return next(args);
+      },
+      {
+        step: 'build',
+        name: 'amplify-user-agent-injector',
+      }
+    );
     this.executableTools = [
       ...eventToolsProvider.getEventTools(),
       ...additionalTools,
