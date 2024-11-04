@@ -50,7 +50,7 @@ void describe('client config formatter', () => {
       ClientConfigFormat.DART
     );
 
-    assert.ok(formattedConfig.startsWith("const amplifyConfig = '''"));
+    assert.ok(formattedConfig.startsWith("const amplifyConfig = r'''"));
     assert.ok(
       formattedConfig.includes(JSON.stringify(expectedConfigReturned, null, 2))
     );

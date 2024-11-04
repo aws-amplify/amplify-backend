@@ -109,7 +109,7 @@ void describe('client config formatter', () => {
       expectedLegacyConfig.aws_user_pools_id
     );
 
-    assert.ok(formattedConfig.startsWith("const amplifyConfig = '''"));
+    assert.ok(formattedConfig.startsWith("const amplifyConfig = r'''"));
     assert.ok(
       formattedConfig.includes(JSON.stringify(clientConfigMobile, null, 2))
     );
