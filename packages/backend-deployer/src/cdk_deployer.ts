@@ -108,8 +108,6 @@ export class CDKDeployer implements BackendDeployer {
       throw synthError;
     }
 
-
-
     // then deploy with the cloud assembly that was generated during synth
     const deployResult = await this.tryInvokeCdk(
       InvokableCommand.DEPLOY,
