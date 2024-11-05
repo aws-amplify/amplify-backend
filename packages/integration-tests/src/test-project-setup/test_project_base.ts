@@ -9,7 +9,6 @@ import { ampxCli } from '../process-controller/process_controller.js';
 import {
   confirmDeleteSandbox,
   interruptSandbox,
-  rejectCleanupSandbox,
   waitForSandboxDeploymentToPrintTotalTime,
 } from '../process-controller/predicated_action_macros.js';
 
@@ -77,7 +76,6 @@ export abstract class TestProjectBase {
       })
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
-        .do(rejectCleanupSandbox())
         .run();
     } else {
       await ampxCli(

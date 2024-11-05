@@ -1,5 +1,17 @@
 # @aws-amplify/sandbox
 
+## 1.2.4
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [c3c3057]
+- Updated dependencies [b56d344]
+  - @aws-amplify/cli-core@1.2.0
+  - @aws-amplify/backend-deployer@1.1.6
+  - @aws-amplify/client-config@1.5.1
+  - @aws-amplify/plugin-types@1.3.1
+
 ## 1.2.3
 
 ### Patch Changes

@@ -23,16 +23,11 @@ import {
   SsmEnvironmentEntry,
   StackProvider,
 } from '@aws-amplify/plugin-types';
-import { Duration, Stack, Tags } from 'aws-cdk-lib';
+import { Duration, Lazy, Stack, Tags, Token } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Policy } from 'aws-cdk-lib/aws-iam';
-import {
-  CfnFunction,
-  ILayerVersion,
-  LayerVersion,
-  Runtime,
-} from 'aws-cdk-lib/aws-lambda';
+import { CfnFunction, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import { readFileSync } from 'fs';
@@ -357,15 +352,6 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
   generateContainerEntry = (
     generateContainerEntryProps: GenerateContainerEntryProps
   ) => {
-    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
-    const resolvedLayers = Object.entries(this.props.layers).map(([key, arn]) =>
-      LayerVersion.fromLayerVersionArn(
-        generateContainerEntryProps.scope,
-        `${this.props.name}-${key}-layer`,
-        arn
-      )
-    );
-
     let mis: string | undefined = undefined;
     if (this.dataMisProvider) {
       mis = this.dataMisProvider(generateContainerEntryProps);
@@ -374,7 +360,7 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     return new AmplifyFunction(
       generateContainerEntryProps.scope,
       this.props.name,
-      { ...this.props, resolvedLayers },
+      this.props,
       generateContainerEntryProps.backendSecretResolver,
       mis,
       this.outputStorageStrategy
@@ -395,7 +381,7 @@ class AmplifyFunction
   constructor(
     scope: Construct,
     id: string,
-    props: HydratedFunctionProps & { resolvedLayers: ILayerVersion[] },
+    props: HydratedFunctionProps,
     backendSecretResolver: BackendSecretResolver,
     mis: string | undefined,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
@@ -403,6 +389,31 @@ class AmplifyFunction
     super(scope, id);
 
     this.stack = Stack.of(scope);
+
+    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
+    const resolvedLayers = Object.entries(props.layers).map(([key, arn]) => {
+      const layerRegion = arn.split(':')[3];
+      // If region is an unresolved token, use lazy to get region
+      const region = Token.isUnresolved(this.stack.region)
+        ? Lazy.string({
+            produce: () => this.stack.region,
+          })
+        : this.stack.region;
+
+      if (layerRegion !== region) {
+        throw new AmplifyUserError('InvalidLayerArnRegionError', {
+          message: `Region in ARN does not match function region for layer: ${key}`,
+          resolution:
+            'Update the layer ARN with the same region as the function',
+        });
+      }
+
+      return LayerVersion.fromLayerVersionArn(
+        scope,
+        `${props.name}-${key}-layer`,
+        arn
+      );
+    });
 
     const runtime = nodeVersionMap[props.runtime];
 
@@ -446,7 +457,7 @@ class AmplifyFunction
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
         runtime: nodeVersionMap[props.runtime],
-        layers: props.resolvedLayers,
+        layers: resolvedLayers,
         bundling: {
           ...props.bundling,
           banner: bannerCode,

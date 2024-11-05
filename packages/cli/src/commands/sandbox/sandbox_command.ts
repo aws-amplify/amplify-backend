@@ -1,7 +1,7 @@
 import { ArgumentsCamelCase, Argv, CommandModule } from 'yargs';
 import fs from 'fs';
 import fsp from 'fs/promises';
-import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 import {
   SandboxFunctionStreamingOptions,
   SandboxSingletonFactory,
@@ -20,7 +20,6 @@ import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_
 import { CommandMiddleware } from '../../command_middleware.js';
 import { SandboxCommandGlobalOptions } from './option_types.js';
 import { ArgumentsKebabCase } from '../../kebab_case.js';
-import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type SandboxCommandOptionsKebabCase = ArgumentsKebabCase<
@@ -81,7 +80,6 @@ export class SandboxCommand
     private readonly sandboxSubCommands: CommandModule[],
     private clientConfigGeneratorAdapter: ClientConfigGeneratorAdapter,
     private commandMiddleware: CommandMiddleware,
-    private readonly packageManagerController: PackageManagerController,
     private readonly sandboxEventHandlerCreator?: SandboxEventHandlerCreator
   ) {
     this.command = 'sandbox';
@@ -276,23 +274,11 @@ export class SandboxCommand
   };
 
   sigIntHandler = async () => {
-    if (!this.packageManagerController.allowsSignalPropagation()) {
-      printer.print(
-        `Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
-          'sandbox delete'
-        )}`
-      );
-      return;
-    }
-    const answer = await AmplifyPrompter.yesOrNo({
-      message:
-        'Would you like to delete all the resources in your sandbox environment (This cannot be undone)?',
-      defaultValue: false,
-    });
-    if (answer)
-      await (
-        await this.sandboxFactory.getInstance()
-      ).delete({ identifier: this.sandboxIdentifier, profile: this.profile });
+    printer.print(
+      `Stopping the sandbox process. To delete the sandbox, run ${format.normalizeAmpxCommand(
+        'sandbox delete'
+      )}`
+    );
   };
 
   private validateDirectory = async (option: string, dir: string) => {

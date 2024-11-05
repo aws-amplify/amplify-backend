@@ -23,6 +23,15 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: 'ExpiredToken',
   },
   {
+    errorMessage:
+      'Error: The security token included in the request is expired',
+    expectedTopLevelErrorMessage:
+      'The security token included in the request is invalid.',
+    errorName: 'ExpiredTokenError',
+    expectedDownstreamErrorMessage:
+      'Error: The security token included in the request is expired',
+  },
+  {
     errorMessage: 'Access Denied',
     expectedTopLevelErrorMessage:
       'The deployment role does not have sufficient permissions to perform this deployment.',
@@ -329,6 +338,27 @@ const testErrorMappings = [
     errorName: 'CDKVersionMismatchError',
     expectedDownstreamErrorMessage: `This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
       (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
+  },
+  {
+    errorMessage: `[31m  amplify-some-stack failed: ValidationError: Stack:stack-arn is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
+    expectedTopLevelErrorMessage:
+      'The CloudFormation deployment failed due to amplify-some-stack being in UPDATE_ROLLBACK_FAILED state.',
+    errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `ENOENT: no such file or directory, open '.amplify/artifacts/cdk.out/manifest.json'`,
+    expectedTopLevelErrorMessage:
+      'The Amplify backend definition is missing `defineBackend` call.',
+    errorName: 'MissingDefineBackendError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `ENOENT: no such file or directory, open '.amplify\\artifacts\\cdk.out\\manifest.json'`,
+    expectedTopLevelErrorMessage:
+      'The Amplify backend definition is missing `defineBackend` call.',
+    errorName: 'MissingDefineBackendError',
+    expectedDownstreamErrorMessage: undefined,
   },
 ];
 

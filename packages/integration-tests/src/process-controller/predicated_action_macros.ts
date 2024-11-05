@@ -41,16 +41,6 @@ export const confirmDeleteSandbox = () =>
     .sendYes();
 
 /**
- * Reusable predicated action: Wait for sandbox to prompt on quitting to delete all the resource and respond with no
- */
-export const rejectCleanupSandbox = () =>
-  new PredicatedActionBuilder()
-    .waitForLineIncludes(
-      'Would you like to delete all the resources in your sandbox environment'
-    )
-    .sendNo();
-
-/**
  * Reusable predicated action: Wait for sandbox to become idle,
  * then perform the specified file replacements in the backend code which will trigger sandbox again
  */
@@ -59,9 +49,10 @@ export const replaceFiles = (replacements: CopyDefinition[]) => {
 };
 
 /**
- * Reusable predicated action: Wait for sandbox to become idle and then quit it (CTRL-C)
+ * Reusable predicated action: Wait for sandbox to become idle and config to be generated and then quit it (CTRL-C)
  */
-export const interruptSandbox = () => waitForSandboxToBecomeIdle().sendCtrlC();
+export const interruptSandbox = () =>
+  waitForConfigUpdateAfterDeployment().sendCtrlC();
 
 /**
  * Reusable predicated action: Wait for sandbox to finish deployment and assert that the deployment time is less

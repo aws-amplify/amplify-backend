@@ -52,6 +52,7 @@ void it('data storage auth with triggers', () => {
   assertExpectedLogicalIds(templates.defaultNodeFunc, 'AWS::Lambda::Function', [
     'defaultNodeFunctionlambda5C194062',
     'echoFunclambdaE17DCA46',
+    'funcCustomEmailSenderlambda3CCBA9A6',
     'funcNoMinifylambda91CDF3E0',
     'funcWithAwsSdklambda5F770AD7',
     'funcWithSchedulelambda0B6E4271',
