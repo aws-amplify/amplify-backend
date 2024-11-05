@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.2.0
+
+### Minor Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+
 ## 1.1.0
 
 ### Minor Changes

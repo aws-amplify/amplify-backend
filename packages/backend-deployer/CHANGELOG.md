@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.8
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+
 ## 1.1.7
 
 ### Patch Changes

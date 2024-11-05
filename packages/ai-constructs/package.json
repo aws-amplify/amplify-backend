@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/ai-constructs",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "type": "commonjs",
   "publishConfig": {
     "access": "public"
@@ -27,7 +27,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^1.4.0",
-    "@aws-amplify/platform-core": "^1.1.0",
+    "@aws-amplify/platform-core": "^1.2.0",
     "@aws-amplify/plugin-types": "^1.3.1",
     "@aws-sdk/client-bedrock-runtime": "^3.622.0",
     "@smithy/types": "^3.3.0",

@@ -1,5 +1,13 @@
 # @aws-amplify/ai-constructs
 
+## 0.8.1
+
+### Patch Changes
+
+- 1af5060: Add metadata to user agent in conversation handler runtime.
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+
 ## 0.8.0
 
 ### Minor Changes
