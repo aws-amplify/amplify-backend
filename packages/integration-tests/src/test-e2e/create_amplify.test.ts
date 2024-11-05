@@ -156,7 +156,7 @@ void describe(
           ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
           const tsConfigObject = JSON.parse(tsConfigContent);
 
-          assert.equal(tsConfigObject.compilerOptions.module, 'es2022');
+          assert.equal(tsConfigObject.compilerOptions.module, 'preserve');
           assert.equal(
             tsConfigObject.compilerOptions.moduleResolution,
             'bundler'

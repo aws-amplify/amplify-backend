@@ -107,7 +107,6 @@ void describe('getting started happy path', async () => {
       path.join('auth', 'resource.ts'),
       'backend.ts',
       path.join('data', 'resource.ts'),
-      'package.json',
       'tsconfig.json',
     ];
 
