@@ -184,7 +184,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         this.props.authorizationModes
       );
     } catch (error) {
-      if (error instanceof AmplifyError) {
+      if (AmplifyError.isAmplifyError(error)) {
         throw error;
       }
       throw new AmplifyUserError<AmplifyDataError>(

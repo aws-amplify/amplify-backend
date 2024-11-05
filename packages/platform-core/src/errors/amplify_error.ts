@@ -44,7 +44,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     this.code = options.code;
     this.link = options.link;
 
-    if (cause && cause instanceof AmplifyError) {
+    if (cause && AmplifyError.isAmplifyError(cause)) {
       cause.serializedError = undefined;
     }
     this.serializedError = JSON.stringify(
@@ -96,6 +96,26 @@ export abstract class AmplifyError<T extends string = string> extends Error {
       }
     }
     return undefined;
+  };
+
+  /**
+   * This function is a type predicate for AmplifyError.
+   * See https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates.
+   *
+   * Checks if error is an AmplifyError by inspecting if required properties are set.
+   * This is recommended instead of instanceof operator.
+   * The instance of operator does not work as expected if AmplifyError class is loaded
+   * from multiple sources, for example when package manager decides to not de-duplicate dependencies.
+   * See https://github.com/nodejs/node/issues/17943.
+   */
+  static isAmplifyError = (error: unknown): error is AmplifyError => {
+    return (
+      error instanceof Error &&
+      'classification' in error &&
+      (error.classification === 'ERROR' || error.classification === 'FAULT') &&
+      typeof error.name === 'string' &&
+      typeof error.message === 'string'
+    );
   };
 
   static fromError = (
