@@ -23,6 +23,15 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: 'ExpiredToken',
   },
   {
+    errorMessage:
+      'Error: The security token included in the request is expired',
+    expectedTopLevelErrorMessage:
+      'The security token included in the request is invalid.',
+    errorName: 'ExpiredTokenError',
+    expectedDownstreamErrorMessage:
+      'Error: The security token included in the request is expired',
+  },
+  {
     errorMessage: 'Access Denied',
     expectedTopLevelErrorMessage:
       'The deployment role does not have sufficient permissions to perform this deployment.',
@@ -335,6 +344,20 @@ const testErrorMappings = [
     expectedTopLevelErrorMessage:
       'The CloudFormation deployment failed due to amplify-some-stack being in UPDATE_ROLLBACK_FAILED state.',
     errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `ENOENT: no such file or directory, open '.amplify/artifacts/cdk.out/manifest.json'`,
+    expectedTopLevelErrorMessage:
+      'The Amplify backend definition is missing `defineBackend` call.',
+    errorName: 'MissingDefineBackendError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `ENOENT: no such file or directory, open '.amplify\\artifacts\\cdk.out\\manifest.json'`,
+    expectedTopLevelErrorMessage:
+      'The Amplify backend definition is missing `defineBackend` call.',
+    errorName: 'MissingDefineBackendError',
     expectedDownstreamErrorMessage: undefined,
   },
 ];

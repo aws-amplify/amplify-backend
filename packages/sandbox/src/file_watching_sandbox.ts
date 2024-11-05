@@ -273,7 +273,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes
       // offer to recreate the sandbox or revert the change
       if (
-        error instanceof AmplifyError &&
+        AmplifyError.isAmplifyError(error) &&
         error.name === 'CFNUpdateNotSupportedError'
       ) {
         await this.handleUnsupportedDestructiveChanges(options);
@@ -385,7 +385,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         message = `${message}\nCaused By: ${error.cause.message}\n`;
       }
 
-      if (error instanceof AmplifyError && error.resolution) {
+      if (AmplifyError.isAmplifyError(error) && error.resolution) {
         message = `${message}\nResolution: ${error.resolution}\n`;
       }
     } else message = String(error);

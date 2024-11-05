@@ -4,6 +4,7 @@ import {
   ConversationTurnEvent,
 } from './types';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
+import { UserAgentProvider } from './user_agent_provider';
 
 export type ConversationHistoryMessageItem = ConversationMessage & {
   id: string;
@@ -107,7 +108,7 @@ export class ConversationMessageHistoryRetriever {
     private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
       event.graphqlApiEndpoint,
       event.request.headers.authorization,
-      event.request.headers['x-amz-user-agent']
+      new UserAgentProvider(event)
     )
   ) {}
 

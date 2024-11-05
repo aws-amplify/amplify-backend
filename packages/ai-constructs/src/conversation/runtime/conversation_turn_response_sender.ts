@@ -5,6 +5,7 @@ import {
 } from './types.js';
 import type { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
+import { UserAgentProvider } from './user_agent_provider';
 
 export type MutationResponseInput = {
   input: {
@@ -36,10 +37,11 @@ export class ConversationTurnResponseSender {
    */
   constructor(
     private readonly event: ConversationTurnEvent,
+    private readonly userAgentProvider = new UserAgentProvider(event),
     private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
       event.graphqlApiEndpoint,
       event.request.headers.authorization,
-      event.request.headers['x-amz-user-agent']
+      userAgentProvider
     ),
     private readonly logger = console
   ) {}
@@ -50,7 +52,11 @@ export class ConversationTurnResponseSender {
     await this.graphqlRequestExecutor.executeGraphql<
       MutationResponseInput,
       void
-    >(responseMutationRequest);
+    >(responseMutationRequest, {
+      userAgent: this.userAgentProvider.getUserAgent({
+        'turn-response-type': 'single',
+      }),
+    });
   };
 
   sendResponseChunk = async (chunk: StreamingResponseChunk) => {
@@ -59,7 +65,11 @@ export class ConversationTurnResponseSender {
     await this.graphqlRequestExecutor.executeGraphql<
       MutationStreamingResponseInput,
       void
-    >(responseMutationRequest);
+    >(responseMutationRequest, {
+      userAgent: this.userAgentProvider.getUserAgent({
+        'turn-response-type': 'streaming',
+      }),
+    });
   };
 
   sendErrors = async (errors: ConversationTurnError[]) => {
@@ -71,7 +81,11 @@ export class ConversationTurnResponseSender {
     await this.graphqlRequestExecutor.executeGraphql<
       MutationErrorsResponseInput,
       void
-    >(responseMutationRequest);
+    >(responseMutationRequest, {
+      userAgent: this.userAgentProvider.getUserAgent({
+        'turn-response-type': 'error',
+      }),
+    });
   };
 
   private createMutationErrorsRequest = (errors: ConversationTurnError[]) => {

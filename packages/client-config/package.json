@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/client-config",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "type": "module",
   "publishConfig": {
     "access": "public"

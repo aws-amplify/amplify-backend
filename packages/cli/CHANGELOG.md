@@ -1,5 +1,15 @@
 # @aws-amplify/backend-cli
 
+## 1.4.1
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+  - @aws-amplify/backend-deployer@1.1.8
+  - @aws-amplify/sandbox@1.2.5
+
 ## 1.4.0
 
 ### Minor Changes

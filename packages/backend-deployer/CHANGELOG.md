@@ -1,5 +1,21 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.8
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+
+## 1.1.7
+
+### Patch Changes
+
+- 7bf0c64: reclassify as error, UnknownFault, Error: The security token included in the request is expired
+- 889bdb7: Handle case where synthesis renders empty cdk assembly
+- a191fe5: add stack is in a state and can not be updated to error mapper
+
 ## 1.1.6
 
 ### Patch Changes

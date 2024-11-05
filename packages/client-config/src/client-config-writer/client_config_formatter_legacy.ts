@@ -29,7 +29,9 @@ export class ClientConfigFormatterLegacy implements ClientConfigFormatter {
         }export default amplifyConfig;${os.EOL}`;
       }
       case ClientConfigFormat.DART: {
-        return `const amplifyConfig = '''${JSON.stringify(
+        // Using raw string, i.e. r''' to disable Dart's interpolations
+        // because we're using special characters like $ in some outputs.
+        return `const amplifyConfig = r'''${JSON.stringify(
           this.configConverter.convertToMobileConfig(legacyConfig),
           null,
           2

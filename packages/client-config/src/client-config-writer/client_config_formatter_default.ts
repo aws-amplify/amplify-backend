@@ -16,7 +16,9 @@ export class ClientConfigFormatterDefault implements ClientConfigFormatter {
   format = (clientConfig: ClientConfig, format: ClientConfigFormat): string => {
     switch (format) {
       case ClientConfigFormat.DART: {
-        return `const amplifyConfig = '''${JSON.stringify(
+        // Using raw string, i.e. r''' to disable Dart's interpolations
+        // because we're using special characters like $ in some outputs.
+        return `const amplifyConfig = r'''${JSON.stringify(
           clientConfig,
           null,
           2

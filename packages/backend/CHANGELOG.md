@@ -1,5 +1,24 @@
 # @aws-amplify/backend
 
+## 1.6.2
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+  - @aws-amplify/backend-data@1.1.7
+
+## 1.6.1
+
+### Patch Changes
+
+- 4e97389: add validation if layer arn region does not match function region
+- Updated dependencies [d0d8d4e]
+- Updated dependencies [4e97389]
+  - @aws-amplify/client-config@1.5.2
+  - @aws-amplify/backend-function@1.7.4
+
 ## 1.6.0
 
 ### Minor Changes

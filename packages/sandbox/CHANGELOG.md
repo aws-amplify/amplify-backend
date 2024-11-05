@@ -1,5 +1,14 @@
 # @aws-amplify/sandbox
 
+## 1.2.5
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+  - @aws-amplify/backend-deployer@1.1.8
+
 ## 1.2.4
 
 ### Patch Changes
