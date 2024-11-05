@@ -58,3 +58,8 @@ export const funcNoMinify = defineFunction({
     minify: false,
   },
 });
+
+export const funcCustomEmailSender = defineFunction({
+  name: 'funcCustomEmailSender',
+  entry: './func-src/handler_custom_email_sender.ts',
+});

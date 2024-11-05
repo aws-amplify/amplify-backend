@@ -11,7 +11,6 @@ import { ampxCli } from '../../process-controller/process_controller.js';
 import {
   ensureDeploymentTimeLessThan,
   interruptSandbox,
-  rejectCleanupSandbox,
   replaceFiles,
   waitForConfigUpdateAfterDeployment,
 } from '../../process-controller/predicated_action_macros.js';
@@ -98,10 +97,7 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
             }
 
             // Execute the process.
-            await processController
-              .do(interruptSandbox())
-              .do(rejectCleanupSandbox())
-              .run();
+            await processController.do(interruptSandbox()).run();
 
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
           }

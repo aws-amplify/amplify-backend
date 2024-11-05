@@ -5,6 +5,7 @@ import { ConversationTurnEvent, StreamingResponseChunk } from './types';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter';
 import { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { ConversationTurnResponseSender } from './conversation_turn_response_sender';
+import { Lazy } from './lazy';
 
 void describe('Conversation turn executor', () => {
   const event: ConversationTurnEvent = {
@@ -62,8 +63,8 @@ void describe('Conversation turn executor', () => {
     await new ConversationTurnExecutor(
       event,
       [],
-      bedrockConverseAdapter,
-      responseSender,
+      new Lazy(() => responseSender),
+      new Lazy(() => bedrockConverseAdapter),
       consoleMock
     ).execute();
 
@@ -156,8 +157,8 @@ void describe('Conversation turn executor', () => {
     await new ConversationTurnExecutor(
       streamingEvent,
       [],
-      bedrockConverseAdapter,
-      responseSender,
+      new Lazy(() => responseSender),
+      new Lazy(() => bedrockConverseAdapter),
       consoleMock
     ).execute();
 
@@ -214,13 +215,21 @@ void describe('Conversation turn executor', () => {
       () => Promise.resolve()
     );
 
+    const responseSenderSendErrorsMock = mock.method(
+      responseSender,
+      'sendErrors',
+      () => Promise.resolve()
+    );
+
     const consoleErrorMock = mock.fn();
     const consoleLogMock = mock.fn();
     const consoleDebugMock = mock.fn();
+    const consoleWarnMock = mock.fn();
     const consoleMock = {
       error: consoleErrorMock,
       log: consoleLogMock,
       debug: consoleDebugMock,
+      warn: consoleWarnMock,
     } as unknown as Console;
 
     await assert.rejects(
@@ -228,8 +237,8 @@ void describe('Conversation turn executor', () => {
         new ConversationTurnExecutor(
           event,
           [],
-          bedrockConverseAdapter,
-          responseSender,
+          new Lazy(() => responseSender),
+          new Lazy(() => bedrockConverseAdapter),
           consoleMock
         ).execute(),
       (error: Error) => {
@@ -263,6 +272,16 @@ void describe('Conversation turn executor', () => {
       consoleErrorMock.mock.calls[0].arguments[1],
       bedrockError
     );
+    assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      responseSenderSendErrorsMock.mock.calls[0].arguments[0],
+      [
+        {
+          errorType: 'Error',
+          message: 'Bedrock failed',
+        },
+      ]
+    );
   });
 
   void it('logs and propagates error if response sender throws', async () => {
@@ -290,13 +309,21 @@ void describe('Conversation turn executor', () => {
       () => Promise.resolve()
     );
 
+    const responseSenderSendErrorsMock = mock.method(
+      responseSender,
+      'sendErrors',
+      () => Promise.resolve()
+    );
+
     const consoleErrorMock = mock.fn();
     const consoleLogMock = mock.fn();
     const consoleDebugMock = mock.fn();
+    const consoleWarnMock = mock.fn();
     const consoleMock = {
       error: consoleErrorMock,
       log: consoleLogMock,
       debug: consoleDebugMock,
+      warn: consoleWarnMock,
     } as unknown as Console;
 
     await assert.rejects(
@@ -304,8 +331,8 @@ void describe('Conversation turn executor', () => {
         new ConversationTurnExecutor(
           event,
           [],
-          bedrockConverseAdapter,
-          responseSender,
+          new Lazy(() => responseSender),
+          new Lazy(() => bedrockConverseAdapter),
           consoleMock
         ).execute(),
       (error: Error) => {
@@ -338,6 +365,181 @@ void describe('Conversation turn executor', () => {
     assert.strictEqual(
       consoleErrorMock.mock.calls[0].arguments[1],
       responseSenderError
+    );
+    assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      responseSenderSendErrorsMock.mock.calls[0].arguments[0],
+      [
+        {
+          errorType: 'Error',
+          message: 'Failed to send response',
+        },
+      ]
+    );
+  });
+
+  void it('throws original exception if error sender fails', async () => {
+    const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
+    const originalError = new Error('original error');
+    mock.method(bedrockConverseAdapter, 'askBedrock', () =>
+      Promise.reject(originalError)
+    );
+    const responseSender = new ConversationTurnResponseSender(event);
+    mock.method(responseSender, 'sendResponse', () => Promise.resolve());
+
+    mock.method(responseSender, 'sendResponseChunk', () => Promise.resolve());
+
+    const responseSenderSendErrorsMock = mock.method(
+      responseSender,
+      'sendErrors',
+      () => Promise.reject(new Error('sender error'))
+    );
+
+    const consoleErrorMock = mock.fn();
+    const consoleLogMock = mock.fn();
+    const consoleDebugMock = mock.fn();
+    const consoleWarnMock = mock.fn();
+    const consoleMock = {
+      error: consoleErrorMock,
+      log: consoleLogMock,
+      debug: consoleDebugMock,
+      warn: consoleWarnMock,
+    } as unknown as Console;
+
+    await assert.rejects(
+      () =>
+        new ConversationTurnExecutor(
+          event,
+          [],
+          new Lazy(() => responseSender),
+          new Lazy(() => bedrockConverseAdapter),
+          consoleMock
+        ).execute(),
+      (error: Error) => {
+        assert.strictEqual(error, originalError);
+        return true;
+      }
+    );
+
+    assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      responseSenderSendErrorsMock.mock.calls[0].arguments[0],
+      [
+        {
+          errorType: 'Error',
+          message: 'original error',
+        },
+      ]
+    );
+  });
+
+  void it('serializes unknown errors', async () => {
+    const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
+    const unknownError = { some: 'shape' };
+    mock.method(bedrockConverseAdapter, 'askBedrock', () =>
+      Promise.reject(unknownError)
+    );
+    const responseSender = new ConversationTurnResponseSender(event);
+    mock.method(responseSender, 'sendResponse', () => Promise.resolve());
+
+    mock.method(responseSender, 'sendResponseChunk', () => Promise.resolve());
+
+    const responseSenderSendErrorsMock = mock.method(
+      responseSender,
+      'sendErrors',
+      () => Promise.resolve()
+    );
+
+    const consoleErrorMock = mock.fn();
+    const consoleLogMock = mock.fn();
+    const consoleDebugMock = mock.fn();
+    const consoleWarnMock = mock.fn();
+    const consoleMock = {
+      error: consoleErrorMock,
+      log: consoleLogMock,
+      debug: consoleDebugMock,
+      warn: consoleWarnMock,
+    } as unknown as Console;
+
+    await assert.rejects(
+      () =>
+        new ConversationTurnExecutor(
+          event,
+          [],
+          new Lazy(() => responseSender),
+          new Lazy(() => bedrockConverseAdapter),
+          consoleMock
+        ).execute(),
+      (error: Error) => {
+        assert.strictEqual(error, unknownError);
+        return true;
+      }
+    );
+
+    assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      responseSenderSendErrorsMock.mock.calls[0].arguments[0],
+      [
+        {
+          errorType: 'UnknownError',
+          message: '{"some":"shape"}',
+        },
+      ]
+    );
+  });
+
+  void it('reports initialization errors', async () => {
+    const bedrockConverseAdapter = new BedrockConverseAdapter(event, []);
+    mock.method(bedrockConverseAdapter, 'askBedrock', () => Promise.resolve());
+    const responseSender = new ConversationTurnResponseSender(event);
+    mock.method(responseSender, 'sendResponse', () => Promise.resolve());
+
+    mock.method(responseSender, 'sendResponseChunk', () => Promise.resolve());
+
+    const responseSenderSendErrorsMock = mock.method(
+      responseSender,
+      'sendErrors',
+      () => Promise.resolve()
+    );
+
+    const consoleErrorMock = mock.fn();
+    const consoleLogMock = mock.fn();
+    const consoleDebugMock = mock.fn();
+    const consoleWarnMock = mock.fn();
+    const consoleMock = {
+      error: consoleErrorMock,
+      log: consoleLogMock,
+      debug: consoleDebugMock,
+      warn: consoleWarnMock,
+    } as unknown as Console;
+
+    const initializationError = new Error('initialization error');
+    await assert.rejects(
+      () =>
+        new ConversationTurnExecutor(
+          event,
+          [],
+          new Lazy(() => responseSender),
+          new Lazy(() => {
+            throw initializationError;
+          }),
+          consoleMock
+        ).execute(),
+      (error: Error) => {
+        assert.strictEqual(error, initializationError);
+        return true;
+      }
+    );
+
+    assert.strictEqual(responseSenderSendErrorsMock.mock.calls.length, 1);
+    assert.deepStrictEqual(
+      responseSenderSendErrorsMock.mock.calls[0].arguments[0],
+      [
+        {
+          errorType: 'Error',
+          message: 'initialization error',
+        },
+      ]
     );
   });
 });

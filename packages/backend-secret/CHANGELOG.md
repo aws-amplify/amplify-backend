@@ -1,5 +1,11 @@
 # @aws-amplify/backend-secret
 
+## 1.1.5
+
+### Patch Changes
+
+- 255ca18: Handle parameter not found error while deleting secret
+
 ## 1.1.4
 
 ### Patch Changes
