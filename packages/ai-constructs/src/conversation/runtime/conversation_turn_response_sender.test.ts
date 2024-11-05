@@ -15,6 +15,7 @@ import {
   GraphqlRequest,
   GraphqlRequestExecutor,
 } from './graphql_request_executor';
+import { UserAgentProvider } from './user_agent_provider';
 
 void describe('Conversation turn response sender', () => {
   const event: ConversationTurnEvent = {
@@ -37,7 +38,19 @@ void describe('Conversation turn response sender', () => {
   };
 
   void it('sends response back to appsync', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    const userAgentProviderMock = mock.method(
+      userAgentProvider,
+      'getUserAgent',
+      () => 'testUserAgent'
+    );
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -47,6 +60,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const response: Array<ContentBlock> = [
@@ -57,7 +71,14 @@ void describe('Conversation turn response sender', () => {
     ];
     await sender.sendResponse(response);
 
+    assert.strictEqual(userAgentProviderMock.mock.calls.length, 1);
+    assert.deepStrictEqual(userAgentProviderMock.mock.calls[0].arguments[0], {
+      'turn-response-type': 'single',
+    });
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    assert.deepStrictEqual(executeGraphqlMock.mock.calls[0].arguments[1], {
+      userAgent: 'testUserAgent',
+    });
     const request = executeGraphqlMock.mock.calls[0]
       .arguments[0] as GraphqlRequest<MutationResponseInput>;
     assert.deepStrictEqual(request, {
@@ -85,7 +106,15 @@ void describe('Conversation turn response sender', () => {
   });
 
   void it('serializes tool use input to JSON', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -95,6 +124,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const toolUseBlock: ContentBlock.ToolUseMember = {
@@ -140,7 +170,19 @@ void describe('Conversation turn response sender', () => {
   });
 
   void it('sends streaming response chunk back to appsync', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    const userAgentProviderMock = mock.method(
+      userAgentProvider,
+      'getUserAgent',
+      () => 'testUserAgent'
+    );
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -150,6 +192,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const chunk: StreamingResponseChunk = {
@@ -162,7 +205,14 @@ void describe('Conversation turn response sender', () => {
     };
     await sender.sendResponseChunk(chunk);
 
+    assert.strictEqual(userAgentProviderMock.mock.calls.length, 1);
+    assert.deepStrictEqual(userAgentProviderMock.mock.calls[0].arguments[0], {
+      'turn-response-type': 'streaming',
+    });
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    assert.deepStrictEqual(executeGraphqlMock.mock.calls[0].arguments[1], {
+      userAgent: 'testUserAgent',
+    });
     const request = executeGraphqlMock.mock.calls[0]
       .arguments[0] as GraphqlRequest<MutationStreamingResponseInput>;
     assert.deepStrictEqual(request, {
@@ -181,7 +231,15 @@ void describe('Conversation turn response sender', () => {
   });
 
   void it('serializes tool use input to JSON when streaming', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -191,6 +249,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const toolUseBlock: ContentBlock.ToolUseMember = {
@@ -242,7 +301,19 @@ void describe('Conversation turn response sender', () => {
   });
 
   void it('sends errors response back to appsync', async () => {
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    const userAgentProviderMock = mock.method(
+      userAgentProvider,
+      'getUserAgent',
+      () => 'testUserAgent'
+    );
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',
@@ -252,6 +323,7 @@ void describe('Conversation turn response sender', () => {
     );
     const sender = new ConversationTurnResponseSender(
       event,
+      userAgentProvider,
       graphqlRequestExecutor
     );
     const errors: Array<ConversationTurnError> = [
@@ -266,6 +338,14 @@ void describe('Conversation turn response sender', () => {
     ];
     await sender.sendErrors(errors);
 
+    assert.strictEqual(userAgentProviderMock.mock.calls.length, 1);
+    assert.deepStrictEqual(userAgentProviderMock.mock.calls[0].arguments[0], {
+      'turn-response-type': 'error',
+    });
+    assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
+    assert.deepStrictEqual(executeGraphqlMock.mock.calls[0].arguments[1], {
+      userAgent: 'testUserAgent',
+    });
     assert.strictEqual(executeGraphqlMock.mock.calls.length, 1);
     const request = executeGraphqlMock.mock.calls[0]
       .arguments[0] as GraphqlRequest<MutationResponseInput>;

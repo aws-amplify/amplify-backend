@@ -25,6 +25,7 @@ import {
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
+import { UserAgentProvider } from './user_agent_provider';
 
 void describe('Bedrock converse adapter', () => {
   const commonEvent: Readonly<ConversationTurnEvent> = {
@@ -897,17 +898,20 @@ void describe('Bedrock converse adapter', () => {
       ...commonEvent,
     };
 
-    event.request.headers['x-amz-user-agent'] = 'testUserAgent';
-
     const bedrockClient = new BedrockRuntimeClient();
     const addMiddlewareMock = mock.method(bedrockClient.middlewareStack, 'add');
+    const userAgentProvider = new UserAgentProvider(
+      {} as unknown as ConversationTurnEvent
+    );
+    mock.method(userAgentProvider, 'getUserAgent', () => 'testUserAgent');
 
     new BedrockConverseAdapter(
       event,
       [],
       bedrockClient,
       undefined,
-      messageHistoryRetriever
+      messageHistoryRetriever,
+      userAgentProvider
     );
 
     assert.strictEqual(addMiddlewareMock.mock.calls.length, 1);

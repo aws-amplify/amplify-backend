@@ -20,7 +20,7 @@ const createStackAndSetContext = (): Stack => {
   app.node.setContext('amplify-backend-name', 'testEnvName');
   app.node.setContext('amplify-backend-namespace', 'testBackendId');
   app.node.setContext('amplify-backend-type', 'branch');
-  const stack = new Stack(app);
+  const stack = new Stack(app, 'Stack', { env: { region: 'us-east-1' } });
   return stack;
 };
 

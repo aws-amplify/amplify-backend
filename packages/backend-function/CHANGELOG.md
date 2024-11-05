@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.7.4
+
+### Patch Changes
+
+- 4e97389: add validation if layer arn region does not match function region
+
 ## 1.7.3
 
 ### Patch Changes

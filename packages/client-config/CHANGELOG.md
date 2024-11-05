@@ -1,5 +1,11 @@
 # @aws-amplify/client-config
 
+## 1.5.2
+
+### Patch Changes
+
+- d0d8d4e: Fix a bug where $ sign in dart outputs would fail compilation
+
 ## 1.5.1
 
 ### Patch Changes

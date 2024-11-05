@@ -12,6 +12,7 @@ import {
   GetQueryOutput,
   ListQueryOutput,
 } from './conversation_message_history_retriever';
+import { UserAgentProvider } from './user_agent_provider';
 
 type TestCase = {
   name: string;
@@ -704,7 +705,15 @@ void describe('Conversation message history retriever', () => {
 
   for (const testCase of testCases) {
     void it(testCase.name, async () => {
-      const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+      const userAgentProvider = new UserAgentProvider(
+        {} as unknown as ConversationTurnEvent
+      );
+      mock.method(userAgentProvider, 'getUserAgent', () => '');
+      const graphqlRequestExecutor = new GraphqlRequestExecutor(
+        '',
+        '',
+        userAgentProvider
+      );
       const executeGraphqlMock = mock.method(
         graphqlRequestExecutor,
         'executeGraphql',
