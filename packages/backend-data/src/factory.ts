@@ -45,6 +45,8 @@ import {
   FunctionSchemaAccess,
   JsResolver,
 } from '@aws-amplify/data-schema-types';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -281,17 +283,28 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     // and we are able to inject env vars we could leverage that fact and inject MIS this way.
     const modelIntrospectionSchema: string = 'GENERATE_MIS_HERE';
 
+    const misBucket = new Bucket(scope, 'misBucket');
+    new BucketDeployment(scope, 'misBucketDeployment', {
+      // See https://github.com/aws-amplify/amplify-category-api/pull/1939
+      memoryLimit: 1536,
+      destinationBucket: misBucket,
+      sources: [Source.data('misKey', modelIntrospectionSchema)],
+    });
+
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
         [`${this.name}_GRAPHQL_ENDPOINT`]:
           amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
         // The SSM has size limit for values, if that's not enough it could potentially be S3 URL instead of exact value.
         // (S3 bucket deployment construct can be used to get schema to S3).
-        [`${this.name}_MODEL_INTROSPECTION_SCHEMA`]: modelIntrospectionSchema,
+        [`${this.name}_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME`]:
+          misBucket.bucketName,
+        [`${this.name}_MODEL_INTROSPECTION_SCHEMA_KEY`]: 'misKey',
       });
 
     const policyGenerator = new AppSyncPolicyGenerator(
-      amplifyApi.resources.graphqlApi
+      amplifyApi.resources.graphqlApi,
+      `${misBucket.bucketArn}/misKey`
     );
 
     schemasFunctionSchemaAccess.forEach((accessDefinition) => {
