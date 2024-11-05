@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 1.1.7
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+
 ## 1.1.6
 
 ### Patch Changes
