@@ -14,7 +14,8 @@ export const setupDirAsEsmModule = async (absoluteDirPath: string) => {
   const tsConfigTemplate = {
     compilerOptions: {
       target: 'es2022',
-      module: 'es2022',
+      module: 'preserve',
+      moduleDetection: 'force',
       moduleResolution: 'bundler',
       resolveJsonModule: true,
       // eslint-disable-next-line spellcheck/spell-checker

@@ -44,7 +44,7 @@ const tsConfig = {
   extends: '../../../tsconfig.base.json',
   compilerOptions: {
     moduleResolution: 'bundler',
-    module: 'es2022',
+    module: 'preserve',
   },
 };
 
