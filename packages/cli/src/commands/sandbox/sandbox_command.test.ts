@@ -121,7 +121,7 @@ void describe('sandbox command', () => {
       () =>
         commandRunner.runCommand(`sandbox --identifier ${invalidIdentifier}`), // invalid identifier
       (err: TestCommandError) => {
-        assert.ok(err.error instanceof AmplifyError);
+        assert.ok(AmplifyError.isAmplifyError(err.error));
         assert.strictEqual(
           err.error.message,
           'Invalid --identifier provided: invalid@'
