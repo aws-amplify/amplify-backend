@@ -15,12 +15,12 @@ import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { Role } from 'aws-cdk-lib/aws-iam';
-import { AuthOutput } from '../../backend-output-schemas/src/auth/index.js';
 import { ReferenceAuthInitializerProps } from './lambda/reference_auth_initializer.js';
 import { fileURLToPath } from 'node:url';
 
