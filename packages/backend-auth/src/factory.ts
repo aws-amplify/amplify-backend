@@ -54,12 +54,7 @@ export type AmplifyAuthProps = Expand<
      * Configure custom auth triggers
      * @see https://docs.amplify.aws/react/build-a-backend/auth/customize-auth-lifecycle/triggers/
      */
-    triggers?: Partial<
-      Record<
-        TriggerEvent,
-        ConstructFactory<AmplifyFunction>
-      >
-    >;
+    triggers?: Partial<Record<TriggerEvent, ConstructFactory<AmplifyFunction>>>;
     /**
      * Configure access to auth for other Amplify resources
      * @see https://docs.amplify.aws/react/build-a-backend/auth/grant-access-to-auth-resources/
@@ -93,7 +88,8 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
 
   private generator: ConstructContainerEntryGenerator;
 
-  private functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>> = new Set();
+  private functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>> =
+    new Set();
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth
@@ -130,7 +126,11 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
       resourceNameValidator?.validate(this.props.name);
     }
     if (!this.generator) {
-      this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps, this.functionsToAddToStack);
+      this.generator = new AmplifyAuthGenerator(
+        this.props,
+        getInstanceProps,
+        this.functionsToAddToStack
+      );
     }
     return constructContainer.getOrCompute(this.generator) as BackendAuth;
   };
@@ -140,9 +140,9 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
    */
   addFunctions = (functions: ConstructFactory<AmplifyFunction>[]) => {
     functions.forEach((func) => {
-      this.functionsToAddToStack.add(func)
+      this.functionsToAddToStack.add(func);
     });
-  }
+  };
 }
 
 class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
@@ -152,7 +152,9 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: AmplifyAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>>,
+    private readonly functionsToAddToStack: Set<
+      ConstructFactory<AmplifyFunction>
+    >,
     private readonly authAccessBuilder = _authAccessBuilder,
     private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
   ) {
@@ -167,9 +169,12 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   }: GenerateContainerEntryProps) => {
     // add functions added with addFunctions to auth stack
     this.functionsToAddToStack.forEach((handlerFactory) => {
-      handlerFactory.getInstance({...this.getInstanceProps, stack: scope as Stack});
+      handlerFactory.getInstance({
+        ...this.getInstanceProps,
+        stack: scope as Stack,
+      });
     });
-    
+
     const authProps: AuthProps = {
       ...this.props,
       loginWith: translateToAuthConstructLoginWith(
@@ -211,8 +216,6 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
         );
       }
     );
-
-    
 
     const authConstructMixin: BackendAuth = {
       ...authConstruct,

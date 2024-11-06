@@ -184,7 +184,10 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
         outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator, stack) as AmplifyFunction;
+    return constructContainer.getOrCompute(
+      this.generator,
+      stack
+    ) as AmplifyFunction;
   };
 
   private hydrateDefaults = (

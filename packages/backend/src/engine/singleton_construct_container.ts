@@ -35,7 +35,7 @@ export class SingletonConstructContainer implements ConstructContainer {
    */
   getOrCompute = (
     generator: ConstructContainerEntryGenerator,
-    stack?: Stack,
+    stack?: Stack
   ): ResourceProvider => {
     if (!this.providerCache.has(generator)) {
       if (!stack) {

@@ -58,7 +58,8 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
 
   private generator: ConstructContainerEntryGenerator;
 
-  private functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>> = new Set();
+  private functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>> =
+    new Set();
 
   /**
    * Create a new AmplifyConstruct
@@ -107,7 +108,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
         ),
         props,
         outputStorageStrategy,
-        this.functionsToAddToStack,
+        this.functionsToAddToStack
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyData;
@@ -118,9 +119,9 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
    */
   addFunctions = (functions: ConstructFactory<AmplifyFunction>[]) => {
     functions.forEach((func) => {
-      this.functionsToAddToStack.add(func)
+      this.functionsToAddToStack.add(func);
     });
-  }
+  };
 }
 
 class DataGenerator implements ConstructContainerEntryGenerator {
@@ -132,7 +133,9 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly providedAuthConfig: ProvidedAuthConfig | undefined,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>,
-    private readonly functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>>,
+    private readonly functionsToAddToStack: Set<
+      ConstructFactory<AmplifyFunction>
+    >
   ) {
     this.name = props.name ?? 'amplifyData';
   }
@@ -150,10 +153,13 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       string,
       ConstructFactory<AmplifyFunction>
     > = {};
-    
+
     // add functions added with addFunctions to data stack
     this.functionsToAddToStack.forEach((handlerFactory) => {
-      handlerFactory.getInstance({...this.getInstanceProps, stack: scope as Stack});
+      handlerFactory.getInstance({
+        ...this.getInstanceProps,
+        stack: scope as Stack,
+      });
     });
 
     try {
@@ -342,5 +348,7 @@ class ReplaceTableUponGsiUpdateOverrideAspect implements IAspect {
 /**
  * Creates a factory that implements ConstructFactory<AmplifyGraphqlApi>
  */
-export const defineData = (props: DataProps): ConstructFactory<AmplifyData> & AddFunctionsFactory =>
+export const defineData = (
+  props: DataProps
+): ConstructFactory<AmplifyData> & AddFunctionsFactory =>
   new DataFactory(props, new Error().stack);

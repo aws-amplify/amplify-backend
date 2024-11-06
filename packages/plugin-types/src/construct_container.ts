@@ -36,7 +36,7 @@ export type GenerateContainerEntryProps = {
 export type ConstructContainer = {
   getOrCompute: (
     generator: ConstructContainerEntryGenerator,
-    stack?: Stack,
+    stack?: Stack
   ) => ResourceProvider;
   registerConstructFactory: (token: string, provider: ConstructFactory) => void;
   getConstructFactory: <T extends ResourceProvider>(
