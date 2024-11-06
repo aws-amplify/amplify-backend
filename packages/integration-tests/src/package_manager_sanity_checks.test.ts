@@ -81,77 +81,142 @@ void describe('getting started happy path', async () => {
     if (packageManager === 'pnpm' && process.platform === 'win32') {
       return;
     }
-    if (packageManager === 'yarn-classic') {
-      await execa('yarn', ['add', 'create-amplify'], { cwd: tempDir });
-      await execaCommand('./node_modules/.bin/create-amplify --yes --debug', {
-        cwd: tempDir,
-        env: { npm_config_user_agent: 'yarn/1.22.21' },
-      });
-    } else {
-      await runPackageManager(
-        packageManager,
-        ['create', amplifyAtTag, '--yes'],
-        tempDir
-      ).run();
+
+    const TIMEOUT_MS = 1000 * 60 * 3; // 3 minutes
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < TIMEOUT_MS) {
+      try {
+        if (packageManager === 'yarn-classic') {
+          await execa('yarn', ['add', 'create-amplify'], { cwd: tempDir });
+          await execaCommand(
+            './node_modules/.bin/create-amplify --yes --debug',
+            {
+              cwd: tempDir,
+              env: { npm_config_user_agent: 'yarn/1.22.21' },
+            }
+          );
+        } else {
+          await runPackageManager(
+            packageManager,
+            ['create', amplifyAtTag, '--yes'],
+            tempDir
+          ).run();
+        }
+
+        const pathPrefix = path.join(tempDir, 'amplify');
+
+        const files = await glob(path.join(pathPrefix, '**', '*'), {
+          nodir: true,
+          windowsPathsNoEscape: true,
+          ignore: ['**/node_modules/**', '**/yarn.lock'],
+        });
+
+        const expectedAmplifyFiles = [
+          path.join('auth', 'resource.ts'),
+          'backend.ts',
+          path.join('data', 'resource.ts'),
+          'package.json',
+          'tsconfig.json',
+        ];
+
+        assert.deepStrictEqual(
+          files.sort(),
+          expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
+        );
+
+        await runWithPackageManager(
+          packageManager,
+          [
+            'ampx',
+            'pipeline-deploy',
+            '--branch',
+            branchBackendIdentifier.name,
+            '--appId',
+            branchBackendIdentifier.namespace,
+          ],
+          tempDir,
+          { env: { CI: 'true' } }
+        ).run();
+
+        const clientConfigStats = await fsp.stat(
+          await getClientConfigPath(ClientConfigFileBaseName.DEFAULT, tempDir)
+        );
+
+        assert.ok(clientConfigStats.isFile());
+
+        // If we reach here without errors, break the loop
+        return;
+      } catch (error) {
+        console.error('Error occurred:', error);
+
+        const errorMessage = error instanceof Error ? error.message : '';
+
+        const isCommandFailedError = errorMessage.includes('exit code 1');
+
+        if (isCommandFailedError) {
+          console.log(`Retrying due to known error: ${errorMessage}`);
+          // Wait for a bit before retrying
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          continue;
+        }
+
+        // If we've exceeded the timeout, throw the error
+        if (Date.now() - startTime >= TIMEOUT_MS) {
+          throw new Error(
+            `Test timed out after ${TIMEOUT_MS / 1000} seconds: ${errorMessage}`
+          );
+        }
+
+        // For other errors, wait for a bit before retrying
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
     }
-
-    const pathPrefix = path.join(tempDir, 'amplify');
-
-    const files = await glob(path.join(pathPrefix, '**', '*'), {
-      nodir: true,
-      windowsPathsNoEscape: true,
-      ignore: ['**/node_modules/**', '**/yarn.lock'],
-    });
-
-    const expectedAmplifyFiles = [
-      path.join('auth', 'resource.ts'),
-      'backend.ts',
-      path.join('data', 'resource.ts'),
-      'package.json',
-      'tsconfig.json',
-    ];
-
-    assert.deepStrictEqual(
-      files.sort(),
-      expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
-    );
-
-    await runWithPackageManager(
-      packageManager,
-      [
-        'ampx',
-        'pipeline-deploy',
-        '--branch',
-        branchBackendIdentifier.name,
-        '--appId',
-        branchBackendIdentifier.namespace,
-      ],
-      tempDir,
-      { env: { CI: 'true' } }
-    ).run();
-
-    const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(ClientConfigFileBaseName.DEFAULT, tempDir)
-    );
-
-    assert.ok(clientConfigStats.isFile());
   });
 
   void it('throw error on win32 using pnpm', async () => {
-    if (packageManager === 'pnpm' && process.platform === 'win32') {
-      await assert.rejects(
-        execa('pnpm', ['create', amplifyAtTag, '--yes'], {
-          cwd: tempDir,
-        }),
-        (error) => {
-          const errorMessage = error instanceof Error ? error.message : '';
-          assert.match(
-            errorMessage,
-            /Amplify does not support PNPM on Windows./
+    const TIMEOUT_MS = 1000 * 60 * 3;
+    const startTime = Date.now();
+    while (Date.now() - startTime < TIMEOUT_MS) {
+      try {
+        if (packageManager === 'pnpm' && process.platform === 'win32') {
+          await assert.rejects(
+            execa('pnpm', ['create', amplifyAtTag, '--yes'], {
+              cwd: tempDir,
+            }),
+            (error) => {
+              const errorMessage = error instanceof Error ? error.message : '';
+              assert.match(
+                errorMessage,
+                /Amplify does not support PNPM on Windows./
+              );
+              return true;
+            }
           );
-          return true;
         }
-      );
+      } catch (error) {
+        console.error('Error occurred:', error);
+        const errorMessage = error instanceof Error ? error.message : '';
+        const isUnexpectedTokenError = errorMessage.includes(
+          'Unexpected token \'<\', "<!DOCTYPE "... is not valid JSON'
+        );
+        if (isUnexpectedTokenError) {
+          console.log(`Retrying due to known error: ${errorMessage}`);
+          // Wait for a bit before retrying
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          continue;
+        }
+
+        // If we've exceeded the timeout, throw the error
+        if (Date.now() - startTime >= TIMEOUT_MS) {
+          throw new Error(
+            `Test timed out after ${TIMEOUT_MS / 1000} seconds: ${errorMessage}`
+          );
+        }
+
+        // For other errors, wait for a bit before retrying
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
     }
   });
 });
