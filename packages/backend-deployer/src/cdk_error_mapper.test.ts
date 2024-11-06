@@ -97,6 +97,26 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: 'Is this account bootstrapped',
   },
   {
+    errorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      "This CDK deployment requires bootstrap stack version '6', but during the confirmation via SSM parameter /cdk-bootstrap/hnb659fds/version the following error occurred: AccessDeniedException",
+    expectedTopLevelErrorMessage:
+      'Unable to detect CDK bootstrap stack due to permission issues.',
+    errorName: 'BootstrapDetectionError',
+    expectedDownstreamErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      "This CDK deployment requires bootstrap stack version '6', but during the confirmation via SSM parameter /cdk-bootstrap/hnb659fds/version the following error occurred: AccessDeniedException",
+  },
+  {
+    errorMessage:
+      "This CDK deployment requires bootstrap stack version '6', found '5'. Please run 'cdk bootstrap'.",
+    expectedTopLevelErrorMessage:
+      'This AWS account and region has outdated CDK bootstrap stack.',
+    errorName: 'BootstrapOutdatedError',
+    expectedDownstreamErrorMessage:
+      "This CDK deployment requires bootstrap stack version '6', found '5'. Please run 'cdk bootstrap'.",
+  },
+  {
     errorMessage: 'Amplify Backend not found in amplify/backend.ts',
     expectedTopLevelErrorMessage:
       'Backend definition could not be found in amplify directory.',

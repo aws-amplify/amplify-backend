@@ -120,6 +120,26 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
+        /This CDK deployment requires bootstrap stack version \S+, found \S+\. Please run 'cdk bootstrap'\./,
+      humanReadableErrorMessage:
+        'This AWS account and region has outdated CDK bootstrap stack.',
+      resolutionMessage:
+        'Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to re-bootstrap.',
+      errorName: 'BootstrapOutdatedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /This CDK deployment requires bootstrap stack version \S+, but during the confirmation via SSM parameter \S+ the following error occurred: AccessDeniedException/,
+      humanReadableErrorMessage:
+        'Unable to detect CDK bootstrap stack due to permission issues.',
+      resolutionMessage:
+        "Ensure that AWS credentials have an IAM policy that grants read access to 'arn:aws:ssm:*:*:parameter/cdk-bootstrap/*' SSM parameters.",
+      errorName: 'BootstrapDetectionError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
         /This CDK CLI is not compatible with the CDK library used by your application\. Please upgrade the CLI to the latest version\./,
       humanReadableErrorMessage:
         "Installed 'aws-cdk' is not compatible with installed 'aws-cdk-lib'.",
@@ -326,6 +346,8 @@ export type CDKDeploymentError =
   | 'BackendBuildError'
   | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
+  | 'BootstrapDetectionError'
+  | 'BootstrapOutdatedError'
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
