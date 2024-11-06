@@ -11,10 +11,6 @@ import {
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { AuthAccessGenerator, Expand } from './types.js';
-import {
-  AmplifyReferenceAuth,
-  ReferenceAuthProps,
-} from '@aws-amplify/auth-construct';
 import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
 import path from 'path';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
@@ -23,6 +19,10 @@ import { Stack, Tags } from 'aws-cdk-lib';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
 import { AmplifyAuthFactory } from './factory.js';
+import {
+  AmplifyReferenceAuth,
+  ReferenceAuthProps,
+} from './reference_construct.js';
 
 export type BackendReferenceAuth = ResourceProvider<ReferenceAuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName | string> &

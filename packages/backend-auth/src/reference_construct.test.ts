@@ -3,13 +3,13 @@ import assert from 'assert';
 import {
   AmplifyReferenceAuth,
   OUTPUT_PROPERTIES_PROVIDED_BY_AUTH_CUSTOM_RESOURCE,
+  ReferenceAuthProps,
+  authOutputKey,
 } from './reference_construct.js';
-import { ReferenceAuthProps } from './types.js';
 import {
   BackendOutputEntry,
   BackendOutputStorageStrategy,
 } from '@aws-amplify/plugin-types';
-import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { Template } from 'aws-cdk-lib/assertions';
 import { App, Stack } from 'aws-cdk-lib';
 const refAuthProps: ReferenceAuthProps = {
