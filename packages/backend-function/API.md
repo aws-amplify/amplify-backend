@@ -38,6 +38,7 @@ export type FunctionProps = {
     schedule?: FunctionSchedule | FunctionSchedule[];
     layers?: Record<string, string>;
     bundling?: FunctionBundlingOptions;
+    breakCircularDependencies?: boolean;
 };
 
 // @public (undocumented)

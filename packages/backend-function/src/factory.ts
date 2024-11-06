@@ -145,6 +145,12 @@ export type FunctionProps = {
    * Options for bundling the function code.
    */
   bundling?: FunctionBundlingOptions;
+
+  /**
+   * Attempt to break circular dependencies by separating this function from other functions.
+   * Defaults to false.
+   */
+  breakCircularDependencies?: boolean;
 };
 
 export type FunctionBundlingOptions = {
@@ -203,6 +209,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       schedule: this.resolveSchedule(),
       bundling: this.resolveBundling(),
       layers,
+      breakCircularDependencies: this.props.breakCircularDependencies ?? false,
     };
   };
 
@@ -334,12 +341,17 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'function';
+  readonly resourceGroupName: string = 'function';
 
   constructor(
     private readonly props: HydratedFunctionProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-  ) {}
+  ) {
+    if (props.breakCircularDependencies) {
+      // Using function name for now, this can change if there is something better to determine new stack
+      this.resourceGroupName = props.name;
+    }
+  }
 
   generateContainerEntry = ({
     scope,
