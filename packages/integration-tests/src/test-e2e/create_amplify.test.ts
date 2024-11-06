@@ -161,6 +161,7 @@ void describe(
             tsConfigObject.compilerOptions.moduleResolution,
             'bundler'
           );
+          assert.equal(tsConfigObject.compilerOptions.moduleDetection, 'force');
           assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
           assert.deepStrictEqual(tsConfigObject.compilerOptions.paths, {
             // The path here is coupled with backend-function's generated typedef file path
@@ -176,8 +177,8 @@ void describe(
 
           const expectedAmplifyFiles = [
             path.join('auth', 'resource.ts'),
-            'backend.ts',
             path.join('data', 'resource.ts'),
+            'backend.ts',
             'tsconfig.json',
           ];
 
