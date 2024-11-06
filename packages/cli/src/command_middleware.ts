@@ -60,8 +60,9 @@ export class CommandMiddleware {
     }
 
     // Check region.
+    let region: string | undefined = undefined;
     try {
-      await loadConfig(NODE_REGION_CONFIG_OPTIONS, {
+      region = await loadConfig(NODE_REGION_CONFIG_OPTIONS, {
         ignoreCache: true,
       })();
     } catch (err) {
@@ -76,6 +77,13 @@ export class CommandMiddleware {
         },
         err as Error
       );
+    }
+    if (!region.trim()) {
+      throw new AmplifyUserError('InvalidCredentialError', {
+        message: 'The AWS region is blank',
+        resolution:
+          'Ensure that a valid AWS region is provided in profile configuration or AWS_REGION environment variable.',
+      });
     }
   };
 
