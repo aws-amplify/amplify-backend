@@ -178,7 +178,6 @@ void describe(
             path.join('auth', 'resource.ts'),
             'backend.ts',
             path.join('data', 'resource.ts'),
-            'package.json',
             'tsconfig.json',
           ];
 
