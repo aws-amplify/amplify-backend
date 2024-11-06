@@ -1,5 +1,62 @@
 # @aws-amplify/ai-constructs
 
+## 0.8.1
+
+### Patch Changes
+
+- 1af5060: Add metadata to user agent in conversation handler runtime.
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+
+## 0.8.0
+
+### Minor Changes
+
+- 37dd87c: Propagate errors to AppSync
+
+### Patch Changes
+
+- 613bca9: Remove tool usage for non current turns when looking up message history
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/plugin-types@1.3.1
+
+## 0.7.0
+
+### Minor Changes
+
+- 63fb254: Include accumulated turn content in chunk mutation
+
+## 0.6.2
+
+### Patch Changes
+
+- bd4ff4d: Add memory setting to conversation handler
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
+## 0.6.1
+
+### Patch Changes
+
+- 91e7f3c: Parse client side tool json elements
+
+## 0.6.0
+
+### Minor Changes
+
+- b6761b0: Stream Bedrock responses
+
+## 0.5.0
+
+### Minor Changes
+
+- 46a0e85: Remove deprecated messages field from event
+
+### Patch Changes
+
+- faacd1b: Fix case where bedrock content blocks would be populated with 'null' instead of 'undefined.
+
 ## 0.4.0
 
 ### Minor Changes

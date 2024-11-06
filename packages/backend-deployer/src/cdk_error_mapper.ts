@@ -50,6 +50,12 @@ export class CdkErrorMapper {
               underlyingError = undefined;
             }
           }
+          // remove any trailing EOL
+          matchingError.humanReadableErrorMessage =
+            matchingError.humanReadableErrorMessage.replace(
+              new RegExp(`${this.multiLineEolRegex}$`),
+              ''
+            );
         } else {
           underlyingError.message = matchGroups[0];
         }
@@ -84,10 +90,12 @@ export class CdkErrorMapper {
     classification: AmplifyErrorClassification;
   }> => [
     {
-      errorRegex: /ExpiredToken/,
+      errorRegex:
+        /ExpiredToken|Error: The security token included in the request is expired/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
-      resolutionMessage: 'Ensure your local AWS credentials are valid.',
+      resolutionMessage:
+        "Please update your AWS credentials. You can do this by running `aws configure` or by updating your AWS credentials file. If you're using temporary credentials, you may need to obtain new ones.",
       errorName: 'ExpiredTokenError',
       classification: 'ERROR',
     },
@@ -108,6 +116,26 @@ export class CdkErrorMapper {
       resolutionMessage:
         'Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to resolve this.',
       errorName: 'BootstrapNotDetectedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /This CDK deployment requires bootstrap stack version \S+, found \S+\. Please run 'cdk bootstrap'\./,
+      humanReadableErrorMessage:
+        'This AWS account and region has outdated CDK bootstrap stack.',
+      resolutionMessage:
+        'Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to re-bootstrap.',
+      errorName: 'BootstrapOutdatedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /This CDK deployment requires bootstrap stack version \S+, but during the confirmation via SSM parameter \S+ the following error occurred: AccessDeniedException/,
+      humanReadableErrorMessage:
+        'Unable to detect CDK bootstrap stack due to permission issues.',
+      resolutionMessage:
+        "Ensure that AWS credentials have an IAM policy that grants read access to 'arn:aws:ssm:*:*:parameter/cdk-bootstrap/*' SSM parameters.",
+      errorName: 'BootstrapDetectionError',
       classification: 'ERROR',
     },
     {
@@ -193,8 +221,9 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // If there are multiple errors, capture all lines containing the errors
       errorRegex: new RegExp(
-        `\\[TransformError\\]: Transform failed with .* error:${this.multiLineEolRegex}(?<esBuildErrorMessage>.*)`
+        `\\[TransformError\\]: Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
@@ -255,6 +284,20 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // This happens when 'defineBackend' call is missing in customer's app.
+      // 'defineBackend' creates CDK app in memory. If it's missing then no cdk.App exists in memory and nothing is rendered.
+      // During 'cdk synth' CDK CLI attempts to read CDK assembly after calling customer's app.
+      // But no files are rendered causing it to fail.
+      errorRegex:
+        /ENOENT: no such file or directory, open '\.amplify.artifacts.cdk\.out.manifest\.json'/,
+      humanReadableErrorMessage:
+        'The Amplify backend definition is missing `defineBackend` call.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder. Ensure that `amplify/backend.ts` contains `defineBackend` call.',
+      errorName: 'MissingDefineBackendError',
+      classification: 'ERROR',
+    },
+    {
       // "Catch all": the backend entry point file is referenced in the stack indicating a problem in customer code
       errorRegex: /amplify\/backend/,
       humanReadableErrorMessage: 'Unable to build Amplify backend.',
@@ -275,9 +318,19 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
+      humanReadableErrorMessage:
+        'The CloudFormation deployment failed due to {stackName} being in {state} state.',
+      resolutionMessage:
+        'Find more information in the CloudFormation AWS Console for this stack.',
+      errorName: 'CloudFormationDeploymentError',
+      classification: 'ERROR',
+    },
+    {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: new RegExp(
-        `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed to deploy: (.*)`
+        `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed (to deploy:|creation,) (.*)`
       ),
       humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
       resolutionMessage:
@@ -293,15 +346,17 @@ export type CDKDeploymentError =
   | 'BackendBuildError'
   | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
+  | 'BootstrapDetectionError'
+  | 'BootstrapOutdatedError'
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
   | 'CloudFormationDeploymentError'
   | 'FilePermissionsError'
+  | 'MissingDefineBackendError'
   | 'MultipleSandboxInstancesError'
   | 'ESBuildError'
   | 'ExpiredTokenError'
-  | 'FileConventionError'
   | 'FileConventionError'
   | 'ModuleNotFoundError'
   | 'SecretNotSetError'

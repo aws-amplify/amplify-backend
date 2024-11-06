@@ -7,10 +7,7 @@ import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import {
-  ConversationMessage,
-  ConversationTurnEvent,
-} from '@aws-amplify/ai-constructs/conversation/runtime';
+import { ConversationTurnEvent } from '@aws-amplify/ai-constructs/conversation/runtime';
 import { randomUUID } from 'crypto';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
@@ -34,6 +31,8 @@ import {
 } from '../test-projects/conversation-handler/amplify/constants.js';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
+import * as bedrock from '@aws-sdk/client-bedrock-runtime';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -49,7 +48,30 @@ if (process.versions.node) {
 type ConversationTurnAppSyncResponse = {
   associatedUserMessageId: string;
   content: string;
+  errors?: Array<ConversationTurnError>;
 };
+
+type ConversationMessage = {
+  role: 'user' | 'assistant';
+  content: Array<ConversationMessageContentBlock>;
+};
+
+type ConversationMessageContentBlock =
+  | bedrock.ContentBlock
+  | {
+      image: Omit<bedrock.ImageBlock, 'source'> & {
+        // Upstream (Appsync) may send images in a form of Base64 encoded strings
+        source: { bytes: string };
+      };
+      // These are needed so that union with other content block types works.
+      // See https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-bedrock-runtime/TypeAlias/ContentBlock/.
+      text?: never;
+      document?: never;
+      toolUse?: never;
+      toolResult?: never;
+      guardContent?: never;
+      $unknown?: never;
+    };
 
 type CreateConversationMessageChatInput = ConversationMessage & {
   conversationId: string;
@@ -57,29 +79,21 @@ type CreateConversationMessageChatInput = ConversationMessage & {
   associatedUserMessageId?: string;
 };
 
-const commonEventProperties = {
-  responseMutation: {
-    name: 'createConversationMessageAssistantResponse',
-    inputTypeName: 'CreateConversationMessageAssistantResponseInput',
-    selectionSet: [
-      'id',
-      'conversationId',
-      'content',
-      'owner',
-      'createdAt',
-      'updatedAt',
-    ].join('\n'),
-  },
-  messageHistoryQuery: {
-    getQueryName: 'getConversationMessageChat',
-    getQueryInputTypeName: 'ID',
-    listQueryName: 'listConversationMessageChats',
-    listQueryInputTypeName: 'ModelConversationMessageChatFilterInput',
-  },
-  modelConfiguration: {
-    modelId: bedrockModelId,
-    systemPrompt: 'You are helpful bot.',
-  },
+type ConversationTurnError = {
+  errorType: string;
+  message: string;
+};
+
+type ConversationTurnAppSyncResponseChunk = {
+  conversationId: string;
+  associatedUserMessageId: string;
+  contentBlockIndex: number;
+  contentBlockText?: string;
+  contentBlockDeltaIndex?: number;
+  contentBlockDoneAtIndex?: number;
+  contentBlockToolUse?: string;
+  stopReason?: string;
+  errors?: Array<ConversationTurnError>;
 };
 
 /**
@@ -94,11 +108,19 @@ export class ConversationHandlerTestProjectCreator
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    ),
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -149,9 +171,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
     amplifyClient: AmplifyClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {
     super(
       name,
@@ -175,6 +201,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       throw new Error('Conversation handler project must include auth');
     }
 
+    const dataUrl = clientConfig.data?.url;
     const authenticatedUserCredentials =
       await new AmplifyAuthCredentialsFactory(
         this.cognitoIdentityProviderClient,
@@ -199,69 +226,136 @@ class ConversationHandlerTestProject extends TestProjectBase {
       cache: new InMemoryCache(),
     });
 
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      // Does not use message history lookup.
-      // This case should be removed when event.messages field is removed.
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true,
-      // Simulate eventual consistency
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false,
+        // Simulate eventual consistency
+        true
+      )
     );
 
-    await this.assertCustomConversationHandlerCanExecuteTurn(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient
+    await this.executeWithRetry(() =>
+      this.assertCustomConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient
+    await this.executeWithRetry(() =>
+      this.assertCustomConversationHandlerCanExecuteTurn(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      false
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithDataTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
     );
 
-    await this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
-      backendId,
-      authenticatedUserCredentials.accessToken,
-      clientConfig.data.url,
-      apolloClient,
-      true
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
+    );
+
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithClientTool(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
+    );
+
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
+    );
+
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithImage(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
+    );
+
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanPropagateError(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
+    );
+
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanPropagateError(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
     );
   }
 
@@ -270,7 +364,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    useMessageHistory: boolean,
+    streamResponse: boolean,
     withoutMessageAvailableInTheMessageList = false
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
@@ -300,31 +394,16 @@ class ConversationHandlerTestProject extends TestProjectBase {
       request: {
         headers: { authorization: accessToken },
       },
-      ...commonEventProperties,
+      ...this.getCommonEventProperties(streamResponse),
     };
 
-    if (useMessageHistory) {
-      if (withoutMessageAvailableInTheMessageList) {
-        // This tricks conversation handler to think that message is not available in the list.
-        // I.e. it simulates eventually consistency read at list operation where item is not yet visible.
-        // In this case handler should fall back to lookup by current message id.
-        message.conversationId = randomUUID().toString();
-      }
-      await this.insertMessage(apolloClient, message);
-    } else {
-      event.messageHistoryQuery = {
-        getQueryName: '',
-        getQueryInputTypeName: '',
-        listQueryName: '',
-        listQueryInputTypeName: '',
-      };
-      event.messages = [
-        {
-          role: message.role,
-          content: message.content,
-        },
-      ];
+    if (withoutMessageAvailableInTheMessageList) {
+      // This tricks conversation handler to think that message is not available in the list.
+      // I.e. it simulates eventually consistency read at list operation where item is not yet visible.
+      // In this case handler should fall back to lookup by current message id.
+      message.conversationId = randomUUID().toString();
     }
+    await this.insertMessage(apolloClient, message);
 
     const response = await this.executeConversationTurn(
       event,
@@ -339,7 +418,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    useMessageHistory: boolean
+    streamResponse: boolean
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -388,24 +467,9 @@ class ConversationHandlerTestProject extends TestProjectBase {
       request: {
         headers: { authorization: accessToken },
       },
-      ...commonEventProperties,
+      ...this.getCommonEventProperties(streamResponse),
     };
-    if (useMessageHistory) {
-      await this.insertMessage(apolloClient, message);
-    } else {
-      event.messageHistoryQuery = {
-        getQueryName: '',
-        getQueryInputTypeName: '',
-        listQueryName: '',
-        listQueryInputTypeName: '',
-      };
-      event.messages = [
-        {
-          role: message.role,
-          content: message.content,
-        },
-      ];
-    }
+    await this.insertMessage(apolloClient, message);
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
@@ -420,7 +484,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
     backendId: BackendIdentifier,
     accessToken: string,
     graphqlApiEndpoint: string,
-    apolloClient: ApolloClient<NormalizedCacheObject>
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    streamResponse: boolean
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -477,7 +542,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
           },
         ],
       },
-      ...commonEventProperties,
+      ...this.getCommonEventProperties(streamResponse),
     };
     const response = await this.executeConversationTurn(
       event,
@@ -495,7 +560,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
     backendId: BackendIdentifier,
     accessToken: string,
     graphqlApiEndpoint: string,
-    apolloClient: ApolloClient<NormalizedCacheObject>
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    streamResponse: boolean
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -545,7 +611,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
           },
         ],
       },
-      ...commonEventProperties,
+      ...this.getCommonEventProperties(streamResponse),
     };
     const response = await this.executeConversationTurn(
       event,
@@ -561,11 +627,181 @@ class ConversationHandlerTestProject extends TestProjectBase {
     assert.match(response.content, /"city":"Seattle"/);
   };
 
+  private executeConversationTurn = async (
+    event: ConversationTurnEvent,
+    functionName: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>
+  ): Promise<{
+    content: string;
+    errors?: Array<ConversationTurnError>;
+  }> => {
+    console.log(
+      `Sending event conversationId=${event.conversationId} currentMessageId=${event.currentMessageId}`
+    );
+    await this.lambdaClient.send(
+      new InvokeCommand({
+        FunctionName: functionName,
+        Payload: Buffer.from(JSON.stringify(event)),
+      })
+    );
+
+    // assert that response came back
+    if (event.streamResponse) {
+      let nextToken: string | undefined;
+      const chunks: Array<ConversationTurnAppSyncResponseChunk> = [];
+      do {
+        const queryResult = await apolloClient.query<{
+          listConversationMessageAssistantStreamingResponses: {
+            items: Array<ConversationTurnAppSyncResponseChunk>;
+            nextToken: string | undefined;
+          };
+        }>({
+          query: gql`
+            query ListMessageChunks(
+              $conversationId: ID
+              $associatedUserMessageId: ID
+              $nextToken: String
+            ) {
+              listConversationMessageAssistantStreamingResponses(
+                limit: 1000
+                nextToken: $nextToken
+                filter: {
+                  conversationId: { eq: $conversationId }
+                  associatedUserMessageId: { eq: $associatedUserMessageId }
+                }
+              ) {
+                items {
+                  associatedUserMessageId
+                  contentBlockDeltaIndex
+                  contentBlockDoneAtIndex
+                  contentBlockIndex
+                  contentBlockText
+                  contentBlockToolUse
+                  conversationId
+                  createdAt
+                  errors {
+                    errorType
+                    message
+                  }
+                  id
+                  owner
+                  stopReason
+                  updatedAt
+                }
+                nextToken
+              }
+            }
+          `,
+          variables: {
+            conversationId: event.conversationId,
+            associatedUserMessageId: event.currentMessageId,
+            nextToken,
+          },
+          fetchPolicy: 'no-cache',
+        });
+        nextToken =
+          queryResult.data.listConversationMessageAssistantStreamingResponses
+            .nextToken;
+        chunks.push(
+          ...queryResult.data.listConversationMessageAssistantStreamingResponses
+            .items
+        );
+      } while (nextToken);
+
+      assert.ok(chunks);
+
+      if (chunks.length === 1 && chunks[0].errors) {
+        return {
+          content: '',
+          errors: chunks[0].errors,
+        };
+      }
+
+      chunks.sort((a, b) => {
+        // This is very simplified sort by message,block and delta indexes;
+        let aValue = 1000 * 1000 * a.contentBlockIndex;
+        if (a.contentBlockDeltaIndex) {
+          aValue += a.contentBlockDeltaIndex;
+        }
+        let bValue = 1000 * 1000 * b.contentBlockIndex;
+        if (b.contentBlockDeltaIndex) {
+          bValue += b.contentBlockDeltaIndex;
+        }
+        return aValue - bValue;
+      });
+
+      const content = chunks.reduce((accumulated, current) => {
+        if (current.contentBlockText) {
+          accumulated += current.contentBlockText;
+        }
+        if (current.contentBlockToolUse) {
+          accumulated += current.contentBlockToolUse;
+        }
+        return accumulated;
+      }, '');
+
+      return { content };
+    }
+    const queryResult = await apolloClient.query<{
+      listConversationMessageAssistantResponses: {
+        items: Array<ConversationTurnAppSyncResponse>;
+      };
+    }>({
+      query: gql`
+        query ListMessage($conversationId: ID, $associatedUserMessageId: ID) {
+          listConversationMessageAssistantResponses(
+            filter: {
+              conversationId: { eq: $conversationId }
+              associatedUserMessageId: { eq: $associatedUserMessageId }
+            }
+            limit: 1000
+          ) {
+            items {
+              conversationId
+              id
+              updatedAt
+              createdAt
+              content
+              errors {
+                errorType
+                message
+              }
+              associatedUserMessageId
+            }
+            nextToken
+          }
+        }
+      `,
+      variables: {
+        conversationId: event.conversationId,
+        associatedUserMessageId: event.currentMessageId,
+      },
+      fetchPolicy: 'no-cache',
+    });
+    assert.strictEqual(
+      1,
+      queryResult.data.listConversationMessageAssistantResponses.items.length
+    );
+    const response =
+      queryResult.data.listConversationMessageAssistantResponses.items[0];
+
+    if (response.errors) {
+      return {
+        content: '',
+        errors: response.errors,
+      };
+    }
+
+    assert.ok(response.content);
+    return { content: response.content };
+  };
+
   private assertCustomConversationHandlerCanExecuteTurn = async (
     backendId: BackendIdentifier,
     accessToken: string,
     graphqlApiEndpoint: string,
-    apolloClient: ApolloClient<NormalizedCacheObject>
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    streamResponse: boolean
   ): Promise<void> => {
     const customConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -581,7 +817,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       role: 'user',
       content: [
         {
-          text: 'What is the temperature in Seattle, Boston and Miami?',
+          text: 'What is the temperature in Seattle and Boston?',
         },
       ],
     };
@@ -595,7 +831,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       request: {
         headers: { authorization: accessToken },
       },
-      ...commonEventProperties,
+      ...this.getCommonEventProperties(streamResponse),
     };
     const response = await this.executeConversationTurn(
       event,
@@ -615,55 +851,61 @@ class ConversationHandlerTestProject extends TestProjectBase {
         expectedTemperaturesInProgrammaticToolScenario.Boston.toString()
       )
     );
-    assert.match(
-      response.content,
-      new RegExp(
-        expectedTemperaturesInProgrammaticToolScenario.Miami.toString()
-      )
-    );
   };
 
-  private executeConversationTurn = async (
-    event: ConversationTurnEvent,
-    functionName: string,
-    apolloClient: ApolloClient<NormalizedCacheObject>
-  ): Promise<ConversationTurnAppSyncResponse> => {
-    await this.lambdaClient.send(
-      new InvokeCommand({
-        FunctionName: functionName,
-        Payload: Buffer.from(JSON.stringify(event)),
-      })
+  private assertDefaultConversationHandlerCanPropagateError = async (
+    backendId: BackendIdentifier,
+    accessToken: string,
+    graphqlApiEndpoint: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    streamResponse: boolean
+  ): Promise<void> => {
+    const defaultConversationHandlerFunction = (
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('default')
+      )
+    )[0];
+
+    const message: CreateConversationMessageChatInput = {
+      id: randomUUID().toString(),
+      conversationId: randomUUID().toString(),
+      role: 'user',
+      content: [
+        {
+          text: 'What is the value of PI?',
+        },
+      ],
+    };
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: message.conversationId,
+      currentMessageId: message.id,
+      graphqlApiEndpoint: graphqlApiEndpoint,
+      request: {
+        headers: { authorization: accessToken },
+      },
+      ...this.getCommonEventProperties(streamResponse),
+    };
+
+    // Inject failure
+    event.modelConfiguration.modelId = 'invalidId';
+    await this.insertMessage(apolloClient, message);
+
+    const response = await this.executeConversationTurn(
+      event,
+      defaultConversationHandlerFunction,
+      apolloClient
     );
-
-    // assert that response came back
-
-    const queryResult = await apolloClient.query<{
-      listConversationMessageAssistantResponses: {
-        items: Array<ConversationTurnAppSyncResponse>;
-      };
-    }>({
-      query: gql`
-        query ListMessages {
-          listConversationMessageAssistantResponses(limit: 1000) {
-            items {
-              conversationId
-              id
-              updatedAt
-              createdAt
-              content
-              associatedUserMessageId
-            }
-          }
-        }
-      `,
-      fetchPolicy: 'no-cache',
-    });
-    const response =
-      queryResult.data.listConversationMessageAssistantResponses.items.find(
-        (item) => item.associatedUserMessageId === event.currentMessageId
-      );
-    assert.ok(response);
-    return response;
+    assert.ok(response.errors);
+    assert.ok(response.errors[0]);
+    assert.strictEqual(response.errors[0].errorType, 'ValidationException');
+    assert.match(
+      response.errors[0].message,
+      /provided model identifier is invalid/
+    );
   };
 
   private insertMessage = async (
@@ -682,5 +924,66 @@ class ConversationHandlerTestProject extends TestProjectBase {
         input: message,
       },
     });
+  };
+
+  private getCommonEventProperties = (streamResponse: boolean) => {
+    const responseMutation = streamResponse
+      ? {
+          name: 'createConversationMessageAssistantStreamingResponse',
+          inputTypeName:
+            'CreateConversationMessageAssistantStreamingResponseInput',
+          selectionSet: ['id', 'conversationId', 'createdAt', 'updatedAt'].join(
+            '\n'
+          ),
+        }
+      : {
+          name: 'createConversationMessageAssistantResponse',
+          inputTypeName: 'CreateConversationMessageAssistantResponseInput',
+          selectionSet: [
+            'id',
+            'conversationId',
+            'content',
+            'owner',
+            'createdAt',
+            'updatedAt',
+          ].join('\n'),
+        };
+    return {
+      streamResponse,
+      responseMutation,
+      messageHistoryQuery: {
+        getQueryName: 'getConversationMessageChat',
+        getQueryInputTypeName: 'ID',
+        listQueryName: 'listConversationMessageChats',
+        listQueryInputTypeName: 'ModelConversationMessageChatFilterInput',
+      },
+      modelConfiguration: {
+        modelId: bedrockModelId,
+        systemPrompt: 'You are helpful bot.',
+      },
+    };
+  };
+
+  /**
+   * Bedrock sometimes produces empty response or half backed response.
+   * On the other hand we have to run some assertions on those responses.
+   * Therefore, we wrap transactions in retry loop.
+   */
+  private executeWithRetry = async (
+    callable: () => Promise<void>,
+    maxAttempts = 3
+  ) => {
+    const collectedErrors = [];
+    for (let i = 1; i <= maxAttempts; i++) {
+      try {
+        await callable();
+        // if successful return early;
+        return;
+      } catch (e) {
+        collectedErrors.push(e);
+      }
+    }
+    // if we got here there were only errors
+    throw new AggregateError(collectedErrors);
   };
 }

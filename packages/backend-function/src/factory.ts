@@ -23,16 +23,11 @@ import {
   SsmEnvironmentEntry,
   StackProvider,
 } from '@aws-amplify/plugin-types';
-import { Duration, Stack, Tags } from 'aws-cdk-lib';
+import { Duration, Lazy, Stack, Tags, Token } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Policy } from 'aws-cdk-lib/aws-iam';
-import {
-  CfnFunction,
-  ILayerVersion,
-  LayerVersion,
-  Runtime,
-} from 'aws-cdk-lib/aws-lambda';
+import { CfnFunction, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import { readFileSync } from 'fs';
@@ -104,7 +99,7 @@ export type FunctionProps = {
   /**
    * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB.
    * Must be a whole number.
-   * Default is 128MB.
+   * Default is 512MB.
    */
   memoryMB?: number;
 
@@ -145,6 +140,20 @@ export type FunctionProps = {
    * @see [AWS documentation for Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
    */
   layers?: Record<string, string>;
+
+  /*
+   * Options for bundling the function code.
+   */
+  bundling?: FunctionBundlingOptions;
+};
+
+export type FunctionBundlingOptions = {
+  /**
+   * Whether to minify the function code.
+   *
+   * Defaults to true.
+   */
+  minify?: boolean;
 };
 
 /**
@@ -192,6 +201,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      bundling: this.resolveBundling(),
       layers,
     };
   };
@@ -298,6 +308,27 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 
     return this.props.schedule;
   };
+
+  private resolveBundling = () => {
+    const bundlingDefault = {
+      format: OutputFormat.ESM,
+      bundleAwsSDK: true,
+      loader: {
+        '.node': 'file',
+      },
+      minify: true,
+      sourceMap: true,
+    };
+
+    return {
+      ...bundlingDefault,
+      minify: this.resolveMinify(this.props.bundling),
+    };
+  };
+
+  private resolveMinify = (bundling?: FunctionBundlingOptions) => {
+    return bundling?.minify === undefined ? true : bundling.minify;
+  };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
@@ -314,19 +345,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps) => {
-    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
-    const resolvedLayers = Object.entries(this.props.layers).map(([key, arn]) =>
-      LayerVersion.fromLayerVersionArn(
-        scope,
-        `${this.props.name}-${key}-layer`,
-        arn
-      )
-    );
-
     return new AmplifyFunction(
       scope,
       this.props.name,
-      { ...this.props, resolvedLayers },
+      this.props,
       backendSecretResolver,
       this.outputStorageStrategy
     );
@@ -346,13 +368,38 @@ class AmplifyFunction
   constructor(
     scope: Construct,
     id: string,
-    props: HydratedFunctionProps & { resolvedLayers: ILayerVersion[] },
+    props: HydratedFunctionProps,
     backendSecretResolver: BackendSecretResolver,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
     super(scope, id);
 
     this.stack = Stack.of(scope);
+
+    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
+    const resolvedLayers = Object.entries(props.layers).map(([key, arn]) => {
+      const layerRegion = arn.split(':')[3];
+      // If region is an unresolved token, use lazy to get region
+      const region = Token.isUnresolved(this.stack.region)
+        ? Lazy.string({
+            produce: () => this.stack.region,
+          })
+        : this.stack.region;
+
+      if (layerRegion !== region) {
+        throw new AmplifyUserError('InvalidLayerArnRegionError', {
+          message: `Region in ARN does not match function region for layer: ${key}`,
+          resolution:
+            'Update the layer ARN with the same region as the function',
+        });
+      }
+
+      return LayerVersion.fromLayerVersionArn(
+        scope,
+        `${props.name}-${key}-layer`,
+        arn
+      );
+    });
 
     const runtime = nodeVersionMap[props.runtime];
 
@@ -396,17 +443,11 @@ class AmplifyFunction
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
         runtime: nodeVersionMap[props.runtime],
-        layers: props.resolvedLayers,
+        layers: resolvedLayers,
         bundling: {
-          format: OutputFormat.ESM,
+          ...props.bundling,
           banner: bannerCode,
-          bundleAwsSDK: true,
           inject: shims,
-          loader: {
-            '.node': 'file',
-          },
-          minify: true,
-          sourceMap: true,
           externalModules: Object.keys(props.layers),
         },
       });

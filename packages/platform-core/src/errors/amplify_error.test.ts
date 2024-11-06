@@ -165,7 +165,7 @@ void describe('AmplifyError.fromError', async () => {
     yargsErrors.forEach((error) => {
       const actual = AmplifyError.fromError(error);
       assert.ok(
-        actual instanceof AmplifyError &&
+        AmplifyError.isAmplifyError(actual) &&
           actual.name === 'InvalidCommandInputError',
         `Failed the test for error ${error.message}`
       );
@@ -175,7 +175,8 @@ void describe('AmplifyError.fromError', async () => {
     const error = new Error('getaddrinfo ENOTFOUND some-domain.com');
     const actual = AmplifyError.fromError(error);
     assert.ok(
-      actual instanceof AmplifyError && actual.name === 'DomainNotFoundError',
+      AmplifyError.isAmplifyError(actual) &&
+        actual.name === 'DomainNotFoundError',
       `Failed the test for error ${error.message}`
     );
   });
@@ -184,7 +185,7 @@ void describe('AmplifyError.fromError', async () => {
     error.name = 'SyntaxError';
     const actual = AmplifyError.fromError(error);
     assert.ok(
-      actual instanceof AmplifyError && actual.name === 'SyntaxError',
+      AmplifyError.isAmplifyError(actual) && actual.name === 'SyntaxError',
       `Failed the test for error ${error.message}`
     );
   });

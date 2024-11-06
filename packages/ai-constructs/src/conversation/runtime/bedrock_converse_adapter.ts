@@ -4,6 +4,9 @@ import {
   ConverseCommand,
   ConverseCommandInput,
   ConverseCommandOutput,
+  ConverseStreamCommand,
+  ConverseStreamCommandInput,
+  ConverseStreamCommandOutput,
   Message,
   Tool,
   ToolConfiguration,
@@ -12,10 +15,14 @@ import {
 import {
   ConversationTurnEvent,
   ExecutableTool,
+  StreamingResponseChunk,
   ToolDefinition,
 } from './types.js';
 import { ConversationTurnEventToolsProvider } from './event-tools-provider';
 import { ConversationMessageHistoryRetriever } from './conversation_message_history_retriever';
+import * as bedrock from '@aws-sdk/client-bedrock-runtime';
+import { ValidationError } from './errors';
+import { UserAgentProvider } from './user_agent_provider';
 
 /**
  * This class is responsible for interacting with Bedrock Converse API
@@ -42,23 +49,22 @@ export class BedrockConverseAdapter {
     private readonly messageHistoryRetriever = new ConversationMessageHistoryRetriever(
       event
     ),
+    userAgentProvider = new UserAgentProvider(event),
     private readonly logger = console
   ) {
-    if (event.request.headers['x-amz-user-agent']) {
-      this.bedrockClient.middlewareStack.add(
-        (next) => (args) => {
-          // @ts-expect-error Request is typed as unknown.
-          // But this is recommended way to alter headers per https://github.com/aws/aws-sdk-js-v3/blob/main/README.md.
-          args.request.headers['x-amz-user-agent'] =
-            event.request.headers['x-amz-user-agent'];
-          return next(args);
-        },
-        {
-          step: 'build',
-          name: 'amplify-user-agent-injector',
-        }
-      );
-    }
+    this.bedrockClient.middlewareStack.add(
+      (next) => (args) => {
+        // @ts-expect-error Request is typed as unknown.
+        // But this is recommended way to alter headers per https://github.com/aws/aws-sdk-js-v3/blob/main/README.md.
+        args.request.headers['x-amz-user-agent'] =
+          userAgentProvider.getUserAgent();
+        return next(args);
+      },
+      {
+        step: 'build',
+        name: 'amplify-user-agent-injector',
+      }
+    );
     this.executableTools = [
       ...eventToolsProvider.getEventTools(),
       ...additionalTools,
@@ -82,7 +88,7 @@ export class BedrockConverseAdapter {
       this.clientToolByName.set(t.name, t);
     });
     if (duplicateTools.size > 0) {
-      throw new Error(
+      throw new ValidationError(
         `Tools must have unique names. Duplicate tools: ${[
           ...duplicateTools,
         ].join(', ')}.`
@@ -152,6 +158,181 @@ export class BedrockConverseAdapter {
 
     return bedrockResponse.output?.message?.content ?? [];
   };
+
+  /**
+   * Asks Bedrock for response using streaming version of Converse API.
+   */
+  async *askBedrockStreaming(): AsyncGenerator<StreamingResponseChunk> {
+    const { modelId, systemPrompt, inferenceConfiguration } =
+      this.event.modelConfiguration;
+
+    const messages: Array<Message> =
+      await this.getEventMessagesAsBedrockMessages();
+
+    let bedrockResponse: ConverseStreamCommandOutput;
+    // keep our own indexing for blocks instead of using Bedrock's indexes
+    // since we stream subset of these upstream.
+    let blockIndex = 0;
+    let lastBlockIndex = 0;
+    let stopReason = '';
+    // Accumulates client facing content per turn.
+    // So that upstream can persist full message at the end of the streaming.
+    const accumulatedTurnContent: Array<bedrock.ContentBlock> = [];
+    do {
+      const toolConfig = this.createToolConfiguration();
+      const converseCommandInput: ConverseStreamCommandInput = {
+        modelId,
+        messages: [...messages],
+        system: [{ text: systemPrompt }],
+        inferenceConfig: inferenceConfiguration,
+        toolConfig,
+      };
+      this.logger.info('Sending Bedrock Converse Stream request');
+      this.logger.debug(
+        'Bedrock Converse Stream request:',
+        converseCommandInput
+      );
+      bedrockResponse = await this.bedrockClient.send(
+        new ConverseStreamCommand(converseCommandInput)
+      );
+      this.logger.info(
+        `Received Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
+      );
+      if (!bedrockResponse.stream) {
+        throw new Error('Bedrock response is missing stream');
+      }
+      let toolUseBlock: ContentBlock.ToolUseMember | undefined;
+      let clientToolsRequested = false;
+      let text: string = '';
+      let toolUseInput: string = '';
+      let blockDeltaIndex = 0;
+      let lastBlockDeltaIndex = 0;
+      // Accumulate current message for the tool use loop purpose.
+      const accumulatedAssistantMessage: Message = {
+        role: undefined,
+        content: [],
+      };
+
+      for await (const chunk of bedrockResponse.stream) {
+        this.logger.debug('Bedrock Converse Stream response chunk:', chunk);
+        if (chunk.messageStart) {
+          accumulatedAssistantMessage.role = chunk.messageStart.role;
+        } else if (chunk.contentBlockStart) {
+          blockDeltaIndex = 0;
+          lastBlockDeltaIndex = 0;
+          if (chunk.contentBlockStart.start?.toolUse) {
+            toolUseBlock = {
+              toolUse: {
+                ...chunk.contentBlockStart.start?.toolUse,
+                input: undefined,
+              },
+            };
+          }
+        } else if (chunk.contentBlockDelta) {
+          if (chunk.contentBlockDelta.delta?.toolUse) {
+            if (!chunk.contentBlockDelta.delta.toolUse.input) {
+              toolUseInput = '';
+            }
+            toolUseInput += chunk.contentBlockDelta.delta.toolUse.input;
+          } else if (chunk.contentBlockDelta.delta?.text) {
+            text += chunk.contentBlockDelta.delta.text;
+            yield {
+              accumulatedTurnContent: [...accumulatedTurnContent, { text }],
+              conversationId: this.event.conversationId,
+              associatedUserMessageId: this.event.currentMessageId,
+              contentBlockText: chunk.contentBlockDelta.delta.text,
+              contentBlockIndex: blockIndex,
+              contentBlockDeltaIndex: blockDeltaIndex,
+            };
+            lastBlockDeltaIndex = blockDeltaIndex;
+            blockDeltaIndex++;
+          }
+        } else if (chunk.contentBlockStop) {
+          if (toolUseBlock) {
+            toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
+            accumulatedAssistantMessage.content?.push(toolUseBlock);
+            if (
+              toolUseBlock.toolUse.name &&
+              this.clientToolByName.has(toolUseBlock.toolUse.name)
+            ) {
+              clientToolsRequested = true;
+              accumulatedTurnContent.push(toolUseBlock);
+              yield {
+                accumulatedTurnContent: [...accumulatedTurnContent],
+                conversationId: this.event.conversationId,
+                associatedUserMessageId: this.event.currentMessageId,
+                contentBlockIndex: blockIndex,
+                contentBlockToolUse: JSON.stringify(toolUseBlock),
+              };
+              lastBlockIndex = blockIndex;
+              blockIndex++;
+            }
+            toolUseBlock = undefined;
+            toolUseInput = '';
+          } else {
+            accumulatedAssistantMessage.content?.push({
+              text,
+            });
+            accumulatedTurnContent.push({ text });
+            yield {
+              accumulatedTurnContent: [...accumulatedTurnContent],
+              conversationId: this.event.conversationId,
+              associatedUserMessageId: this.event.currentMessageId,
+              contentBlockIndex: blockIndex,
+              contentBlockDoneAtIndex: lastBlockDeltaIndex,
+            };
+            text = '';
+            lastBlockIndex = blockIndex;
+            blockIndex++;
+          }
+        } else if (chunk.messageStop) {
+          stopReason = chunk.messageStop.stopReason ?? '';
+        }
+      }
+      this.logger.debug(
+        'Accumulated Bedrock Converse Stream response:',
+        accumulatedAssistantMessage
+      );
+      if (clientToolsRequested) {
+        // For now if any of client tools is used we ignore executable tools
+        // and propagate result back to client.
+        yield {
+          accumulatedTurnContent: [...accumulatedTurnContent],
+          conversationId: this.event.conversationId,
+          associatedUserMessageId: this.event.currentMessageId,
+          contentBlockIndex: lastBlockIndex,
+          stopReason: stopReason,
+        };
+        return;
+      }
+      messages.push(accumulatedAssistantMessage);
+      if (stopReason === 'tool_use') {
+        const responseContentBlocks = accumulatedAssistantMessage.content ?? [];
+        const toolUseBlocks = responseContentBlocks.filter(
+          (block) => 'toolUse' in block
+        ) as Array<ContentBlock.ToolUseMember>;
+        const toolResponseContentBlocks: Array<ContentBlock> = [];
+        for (const responseContentBlock of toolUseBlocks) {
+          const toolUseBlock =
+            responseContentBlock as ContentBlock.ToolUseMember;
+          const toolResultContentBlock = await this.executeTool(toolUseBlock);
+          toolResponseContentBlocks.push(toolResultContentBlock);
+        }
+        messages.push({
+          role: 'user',
+          content: toolResponseContentBlocks,
+        });
+      }
+    } while (stopReason === 'tool_use');
+
+    yield {
+      accumulatedTurnContent: [...accumulatedTurnContent],
+      conversationId: this.event.conversationId,
+      associatedUserMessageId: this.event.currentMessageId,
+      contentBlockIndex: lastBlockIndex,
+      stopReason: stopReason,
+    };
+  }
 
   /**
    * Maps event messages to Bedrock types.

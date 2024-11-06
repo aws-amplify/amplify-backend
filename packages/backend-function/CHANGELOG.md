@@ -1,5 +1,40 @@
 # @aws-amplify/backend-function
 
+## 1.7.4
+
+### Patch Changes
+
+- 4e97389: add validation if layer arn region does not match function region
+
+## 1.7.3
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.7.2
+
+### Patch Changes
+
+- 601a2c1: dedupe environment variables in amplify env type generator
+
+## 1.7.1
+
+### Patch Changes
+
+- bd4ff4d: Fix jsdocs that incorrectly state default memory settings
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
+## 1.7.0
+
+### Minor Changes
+
+- 4720412: Add minify option to defineFunction
+
 ## 1.6.0
 
 ### Minor Changes

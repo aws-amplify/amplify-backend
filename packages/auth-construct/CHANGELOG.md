@@ -1,5 +1,26 @@
 # @aws-amplify/auth-construct
 
+## 1.4.0
+
+### Minor Changes
+
+- 11d62fe: Add support for custom Lambda function email senders in Auth construct
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.3.2
+
+### Patch Changes
+
+- 5f46d8d: add user groups to outputs
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
 ## 1.3.1
 
 ### Patch Changes

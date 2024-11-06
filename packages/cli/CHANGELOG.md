@@ -1,5 +1,46 @@
 # @aws-amplify/backend-cli
 
+## 1.4.1
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+  - @aws-amplify/backend-deployer@1.1.8
+  - @aws-amplify/sandbox@1.2.5
+
+## 1.4.0
+
+### Minor Changes
+
+- c3c3057: update ctrl+c behavior to always print guidance to delete and exit with no prompt
+
+### Patch Changes
+
+- Updated dependencies [c3c3057]
+- Updated dependencies [b56d344]
+- Updated dependencies [b56d344]
+  - @aws-amplify/cli-core@1.2.0
+  - @aws-amplify/backend-deployer@1.1.6
+  - @aws-amplify/schema-generator@1.2.5
+  - @aws-amplify/client-config@1.5.1
+  - @aws-amplify/plugin-types@1.3.1
+  - @aws-amplify/sandbox@1.2.4
+
+## 1.3.0
+
+### Minor Changes
+
+- b2057f9: adds shorthand argument for version and help
+
+### Patch Changes
+
+- 5f46d8d: add user groups to outputs
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+  - @aws-amplify/client-config@1.5.0
+
 ## 1.2.9
 
 ### Patch Changes

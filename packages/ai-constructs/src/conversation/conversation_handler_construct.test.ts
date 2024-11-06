@@ -82,7 +82,10 @@ void describe('Conversation Handler Function construct', () => {
       PolicyDocument: {
         Statement: [
           {
-            Action: 'bedrock:InvokeModel',
+            Action: [
+              'bedrock:InvokeModel',
+              'bedrock:InvokeModelWithResponseStream',
+            ],
             Effect: 'Allow',
             Resource: [
               'arn:aws:bedrock:region1::foundation-model/model1',
@@ -115,7 +118,10 @@ void describe('Conversation Handler Function construct', () => {
       PolicyDocument: {
         Statement: [
           {
-            Action: 'bedrock:InvokeModel',
+            Action: [
+              'bedrock:InvokeModel',
+              'bedrock:InvokeModelWithResponseStream',
+            ],
             Effect: 'Allow',
             Resource: {
               'Fn::Join': [
@@ -214,6 +220,68 @@ void describe('Conversation Handler Function construct', () => {
     // Testing actual body of custom handler requires higher level testing strategy.
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
+    });
+  });
+
+  void describe('memory property', () => {
+    void it('sets valid memory', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [],
+        memoryMB: 234,
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        MemorySize: 234,
+      });
+    });
+
+    void it('sets default memory', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        MemorySize: 512,
+      });
+    });
+
+    void it('throws on memory below 128 MB', () => {
+      assert.throws(() => {
+        const app = new App();
+        const stack = new Stack(app);
+        new ConversationHandlerFunction(stack, 'conversationHandler', {
+          models: [],
+          memoryMB: 127,
+        });
+      }, new Error('memoryMB must be a whole number between 128 and 10240 inclusive'));
+    });
+
+    void it('throws on memory above 10240 MB', () => {
+      assert.throws(() => {
+        const app = new App();
+        const stack = new Stack(app);
+        new ConversationHandlerFunction(stack, 'conversationHandler', {
+          models: [],
+          memoryMB: 10241,
+        });
+      }, new Error('memoryMB must be a whole number between 128 and 10240 inclusive'));
+    });
+
+    void it('throws on fractional memory', () => {
+      assert.throws(() => {
+        const app = new App();
+        const stack = new Stack(app);
+        new ConversationHandlerFunction(stack, 'conversationHandler', {
+          models: [],
+          memoryMB: 256.2,
+        });
+      }, new Error('memoryMB must be a whole number between 128 and 10240 inclusive'));
     });
   });
 });

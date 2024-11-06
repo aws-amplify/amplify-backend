@@ -73,6 +73,38 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
 
     await fsp.rm(targetDirectory, { recursive: true, force: true });
   });
+
+  void it('does not generate duplicate environment variables', () => {
+    const fsOpenSyncMock = mock.method(fs, 'openSync');
+    const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);
+    fsOpenSyncMock.mock.mockImplementation(() => 0);
+    const functionEnvironmentTypeGenerator =
+      new FunctionEnvironmentTypeGenerator('testFunction');
+
+    functionEnvironmentTypeGenerator.generateTypedProcessEnvShim([
+      'TEST_ENV',
+      'TEST_ENV',
+      'ANOTHER_ENV',
+    ]);
+
+    const generatedContent =
+      fsWriteFileSyncMock.mock.calls[0].arguments[1]?.toString() ?? '';
+
+    // Check TEST_ENV appears only once
+    assert.equal(
+      (generatedContent.match(/TEST_ENV: string;/g) || []).length,
+      1,
+      'TEST_ENV should appear only once'
+    );
+
+    // Check ANOTHER_ENV also appears
+    assert.ok(
+      generatedContent.includes('ANOTHER_ENV: string;'),
+      'ANOTHER_ENV should be included'
+    );
+
+    mock.restoreAll();
+  });
   void it('clears the generated env directory even if there are multiple calls', async () => {
     const fsExistsSyncMock = mock.method(fs, 'existsSync', () => true);
     const fsRmSyncMock = mock.method(fs, 'rmSync', () => {});

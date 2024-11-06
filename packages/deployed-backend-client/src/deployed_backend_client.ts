@@ -15,11 +15,7 @@ import {
   ListBackendsResponse,
 } from './deployed_backend_client_factory.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
-import {
-  BackendOutputClient,
-  BackendOutputClientError,
-  BackendOutputClientErrorType,
-} from './backend_output_client_factory.js';
+import { BackendOutputClient } from './backend_output_client_factory.js';
 import {
   CloudFormationClient,
   DeleteStackCommand,
@@ -158,26 +154,13 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   private tryGetDeploymentType = async (
     stackSummary: StackSummary
   ): Promise<DeploymentType | undefined> => {
-    const backendIdentifier = {
-      stackName: stackSummary.StackName as string,
-    };
+    const stackDescription = await this.cfnClient.send(
+      new DescribeStacksCommand({ StackName: stackSummary.StackName })
+    );
 
-    try {
-      const backendOutput: BackendOutput =
-        await this.backendOutputClient.getOutput(backendIdentifier);
-
-      return backendOutput[platformOutputKey].payload
-        .deploymentType as DeploymentType;
-    } catch (error) {
-      if (
-        (error as BackendOutputClientError).code ===
-        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR
-      ) {
-        // Ignore stacks where metadata cannot be retrieved. These are not Amplify stacks, or not compatible with this library.
-        return;
-      }
-      throw error;
-    }
+    return stackDescription.Stacks?.[0].Tags?.find(
+      (tag) => tag.Key === 'amplify:deployment-type'
+    )?.Value as DeploymentType;
   };
 
   private listStacks = async (

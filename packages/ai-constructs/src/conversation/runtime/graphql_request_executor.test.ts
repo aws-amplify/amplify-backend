@@ -2,11 +2,17 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { text } from 'node:stream/consumers';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
+import { UserAgentProvider } from './user_agent_provider';
+import { ConversationTurnEvent } from './types';
 
 void describe('Graphql executor test', () => {
   const graphqlEndpoint = 'http://fake.endpoint/';
   const accessToken = 'testToken';
   const userAgent = 'testUserAgent';
+  const userAgentProvider = new UserAgentProvider(
+    {} as unknown as ConversationTurnEvent
+  );
+  mock.method(userAgentProvider, 'getUserAgent', () => userAgent);
 
   void it('sends request to appsync', async () => {
     const fetchMock = mock.fn(
@@ -18,7 +24,7 @@ void describe('Graphql executor test', () => {
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
-      userAgent,
+      userAgentProvider,
       fetchMock
     );
     const query = 'testQuery';
@@ -47,6 +53,41 @@ void describe('Graphql executor test', () => {
     });
   });
 
+  void it('method provided user agent takes precedence', async () => {
+    const fetchMock = mock.fn(
+      fetch,
+      (): Promise<Response> =>
+        // Mock successful Appsync response
+        Promise.resolve(new Response('{}', { status: 200 }))
+    );
+    const executor = new GraphqlRequestExecutor(
+      graphqlEndpoint,
+      accessToken,
+      userAgentProvider,
+      fetchMock
+    );
+    const query = 'testQuery';
+    const variables = {
+      testVariableKey: 'testVariableValue',
+    };
+    await executor.executeGraphql(
+      {
+        query,
+        variables,
+      },
+      {
+        userAgent: 'methodScopedUserAgent',
+      }
+    );
+
+    assert.strictEqual(fetchMock.mock.calls.length, 1);
+    const request: Request = fetchMock.mock.calls[0].arguments[0] as Request;
+    assert.strictEqual(
+      request.headers.get('x-amz-user-agent'),
+      'methodScopedUserAgent'
+    );
+  });
+
   void it('throws if response is not 2xx', async () => {
     const fetchMock = mock.fn(
       fetch,
@@ -62,7 +103,7 @@ void describe('Graphql executor test', () => {
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
-      userAgent,
+      userAgentProvider,
       fetchMock
     );
     const query = 'testQuery';
@@ -102,7 +143,7 @@ void describe('Graphql executor test', () => {
     const executor = new GraphqlRequestExecutor(
       graphqlEndpoint,
       accessToken,
-      userAgent,
+      userAgentProvider,
       fetchMock
     );
     const query = 'testQuery';
