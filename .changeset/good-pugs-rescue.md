@@ -6,4 +6,4 @@
 '@aws-amplify/backend': minor
 ---
 
-Add support for referencing existing auth resources via referenceAuth.
+Add support for referenceAuth.
