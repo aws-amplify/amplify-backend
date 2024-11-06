@@ -5,12 +5,6 @@ import * as fs from 'fs/promises';
  * Configures a minimal package.json and tsconfig.json to make the specified directory compile as an ESM module
  */
 export const setupDirAsEsmModule = async (absoluteDirPath: string) => {
-  const packageJsonContent = { type: 'module' };
-  await fs.writeFile(
-    path.resolve(absoluteDirPath, 'package.json'),
-    JSON.stringify(packageJsonContent, null, 2)
-  );
-
   const tsConfigTemplate = {
     compilerOptions: {
       target: 'es2022',
