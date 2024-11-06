@@ -115,3 +115,13 @@ export type SampleTypeThatReferencesFunction<T extends typeof someFunction1> = {
 export type SampleIgnoredType = {
   someProperty: number;
 };
+
+export const sampleTypePredicate = (input: unknown): input is SampleType => {
+  throw new Error();
+};
+
+export class SampleClassWithTypePredicate {
+  static sampleTypePredicate = (input: unknown): input is SampleType => {
+    throw new Error();
+  };
+}
