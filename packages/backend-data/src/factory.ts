@@ -1,5 +1,6 @@
 import { IConstruct } from 'constructs';
 import {
+  AddFunctionsFactory,
   AmplifyFunction,
   AuthResources,
   BackendOutputStorageStrategy,
@@ -38,7 +39,7 @@ import {
   CDKContextKey,
   TagName,
 } from '@aws-amplify/platform-core';
-import { Aspects, IAspect, Tags } from 'aws-cdk-lib';
+import { Aspects, IAspect, Stack, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
@@ -56,6 +57,8 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
   static factoryCount = 0;
 
   private generator: ConstructContainerEntryGenerator;
+
+  private functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>> = new Set();
 
   /**
    * Create a new AmplifyConstruct
@@ -103,11 +106,21 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
             ?.getInstance(props)
         ),
         props,
-        outputStorageStrategy
+        outputStorageStrategy,
+        this.functionsToAddToStack,
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyData;
   };
+
+  /**
+   * Add functions to be grouped with AmplifyData
+   */
+  addFunctions = (functions: ConstructFactory<AmplifyFunction>[]) => {
+    functions.forEach((func) => {
+      this.functionsToAddToStack.add(func)
+    });
+  }
 }
 
 class DataGenerator implements ConstructContainerEntryGenerator {
@@ -118,7 +131,8 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly props: DataProps,
     private readonly providedAuthConfig: ProvidedAuthConfig | undefined,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>,
+    private readonly functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>>,
   ) {
     this.name = props.name ?? 'amplifyData';
   }
@@ -136,6 +150,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       string,
       ConstructFactory<AmplifyFunction>
     > = {};
+    
+    // add functions added with addFunctions to data stack
+    this.functionsToAddToStack.forEach((handlerFactory) => {
+      handlerFactory.getInstance({...this.getInstanceProps, stack: scope as Stack});
+    });
+
     try {
       const schemas = isCombinedSchema(this.props.schema)
         ? this.props.schema.schemas
@@ -322,5 +342,5 @@ class ReplaceTableUponGsiUpdateOverrideAspect implements IAspect {
 /**
  * Creates a factory that implements ConstructFactory<AmplifyGraphqlApi>
  */
-export const defineData = (props: DataProps): ConstructFactory<AmplifyData> =>
+export const defineData = (props: DataProps): ConstructFactory<AmplifyData> & AddFunctionsFactory =>
   new DataFactory(props, new Error().stack);

@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AddFunctionsFactory } from '@aws-amplify/plugin-types';
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
@@ -39,7 +40,7 @@ export type DataSchemaInput = string | DerivedModelSchema | DerivedCombinedSchem
 export type DefaultAuthorizationMode = 'iam' | 'identityPool' | 'userPool' | 'oidc' | 'apiKey' | 'lambda';
 
 // @public
-export const defineData: (props: DataProps) => ConstructFactory<AmplifyData>;
+export const defineData: (props: DataProps) => ConstructFactory<AmplifyData> & AddFunctionsFactory;
 
 // @public
 export type LambdaAuthorizationModeProps = {

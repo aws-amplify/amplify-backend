@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AddFunctionsFactory } from '@aws-amplify/plugin-types';
 import { AmazonProviderProps } from '@aws-amplify/auth-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AppleProviderProps } from '@aws-amplify/auth-construct';
@@ -15,7 +16,6 @@ import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
 import { ExternalProviderOptions } from '@aws-amplify/auth-construct';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct';
-import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { OidcProviderProps } from '@aws-amplify/auth-construct';
@@ -41,7 +41,7 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 // @public (undocumented)
 export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith' | 'senders'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
-    triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+    triggers?: Partial<Record<TriggerEvent, ConstructFactory<AmplifyFunction>>>;
     access?: AuthAccessGenerator;
     senders?: {
         email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
@@ -93,7 +93,7 @@ export type CustomEmailSender = {
 };
 
 // @public
-export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth>;
+export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth> & AddFunctionsFactory;
 
 // @public
 export type Expand<T> = T extends infer O ? {

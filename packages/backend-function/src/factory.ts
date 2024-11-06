@@ -176,6 +176,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     constructContainer,
     outputStorageStrategy,
     resourceNameValidator,
+    stack,
   }: ConstructFactoryGetInstanceProps): AmplifyFunction => {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
@@ -183,7 +184,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
         outputStorageStrategy
       );
     }
-    return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
+    return constructContainer.getOrCompute(this.generator, stack) as AmplifyFunction;
   };
 
   private hydrateDefaults = (

@@ -4,12 +4,14 @@ import { BackendOutputEntry } from './backend_output.js';
 import { ImportPathVerifier } from './import_path_verifier.js';
 import { ResourceProvider } from './resource_provider.js';
 import { ResourceNameValidator } from './resource_name_validator.js';
+import { Stack } from 'aws-cdk-lib';
 
 export type ConstructFactoryGetInstanceProps = {
   constructContainer: ConstructContainer;
   outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
   importPathVerifier?: ImportPathVerifier;
   resourceNameValidator?: ResourceNameValidator;
+  stack?: Stack;
 };
 
 /**

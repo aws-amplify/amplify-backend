@@ -12,12 +12,13 @@ import {
   TriggerEvent,
 } from '@aws-amplify/auth-construct';
 import {
+  AddFunctionsFactory,
+  AmplifyFunction,
   AuthResources,
   AuthRoleName,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
-  FunctionResources,
   GenerateContainerEntryProps,
   ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
@@ -56,7 +57,7 @@ export type AmplifyAuthProps = Expand<
     triggers?: Partial<
       Record<
         TriggerEvent,
-        ConstructFactory<ResourceProvider<FunctionResources>>
+        ConstructFactory<AmplifyFunction>
       >
     >;
     /**
@@ -91,6 +92,8 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
   readonly provides = 'AuthResources';
 
   private generator: ConstructContainerEntryGenerator;
+
+  private functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>> = new Set();
 
   /**
    * Set the properties that will be used to initialize AmplifyAuth
@@ -127,10 +130,19 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
       resourceNameValidator?.validate(this.props.name);
     }
     if (!this.generator) {
-      this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps);
+      this.generator = new AmplifyAuthGenerator(this.props, getInstanceProps, this.functionsToAddToStack);
     }
     return constructContainer.getOrCompute(this.generator) as BackendAuth;
   };
+
+  /**
+   * Add functions to be grouped with AmplifyAuth
+   */
+  addFunctions = (functions: ConstructFactory<AmplifyFunction>[]) => {
+    functions.forEach((func) => {
+      this.functionsToAddToStack.add(func)
+    });
+  }
 }
 
 class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
@@ -140,6 +152,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
   constructor(
     private readonly props: AmplifyAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
+    private readonly functionsToAddToStack: Set<ConstructFactory<AmplifyFunction>>,
     private readonly authAccessBuilder = _authAccessBuilder,
     private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
   ) {
@@ -152,6 +165,11 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     ssmEnvironmentEntriesGenerator,
     stableBackendIdentifiers,
   }: GenerateContainerEntryProps) => {
+    // add functions added with addFunctions to auth stack
+    this.functionsToAddToStack.forEach((handlerFactory) => {
+      handlerFactory.getInstance({...this.getInstanceProps, stack: scope as Stack});
+    });
+    
     const authProps: AuthProps = {
       ...this.props,
       loginWith: translateToAuthConstructLoginWith(
@@ -193,6 +211,8 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
         );
       }
     );
+
+    
 
     const authConstructMixin: BackendAuth = {
       ...authConstruct,
@@ -258,6 +278,6 @@ const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
  */
 export const defineAuth = (
   props: AmplifyAuthProps
-): ConstructFactory<BackendAuth> =>
+): ConstructFactory<BackendAuth> & AddFunctionsFactory =>
   // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
   new AmplifyAuthFactory(props, new Error().stack);

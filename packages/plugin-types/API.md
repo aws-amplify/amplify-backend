@@ -24,6 +24,11 @@ import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
 // @public (undocumented)
+export type AddFunctionsFactory = {
+    addFunctions: (functions: ConstructFactory<AmplifyFunction>[]) => void;
+};
+
+// @public (undocumented)
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
 
 // @public
@@ -110,7 +115,7 @@ export type BranchName = string;
 
 // @public
 export type ConstructContainer = {
-    getOrCompute: (generator: ConstructContainerEntryGenerator) => ResourceProvider;
+    getOrCompute: (generator: ConstructContainerEntryGenerator, stack?: Stack) => ResourceProvider;
     registerConstructFactory: (token: string, provider: ConstructFactory) => void;
     getConstructFactory: <T extends ResourceProvider>(token: string) => ConstructFactory<T> | undefined;
 };
@@ -133,6 +138,7 @@ export type ConstructFactoryGetInstanceProps = {
     outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
     importPathVerifier?: ImportPathVerifier;
     resourceNameValidator?: ResourceNameValidator;
+    stack?: Stack;
 };
 
 // @public
