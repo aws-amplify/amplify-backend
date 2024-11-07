@@ -3,7 +3,6 @@ import assert from 'assert';
 import {
   AmplifyReferenceAuth,
   OUTPUT_PROPERTIES_PROVIDED_BY_AUTH_CUSTOM_RESOURCE,
-  ReferenceAuthProps,
   authOutputKey,
 } from './reference_construct.js';
 import {
@@ -12,6 +11,7 @@ import {
 } from '@aws-amplify/plugin-types';
 import { Template } from 'aws-cdk-lib/assertions';
 import { App, Stack } from 'aws-cdk-lib';
+import { ReferenceAuthProps } from './reference_factory.js';
 const refAuthProps: ReferenceAuthProps = {
   authRoleArn: 'arn:aws:iam::000000000000:role/amplify-sample-auth-role-name',
   unauthRoleArn:

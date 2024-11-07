@@ -23,6 +23,7 @@ import { Provider } from 'aws-cdk-lib/custom-resources';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { ReferenceAuthInitializerProps } from './lambda/reference_auth_initializer.js';
 import { fileURLToPath } from 'node:url';
+import { ReferenceAuthProps } from './reference_factory.js';
 
 /**
  * Expected key that auth output is stored under - must match backend-output-schemas's authOutputKey
@@ -221,37 +222,3 @@ export class AmplifyReferenceAuth
     });
   };
 }
-
-export type ReferenceAuthProps = {
-  /**
-   * @internal
-   */
-  outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
-  /**
-   * Existing UserPool Id
-   */
-  userPoolId: string;
-  /**
-   * Existing IdentityPool Id
-   */
-  identityPoolId: string;
-  /**
-   * Existing UserPoolClient Id
-   */
-  userPoolClientId: string;
-  /**
-   * Existing AuthRole ARN
-   */
-  authRoleArn: string;
-  /**
-   * Existing UnauthRole ARN
-   */
-  unauthRoleArn: string;
-  /**
-   * A mapping of existing group names and their associated role ARNs
-   * which can be used for group permissions.
-   */
-  groups?: {
-    [groupName: string]: string;
-  };
-};
