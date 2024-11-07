@@ -152,9 +152,12 @@ void describe('getting started happy path', async () => {
 
         const errorMessage = error instanceof Error ? error.message : '';
 
-        const isCommandFailedError = errorMessage.includes('exit code 1');
+        const isFailedInstallDepsError =
+          errorMessage.includes('exit code 1') &&
+          (errorMessage.includes('@aws-amplify/backend') ||
+            errorMessage.includes('aws-amplify'));
 
-        if (isCommandFailedError) {
+        if (isFailedInstallDepsError) {
           console.log(`Retrying due to known error: ${errorMessage}`);
           // Wait for a bit before retrying
           await new Promise((resolve) => setTimeout(resolve, 5000));
