@@ -334,7 +334,7 @@ class ReferenceAuthTestProject extends TestProjectBase {
    * @inheritdoc
    */
   override async tearDown(backendIdentifier: BackendIdentifier) {
-    await super.tearDown(backendIdentifier);
+    await super.tearDown(backendIdentifier, true);
     await this.authResourceCreator.cleanupResources();
   }
 }
