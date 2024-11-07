@@ -169,7 +169,7 @@ export abstract class TestProjectBase {
             `Could not describe stack ${stackName} while waiting for deletion.`,
             e
           );
-          break;
+          throw e;
         }
       }
       if (totalTimeWaitedMs >= timeoutInMS) {
