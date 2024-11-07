@@ -1,5 +1,3 @@
-// This executes within the custom resource lambda and errors get handled by the provider framework
-/* eslint-disable amplify-backend-rules/prefer-amplify-errors */
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceResponse,
