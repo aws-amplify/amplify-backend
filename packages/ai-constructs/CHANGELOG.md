@@ -1,5 +1,26 @@
 # @aws-amplify/ai-constructs
 
+## 0.8.1
+
+### Patch Changes
+
+- 1af5060: Add metadata to user agent in conversation handler runtime.
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+
+## 0.8.0
+
+### Minor Changes
+
+- 37dd87c: Propagate errors to AppSync
+
+### Patch Changes
+
+- 613bca9: Remove tool usage for non current turns when looking up message history
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/plugin-types@1.3.1
+
 ## 0.7.0
 
 ### Minor Changes

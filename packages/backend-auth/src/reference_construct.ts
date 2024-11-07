@@ -11,23 +11,33 @@ import {
   ReferenceAuthResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { AuthOutput, authOutputKey } from '@aws-amplify/backend-output-schemas';
 import {
   AttributionMetadataStorage,
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import * as path from 'path';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { Role } from 'aws-cdk-lib/aws-iam';
-import { ReferenceAuthInitializerProps, ReferenceAuthProps } from './types.js';
+import { ReferenceAuthInitializerProps } from './lambda/reference_auth_initializer.js';
+import { fileURLToPath } from 'node:url';
+import { ReferenceAuthProps } from './reference_factory.js';
+
+/**
+ * Expected key that auth output is stored under - must match backend-output-schemas's authOutputKey
+ */
+export const authOutputKey = 'AWS::Amplify::Auth';
+
 const REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID =
   'AmplifyRefAuthCustomResourceProvider';
 const REFERENCE_AUTH_CUSTOM_RESOURCE_ID = 'AmplifyRefAuthCustomResource';
 const RESOURCE_TYPE = 'Custom::AmplifyRefAuth';
 
-const resourcesRoot = path.normalize(path.join(__dirname, 'lambda'));
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
 const refAuthLambdaFilePath = path.join(
   resourcesRoot,
   'reference_auth_initializer.js'
@@ -180,7 +190,7 @@ export class AmplifyReferenceAuth
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       authStackType,
-      path.resolve(__dirname, '..', 'package.json')
+      fileURLToPath(new URL('../package.json', import.meta.url))
     );
   }
 

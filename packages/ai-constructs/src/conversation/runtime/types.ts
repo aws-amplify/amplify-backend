@@ -95,6 +95,11 @@ export type ExecutableTool<
   execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };
 
+export type ConversationTurnError = {
+  errorType: string;
+  message: string;
+};
+
 export type StreamingResponseChunk = {
   // always required
   conversationId: string;

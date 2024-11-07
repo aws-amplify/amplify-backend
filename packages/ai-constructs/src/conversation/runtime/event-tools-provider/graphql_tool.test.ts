@@ -6,11 +6,17 @@ import {
   GraphqlRequestExecutor,
 } from '../graphql_request_executor';
 import { DocumentType } from '@smithy/types';
+import { UserAgentProvider } from '../user_agent_provider';
+import { ConversationTurnEvent } from '../types';
 
 void describe('GraphQl tool', () => {
   const graphQlEndpoint = 'http://test.endpoint/';
   const query = 'testQuery';
   const accessToken = 'testAccessToken';
+  const userAgentProvider = new UserAgentProvider(
+    {} as unknown as ConversationTurnEvent
+  );
+  mock.method(userAgentProvider, 'getUserAgent', () => '');
 
   const createGraphQlTool = (
     graphqlRequestExecutor: GraphqlRequestExecutor
@@ -22,7 +28,7 @@ void describe('GraphQl tool', () => {
       graphQlEndpoint,
       query,
       accessToken,
-      '',
+      userAgentProvider,
       graphqlRequestExecutor
     );
   };
@@ -31,7 +37,11 @@ void describe('GraphQl tool', () => {
     const testResponse = {
       test: 'response',
     };
-    const graphqlRequestExecutor = new GraphqlRequestExecutor('', '', '');
+    const graphqlRequestExecutor = new GraphqlRequestExecutor(
+      '',
+      '',
+      userAgentProvider
+    );
     const executeGraphqlMock = mock.method(
       graphqlRequestExecutor,
       'executeGraphql',

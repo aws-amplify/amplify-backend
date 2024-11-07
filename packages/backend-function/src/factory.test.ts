@@ -17,6 +17,7 @@ import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -408,6 +409,38 @@ void describe('AmplifyFunctionFactory', () => {
       const template = Template.fromStack(lambda.stack);
 
       template.resourceCountIs('AWS::Events::Rule', 0);
+    });
+  });
+
+  void describe('layers property', () => {
+    void it('defaults to no layers', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.resourceCountIs('AWS::Lambda::LayerVersion', 0);
+    });
+
+    void it('throws if layer arn region is not the same as function region', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            layers: {
+              layer1:
+                'arn:aws:lambda:some-region:123456789012:layer:my-layer-1:1',
+            },
+          }).getInstance(getInstanceProps),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Region in ARN does not match function region for layer: layer1'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
     });
   });
 

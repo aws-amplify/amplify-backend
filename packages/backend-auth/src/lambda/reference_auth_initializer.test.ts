@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { ReferenceAuthInitializer } from './reference_auth_initializer';
+import { ReferenceAuthInitializer } from './reference_auth_initializer.js';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import assert from 'node:assert';
 import {
@@ -31,7 +31,7 @@ import {
   UserPool,
   UserPoolClient,
   UserPoolGroups,
-} from '../test-resources/sample_data';
+} from '../test-resources/sample_data.js';
 
 const customResourceEventCommon: Omit<
   CloudFormationCustomResourceEvent,

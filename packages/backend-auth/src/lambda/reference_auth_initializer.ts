@@ -24,8 +24,16 @@ import {
   GetIdentityPoolRolesCommand,
 } from '@aws-sdk/client-cognito-identity';
 import { randomUUID } from 'node:crypto';
-import { ReferenceAuthInitializerProps } from '../types.js';
 import { AuthOutput } from '@aws-amplify/backend-output-schemas';
+export type ReferenceAuthInitializerProps = {
+  userPoolId: string;
+  identityPoolId: string;
+  authRoleArn: string;
+  unauthRoleArn: string;
+  userPoolClientId: string;
+  groups: Record<string, string>;
+  region: string;
+};
 
 /**
  * Initializer that fetches and process auth resources.

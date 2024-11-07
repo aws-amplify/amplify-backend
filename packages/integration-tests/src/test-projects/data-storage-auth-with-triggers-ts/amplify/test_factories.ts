@@ -6,6 +6,7 @@ import {
   node16Func,
   funcWithSchedule,
   funcNoMinify,
+  funcCustomEmailSender,
 } from './function.js';
 import { storage } from './storage/resource.js';
 import { auth } from './auth/resource.js';
@@ -20,4 +21,5 @@ export const dataStorageAuthWithTriggers = {
   funcWithAwsSdk,
   funcWithSchedule,
   funcNoMinify,
+  funcCustomEmailSender,
 };

@@ -1,6 +1,11 @@
-import { ConversationTurnEvent, StreamingResponseChunk } from './types.js';
+import {
+  ConversationTurnError,
+  ConversationTurnEvent,
+  StreamingResponseChunk,
+} from './types.js';
 import type { ContentBlock } from '@aws-sdk/client-bedrock-runtime';
 import { GraphqlRequestExecutor } from './graphql_request_executor';
+import { UserAgentProvider } from './user_agent_provider';
 
 export type MutationResponseInput = {
   input: {
@@ -14,6 +19,14 @@ export type MutationStreamingResponseInput = {
   input: StreamingResponseChunk;
 };
 
+export type MutationErrorsResponseInput = {
+  input: {
+    conversationId: string;
+    errors: ConversationTurnError[];
+    associatedUserMessageId: string;
+  };
+};
+
 /**
  * This class is responsible for sending a response produced by Bedrock back to AppSync
  * in a form of mutation.
@@ -24,10 +37,11 @@ export class ConversationTurnResponseSender {
    */
   constructor(
     private readonly event: ConversationTurnEvent,
+    private readonly userAgentProvider = new UserAgentProvider(event),
     private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
       event.graphqlApiEndpoint,
       event.request.headers.authorization,
-      event.request.headers['x-amz-user-agent']
+      userAgentProvider
     ),
     private readonly logger = console
   ) {}
@@ -38,7 +52,11 @@ export class ConversationTurnResponseSender {
     await this.graphqlRequestExecutor.executeGraphql<
       MutationResponseInput,
       void
-    >(responseMutationRequest);
+    >(responseMutationRequest, {
+      userAgent: this.userAgentProvider.getUserAgent({
+        'turn-response-type': 'single',
+      }),
+    });
   };
 
   sendResponseChunk = async (chunk: StreamingResponseChunk) => {
@@ -47,7 +65,45 @@ export class ConversationTurnResponseSender {
     await this.graphqlRequestExecutor.executeGraphql<
       MutationStreamingResponseInput,
       void
-    >(responseMutationRequest);
+    >(responseMutationRequest, {
+      userAgent: this.userAgentProvider.getUserAgent({
+        'turn-response-type': 'streaming',
+      }),
+    });
+  };
+
+  sendErrors = async (errors: ConversationTurnError[]) => {
+    const responseMutationRequest = this.createMutationErrorsRequest(errors);
+    this.logger.debug(
+      'Sending errors response mutation:',
+      responseMutationRequest
+    );
+    await this.graphqlRequestExecutor.executeGraphql<
+      MutationErrorsResponseInput,
+      void
+    >(responseMutationRequest, {
+      userAgent: this.userAgentProvider.getUserAgent({
+        'turn-response-type': 'error',
+      }),
+    });
+  };
+
+  private createMutationErrorsRequest = (errors: ConversationTurnError[]) => {
+    const query = `
+        mutation PublishModelResponse($input: ${this.event.responseMutation.inputTypeName}!) {
+            ${this.event.responseMutation.name}(input: $input) {
+                ${this.event.responseMutation.selectionSet}
+            }
+        }
+    `;
+    const variables: MutationErrorsResponseInput = {
+      input: {
+        conversationId: this.event.conversationId,
+        errors,
+        associatedUserMessageId: this.event.currentMessageId,
+      },
+    };
+    return { query, variables };
   };
 
   private createMutationRequest = (content: ContentBlock[]) => {

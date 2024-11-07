@@ -86,7 +86,7 @@ export class CDKDeployer implements BackendDeployer {
     } catch (typeError: unknown) {
       if (
         synthError &&
-        typeError instanceof AmplifyError &&
+        AmplifyError.isAmplifyError(typeError) &&
         typeError.cause?.message.match(
           /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/
         )

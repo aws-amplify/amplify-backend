@@ -34,6 +34,7 @@ import {
   UserPoolIdentityProviderOidc,
   UserPoolIdentityProviderSaml,
   UserPoolIdentityProviderSamlMetadataType,
+  UserPoolOperation,
   UserPoolProps,
 } from 'aws-cdk-lib/aws-cognito';
 import { FederatedPrincipal, Role } from 'aws-cdk-lib/aws-iam';
@@ -51,6 +52,7 @@ import {
   StackMetadataBackendOutputStorageStrategy,
 } from '@aws-amplify/backend-output-storage';
 import * as path from 'path';
+import { IKey, Key } from 'aws-cdk-lib/aws-kms';
 
 type DefaultRoles = { auth: Role; unAuth: Role };
 type IdentityProviderSetupResult = {
@@ -130,6 +132,11 @@ export class AmplifyAuth
       role: Role;
     };
   } = {};
+  /**
+   * The KMS key used for encrypting custom email sender data.
+   * This is only set when using a custom email sender.
+   */
+  private customEmailSenderKMSkey: IKey | undefined;
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -141,24 +148,39 @@ export class AmplifyAuth
     props: AuthProps = DEFAULTS.IF_NO_PROPS_PROVIDED
   ) {
     super(scope, id);
-
     this.name = props.name ?? '';
     this.domainPrefix = props.loginWith.externalProviders?.domainPrefix;
-
     // UserPool
     this.computedUserPoolProps = this.getUserPoolProps(props);
+
     this.userPool = new cognito.UserPool(
       this,
       `${this.name}UserPool`,
       this.computedUserPoolProps
     );
+    /**
+     * Configure custom email sender for Cognito User Pool
+     * Grant necessary permissions for Lambda function to decrypt emails
+     * and allow Cognito to invoke the Lambda function
+     */
+    if (
+      props.senders?.email &&
+      'handler' in props.senders.email &&
+      this.customEmailSenderKMSkey
+    ) {
+      this.customEmailSenderKMSkey.grantDecrypt(props.senders.email.handler);
+      this.customEmailSenderKMSkey.grantEncrypt(props.senders.email.handler);
+      this.userPool.addTrigger(
+        UserPoolOperation.of('customEmailSender'),
+        props.senders.email.handler
+      );
+    }
 
     // UserPool - External Providers (Oauth, SAML, OIDC) and User Pool Domain
     this.providerSetupResult = this.setupExternalProviders(
       this.userPool,
       props.loginWith
     );
-
     // UserPool Client
     const userPoolClient = new cognito.UserPoolClient(
       this,
@@ -479,7 +501,30 @@ export class AmplifyAuth
       },
       { standardAttributes: {}, customAttributes: {} }
     );
-
+    /**
+     * Handle KMS key for custom email sender
+     * If a custom email sender is provided, we either use the provided KMS key ARN
+     * or create a new KMS key if one is not provided.
+     */
+    if (props.senders?.email && 'handler' in props.senders.email) {
+      if (props.senders.email.kmsKeyArn) {
+        // Use the provided KMS key ARN
+        this.customEmailSenderKMSkey = Key.fromKeyArn(
+          this,
+          `${this.name}CustomSenderKey`,
+          props.senders.email.kmsKeyArn
+        );
+      } else {
+        // Create a new KMS key if not provided
+        this.customEmailSenderKMSkey = new Key(
+          props.senders.email.handler.stack,
+          `${this.name}CustomSenderKey`,
+          {
+            enableKeyRotation: true,
+          }
+        );
+      }
+    }
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -504,15 +549,15 @@ export class AmplifyAuth
       customAttributes: {
         ...customAttributes,
       },
-      email: props.senders
-        ? cognito.UserPoolEmail.withSES({
-            fromEmail: props.senders.email.fromEmail,
-            fromName: props.senders.email.fromName,
-            replyTo: props.senders.email.replyTo,
-            sesRegion: Stack.of(this).region,
-          })
-        : undefined,
-
+      email:
+        props.senders && 'fromEmail' in props.senders.email
+          ? cognito.UserPoolEmail.withSES({
+              fromEmail: props.senders.email.fromEmail,
+              fromName: props.senders.email.fromName,
+              replyTo: props.senders.email.replyTo,
+              sesRegion: Stack.of(this).region,
+            })
+          : undefined,
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
       mfaMessage: this.getMFAMessage(props.multifactor),
@@ -529,6 +574,7 @@ export class AmplifyAuth
               props.loginWith.email?.userInvitation
             )
           : undefined,
+      customSenderKmsKey: this.customEmailSenderKMSkey,
     };
     return userPoolProps;
   };

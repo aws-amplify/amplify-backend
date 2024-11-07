@@ -1,5 +1,6 @@
 import {
   AuthRoleName,
+  BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -11,10 +12,6 @@ import {
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { AuthAccessGenerator, Expand } from './types.js';
-import {
-  AmplifyReferenceAuth,
-  ReferenceAuthProps,
-} from '@aws-amplify/auth-construct';
 import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
 import path from 'path';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
@@ -23,6 +20,42 @@ import { Stack, Tags } from 'aws-cdk-lib';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
 import { AmplifyAuthFactory } from './factory.js';
+import { AmplifyReferenceAuth } from './reference_construct.js';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas';
+
+export type ReferenceAuthProps = {
+  /**
+   * @internal
+   */
+  outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
+  /**
+   * Existing UserPool Id
+   */
+  userPoolId: string;
+  /**
+   * Existing IdentityPool Id
+   */
+  identityPoolId: string;
+  /**
+   * Existing UserPoolClient Id
+   */
+  userPoolClientId: string;
+  /**
+   * Existing AuthRole ARN
+   */
+  authRoleArn: string;
+  /**
+   * Existing UnauthRole ARN
+   */
+  unauthRoleArn: string;
+  /**
+   * A mapping of existing group names and their associated role ARNs
+   * which can be used for group permissions.
+   */
+  groups?: {
+    [groupName: string]: string;
+  };
+};
 
 export type BackendReferenceAuth = ResourceProvider<ReferenceAuthResources> &
   ResourceAccessAcceptorFactory<AuthRoleName | string> &
