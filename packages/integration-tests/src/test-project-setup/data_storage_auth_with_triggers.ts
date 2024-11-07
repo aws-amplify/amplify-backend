@@ -186,10 +186,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         ? environment[amplifySharedSecretNameKey]
         : createAmplifySharedSecretName();
     const { region } = e2eToolingClientConfig;
-    const env = {
+    const env: Record<string, string> = {
       [amplifySharedSecretNameKey]: this.amplifySharedSecret,
-      AWS_REGION: region ?? '',
     };
+    if (region) {
+      env.AWS_REGION = region;
+    }
 
     await this.setUpDeployEnvironment(backendIdentifier);
     await super.deploy(backendIdentifier, env);
