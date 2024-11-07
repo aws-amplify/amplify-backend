@@ -177,8 +177,8 @@ void describe(
 
           const expectedAmplifyFiles = [
             path.join('auth', 'resource.ts'),
-            path.join('data', 'resource.ts'),
             'backend.ts',
+            path.join('data', 'resource.ts'),
             'tsconfig.json',
           ];
 
