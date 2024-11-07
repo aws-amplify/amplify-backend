@@ -39,6 +39,7 @@ const TEST_RESOURCE_TAGS = {
 const TEST_RESOURCE_TAGS_ARRAY = [
   { Key: RESOURCE_TAG_KEY, Value: RESOURCE_TAG_VALUE },
 ];
+const TEST_AMPLIFY_RESOURCE_PREFIX = 'amplify-';
 
 type CleanupTask = {
   run: () => Promise<void>;
@@ -96,7 +97,9 @@ export class AuthResourceCreator {
     const result = await this.cognitoIdentityProviderClient.send(
       new CreateUserPoolCommand({
         ...props,
-        PoolName: `${props.PoolName}-${this.createResourceNameSuffix()}`,
+        PoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+          props.PoolName
+        }-${this.createResourceNameSuffix()}`,
         UserPoolTags: TEST_RESOURCE_TAGS,
       })
     );
@@ -121,7 +124,9 @@ export class AuthResourceCreator {
     const result = await this.cognitoIdentityProviderClient.send(
       new CreateUserPoolClientCommand({
         ...props,
-        ClientName: `${props.ClientName}-${this.createResourceNameSuffix()}`,
+        ClientName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+          props.ClientName
+        }-${this.createResourceNameSuffix()}`,
       })
     );
     const client = result.UserPoolClient;
@@ -145,7 +150,9 @@ export class AuthResourceCreator {
   createUserPoolDomainBase = async (
     props: CreateUserPoolDomainCommandInput
   ) => {
-    const domain = `${props.Domain}-${this.createResourceNameSuffix()}`;
+    const domain = `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+      props.Domain
+    }-${this.createResourceNameSuffix()}`;
     await this.cognitoIdentityProviderClient.send(
       new CreateUserPoolDomainCommand({
         ...props,
@@ -200,7 +207,7 @@ export class AuthResourceCreator {
       new CreateIdentityPoolCommand({
         ...props,
         IdentityPoolTags: TEST_RESOURCE_TAGS,
-        IdentityPoolName: `${
+        IdentityPoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
           props.IdentityPoolName
         }-${this.createResourceNameSuffix()}`,
       })
@@ -228,7 +235,9 @@ export class AuthResourceCreator {
     const result = await this.iamClient.send(
       new CreateRoleCommand({
         ...props,
-        RoleName: `${props.RoleName}-${this.createResourceNameSuffix()}`,
+        RoleName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+          props.RoleName
+        }-${this.createResourceNameSuffix()}`,
       })
     );
     const role = result.Role;
@@ -252,7 +261,9 @@ export class AuthResourceCreator {
     const result = await this.cognitoIdentityProviderClient.send(
       new CreateGroupCommand({
         ...props,
-        GroupName: `${props.GroupName}-${this.createResourceNameSuffix()}`,
+        GroupName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+          props.GroupName
+        }-${this.createResourceNameSuffix()}`,
       })
     );
     const group = result.Group;
