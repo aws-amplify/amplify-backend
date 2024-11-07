@@ -97,7 +97,7 @@ export class AuthResourceCreator {
     const result = await this.cognitoIdentityProviderClient.send(
       new CreateUserPoolCommand({
         ...props,
-        PoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+        PoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.PoolName
         }-${this.createResourceNameSuffix()}`,
         UserPoolTags: TEST_RESOURCE_TAGS,
@@ -124,7 +124,7 @@ export class AuthResourceCreator {
     const result = await this.cognitoIdentityProviderClient.send(
       new CreateUserPoolClientCommand({
         ...props,
-        ClientName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+        ClientName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.ClientName
         }-${this.createResourceNameSuffix()}`,
       })
@@ -150,7 +150,7 @@ export class AuthResourceCreator {
   createUserPoolDomainBase = async (
     props: CreateUserPoolDomainCommandInput
   ) => {
-    const domain = `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+    const domain = `${TEST_AMPLIFY_RESOURCE_PREFIX}${
       props.Domain
     }-${this.createResourceNameSuffix()}`;
     await this.cognitoIdentityProviderClient.send(
@@ -207,7 +207,7 @@ export class AuthResourceCreator {
       new CreateIdentityPoolCommand({
         ...props,
         IdentityPoolTags: TEST_RESOURCE_TAGS,
-        IdentityPoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+        IdentityPoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.IdentityPoolName
         }-${this.createResourceNameSuffix()}`,
       })
@@ -235,7 +235,7 @@ export class AuthResourceCreator {
     const result = await this.iamClient.send(
       new CreateRoleCommand({
         ...props,
-        RoleName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+        RoleName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.RoleName
         }-${this.createResourceNameSuffix()}`,
       })
@@ -261,7 +261,7 @@ export class AuthResourceCreator {
     const result = await this.cognitoIdentityProviderClient.send(
       new CreateGroupCommand({
         ...props,
-        GroupName: `${TEST_AMPLIFY_RESOURCE_PREFIX}-${
+        GroupName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.GroupName
         }-${this.createResourceNameSuffix()}`,
       })
