@@ -18,12 +18,9 @@ export const runWithRetry = async <T>(
     } catch (error) {
       if (error instanceof Error) {
         collectedErrors.push(error);
-
-        if (!retryPredicate(error) || attempt === maxAttempts) {
-          break;
+        if (!retryPredicate(error)) {
+          throw error;
         }
-      } else {
-        throw error; // Re-throw if it's not an Error object
       }
     }
   }
