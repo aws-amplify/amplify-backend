@@ -101,59 +101,58 @@ void describe('getting started happy path', async () => {
             tempDir
           ).run();
         }
-
-        const pathPrefix = path.join(tempDir, 'amplify');
-
-        const files = await glob(path.join(pathPrefix, '**', '*'), {
-          nodir: true,
-          windowsPathsNoEscape: true,
-          ignore: ['**/node_modules/**', '**/yarn.lock'],
-        });
-
-        const expectedAmplifyFiles = [
-          path.join('auth', 'resource.ts'),
-          'backend.ts',
-          path.join('data', 'resource.ts'),
-          'package.json',
-          'tsconfig.json',
-        ];
-
-        assert.deepStrictEqual(
-          files.sort(),
-          expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
-        );
-
-        await runWithPackageManager(
-          packageManager,
-          [
-            'ampx',
-            'pipeline-deploy',
-            '--branch',
-            branchBackendIdentifier.name,
-            '--appId',
-            branchBackendIdentifier.namespace,
-          ],
-          tempDir,
-          { env: { CI: 'true' } }
-        ).run();
-
-        const clientConfigStats = await fsp.stat(
-          await getClientConfigPath(ClientConfigFileBaseName.DEFAULT, tempDir)
-        );
-
-        assert.ok(clientConfigStats.isFile());
       },
       (error) => {
         // Retry on network-related errors or command failures
         return (
           error.message.includes('exit code 1') &&
-            (error.message.includes('@aws-amplify/backend') ||
-              error.message.includes('aws-amplify')),
-          error.message.includes('Command failed with exit code 1: yarn add')
+          (error.message.includes('aws-amplify') ||
+            error.message.includes('Command failed with exit code 1: yarn add'))
         );
       },
       3 // maxAttempts
     );
+
+    const pathPrefix = path.join(tempDir, 'amplify');
+
+    const files = await glob(path.join(pathPrefix, '**', '*'), {
+      nodir: true,
+      windowsPathsNoEscape: true,
+      ignore: ['**/node_modules/**', '**/yarn.lock'],
+    });
+
+    const expectedAmplifyFiles = [
+      path.join('auth', 'resource.ts'),
+      'backend.ts',
+      path.join('data', 'resource.ts'),
+      'package.json',
+      'tsconfig.json',
+    ];
+
+    assert.deepStrictEqual(
+      files.sort(),
+      expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
+    );
+
+    await runWithPackageManager(
+      packageManager,
+      [
+        'ampx',
+        'pipeline-deploy',
+        '--branch',
+        branchBackendIdentifier.name,
+        '--appId',
+        branchBackendIdentifier.namespace,
+      ],
+      tempDir,
+      { env: { CI: 'true' } }
+    ).run();
+
+    const clientConfigStats = await fsp.stat(
+      await getClientConfigPath(ClientConfigFileBaseName.DEFAULT, tempDir)
+    );
+
+    assert.ok(clientConfigStats.isFile());
   });
 
   void it('throw error on win32 using pnpm', async () => {
