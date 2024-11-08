@@ -7,18 +7,12 @@
 export const runWithRetry = async <T>(
   callable: () => Promise<T>,
   retryPredicate: (error: Error) => boolean,
-  maxAttempts = 3,
-  timeout?: number
+  maxAttempts = 3
 ): Promise<T> => {
-  const startTime = Date.now();
   const collectedErrors: Error[] = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      if (timeout && Date.now() - startTime >= timeout) {
-        throw new Error(`Operation timed out after ${timeout}ms`);
-      }
-
       const result = await callable();
       return result;
     } catch (error) {
@@ -28,9 +22,6 @@ export const runWithRetry = async <T>(
         if (!retryPredicate(error) || attempt === maxAttempts) {
           break;
         }
-
-        console.log(`Attempt ${attempt} failed. Retrying...`);
-        await new Promise((resolve) => setTimeout(resolve, 5000)); // 5 second delay between retries
       } else {
         throw error; // Re-throw if it's not an Error object
       }

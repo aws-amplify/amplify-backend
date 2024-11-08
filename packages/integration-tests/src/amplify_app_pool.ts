@@ -90,81 +90,75 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
   };
 
   private listAllTestAmplifyApps = async (): Promise<Array<App>> => {
-    return this.retryableOperation(async () => {
-      let nextToken: string | undefined = undefined;
-      const apps: Array<App> = [];
-      do {
-        const listAppsCommandOutput: ListAppsCommandOutput =
-          await this.amplifyClient.send(
-            new ListAppsCommand({
-              maxResults: 100,
-              nextToken,
-            })
-          );
-        nextToken = listAppsCommandOutput.nextToken;
-        listAppsCommandOutput.apps
-          ?.filter((app: App) => app.name?.startsWith(this.testAppPrefix))
-          .forEach((app: App) => {
-            apps.push(app);
-          });
-      } while (nextToken);
-      return apps;
-    });
+    let nextToken: string | undefined = undefined;
+    const apps: Array<App> = [];
+    do {
+      const listAppsCommandOutput: ListAppsCommandOutput =
+        await this.amplifyClient.send(
+          new ListAppsCommand({
+            maxResults: 100,
+            nextToken,
+          })
+        );
+      nextToken = listAppsCommandOutput.nextToken;
+      listAppsCommandOutput.apps
+        ?.filter((app: App) => app.name?.startsWith(this.testAppPrefix))
+        .forEach((app: App) => {
+          apps.push(app);
+        });
+    } while (nextToken);
+    return apps;
   };
 
   private listAppBranches = async (appId: string): Promise<Array<Branch>> => {
-    return this.retryableOperation(async () => {
-      let nextToken: string | undefined = undefined;
-      const branches: Array<Branch> = [];
-      do {
-        const listBranchesCommandOutput: ListBranchesCommandOutput =
-          await this.amplifyClient.send(
-            new ListBranchesCommand({
-              appId,
-              maxResults: 50,
-              nextToken,
-            })
-          );
-        nextToken = listBranchesCommandOutput.nextToken;
-        if (listBranchesCommandOutput.branches) {
-          listBranchesCommandOutput.branches.forEach((branch: Branch) => {
-            branches.push(branch);
-          });
-        }
-      } while (nextToken);
-      return branches;
-    });
+    let nextToken: string | undefined = undefined;
+    const branches: Array<Branch> = [];
+    do {
+      const listBranchesCommandOutput: ListBranchesCommandOutput =
+        await this.amplifyClient.send(
+          new ListBranchesCommand({
+            appId,
+            maxResults: 50,
+            nextToken,
+          })
+        );
+      nextToken = listBranchesCommandOutput.nextToken;
+      if (listBranchesCommandOutput.branches) {
+        listBranchesCommandOutput.branches.forEach((branch: Branch) => {
+          branches.push(branch);
+        });
+      }
+    } while (nextToken);
+    return branches;
   };
 
   private getAppWithCapacity = async (): Promise<App> => {
-    return this.retryableOperation(async () => {
-      const existingAmplifyApps = await this.listAllTestAmplifyApps();
-      for (const existingAmplifyApp of existingAmplifyApps) {
-        if (existingAmplifyApp.appId) {
-          const branches = await this.listAppBranches(existingAmplifyApp.appId);
-          if (branches.length < this.maxBranchesPerApp) {
-            return existingAmplifyApp;
-          }
+    const existingAmplifyApps = await this.listAllTestAmplifyApps();
+    for (const existingAmplifyApp of existingAmplifyApps) {
+      if (existingAmplifyApp.appId) {
+        const branches = await this.listAppBranches(existingAmplifyApp.appId);
+        if (branches.length < this.maxBranchesPerApp) {
+          return existingAmplifyApp;
         }
       }
+    }
 
-      if (existingAmplifyApps.length < this.maxNumberOfAmplifyApps) {
-        const newApp = (
-          await this.amplifyClient.send(
-            new CreateAppCommand({
-              name: `${this.testAppPrefix}-${shortUuid()}`,
-            })
-          )
-        ).app;
-        if (newApp) {
-          return newApp;
-        }
+    if (existingAmplifyApps.length < this.maxNumberOfAmplifyApps) {
+      const newApp = (
+        await this.amplifyClient.send(
+          new CreateAppCommand({
+            name: `${this.testAppPrefix}-${shortUuid()}`,
+          })
+        )
+      ).app;
+      if (newApp) {
+        return newApp;
       }
+    }
 
-      throw new Error(
-        'Unable to get Amplify App that has capacity to create branch'
-      );
-    });
+    throw new Error(
+      'Unable to get Amplify App that has capacity to create branch'
+    );
   };
 
   private tryCleanupBranchesCreatedByThisPool = async () => {
@@ -190,16 +184,9 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
       operation,
       (error) => {
         // Add specific error conditions here that warrant a retry
-        return (
-          error.message.includes("Unexpected token '<'") ||
-          error.name === 'ThrottlingException' ||
-          (error.message.includes('exit code 1') &&
-            error.message.includes('@aws-amplify/backend')) ||
-          error.message.includes('aws-amplify')
-        );
+        return error.message.includes('Unexpected token');
       },
-      3, // maxAttempts
-      1000 * 60 * 3 // 3 minute timeout
+      3 // maxAttempts
     );
   };
 }

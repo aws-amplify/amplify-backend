@@ -26,6 +26,7 @@ import {
   runWithPackageManager,
 } from './process-controller/process_controller.js';
 import { amplifyAtTag } from './constants.js';
+import { runWithRetry } from './retry.js';
 
 void describe('getting started happy path', async () => {
   let branchBackendIdentifier: BackendIdentifier;
@@ -81,76 +82,109 @@ void describe('getting started happy path', async () => {
     if (packageManager === 'pnpm' && process.platform === 'win32') {
       return;
     }
-    if (packageManager === 'yarn-classic') {
-      await execa('yarn', ['add', 'create-amplify'], { cwd: tempDir });
-      await execaCommand('./node_modules/.bin/create-amplify --yes --debug', {
-        cwd: tempDir,
-        env: { npm_config_user_agent: 'yarn/1.22.21' },
-      });
-    } else {
-      await runPackageManager(
-        packageManager,
-        ['create', amplifyAtTag, '--yes'],
-        tempDir
-      ).run();
-    }
 
-    const pathPrefix = path.join(tempDir, 'amplify');
+    await runWithRetry(
+      async () => {
+        if (packageManager === 'yarn-classic') {
+          await execa('yarn', ['add', 'create-amplify'], { cwd: tempDir });
+          await execaCommand(
+            './node_modules/.bin/create-amplify --yes --debug',
+            {
+              cwd: tempDir,
+              env: { npm_config_user_agent: 'yarn/1.22.21' },
+            }
+          );
+        } else {
+          await runPackageManager(
+            packageManager,
+            ['create', amplifyAtTag, '--yes'],
+            tempDir
+          ).run();
+        }
 
-    const files = await glob(path.join(pathPrefix, '**', '*'), {
-      nodir: true,
-      windowsPathsNoEscape: true,
-      ignore: ['**/node_modules/**', '**/yarn.lock'],
-    });
+        const pathPrefix = path.join(tempDir, 'amplify');
 
-    const expectedAmplifyFiles = [
-      path.join('auth', 'resource.ts'),
-      'backend.ts',
-      path.join('data', 'resource.ts'),
-      'package.json',
-      'tsconfig.json',
-    ];
+        const files = await glob(path.join(pathPrefix, '**', '*'), {
+          nodir: true,
+          windowsPathsNoEscape: true,
+          ignore: ['**/node_modules/**', '**/yarn.lock'],
+        });
 
-    assert.deepStrictEqual(
-      files.sort(),
-      expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
+        const expectedAmplifyFiles = [
+          path.join('auth', 'resource.ts'),
+          'backend.ts',
+          path.join('data', 'resource.ts'),
+          'package.json',
+          'tsconfig.json',
+        ];
+
+        assert.deepStrictEqual(
+          files.sort(),
+          expectedAmplifyFiles.map((suffix) => path.join(pathPrefix, suffix))
+        );
+
+        await runWithPackageManager(
+          packageManager,
+          [
+            'ampx',
+            'pipeline-deploy',
+            '--branch',
+            branchBackendIdentifier.name,
+            '--appId',
+            branchBackendIdentifier.namespace,
+          ],
+          tempDir,
+          { env: { CI: 'true' } }
+        ).run();
+
+        const clientConfigStats = await fsp.stat(
+          await getClientConfigPath(ClientConfigFileBaseName.DEFAULT, tempDir)
+        );
+
+        assert.ok(clientConfigStats.isFile());
+      },
+      (error) => {
+        // Retry on network-related errors or command failures
+        return (
+          error.message.includes('exit code 1') &&
+            (error.message.includes('@aws-amplify/backend') ||
+              error.message.includes('aws-amplify')),
+          error.message.includes('Command failed with exit code 1: yarn add')
+        );
+      },
+      3 // maxAttempts
     );
-
-    await runWithPackageManager(
-      packageManager,
-      [
-        'ampx',
-        'pipeline-deploy',
-        '--branch',
-        branchBackendIdentifier.name,
-        '--appId',
-        branchBackendIdentifier.namespace,
-      ],
-      tempDir,
-      { env: { CI: 'true' } }
-    ).run();
-
-    const clientConfigStats = await fsp.stat(
-      await getClientConfigPath(ClientConfigFileBaseName.DEFAULT, tempDir)
-    );
-
-    assert.ok(clientConfigStats.isFile());
   });
 
   void it('throw error on win32 using pnpm', async () => {
     if (packageManager === 'pnpm' && process.platform === 'win32') {
       await assert.rejects(
-        execa('pnpm', ['create', amplifyAtTag, '--yes'], {
-          cwd: tempDir,
-        }),
-        (error) => {
-          const errorMessage = error instanceof Error ? error.message : '';
-          assert.match(
-            errorMessage,
-            /Amplify does not support PNPM on Windows./
-          );
-          return true;
-        }
+        runWithRetry(
+          async () => {
+            if (packageManager === 'pnpm' && process.platform === 'win32') {
+              await assert.rejects(
+                execa('pnpm', ['create', amplifyAtTag, '--yes'], {
+                  cwd: tempDir,
+                }),
+                (error) => {
+                  const errorMessage =
+                    error instanceof Error ? error.message : '';
+                  assert.match(
+                    errorMessage,
+                    /Amplify does not support PNPM on Windows./
+                  );
+                  return true;
+                }
+              );
+            }
+          },
+          (error) => {
+            return error.message.includes(
+              'Unexpected token \'<\', "<!DOCTYPE "... is not valid JSON'
+            );
+          },
+          3 // Only attempt once
+        )
       );
     }
   });
