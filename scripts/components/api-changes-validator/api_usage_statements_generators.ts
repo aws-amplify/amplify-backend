@@ -566,7 +566,18 @@ export class CallableUsageStatementsGenerator
       ).generate().usageStatement ?? '';
     let returnValueAssignmentTarget = '';
     if (this.functionType.type.kind !== ts.SyntaxKind.VoidKeyword) {
-      returnValueAssignmentTarget = `const returnValue: ${this.functionType.type.getText()} = `;
+      let returnType;
+      if (this.functionType.type.kind === ts.SyntaxKind.TypePredicate) {
+        // Example type predicate looks like this
+        // '(input: unknown) => input is SampleType;'
+        // It's a special syntax that tells compiler that it's safe to assume
+        // type after invoking the check.
+        // But when it comes to value assignment this is treated as boolean.
+        returnType = 'boolean';
+      } else {
+        returnType = this.functionType.type.getText();
+      }
+      returnValueAssignmentTarget = `const returnValue: ${returnType} = `;
     }
     const minParameterUsage =
       new CallableParameterUsageStatementsGenerator(
