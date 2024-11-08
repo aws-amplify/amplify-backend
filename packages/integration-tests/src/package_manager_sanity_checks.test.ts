@@ -109,8 +109,7 @@ void describe('getting started happy path', async () => {
           (error.message.includes('aws-amplify') ||
             error.message.includes('Command failed with exit code 1: yarn add'))
         );
-      },
-      3 // maxAttempts
+      }
     );
 
     const pathPrefix = path.join(tempDir, 'amplify');
@@ -178,8 +177,7 @@ void describe('getting started happy path', async () => {
         return error.message.includes(
           'Unexpected token \'<\', "<!DOCTYPE "... is not valid JSON'
         );
-      },
-      3 // Only attempt once
+      }
     );
   });
 });

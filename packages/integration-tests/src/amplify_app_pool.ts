@@ -180,14 +180,10 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
   };
 
   private retryableOperation = <T>(operation: () => Promise<T>) => {
-    return runWithRetry(
-      operation,
-      (error) => {
-        // Add specific error conditions here that warrant a retry
-        return error.message.includes('Unexpected token');
-      },
-      3 // maxAttempts
-    );
+    return runWithRetry(operation, (error) => {
+      // Add specific error conditions here that warrant a retry
+      return error.message.includes('Unexpected token');
+    });
   };
 }
 
