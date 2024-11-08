@@ -31,14 +31,6 @@ import {
 } from '@aws-sdk/client-cognito-identity';
 import { shortUuid } from '../short_uuid.js';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
-const RESOURCE_TAG_KEY = 'amplify-e2e-resource';
-const RESOURCE_TAG_VALUE = 'true';
-const TEST_RESOURCE_TAGS = {
-  [RESOURCE_TAG_KEY]: RESOURCE_TAG_VALUE,
-};
-const TEST_RESOURCE_TAGS_ARRAY = [
-  { Key: RESOURCE_TAG_KEY, Value: RESOURCE_TAG_VALUE },
-];
 const TEST_AMPLIFY_RESOURCE_PREFIX = 'amplify-';
 
 type CleanupTask = {
@@ -100,7 +92,6 @@ export class AuthResourceCreator {
         PoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.PoolName
         }-${this.createResourceNameSuffix()}`,
-        UserPoolTags: TEST_RESOURCE_TAGS,
       })
     );
     const userPool = result.UserPool;
@@ -206,7 +197,6 @@ export class AuthResourceCreator {
     const identityPoolResponse = await this.cognitoIdentityClient.send(
       new CreateIdentityPoolCommand({
         ...props,
-        IdentityPoolTags: TEST_RESOURCE_TAGS,
         IdentityPoolName: `${TEST_AMPLIFY_RESOURCE_PREFIX}${
           props.IdentityPoolName
         }-${this.createResourceNameSuffix()}`,
@@ -295,7 +285,6 @@ export class AuthResourceCreator {
         identityPoolId,
         'authenticated'
       ),
-      Tags: TEST_RESOURCE_TAGS_ARRAY,
     });
     const group = await this.createUserPoolGroupBase({
       GroupName: groupName,
@@ -323,7 +312,6 @@ export class AuthResourceCreator {
         identityPoolId,
         'authenticated'
       ),
-      Tags: TEST_RESOURCE_TAGS_ARRAY,
     });
     const unauthRole = await this.createRoleBase({
       RoleName: `ref-unauth-role`,
@@ -331,7 +319,6 @@ export class AuthResourceCreator {
         identityPoolId,
         'unauthenticated'
       ),
-      Tags: TEST_RESOURCE_TAGS_ARRAY,
     });
     const region = await this.cognitoIdentityClient.config.region();
     await this.cognitoIdentityClient.send(
