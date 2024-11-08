@@ -157,35 +157,30 @@ void describe('getting started happy path', async () => {
   });
 
   void it('throw error on win32 using pnpm', async () => {
-    if (packageManager === 'pnpm' && process.platform === 'win32') {
-      await assert.rejects(
-        runWithRetry(
-          async () => {
-            if (packageManager === 'pnpm' && process.platform === 'win32') {
-              await assert.rejects(
-                execa('pnpm', ['create', amplifyAtTag, '--yes'], {
-                  cwd: tempDir,
-                }),
-                (error) => {
-                  const errorMessage =
-                    error instanceof Error ? error.message : '';
-                  assert.match(
-                    errorMessage,
-                    /Amplify does not support PNPM on Windows./
-                  );
-                  return true;
-                }
+    await runWithRetry(
+      async () => {
+        if (packageManager === 'pnpm' && process.platform === 'win32') {
+          await assert.rejects(
+            execa('pnpm', ['create', amplifyAtTag, '--yes'], {
+              cwd: tempDir,
+            }),
+            (error) => {
+              const errorMessage = error instanceof Error ? error.message : '';
+              assert.match(
+                errorMessage,
+                /Amplify does not support PNPM on Windows./
               );
+              return true;
             }
-          },
-          (error) => {
-            return error.message.includes(
-              'Unexpected token \'<\', "<!DOCTYPE "... is not valid JSON'
-            );
-          },
-          3 // Only attempt once
-        )
-      );
-    }
+          );
+        }
+      },
+      (error) => {
+        return error.message.includes(
+          'Unexpected token \'<\', "<!DOCTYPE "... is not valid JSON'
+        );
+      },
+      3 // Only attempt once
+    );
   });
 });
