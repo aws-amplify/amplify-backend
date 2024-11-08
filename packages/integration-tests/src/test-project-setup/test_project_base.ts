@@ -133,11 +133,11 @@ export abstract class TestProjectBase {
     stackName: string,
     timeoutInMS: number = 3 * 60 * 1000
   ): Promise<boolean> {
-    let deleted = false;
-    let attempts = 1;
+    let attempts = 0;
     let totalTimeWaitedMs = 0;
     const maxIntervalMs = 32 * 1000;
-    do {
+    while (totalTimeWaitedMs < timeoutInMS) {
+      attempts++;
       const intervalMs = Math.min(Math.pow(2, attempts) * 1000, maxIntervalMs);
       console.log(`waiting: ${intervalMs} milliseconds`);
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
@@ -152,37 +152,30 @@ export abstract class TestProjectBase {
           JSON.stringify(status.Stacks?.map((s) => s.StackName) ?? [])
         );
         if (!status.Stacks || status.Stacks.length == 0) {
-          deleted = true;
           console.log(`Stack ${stackName} was deleted successfully.`);
-          break;
+          return true;
         }
       } catch (e) {
         if (
           e instanceof CloudFormationServiceException &&
           e.message.includes('does not exist')
         ) {
-          deleted = true;
           console.log(`Stack ${stackName} was deleted successfully.`);
-          break;
-        } else {
-          console.error(
-            `Could not describe stack ${stackName} while waiting for deletion.`,
-            e
-          );
-          throw e;
+          return true;
         }
-      }
-      if (totalTimeWaitedMs >= timeoutInMS) {
         console.error(
-          `Stack ${stackName} did not delete within ${
-            timeoutInMS / 1000
-          } seconds, continuing.`
+          `Could not describe stack ${stackName} while waiting for deletion.`,
+          e
         );
-        break;
+        throw e;
       }
-      attempts++;
-    } while (!deleted);
-    return deleted;
+    }
+    console.error(
+      `Stack ${stackName} did not delete within ${
+        timeoutInMS / 1000
+      } seconds, continuing.`
+    );
+    return false;
   }
 
   /**
