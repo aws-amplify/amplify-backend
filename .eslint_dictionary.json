@@ -135,6 +135,7 @@
   "renderer",
   "repo",
   "resolvers",
+  "retryable",
   "saml",
   "scala",
   "schema",
