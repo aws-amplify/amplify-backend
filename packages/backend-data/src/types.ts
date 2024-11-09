@@ -139,6 +139,9 @@ export type DataProps = {
    * Functions invokable by the API. The specific input type of the function is subject to change or removal.
    */
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+
+  databaseType?: 'AMAZON_DYNAMODB' | 'AMAZON_AURORA';
+  enableRestApi?: boolean;
 };
 
 export type AmplifyDataError =

@@ -11,8 +11,11 @@ import {
 } from '@aws-amplify/plugin-types';
 import {
   AmplifyData,
+  AmplifyDataDefinition,
   AmplifyDynamoDbTableWrapper,
   IAmplifyDataDefinition,
+  ModelDataSourceStrategy,
+  SQLLambdaModelDataSourceStrategy,
   TranslationBehavior,
 } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
@@ -45,6 +48,9 @@ import {
   FunctionSchemaAccess,
   JsResolver,
 } from '@aws-amplify/data-schema-types';
+import { AmplifyDatabase, AmplifyDatabaseSchema, AmplifyRestApi } from '@aws-amplify/sql-database-constructs';
+import { Vpc, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -235,10 +241,75 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     const isSandboxDeployment =
       scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
 
+    const vpc = Vpc.fromLookup(scope, 'VPC', { isDefault: true });
+    let connectionString: any = {};
+    if (this.props.databaseType === 'AMAZON_AURORA') {
+      const schemaLogicalId = getSchemaConstructId('SQLDatabaseSchema');
+      
+      // Provisions SQL Database
+      const database = new AmplifyDatabase(scope, 'AmplifyDatabase', {
+        dbType: 'POSTGRES',
+        vpc, // This won't be needed in the future
+      });
+
+      // Manages SQL Database Schema
+      new AmplifyDatabaseSchema(scope, schemaLogicalId, {
+        ResourceArn: database.resources.databaseCluster.clusterArn,
+        SecretArn: database.resources.dataApiSecret.secretArn,
+        Schema: this.props.schema,
+      });
+
+      if (this.props.enableRestApi) {
+        // Provisions REST API for a given schema
+        new AmplifyRestApi(scope, 'AmplifyRestApi', {
+          ResourceArn: database.resources.databaseCluster.clusterArn,
+          SecretArn: database.resources.dataApiSecret.secretArn,
+          Schema: this.props.schema,
+        });
+      }
+
+      const databaseEndpoint = database.resources.databaseCluster.clusterEndpoint.hostname;
+      const databasePort = database.resources.databaseCluster.clusterEndpoint.port;
+      const databaseName = 'postgres';
+      // connectionString = `postgresql://${databaseUserName}:${databasePassword}@${databaseEndpoint}:${databasePort}/${databaseName}`;
+      connectionString['hostname'] = databaseEndpoint;
+      connectionString['port'] = databasePort;
+      connectionString['databaseName'] = databaseName;
+      connectionString['secretArn'] = database.resources.dataApiSecret.secretArn;
+
+    }
+
+    const { schema: gqlSchema } = (this.props.schema as any).transform();
+    const defaultSecurityGroup = SecurityGroup.fromLookupByName(
+      scope,
+      'DefaultSecurityGroup',
+      'default',
+      vpc
+    );
+
+    const dataSourceStrategy: SQLLambdaModelDataSourceStrategy = {
+      dbType: 'POSTGRES',
+      name: 'SQLLambdaModelDataSourceStrategy',
+      vpcConfiguration: {
+        vpcId: vpc.vpcId,
+        securityGroupIds: [defaultSecurityGroup.securityGroupId],
+        subnetAvailabilityZoneConfig: vpc.publicSubnets.map((subnet) => ({
+          subnetId: subnet.subnetId,
+          availabilityZone: subnet.availabilityZone,
+        })),
+      },
+      dbConnectionConfig: {
+        ...connectionString,
+      },
+    };
+
+    const dataDefinition = AmplifyDataDefinition.fromString(gqlSchema, dataSourceStrategy);
+
     try {
       amplifyApi = new AmplifyData(scope, this.name, {
         apiName: this.name,
-        definition: combineCDKSchemas(amplifyGraphqlDefinitions),
+        // definition: combineCDKSchemas(amplifyGraphqlDefinitions),
+        definition: dataDefinition,
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
         functionNameMap,
@@ -297,6 +368,17 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     return amplifyApi;
   };
+}
+
+export const getSchemaConstructId = (prefix: string) => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0'); // +1 because months are 0-indexed
+  const day = date.getDate().toString().padStart(2, '0');
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${prefix}${year}${month}${day}${hours}${minutes}${seconds}`;
 }
 
 const REPLACE_TABLE_UPON_GSI_UPDATE_ATTRIBUTE_NAME: keyof TranslationBehavior =

@@ -19,6 +19,6 @@ verdaccio-logs.txt
 cdk.out/
 e2e-tests
 concurrent_workspace_script_cache.json
-
+*.tgz
 testDir
 /.amplify
