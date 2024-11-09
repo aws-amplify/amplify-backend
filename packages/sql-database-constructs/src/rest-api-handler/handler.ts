@@ -1,8 +1,8 @@
 // src/lambda/handler.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { DataApiService } from './dataapi-service';
-import { QueryBuilder } from './query-builder';
-import { RecordMapper } from './record-mapper';
+import { DataApiService } from './dataapi-service.js';
+import { QueryBuilder } from './query-builder.js';
+import { RecordMapper } from './record-mapper.js';
 
 const dataApiService = new DataApiService();
 

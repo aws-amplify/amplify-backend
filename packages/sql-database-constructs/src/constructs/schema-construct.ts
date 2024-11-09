@@ -1,7 +1,7 @@
 import { CfnResource, Resource } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as crypto from 'crypto';
-import { generateSqlSchema } from '../utils/parse-schema';
+import { generateSqlSchema } from '../utils/parse-schema.js';
 
 export interface AmplifyDatabaseSchemaProps {
   // List all the properties 

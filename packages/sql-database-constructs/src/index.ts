@@ -2,4 +2,4 @@ export {
   AmplifyDatabase,
   AmplifyDatabaseSchema,
   AmplifyRestApi,
- } from './constructs';
+ } from './constructs/index.js';

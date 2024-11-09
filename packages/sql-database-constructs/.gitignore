@@ -1,8 +1,0 @@
-*.d.ts
-*.ts.map
-*.js
-*.js.map
-lib/*
-amplify-sql-database-constructs-*.tgz
-.DS_Store
-node_modules/

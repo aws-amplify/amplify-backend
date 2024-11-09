@@ -10,7 +10,7 @@ import {
   ParameterGroup,
 } from 'aws-cdk-lib/aws-rds';
 // import type { SQLLambdaModelDataSourceStrategy } from '@aws-amplify/graphql-api-construct';
-import { IVpc } from 'aws-cdk-lib/aws-ec2';
+import { IVpc, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import { IDatabaseCluster } from 'aws-cdk-lib/aws-rds';
 import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
@@ -87,6 +87,12 @@ export class AmplifyDatabase extends Construct {
         'rds.logical_replication': '1',
       },
     });
+    const defaultSecurityGroup = SecurityGroup.fromLookupByName(
+      this,
+      'DefaultSecurityGroup',
+      'default',
+      props.vpc,
+    );
     return new DatabaseCluster(this, 'AmplifyDatabaseCluster', {
       engine: this.getDatabaseClusterEngine(props.dbType),
       writer: ClusterInstance.serverlessV2('writer'),
@@ -96,6 +102,9 @@ export class AmplifyDatabase extends Construct {
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
       parameterGroup,
       credentials: rds.Credentials.fromSecret(secret),
+      securityGroups: [
+        defaultSecurityGroup
+      ]
     });
   }
 

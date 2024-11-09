@@ -1,12 +1,11 @@
-// lib/api-stack.ts
 import * as cdk from 'aws-cdk-lib';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as lambdaNode from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { Stack } from 'aws-cdk-lib';
-import { generateSqlSchema } from '../utils/parse-schema';
-import { LambdaIntegrationNoPremission } from './lambda-integration-no-permission';
+import { generateSqlSchema } from '../utils/parse-schema.js';
+import { LambdaIntegrationNoPremission } from './lambda-integration-no-permission.js';
 import pluralize = require('pluralize');
 import * as s3assets from 'aws-cdk-lib/aws-s3-assets';
 import * as fs from 'fs';

@@ -3,7 +3,7 @@ import {
   ExecuteStatementCommand,
   SqlParameter 
 } from '@aws-sdk/client-rds-data';
-import { readJsonFromS3 } from './s3-util';
+import { readJsonFromS3 } from './s3-util.js';
 
 let tableDefinitionsFromS3: Record<string, any>[] | undefined = undefined;
 

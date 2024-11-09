@@ -1,37 +1,7 @@
 {
-  "name": "@aws-amplify/sql-database-constructs",
+  "name": "@aws-amplify/sql-database-contructs",
   "version": "1.0.0",
-  "description": "",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "update:api": "api-extractor run --local"
-  },
-  "devDependencies": {
-    "@types/jest": "^29.5.12",
-    "@types/node": "20.14.9",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.1.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.5.3"
-  },
-  "dependencies": {
-    "@aws-amplify/data-schema": "^1.10.2",
-    "@aws-sdk/client-rds-data": "^3.682.0",
-    "@aws-sdk/client-s3": "^3.685.0",
-    "@types/pluralize": "^0.0.33",
-    "constructs": "^10.0.0",
-    "graphql": "^16.9.0",
-    "graphql-transformer-common": "^5.0.1",
-    "pluralize": "^8.0.0",
-    "source-map-support": "^0.5.21"
-  },
-  "peerDependencies": {
-    "aws-cdk-lib": "^2.158.0"
-  },
-  "author": "Christopher Sundersingh",
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },
@@ -42,5 +12,23 @@
       "require": "./lib/index.js"
     }
   },
-  "license": "Apache-2.0"
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-amplify/data-schema": "^1.10.2",
+    "@aws-sdk/client-rds-data": "^3.682.0",
+    "@aws-sdk/client-s3": "^3.685.0",
+    "@types/pluralize": "^0.0.33",
+    "constructs": "^10.0.0",
+    "graphql": "^15.5.0",
+    "graphql-transformer-common": "^5.0.1",
+    "pluralize": "^8.0.0",
+    "source-map-support": "^0.5.21"
+  },
+  "peerDependencies": {
+    "aws-cdk-lib": "^2.158.0"
+  }
 }
