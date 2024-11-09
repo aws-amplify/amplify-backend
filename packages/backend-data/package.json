@@ -30,8 +30,9 @@
   "dependencies": {
     "@aws-amplify/backend-output-storage": "^1.1.3",
     "@aws-amplify/backend-output-schemas": "^1.4.0",
-    "@aws-amplify/data-construct": "^1.10.1",
+    "@aws-amplify/data-construct": "^1.13.0",
     "@aws-amplify/plugin-types": "^1.3.1",
-    "@aws-amplify/data-schema-types": "^1.2.0"
+    "@aws-amplify/data-schema-types": "^1.2.0",
+    "graphql": "^15.8.0"
   }
 }
