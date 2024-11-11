@@ -43,6 +43,7 @@ export type AuthResources = {
     userPoolClient: IUserPoolClient;
     authenticatedUserIamRole: IRole;
     unauthenticatedUserIamRole: IRole;
+    identityPoolId: string;
     cfnResources: AuthCfnResources;
     groups: {
         [groupName: string]: {
@@ -191,6 +192,20 @@ export type PackageManagerController = {
 
 // @public (undocumented)
 export type ProjectName = string;
+
+// @public
+export type ReferenceAuthResources = {
+    userPool: IUserPool;
+    userPoolClient: IUserPoolClient;
+    authenticatedUserIamRole: IRole;
+    unauthenticatedUserIamRole: IRole;
+    identityPoolId: string;
+    groups: {
+        [groupName: string]: {
+            role: IRole;
+        };
+    };
+};
 
 // @public (undocumented)
 export type ResolvePathResult = {
