@@ -380,6 +380,12 @@ const testErrorMappings = [
     errorName: 'MissingDefineBackendError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `User: <bootstrap-exec-role-arn> is not authorized to perform: lambda:GetLayerVersion on resource: <resource-arn> because no resource-based policy allows the lambda:GetLayerVersion action`,
+    expectedTopLevelErrorMessage: 'Unable to get Lambda layer version',
+    errorName: 'GetLambdaLayerVersionError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {

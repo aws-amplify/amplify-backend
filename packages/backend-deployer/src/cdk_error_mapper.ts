@@ -197,6 +197,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /User:(.*) is not authorized to perform: lambda:GetLayerVersion on resource:(.*) because no resource-based policy allows the lambda:GetLayerVersion action/,
+      humanReadableErrorMessage: 'Unable to get Lambda layer version',
+      resolutionMessage:
+        'Make sure layer ARNs are correct and layer regions match function region',
+      errorName: 'GetLambdaLayerVersionError',
+      classification: 'ERROR',
+    },
+    {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
@@ -360,4 +369,5 @@ export type CDKDeploymentError =
   | 'FileConventionError'
   | 'ModuleNotFoundError'
   | 'SecretNotSetError'
-  | 'SyntaxError';
+  | 'SyntaxError'
+  | 'GetLambdaLayerVersionError';
