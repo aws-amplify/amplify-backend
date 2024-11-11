@@ -1,5 +1,17 @@
 # @aws-amplify/backend-auth
 
+## 1.4.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
+### Patch Changes
+
+- Updated dependencies [90a7c49]
+  - @aws-amplify/auth-construct@1.5.0
+  - @aws-amplify/plugin-types@1.4.0
+
 ## 1.3.0
 
 ### Minor Changes

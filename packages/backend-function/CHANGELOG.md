@@ -1,5 +1,13 @@
 # @aws-amplify/backend-function
 
+## 1.7.5
+
+### Patch Changes
+
+- 12cf209: update error mapping to catch when Lambda layer ARN regions do not match function region
+- Updated dependencies [90a7c49]
+  - @aws-amplify/plugin-types@1.4.0
+
 ## 1.7.4
 
 ### Patch Changes

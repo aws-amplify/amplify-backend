@@ -1,5 +1,14 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.9
+
+### Patch Changes
+
+- 7f2f68b: Handle errors when checking CDK bootstrap.
+- 12cf209: update error mapping to catch when Lambda layer ARN regions do not match function region
+- Updated dependencies [90a7c49]
+  - @aws-amplify/plugin-types@1.4.0
+
 ## 1.1.8
 
 ### Patch Changes
