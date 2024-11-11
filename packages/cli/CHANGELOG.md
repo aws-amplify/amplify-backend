@@ -1,5 +1,18 @@
 # @aws-amplify/backend-cli
 
+## 1.4.2
+
+### Patch Changes
+
+- f08abe4: Handle case when AWS region is configured as blank string
+- Updated dependencies [443e2ff]
+- Updated dependencies [7f2f68b]
+- Updated dependencies [90a7c49]
+- Updated dependencies [12cf209]
+  - @aws-amplify/model-generator@1.0.9
+  - @aws-amplify/backend-deployer@1.1.9
+  - @aws-amplify/plugin-types@1.4.0
+
 ## 1.4.1
 
 ### Patch Changes

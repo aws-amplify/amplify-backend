@@ -1,5 +1,21 @@
 # @aws-amplify/backend
 
+## 1.7.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
+### Patch Changes
+
+- 12cf209: update error mapping to catch when Lambda layer ARN regions do not match function region
+- Updated dependencies [90a7c49]
+- Updated dependencies [12cf209]
+  - @aws-amplify/backend-auth@1.4.0
+  - @aws-amplify/backend-data@1.2.0
+  - @aws-amplify/plugin-types@1.4.0
+  - @aws-amplify/backend-function@1.7.5
+
 ## 1.6.2
 
 ### Patch Changes

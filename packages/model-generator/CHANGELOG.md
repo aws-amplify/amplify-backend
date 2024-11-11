@@ -1,5 +1,13 @@
 # @aws-amplify/model-generator
 
+## 1.0.9
+
+### Patch Changes
+
+- 443e2ff: bump graphql-generator dependency version to 0.5.1
+- Updated dependencies [90a7c49]
+  - @aws-amplify/plugin-types@1.4.0
+
 ## 1.0.8
 
 ### Patch Changes

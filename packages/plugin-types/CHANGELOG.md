@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.4.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
 ## 1.3.1
 
 ### Patch Changes
