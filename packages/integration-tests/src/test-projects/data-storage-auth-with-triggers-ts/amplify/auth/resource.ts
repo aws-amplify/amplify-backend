@@ -1,9 +1,5 @@
 import { defineAuth, secret } from '@aws-amplify/backend';
-import { defaultNodeFunc, funcCustomEmailSender } from '../function.js';
-
-const customEmailSenderFunction = {
-  handler: funcCustomEmailSender,
-};
+import { defaultNodeFunc } from '../function.js';
 
 export const auth = defineAuth({
   loginWith: {
@@ -24,9 +20,6 @@ export const auth = defineAuth({
       callbackUrls: ['https://redirect.com'],
       logoutUrls: ['https://logout.com'],
     },
-  },
-  senders: {
-    email: customEmailSenderFunction,
   },
   triggers: {
     postConfirmation: defaultNodeFunc,

@@ -13,6 +13,7 @@ import {
 } from '@aws-sdk/client-amplify';
 import { shortUuid } from './short_uuid.js';
 import { e2eToolingClientConfig } from './e2e_tooling_client_config.js';
+import { runWithRetry } from './retry.js';
 
 export type TestBranch = {
   readonly appId: string;
@@ -46,42 +47,46 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
   }
 
   fetchTestBranchDetails = async (testBranch: TestBranch): Promise<Branch> => {
-    const branch = (
-      await this.amplifyClient.send(
-        new GetBranchCommand({
-          appId: testBranch.appId,
-          branchName: testBranch.branchName,
-        })
-      )
-    ).branch;
-    if (!branch) {
-      throw new Error(
-        `Failed to retrieve ${testBranch.branchName} branch of app ${testBranch.appId}`
-      );
-    }
-    return branch;
+    return this.retryableOperation(async () => {
+      const branch = (
+        await this.amplifyClient.send(
+          new GetBranchCommand({
+            appId: testBranch.appId,
+            branchName: testBranch.branchName,
+          })
+        )
+      ).branch;
+      if (!branch) {
+        throw new Error(
+          `Failed to retrieve ${testBranch.branchName} branch of app ${testBranch.appId}`
+        );
+      }
+      return branch;
+    });
   };
 
   createTestBranch = async (): Promise<TestBranch> => {
-    const app = await this.getAppWithCapacity();
-    const branch = (
-      await this.amplifyClient.send(
-        new CreateBranchCommand({
-          branchName: `${this.testBranchPrefix}${shortUuid()}`,
+    return this.retryableOperation(async () => {
+      const app = await this.getAppWithCapacity();
+      const branch = (
+        await this.amplifyClient.send(
+          new CreateBranchCommand({
+            branchName: `${this.testBranchPrefix}${shortUuid()}`,
+            appId: app.appId,
+          })
+        )
+      ).branch;
+      if (app.appId && branch?.branchName) {
+        const testBranch: TestBranch = {
           appId: app.appId,
-        })
-      )
-    ).branch;
-    if (app.appId && branch?.branchName) {
-      const testBranch: TestBranch = {
-        appId: app.appId,
-        branchName: branch.branchName,
-      };
-      this.branchesCreated.push(testBranch);
-      return testBranch;
-    }
+          branchName: branch.branchName,
+        };
+        this.branchesCreated.push(testBranch);
+        return testBranch;
+      }
 
-    throw new Error('Unable to create branch');
+      throw new Error('Unable to create branch');
+    });
   };
 
   private listAllTestAmplifyApps = async (): Promise<Array<App>> => {
@@ -172,6 +177,16 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
         );
       }
     }
+  };
+
+  private retryableOperation = <T>(operation: () => Promise<T>) => {
+    return runWithRetry(operation, (error) => {
+      // Add specific error conditions here that warrant a retry
+      return (
+        error.message.includes('Unexpected token') ||
+        error.message.includes('Bad control character')
+      );
+    });
   };
 }
 
