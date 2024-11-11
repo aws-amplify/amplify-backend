@@ -19,8 +19,15 @@ runs:
       with:
         role-to-assume: ${{ inputs.role-to-assume }}
         aws-region: ${{ inputs.aws-region }}
-        output-credentials: true # places the credentials in the GH context object rather than setting env vars
-      # the AWS credentials action does not have an option to configure a profile, so this manually configures one
+        # Credentials with special characters are not handled correctly on Windows
+        # when put into profile files. This forces action to retry until credentials without special characters
+        # are retrieved
+        # See: https://github.com/aws-actions/configure-aws-credentials/issues/599
+        # and https://github.com/aws-actions/configure-aws-credentials/issues/528
+        special-characters-workaround: ${{ contains(runner.os, 'Windows') }}
+        # places the credentials in the GH context object rather than setting env vars
+        # the AWS credentials action does not have an option to configure a profile, so this manually configures one
+        output-credentials: true
     - shell: bash
       run: |
         aws configure set aws_access_key_id ${{ steps.credentials.outputs.aws-access-key-id }} --profile ${{ inputs.profile-name }}
