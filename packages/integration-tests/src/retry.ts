@@ -45,20 +45,14 @@ export class RetryPredicates {
     error: Error
   ): boolean => {
     const message = error.message.toLowerCase();
-    const knowProcessExitedWithError =
-      message.includes('exit code 1') &&
-      (message.includes('yarn add') ||
-        message.includes('npm create amplify') ||
-        message.includes('pnpm create amplify'));
-    const isKnownError =
-      // Registries may return 404 right after transitive dependency release
-      // when their CDN cache is getting eventually consistent with new version.
-      // I.e. Package manager may resolve brand new latest version but subsequent attempt to
-      // get package payload gives 404
-      message.includes('package not found') ||
-      message.includes('404') ||
-      // Retry on random connection instabilities.
-      message.includes('ECONNRESET');
-    return knowProcessExitedWithError && isKnownError;
+    // Note: we can't assert on whole stdout or stderr because
+    // they're not always captured in the error due to settings we need for
+    // ProcessController to work.
+    const didProcessExitWithError = message.includes('exit code 1');
+    const isKnownProcess =
+      (message.includes('yarn add') && message.includes('aws-amplify')) ||
+      message.includes('npm create amplify') ||
+      message.includes('pnpm create amplify');
+    return didProcessExitWithError && isKnownProcess;
   };
 }
