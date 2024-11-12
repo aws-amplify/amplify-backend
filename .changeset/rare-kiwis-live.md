@@ -1,4 +1,5 @@
 ---
+'@aws-amplify/backend': patch
 '@aws-amplify/backend-data': patch
 '@aws-amplify/model-generator': patch
 ---
