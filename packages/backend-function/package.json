@@ -10,6 +10,11 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./runtime": {
+      "types": "./lib/runtime/index.d.ts",
+      "import": "./lib/runtime/index.js",
+      "require": "./lib/runtime/index.js"
     }
   },
   "main": "lib/index.js",
