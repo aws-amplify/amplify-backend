@@ -1,6 +1,5 @@
 import { describe, it, mock } from 'node:test';
 import fs from 'fs';
-import fsp from 'fs/promises';
 import { FunctionDataConfigGenerator } from './function_data_config_generator.js';
 import assert from 'assert';
 import { pathToFileURL } from 'url';
@@ -34,8 +33,7 @@ void describe('FunctionDataConfigGenerator', () => {
     mock.restoreAll();
   });
 
-  void it('generated type definition file has valid syntax', async () => {
-    const targetDirectory = await fsp.mkdtemp('func_data_config_gen_test');
+  void it('generated data configuration file has valid syntax', async () => {
     const functionDataConfigGenerator = new FunctionDataConfigGenerator(
       'testFunction'
     );
@@ -43,9 +41,7 @@ void describe('FunctionDataConfigGenerator', () => {
 
     functionDataConfigGenerator.generateDataConfigShim();
 
-    // import to validate syntax of type definition file
+    // import to validate syntax of data config file
     await import(pathToFileURL(filePath).toString());
-
-    await fsp.rm(targetDirectory, { recursive: true, force: true });
   });
 });
