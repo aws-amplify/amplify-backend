@@ -27,6 +27,7 @@
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.6",
     "@aws-amplify/platform-core": "^1.1.0",
+    "@aws-sdk/client-s3": "^3.624.0",
     "@aws-sdk/client-ssm": "^3.624.0",
     "aws-sdk": "^2.1550.0",
     "uuid": "^9.0.1"
