@@ -9,6 +9,7 @@ import { testConcurrencyLevel } from './test_concurrency.js';
 import { findBaselineCdkVersion } from '../cdk_version_finder.js';
 import { amplifyAtTag } from '../constants.js';
 import { NpmProxyController } from '../npm_proxy_controller.js';
+import { RetryPredicates, runWithRetry } from '../retry.js';
 
 void describe(
   'create-amplify script',
@@ -78,14 +79,16 @@ void describe(
             );
           }
 
-          await execa(
-            'npm',
-            ['create', amplifyAtTag, '--yes', '--', '--debug'],
-            {
-              cwd: tempDir,
-              stdio: 'inherit',
-            }
-          );
+          await runWithRetry(async () => {
+            await execa(
+              'npm',
+              ['create', amplifyAtTag, '--yes', '--', '--debug'],
+              {
+                cwd: tempDir,
+                stdio: 'inherit',
+              }
+            );
+          }, RetryPredicates.createAmplifyRetryPredicate);
 
           // Override CDK installation with baseline version
           await execa(
