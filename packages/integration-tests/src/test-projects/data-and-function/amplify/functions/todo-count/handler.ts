@@ -2,6 +2,7 @@ import type { Handler } from 'aws-lambda';
 import { Amplify } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../data/resource.js';
+// @ts-ignore
 import {
   resourceConfig,
   libraryOptions,

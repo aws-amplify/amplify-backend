@@ -171,6 +171,6 @@ class DataAndFunctionTestProject extends TestProjectBase {
       variables: {},
     });
 
-    assert.equal(response.data, 0);
+    assert.deepEqual(response.data, { todoCount: 0 });
   };
 }
