@@ -85,7 +85,6 @@ const createConstructContainerWithUserPoolAuthRegistered = (
         authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
           assumedBy: new ServicePrincipal('test.amazon.com'),
         }),
-        identityPoolId: 'identityPoolId',
         cfnResources: {
           cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
           cfnUserPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
@@ -101,6 +100,7 @@ const createConstructContainerWithUserPoolAuthRegistered = (
           ),
         },
         groups: {},
+        identityPoolId: 'identityPool',
       },
     }),
   });
@@ -567,6 +567,23 @@ void describe('DataFactory', () => {
                 },
               ],
             },
+            {
+              Action: 's3:GetObject',
+              Resource: {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': [
+                        'modelIntrospectionSchemaBucketF566B665',
+                        'Arn',
+                      ],
+                    },
+                    '/modelIntrospectionSchema.json',
+                  ],
+                ],
+              },
+            },
           ],
         },
         Roles: [
@@ -675,6 +692,23 @@ void describe('DataFactory', () => {
                 ],
               },
             },
+            {
+              Action: 's3:GetObject',
+              Resource: {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': [
+                        'modelIntrospectionSchemaBucketF566B665',
+                        'Arn',
+                      ],
+                    },
+                    '/modelIntrospectionSchema.json',
+                  ],
+                ],
+              },
+            },
           ],
         },
         Roles: [
@@ -697,6 +731,23 @@ void describe('DataFactory', () => {
                       'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                     },
                     '/types/Query/*',
+                  ],
+                ],
+              },
+            },
+            {
+              Action: 's3:GetObject',
+              Resource: {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': [
+                        'modelIntrospectionSchemaBucketF566B665',
+                        'Arn',
+                      ],
+                    },
+                    '/modelIntrospectionSchema.json',
                   ],
                 ],
               },
