@@ -1,0 +1,8 @@
+{
+  "name": "@aws-amplify/backend-function/runtime",
+  "main": "../dist/cjs/runtime/index.js",
+  "react-native": "../src/runtime/index.ts",
+  "browser": "../dist/esm/runtime/index.mjs",
+  "module": "../dist/esm/runtime/index.mjs",
+  "typings": "../dist/esm/runtime/index.d.ts"
+}
