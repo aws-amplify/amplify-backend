@@ -120,7 +120,6 @@ export const getAmplifyClientsConfigurationRetriever = async <T>(
   s3Client: S3Client
 ): Promise<DataClientReturn<T>> => {
   if (!isDataClientEnv(env)) {
-    // TEST
     return { resourceConfig: {}, libraryOptions: {} } as DataClientReturn<T>;
   }
   let modelIntrospectionSchema: object;
