@@ -13,5 +13,10 @@
     { "path": "../plugin-types" },
     { "path": "./src/test-projects/data-storage-auth-with-triggers-ts" }
   ],
-  "exclude": ["**/node_modules", "**/lib", "src/e2e-tests"]
+  "exclude": [
+    "**/node_modules",
+    "**/lib",
+    "src/e2e-tests",
+    "**/amplify/**/handler.ts"
+  ]
 }

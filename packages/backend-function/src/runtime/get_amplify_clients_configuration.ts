@@ -49,7 +49,8 @@ const getResourceConfig = (
         endpoint: env.AMPLIFY_DATA_GRAPHQL_ENDPOINT,
         region: env.AWS_REGION,
         defaultAuthMode: 'iam' as const,
-        modelIntrospection: modelIntrospectionSchema,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        modelIntrospection: modelIntrospectionSchema as any,
       },
     },
   };
@@ -74,10 +75,15 @@ const getLibraryOptions = (env: DataClientEnv) => {
   };
 };
 
-type DataClientError = {
-  resourceConfig: Record<string, unknown>;
-  libraryOptions: Record<string, unknown>;
+type InvalidConfig = unknown & {
+  invalidType: 'This function needs to be granted `authorization((allow) => [allow.resource(fcn)])` on the data schema.';
 };
+
+type DataClientError = {
+  resourceConfig: InvalidConfig;
+  libraryOptions: InvalidConfig;
+};
+
 type DataClientConfig = {
   resourceConfig: ReturnType<typeof getResourceConfig>;
   libraryOptions: ReturnType<typeof getLibraryOptions>;
@@ -114,6 +120,7 @@ export const getAmplifyClientsConfigurationRetriever = async <T>(
   s3Client: S3Client
 ): Promise<DataClientReturn<T>> => {
   if (!isDataClientEnv(env)) {
+    // TEST
     return { resourceConfig: {}, libraryOptions: {} } as DataClientReturn<T>;
   }
   let modelIntrospectionSchema: object;
