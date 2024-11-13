@@ -823,6 +823,88 @@ void describe('Bedrock converse adapter', () => {
     });
   });
 
+  void it('handles tool use with empty input when streaming', async () => {
+    const toolOutput: ToolResultContentBlock = {
+      text: 'additionalToolOutput',
+    };
+    const toolExecuteMock = mock.fn<
+      (input: unknown) => Promise<ToolResultContentBlock>
+    >(() => Promise.resolve(toolOutput));
+    const tool: ExecutableTool = {
+      name: 'toolId',
+      description: 'tool description',
+      inputSchema: {
+        json: {},
+      },
+      execute: toolExecuteMock,
+    };
+
+    const event: ConversationTurnEvent = {
+      ...commonEvent,
+    };
+
+    const bedrockClient = new BedrockRuntimeClient();
+    const bedrockResponseQueue: Array<
+      ConverseCommandOutput | ConverseStreamCommandOutput
+    > = [];
+    const toolUse1 = {
+      toolUseId: randomUUID().toString(),
+      name: tool.name,
+      input: undefined,
+    };
+    const toolUse2 = {
+      toolUseId: randomUUID().toString(),
+      name: tool.name,
+      input: '',
+    };
+    const toolUseBedrockResponse = mockBedrockResponse(
+      [
+        {
+          toolUse: toolUse1,
+        },
+        {
+          toolUse: toolUse2,
+        },
+      ],
+      true
+    );
+    bedrockResponseQueue.push(toolUseBedrockResponse);
+    const content = [
+      {
+        text: 'finalResponse',
+      },
+    ];
+    const finalBedrockResponse = mockBedrockResponse(content, true);
+    bedrockResponseQueue.push(finalBedrockResponse);
+
+    mock.method(bedrockClient, 'send', () =>
+      Promise.resolve(bedrockResponseQueue.shift())
+    );
+
+    const adapter = new BedrockConverseAdapter(
+      event,
+      [tool],
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever
+    );
+
+    const chunks: Array<StreamingResponseChunk> = await askBedrockWithStreaming(
+      adapter
+    );
+    const responseText = chunks.reduce((acc, next) => {
+      if (next.contentBlockText) {
+        acc += next.contentBlockText;
+      }
+      return acc;
+    }, '');
+    assert.strictEqual(responseText, 'finalResponse');
+
+    assert.strictEqual(toolExecuteMock.mock.calls.length, 2);
+    assert.strictEqual(toolExecuteMock.mock.calls[0].arguments[0], undefined);
+    assert.strictEqual(toolExecuteMock.mock.calls[1].arguments[0], undefined);
+  });
+
   void it('throws if tool is duplicated', () => {
     assert.throws(
       () =>
@@ -1007,19 +1089,21 @@ const mockConverseStreamCommandOutput = (
           },
         },
       });
-      const input = JSON.stringify(block.toolUse.input);
+      const input = block.toolUse.input
+        ? JSON.stringify(block.toolUse.input)
+        : undefined;
       streamItems.push({
         contentBlockDelta: {
           contentBlockIndex: i,
           delta: {
             toolUse: {
               // simulate chunked input
-              input: input.substring(0, 1),
+              input: input?.substring(0, 1),
             },
           },
         },
       });
-      if (input.length > 1) {
+      if (input && input.length > 1) {
         streamItems.push({
           contentBlockDelta: {
             contentBlockIndex: i,
