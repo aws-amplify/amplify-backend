@@ -1,7 +1,7 @@
 {
   "name": "@aws-amplify/sql-database-contructs",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
   "publishConfig": {
     "access": "public"
   },
