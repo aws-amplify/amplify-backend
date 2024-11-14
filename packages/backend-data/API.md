@@ -30,6 +30,9 @@ export type DataProps = {
     name?: string;
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+    databaseSchema?: SqlSchemaDefinition;
+    databaseType?: 'AMAZON_DYNAMODB' | 'AMAZON_AURORA';
+    enableRestApi?: boolean;
 };
 
 // @public
@@ -55,6 +58,10 @@ export type OIDCAuthorizationModeProps = {
     tokenExpiryFromAuthInSeconds: number;
     tokenExpireFromIssueInSeconds: number;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:143:3 - (ae-forgotten-export) The symbol "SqlSchemaDefinition" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
