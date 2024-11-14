@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 0.8.2
+
+### Patch Changes
+
+- bc6dc69: Fix case where tool use does not have input while streaming
+
 ## 0.8.1
 
 ### Patch Changes
