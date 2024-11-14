@@ -102,23 +102,14 @@ type DataClientReturn<T> = T extends DataClientEnv
  * @param env - The environment variables for the data client
  * @returns An object containing the `resourceConfig` and `libraryOptions`
  */
-export const getAmplifyClientsConfiguration = async <T>(
-  env: T
-): Promise<DataClientReturn<T>> => {
-  const s3Client = new S3Client();
-  return getAmplifyClientsConfigurationRetriever(env, s3Client);
-};
-
-/**
- * The implementation of `getAmplifyClientsConfiguration` that allows you to pass in an S3 client for testing purposes
- * @param env - The environment variables for the data client
- * @param s3Client - The S3 client to use for retrieving the schema
- * @returns An object containing the `resourceConfig` and `libraryOptions`
- */
-export const getAmplifyClientsConfigurationRetriever = async <T>(
+export const internalGetAmplifyClientConfiguration = async <T>(
   env: T,
-  s3Client: S3Client
+  s3Client?: S3Client
 ): Promise<DataClientReturn<T>> => {
+  if (!s3Client) {
+    s3Client = new S3Client();
+  }
+
   if (!isDataClientEnv(env)) {
     return { resourceConfig: {}, libraryOptions: {} } as DataClientReturn<T>;
   }

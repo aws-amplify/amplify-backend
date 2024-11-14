@@ -14,7 +14,7 @@ void describe('FunctionDataConfigGenerator', () => {
       'testFunction'
     );
     const configExport =
-      'export const { libraryOptions, resourceConfig } = await getAmplifyClientsConfiguration(env);';
+      'export const { libraryOptions, resourceConfig } = await internalGetAmplifyClientConfiguration(env);';
 
     functionDataConfigGenerator.generateDataConfigShim();
 

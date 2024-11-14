@@ -2,10 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { NoSuchKey, S3, S3ServiceException } from '@aws-sdk/client-s3';
 
-import {
-  getAmplifyClientsConfiguration,
-  getAmplifyClientsConfigurationRetriever,
-} from './get_amplify_clients_configuration.js';
+import { internalGetAmplifyClientConfiguration } from './get_amplify_clients_configuration.js';
 
 const validEnv = {
   AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME:
@@ -21,7 +18,7 @@ const validEnv = {
 
 let mockS3Client: S3;
 
-void describe('getAmplifyClientsConfiguration', () => {
+void describe('internalGetAmplifyClientConfiguration', () => {
   beforeEach(() => {
     mockS3Client = new S3();
   });
@@ -30,7 +27,7 @@ void describe('getAmplifyClientsConfiguration', () => {
     void it(`returns empty config objects when ${envFieldToExclude} is not included`, async () => {
       const env = { ...validEnv } as Record<string, string>;
       delete env[envFieldToExclude];
-      assert.deepEqual(await getAmplifyClientsConfiguration(env), {
+      assert.deepEqual(await internalGetAmplifyClientConfiguration(env), {
         resourceConfig: {},
         libraryOptions: {},
       });
@@ -39,7 +36,7 @@ void describe('getAmplifyClientsConfiguration', () => {
     void it(`returns empty config objects when ${envFieldToExclude} is not a string`, async () => {
       const env = { ...validEnv } as Record<string, unknown>;
       env[envFieldToExclude] = 123;
-      assert.deepEqual(await getAmplifyClientsConfiguration(env), {
+      assert.deepEqual(await internalGetAmplifyClientConfiguration(env), {
         resourceConfig: {},
         libraryOptions: {},
       });
@@ -54,7 +51,7 @@ void describe('getAmplifyClientsConfiguration', () => {
 
     await assert.rejects(
       async () =>
-        await getAmplifyClientsConfigurationRetriever(validEnv, mockS3Client),
+        await internalGetAmplifyClientConfiguration(validEnv, mockS3Client),
       new Error(
         'Error retrieving the schema from S3. Please confirm that your project has a `defineData` included in the `defineBackend` definition.'
       )
@@ -74,7 +71,7 @@ void describe('getAmplifyClientsConfiguration', () => {
 
     await assert.rejects(
       async () =>
-        await getAmplifyClientsConfigurationRetriever(validEnv, mockS3Client),
+        await internalGetAmplifyClientConfiguration(validEnv, mockS3Client),
       new Error(
         'Error retrieving the schema from S3. You may need to grant this function authorization on the schema. TEST_ERROR: TEST_MESSAGE.'
       )
@@ -89,7 +86,7 @@ void describe('getAmplifyClientsConfiguration', () => {
 
     await assert.rejects(
       async () =>
-        await getAmplifyClientsConfigurationRetriever(validEnv, mockS3Client),
+        await internalGetAmplifyClientConfiguration(validEnv, mockS3Client),
       new Error('Test Error')
     );
   });
@@ -105,7 +102,7 @@ void describe('getAmplifyClientsConfiguration', () => {
     mock.method(mockS3Client, 'send', s3ClientSendMock);
 
     const { resourceConfig, libraryOptions } =
-      await getAmplifyClientsConfigurationRetriever(validEnv, mockS3Client);
+      await internalGetAmplifyClientConfiguration(validEnv, mockS3Client);
 
     assert.deepEqual(
       await libraryOptions.Auth.credentialsProvider.getCredentialsAndIdentityId?.(),

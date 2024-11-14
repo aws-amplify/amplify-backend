@@ -1,1 +1,1 @@
-export { getAmplifyClientsConfiguration } from './get_amplify_clients_configuration.js';
+export { internalGetAmplifyClientConfiguration } from './get_amplify_clients_configuration.js';
