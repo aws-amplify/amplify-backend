@@ -1,4 +1,5 @@
 import {
+  AmplifyResourceGroupName,
   ConstructContainerEntryGenerator,
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
@@ -17,7 +18,7 @@ import { TagName } from '@aws-amplify/platform-core';
 export class StorageContainerEntryGenerator
   implements ConstructContainerEntryGenerator
 {
-  readonly resourceGroupName = 'storage';
+  readonly resourceGroupName: AmplifyResourceGroupName;
 
   /**
    * Initialize with context from storage factory
@@ -26,7 +27,9 @@ export class StorageContainerEntryGenerator
     private readonly props: AmplifyStorageFactoryProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly storageAccessOrchestratorFactory: StorageAccessOrchestratorFactory = new StorageAccessOrchestratorFactory()
-  ) {}
+  ) {
+    this.resourceGroupName = props.resourceGroupName ?? 'storage';
+  }
 
   generateContainerEntry = ({
     scope,

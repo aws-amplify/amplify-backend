@@ -12,6 +12,7 @@ import {
   TriggerEvent,
 } from '@aws-amplify/auth-construct';
 import {
+  AmplifyResourceGroupName,
   AuthResources,
   AuthRoleName,
   ConstructContainerEntryGenerator,
@@ -134,7 +135,7 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
 }
 
 class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'auth';
+  readonly resourceGroupName: AmplifyResourceGroupName = 'auth';
   private readonly name: string;
 
   constructor(

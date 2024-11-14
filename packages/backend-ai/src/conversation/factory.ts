@@ -1,5 +1,6 @@
 import { AIConversationOutput } from '@aws-amplify/backend-output-schemas';
 import {
+  AmplifyResourceGroupName,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
@@ -20,7 +21,8 @@ import { AiModel } from '@aws-amplify/data-schema-types';
 class ConversationHandlerFunctionGenerator
   implements ConstructContainerEntryGenerator
 {
-  readonly resourceGroupName = 'conversationHandlerFunction';
+  readonly resourceGroupName: AmplifyResourceGroupName =
+    'conversationHandlerFunction';
 
   constructor(
     private readonly props: DefineConversationHandlerFunctionProps,

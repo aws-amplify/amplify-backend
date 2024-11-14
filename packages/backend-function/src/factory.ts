@@ -9,6 +9,7 @@ import {
   TagName,
 } from '@aws-amplify/platform-core';
 import {
+  AmplifyResourceGroupName,
   BackendOutputStorageStrategy,
   BackendSecret,
   BackendSecretResolver,
@@ -150,6 +151,12 @@ export type FunctionProps = {
    * Options for bundling the function code.
    */
   bundling?: FunctionBundlingOptions;
+
+  /**
+   * Group the function with existing Amplify resources or separate the function into its own group.
+   * @default 'function' // grouping with other Amplify functions
+   */
+  resourceGroupName?: AmplifyResourceGroupName;
 };
 
 export type FunctionBundlingOptions = {
@@ -208,6 +215,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       schedule: this.resolveSchedule(),
       bundling: this.resolveBundling(),
       layers,
+      resourceGroupName: this.props.resourceGroupName ?? 'function',
     };
   };
 
@@ -339,12 +347,14 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'function';
+  readonly resourceGroupName: AmplifyResourceGroupName;
 
   constructor(
     private readonly props: HydratedFunctionProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-  ) {}
+  ) {
+    this.resourceGroupName = props.resourceGroupName;
+  }
 
   generateContainerEntry = ({
     scope,

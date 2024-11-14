@@ -1,4 +1,5 @@
 import {
+  AmplifyResourceGroupName,
   AuthRoleName,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
@@ -129,7 +130,7 @@ export class AmplifyReferenceAuthFactory
 class AmplifyReferenceAuthGenerator
   implements ConstructContainerEntryGenerator
 {
-  readonly resourceGroupName = 'auth';
+  readonly resourceGroupName: AmplifyResourceGroupName = 'auth';
   private readonly name: string;
 
   constructor(

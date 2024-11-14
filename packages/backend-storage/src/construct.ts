@@ -8,6 +8,7 @@ import {
   IBucket,
 } from 'aws-cdk-lib/aws-s3';
 import {
+  AmplifyResourceGroupName,
   BackendOutputStorageStrategy,
   ConstructFactory,
   FunctionResources,
@@ -63,6 +64,13 @@ export type AmplifyStorageProps = {
       ConstructFactory<ResourceProvider<FunctionResources>>
     >
   >;
+  /**
+   * Group the storage resource with existing Amplify resources or separate the storage resource into its own group.
+   *
+   * Warning: Changing this is a destructive change for the storage resource.
+   * @default 'storage' // grouping with other storage resources
+   */
+  resourceGroupName?: AmplifyResourceGroupName;
 };
 
 export type StorageResources = {
