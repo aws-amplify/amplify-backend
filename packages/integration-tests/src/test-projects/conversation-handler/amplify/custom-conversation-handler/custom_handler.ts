@@ -3,7 +3,10 @@ import {
   createExecutableTool,
   handleConversationTurnEvent,
 } from '@aws-amplify/backend-ai/conversation/runtime';
-import { expectedTemperaturesInProgrammaticToolScenario } from '../constants.js';
+import {
+  expectedRandomNumber,
+  expectedTemperaturesInProgrammaticToolScenario,
+} from '../constants.js';
 
 const thermometerInputSchema = {
   type: 'object',
@@ -33,11 +36,32 @@ const thermometer = createExecutableTool(
   }
 );
 
+// Parameter-less tool.
+const randomNumberGeneratorInputSchema = {
+  type: 'object',
+  properties: {},
+  required: [],
+} as const;
+
+const randomNumberGenerator = createExecutableTool(
+  'randomNumberGenerator',
+  'Generates random numbers',
+  {
+    json: randomNumberGeneratorInputSchema,
+  },
+  () => {
+    return Promise.resolve({
+      // We use this value in test assertion.
+      text: `${expectedRandomNumber}`,
+    });
+  }
+);
+
 /**
  * Handler with simple tool.
  */
 export const handler = async (event: ConversationTurnEvent) => {
   await handleConversationTurnEvent(event, {
-    tools: [thermometer],
+    tools: [randomNumberGenerator, thermometer],
   });
 };
