@@ -140,9 +140,24 @@ export type DataProps = {
    */
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
 
+  databaseSchema?: SqlSchemaDefinition;
   databaseType?: 'AMAZON_DYNAMODB' | 'AMAZON_AURORA';
   enableRestApi?: boolean;
 };
+
+export type SqlSchemaDefinition = {
+  transform: () => {
+    tables: {
+      tableName: string;
+      columns: {
+        name: string;
+        type: string;
+        isNullable: boolean;
+      }[];
+      primaryKey: string[];
+    }[];
+  };
+}
 
 export type AmplifyDataError =
   | 'DefineDataConfigurationError'

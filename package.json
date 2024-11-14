@@ -110,5 +110,9 @@
     "*.json": "prettier --write",
     "*.yml": "prettier --write",
     "*.md": "prettier --write"
+  },
+  "dependencies": {
+    "@aws-amplify/data-schema": "file:../jon-poc/amplify-api-next/packages/data-schema/aws-amplify-data-schema-1.12.0.tgz",
+    "@aws-amplify/data-schema-types": "file:../jon-poc/amplify-api-next/packages/data-schema-types/aws-amplify-data-schema-types-1.2.0.tgz"
   }
 }

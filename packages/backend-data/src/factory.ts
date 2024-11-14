@@ -253,11 +253,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       });
 
       // Manages SQL Database Schema
-      new AmplifyDatabaseSchema(scope, schemaLogicalId, {
+      const schemaManagerConstruct = new AmplifyDatabaseSchema(scope, schemaLogicalId, {
         ResourceArn: database.resources.databaseCluster.clusterArn,
         SecretArn: database.resources.dataApiSecret.secretArn,
-        Schema: this.props.schema,
+        Schema: this.props.databaseSchema?.transform(),
       });
+      schemaManagerConstruct.node.addDependency(database);
 
       if (this.props.enableRestApi) {
         // Provisions REST API for a given schema

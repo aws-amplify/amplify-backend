@@ -12,13 +12,14 @@ export interface AmplifyDatabaseSchemaProps {
 }
 export class AmplifyDatabaseSchema extends CfnResource {
   constructor(scope: Construct, id: string, props: AmplifyDatabaseSchemaProps) {
-    const sqlSchema = generateSqlSchema(props.Schema);
+    // const sqlSchema = generateSqlSchema(props.Schema);
     super(scope, id, {
       type: 'AWS::Sundersc::SampleResource',
       properties: {
         ResourceArn: props.ResourceArn,
         SecretArn: props.SecretArn,
-        NewSchema: JSON.stringify(sqlSchema),
+        // NewSchema: JSON.stringify(sqlSchema),
+        NewSchema: JSON.stringify(props.Schema),
         MigrationId: crypto.randomUUID(),
       }
     });
