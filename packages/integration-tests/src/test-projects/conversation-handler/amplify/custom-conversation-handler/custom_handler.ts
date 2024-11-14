@@ -45,7 +45,7 @@ const randomNumberGeneratorInputSchema = {
 
 const randomNumberGenerator = createExecutableTool(
   'randomNumberGenerator',
-  'Generates random numbers',
+  'Returns a random number',
   {
     json: randomNumberGeneratorInputSchema,
   },

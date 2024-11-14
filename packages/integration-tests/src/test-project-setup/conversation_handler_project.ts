@@ -886,7 +886,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
         role: 'user',
         content: [
           {
-            text: 'Generate and print random number',
+            text: 'Give me a random number',
           },
         ],
       };
