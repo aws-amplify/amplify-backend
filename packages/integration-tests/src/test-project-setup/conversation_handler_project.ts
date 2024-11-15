@@ -34,6 +34,7 @@ import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { runWithRetry } from '../retry.js';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -279,13 +280,14 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     );
 
-    await this.executeWithRetry(() =>
+    await this.executeWithRetry((attempt) =>
       this.assertCustomConversationHandlerCanExecuteTurnWithParameterLessTool(
         backendId,
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        true
+        true,
+        attempt
       )
     );
 
@@ -349,23 +351,25 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     );
 
-    await this.executeWithRetry(() =>
+    await this.executeWithRetry((attempt) =>
       this.assertDefaultConversationHandlerCanPropagateError(
         backendId,
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        true
+        true,
+        attempt
       )
     );
 
-    await this.executeWithRetry(() =>
+    await this.executeWithRetry((attempt) =>
       this.assertDefaultConversationHandlerCanPropagateError(
         backendId,
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        false
+        false,
+        attempt
       )
     );
   }
@@ -870,7 +874,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
       accessToken: string,
       graphqlApiEndpoint: string,
       apolloClient: ApolloClient<NormalizedCacheObject>,
-      streamResponse: boolean
+      streamResponse: boolean,
+      attempt: number
     ): Promise<void> => {
       const customConversationHandlerFunction = (
         await this.resourceFinder.findByBackendIdentifier(
@@ -880,13 +885,23 @@ class ConversationHandlerTestProject extends TestProjectBase {
         )
       )[0];
 
+      // Try different questions on retry.
+      // Retrying same question in narrow time frame usually yields same answer.
+      const questions = [
+        'Give me a random number',
+        'Give me a random number please',
+        'Can you please give me a random number',
+        'Generate and print random number',
+      ];
+      const question = questions[attempt % questions.length];
+
       const message: CreateConversationMessageChatInput = {
         conversationId: randomUUID().toString(),
         id: randomUUID().toString(),
         role: 'user',
         content: [
           {
-            text: 'Give me a random number',
+            text: question,
           },
         ],
       };
@@ -919,7 +934,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    streamResponse: boolean
+    streamResponse: boolean,
+    attempt: number
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
@@ -929,13 +945,23 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     )[0];
 
+    // Try different questions on retry.
+    // Retrying same question in narrow time frame usually yields same answer.
+    const questions = [
+      'What is the value of PI?',
+      'Give me the value of PI',
+      'Give me the value of PI please',
+      'Can you please give me the value of PI?',
+    ];
+    const question = questions[attempt % questions.length];
+
     const message: CreateConversationMessageChatInput = {
       id: randomUUID().toString(),
       conversationId: randomUUID().toString(),
       role: 'user',
       content: [
         {
-          text: 'What is the value of PI?',
+          text: question,
         },
       ],
     };
@@ -1031,20 +1057,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
    * Therefore, we wrap transactions in retry loop.
    */
   private executeWithRetry = async (
-    callable: () => Promise<void>,
-    maxAttempts = 3
+    callable: (attempt: number) => Promise<void>
   ) => {
-    const collectedErrors = [];
-    for (let i = 1; i <= maxAttempts; i++) {
-      try {
-        await callable();
-        // if successful return early;
-        return;
-      } catch (e) {
-        collectedErrors.push(e);
-      }
-    }
-    // if we got here there were only errors
-    throw new AggregateError(collectedErrors);
+    await runWithRetry(callable, () => true, 4);
   };
 }
