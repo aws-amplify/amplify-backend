@@ -252,10 +252,6 @@ export class BedrockConverseAdapter {
           if (toolUseBlock) {
             if (toolUseInput) {
               toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
-            } else {
-              // Bedrock API requires tool input to be non-null in message history.
-              // Therefore, falling back to empty object.
-              toolUseBlock.toolUse.input = {};
             }
             accumulatedAssistantMessage.content?.push(toolUseBlock);
             if (

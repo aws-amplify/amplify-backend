@@ -26,7 +26,6 @@ import assert from 'assert';
 import { NormalizedCacheObject } from '@apollo/client';
 import {
   bedrockModelId,
-  expectedRandomNumber,
   expectedTemperatureInDataToolScenario,
   expectedTemperaturesInProgrammaticToolScenario,
 } from '../test-projects/conversation-handler/amplify/constants.js';
@@ -271,16 +270,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
 
     await this.executeWithRetry(() =>
       this.assertCustomConversationHandlerCanExecuteTurn(
-        backendId,
-        authenticatedUserCredentials.accessToken,
-        dataUrl,
-        apolloClient,
-        true
-      )
-    );
-
-    await this.executeWithRetry(() =>
-      this.assertCustomConversationHandlerCanExecuteTurnWithParameterLessTool(
         backendId,
         authenticatedUserCredentials.accessToken,
         dataUrl,
@@ -863,56 +852,6 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     );
   };
-
-  private assertCustomConversationHandlerCanExecuteTurnWithParameterLessTool =
-    async (
-      backendId: BackendIdentifier,
-      accessToken: string,
-      graphqlApiEndpoint: string,
-      apolloClient: ApolloClient<NormalizedCacheObject>,
-      streamResponse: boolean
-    ): Promise<void> => {
-      const customConversationHandlerFunction = (
-        await this.resourceFinder.findByBackendIdentifier(
-          backendId,
-          'AWS::Lambda::Function',
-          (name) => name.includes('custom')
-        )
-      )[0];
-
-      const message: CreateConversationMessageChatInput = {
-        conversationId: randomUUID().toString(),
-        id: randomUUID().toString(),
-        role: 'user',
-        content: [
-          {
-            text: 'Give me a random number',
-          },
-        ],
-      };
-      await this.insertMessage(apolloClient, message);
-
-      // send event
-      const event: ConversationTurnEvent = {
-        conversationId: message.conversationId,
-        currentMessageId: message.id,
-        graphqlApiEndpoint: graphqlApiEndpoint,
-        request: {
-          headers: { authorization: accessToken },
-        },
-        ...this.getCommonEventProperties(streamResponse),
-      };
-      const response = await this.executeConversationTurn(
-        event,
-        customConversationHandlerFunction,
-        apolloClient
-      );
-      // Assert that tool was used. I.e. LLM used value provided by the tool.
-      assert.match(
-        response.content,
-        new RegExp(expectedRandomNumber.toString())
-      );
-    };
 
   private assertDefaultConversationHandlerCanPropagateError = async (
     backendId: BackendIdentifier,
