@@ -57,7 +57,6 @@ const initializeYarnModern = async (execaOptions: {
   const packageManager = 'yarn';
   await execa('npm', ['install', '-g', packageManager], { stdio: 'inherit' });
   await execa('yarn', ['set', 'version', 'latest'], { stdio: 'inherit' });
-  await execa('yarn', ['init'], execaOptions);
   await execa(
     packageManager,
     [
