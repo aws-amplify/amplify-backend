@@ -1,5 +1,17 @@
 # @aws-amplify/backend-ai
 
+## 1.0.0
+
+### Major Changes
+
+- bbd6add: GA release of backend AI features
+
+### Patch Changes
+
+- Updated dependencies [fd8759d]
+- Updated dependencies [bbd6add]
+  - @aws-amplify/ai-constructs@1.0.0
+
 ## 0.3.5
 
 ### Patch Changes

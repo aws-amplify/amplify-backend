@@ -901,8 +901,8 @@ void describe('Bedrock converse adapter', () => {
     assert.strictEqual(responseText, 'finalResponse');
 
     assert.strictEqual(toolExecuteMock.mock.calls.length, 2);
-    assert.strictEqual(toolExecuteMock.mock.calls[0].arguments[0], undefined);
-    assert.strictEqual(toolExecuteMock.mock.calls[1].arguments[0], undefined);
+    assert.deepStrictEqual(toolExecuteMock.mock.calls[0].arguments[0], {});
+    assert.deepStrictEqual(toolExecuteMock.mock.calls[1].arguments[0], {});
   });
 
   void it('throws if tool is duplicated', () => {

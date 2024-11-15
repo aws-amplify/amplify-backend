@@ -117,7 +117,7 @@ type ResourceConfig = {
         GraphQL: {
             endpoint: string;
             region: string;
-            defaultAuthMode: string;
+            defaultAuthMode: 'iam';
             modelIntrospection: any;
         };
     };
