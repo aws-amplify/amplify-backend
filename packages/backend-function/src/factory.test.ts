@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, mock } from 'node:test';
+import { after, beforeEach, describe, it, mock } from 'node:test';
 import { App, Stack } from 'aws-cdk-lib';
 import {
   ConstructFactoryGetInstanceProps,
@@ -17,6 +17,8 @@ import { NodeVersion, defineFunction } from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import fsp from 'fs/promises';
+import path from 'node:path';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -50,6 +52,14 @@ void describe('AmplifyFunctionFactory', () => {
       outputStorageStrategy,
       resourceNameValidator,
     };
+  });
+
+  after(async () => {
+    // clean up generated env files
+    await fsp.rm(path.join(process.cwd(), '.amplify'), {
+      recursive: true,
+      force: true,
+    });
   });
 
   void it('creates singleton function instance', () => {

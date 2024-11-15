@@ -12,8 +12,10 @@ import {
 import { App, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
-import { beforeEach, describe, it } from 'node:test';
+import { after, beforeEach, describe, it } from 'node:test';
 import { defineFunction } from './factory.js';
+import path from 'node:path';
+import fsp from 'fs/promises';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -47,6 +49,14 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       outputStorageStrategy,
       resourceNameValidator,
     };
+  });
+
+  after(async () => {
+    // clean up generated env files
+    await fsp.rm(path.join(process.cwd(), '.amplify'), {
+      recursive: true,
+      force: true,
+    });
   });
 
   void it('sets a valid layer', () => {

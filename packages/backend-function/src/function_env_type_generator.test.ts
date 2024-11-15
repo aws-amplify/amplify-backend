@@ -1,11 +1,20 @@
-import { describe, it, mock } from 'node:test';
+import { after, describe, it, mock } from 'node:test';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import assert from 'assert';
 import { pathToFileURL } from 'url';
+import path from 'path';
 
 void describe('FunctionEnvironmentTypeGenerator', () => {
+  after(async () => {
+    // clean up generated env files
+    await fsp.rm(path.join(process.cwd(), '.amplify'), {
+      recursive: true,
+      force: true,
+    });
+  });
+
   void it('generates a type definition file', () => {
     const fsOpenSyncMock = mock.method(fs, 'openSync');
     const fsWriteFileSyncMock = mock.method(fs, 'writeFileSync', () => null);

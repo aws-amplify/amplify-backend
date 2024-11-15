@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { describe, it } from 'node:test';
+import { after, describe, it } from 'node:test';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import {
   BackendIdentifier,
@@ -13,6 +13,8 @@ import { ParameterPathConversions } from '@aws-amplify/platform-core';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Template } from 'aws-cdk-lib/assertions';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
+import path from 'node:path';
+import fsp from 'fs/promises';
 
 const testStack = {} as Construct;
 
@@ -54,6 +56,14 @@ class TestBackendSecret implements BackendSecret {
 
 void describe('FunctionEnvironmentTranslator', () => {
   const backendResolver = new TestBackendSecretResolver();
+
+  after(async () => {
+    // clean up generated env files
+    await fsp.rm(path.join(process.cwd(), '.amplify'), {
+      recursive: true,
+      force: true,
+    });
+  });
 
   void it('translates env props that do not contain secrets', () => {
     const functionEnvProp = {
