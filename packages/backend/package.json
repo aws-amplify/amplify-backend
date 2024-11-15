@@ -11,6 +11,11 @@
       "import": "./lib/index.js",
       "require": "./lib/index.js"
     },
+    "./function/runtime": {
+      "types": "./lib/function/runtime/index.d.ts",
+      "import": "./lib/function/runtime/index.js",
+      "require": "./lib/function/runtime/index.js"
+    },
     "./types/platform": {
       "types": "./lib/types/platform.d.ts"
     }

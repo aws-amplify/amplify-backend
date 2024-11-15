@@ -1,6 +1,5 @@
 import { describe, it, mock } from 'node:test';
 import fs from 'fs';
-import fsp from 'fs/promises';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import assert from 'assert';
 import { pathToFileURL } from 'url';
@@ -57,7 +56,6 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
   });
 
   void it('generated type definition file has valid syntax', async () => {
-    const targetDirectory = await fsp.mkdtemp('func_env_type_gen_test');
     const functionEnvironmentTypeGenerator =
       new FunctionEnvironmentTypeGenerator('testFunction');
     const filePath = `${process.cwd()}/.amplify/generated/env/testFunction.ts`;
@@ -66,8 +64,6 @@ void describe('FunctionEnvironmentTypeGenerator', () => {
 
     // import to validate syntax of type definition file
     await import(pathToFileURL(filePath).toString());
-
-    await fsp.rm(targetDirectory, { recursive: true, force: true });
   });
 
   void it('does not generate duplicate environment variables', () => {
