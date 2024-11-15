@@ -1,6 +1,6 @@
 ---
 '@aws-amplify/backend-function': minor
-'@aws-amplify/backend-storage': minor
+'@aws-amplify/backend-storage': patch
 '@aws-amplify/plugin-types': minor
 '@aws-amplify/backend': minor
 '@aws-amplify/backend-auth': patch

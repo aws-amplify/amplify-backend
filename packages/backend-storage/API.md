@@ -4,7 +4,6 @@
 
 ```ts
 
-import { AmplifyResourceGroupName } from '@aws-amplify/plugin-types';
 import { AmplifyUserErrorOptions } from '@aws-amplify/platform-core';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { CfnBucket } from 'aws-cdk-lib/aws-s3';
@@ -30,7 +29,6 @@ export type AmplifyStorageProps = {
     versioned?: boolean;
     outputStorageStrategy?: BackendOutputStorageStrategy<StorageOutput>;
     triggers?: Partial<Record<AmplifyStorageTriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
-    resourceGroupName?: AmplifyResourceGroupName;
 };
 
 // @public (undocumented)

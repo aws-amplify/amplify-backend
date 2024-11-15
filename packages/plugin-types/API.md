@@ -27,7 +27,7 @@ import { Stack } from 'aws-cdk-lib';
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
 
 // @public
-export type AmplifyResourceGroupName = 'auth' | 'conversationHandlerFunction' | 'data' | 'function' | 'storage' | (string & {
+export type AmplifyResourceGroupName = 'auth' | 'data' | 'storage' | (string & {
     resourceGroupNameLike?: any;
 });
 

@@ -3,9 +3,7 @@
  */
 export type AmplifyResourceGroupName =
   | 'auth'
-  | 'conversationHandlerFunction'
   | 'data'
-  | 'function'
   | 'storage'
   // eslint-disable-next-line spellcheck/spell-checker
   // `(string & { resourceGroupNameLike?: any} )` is a workaround to allow default resource group names to show up in IntelliSense while allowing any string to be passed.

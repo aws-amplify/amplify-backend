@@ -155,6 +155,8 @@ export type FunctionProps = {
   /**
    * Group the function with existing Amplify resources or separate the function into its own group.
    * @default 'function' // grouping with other Amplify functions
+   * @example
+   * resourceGroupName: 'auth' // to group an auth trigger with an auth resource
    */
   resourceGroupName?: AmplifyResourceGroupName;
 };
