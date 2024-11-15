@@ -5,7 +5,7 @@ import {
   S3ServiceException,
 } from '@aws-sdk/client-s3';
 
-type DataClientEnv = {
+export type DataClientEnv = {
   /* eslint-disable @typescript-eslint/naming-convention */
   AMPLIFY_DATA_GRAPHQL_ENDPOINT: string;
   AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME: string;
@@ -39,24 +39,56 @@ const isDataClientEnv = (env: unknown): env is DataClientEnv => {
   );
 };
 
+/* eslint-disable @typescript-eslint/naming-convention */
+export type ResourceConfig = {
+  API: {
+    GraphQL: {
+      endpoint: string;
+      region: string;
+      defaultAuthMode: 'iam';
+      // Using `any` to avoid reproducing 100+ lines of typing to match the expected shape defined in aws-amplify:
+      // https://github.com/aws-amplify/amplify-js/blob/main/packages/core/src/singleton/API/types.ts#L143-L153
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      modelIntrospection: any;
+    };
+  };
+};
+/* eslint-enable @typescript-eslint/naming-convention */
+
 const getResourceConfig = (
   env: DataClientEnv,
   modelIntrospectionSchema: object
-) => {
+): ResourceConfig => {
   return {
     API: {
       GraphQL: {
         endpoint: env.AMPLIFY_DATA_GRAPHQL_ENDPOINT,
         region: env.AWS_REGION,
         defaultAuthMode: 'iam' as const,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        modelIntrospection: modelIntrospectionSchema as any,
+
+        modelIntrospection: modelIntrospectionSchema,
       },
     },
   };
 };
 
-const getLibraryOptions = (env: DataClientEnv) => {
+export type LibraryOptions = {
+  /* eslint-disable-next-line @typescript-eslint/naming-convention */
+  Auth: {
+    credentialsProvider: {
+      getCredentialsAndIdentityId: () => Promise<{
+        credentials: {
+          accessKeyId: string;
+          secretAccessKey: string;
+          sessionToken: string;
+        };
+      }>;
+      clearCredentialsAndIdentityId: () => void;
+    };
+  };
+};
+
+const getLibraryOptions = (env: DataClientEnv): LibraryOptions => {
   return {
     Auth: {
       credentialsProvider: {
@@ -75,21 +107,21 @@ const getLibraryOptions = (env: DataClientEnv) => {
   };
 };
 
-type InvalidConfig = unknown & {
+export type InvalidConfig = unknown & {
   invalidType: 'This function needs to be granted `authorization((allow) => [allow.resource(fcn)])` on the data schema.';
 };
 
-type DataClientError = {
+export type DataClientError = {
   resourceConfig: InvalidConfig;
   libraryOptions: InvalidConfig;
 };
 
-type DataClientConfig = {
-  resourceConfig: ReturnType<typeof getResourceConfig>;
-  libraryOptions: ReturnType<typeof getLibraryOptions>;
+export type DataClientConfig = {
+  resourceConfig: ResourceConfig;
+  libraryOptions: LibraryOptions;
 };
 
-type DataClientReturn<T> = T extends DataClientEnv
+export type DataClientReturn<T> = T extends DataClientEnv
   ? DataClientConfig
   : DataClientError;
 
@@ -102,7 +134,7 @@ type DataClientReturn<T> = T extends DataClientEnv
  * @param env - The environment variables for the data client
  * @returns An object containing the `resourceConfig` and `libraryOptions`
  */
-export const internalGetAmplifyClientConfiguration = async <T>(
+export const getAmplifyDataClientConfig = async <T>(
   env: T,
   s3Client?: S3Client
 ): Promise<DataClientReturn<T>> => {

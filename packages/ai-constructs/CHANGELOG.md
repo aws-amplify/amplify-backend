@@ -1,5 +1,15 @@
 # @aws-amplify/ai-constructs
 
+## 1.0.0
+
+### Major Changes
+
+- bbd6add: GA release of backend AI features
+
+### Patch Changes
+
+- fd8759d: Fix a case when Bedrock throws validation error if tool input is not persisted in history
+
 ## 0.8.2
 
 ### Patch Changes

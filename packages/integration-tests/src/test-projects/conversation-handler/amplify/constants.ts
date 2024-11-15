@@ -14,3 +14,5 @@ export const expectedTemperaturesInProgrammaticToolScenario = {
 };
 
 export const expectedTemperatureInDataToolScenario = 85;
+
+export const expectedRandomNumber = 42;
