@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 
 const customRegistry = 'http://localhost:4873';
+const customRegistryAuthToken = 'garbage';
 
 // TODO: refactor into `type PackageManagerInitializer` and have sub-types with a factory.
 export type PackageManager = 'npm' | 'yarn-classic' | 'yarn-modern' | 'pnpm';
@@ -34,6 +35,7 @@ const initializeYarnClassic = async (execaOptions: {
 }) => {
   const packageManager = 'yarn';
   await execa('npm', ['install', '-g', packageManager], { stdio: 'inherit' });
+  await execa('yarn', ['set', 'version', 'classic'], { stdio: 'inherit' });
   await execa(
     packageManager,
     ['config', 'set', 'registry', customRegistry],
@@ -54,20 +56,21 @@ const initializeYarnModern = async (execaOptions: {
 }) => {
   const packageManager = 'yarn';
   await execa('npm', ['install', '-g', packageManager], { stdio: 'inherit' });
-  await execa('yarn', ['init', '-2'], execaOptions);
+  await execa('yarn', ['set', 'version', 'latest'], { stdio: 'inherit' });
+  await execa('yarn', ['init'], execaOptions);
   await execa(
     packageManager,
-    ['config', 'set', 'npmRegistryServer', customRegistry],
+    [
+      'config',
+      'set',
+      `npmRegistries.${customRegistry}.npmAuthToken`,
+      customRegistryAuthToken,
+    ],
     execaOptions
   );
   await execa(
     packageManager,
     ['config', 'set', 'unsafeHttpWhitelist', 'localhost'],
-    execaOptions
-  );
-  await execa(
-    packageManager,
-    ['config', 'set', 'nodeLinker', 'node-modules'],
     execaOptions
   );
   await execa(packageManager, ['cache', 'clean'], execaOptions);
