@@ -8,4 +8,4 @@
 '@aws-amplify/backend-ai': patch
 ---
 
-add resourceGroupName prop to function and storage
+add resourceGroupName prop to function
