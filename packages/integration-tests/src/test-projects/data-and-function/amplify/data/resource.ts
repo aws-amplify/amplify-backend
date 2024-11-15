@@ -1,5 +1,6 @@
 import { a, ClientSchema, defineData } from '@aws-amplify/backend';
 import { todoCount } from '../functions/todo-count/resource.js';
+import { noopImport } from '../functions/noop-import/resource.js';
 
 const schema = a
   .schema({
@@ -15,8 +16,17 @@ const schema = a
       .returns(a.integer())
       .handler(a.handler.function(todoCount))
       .authorization((allow) => [allow.publicApiKey()]),
+    noopImport: a
+      .query()
+      .arguments({})
+      .returns(a.string())
+      .handler(a.handler.function(noopImport))
+      .authorization((allow) => [allow.publicApiKey()]),
   })
-  .authorization((allow) => [allow.resource(todoCount)]);
+  .authorization((allow) => [
+    allow.resource(todoCount),
+    allow.resource(noopImport),
+  ]);
 
 export type Schema = ClientSchema<typeof schema>;
 

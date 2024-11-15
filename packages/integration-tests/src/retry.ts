@@ -1,3 +1,5 @@
+export type RetryPredicate = (error: Error) => boolean;
+
 /**
  * Executes an asynchronous operation with retry logic.
  * This function attempts to execute the provided callable function multiple times
@@ -6,7 +8,7 @@
  */
 export const runWithRetry = async <T>(
   callable: () => Promise<T>,
-  retryPredicate: (error: Error) => boolean,
+  retryPredicate: RetryPredicate,
   maxAttempts = 3
 ): Promise<T> => {
   const collectedErrors: Error[] = [];
@@ -21,6 +23,10 @@ export const runWithRetry = async <T>(
         if (!retryPredicate(error)) {
           throw error;
         }
+      } else {
+        // re-throw non-Error.
+        // This should never happen, but we should be aware if it does.
+        throw error;
       }
     }
   }
@@ -30,3 +36,23 @@ export const runWithRetry = async <T>(
     `All ${maxAttempts} attempts failed`
   );
 };
+
+/**
+ * Known retry predicates that repeat in multiple places.
+ */
+export class RetryPredicates {
+  static createAmplifyRetryPredicate: RetryPredicate = (
+    error: Error
+  ): boolean => {
+    const message = error.message.toLowerCase();
+    // Note: we can't assert on whole stdout or stderr because
+    // they're not always captured in the error due to settings we need for
+    // ProcessController to work.
+    const didProcessExitWithError = message.includes('exit code 1');
+    const isKnownProcess =
+      (message.includes('yarn add') && message.includes('aws-amplify')) ||
+      message.includes('npm create amplify') ||
+      message.includes('pnpm create amplify');
+    return didProcessExitWithError && isKnownProcess;
+  };
+}

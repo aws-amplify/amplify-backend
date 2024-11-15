@@ -26,7 +26,7 @@ import {
   runWithPackageManager,
 } from './process-controller/process_controller.js';
 import { amplifyAtTag } from './constants.js';
-import { runWithRetry } from './retry.js';
+import { RetryPredicates, runWithRetry } from './retry.js';
 
 void describe('getting started happy path', async () => {
   let branchBackendIdentifier: BackendIdentifier;
@@ -83,34 +83,21 @@ void describe('getting started happy path', async () => {
       return;
     }
 
-    await runWithRetry(
-      async () => {
-        if (packageManager === 'yarn-classic') {
-          await execa('yarn', ['add', 'create-amplify'], { cwd: tempDir });
-          await execaCommand(
-            './node_modules/.bin/create-amplify --yes --debug',
-            {
-              cwd: tempDir,
-              env: { npm_config_user_agent: 'yarn/1.22.21' },
-            }
-          );
-        } else {
-          await runPackageManager(
-            packageManager,
-            ['create', amplifyAtTag, '--yes'],
-            tempDir
-          ).run();
-        }
-      },
-      (error) => {
-        // Retry on network-related errors or command failures
-        return (
-          error.message.includes('exit code 1') &&
-          (error.message.includes('aws-amplify') ||
-            error.message.includes('Command failed with exit code 1: yarn add'))
-        );
+    await runWithRetry(async () => {
+      if (packageManager === 'yarn-classic') {
+        await execa('yarn', ['add', 'create-amplify'], { cwd: tempDir });
+        await execaCommand('./node_modules/.bin/create-amplify --yes --debug', {
+          cwd: tempDir,
+          env: { npm_config_user_agent: 'yarn/1.22.21' },
+        });
+      } else {
+        await runPackageManager(
+          packageManager,
+          ['create', amplifyAtTag, '--yes'],
+          tempDir
+        ).run();
       }
-    );
+    }, RetryPredicates.createAmplifyRetryPredicate);
 
     const pathPrefix = path.join(tempDir, 'amplify');
 

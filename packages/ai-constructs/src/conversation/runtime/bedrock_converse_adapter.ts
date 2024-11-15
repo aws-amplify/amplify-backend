@@ -232,8 +232,9 @@ export class BedrockConverseAdapter {
           if (chunk.contentBlockDelta.delta?.toolUse) {
             if (!chunk.contentBlockDelta.delta.toolUse.input) {
               toolUseInput = '';
+            } else {
+              toolUseInput += chunk.contentBlockDelta.delta.toolUse.input;
             }
-            toolUseInput += chunk.contentBlockDelta.delta.toolUse.input;
           } else if (chunk.contentBlockDelta.delta?.text) {
             text += chunk.contentBlockDelta.delta.text;
             yield {
@@ -249,7 +250,13 @@ export class BedrockConverseAdapter {
           }
         } else if (chunk.contentBlockStop) {
           if (toolUseBlock) {
-            toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
+            if (toolUseInput) {
+              toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
+            } else {
+              // Bedrock API requires tool input to be non-null in message history.
+              // Therefore, falling back to empty object.
+              toolUseBlock.toolUse.input = {};
+            }
             accumulatedAssistantMessage.content?.push(toolUseBlock);
             if (
               toolUseBlock.toolUse.name &&

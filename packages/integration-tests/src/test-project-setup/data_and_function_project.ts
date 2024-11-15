@@ -157,6 +157,7 @@ class DataAndFunctionTestProject extends TestProjectBase {
     });
 
     await this.assertDataFunctionCallSucceeds(apolloClient);
+    await this.assertNoopWithImportCallSucceeds(apolloClient);
   }
 
   private assertDataFunctionCallSucceeds = async (
@@ -172,5 +173,20 @@ class DataAndFunctionTestProject extends TestProjectBase {
     });
 
     assert.deepEqual(response.data, { todoCount: 0 });
+  };
+
+  private assertNoopWithImportCallSucceeds = async (
+    apolloClient: ApolloClient<NormalizedCacheObject>
+  ): Promise<void> => {
+    const response = await apolloClient.query<number>({
+      query: gql`
+        query noopImport {
+          noopImport
+        }
+      `,
+      variables: {},
+    });
+
+    assert.deepEqual(response.data, { noopImport: 'STATIC TEST RESPONSE' });
   };
 }
