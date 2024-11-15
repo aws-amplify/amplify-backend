@@ -25,7 +25,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/data-schema": "^1.0.0",
+    "@aws-amplify/data-schema": "0.0.0-rds-datasource-poc-20241114232107",
     "@aws-amplify/backend-auth": "^1.2.0",
     "@aws-amplify/backend-function": "^1.7.2",
     "@aws-amplify/backend-data": "^1.1.5",

@@ -18,7 +18,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/data-schema": "^1.10.2",
+    "@aws-amplify/data-schema": "0.0.0-rds-datasource-poc-20241114232107",
     "@aws-sdk/client-rds-data": "^3.682.0",
     "@aws-sdk/client-s3": "^3.685.0",
     "@types/pluralize": "^0.0.33",

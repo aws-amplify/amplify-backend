@@ -11,7 +11,7 @@
     "@aws-amplify/backend-ai": "^0.3.4",
     "@aws-amplify/backend-secret": "^1.1.4",
     "@aws-amplify/client-config": "^1.4.0",
-    "@aws-amplify/data-schema": "^1.0.0",
+    "@aws-amplify/data-schema": "0.0.0-rds-datasource-poc-20241114232107",
     "@aws-amplify/deployed-backend-client": "^1.4.1",
     "@aws-amplify/platform-core": "^1.1.0",
     "@aws-amplify/plugin-types": "^1.2.2",

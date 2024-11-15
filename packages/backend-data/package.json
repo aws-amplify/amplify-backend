@@ -20,7 +20,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.5",
-    "@aws-amplify/data-schema": "^1.0.0",
+    "@aws-amplify/data-schema": "0.0.0-rds-datasource-poc-20241114232107",
     "@aws-amplify/platform-core": "^1.0.7"
   },
   "peerDependencies": {
@@ -31,7 +31,7 @@
     "@aws-amplify/backend-output-schemas": "^1.4.0",
     "@aws-amplify/backend-output-storage": "^1.1.2",
     "@aws-amplify/data-construct": "^1.10.1",
-    "@aws-amplify/data-schema-types": "^1.2.0",
+    "@aws-amplify/data-schema-types": "latest",
     "@aws-amplify/plugin-types": "^1.2.2",
     "@aws-amplify/sql-database-constructs": "^1.0.0"
   }
