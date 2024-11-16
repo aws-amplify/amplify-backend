@@ -1,5 +1,1 @@
-export {
-  AmplifyDatabase,
-  AmplifyDatabaseSchema,
-  AmplifyRestApi,
- } from './constructs/index.js';
+export * from './constructs/index.js';

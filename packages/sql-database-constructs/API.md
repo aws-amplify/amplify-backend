@@ -15,27 +15,63 @@ import { Stack } from 'aws-cdk-lib';
 
 // @public (undocumented)
 export class AmplifyDatabase extends Construct {
-    // Warning: (ae-forgotten-export) The symbol "AmplifyDatabaseProps" needs to be exported by the entry point index.d.ts
     constructor(scope: Construct, id: string, props: AmplifyDatabaseProps);
-    // Warning: (ae-forgotten-export) The symbol "AmplifyDatabaseResources" needs to be exported by the entry point index.d.ts
     readonly resources: AmplifyDatabaseResources;
     readonly stack: Stack;
 }
 
+// @public
+export interface AmplifyDatabaseProps {
+    // (undocumented)
+    readonly dbType: DBType;
+    // (undocumented)
+    readonly vpc: IVpc;
+}
+
+// @public (undocumented)
+export interface AmplifyDatabaseResources {
+    readonly consoleSecret: ISecret;
+    readonly dataApiSecret: ISecret;
+    readonly databaseCluster: IDatabaseCluster;
+}
+
 // @public (undocumented)
 export class AmplifyDatabaseSchema extends CfnResource {
-    // Warning: (ae-forgotten-export) The symbol "AmplifyDatabaseSchemaProps" needs to be exported by the entry point index.d.ts
     constructor(scope: Construct, id: string, props: AmplifyDatabaseSchemaProps);
 }
 
 // @public (undocumented)
+export interface AmplifyDatabaseSchemaProps {
+    // (undocumented)
+    MigrationId?: string;
+    // (undocumented)
+    ResourceArn: string;
+    // (undocumented)
+    Schema: any;
+    // (undocumented)
+    SecretArn: string;
+}
+
+// @public (undocumented)
 export class AmplifyRestApi extends Construct {
-    // Warning: (ae-forgotten-export) The symbol "AmplifyRestApiProps" needs to be exported by the entry point index.d.ts
     constructor(scope: Construct, id: string, props: AmplifyRestApiProps);
     // (undocumented)
     addMethodPermission: (handler: lambdaNode.NodejsFunction, api: cdk.aws_apigateway.RestApi, path: string) => void;
     readonly stack: Stack;
 }
+
+// @public
+export interface AmplifyRestApiProps {
+    // (undocumented)
+    ResourceArn: string;
+    // (undocumented)
+    Schema: any;
+    // (undocumented)
+    SecretArn: string;
+}
+
+// @public (undocumented)
+export type DBType = 'POSTGRES';
 
 // (No @packageDocumentation comment for this package)
 
