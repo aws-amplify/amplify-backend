@@ -1,5 +1,5 @@
 {
-  "name": "@aws-amplify/sql-database-contructs",
+  "name": "@aws-amplify/sql-database-constructs",
   "version": "1.0.0",
   "type": "commonjs",
   "publishConfig": {
