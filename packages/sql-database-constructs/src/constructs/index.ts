@@ -1,3 +1,3 @@
-export { AmplifyDatabase } from './database-construct.js';
-export { AmplifyDatabaseSchema } from './schema-construct.js';
-export { AmplifyRestApi } from './restapi-construct.js';
+export * from './database-construct.js';
+export * from './schema-construct.js';
+export * from './restapi-construct.js';
