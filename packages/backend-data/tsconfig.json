@@ -6,6 +6,7 @@
     { "path": "../backend-output-schemas" },
     { "path": "../backend-output-storage" },
     { "path": "../plugin-types" },
+    { "path": "../sql-database-constructs" },
     { "path": "../backend-platform-test-stubs" },
     { "path": "../platform-core" },
     { "path": "./src/assets" }
