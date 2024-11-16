@@ -59,9 +59,20 @@ export type OIDCAuthorizationModeProps = {
     tokenExpireFromIssueInSeconds: number;
 };
 
-// Warnings were encountered during analysis:
-//
-// src/types.ts:143:3 - (ae-forgotten-export) The symbol "SqlSchemaDefinition" needs to be exported by the entry point index.d.ts
+// @public (undocumented)
+export type SqlSchemaDefinition = {
+    transform: () => {
+        tables: {
+            tableName: string;
+            columns: {
+                name: string;
+                type: string;
+                isNullable: boolean;
+            }[];
+            primaryKey: string[];
+        }[];
+    };
+};
 
 // (No @packageDocumentation comment for this package)
 

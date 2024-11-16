@@ -7,4 +7,5 @@ export {
   AuthorizationModes,
   DataSchemaInput,
   DataProps,
+  SqlSchemaDefinition,
 } from './types.js';
