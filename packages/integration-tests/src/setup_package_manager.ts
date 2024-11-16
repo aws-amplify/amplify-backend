@@ -35,7 +35,6 @@ const initializeYarnClassic = async (execaOptions: {
 }) => {
   const packageManager = 'yarn';
   await execa('npm', ['install', '-g', packageManager], { stdio: 'inherit' });
-  await execa('yarn', ['set', 'version', 'classic'], { stdio: 'inherit' });
   await execa(
     packageManager,
     ['config', 'set', 'registry', customRegistry],
@@ -56,7 +55,7 @@ const initializeYarnModern = async (execaOptions: {
 }) => {
   const packageManager = 'yarn';
   await execa('npm', ['install', '-g', packageManager], { stdio: 'inherit' });
-  await execa('yarn', ['set', 'version', 'stable'], { stdio: 'inherit' });
+  await execa('yarn', ['init', '-2'], execaOptions);
   await execa(
     packageManager,
     [
