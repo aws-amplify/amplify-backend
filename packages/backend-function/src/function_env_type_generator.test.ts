@@ -1,5 +1,6 @@
 import { after, describe, it, mock } from 'node:test';
 import fs from 'fs';
+import fsp from 'fs/promises';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import assert from 'assert';
 import { pathToFileURL } from 'url';
