@@ -7,7 +7,7 @@ export type RetryPredicate = (error: Error) => boolean;
  * errors or temporary service unavailability.
  */
 export const runWithRetry = async <T>(
-  callable: () => Promise<T>,
+  callable: (attempt: number) => Promise<T>,
   retryPredicate: RetryPredicate,
   maxAttempts = 3
 ): Promise<T> => {
@@ -15,7 +15,7 @@ export const runWithRetry = async <T>(
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const result = await callable();
+      const result = await callable(attempt);
       return result;
     } catch (error) {
       if (error instanceof Error) {

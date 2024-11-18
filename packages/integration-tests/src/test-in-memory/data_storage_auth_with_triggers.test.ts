@@ -4,6 +4,8 @@ import {
   synthesizeBackendTemplates,
 } from '../define_backend_template_harness.js';
 import { dataStorageAuthWithTriggers } from '../test-projects/data-storage-auth-with-triggers-ts/amplify/test_factories.js';
+import path from 'node:path';
+import fsp from 'fs/promises';
 
 /**
  * This test suite is meant to provide a fast feedback loop to sanity check that different feature verticals are working properly together.
@@ -12,7 +14,7 @@ import { dataStorageAuthWithTriggers } from '../test-projects/data-storage-auth-
  * Critical path interactions should be exercised in a full e2e test.
  */
 
-void it('data storage auth with triggers', () => {
+void it('data storage auth with triggers', async () => {
   const templates = synthesizeBackendTemplates(dataStorageAuthWithTriggers);
 
   assertExpectedLogicalIds(templates.root, 'AWS::CloudFormation::Stack', [
@@ -58,4 +60,10 @@ void it('data storage auth with triggers', () => {
     'onDeletelambda96BB6F15',
   ]);
   /* eslint-enable spellcheck/spell-checker */
+
+  // clean up generated env files
+  await fsp.rm(path.join(process.cwd(), '.amplify'), {
+    recursive: true,
+    force: true,
+  });
 });

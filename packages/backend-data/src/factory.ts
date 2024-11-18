@@ -1,6 +1,7 @@
 import { IConstruct } from 'constructs';
 import {
   AmplifyFunction,
+  AmplifyResourceGroupName,
   AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
@@ -117,7 +118,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
 }
 
 class DataGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'data';
+  readonly resourceGroupName: AmplifyResourceGroupName = 'data';
   private readonly name: string;
 
   constructor(

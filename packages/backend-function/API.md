@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AmplifyResourceGroupName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
@@ -79,6 +80,7 @@ export type FunctionProps = {
     schedule?: FunctionSchedule | FunctionSchedule[];
     layers?: Record<string, string>;
     bundling?: FunctionBundlingOptions;
+    resourceGroupName?: AmplifyResourceGroupName;
 };
 
 // @public (undocumented)
