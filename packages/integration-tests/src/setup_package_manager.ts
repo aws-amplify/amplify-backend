@@ -56,12 +56,18 @@ const initializeYarnModern = async (execaOptions: {
   const packageManager = 'yarn';
   await execa('npm', ['install', '-g', packageManager], { stdio: 'inherit' });
   await execa('yarn', ['init', '-2'], execaOptions);
+  await execa(packageManager, [
+    'config',
+    'set',
+    'npmRegistryServer',
+    customRegistry,
+  ]);
   await execa(
     packageManager,
     [
       'config',
       'set',
-      `npmRegistries.${customRegistry}.npmAuthToken`,
+      `"npmRegistries['${customRegistry}'].npmAuthToken`,
       customRegistryAuthToken,
     ],
     execaOptions
