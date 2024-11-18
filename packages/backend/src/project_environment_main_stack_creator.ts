@@ -2,7 +2,6 @@ import { BackendIdentifier, MainStackCreator } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { Stack, Tags } from 'aws-cdk-lib';
 import { AmplifyStack } from './engine/amplify_stack.js';
-import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 /**
  * Creates stacks that are tied to a given project environment via an SSM parameter
@@ -22,10 +21,7 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
    */
   getOrCreateMainStack = (): Stack => {
     if (this.mainStack === undefined) {
-      this.mainStack = new AmplifyStack(
-        this.scope,
-        BackendIdentifierConversions.toStackName(this.backendId)
-      );
+      this.mainStack = new AmplifyStack(this.scope, this.backendId);
     }
 
     const deploymentType = this.backendId.type;
