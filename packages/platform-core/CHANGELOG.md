@@ -1,5 +1,13 @@
 # @aws-amplify/platform-core
 
+## 1.2.1
+
+### Patch Changes
+
+- 71ef398: Report npm user agent
+- Updated dependencies [f1db886]
+  - @aws-amplify/plugin-types@1.5.0
+
 ## 1.2.0
 
 ### Minor Changes
