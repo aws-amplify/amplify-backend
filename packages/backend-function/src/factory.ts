@@ -45,6 +45,7 @@ import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
+import { parseLoggingOptions } from './logging_options_parser.js';
 
 const functionStackType = 'function-Lambda';
 
@@ -63,6 +64,39 @@ export type TimeInterval =
   | `every month`
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
+
+export type FunctionLogLevel =
+  | 'info'
+  | 'debug'
+  | 'warn'
+  | 'error'
+  | 'fatal'
+  | 'trace';
+
+export type FunctionLogRetention =
+  | '1 day'
+  | '3 days'
+  | '5 days'
+  | '1 week'
+  | '2 weeks'
+  | '1 month'
+  | '2 months'
+  | '3 months'
+  | '4 months'
+  | '5 months'
+  | '6 months'
+  | '1 year'
+  | '13 months'
+  | '18 months'
+  | '2 years'
+  | '3 years'
+  | '5 years'
+  | '6 years'
+  | '7 years'
+  | '8 years'
+  | '9 years'
+  | '10 years'
+  | 'infinite';
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -159,6 +193,8 @@ export type FunctionProps = {
    * resourceGroupName: 'auth' // to group an auth trigger with an auth resource
    */
   resourceGroupName?: AmplifyResourceGroupName;
+
+  logging?: FunctionLoggingOptions;
 };
 
 export type FunctionBundlingOptions = {
@@ -168,6 +204,11 @@ export type FunctionBundlingOptions = {
    * Defaults to true.
    */
   minify?: boolean;
+};
+
+export type FunctionLoggingOptions = {
+  level?: FunctionLogLevel;
+  retention?: FunctionLogRetention;
 };
 
 /**
@@ -218,6 +259,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       bundling: this.resolveBundling(),
       layers,
       resourceGroupName: this.props.resourceGroupName ?? 'function',
+      logging: this.props.logging ?? {},
     };
   };
 
@@ -438,6 +480,7 @@ class AmplifyFunction
     functionEnvironmentTypeGenerator.generateProcessEnvShim();
 
     let functionLambda: NodejsFunction;
+    const cdkLogConfiguration = parseLoggingOptions(props.logging);
     try {
       functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
@@ -451,6 +494,8 @@ class AmplifyFunction
           inject: shims,
           externalModules: Object.keys(props.layers),
         },
+        logRetention: cdkLogConfiguration.retention,
+        applicationLogLevelV2: cdkLogConfiguration.level,
       });
     } catch (error) {
       // If the error is from ES Bundler which is executed as a child process by CDK,

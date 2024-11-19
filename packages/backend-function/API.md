@@ -29,6 +29,18 @@ export type FunctionBundlingOptions = {
 };
 
 // @public (undocumented)
+export type FunctionLoggingOptions = {
+    level?: FunctionLogLevel;
+    retention?: FunctionLogRetention;
+};
+
+// @public (undocumented)
+export type FunctionLogLevel = 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace';
+
+// @public (undocumented)
+export type FunctionLogRetention = '1 day' | '3 days' | '5 days' | '1 week' | '2 weeks' | '1 month' | '2 months' | '3 months' | '4 months' | '5 months' | '6 months' | '1 year' | '13 months' | '18 months' | '2 years' | '3 years' | '5 years' | '6 years' | '7 years' | '8 years' | '9 years' | '10 years' | 'infinite';
+
+// @public (undocumented)
 export type FunctionProps = {
     name?: string;
     entry?: string;
@@ -40,6 +52,7 @@ export type FunctionProps = {
     layers?: Record<string, string>;
     bundling?: FunctionBundlingOptions;
     resourceGroupName?: AmplifyResourceGroupName;
+    logging?: FunctionLoggingOptions;
 };
 
 // @public (undocumented)
