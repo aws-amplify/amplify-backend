@@ -4,7 +4,7 @@ import { generateClient } from 'aws-amplify/data';
 import type { Schema } from '../../data/resource.js';
 import { getAmplifyDataClientConfig } from '@aws-amplify/backend/function/runtime';
 // @ts-ignore
-import { env } from '$amplify/env/noop-import.js';
+import { env } from '$amplify/env/customer-s3-import.js';
 import { S3Client } from '@aws-sdk/client-s3';
 
 const { resourceConfig, libraryOptions } = await getAmplifyDataClientConfig(

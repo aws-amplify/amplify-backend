@@ -37,8 +37,10 @@ if (process.versions.node) {
 /**
  * Creates the data and function test project.
  */
-export class DataAndFunctionTestProjectCreator implements TestProjectCreator {
-  readonly name = 'data-and-function';
+export class DataAccessFromFunctionTestProjectCreator
+  implements TestProjectCreator
+{
+  readonly name = 'data-access-from-function';
 
   /**
    * Creates project creator.
@@ -63,7 +65,7 @@ export class DataAndFunctionTestProjectCreator implements TestProjectCreator {
     const { projectName, projectRoot, projectAmplifyDir } =
       await createEmptyAmplifyProject(this.name, e2eProjectDir);
 
-    const project = new DataAndFunctionTestProject(
+    const project = new DataAccessFromFunctionTestProject(
       projectName,
       projectRoot,
       projectAmplifyDir,
@@ -87,8 +89,9 @@ export class DataAndFunctionTestProjectCreator implements TestProjectCreator {
 /**
  * The data and function test project.
  */
-class DataAndFunctionTestProject extends TestProjectBase {
-  readonly sourceProjectDirPath = '../../src/test-projects/data-and-function';
+class DataAccessFromFunctionTestProject extends TestProjectBase {
+  readonly sourceProjectDirPath =
+    '../../src/test-projects/data_access_from_function';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
