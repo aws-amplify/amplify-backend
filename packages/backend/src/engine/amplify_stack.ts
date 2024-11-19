@@ -1,5 +1,5 @@
 import { AmplifyFault } from '@aws-amplify/platform-core';
-import { Aspects, CfnElement, IAspect, Stack, StackProps } from 'aws-cdk-lib';
+import { Aspects, Aws, CfnElement, IAspect, Stack, StackProps } from 'aws-cdk-lib';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { Construct, IConstruct } from 'constructs';
 
@@ -12,7 +12,10 @@ export class AmplifyStack extends Stack {
    */
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, {
-      env: { account: process.env.AMPLIFY_ACCOUNT, region: process.env.AMPLIFY_REGION },
+      env: {
+        account: process.env.AMPLIFY_ACCOUNT ?? Aws.ACCOUNT_ID,
+        region: process.env.AMPLIFY_REGION ?? 'us-east-1',
+      },
     });
     Aspects.of(this).add(new CognitoRoleTrustPolicyValidator());
     
