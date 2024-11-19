@@ -14,6 +14,9 @@ import * as runtime from '@aws-amplify/ai-constructs/conversation/runtime';
 declare namespace __export__conversation {
     export {
         ConversationHandlerFunctionFactory,
+        ConversationHandlerFunctionLogLevel,
+        ConversationHandlerFunctionLogRetention,
+        ConversationHandlerFunctionLoggingOptions,
         DefineConversationHandlerFunctionProps,
         defineConversationHandlerFunction
     }
@@ -37,6 +40,18 @@ type ConversationHandlerFunctionFactory = ConstructFactory<ResourceProvider<Func
 };
 
 // @public (undocumented)
+type ConversationHandlerFunctionLoggingOptions = {
+    retention?: ConversationHandlerFunctionLogRetention;
+    level?: ConversationHandlerFunctionLogLevel;
+};
+
+// @public (undocumented)
+type ConversationHandlerFunctionLogLevel = 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace';
+
+// @public (undocumented)
+type ConversationHandlerFunctionLogRetention = '1 day' | '3 days' | '5 days' | '1 week' | '2 weeks' | '1 month' | '2 months' | '3 months' | '4 months' | '5 months' | '6 months' | '1 year' | '13 months' | '18 months' | '2 years' | '3 years' | '5 years' | '6 years' | '7 years' | '8 years' | '9 years' | '10 years' | 'infinite';
+
+// @public (undocumented)
 type ConversationTurnEvent = runtime.ConversationTurnEvent;
 
 // @public (undocumented)
@@ -54,6 +69,7 @@ type DefineConversationHandlerFunctionProps = {
         region?: string;
     }>;
     memoryMB?: number;
+    logging?: ConversationHandlerFunctionLoggingOptions;
 };
 
 // @public (undocumented)

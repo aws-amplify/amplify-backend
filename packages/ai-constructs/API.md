@@ -7,12 +7,14 @@
 /// <reference types="node" />
 
 import { AIConversationOutput } from '@aws-amplify/backend-output-schemas';
+import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import * as jsonSchemaToTypeScript from 'json-schema-to-ts';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 declare namespace __export__conversation {
     export {
@@ -55,6 +57,10 @@ type ConversationHandlerFunctionProps = {
         region?: string;
     }>;
     memoryMB?: number;
+    logging?: {
+        level?: ApplicationLogLevel;
+        retention?: RetentionDays;
+    };
     outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
 };
 
