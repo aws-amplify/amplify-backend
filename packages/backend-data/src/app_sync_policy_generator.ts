@@ -14,7 +14,10 @@ export class AppSyncPolicyGenerator {
   /**
    * Initialize with the GraphqlAPI that the policies will be scoped to
    */
-  constructor(private readonly graphqlApi: IGraphqlApi) {
+  constructor(
+    private readonly graphqlApi: IGraphqlApi,
+    private readonly modelIntrospectionSchemaArn?: string
+  ) {
     this.stack = Stack.of(graphqlApi);
   }
   /**
@@ -29,13 +32,25 @@ export class AppSyncPolicyGenerator {
       .map((action) => actionToTypeMap[action])
       // convert Type to resourceName
       .map((type) => [this.graphqlApi.arn, 'types', type, '*'].join('/'));
-    return new Policy(this.stack, `${this.policyPrefix}${this.policyCount++}`, {
-      statements: [
+
+    const statements = [
+      new PolicyStatement({
+        actions: ['appsync:GraphQL'],
+        resources,
+      }),
+    ];
+
+    if (this.modelIntrospectionSchemaArn) {
+      statements.push(
         new PolicyStatement({
-          actions: ['appsync:GraphQL'],
-          resources,
-        }),
-      ],
+          actions: ['s3:GetObject'],
+          resources: [this.modelIntrospectionSchemaArn],
+        })
+      );
+    }
+
+    return new Policy(this.stack, `${this.policyPrefix}${this.policyCount++}`, {
+      statements,
     });
   }
 }
