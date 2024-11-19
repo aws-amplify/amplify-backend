@@ -29,8 +29,12 @@ export type FunctionBundlingOptions = {
 };
 
 // @public (undocumented)
-export type FunctionLoggingOptions = {
+export type FunctionLoggingOptions = ({
+    format: 'json';
     level?: FunctionLogLevel;
+} | {
+    format?: 'text';
+}) & {
     retention?: FunctionLogRetention;
 };
 

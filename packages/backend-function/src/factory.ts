@@ -206,8 +206,15 @@ export type FunctionBundlingOptions = {
   minify?: boolean;
 };
 
-export type FunctionLoggingOptions = {
-  level?: FunctionLogLevel;
+export type FunctionLoggingOptions = (
+  | {
+      format: 'json';
+      level?: FunctionLogLevel;
+    }
+  | {
+      format?: 'text';
+    }
+) & {
   retention?: FunctionLogRetention;
 };
 
@@ -496,6 +503,7 @@ class AmplifyFunction
         },
         logRetention: cdkLogConfiguration.retention,
         applicationLogLevelV2: cdkLogConfiguration.level,
+        loggingFormat: cdkLogConfiguration.format,
       });
     } catch (error) {
       // If the error is from ES Bundler which is executed as a child process by CDK,

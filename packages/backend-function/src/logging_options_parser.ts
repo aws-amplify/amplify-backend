@@ -3,20 +3,36 @@ import {
   FunctionLogRetention,
   FunctionLoggingOptions,
 } from './factory.js';
-import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
+import { ApplicationLogLevel, LoggingFormat } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 /**
  * TODO
  */
 export const parseLoggingOptions = (loggingOptions: FunctionLoggingOptions) => {
-  const level = parseLogLevel(loggingOptions.level);
+  let level: ApplicationLogLevel | undefined = undefined;
+  if ('level' in loggingOptions) {
+    level = parseLogLevel(loggingOptions.level);
+  }
   const retention = parseRetention(loggingOptions.retention);
+  const format = parseFormat(loggingOptions.format);
 
   return {
     level,
     retention,
+    format,
   };
+};
+
+const parseFormat = (format: 'json' | 'text' | undefined) => {
+  switch (format) {
+    case undefined:
+      return undefined;
+    case 'json':
+      return LoggingFormat.JSON;
+    case 'text':
+      return LoggingFormat.TEXT;
+  }
 };
 
 const parseRetention = (retention: FunctionLogRetention | undefined) => {
