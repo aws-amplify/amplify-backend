@@ -1,5 +1,15 @@
 # @aws-amplify/backend-ai
 
+## 1.0.1
+
+### Patch Changes
+
+- f1db886: add resourceGroupName prop to function
+- Updated dependencies [f1db886]
+- Updated dependencies [71ef398]
+  - @aws-amplify/plugin-types@1.5.0
+  - @aws-amplify/platform-core@1.2.1
+
 ## 1.0.0
 
 ### Major Changes

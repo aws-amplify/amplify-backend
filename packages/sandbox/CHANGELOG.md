@@ -1,5 +1,15 @@
 # @aws-amplify/sandbox
 
+## 1.2.6
+
+### Patch Changes
+
+- 8c8fc5e: Print bootstrap url when browser cannot be opened
+- Updated dependencies [f1db886]
+- Updated dependencies [71ef398]
+  - @aws-amplify/plugin-types@1.5.0
+  - @aws-amplify/platform-core@1.2.1
+
 ## 1.2.5
 
 ### Patch Changes
