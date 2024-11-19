@@ -86,8 +86,8 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       codePathDurations: this.translateMetricsToUsageData(options.metrics),
       input: this.translateDimensionsToUsageData(options.dimensions),
       isCi: isCI,
-      flowReport: {
-        runtime: process.env.npm_config_user_agent,
+      projectSetting: {
+        editor: process.env.npm_config_user_agent,
       },
     };
   };

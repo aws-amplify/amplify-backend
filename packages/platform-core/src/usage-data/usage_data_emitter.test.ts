@@ -83,7 +83,10 @@ void describe('UsageDataEmitter', () => {
     assert.deepStrictEqual(usageDataSent.isCi, isCI);
     assert.deepStrictEqual(usageDataSent.osPlatform, os.platform());
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
-    assert.deepStrictEqual(usageDataSent.flowReport.runtime, testNpmUserAgent);
+    assert.deepStrictEqual(
+      usageDataSent.projectSetting.editor,
+      testNpmUserAgent
+    );
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
     assert.ok(usageDataSent.error == undefined);
@@ -117,7 +120,10 @@ void describe('UsageDataEmitter', () => {
     assert.deepStrictEqual(usageDataSent.isCi, isCI);
     assert.deepStrictEqual(usageDataSent.osPlatform, os.platform());
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
-    assert.deepStrictEqual(usageDataSent.flowReport.runtime, testNpmUserAgent);
+    assert.deepStrictEqual(
+      usageDataSent.projectSetting.editor,
+      testNpmUserAgent
+    );
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
     assert.strictEqual(usageDataSent.error?.message, 'some error message');
