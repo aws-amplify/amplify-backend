@@ -123,6 +123,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
   ): AmplifyError<
     | 'UnknownFault'
     | 'CredentialsError'
+    | 'InsufficientDiskSpaceError'
     | 'InvalidCommandInputError'
     | 'DomainNotFoundError'
     | 'SyntaxError'
@@ -179,6 +180,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         error
       );
     }
+    if (error instanceof Error && isInsufficientDiskSpaceError(error)) {
+      return new AmplifyUserError(
+        'InsufficientDiskSpaceError',
+        {
+          message: error.message,
+          resolution:
+            'There appears to be insufficient space on your system to finish. Clear up some disk space and try again.',
+        },
+        error
+      );
+    }
     return new AmplifyFault(
       'UnknownFault',
       {
@@ -218,6 +230,15 @@ const isENotFoundError = (err?: Error): boolean => {
 
 const isSyntaxError = (err?: Error): boolean => {
   return !!err && err.name === 'SyntaxError';
+};
+
+const isInsufficientDiskSpaceError = (err?: Error): boolean => {
+  return (
+    !!err &&
+    ['ENOSPC: no space left on device', 'code ENOSPC'].some((message) =>
+      err.message.includes(message)
+    )
+  );
 };
 
 /**
