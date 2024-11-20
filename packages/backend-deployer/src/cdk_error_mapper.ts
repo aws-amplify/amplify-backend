@@ -279,6 +279,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: new RegExp(
+        `npm error code EJSONPARSE${this.multiLineEolRegex}npm error path (?<filePath>.*/package\\.json)${this.multiLineEolRegex}(npm error (.*)${this.multiLineEolRegex})*`
+      ),
+      humanReadableErrorMessage: 'The {filePath} is not a valid JSON.',
+      resolutionMessage: `Check package.json file and make sure it is a valid JSON.`,
+      errorName: 'InvalidPackageJsonError',
+      classification: 'ERROR',
+    },
+    {
       // Error: .* is printed to stderr during cdk synth
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
@@ -368,6 +377,7 @@ export type CDKDeploymentError =
   | 'ExpiredTokenError'
   | 'FileConventionError'
   | 'ModuleNotFoundError'
+  | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError';
