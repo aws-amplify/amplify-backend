@@ -40,12 +40,18 @@ export class CdkErrorMapper {
         if (matchGroups.groups) {
           for (const [key, value] of Object.entries(matchGroups.groups)) {
             const placeHolder = `{${key}}`;
-            if (matchingError.humanReadableErrorMessage.includes(placeHolder)) {
+            if (
+              matchingError.humanReadableErrorMessage.includes(placeHolder) ||
+              matchingError.resolutionMessage.includes(placeHolder)
+            ) {
               matchingError.humanReadableErrorMessage =
                 matchingError.humanReadableErrorMessage.replace(
                   placeHolder,
                   value
                 );
+
+              matchingError.resolutionMessage =
+                matchingError.resolutionMessage.replace(placeHolder, value);
               // reset the stderr dump in the underlying error
               underlyingError = undefined;
             }
@@ -203,6 +209,15 @@ export class CdkErrorMapper {
       resolutionMessage:
         'Make sure layer ARNs are correct and layer regions match function region',
       errorName: 'GetLambdaLayerVersionError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /User:(.*) is not authorized to perform:(.*) on resource:(.*) because no identity-based policy allows the (?<action>.*) action/,
+      humanReadableErrorMessage:
+        'Unable to deploy due to insufficient permissions',
+      resolutionMessage: 'Ensure you have permissions to call {action}',
+      errorName: 'AccessDeniedError',
       classification: 'ERROR',
     },
     {
