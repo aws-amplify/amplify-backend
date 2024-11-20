@@ -189,4 +189,20 @@ void describe('AmplifyError.fromError', async () => {
       `Failed the test for error ${error.message}`
     );
   });
+  void it('wraps InsufficientDiskSpaceError in AmplifyUserError', () => {
+    const insufficientDiskSpaceErrors = [
+      new Error(
+        "ENOSPC: no space left on device, open '/some/path/amplify_outputs.json'"
+      ),
+      new Error('npm ERR! code ENOSPC'),
+    ];
+    insufficientDiskSpaceErrors.forEach((error) => {
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        AmplifyError.isAmplifyError(actual) &&
+          actual.name === 'InsufficientDiskSpaceError',
+        `Failed the test for error ${error.message}`
+      );
+    });
+  });
 });
