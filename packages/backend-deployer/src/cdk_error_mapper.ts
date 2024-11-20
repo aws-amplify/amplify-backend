@@ -213,10 +213,11 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
-        /User:(.*) is not authorized to perform:(.*) on resource:(.*) because no identity-based policy allows the (?<action>.*) action/,
+        /User:(.*) is not authorized to perform:(.*) on resource:(?<resource>.*) because no identity-based policy allows the (?<action>.*) action/,
       humanReadableErrorMessage:
         'Unable to deploy due to insufficient permissions',
-      resolutionMessage: 'Ensure you have permissions to call {action}',
+      resolutionMessage:
+        'Ensure you have permissions to call {action} for {resource}',
       errorName: 'AccessDeniedError',
       classification: 'ERROR',
     },
