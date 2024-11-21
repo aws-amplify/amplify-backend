@@ -386,6 +386,26 @@ const testErrorMappings = [
     errorName: 'GetLambdaLayerVersionError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `Error: npm error code EJSONPARSE
+npm error path /home/some-path/package.json
+npm error JSON.parse Expected double-quoted property name in JSON at position 868 while parsing near ...sbuild\\: \\^0.20.2\\,\\n<<<<<<< HEAD\\n\\t\\t\\hl-j...
+npm error JSON.parse Failed to parse JSON data.
+npm error JSON.parse Note: package.json must be actual JSON, not just JavaScript.
+npm error A complete log of this run can be found in: /home/some-path/.npm/_logs/2024-10-01T19_56_46_705Z-debug-0.log`,
+    expectedTopLevelErrorMessage:
+      'The /home/some-path/package.json is not a valid JSON.',
+    errorName: 'InvalidPackageJsonError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `Error: some-stack failed: ValidationError: User: <escaped ARN> is not authorized to perform: ssm:GetParameters on resource: <escaped ARN> because no identity-based policy allows the ssm:GetParameters action`,
+    expectedTopLevelErrorMessage:
+      'Unable to deploy due to insufficient permissions',
+    errorName: 'AccessDeniedError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
@@ -401,8 +421,8 @@ void describe('invokeCDKCommand', { concurrency: 1 }, () => {
         const humanReadableError = cdkErrorMapper.getAmplifyError(
           new Error(errorMessage)
         );
-        assert.equal(humanReadableError.message, expectedTopLevelErrorMessage);
         assert.equal(humanReadableError.name, expectedErrorName);
+        assert.equal(humanReadableError.message, expectedTopLevelErrorMessage);
         expectedDownstreamErrorMessage &&
           assert.equal(
             humanReadableError.cause?.message,

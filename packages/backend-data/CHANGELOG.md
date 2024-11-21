@@ -1,5 +1,13 @@
 # @aws-amplify/backend-data
 
+## 1.2.1
+
+### Patch Changes
+
+- f1db886: add resourceGroupName prop to function
+- Updated dependencies [f1db886]
+  - @aws-amplify/plugin-types@1.5.0
+
 ## 1.2.0
 
 ### Minor Changes
