@@ -211,9 +211,10 @@ export class CDKDeployer implements BackendDeployer {
   private truncateString = (str: string, size: number) => {
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
-    const truncated = encoder.encode(str).slice(-size); // truncate the beginning
-
-    return decoder.decode(truncated);
+    const encoded = encoder.encode(str);
+    return encoded.byteLength > size
+      ? '...truncated...' + decoder.decode(encoded.slice(-size))
+      : str;
   };
 
   private getAppCommand = () =>
