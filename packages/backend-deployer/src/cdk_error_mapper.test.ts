@@ -399,6 +399,13 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
     errorName: 'InvalidPackageJsonError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `Error: some-stack failed: ValidationError: User: <escaped ARN> is not authorized to perform: ssm:GetParameters on resource: <escaped ARN> because no identity-based policy allows the ssm:GetParameters action`,
+    expectedTopLevelErrorMessage:
+      'Unable to deploy due to insufficient permissions',
+    errorName: 'AccessDeniedError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
