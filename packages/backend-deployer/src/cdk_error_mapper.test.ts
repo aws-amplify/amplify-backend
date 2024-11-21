@@ -406,6 +406,106 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
     errorName: 'AccessDeniedError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage:
+      `Error: Transform failed with 1 error:` +
+      EOL +
+      `/Users/some-path/amplify/storage/resource.ts:1:2: ERROR: Expected identifier but found }` +
+      EOL +
+      `at failureErrorWithLog (/Users/some-path/esbuild/lib/main.js:123:45)` +
+      EOL +
+      `at /Users/some-path/esbuild/lib/main.js:678:90`,
+    expectedTopLevelErrorMessage:
+      '/Users/some-path/amplify/storage/resource.ts:1:2: ERROR: Expected identifier but found }',
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      `Error [TransformError]:` +
+      EOL +
+      `You installed esbuild for another platform than the one you're currently using.
+    This won't work because esbuild is written with native code and needs to
+    install a platform-specific binary executable.` +
+      EOL +
+      `Specifically the @esbuild/linux-arm64 package is present but this platform
+    needs the @esbuild/darwin-arm64 package instead. People often get into this
+    situation by installing esbuild on Windows or macOS and copying node_modules
+    into a Docker image that runs Linux, or by copying node_modules between
+    Windows and WSL environments.` +
+      EOL +
+      `If you are installing with npm, you can try not copying the node_modules
+    directory when you copy the files over, and running npm ci or npm install
+    on the destination platform after the copy. Or you could consider using yarn
+    instead of npm which has built-in support for installing a package on multiple
+    platforms simultaneously.` +
+      EOL +
+      `If you are installing with yarn, you can try listing both this platform and the
+    other platform in your .yarnrc.yml file using the supportedArchitectures
+    feature: https://yarnpkg.com/configuration/yarnrc/#supportedArchitectures
+    Keep in mind that this means multiple copies of esbuild will be present.` +
+      EOL +
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Another alternative is to use the esbuild-wasm package instead, which works
+    the same way on all platforms. But it comes with a heavy performance cost and
+    can sometimes be 10x slower than the esbuild package, so you may also not want to do that.`,
+    expectedTopLevelErrorMessage:
+      `You installed esbuild for another platform than the one you're currently using.
+    This won't work because esbuild is written with native code and needs to
+    install a platform-specific binary executable.` +
+      EOL +
+      `Specifically the @esbuild/linux-arm64 package is present but this platform
+    needs the @esbuild/darwin-arm64 package instead. People often get into this
+    situation by installing esbuild on Windows or macOS and copying node_modules
+    into a Docker image that runs Linux, or by copying node_modules between
+    Windows and WSL environments.` +
+      EOL +
+      `If you are installing with npm, you can try not copying the node_modules
+    directory when you copy the files over, and running npm ci or npm install
+    on the destination platform after the copy. Or you could consider using yarn
+    instead of npm which has built-in support for installing a package on multiple
+    platforms simultaneously.` +
+      EOL +
+      `If you are installing with yarn, you can try listing both this platform and the
+    other platform in your .yarnrc.yml file using the supportedArchitectures
+    feature: https://yarnpkg.com/configuration/yarnrc/#supportedArchitectures
+    Keep in mind that this means multiple copies of esbuild will be present.` +
+      EOL +
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Another alternative is to use the esbuild-wasm package instead, which works
+    the same way on all platforms. But it comes with a heavy performance cost and
+    can sometimes be 10x slower than the esbuild package, so you may also not want to do that.`,
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      `Error [TransformError]: The package esbuild-package could not be found, and is needed by esbuild.` +
+      EOL +
+      `If you are installing esbuild with npm, make sure that you don't specify the
+--no-optional or --omit=optional flags. The optionalDependencies feature
+of package.json is used by esbuild to install the correct binary executable
+for your current platform.
+` +
+      EOL +
+      `at generateBinPath (/Users/some-path/esbuild/lib/main.js:123:45)` +
+      EOL +
+      `at /Users/some-path/esbuild/lib/main.js:678:90`,
+    expectedTopLevelErrorMessage:
+      `The package esbuild-package could not be found, and is needed by esbuild.` +
+      EOL +
+      `If you are installing esbuild with npm, make sure that you don't specify the
+--no-optional or --omit=optional flags. The optionalDependencies feature
+of package.json is used by esbuild to install the correct binary executable
+for your current platform.
+` +
+      EOL +
+      `at generateBinPath (/Users/some-path/esbuild/lib/main.js:123:45)` +
+      EOL +
+      `at /Users/some-path/esbuild/lib/main.js:678:90`,
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
