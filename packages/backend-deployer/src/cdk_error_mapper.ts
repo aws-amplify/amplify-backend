@@ -40,12 +40,18 @@ export class CdkErrorMapper {
         if (matchGroups.groups) {
           for (const [key, value] of Object.entries(matchGroups.groups)) {
             const placeHolder = `{${key}}`;
-            if (matchingError.humanReadableErrorMessage.includes(placeHolder)) {
+            if (
+              matchingError.humanReadableErrorMessage.includes(placeHolder) ||
+              matchingError.resolutionMessage.includes(placeHolder)
+            ) {
               matchingError.humanReadableErrorMessage =
                 matchingError.humanReadableErrorMessage.replace(
                   placeHolder,
                   value
                 );
+
+              matchingError.resolutionMessage =
+                matchingError.resolutionMessage.replace(placeHolder, value);
               // reset the stderr dump in the underlying error
               underlyingError = undefined;
             }
@@ -206,6 +212,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /User:(.*) is not authorized to perform:(.*) on resource:(?<resource>.*) because no identity-based policy allows the (?<action>.*) action/,
+      humanReadableErrorMessage:
+        'Unable to deploy due to insufficient permissions',
+      resolutionMessage:
+        'Ensure you have permissions to call {action} for {resource}',
+      errorName: 'AccessDeniedError',
+      classification: 'ERROR',
+    },
+    {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
@@ -276,6 +292,15 @@ export class CdkErrorMapper {
       resolutionMessage:
         'To change these attributes, remove `defineAuth` from your backend, deploy, then add it back. Note that removing `defineAuth` and deploying will delete any users stored in your UserPool.',
       errorName: 'CFNUpdateNotSupportedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex: new RegExp(
+        `npm error code EJSONPARSE${this.multiLineEolRegex}npm error path (?<filePath>.*/package\\.json)${this.multiLineEolRegex}(npm error (.*)${this.multiLineEolRegex})*`
+      ),
+      humanReadableErrorMessage: 'The {filePath} is not a valid JSON.',
+      resolutionMessage: `Check package.json file and make sure it is a valid JSON.`,
+      errorName: 'InvalidPackageJsonError',
       classification: 'ERROR',
     },
     {
@@ -368,6 +393,7 @@ export type CDKDeploymentError =
   | 'ExpiredTokenError'
   | 'FileConventionError'
   | 'ModuleNotFoundError'
+  | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError';
