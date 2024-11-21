@@ -263,7 +263,7 @@ export class CdkErrorMapper {
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
-        'Make sure esbuild is installed and is for the platform you are currently using.',
+        'Make sure esbuild is installed and is compatible with the platform you are currently using.',
       errorName: 'ESBuildError',
       classification: 'ERROR',
     },
