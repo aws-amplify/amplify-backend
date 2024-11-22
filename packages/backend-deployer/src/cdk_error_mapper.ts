@@ -260,11 +260,22 @@ export class CdkErrorMapper {
     {
       // If there are multiple errors, capture all lines containing the errors
       errorRegex: new RegExp(
-        `\\[TransformError\\]: Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`
+        `(\\[TransformError\\]|Error): Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
         'Fix the above mentioned type or syntax error in your backend definition.',
+      errorName: 'ESBuildError',
+      classification: 'ERROR',
+    },
+    {
+      // Captures other forms of transform error
+      errorRegex: new RegExp(
+        `Error \\[TransformError\\]:(${this.multiLineEolRegex}|\\s)?(?<esBuildErrorMessage>(.*(${this.multiLineEolRegex})?)+)`
+      ),
+      humanReadableErrorMessage: '{esBuildErrorMessage}',
+      resolutionMessage:
+        'Make sure esbuild is installed and is compatible with the platform you are currently using.',
       errorName: 'ESBuildError',
       classification: 'ERROR',
     },
