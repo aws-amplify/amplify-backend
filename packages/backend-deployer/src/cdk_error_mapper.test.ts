@@ -506,6 +506,15 @@ for your current platform.
     errorName: 'ESBuildError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `[31m: destroy failed Error: The stack named some-cool-stack-name is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED 
+    (The following resource(s) failed to delete: [resource1]. )`,
+    expectedTopLevelErrorMessage:
+      'The CloudFormation deletion failed due to some-cool-stack-name being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
+    errorName: 'CloudFormationDeletionError',
+    expectedDownstreamErrorMessage: `[31m: destroy failed Error: The stack named some-cool-stack-name is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED 
+    (The following resource(s) failed to delete: [resource1]. )`,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
