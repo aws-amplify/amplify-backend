@@ -214,11 +214,11 @@ export class CdkErrorMapper {
     {
       //This has some overlap with "User:__ is not authorized to perform:__ on resource: __" - some resources cannot be deleted due to lack of permissions
       errorRegex:
-        /The stack named (?<stackName>.*) is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED/,
+        /The stack named (?<stackName>.*) is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED \(The following resource\(s\) failed to delete: (?<resources>.*). \)/,
       humanReadableErrorMessage:
         'The CloudFormation deletion failed due to {stackName} being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
       resolutionMessage:
-        'Ensure that all the resources you are attempting to delete are in a state where they can be deleted. Find more information in the CloudFormation AWS Console for this stack.',
+        'The following resource(s) failed to delete: {resources}. Ensure they are in a state where they can be deleted. Find more information in the CloudFormation AWS Console for this stack.',
       errorName: 'CloudFormationDeletionError',
       classification: 'ERROR',
     },
