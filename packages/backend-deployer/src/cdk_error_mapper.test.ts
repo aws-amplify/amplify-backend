@@ -509,9 +509,9 @@ for your current platform.
   {
     errorMessage: `[31m: destroy failed Error: The stack named amplify-some-stack is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED (The following resource(s) failed to delete: [resource1]. )`,
     expectedTopLevelErrorMessage:
-      'The CloudFormation deletion failed due to your stack being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
+      'The CloudFormation deletion failed due to amplify-some-stack being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
     errorName: 'CloudFormationDeletionError',
-    expectedDownstreamErrorMessage: `The stack named amplify-some-stack is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED`,
+    expectedDownstreamErrorMessage: undefined,
   },
 ];
 
