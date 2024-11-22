@@ -314,20 +314,7 @@ export class CdkErrorMapper {
       errorName: 'InvalidPackageJsonError',
       classification: 'ERROR',
     },
-    {
-      // Error: .* is printed to stderr during cdk synth
-      // Also extracts the first line in the stack where the error happened
-      errorRegex: new RegExp(
-        `^Error: (.*${this.multiLineEolRegex}.*at.*)`,
-        'm'
-      ),
-      humanReadableErrorMessage:
-        'Unable to build the Amplify backend definition.',
-      resolutionMessage:
-        'Check your backend definition in the `amplify` folder for syntax and type errors.',
-      errorName: 'BackendSynthError',
-      classification: 'ERROR',
-    },
+
     {
       // This happens when 'defineBackend' call is missing in customer's app.
       // 'defineBackend' creates CDK app in memory. If it's missing then no cdk.App exists in memory and nothing is rendered.
@@ -363,6 +350,28 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /The code contains one or more errors/,
+      humanReadableErrorMessage: `A custom resolver used in your defineData contains one or more errors`,
+      resolutionMessage: `Check for any syntax errors in your custom resolvers code.`,
+      errorName: 'AppSyncResolverSyntaxError',
+      classification: 'ERROR',
+    },
+    // Generic error printed by CDK. Order matters so keep this towards the bottom of this list
+    {
+      // Error: .* is printed to stderr during cdk synth
+      // Also extracts the first line in the stack where the error happened
+      errorRegex: new RegExp(
+        `^Error: (.*${this.multiLineEolRegex}.*at.*)`,
+        'm'
+      ),
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'BackendSynthError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex:
         /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
       humanReadableErrorMessage:
@@ -388,6 +397,7 @@ export class CdkErrorMapper {
 
 export type CDKDeploymentError =
   | 'AccessDeniedError'
+  | 'AppSyncResolverSyntaxError'
   | 'BackendBuildError'
   | 'BackendSynthError'
   | 'BootstrapNotDetectedError'

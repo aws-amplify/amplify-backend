@@ -163,10 +163,10 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: undefined,
   },
   {
-    errorMessage: `[31m  some-stack failed: The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
+    errorMessage: `[31m  some-stack failed: The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: Some amazing error message (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
     expectedTopLevelErrorMessage: 'The CloudFormation deployment has failed.',
     errorName: 'CloudFormationDeploymentError',
-    expectedDownstreamErrorMessage: `The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
+    expectedDownstreamErrorMessage: `The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: Some amazing error message (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
   },
   {
     errorMessage: `[31m  some-stack failed: The stack named some-stack failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE`,
@@ -405,6 +405,14 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
       'Unable to deploy due to insufficient permissions',
     errorName: 'AccessDeniedError',
     expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `amplify-stack-user-sandbox failed: BadRequestException: The code contains one or more errors.`,
+    expectedTopLevelErrorMessage:
+      'A custom resolver used in your defineData contains one or more errors',
+    errorName: 'AppSyncResolverSyntaxError',
+    expectedDownstreamErrorMessage:
+      'amplify-stack-user-sandbox failed: BadRequestException: The code contains one or more errors.',
   },
   {
     errorMessage:
