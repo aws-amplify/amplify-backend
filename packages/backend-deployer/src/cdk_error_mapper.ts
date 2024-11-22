@@ -216,7 +216,7 @@ export class CdkErrorMapper {
       errorRegex:
         /The stack named (.*) is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED/,
       humanReadableErrorMessage:
-        'The CloudFormation deletion failed due to {stackName} being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
+        'The CloudFormation deletion failed due to your stack being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
       resolutionMessage:
         'Ensure that all the resources you are attempting to delete are in a state where they can be deleted. Find more information in the CloudFormation AWS Console for this stack.',
       errorName: 'CloudFormationDeletionError',
