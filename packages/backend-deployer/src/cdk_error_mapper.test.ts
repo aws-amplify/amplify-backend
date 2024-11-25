@@ -514,6 +514,52 @@ for your current platform.
     expectedDownstreamErrorMessage: undefined,
   },
   {
+    errorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Error: npm ERR! code ENOENT
+npm ERR! syscall lstat
+npm ERR! path /opt/homebrew/Cellar/node/22.2.0/lib
+npm ERR! errno -2
+npm ERR! enoent ENOENT: no such file or directory, lstat '/opt/homebrew/Cellar/node/22.2.0/lib'
+npm ERR! enoent This is related to npm not being able to find a file.
+npm ERR! enoent
+`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `NPM error occurred: npm ERR! code ENOENT
+npm ERR! syscall lstat
+npm ERR! path /opt/homebrew/Cellar/node/22.2.0/lib
+npm ERR! errno -2
+npm ERR! enoent ENOENT: no such file or directory, lstat '/opt/homebrew/Cellar/node/22.2.0/lib'
+npm ERR! enoent This is related to npm not being able to find a file.
+npm ERR! enoent`,
+    errorName: 'CommonNPMError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Error: npm error code ENOENT
+npm error syscall lstat
+npm error path C:\\Users\testUser\\AppData\\Roaming\\npm
+npm error errno -4058
+npm error enoent ENOENT: no such file or directory, lstat 'C:\\Users\\testUser\\AppData\\Roaming\\npm'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `NPM error occurred: npm error code ENOENT
+npm error syscall lstat
+npm error path C:\\Users\testUser\\AppData\\Roaming\\npm
+npm error errno -4058
+npm error enoent ENOENT: no such file or directory, lstat 'C:\\Users\\testUser\\AppData\\Roaming\\npm'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent`,
+    errorName: 'CommonNPMError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     errorMessage: `[31m: destroy failed Error: The stack named amplify-some-stack is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED (The following resource(s) failed to delete: [resource1, resource2]. )`,
     expectedTopLevelErrorMessage:
       'The CloudFormation deletion failed due to amplify-some-stack being in DELETE_FAILED state. Ensure all your resources are able to be deleted',

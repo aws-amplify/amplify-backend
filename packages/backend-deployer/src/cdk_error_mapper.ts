@@ -336,6 +336,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: new RegExp(
+        `(?<npmError>(npm error|npm ERR!) code ENOENT${this.multiLineEolRegex}((npm error|npm ERR!) (.*)${this.multiLineEolRegex})*)`
+      ),
+      humanReadableErrorMessage: 'NPM error occurred: {npmError}',
+      resolutionMessage: `See https://docs.npmjs.com/common-errors for resolution.`,
+      errorName: 'CommonNPMError',
+      classification: 'ERROR',
+    },
+    {
       // Error: .* is printed to stderr during cdk synth
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
@@ -419,6 +428,7 @@ export type CDKDeploymentError =
   | 'CFNUpdateNotSupportedError'
   | 'CloudFormationDeletionError'
   | 'CloudFormationDeploymentError'
+  | 'CommonNPMError'
   | 'FilePermissionsError'
   | 'MissingDefineBackendError'
   | 'MultipleSandboxInstancesError'
