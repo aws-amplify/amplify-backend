@@ -31,41 +31,45 @@ export class FunctionEnvironmentTranslator {
     private readonly lambda: NodejsFunction, // we need to use a specific type here so that we have all the method goodies
     private readonly functionEnvironmentProp: Required<FunctionProps>['environment'],
     private readonly backendSecretResolver: BackendSecretResolver,
-    private readonly functionEnvironmentTypeGenerator: FunctionEnvironmentTypeGenerator
+    private readonly functionEnvironmentTypeGenerator?: FunctionEnvironmentTypeGenerator
   ) {
     for (const [key, value] of Object.entries(this.functionEnvironmentProp)) {
       this.addEnvironmentEntry(key, value);
     }
 
-    // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
-    this.lambda.addEnvironment(
-      this.amplifySsmEnvConfigKey,
-      Lazy.string({
-        produce: () => JSON.stringify(this.ssmEnvVars),
-      })
-    );
+    if (functionEnvironmentTypeGenerator) {
+      // add an environment variable for ssm parameter metadata that is resolved after initialization but before synth is finalized
+      this.lambda.addEnvironment(
+        this.amplifySsmEnvConfigKey,
+        Lazy.string({
+          produce: () => JSON.stringify(this.ssmEnvVars),
+        })
+      );
+    }
 
     this.lambda.node.addValidation({
       validate: () => {
-        // only add the ssm access policy if there are ssm paths
-        if (this.ssmPaths.length > 0) {
-          const ssmAccessPolicy = new PolicyStatement({
-            effect: Effect.ALLOW,
-            actions: ['ssm:GetParameters'],
-            resources: this.ssmPaths
-              .map((path) => (path.startsWith('/') ? path.slice(1) : path)) // the Arn formatter will add a leading slash between the resource and resourceName
-              .map((path) =>
-                Arn.format(
-                  {
-                    service: 'ssm',
-                    resource: 'parameter',
-                    resourceName: path,
-                  },
-                  Stack.of(this.lambda)
-                )
-              ),
-          });
-          this.lambda.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
+        if (this.functionEnvironmentTypeGenerator) {
+          // only add the ssm access policy if there are ssm paths
+          if (this.ssmPaths.length > 0) {
+            const ssmAccessPolicy = new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: ['ssm:GetParameters'],
+              resources: this.ssmPaths
+                .map((path) => (path.startsWith('/') ? path.slice(1) : path)) // the Arn formatter will add a leading slash between the resource and resourceName
+                .map((path) =>
+                  Arn.format(
+                    {
+                      service: 'ssm',
+                      resource: 'parameter',
+                      resourceName: path,
+                    },
+                    Stack.of(this.lambda)
+                  )
+                ),
+            });
+            this.lambda.grantPrincipal.addToPrincipalPolicy(ssmAccessPolicy);
+          }
         }
         return [];
       },
@@ -74,9 +78,11 @@ export class FunctionEnvironmentTranslator {
     // Using CDK validation mechanism as a way to generate a typed process.env shim file at the end of synthesis
     this.lambda.node.addValidation({
       validate: (): string[] => {
-        this.functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(
-          this.amplifyBackendEnvVarNames
-        );
+        if (this.functionEnvironmentTypeGenerator) {
+          this.functionEnvironmentTypeGenerator.generateTypedProcessEnvShim(
+            this.amplifyBackendEnvVarNames
+          );
+        }
         return [];
       },
     });
