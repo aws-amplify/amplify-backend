@@ -166,12 +166,12 @@ export const packageJsonSchema: z.ZodObject<{
     type: z.ZodOptional<z.ZodUnion<[z.ZodLiteral<"module">, z.ZodLiteral<"commonjs">]>>;
 }, "strip", z.ZodTypeAny, {
     name?: string | undefined;
-    type?: "module" | "commonjs" | undefined;
     version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
 }, {
     name?: string | undefined;
-    type?: "module" | "commonjs" | undefined;
     version?: string | undefined;
+    type?: "module" | "commonjs" | undefined;
 }>;
 
 // @public
