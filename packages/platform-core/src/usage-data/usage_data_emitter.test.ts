@@ -1,4 +1,4 @@
-import { afterEach, describe, mock, test } from 'node:test';
+import { after, afterEach, before, describe, mock, test } from 'node:test';
 import assert from 'node:assert';
 import { DefaultUsageDataEmitter } from './usage_data_emitter';
 import { v4, validate } from 'uuid';
@@ -11,6 +11,9 @@ import { AccountIdFetcher } from './account_id_fetcher';
 import { UsageData } from './usage_data';
 import isCI from 'is-ci';
 import { AmplifyError, AmplifyUserError } from '..';
+
+const originalNpmUserAgent = process.env.npm_config_user_agent;
+const testNpmUserAgent = 'testNpmUserAgent';
 
 void describe('UsageDataEmitter', () => {
   let usageDataEmitter: DefaultUsageDataEmitter;
@@ -38,6 +41,14 @@ void describe('UsageDataEmitter', () => {
   } as AccountIdFetcher;
 
   mock.method(https, 'request', () => reqMock);
+
+  before(() => {
+    process.env.npm_config_user_agent = testNpmUserAgent;
+  });
+
+  after(() => {
+    process.env.npm_config_user_agent = originalNpmUserAgent;
+  });
 
   afterEach(() => {
     onReqEndMock.mock.resetCalls();
@@ -72,6 +83,10 @@ void describe('UsageDataEmitter', () => {
     assert.deepStrictEqual(usageDataSent.isCi, isCI);
     assert.deepStrictEqual(usageDataSent.osPlatform, os.platform());
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
+    assert.deepStrictEqual(
+      usageDataSent.projectSetting.editor,
+      testNpmUserAgent
+    );
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
     assert.ok(usageDataSent.error == undefined);
@@ -105,6 +120,10 @@ void describe('UsageDataEmitter', () => {
     assert.deepStrictEqual(usageDataSent.isCi, isCI);
     assert.deepStrictEqual(usageDataSent.osPlatform, os.platform());
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
+    assert.deepStrictEqual(
+      usageDataSent.projectSetting.editor,
+      testNpmUserAgent
+    );
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
     assert.strictEqual(usageDataSent.error?.message, 'some error message');

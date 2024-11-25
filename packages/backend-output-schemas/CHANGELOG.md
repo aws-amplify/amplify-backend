@@ -1,5 +1,23 @@
 # @aws-amplify/backend-output-schemas
 
+## 1.4.0
+
+### Minor Changes
+
+- 5f46d8d: add user groups to outputs
+
+## 1.3.0
+
+### Minor Changes
+
+- 0a5e51c: Stream conversation logs in sandbox
+
+## 1.2.1
+
+### Patch Changes
+
+- d538ecc: add storage access rules to outputs
+
 ## 1.2.0
 
 ### Minor Changes

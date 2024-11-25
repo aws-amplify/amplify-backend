@@ -145,6 +145,7 @@ export class ApiCodeGenerator {
         return this.generateIntrospectionApiCode();
       }
       default:
+        // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
         throw new Error(
           `${
             (props as GenerateApiCodeProps).format as string

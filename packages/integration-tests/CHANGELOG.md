@@ -1,5 +1,27 @@
 # @aws-amplify/integration-tests
 
+## 0.6.0
+
+### Minor Changes
+
+- 11d62fe: Add support for custom Lambda function email senders in Auth construct
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+
+## 0.5.10
+
+### Patch Changes
+
+- d538ecc: add storage access rules to outputs
+
+## 0.5.9
+
+### Patch Changes
+
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+
 ## 0.5.8
 
 ### Patch Changes

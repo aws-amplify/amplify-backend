@@ -1,6 +1,10 @@
 import * as path from 'path';
 import { Policy } from 'aws-cdk-lib/aws-iam';
-import { UserPool, UserPoolOperation } from 'aws-cdk-lib/aws-cognito';
+import {
+  UserPool,
+  UserPoolOperation,
+  UserPoolSESOptions,
+} from 'aws-cdk-lib/aws-cognito';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import {
   AmplifyAuth,
@@ -8,6 +12,7 @@ import {
   TriggerEvent,
 } from '@aws-amplify/auth-construct';
 import {
+  AmplifyResourceGroupName,
   AuthResources,
   AuthRoleName,
   ConstructContainerEntryGenerator,
@@ -18,23 +23,29 @@ import {
   ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceProvider,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
-import { translateToAuthConstructLoginWith } from './translate_auth_props.js';
+import {
+  translateToAuthConstructLoginWith,
+  translateToAuthConstructSenders,
+} from './translate_auth_props.js';
 import { authAccessBuilder as _authAccessBuilder } from './access_builder.js';
 import { AuthAccessPolicyArbiterFactory } from './auth_access_policy_arbiter.js';
 import {
   AuthAccessGenerator,
   AuthLoginWithFactoryProps,
+  CustomEmailSender,
   Expand,
 } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
-import { Tags } from 'aws-cdk-lib';
+import { Stack, Tags } from 'aws-cdk-lib';
 
 export type BackendAuth = ResourceProvider<AuthResources> &
-  ResourceAccessAcceptorFactory<AuthRoleName | string>;
+  ResourceAccessAcceptorFactory<AuthRoleName | string> &
+  StackProvider;
 
 export type AmplifyAuthProps = Expand<
-  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
+  Omit<AuthProps, 'outputStorageStrategy' | 'loginWith' | 'senders'> & {
     /**
      * Specify how you would like users to log in. You can choose from email, phone, and even external providers such as LoginWithAmazon.
      */
@@ -58,6 +69,14 @@ export type AmplifyAuthProps = Expand<
      * access: (allow) => [allow.resource(groupManager).to(["manageGroups"])]
      */
     access?: AuthAccessGenerator;
+    /**
+     * Configure email sender options
+     */
+    senders?: {
+      email:
+        | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
+        | CustomEmailSender;
+    };
   }
 >;
 
@@ -85,8 +104,8 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
     if (AmplifyAuthFactory.factoryCount > 0) {
       throw new AmplifyUserError('MultipleSingletonResourcesError', {
         message:
-          'Multiple `defineAuth` calls are not allowed within an Amplify backend',
-        resolution: 'Remove all but one `defineAuth` call',
+          'Multiple `defineAuth` or `referenceAuth` calls are not allowed within an Amplify backend',
+        resolution: 'Remove all but one `defineAuth` or `referenceAuth` call',
       });
     }
     AmplifyAuthFactory.factoryCount++;
@@ -116,7 +135,7 @@ export class AmplifyAuthFactory implements ConstructFactory<BackendAuth> {
 }
 
 class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'auth';
+  readonly resourceGroupName: AmplifyResourceGroupName = 'auth';
   private readonly name: string;
 
   constructor(
@@ -139,6 +158,10 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
       loginWith: translateToAuthConstructLoginWith(
         this.props.loginWith,
         backendSecretResolver
+      ),
+      senders: translateToAuthConstructSenders(
+        this.props.senders,
+        this.getInstanceProps
       ),
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     };
@@ -195,6 +218,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
           policy.attachToRole(role);
         },
       }),
+      stack: Stack.of(authConstruct),
     };
     if (!this.props.access) {
       return authConstructMixin;

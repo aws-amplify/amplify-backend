@@ -187,6 +187,53 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       openMock.mock.calls[0].arguments[0],
       getBootstrapUrl(region)
     );
+    assert.strictEqual(printer.log.mock.callCount(), 1);
+    assert.strictEqual(
+      printer.log.mock.calls[0].arguments[0],
+      'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.'
+    );
+    assert.strictEqual(printer.log.mock.calls[0].arguments[1], undefined);
+  });
+
+  void it('when region has not bootstrapped, and opening console url fails prints url to initiate bootstrap', async () => {
+    ssmClientSendMock.mock.mockImplementationOnce(() => {
+      throw new ParameterNotFound({
+        $metadata: {},
+        message: 'Parameter not found',
+      });
+    });
+
+    openMock.mock.mockImplementationOnce(() =>
+      Promise.reject(new Error('open error'))
+    );
+
+    await sandboxInstance.start({
+      dir: 'testDir',
+      exclude: ['exclude1', 'exclude2'],
+    });
+
+    assert.strictEqual(ssmClientSendMock.mock.callCount(), 1);
+    assert.strictEqual(openMock.mock.callCount(), 1);
+    assert.strictEqual(
+      openMock.mock.calls[0].arguments[0],
+      getBootstrapUrl(region)
+    );
+    assert.strictEqual(printer.log.mock.callCount(), 3);
+    assert.strictEqual(
+      printer.log.mock.calls[0].arguments[0],
+      'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.'
+    );
+    assert.strictEqual(printer.log.mock.calls[0].arguments[1], undefined);
+    assert.strictEqual(
+      printer.log.mock.calls[1].arguments[0],
+      'Unable to open bootstrap url, open error'
+    );
+    assert.strictEqual(printer.log.mock.calls[1].arguments[1], LogLevel.DEBUG);
+    assert.strictEqual(
+      printer.log.mock.calls[2].arguments[0],
+      `Open ${getBootstrapUrl(region)} in the browser.`
+    );
+    assert.strictEqual(printer.log.mock.calls[2].arguments[1], undefined);
   });
 
   void it('when user does not have proper credentials throw user error', async () => {

@@ -40,16 +40,28 @@ export class CdkErrorMapper {
         if (matchGroups.groups) {
           for (const [key, value] of Object.entries(matchGroups.groups)) {
             const placeHolder = `{${key}}`;
-            if (matchingError.humanReadableErrorMessage.includes(placeHolder)) {
+            if (
+              matchingError.humanReadableErrorMessage.includes(placeHolder) ||
+              matchingError.resolutionMessage.includes(placeHolder)
+            ) {
               matchingError.humanReadableErrorMessage =
                 matchingError.humanReadableErrorMessage.replace(
                   placeHolder,
                   value
                 );
+
+              matchingError.resolutionMessage =
+                matchingError.resolutionMessage.replace(placeHolder, value);
               // reset the stderr dump in the underlying error
               underlyingError = undefined;
             }
           }
+          // remove any trailing EOL
+          matchingError.humanReadableErrorMessage =
+            matchingError.humanReadableErrorMessage.replace(
+              new RegExp(`${this.multiLineEolRegex}$`),
+              ''
+            );
         } else {
           underlyingError.message = matchGroups[0];
         }
@@ -84,10 +96,12 @@ export class CdkErrorMapper {
     classification: AmplifyErrorClassification;
   }> => [
     {
-      errorRegex: /ExpiredToken/,
+      errorRegex:
+        /ExpiredToken|Error: The security token included in the request is expired/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
-      resolutionMessage: 'Ensure your local AWS credentials are valid.',
+      resolutionMessage:
+        "Please update your AWS credentials. You can do this by running `aws configure` or by updating your AWS credentials file. If you're using temporary credentials, you may need to obtain new ones.",
       errorName: 'ExpiredTokenError',
       classification: 'ERROR',
     },
@@ -111,8 +125,38 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /This CDK deployment requires bootstrap stack version \S+, found \S+\. Please run 'cdk bootstrap'\./,
+      humanReadableErrorMessage:
+        'This AWS account and region has outdated CDK bootstrap stack.',
+      resolutionMessage:
+        'Run `cdk bootstrap aws://{YOUR_ACCOUNT_ID}/{YOUR_REGION}` locally to re-bootstrap.',
+      errorName: 'BootstrapOutdatedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /This CDK deployment requires bootstrap stack version \S+, but during the confirmation via SSM parameter \S+ the following error occurred: AccessDeniedException/,
+      humanReadableErrorMessage:
+        'Unable to detect CDK bootstrap stack due to permission issues.',
+      resolutionMessage:
+        "Ensure that AWS credentials have an IAM policy that grants read access to 'arn:aws:ssm:*:*:parameter/cdk-bootstrap/*' SSM parameters.",
+      errorName: 'BootstrapDetectionError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /This CDK CLI is not compatible with the CDK library used by your application\. Please upgrade the CLI to the latest version\./,
+      humanReadableErrorMessage:
+        "Installed 'aws-cdk' is not compatible with installed 'aws-cdk-lib'.",
+      resolutionMessage:
+        "Make sure that version of 'aws-cdk' is greater or equal to version of 'aws-cdk-lib'",
+      errorName: 'CDKVersionMismatchError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
-        `(SyntaxError|ReferenceError|TypeError):((?:.|${this.multiLineEolRegex})*?at .*)`
+        `(SyntaxError|ReferenceError|TypeError)( \\[[A-Z_]+])?:((?:.|${this.multiLineEolRegex})*?at .*)`
       ),
       humanReadableErrorMessage:
         'Unable to build the Amplify backend definition.',
@@ -159,6 +203,25 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /User:(.*) is not authorized to perform: lambda:GetLayerVersion on resource:(.*) because no resource-based policy allows the lambda:GetLayerVersion action/,
+      humanReadableErrorMessage: 'Unable to get Lambda layer version',
+      resolutionMessage:
+        'Make sure layer ARNs are correct and layer regions match function region',
+      errorName: 'GetLambdaLayerVersionError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /User:(.*) is not authorized to perform:(.*) on resource:(?<resource>.*) because no identity-based policy allows the (?<action>.*) action/,
+      humanReadableErrorMessage:
+        'Unable to deploy due to insufficient permissions',
+      resolutionMessage:
+        'Ensure you have permissions to call {action} for {resource}',
+      errorName: 'AccessDeniedError',
+      classification: 'ERROR',
+    },
+    {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
@@ -171,12 +234,36 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
-        `\\[TransformError\\]: Transform failed with .* error:${this.multiLineEolRegex}(?<esBuildErrorMessage>.*)`
+        `[✘X] \\[ERROR\\] ((?:.|${this.multiLineEolRegex})*error.*)`
+      ),
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'ESBuildError',
+      classification: 'ERROR',
+    },
+    {
+      // If there are multiple errors, capture all lines containing the errors
+      errorRegex: new RegExp(
+        `(\\[TransformError\\]|Error): Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
         'Fix the above mentioned type or syntax error in your backend definition.',
+      errorName: 'ESBuildError',
+      classification: 'ERROR',
+    },
+    {
+      // Captures other forms of transform error
+      errorRegex: new RegExp(
+        `Error \\[TransformError\\]:(${this.multiLineEolRegex}|\\s)?(?<esBuildErrorMessage>(.*(${this.multiLineEolRegex})?)+)`
+      ),
+      humanReadableErrorMessage: '{esBuildErrorMessage}',
+      resolutionMessage:
+        'Make sure esbuild is installed and is compatible with the platform you are currently using.',
       errorName: 'ESBuildError',
       classification: 'ERROR',
     },
@@ -219,6 +306,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: new RegExp(
+        `npm error code EJSONPARSE${this.multiLineEolRegex}npm error path (?<filePath>.*/package\\.json)${this.multiLineEolRegex}(npm error (.*)${this.multiLineEolRegex})*`
+      ),
+      humanReadableErrorMessage: 'The {filePath} is not a valid JSON.',
+      resolutionMessage: `Check package.json file and make sure it is a valid JSON.`,
+      errorName: 'InvalidPackageJsonError',
+      classification: 'ERROR',
+    },
+    {
       // Error: .* is printed to stderr during cdk synth
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
@@ -230,6 +326,20 @@ export class CdkErrorMapper {
       resolutionMessage:
         'Check your backend definition in the `amplify` folder for syntax and type errors.',
       errorName: 'BackendSynthError',
+      classification: 'ERROR',
+    },
+    {
+      // This happens when 'defineBackend' call is missing in customer's app.
+      // 'defineBackend' creates CDK app in memory. If it's missing then no cdk.App exists in memory and nothing is rendered.
+      // During 'cdk synth' CDK CLI attempts to read CDK assembly after calling customer's app.
+      // But no files are rendered causing it to fail.
+      errorRegex:
+        /ENOENT: no such file or directory, open '\.amplify.artifacts.cdk\.out.manifest\.json'/,
+      humanReadableErrorMessage:
+        'The Amplify backend definition is missing `defineBackend` call.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder. Ensure that `amplify/backend.ts` contains `defineBackend` call.',
+      errorName: 'MissingDefineBackendError',
       classification: 'ERROR',
     },
     {
@@ -253,9 +363,19 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
+      humanReadableErrorMessage:
+        'The CloudFormation deployment failed due to {stackName} being in {state} state.',
+      resolutionMessage:
+        'Find more information in the CloudFormation AWS Console for this stack.',
+      errorName: 'CloudFormationDeploymentError',
+      classification: 'ERROR',
+    },
+    {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: new RegExp(
-        `Deployment failed: (.*)${this.multiLineEolRegex}`
+        `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed (to deploy:|creation,) (.*)`
       ),
       humanReadableErrorMessage: 'The CloudFormation deployment has failed.',
       resolutionMessage:
@@ -271,15 +391,20 @@ export type CDKDeploymentError =
   | 'BackendBuildError'
   | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
+  | 'BootstrapDetectionError'
+  | 'BootstrapOutdatedError'
   | 'CDKResolveAWSAccountError'
+  | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
   | 'CloudFormationDeploymentError'
   | 'FilePermissionsError'
+  | 'MissingDefineBackendError'
   | 'MultipleSandboxInstancesError'
   | 'ESBuildError'
   | 'ExpiredTokenError'
   | 'FileConventionError'
-  | 'FileConventionError'
   | 'ModuleNotFoundError'
+  | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
-  | 'SyntaxError';
+  | 'SyntaxError'
+  | 'GetLambdaLayerVersionError';

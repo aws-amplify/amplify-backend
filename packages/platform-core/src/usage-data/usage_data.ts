@@ -16,4 +16,5 @@ export type UsageData = {
   accountId: string;
   input: { command: string; plugin: string };
   codePathDurations: { platformStartup?: number; totalDuration?: number };
+  projectSetting: { editor?: string };
 };

@@ -1,12 +1,14 @@
 import { IConstruct } from 'constructs';
 import {
   AmplifyFunction,
+  AmplifyResourceGroupName,
   AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
+  ReferenceAuthResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
@@ -97,9 +99,9 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
         this.props,
         buildConstructFactoryProvidedAuthConfig(
           props.constructContainer
-            .getConstructFactory<ResourceProvider<AuthResources>>(
-              'AuthResources'
-            )
+            .getConstructFactory<
+              ResourceProvider<AuthResources | ReferenceAuthResources>
+            >('AuthResources')
             ?.getInstance(props)
         ),
         props,
@@ -111,7 +113,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
 }
 
 class DataGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'data';
+  readonly resourceGroupName: AmplifyResourceGroupName = 'data';
   private readonly name: string;
 
   constructor(
@@ -184,7 +186,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         this.props.authorizationModes
       );
     } catch (error) {
-      if (error instanceof AmplifyError) {
+      if (AmplifyError.isAmplifyError(error)) {
         throw error;
       }
       throw new AmplifyUserError<AmplifyDataError>(

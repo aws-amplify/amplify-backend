@@ -1,5 +1,57 @@
 # @aws-amplify/backend-data
 
+## 1.2.1
+
+### Patch Changes
+
+- f1db886: add resourceGroupName prop to function
+- Updated dependencies [f1db886]
+  - @aws-amplify/plugin-types@1.5.0
+
+## 1.2.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
+### Patch Changes
+
+- Updated dependencies [90a7c49]
+  - @aws-amplify/plugin-types@1.4.0
+
+## 1.1.7
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+
+## 1.1.6
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.1.5
+
+### Patch Changes
+
+- 0d6489d: Update data-schema-types
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
+## 1.1.4
+
+### Patch Changes
+
+- ffc3b42: update data construct
+- e648e8e: added main field to package.json so these packages are resolvable
+- Updated dependencies [8dd7286]
+  - @aws-amplify/backend-output-storage@1.1.2
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.1.3
 
 ### Patch Changes

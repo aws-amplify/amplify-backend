@@ -68,24 +68,29 @@ export class SSMSecretClient implements SecretClient {
     const result: SecretListItem[] = [];
 
     try {
-      const resp = await this.ssmClient.getParametersByPath({
-        Path: path,
-        WithDecryption: true,
-      });
+      let nextToken: string | undefined;
+      do {
+        const resp = await this.ssmClient.getParametersByPath({
+          Path: path,
+          WithDecryption: true,
+          NextToken: nextToken,
+        });
 
-      resp.Parameters?.forEach((param) => {
-        if (!param.Name || !param.Value) {
-          return;
-        }
-        const secretName = param.Name.split('/').pop();
-        if (secretName) {
-          result.push({
-            name: secretName,
-            version: param.Version,
-            lastUpdated: param.LastModifiedDate,
-          });
-        }
-      });
+        resp.Parameters?.forEach((param) => {
+          if (!param.Name || !param.Value) {
+            return;
+          }
+          const secretName = param.Name.split('/').pop();
+          if (secretName) {
+            result.push({
+              name: secretName,
+              version: param.Version,
+              lastUpdated: param.LastModifiedDate,
+            });
+          }
+        });
+        nextToken = resp.NextToken;
+      } while (nextToken);
       return result;
     } catch (err) {
       throw SecretError.createInstance(err as Error);

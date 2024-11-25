@@ -22,6 +22,13 @@ export const createTestDirectory = async (pathName: string | URL) => {
  * Delete a test directory.
  */
 export const deleteTestDirectory = async (pathName: string | URL) => {
+  if (process.env.CI) {
+    // We don't have to delete test directories in CI.
+    // The VMs are ephemeral.
+    // On the other hand we want to keep shared parent directories for test projects
+    // for tests executing in parallel on the same VM.
+    return;
+  }
   if (existsSync(pathName)) {
     await fs.rm(pathName, { recursive: true, force: true });
   }

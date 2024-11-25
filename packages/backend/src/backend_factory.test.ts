@@ -148,6 +148,11 @@ void describe('Backend', () => {
     );
   });
 
+  void it('verifies stack property exists and is equivalent to rootStack', () => {
+    const backend = new BackendFactory({}, rootStack);
+    assert.equal(rootStack, backend.stack);
+  });
+
   void it('stores attribution metadata in root stack', () => {
     new BackendFactory({}, rootStack);
     const rootStackTemplate = Template.fromStack(rootStack);
@@ -191,7 +196,7 @@ void describe('Backend', () => {
     const backend = new BackendFactory({}, rootStack);
     const clientConfigPartial: DeepPartialAmplifyGeneratedConfigs<ClientConfig> =
       {
-        version: '1.1',
+        version: '1.3',
         custom: {
           someCustomOutput: 'someCustomOutputValue',
         },

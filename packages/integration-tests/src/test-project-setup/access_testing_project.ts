@@ -45,6 +45,7 @@ import { IamCredentials } from '../types.js';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
 import { SemVer } from 'semver';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 
 // TODO: this is a work around
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
@@ -69,11 +70,21 @@ export class AccessTestingProjectTestProjectCreator
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient,
-    private readonly cognitoIdentityClient: CognitoIdentityClient,
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly stsClient: STSClient
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityClient: CognitoIdentityClient = new CognitoIdentityClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
+      e2eToolingClientConfig
+    ),
+    private readonly stsClient: STSClient = new STSClient(
+      e2eToolingClientConfig
+    )
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -147,7 +158,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
     backendId: BackendIdentifier
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
-    const clientConfig = await generateClientConfig(backendId, '1.1');
+    const clientConfig = await generateClientConfig(backendId, '1.3');
     await this.assertDifferentCognitoInstanceCannotAssumeAmplifyRoles(
       clientConfig
     );
@@ -160,7 +171,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
    * I.e. roles not created by auth construct.
    */
   private assertGenericIamRolesAccessToData = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>
+    clientConfig: ClientConfigVersionTemplateType<'1.3'>
   ) => {
     if (!clientConfig.custom) {
       throw new Error('Client config is missing custom section');
@@ -262,7 +273,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
    * This asserts that authenticated and unauthenticated roles have relevant access to data API.
    */
   private assertAmplifyAuthAccessToData = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>
+    clientConfig: ClientConfigVersionTemplateType<'1.3'>
   ): Promise<void> => {
     if (!clientConfig.auth) {
       throw new Error('Client config is missing auth section');
@@ -367,7 +378,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
    * unauthorized roles. I.e. it tests trust policy.
    */
   private assertDifferentCognitoInstanceCannotAssumeAmplifyRoles = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>
+    clientConfig: ClientConfigVersionTemplateType<'1.3'>
   ): Promise<void> => {
     const simpleAuthUser = await this.createAuthenticatedSimpleAuthCognitoUser(
       clientConfig
@@ -416,7 +427,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   };
 
   private createAuthenticatedSimpleAuthCognitoUser = async (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>
+    clientConfig: ClientConfigVersionTemplateType<'1.3'>
   ): Promise<SimpleAuthCognitoUser> => {
     if (!clientConfig.custom) {
       throw new Error('Client config is missing custom section');
@@ -496,7 +507,7 @@ class AccessTestingProjectTestProject extends TestProjectBase {
   };
 
   private createAppSyncClient = (
-    clientConfig: ClientConfigVersionTemplateType<'1.1'>,
+    clientConfig: ClientConfigVersionTemplateType<'1.3'>,
     credentials: IamCredentials
   ): ApolloClient<NormalizedCacheObject> => {
     if (!clientConfig.data?.url) {

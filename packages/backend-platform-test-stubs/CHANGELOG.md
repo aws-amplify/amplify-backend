@@ -1,5 +1,21 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.6
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/plugin-types@1.3.1
+
+## 0.3.5
+
+### Patch Changes
+
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- Updated dependencies [8dd7286]
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 0.3.4
 
 ### Patch Changes

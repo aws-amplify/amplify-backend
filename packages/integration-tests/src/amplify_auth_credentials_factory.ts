@@ -16,23 +16,24 @@ import { AsyncLock } from './async_lock.js';
  * This class is safe to use in concurrent settings, i.e. tests running in parallel.
  */
 export class AmplifyAuthCredentialsFactory {
-  private readonly userPoolId: string;
-  private readonly userPoolClientId: string;
-  private readonly identityPoolId: string;
-  private readonly allowGuestAccess: boolean | undefined;
   /**
    * Asynchronous lock is used to assure that all calls to Amplify JS library are
    * made in single transaction. This is because that library maintains global state,
    * for example auth session.
    */
-  private readonly lock: AsyncLock = new AsyncLock(60 * 1000);
+  private static readonly lock: AsyncLock = new AsyncLock(60 * 1000);
+
+  private readonly userPoolId: string;
+  private readonly userPoolClientId: string;
+  private readonly identityPoolId: string;
+  private readonly allowGuestAccess: boolean | undefined;
 
   /**
    * Creates Amplify Auth credentials factory.
    */
   constructor(
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    authConfig: NonNullable<ClientConfigVersionTemplateType<'1.1'>['auth']>
+    authConfig: NonNullable<ClientConfigVersionTemplateType<'1.3'>['auth']>
   ) {
     if (!authConfig.identity_pool_id) {
       throw new Error('Client config must have identity pool id.');
@@ -47,7 +48,7 @@ export class AmplifyAuthCredentialsFactory {
     iamCredentials: IamCredentials;
     accessToken: string;
   }> => {
-    await this.lock.acquire();
+    await AmplifyAuthCredentialsFactory.lock.acquire();
     try {
       const username = `amplify-backend-${shortUuid()}@amazon.com`;
       const temporaryPassword = `Test1@Temp${shortUuid()}`;
@@ -103,12 +104,12 @@ export class AmplifyAuthCredentialsFactory {
         accessToken: authSession.tokens.accessToken.toString(),
       };
     } finally {
-      this.lock.release();
+      AmplifyAuthCredentialsFactory.lock.release();
     }
   };
 
   getGuestAccessCredentials = async (): Promise<IamCredentials> => {
-    await this.lock.acquire();
+    await AmplifyAuthCredentialsFactory.lock.acquire();
     try {
       Amplify.configure({
         Auth: {
@@ -131,7 +132,7 @@ export class AmplifyAuthCredentialsFactory {
 
       return authSession.credentials;
     } finally {
-      this.lock.release();
+      AmplifyAuthCredentialsFactory.lock.release();
     }
   };
 }

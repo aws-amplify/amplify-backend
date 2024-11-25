@@ -52,7 +52,9 @@ export class GenerateFormsCommand
   }
 
   getBackendIdentifier = async (args: GenerateFormsCommandOptions) => {
-    return await this.backendIdentifierResolver.resolve(args);
+    return await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
+      args
+    );
   };
 
   /**
@@ -61,12 +63,17 @@ export class GenerateFormsCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateFormsCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier = await this.backendIdentifierResolver.resolve(
-      args
-    );
+    const backendIdentifier =
+      await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
+        args
+      );
 
     if (!backendIdentifier) {
-      throw new Error('Could not resolve the backend identifier');
+      throw new AmplifyUserError('BackendIdentifierResolverError', {
+        message: 'Could not resolve the backend identifier.',
+        resolution:
+          'Ensure stack name or Amplify App ID and branch specified are correct and exists, then re-run this command.',
+      });
     }
 
     const backendOutputClient = this.backendOutputClientBuilder();

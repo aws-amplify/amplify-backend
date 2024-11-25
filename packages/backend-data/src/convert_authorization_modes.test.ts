@@ -36,6 +36,7 @@ void describe('buildConstructFactoryProvidedAuthConfig', () => {
           userPool: 'ThisIsAUserPool',
           authenticatedUserIamRole: 'ThisIsAnAuthenticatedUserIamRole',
           unauthenticatedUserIamRole: 'ThisIsAnUnauthenticatedUserIamRole',
+          identityPoolId: 'us-fake-1:123123-123123',
           cfnResources: {
             cfnIdentityPool: {
               logicalId: 'IdentityPoolLogicalId',

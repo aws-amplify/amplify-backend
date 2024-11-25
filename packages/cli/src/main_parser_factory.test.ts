@@ -17,8 +17,19 @@ void describe('main parser', { concurrency: false }, () => {
     assert.match(output, /generate\s+Generates post deployment artifacts/);
   });
 
-  void it('shows version', async () => {
+  void it('includes generate command in shorthand help output', async () => {
+    const output = await commandRunner.runCommand('-h');
+    assert.match(output, /Commands:/);
+    assert.match(output, /generate\s+Generates post deployment artifacts/);
+  });
+
+  void it('shows version for long version option', async () => {
     const output = await commandRunner.runCommand('--version');
+    assert.equal(output, `${version}\n`);
+  });
+
+  void it('shows version for shorthand version option', async () => {
+    const output = await commandRunner.runCommand('-v');
     assert.equal(output, `${version}\n`);
   });
 

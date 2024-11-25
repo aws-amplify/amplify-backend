@@ -14,6 +14,7 @@ import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { StackProvider } from '@aws-amplify/plugin-types';
 import { StorageOutput } from '@aws-amplify/backend-output-schemas';
 
 // @public (undocumented)
@@ -34,7 +35,7 @@ export type AmplifyStorageProps = {
 export type AmplifyStorageTriggerEvent = 'onDelete' | 'onUpload';
 
 // @public
-export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources>>;
+export const defineStorage: (props: AmplifyStorageFactoryProps) => ConstructFactory<ResourceProvider<StorageResources> & StackProvider>;
 
 // @public
 export type EntityId = 'identity';

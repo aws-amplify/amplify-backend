@@ -337,6 +337,15 @@ const someTypeUnderSubNamespaceUsageFunction = (someTypeUnderSubNamespaceFunctio
 }
     `,
   },
+  {
+    description: 'Skips ignored type',
+    apiReportCode: `
+export type SampleIgnoredType = {
+  someProperty: string;
+}
+    `,
+    expectedApiUsage: '',
+  },
 ];
 
 const nestInMarkdownCodeBlock = (apiReportCode: string) => {
@@ -351,9 +360,14 @@ void describe('Api usage generator', () => {
       );
       const apiUsage = new ApiUsageGenerator(
         'samplePackageName',
-        apiReportAST
+        apiReportAST,
+        ['SampleIgnoredType']
       ).generate();
-      assert.strictEqual(apiUsage.trim(), testCase.expectedApiUsage.trim());
+      assert.strictEqual(
+        // .replace() removes EOL differences between Windows and other OS so output matches for all
+        apiUsage.replace(/[\r]/g, '').trim(),
+        testCase.expectedApiUsage.trim()
+      );
     });
   }
 });

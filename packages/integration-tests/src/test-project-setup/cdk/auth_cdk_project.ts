@@ -22,7 +22,9 @@ export class AuthTestCdkProjectCreator implements TestCdkProjectCreator {
   /**
    * Constructor.
    */
-  constructor(private readonly resourceFinder: DeployedResourcesFinder) {}
+  constructor(
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+  ) {}
 
   createProject = async (
     e2eProjectDir: string
@@ -78,7 +80,7 @@ class AuthTestCdkProject extends TestCdkProjectBase {
       {
         stackName: this.stackName,
       },
-      '1.1', //version of the config
+      '1.3', //version of the config
       awsClientProvider
     );
 

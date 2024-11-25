@@ -5,6 +5,7 @@ import {
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { StorageAccessBuilder } from './types.js';
+import { entityIdSubstitution } from './constants.js';
 
 export const roleAccessBuilder: StorageAccessBuilder = {
   authenticated: {
@@ -69,7 +70,7 @@ export const roleAccessBuilder: StorageAccessBuilder = {
         },
       ],
       actions,
-      idSubstitution: '${cognito-identity.amazonaws.com:sub}',
+      idSubstitution: entityIdSubstitution,
     }),
   }),
   resource: (other) => ({

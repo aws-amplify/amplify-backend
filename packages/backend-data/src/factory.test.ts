@@ -85,6 +85,7 @@ const createConstructContainerWithUserPoolAuthRegistered = (
         authenticatedUserIamRole: new Role(stack, 'testAuthRole', {
           assumedBy: new ServicePrincipal('test.amazon.com'),
         }),
+        identityPoolId: 'identityPoolId',
         cfnResources: {
           cfnUserPool: new CfnUserPool(stack, 'CfnUserPool', {}),
           cfnUserPoolClient: new CfnUserPoolClient(stack, 'CfnUserPoolClient', {
@@ -535,25 +536,8 @@ void describe('DataFactory', () => {
                   'Fn::Join': [
                     '',
                     [
-                      'arn:',
                       {
-                        Ref: 'AWS::Partition',
-                      },
-                      ':appsync:',
-                      {
-                        Ref: 'AWS::Region',
-                      },
-                      ':',
-                      {
-                        Ref: 'AWS::AccountId',
-                      },
-                      // eslint-disable-next-line spellcheck/spell-checker
-                      ':apis/',
-                      {
-                        'Fn::GetAtt': [
-                          'amplifyDataGraphQLAPI42A6FA33',
-                          'ApiId',
-                        ],
+                        'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                       },
                       '/types/Query/*',
                     ],
@@ -563,25 +547,8 @@ void describe('DataFactory', () => {
                   'Fn::Join': [
                     '',
                     [
-                      'arn:',
                       {
-                        Ref: 'AWS::Partition',
-                      },
-                      ':appsync:',
-                      {
-                        Ref: 'AWS::Region',
-                      },
-                      ':',
-                      {
-                        Ref: 'AWS::AccountId',
-                      },
-                      // eslint-disable-next-line spellcheck/spell-checker
-                      ':apis/',
-                      {
-                        'Fn::GetAtt': [
-                          'amplifyDataGraphQLAPI42A6FA33',
-                          'ApiId',
-                        ],
+                        'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                       },
                       '/types/Mutation/*',
                     ],
@@ -591,25 +558,8 @@ void describe('DataFactory', () => {
                   'Fn::Join': [
                     '',
                     [
-                      'arn:',
                       {
-                        Ref: 'AWS::Partition',
-                      },
-                      ':appsync:',
-                      {
-                        Ref: 'AWS::Region',
-                      },
-                      ':',
-                      {
-                        Ref: 'AWS::AccountId',
-                      },
-                      // eslint-disable-next-line spellcheck/spell-checker
-                      ':apis/',
-                      {
-                        'Fn::GetAtt': [
-                          'amplifyDataGraphQLAPI42A6FA33',
-                          'ApiId',
-                        ],
+                        'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                       },
                       '/types/Subscription/*',
                     ],
@@ -717,22 +667,8 @@ void describe('DataFactory', () => {
                 'Fn::Join': [
                   '',
                   [
-                    'arn:',
                     {
-                      Ref: 'AWS::Partition',
-                    },
-                    ':appsync:',
-                    {
-                      Ref: 'AWS::Region',
-                    },
-                    ':',
-                    {
-                      Ref: 'AWS::AccountId',
-                    },
-                    // eslint-disable-next-line spellcheck/spell-checker
-                    ':apis/',
-                    {
-                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'ApiId'],
+                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                     },
                     '/types/Mutation/*',
                   ],
@@ -757,22 +693,8 @@ void describe('DataFactory', () => {
                 'Fn::Join': [
                   '',
                   [
-                    'arn:',
                     {
-                      Ref: 'AWS::Partition',
-                    },
-                    ':appsync:',
-                    {
-                      Ref: 'AWS::Region',
-                    },
-                    ':',
-                    {
-                      Ref: 'AWS::AccountId',
-                    },
-                    // eslint-disable-next-line spellcheck/spell-checker
-                    ':apis/',
-                    {
-                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'ApiId'],
+                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                     },
                     '/types/Query/*',
                   ],

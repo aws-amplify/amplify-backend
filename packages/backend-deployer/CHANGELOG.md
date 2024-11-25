@@ -1,5 +1,63 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.9
+
+### Patch Changes
+
+- 7f2f68b: Handle errors when checking CDK bootstrap.
+- 12cf209: update error mapping to catch when Lambda layer ARN regions do not match function region
+- Updated dependencies [90a7c49]
+  - @aws-amplify/plugin-types@1.4.0
+
+## 1.1.8
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+
+## 1.1.7
+
+### Patch Changes
+
+- 7bf0c64: reclassify as error, UnknownFault, Error: The security token included in the request is expired
+- 889bdb7: Handle case where synthesis renders empty cdk assembly
+- a191fe5: add stack is in a state and can not be updated to error mapper
+
+## 1.1.6
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.1.5
+
+### Patch Changes
+
+- 93d419f: detect more generic CFN deployment failure errors
+- 777c80d: detect transform errors with multiple errors
+- b35f01d: detect generic CFN stack creation errors
+
+## 1.1.4
+
+### Patch Changes
+
+- 98673b0: Improve type error regex
+
+## 1.1.3
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- c9c873c: throw ESBuild error with correct messages
+- cbac105: Handle CDK version mismatch
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [8dd7286]
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.1.2
 
 ### Patch Changes

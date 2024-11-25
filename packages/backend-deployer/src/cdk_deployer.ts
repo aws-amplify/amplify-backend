@@ -86,7 +86,7 @@ export class CDKDeployer implements BackendDeployer {
     } catch (typeError: unknown) {
       if (
         synthError &&
-        typeError instanceof AmplifyError &&
+        AmplifyError.isAmplifyError(typeError) &&
         typeError.cause?.message.match(
           /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/
         )
@@ -199,12 +199,22 @@ export class CDKDeployer implements BackendDeployer {
       // However if the cdk process didn't run or produced no output, then we have nothing to go on with. So we throw
       // this error to aid in some debugging.
       if (aggregatedStderr.trim()) {
+        // If the string is more than 65KB, truncate and keep the last portion.
         // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-        throw new Error(aggregatedStderr);
+        throw new Error(this.truncateString(aggregatedStderr, 65000));
       } else {
         throw error;
       }
     }
+  };
+
+  private truncateString = (str: string, size: number) => {
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    const encoded = encoder.encode(str);
+    return encoded.byteLength > size
+      ? '...truncated...' + decoder.decode(encoded.slice(-size))
+      : str;
   };
 
   private getAppCommand = () =>

@@ -57,6 +57,7 @@
     "@actions/github": "^6.0.0",
     "@aws-sdk/client-amplify": "^3.624.0",
     "@aws-sdk/client-cloudformation": "^3.624.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.624.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.624.0",
     "@aws-sdk/client-dynamodb": "^3.624.0",
     "@aws-sdk/client-iam": "^3.624.0",
@@ -64,6 +65,7 @@
     "@aws-sdk/client-ssm": "^3.624.0",
     "@changesets/cli": "^2.26.1",
     "@changesets/get-release-plan": "^4.0.0",
+    "@changesets/types": "^6.0.0",
     "@microsoft/api-extractor": "7.43.8",
     "@octokit/webhooks-types": "^7.5.1",
     "@shopify/eslint-plugin": "^43.0.0",
@@ -88,14 +90,14 @@
     "fs-extra": "^11.1.1",
     "glob": "^10.1.0",
     "husky": "^8.0.3",
-    "lint-staged": "^13.2.1",
+    "lint-staged": "^15.2.10",
     "prettier": "^2.8.7",
     "rimraf": "^5.0.0",
     "semver": "^7.5.4",
     "tsx": "^4.6.1",
     "typedoc": "^0.25.3",
     "typescript": "~5.2.0",
-    "verdaccio": "^5.24.1"
+    "verdaccio": "^6.0.1"
   },
   "workspaces": [
     "packages/*"

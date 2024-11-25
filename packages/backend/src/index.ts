@@ -17,7 +17,7 @@ export { defineData } from '@aws-amplify/backend-data';
 export { type ClientSchema, a } from '@aws-amplify/data-schema';
 
 // auth
-export { defineAuth } from '@aws-amplify/backend-auth';
+export { defineAuth, referenceAuth } from '@aws-amplify/backend-auth';
 
 // storage
 export { defineStorage } from '@aws-amplify/backend-storage';

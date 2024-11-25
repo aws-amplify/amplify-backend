@@ -41,17 +41,29 @@ export type StorageAccessBuilder = {
   /**
    * Configure storage access for authenticated users. Requires `defineAuth` in the backend definition.
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#authenticated-user-access
+   *
+   * When configuring access for paths with the `{entity_id}` token, the token is replaced with a wildcard (`*`).
+   * For a path like `media/profile-pictures/{entity_id}/*`, this means access is configured for authenticated users for any file within
+   * `media/profile-pictures/*`.
    */
   authenticated: StorageActionBuilder;
   /**
    * Configure storage access for guest (unauthenticated) users. Requires `defineAuth` in the backend definition.
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#guest-user-access
+   *
+   * When configuring access for paths with the `{entity_id}` token, the token is replaced with a wildcard (`*`).
+   * For a path like `media/profile-pictures/{entity_id}/*`, this means access is configured for guest users for any file within
+   * `media/profile-pictures/*`.
    */
   guest: StorageActionBuilder;
   /**
    * Configure storage access for User Pool groups. Requires `defineAuth` with groups config in the backend definition.
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#user-group-access
    * @param groupName The User Pool group name to configure access for
+   *
+   * When configuring access for paths with the `{entity_id}` token, the token is replaced with a wildcard (`*`).
+   * For a path like `media/profile-pictures/{entity_id}/*`, this means access is configured for that specific group for any file within
+   * `media/profile-pictures/*`.
    */
   groups: (groupNames: string[]) => StorageActionBuilder;
   /**
@@ -64,6 +76,10 @@ export type StorageAccessBuilder = {
    * Grant other resources in the Amplify backend access to storage.
    * @see https://docs.amplify.aws/gen2/build-a-backend/storage/#grant-function-access
    * @param other The target resource to grant access to. Currently only the return value of `defineFunction` is supported.
+   *
+   * When configuring access for paths with the `{entity_id}` token, the token is replaced with a wildcard (`*`).
+   * For a path like `media/profile-pictures/{entity_id}/*`, this means access is configured for resources for any file within
+   * `media/profile-pictures/*`.
    */
   resource: (
     other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>

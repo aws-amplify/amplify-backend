@@ -1,5 +1,33 @@
 # @aws-amplify/backend-secret
 
+## 1.1.5
+
+### Patch Changes
+
+- 255ca18: Handle parameter not found error while deleting secret
+
+## 1.1.4
+
+### Patch Changes
+
+- f87cc87: fix: internally paginate list secret calls
+
+## 1.1.3
+
+### Patch Changes
+
+- dce0518: Handle parameter not found error
+
+## 1.1.2
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- 0ff73ec: add ExpiredToken in the list of credentials error
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [8dd7286]
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.1.1
 
 ### Patch Changes

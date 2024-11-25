@@ -5,10 +5,13 @@
 ```ts
 
 import { AmazonProviderProps } from '@aws-amplify/auth-construct';
+import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { AppleProviderProps } from '@aws-amplify/auth-construct';
+import { AuthOutput } from '@aws-amplify/backend-output-schemas';
 import { AuthProps } from '@aws-amplify/auth-construct';
 import { AuthResources } from '@aws-amplify/plugin-types';
 import { AuthRoleName } from '@aws-amplify/plugin-types';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConstructFactoryGetInstanceProps } from '@aws-amplify/plugin-types';
@@ -16,11 +19,15 @@ import { ExternalProviderOptions } from '@aws-amplify/auth-construct';
 import { FacebookProviderProps } from '@aws-amplify/auth-construct';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GoogleProviderProps } from '@aws-amplify/auth-construct';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { OidcProviderProps } from '@aws-amplify/auth-construct';
+import { ReferenceAuthResources } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptor } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { StackProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct';
+import { UserPoolSESOptions } from 'aws-cdk-lib/aws-cognito';
 
 // @public
 export type ActionIam = 'addUserToGroup' | 'createGroup' | 'createUser' | 'deleteGroup' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getGroup' | 'getUser' | 'listUsers' | 'listUsersInGroup' | 'listGroups' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateGroup' | 'updateUserAttributes';
@@ -35,9 +42,17 @@ export type AmazonProviderFactoryProps = Omit<AmazonProviderProps, 'clientId' | 
 };
 
 // @public (undocumented)
-export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith'> & {
+export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 'loginWith' | 'senders'> & {
     loginWith: Expand<AuthLoginWithFactoryProps>;
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
+    access?: AuthAccessGenerator;
+    senders?: {
+        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
+    };
+}>;
+
+// @public (undocumented)
+export type AmplifyReferenceAuthProps = Expand<Omit<ReferenceAuthProps, 'outputStorageStrategy'> & {
     access?: AuthAccessGenerator;
 }>;
 
@@ -77,7 +92,16 @@ export type AuthLoginWithFactoryProps = Omit<AuthProps['loginWith'], 'externalPr
 };
 
 // @public (undocumented)
-export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string>;
+export type BackendAuth = ResourceProvider<AuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string> & StackProvider;
+
+// @public (undocumented)
+export type BackendReferenceAuth = ResourceProvider<ReferenceAuthResources> & ResourceAccessAcceptorFactory<AuthRoleName | string> & StackProvider;
+
+// @public
+export type CustomEmailSender = {
+    handler: ConstructFactory<AmplifyFunction> | IFunction;
+    kmsKeyArn?: string;
+};
 
 // @public
 export const defineAuth: (props: AmplifyAuthProps) => ConstructFactory<BackendAuth>;
@@ -115,6 +139,22 @@ export type GoogleProviderFactoryProps = Omit<GoogleProviderProps, 'clientId' | 
 export type OidcProviderFactoryProps = Omit<OidcProviderProps, 'clientId' | 'clientSecret'> & {
     clientId: BackendSecret;
     clientSecret: BackendSecret;
+};
+
+// @public
+export const referenceAuth: (props: AmplifyReferenceAuthProps) => ConstructFactory<BackendReferenceAuth>;
+
+// @public (undocumented)
+export type ReferenceAuthProps = {
+    outputStorageStrategy?: BackendOutputStorageStrategy<AuthOutput>;
+    userPoolId: string;
+    identityPoolId: string;
+    userPoolClientId: string;
+    authRoleArn: string;
+    unauthRoleArn: string;
+    groups?: {
+        [groupName: string]: string;
+    };
 };
 
 // (No @packageDocumentation comment for this package)

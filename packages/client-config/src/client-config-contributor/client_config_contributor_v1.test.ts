@@ -8,7 +8,7 @@ import {
 } from './client_config_contributor_v1.js';
 import {
   ClientConfig,
-  clientConfigTypesV1_1,
+  clientConfigTypesV1_3,
 } from '../client-config-types/client_config.js';
 import assert from 'node:assert';
 import {
@@ -74,7 +74,7 @@ void describe('auth client config contributor v1', () => {
           identity_pool_id: 'testIdentityPoolId',
           unauthenticated_identities_enabled: true,
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
     );
   });
 
@@ -99,7 +99,7 @@ void describe('auth client config contributor v1', () => {
           aws_region: 'testRegion',
           identity_pool_id: 'testIdentityPoolId',
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
     );
   });
 
@@ -133,7 +133,7 @@ void describe('auth client config contributor v1', () => {
             require_uppercase: true,
           },
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
     );
   });
 
@@ -166,11 +166,23 @@ void describe('auth client config contributor v1', () => {
             require_uppercase: false,
           },
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
     );
   });
 
   void it('returns translated config when output has auth with zero-config attributes', () => {
+    const groups = [
+      {
+        ADMINS: {
+          precedence: 0,
+        },
+      },
+      {
+        EDITORS: {
+          precedence: 1,
+        },
+      },
+    ];
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
@@ -197,6 +209,7 @@ void describe('auth client config contributor v1', () => {
             oauthRedirectSignOut: 'http://logout.com,http://logout2.com',
             oauthResponseType: 'code',
             socialProviders: `["GOOGLE","FACEBOOK","SIGN_IN_WITH_APPLE","LOGIN_WITH_AMAZON","GITHUB","DISCORD"]`,
+            groups: JSON.stringify(groups),
           },
         },
       }),
@@ -235,12 +248,36 @@ void describe('auth client config contributor v1', () => {
             redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
             response_type: 'code',
           },
+          groups: [
+            {
+              ADMINS: {
+                precedence: 0,
+              },
+            },
+            {
+              EDITORS: {
+                precedence: 1,
+              },
+            },
+          ],
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
     );
   });
 
   void it('returns translated config when output has oauth settings but no social providers', () => {
+    const groups = [
+      {
+        ADMINS: {
+          precedence: 0,
+        },
+      },
+      {
+        EDITORS: {
+          precedence: 1,
+        },
+      },
+    ];
     const contributor = new AuthClientConfigContributor();
     assert.deepStrictEqual(
       contributor.contribute({
@@ -266,6 +303,7 @@ void describe('auth client config contributor v1', () => {
             oauthRedirectSignIn: 'http://callback.com,http://callback2.com',
             oauthRedirectSignOut: 'http://logout.com,http://logout2.com',
             oauthResponseType: 'code',
+            groups: JSON.stringify(groups),
           },
         },
       }),
@@ -299,12 +337,36 @@ void describe('auth client config contributor v1', () => {
             redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
             response_type: 'code',
           },
+          groups: [
+            {
+              ADMINS: {
+                precedence: 0,
+              },
+            },
+            {
+              EDITORS: {
+                precedence: 1,
+              },
+            },
+          ],
         },
-      } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>
+      } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>
     );
   });
 
   void describe('auth outputs with mfa', () => {
+    const groups = [
+      {
+        ADMINS: {
+          precedence: 0,
+        },
+      },
+      {
+        EDITORS: {
+          precedence: 1,
+        },
+      },
+    ];
     const contribution = {
       version: '1' as const,
       payload: {
@@ -327,6 +389,7 @@ void describe('auth client config contributor v1', () => {
         oauthRedirectSignIn: 'http://callback.com,http://callback2.com',
         oauthRedirectSignOut: 'http://logout.com,http://logout2.com',
         oauthResponseType: 'code',
+        groups: JSON.stringify(groups),
       },
     };
 
@@ -357,8 +420,20 @@ void describe('auth client config contributor v1', () => {
           redirect_sign_out_uri: ['http://logout.com', 'http://logout2.com'],
           response_type: 'code',
         },
+        groups: [
+          {
+            ADMINS: {
+              precedence: 0,
+            },
+          },
+          {
+            EDITORS: {
+              precedence: 1,
+            },
+          },
+        ],
       },
-    } as Pick<clientConfigTypesV1_1.AWSAmplifyBackendOutputs, 'auth'>;
+    } as Pick<clientConfigTypesV1_3.AWSAmplifyBackendOutputs, 'auth'>;
 
     void it('returns translated config when mfa is disabled', () => {
       const contributor = new AuthClientConfigContributor();
@@ -459,7 +534,7 @@ void describe('data client config contributor v1', () => {
         url: 'testApiEndpoint',
         aws_region: 'us-east-1',
       },
-    } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>);
+    } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>);
   });
 
   void it('returns translated config with model introspection when resolvable', async () => {
@@ -507,7 +582,7 @@ void describe('data client config contributor v1', () => {
           enums: {},
         },
       },
-    } as Partial<clientConfigTypesV1_1.AWSAmplifyBackendOutputs>);
+    } as Partial<clientConfigTypesV1_3.AWSAmplifyBackendOutputs>);
   });
 });
 
@@ -540,6 +615,12 @@ void describe('storage client config contributor v1', () => {
         name: 'testName',
         bucketName: 'testBucketName',
         storageRegion: 'testRegion',
+        paths: {
+          'path/*': {
+            guest: ['get', 'list'],
+            authenticated: ['read', 'write', 'delete'],
+          },
+        },
       }),
     ]);
     assert.deepStrictEqual(
@@ -562,6 +643,12 @@ void describe('storage client config contributor v1', () => {
               name: 'testName',
               bucket_name: 'testBucketName',
               aws_region: 'testRegion',
+              paths: {
+                'path/*': {
+                  guest: ['get', 'list'],
+                  authenticated: ['read', 'write', 'delete'],
+                },
+              },
             },
           ],
         },
@@ -613,6 +700,6 @@ void describe('Custom client config contributor v1', () => {
 
 void describe('Custom client config contributor v1', () => {
   void it('contributes the version correctly', () => {
-    assert.deepEqual(new VersionContributor().contribute(), { version: '1.1' });
+    assert.deepEqual(new VersionContributor().contribute(), { version: '1.3' });
   });
 });

@@ -26,6 +26,7 @@ import {
   runWithPackageManager,
 } from './process-controller/process_controller.js';
 import { amplifyAtTag } from './constants.js';
+import { RetryPredicates, runWithRetry } from './retry.js';
 
 void describe('getting started happy path', async () => {
   let branchBackendIdentifier: BackendIdentifier;
@@ -81,19 +82,22 @@ void describe('getting started happy path', async () => {
     if (packageManager === 'pnpm' && process.platform === 'win32') {
       return;
     }
-    if (packageManager === 'yarn-classic') {
-      await execa('yarn', ['add', 'create-amplify'], { cwd: tempDir });
-      await execaCommand('./node_modules/.bin/create-amplify --yes --debug', {
-        cwd: tempDir,
-        env: { npm_config_user_agent: 'yarn/1.22.21' },
-      });
-    } else {
-      await runPackageManager(
-        packageManager,
-        ['create', amplifyAtTag, '--yes'],
-        tempDir
-      ).run();
-    }
+
+    await runWithRetry(async () => {
+      if (packageManager === 'yarn-classic') {
+        await execa('yarn', ['add', 'create-amplify'], { cwd: tempDir });
+        await execaCommand('./node_modules/.bin/create-amplify --yes --debug', {
+          cwd: tempDir,
+          env: { npm_config_user_agent: 'yarn/1.22.21' },
+        });
+      } else {
+        await runPackageManager(
+          packageManager,
+          ['create', amplifyAtTag, '--yes'],
+          tempDir
+        ).run();
+      }
+    }, RetryPredicates.createAmplifyRetryPredicate);
 
     const pathPrefix = path.join(tempDir, 'amplify');
 

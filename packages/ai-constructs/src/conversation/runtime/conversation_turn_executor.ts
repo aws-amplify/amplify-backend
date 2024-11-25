@@ -1,6 +1,7 @@
 import { ConversationTurnResponseSender } from './conversation_turn_response_sender.js';
-import { ConversationTurnEvent, ExecutableTool } from './types.js';
+import { ConversationTurnEvent, ExecutableTool, JSONSchema } from './types.js';
 import { BedrockConverseAdapter } from './bedrock_converse_adapter.js';
+import { Lazy } from './lazy';
 
 /**
  * This class is responsible for orchestrating conversation turn execution.
@@ -16,11 +17,13 @@ export class ConversationTurnExecutor {
   constructor(
     private readonly event: ConversationTurnEvent,
     additionalTools: Array<ExecutableTool>,
-    private readonly bedrockConverseAdapter = new BedrockConverseAdapter(
-      event,
-      additionalTools
+    // We're deferring dependency initialization here so that we can capture all validation errors.
+    private readonly responseSender = new Lazy(
+      () => new ConversationTurnResponseSender(event)
     ),
-    private readonly responseSender = new ConversationTurnResponseSender(event),
+    private readonly bedrockConverseAdapter = new Lazy(
+      () => new BedrockConverseAdapter(event, additionalTools)
+    ),
     private readonly logger = console
   ) {}
 
@@ -29,10 +32,18 @@ export class ConversationTurnExecutor {
       this.logger.log(
         `Handling conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
       );
+      this.logger.debug('Event received:', this.event);
 
-      const assistantResponse = await this.bedrockConverseAdapter.askBedrock();
-
-      await this.responseSender.sendResponse(assistantResponse);
+      if (this.event.streamResponse) {
+        const chunks = this.bedrockConverseAdapter.value.askBedrockStreaming();
+        for await (const chunk of chunks) {
+          await this.responseSender.value.sendResponseChunk(chunk);
+        }
+      } else {
+        const assistantResponse =
+          await this.bedrockConverseAdapter.value.askBedrock();
+        await this.responseSender.value.sendResponse(assistantResponse);
+      }
 
       this.logger.log(
         `Conversation turn event handled successfully, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`
@@ -42,8 +53,26 @@ export class ConversationTurnExecutor {
         `Failed to handle conversation turn event, currentMessageId=${this.event.currentMessageId}, conversationId=${this.event.conversationId}`,
         e
       );
+      await this.tryForwardError(e);
       // Propagate error to mark lambda execution as failed in metrics.
       throw e;
+    }
+  };
+
+  private tryForwardError = async (e: unknown) => {
+    try {
+      let errorType = 'UnknownError';
+      let message: string;
+      if (e instanceof Error) {
+        errorType = e.name;
+        message = e.message;
+      } else {
+        message = JSON.stringify(e);
+      }
+      await this.responseSender.value.sendErrors([{ errorType, message }]);
+    } catch (e) {
+      // Best effort, only log the fact that we tried to send error back to AppSync.
+      this.logger.warn('Failed to send error mutation', e);
     }
   };
 }
@@ -54,7 +83,10 @@ export class ConversationTurnExecutor {
  */
 export const handleConversationTurnEvent = async (
   event: ConversationTurnEvent,
-  props?: { tools?: Array<ExecutableTool> }
+  // This is by design, so that tools with different input types can be added
+  // to single arrays. Downstream code doesn't use these types.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  props?: { tools?: Array<ExecutableTool<JSONSchema, any>> }
 ): Promise<void> => {
   await new ConversationTurnExecutor(event, props?.tools ?? []).execute();
 };
