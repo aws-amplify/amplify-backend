@@ -16,7 +16,7 @@ import { Construct } from 'constructs';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
-import { CfnFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { CfnFunction, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { createRequire } from 'module';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { Policy } from 'aws-cdk-lib/aws-iam';
@@ -60,7 +60,7 @@ export type FunctionSchedule = TimeInterval | CronSchedule;
  * Entry point for defining a function in the Amplify ecosystem
  */
 export const defineFunction = (
-  props: FunctionProps = {}
+  props: FunctionProps | ((scope: Construct) => IFunction) = {}
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
@@ -135,7 +135,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
    * Create a new AmplifyFunctionFactory
    */
   constructor(
-    private readonly props: FunctionProps,
+    private readonly props: FunctionProps | ((scope: Construct) => IFunction),
     private readonly callerStack?: string
   ) {}
 
@@ -150,7 +150,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),
-        outputStorageStrategy
+        outputStorageStrategy,
+        typeof this.props === 'function' ? this.props : undefined
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
@@ -166,7 +167,8 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
-      environment: this.props.environment ?? {},
+      environment:
+        typeof this.props === 'function' ? {} : this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
     };
@@ -177,9 +179,12 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (this.props.name) {
       return this.props.name;
     }
-    // If entry is set, use the basename of the entry path
-    if (this.props.entry) {
-      return path.parse(this.props.entry).name;
+
+    if (typeof this.props != 'function') {
+      // If entry is set, use the basename of the entry path
+      if (this.props.entry) {
+        return path.parse(this.props.entry).name;
+      }
     }
 
     // Otherwise, use the directory name where the function is defined
@@ -189,23 +194,29 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveEntry = () => {
-    // if entry is not set, default to handler.ts
-    if (!this.props.entry) {
+    if (typeof this.props != 'function') {
+      // if entry is not set, default to handler.ts
+      if (!this.props.entry) {
+        return path.join(
+          new CallerDirectoryExtractor(this.callerStack).extract(),
+          'handler.ts'
+        );
+      }
+
+      // if entry is absolute use that
+      if (path.isAbsolute(this.props.entry)) {
+        return this.props.entry;
+      }
+
+      // if entry is relative, compute with respect to the caller directory
       return path.join(
         new CallerDirectoryExtractor(this.callerStack).extract(),
-        'handler.ts'
+        this.props.entry
       );
     }
-
-    // if entry is absolute use that
-    if (path.isAbsolute(this.props.entry)) {
-      return this.props.entry;
-    }
-
-    // if entry is relative, compute with respect to the caller directory
     return path.join(
       new CallerDirectoryExtractor(this.callerStack).extract(),
-      this.props.entry
+      'handler.ts'
     );
   };
 
@@ -213,66 +224,83 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     const timeoutMin = 1;
     const timeoutMax = 60 * 15; // 15 minutes in seconds
     const timeoutDefault = 3;
-    if (this.props.timeoutSeconds === undefined) {
-      return timeoutDefault;
-    }
 
-    if (
-      !isWholeNumberBetweenInclusive(
-        this.props.timeoutSeconds,
-        timeoutMin,
-        timeoutMax
-      )
-    ) {
-      throw new Error(
-        `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
-      );
+    if (typeof this.props != 'function') {
+      if (this.props.timeoutSeconds === undefined) {
+        return timeoutDefault;
+      }
+
+      if (
+        !isWholeNumberBetweenInclusive(
+          this.props.timeoutSeconds,
+          timeoutMin,
+          timeoutMax
+        )
+      ) {
+        throw new Error(
+          `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
+        );
+      }
+      return this.props.timeoutSeconds;
     }
-    return this.props.timeoutSeconds;
+    return timeoutDefault;
   };
 
   private resolveMemory = () => {
     const memoryMin = 128;
     const memoryMax = 10240;
     const memoryDefault = 512;
-    if (this.props.memoryMB === undefined) {
-      return memoryDefault;
+    if (typeof this.props != 'function') {
+      if (this.props.memoryMB === undefined) {
+        return memoryDefault;
+      }
+      if (
+        !isWholeNumberBetweenInclusive(
+          this.props.memoryMB,
+          memoryMin,
+          memoryMax
+        )
+      ) {
+        throw new Error(
+          `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
+        );
+      }
+      return this.props.memoryMB;
     }
-    if (
-      !isWholeNumberBetweenInclusive(this.props.memoryMB, memoryMin, memoryMax)
-    ) {
-      throw new Error(
-        `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
-      );
-    }
-    return this.props.memoryMB;
+    return memoryDefault;
   };
 
   private resolveRuntime = () => {
     const runtimeDefault = 18;
 
-    // if runtime is not set, default to the oldest LTS
-    if (!this.props.runtime) {
-      return runtimeDefault;
-    }
+    if (typeof this.props != 'function') {
+      // if runtime is not set, default to the oldest LTS
+      if (!this.props.runtime) {
+        return runtimeDefault;
+      }
 
-    if (!(this.props.runtime in nodeVersionMap)) {
-      throw new Error(
-        `runtime must be one of the following: ${Object.keys(
-          nodeVersionMap
-        ).join(', ')}`
-      );
-    }
+      if (!(this.props.runtime in nodeVersionMap)) {
+        throw new Error(
+          `runtime must be one of the following: ${Object.keys(
+            nodeVersionMap
+          ).join(', ')}`
+        );
+      }
 
-    return this.props.runtime;
+      return this.props.runtime;
+    }
+    return runtimeDefault;
   };
 
   private resolveSchedule = () => {
-    if (!this.props.schedule) {
-      return [];
-    }
+    if (typeof this.props != 'function') {
+      if (!this.props.schedule) {
+        return [];
+      }
 
-    return this.props.schedule;
+      return this.props.schedule;
+    }
+    return [];
   };
 }
 
@@ -283,7 +311,8 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 
   constructor(
     private readonly props: HydratedFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    private readonly callback?: ((scope: Construct) => IFunction) | undefined
   ) {}
 
   generateContainerEntry = ({
@@ -293,9 +322,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     return new AmplifyFunction(
       scope,
       this.props.name,
-      this.props,
+      typeof this.props === 'function' ? this.props : this.props,
       backendSecretResolver,
-      this.outputStorageStrategy
+      this.outputStorageStrategy,
+      this.callback
     );
   };
 }
@@ -314,7 +344,8 @@ class AmplifyFunction
     id: string,
     props: HydratedFunctionProps,
     backendSecretResolver: BackendSecretResolver,
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
+    callback: ((scope: Construct) => IFunction) | undefined
   ) {
     super(scope, id);
 
@@ -346,32 +377,42 @@ class AmplifyFunction
       .map((line) => line.replace(/\/\/.*$/, '')) // strip out inline comments because the banner is going to be flattened into a single line
       .join('');
 
-    const functionEnvironmentTypeGenerator =
-      new FunctionEnvironmentTypeGenerator(id);
+    let functionEnvironmentTypeGenerator:
+      | FunctionEnvironmentTypeGenerator
+      | undefined;
 
-    // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
-    // This will be overwritten with the typed file at the end of synthesis
-    functionEnvironmentTypeGenerator.generateProcessEnvShim();
+    if (!callback) {
+      const functionEnvironmentTypeGenerator =
+        new FunctionEnvironmentTypeGenerator(id);
 
-    let functionLambda: NodejsFunction;
+      // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
+      // This will be overwritten with the typed file at the end of synthesis
+      functionEnvironmentTypeGenerator.generateProcessEnvShim();
+    }
+
+    let functionLambda: NodejsFunction | IFunction;
     try {
-      functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
-        entry: props.entry,
-        timeout: Duration.seconds(props.timeoutSeconds),
-        memorySize: props.memoryMB,
-        runtime: nodeVersionMap[props.runtime],
-        bundling: {
-          format: OutputFormat.ESM,
-          banner: bannerCode,
-          bundleAwsSDK: true,
-          inject: shims,
-          loader: {
-            '.node': 'file',
+      if (!callback) {
+        functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
+          entry: props.entry,
+          timeout: Duration.seconds(props.timeoutSeconds),
+          memorySize: props.memoryMB,
+          runtime: nodeVersionMap[props.runtime],
+          bundling: {
+            format: OutputFormat.ESM,
+            banner: bannerCode,
+            bundleAwsSDK: true,
+            inject: shims,
+            loader: {
+              '.node': 'file',
+            },
+            minify: true,
+            sourceMap: true,
           },
-          minify: true,
-          sourceMap: true,
-        },
-      });
+        });
+      } else {
+        functionLambda = callback(scope);
+      }
     } catch (error) {
       throw new AmplifyUserError(
         'NodeJSFunctionConstructInitializationError',
@@ -384,20 +425,22 @@ class AmplifyFunction
     }
 
     try {
-      const schedules = convertFunctionSchedulesToRuleSchedules(
-        functionLambda,
-        props.schedule
-      );
-      const lambdaTarget = new targets.LambdaFunction(functionLambda);
+      if (!callback) {
+        const schedules = convertFunctionSchedulesToRuleSchedules(
+          functionLambda as NodejsFunction,
+          props.schedule
+        );
+        const lambdaTarget = new targets.LambdaFunction(functionLambda);
 
-      schedules.forEach((schedule, index) => {
-        // Lambda name will be prepended to rule id, so only using index here for uniqueness
-        const rule = new Rule(functionLambda, `schedule${index}`, {
-          schedule,
+        schedules.forEach((schedule, index) => {
+          // Lambda name will be prepended to rule id, so only using index here for uniqueness
+          const rule = new Rule(functionLambda, `schedule${index}`, {
+            schedule,
+          });
+
+          rule.addTarget(lambdaTarget);
         });
-
-        rule.addTarget(lambdaTarget);
-      });
+      }
     } catch (error) {
       throw new AmplifyUserError(
         'FunctionScheduleInitializationError',
@@ -412,7 +455,7 @@ class AmplifyFunction
     Tags.of(functionLambda).add(TagName.FRIENDLY_NAME, id);
 
     this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
-      functionLambda,
+      functionLambda as NodejsFunction,
       props.environment,
       backendSecretResolver,
       functionEnvironmentTypeGenerator
