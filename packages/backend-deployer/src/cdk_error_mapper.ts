@@ -360,7 +360,8 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex: /The code contains one or more errors/,
+      errorRegex:
+        /BadRequestException: The code contains one or more errors|The code contains one or more errors.*AppSync/,
       humanReadableErrorMessage: `A custom resolver used in your defineData contains one or more errors`,
       resolutionMessage: `Check for any syntax errors in your custom resolvers code.`,
       errorName: 'AppSyncResolverSyntaxError',

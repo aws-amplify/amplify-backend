@@ -415,6 +415,14 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
       'amplify-stack-user-sandbox failed: BadRequestException: The code contains one or more errors.',
   },
   {
+    errorMessage: `Deployment failed: Error: The stack named amplify-stack-user-sandbox failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400,...`,
+    expectedTopLevelErrorMessage:
+      'A custom resolver used in your defineData contains one or more errors',
+    errorName: 'AppSyncResolverSyntaxError',
+    expectedDownstreamErrorMessage:
+      'Deployment failed: Error: The stack named amplify-stack-user-sandbox failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400,...',
+  },
+  {
     errorMessage: `User: some:great:user is not authorized to perform: appsync:StartSchemaCreation on resource: arn:aws:appsync:us-east-1:235494812930:/v1/api/myApi`,
     expectedTopLevelErrorMessage:
       'Unable to deploy due to insufficient permissions',
