@@ -233,6 +233,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /User:(.*) is not authorized to perform:(?<action>.*) on resource:(?<resource>.*)/,
+      humanReadableErrorMessage:
+        'Unable to deploy due to insufficient permissions',
+      resolutionMessage:
+        'Ensure you have permissions to call {action} for {resource}',
+      errorName: 'AccessDeniedError',
+      classification: 'ERROR',
+    },
+    {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
