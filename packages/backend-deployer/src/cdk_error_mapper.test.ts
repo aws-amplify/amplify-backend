@@ -529,6 +529,52 @@ for your current platform.
     errorName: 'ESBuildError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Error: npm ERR! code ENOENT
+npm ERR! syscall lstat
+npm ERR! path /opt/homebrew/Cellar/node/22.2.0/lib
+npm ERR! errno -2
+npm ERR! enoent ENOENT: no such file or directory, lstat '/opt/homebrew/Cellar/node/22.2.0/lib'
+npm ERR! enoent This is related to npm not being able to find a file.
+npm ERR! enoent
+`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `NPM error occurred: npm ERR! code ENOENT
+npm ERR! syscall lstat
+npm ERR! path /opt/homebrew/Cellar/node/22.2.0/lib
+npm ERR! errno -2
+npm ERR! enoent ENOENT: no such file or directory, lstat '/opt/homebrew/Cellar/node/22.2.0/lib'
+npm ERR! enoent This is related to npm not being able to find a file.
+npm ERR! enoent`,
+    errorName: 'CommonNPMError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Error: npm error code ENOENT
+npm error syscall lstat
+npm error path C:\\Users\testUser\\AppData\\Roaming\\npm
+npm error errno -4058
+npm error enoent ENOENT: no such file or directory, lstat 'C:\\Users\\testUser\\AppData\\Roaming\\npm'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `NPM error occurred: npm error code ENOENT
+npm error syscall lstat
+npm error path C:\\Users\testUser\\AppData\\Roaming\\npm
+npm error errno -4058
+npm error enoent ENOENT: no such file or directory, lstat 'C:\\Users\\testUser\\AppData\\Roaming\\npm'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent`,
+    errorName: 'CommonNPMError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
