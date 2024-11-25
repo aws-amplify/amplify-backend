@@ -308,12 +308,12 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets valid runtime', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
-        runtime: 16,
+        runtime: 22,
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: Runtime.NODEJS_16_X.name,
+        Runtime: Runtime.NODEJS_22_X.name,
       });
     });
 
