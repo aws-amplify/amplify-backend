@@ -40,12 +40,18 @@ export class CdkErrorMapper {
         if (matchGroups.groups) {
           for (const [key, value] of Object.entries(matchGroups.groups)) {
             const placeHolder = `{${key}}`;
-            if (matchingError.humanReadableErrorMessage.includes(placeHolder)) {
+            if (
+              matchingError.humanReadableErrorMessage.includes(placeHolder) ||
+              matchingError.resolutionMessage.includes(placeHolder)
+            ) {
               matchingError.humanReadableErrorMessage =
                 matchingError.humanReadableErrorMessage.replace(
                   placeHolder,
                   value
                 );
+
+              matchingError.resolutionMessage =
+                matchingError.resolutionMessage.replace(placeHolder, value);
               // reset the stderr dump in the underlying error
               underlyingError = undefined;
             }
@@ -206,6 +212,37 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      //This has some overlap with "User:__ is not authorized to perform:__ on resource: __" - some resources cannot be deleted due to lack of permissions
+      errorRegex:
+        /The stack named (?<stackName>.*) is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED \(The following resource\(s\) failed to delete: (?<resources>.*). \)/,
+      humanReadableErrorMessage:
+        'The CloudFormation deletion failed due to {stackName} being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
+      resolutionMessage:
+        'The following resource(s) failed to delete: {resources}. Ensure they are in a state where they can be deleted. Find more information in the CloudFormation AWS Console for this stack.',
+      errorName: 'CloudFormationDeletionError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /User:(.*) is not authorized to perform:(.*) on resource:(?<resource>.*) because no identity-based policy allows the (?<action>.*) action/,
+      humanReadableErrorMessage:
+        'Unable to deploy due to insufficient permissions',
+      resolutionMessage:
+        'Ensure you have permissions to call {action} for {resource}',
+      errorName: 'AccessDeniedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /User:(.*) is not authorized to perform:(?<action>.*) on resource:(?<resource>.*)/,
+      humanReadableErrorMessage:
+        'Unable to deploy due to insufficient permissions',
+      resolutionMessage:
+        'Ensure you have permissions to call {action} for {resource}',
+      errorName: 'AccessDeniedError',
+      classification: 'ERROR',
+    },
+    {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
@@ -232,11 +269,22 @@ export class CdkErrorMapper {
     {
       // If there are multiple errors, capture all lines containing the errors
       errorRegex: new RegExp(
-        `\\[TransformError\\]: Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`
+        `(\\[TransformError\\]|Error): Transform failed with .* error(s?):${this.multiLineEolRegex}(?<esBuildErrorMessage>(.*ERROR:.*${this.multiLineEolRegex})+)`
       ),
       humanReadableErrorMessage: '{esBuildErrorMessage}',
       resolutionMessage:
         'Fix the above mentioned type or syntax error in your backend definition.',
+      errorName: 'ESBuildError',
+      classification: 'ERROR',
+    },
+    {
+      // Captures other forms of transform error
+      errorRegex: new RegExp(
+        `Error \\[TransformError\\]:(${this.multiLineEolRegex}|\\s)?(?<esBuildErrorMessage>(.*(${this.multiLineEolRegex})?)+)`
+      ),
+      humanReadableErrorMessage: '{esBuildErrorMessage}',
+      resolutionMessage:
+        'Make sure esbuild is installed and is compatible with the platform you are currently using.',
       errorName: 'ESBuildError',
       classification: 'ERROR',
     },
@@ -276,6 +324,24 @@ export class CdkErrorMapper {
       resolutionMessage:
         'To change these attributes, remove `defineAuth` from your backend, deploy, then add it back. Note that removing `defineAuth` and deploying will delete any users stored in your UserPool.',
       errorName: 'CFNUpdateNotSupportedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex: new RegExp(
+        `npm error code EJSONPARSE${this.multiLineEolRegex}npm error path (?<filePath>.*/package\\.json)${this.multiLineEolRegex}(npm error (.*)${this.multiLineEolRegex})*`
+      ),
+      humanReadableErrorMessage: 'The {filePath} is not a valid JSON.',
+      resolutionMessage: `Check package.json file and make sure it is a valid JSON.`,
+      errorName: 'InvalidPackageJsonError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex: new RegExp(
+        `(?<npmError>(npm error|npm ERR!) code ENOENT${this.multiLineEolRegex}((npm error|npm ERR!) (.*)${this.multiLineEolRegex})*)`
+      ),
+      humanReadableErrorMessage: 'NPM error occurred: {npmError}',
+      resolutionMessage: `See https://docs.npmjs.com/common-errors for resolution.`,
+      errorName: 'CommonNPMError',
       classification: 'ERROR',
     },
     {
@@ -328,6 +394,29 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
+        /BadRequestException: The code contains one or more errors|The code contains one or more errors.*AppSync/,
+      humanReadableErrorMessage: `A custom resolver used in your defineData contains one or more errors`,
+      resolutionMessage: `Check for any syntax errors in your custom resolvers code.`,
+      errorName: 'AppSyncResolverSyntaxError',
+      classification: 'ERROR',
+    },
+    // Generic error printed by CDK. Order matters so keep this towards the bottom of this list
+    {
+      // Error: .* is printed to stderr during cdk synth
+      // Also extracts the first line in the stack where the error happened
+      errorRegex: new RegExp(
+        `^Error: (.*${this.multiLineEolRegex}.*at.*)`,
+        'm'
+      ),
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'BackendSynthError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
         /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
       humanReadableErrorMessage:
         'The CloudFormation deployment failed due to {stackName} being in {state} state.',
@@ -352,6 +441,7 @@ export class CdkErrorMapper {
 
 export type CDKDeploymentError =
   | 'AccessDeniedError'
+  | 'AppSyncResolverSyntaxError'
   | 'BackendBuildError'
   | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
@@ -360,7 +450,9 @@ export type CDKDeploymentError =
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
+  | 'CloudFormationDeletionError'
   | 'CloudFormationDeploymentError'
+  | 'CommonNPMError'
   | 'FilePermissionsError'
   | 'MissingDefineBackendError'
   | 'MultipleSandboxInstancesError'
@@ -368,6 +460,7 @@ export type CDKDeploymentError =
   | 'ExpiredTokenError'
   | 'FileConventionError'
   | 'ModuleNotFoundError'
+  | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError';

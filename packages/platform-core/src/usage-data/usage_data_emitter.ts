@@ -64,7 +64,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     metrics?: Record<string, number>;
     dimensions?: Record<string, string>;
     error?: AmplifyError;
-  }) => {
+  }): Promise<UsageData> => {
     return {
       accountId: await this.accountIdFetcher.fetch(),
       sessionUuid: this.sessionUuid,
@@ -86,6 +86,9 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       codePathDurations: this.translateMetricsToUsageData(options.metrics),
       input: this.translateDimensionsToUsageData(options.dimensions),
       isCi: isCI,
+      projectSetting: {
+        editor: process.env.npm_config_user_agent,
+      },
     };
   };
 

@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.5.0
+
+### Minor Changes
+
+- f1db886: add resourceGroupName prop to function
+
 ## 1.4.0
 
 ### Minor Changes

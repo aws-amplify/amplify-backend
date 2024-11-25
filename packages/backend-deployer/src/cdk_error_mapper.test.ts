@@ -163,10 +163,10 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: undefined,
   },
   {
-    errorMessage: `[31m  some-stack failed: The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
+    errorMessage: `[31m  some-stack failed: The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: Some amazing error message (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
     expectedTopLevelErrorMessage: 'The CloudFormation deployment has failed.',
     errorName: 'CloudFormationDeploymentError',
-    expectedDownstreamErrorMessage: `The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
+    expectedDownstreamErrorMessage: `The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: Some amazing error message (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
   },
   {
     errorMessage: `[31m  some-stack failed: The stack named some-stack failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE`,
@@ -386,6 +386,202 @@ const testErrorMappings = [
     errorName: 'GetLambdaLayerVersionError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `Error: npm error code EJSONPARSE
+npm error path /home/some-path/package.json
+npm error JSON.parse Expected double-quoted property name in JSON at position 868 while parsing near ...sbuild\\: \\^0.20.2\\,\\n<<<<<<< HEAD\\n\\t\\t\\hl-j...
+npm error JSON.parse Failed to parse JSON data.
+npm error JSON.parse Note: package.json must be actual JSON, not just JavaScript.
+npm error A complete log of this run can be found in: /home/some-path/.npm/_logs/2024-10-01T19_56_46_705Z-debug-0.log`,
+    expectedTopLevelErrorMessage:
+      'The /home/some-path/package.json is not a valid JSON.',
+    errorName: 'InvalidPackageJsonError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `Error: some-stack failed: ValidationError: User: <escaped ARN> is not authorized to perform: ssm:GetParameters on resource: <escaped ARN> because no identity-based policy allows the ssm:GetParameters action`,
+    expectedTopLevelErrorMessage:
+      'Unable to deploy due to insufficient permissions',
+    errorName: 'AccessDeniedError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `amplify-stack-user-sandbox failed: BadRequestException: The code contains one or more errors.`,
+    expectedTopLevelErrorMessage:
+      'A custom resolver used in your defineData contains one or more errors',
+    errorName: 'AppSyncResolverSyntaxError',
+    expectedDownstreamErrorMessage:
+      'amplify-stack-user-sandbox failed: BadRequestException: The code contains one or more errors.',
+  },
+  {
+    errorMessage: `Deployment failed: Error: The stack named amplify-stack-user-sandbox failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400,...`,
+    expectedTopLevelErrorMessage:
+      'A custom resolver used in your defineData contains one or more errors',
+    errorName: 'AppSyncResolverSyntaxError',
+    expectedDownstreamErrorMessage:
+      'Deployment failed: Error: The stack named amplify-stack-user-sandbox failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400,...',
+  },
+  {
+    errorMessage: `User: some:great:user is not authorized to perform: appsync:StartSchemaCreation on resource: arn:aws:appsync:us-east-1:235494812930:/v1/api/myApi`,
+    expectedTopLevelErrorMessage:
+      'Unable to deploy due to insufficient permissions',
+    errorName: 'AccessDeniedError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      `Error: Transform failed with 1 error:` +
+      EOL +
+      `/Users/some-path/amplify/storage/resource.ts:1:2: ERROR: Expected identifier but found }` +
+      EOL +
+      `at failureErrorWithLog (/Users/some-path/esbuild/lib/main.js:123:45)` +
+      EOL +
+      `at /Users/some-path/esbuild/lib/main.js:678:90`,
+    expectedTopLevelErrorMessage:
+      '/Users/some-path/amplify/storage/resource.ts:1:2: ERROR: Expected identifier but found }',
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      `Error [TransformError]:` +
+      EOL +
+      `You installed esbuild for another platform than the one you're currently using.
+    This won't work because esbuild is written with native code and needs to
+    install a platform-specific binary executable.` +
+      EOL +
+      `Specifically the @esbuild/linux-arm64 package is present but this platform
+    needs the @esbuild/darwin-arm64 package instead. People often get into this
+    situation by installing esbuild on Windows or macOS and copying node_modules
+    into a Docker image that runs Linux, or by copying node_modules between
+    Windows and WSL environments.` +
+      EOL +
+      `If you are installing with npm, you can try not copying the node_modules
+    directory when you copy the files over, and running npm ci or npm install
+    on the destination platform after the copy. Or you could consider using yarn
+    instead of npm which has built-in support for installing a package on multiple
+    platforms simultaneously.` +
+      EOL +
+      `If you are installing with yarn, you can try listing both this platform and the
+    other platform in your .yarnrc.yml file using the supportedArchitectures
+    feature: https://yarnpkg.com/configuration/yarnrc/#supportedArchitectures
+    Keep in mind that this means multiple copies of esbuild will be present.` +
+      EOL +
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Another alternative is to use the esbuild-wasm package instead, which works
+    the same way on all platforms. But it comes with a heavy performance cost and
+    can sometimes be 10x slower than the esbuild package, so you may also not want to do that.`,
+    expectedTopLevelErrorMessage:
+      `You installed esbuild for another platform than the one you're currently using.
+    This won't work because esbuild is written with native code and needs to
+    install a platform-specific binary executable.` +
+      EOL +
+      `Specifically the @esbuild/linux-arm64 package is present but this platform
+    needs the @esbuild/darwin-arm64 package instead. People often get into this
+    situation by installing esbuild on Windows or macOS and copying node_modules
+    into a Docker image that runs Linux, or by copying node_modules between
+    Windows and WSL environments.` +
+      EOL +
+      `If you are installing with npm, you can try not copying the node_modules
+    directory when you copy the files over, and running npm ci or npm install
+    on the destination platform after the copy. Or you could consider using yarn
+    instead of npm which has built-in support for installing a package on multiple
+    platforms simultaneously.` +
+      EOL +
+      `If you are installing with yarn, you can try listing both this platform and the
+    other platform in your .yarnrc.yml file using the supportedArchitectures
+    feature: https://yarnpkg.com/configuration/yarnrc/#supportedArchitectures
+    Keep in mind that this means multiple copies of esbuild will be present.` +
+      EOL +
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Another alternative is to use the esbuild-wasm package instead, which works
+    the same way on all platforms. But it comes with a heavy performance cost and
+    can sometimes be 10x slower than the esbuild package, so you may also not want to do that.`,
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      `Error [TransformError]: The package esbuild-package could not be found, and is needed by esbuild.` +
+      EOL +
+      `If you are installing esbuild with npm, make sure that you don't specify the
+--no-optional or --omit=optional flags. The optionalDependencies feature
+of package.json is used by esbuild to install the correct binary executable
+for your current platform.
+` +
+      EOL +
+      `at generateBinPath (/Users/some-path/esbuild/lib/main.js:123:45)` +
+      EOL +
+      `at /Users/some-path/esbuild/lib/main.js:678:90`,
+    expectedTopLevelErrorMessage:
+      `The package esbuild-package could not be found, and is needed by esbuild.` +
+      EOL +
+      `If you are installing esbuild with npm, make sure that you don't specify the
+--no-optional or --omit=optional flags. The optionalDependencies feature
+of package.json is used by esbuild to install the correct binary executable
+for your current platform.
+` +
+      EOL +
+      `at generateBinPath (/Users/some-path/esbuild/lib/main.js:123:45)` +
+      EOL +
+      `at /Users/some-path/esbuild/lib/main.js:678:90`,
+    errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Error: npm ERR! code ENOENT
+npm ERR! syscall lstat
+npm ERR! path /opt/homebrew/Cellar/node/22.2.0/lib
+npm ERR! errno -2
+npm ERR! enoent ENOENT: no such file or directory, lstat '/opt/homebrew/Cellar/node/22.2.0/lib'
+npm ERR! enoent This is related to npm not being able to find a file.
+npm ERR! enoent
+`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `NPM error occurred: npm ERR! code ENOENT
+npm ERR! syscall lstat
+npm ERR! path /opt/homebrew/Cellar/node/22.2.0/lib
+npm ERR! errno -2
+npm ERR! enoent ENOENT: no such file or directory, lstat '/opt/homebrew/Cellar/node/22.2.0/lib'
+npm ERR! enoent This is related to npm not being able to find a file.
+npm ERR! enoent`,
+    errorName: 'CommonNPMError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Error: npm error code ENOENT
+npm error syscall lstat
+npm error path C:\\Users\testUser\\AppData\\Roaming\\npm
+npm error errno -4058
+npm error enoent ENOENT: no such file or directory, lstat 'C:\\Users\\testUser\\AppData\\Roaming\\npm'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `NPM error occurred: npm error code ENOENT
+npm error syscall lstat
+npm error path C:\\Users\testUser\\AppData\\Roaming\\npm
+npm error errno -4058
+npm error enoent ENOENT: no such file or directory, lstat 'C:\\Users\\testUser\\AppData\\Roaming\\npm'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent`,
+    errorName: 'CommonNPMError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `[31m: destroy failed Error: The stack named amplify-some-stack is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED (The following resource(s) failed to delete: [resource1, resource2]. )`,
+    expectedTopLevelErrorMessage:
+      'The CloudFormation deletion failed due to amplify-some-stack being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
+    errorName: 'CloudFormationDeletionError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
@@ -401,8 +597,8 @@ void describe('invokeCDKCommand', { concurrency: 1 }, () => {
         const humanReadableError = cdkErrorMapper.getAmplifyError(
           new Error(errorMessage)
         );
-        assert.equal(humanReadableError.message, expectedTopLevelErrorMessage);
         assert.equal(humanReadableError.name, expectedErrorName);
+        assert.equal(humanReadableError.message, expectedTopLevelErrorMessage);
         expectedDownstreamErrorMessage &&
           assert.equal(
             humanReadableError.cause?.message,

@@ -1,5 +1,20 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.10
+
+### Patch Changes
+
+- d332c51: map a form of deletion/destroy failed error
+- a6fa42e: specifically catch AppSync "Code contains one or more errors"
+- a23f656: add more forms of transform errors to cdk error mapping
+- 754d0f7: map another form of access denied validation error
+- 716f844: Handle ENOENT error from npm
+- 691e7ca: truncate large error messages before printing to customer
+- b6f4c54: handle not authorized to perform on resource error
+- 0114549: Handle invalid package.json error
+- Updated dependencies [249c0e5]
+  - @aws-amplify/platform-core@1.2.2
+
 ## 1.1.9
 
 ### Patch Changes
