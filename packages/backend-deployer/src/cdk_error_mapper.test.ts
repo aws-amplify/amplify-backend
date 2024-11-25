@@ -415,6 +415,13 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
       'amplify-stack-user-sandbox failed: BadRequestException: The code contains one or more errors.',
   },
   {
+    errorMessage: `User: some:great:user is not authorized to perform: appsync:StartSchemaCreation on resource: arn:aws:appsync:us-east-1:235494812930:/v1/api/myApi`,
+    expectedTopLevelErrorMessage:
+      'Unable to deploy due to insufficient permissions',
+    errorName: 'AccessDeniedError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     errorMessage:
       `Error: Transform failed with 1 error:` +
       EOL +
