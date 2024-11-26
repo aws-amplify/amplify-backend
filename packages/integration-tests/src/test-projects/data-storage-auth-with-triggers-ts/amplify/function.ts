@@ -28,9 +28,9 @@ export const node16Func = defineFunction({
 
 export const onDelete = defineFunction({
   name: 'onDelete',
-  entry: './func-src/handler.ts',
+  entry: './handler_storage_triggers.ts',
 });
 export const onUpload = defineFunction({
   name: 'onUpload',
-  entry: './func-src/handler.ts',
+  entry: './handler_storage_triggers.ts',
 });
