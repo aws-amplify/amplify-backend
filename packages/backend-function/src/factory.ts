@@ -18,6 +18,8 @@ import {
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   GenerateContainerEntryProps,
+  LogLevel,
+  LogRetention,
   ResourceAccessAcceptorFactory,
   ResourceNameValidator,
   ResourceProvider,
@@ -45,7 +47,7 @@ import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
-import { parseLoggingOptions } from './logging_options_parser.js';
+import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
 
 const functionStackType = 'function-Lambda';
 
@@ -65,38 +67,8 @@ export type TimeInterval =
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
-export type FunctionLogLevel =
-  | 'info'
-  | 'debug'
-  | 'warn'
-  | 'error'
-  | 'fatal'
-  | 'trace';
-
-export type FunctionLogRetention =
-  | '1 day'
-  | '3 days'
-  | '5 days'
-  | '1 week'
-  | '2 weeks'
-  | '1 month'
-  | '2 months'
-  | '3 months'
-  | '4 months'
-  | '5 months'
-  | '6 months'
-  | '1 year'
-  | '13 months'
-  | '18 months'
-  | '2 years'
-  | '3 years'
-  | '5 years'
-  | '6 years'
-  | '7 years'
-  | '8 years'
-  | '9 years'
-  | '10 years'
-  | 'infinite';
+export type FunctionLogLevel = LogLevel;
+export type FunctionLogRetention = LogRetention;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -487,7 +459,7 @@ class AmplifyFunction
     functionEnvironmentTypeGenerator.generateProcessEnvShim();
 
     let functionLambda: NodejsFunction;
-    const cdkLogConfiguration = parseLoggingOptions(props.logging);
+    const cdkLoggingOptions = convertLoggingOptionsToCDK(props.logging);
     try {
       functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
@@ -501,9 +473,9 @@ class AmplifyFunction
           inject: shims,
           externalModules: Object.keys(props.layers),
         },
-        logRetention: cdkLogConfiguration.retention,
-        applicationLogLevelV2: cdkLogConfiguration.level,
-        loggingFormat: cdkLogConfiguration.format,
+        logRetention: cdkLoggingOptions.retention,
+        applicationLogLevelV2: cdkLoggingOptions.level,
+        loggingFormat: cdkLoggingOptions.format,
       });
     } catch (error) {
       // If the error is from ES Bundler which is executed as a child process by CDK,

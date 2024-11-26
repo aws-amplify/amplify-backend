@@ -8,6 +8,8 @@ import { AiModel } from '@aws-amplify/data-schema-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConversationTurnEventVersion } from '@aws-amplify/ai-constructs/conversation';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { LogLevel } from '@aws-amplify/plugin-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import * as runtime from '@aws-amplify/ai-constructs/conversation/runtime';
 
@@ -46,10 +48,10 @@ type ConversationHandlerFunctionLoggingOptions = {
 };
 
 // @public (undocumented)
-type ConversationHandlerFunctionLogLevel = 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace';
+type ConversationHandlerFunctionLogLevel = LogLevel;
 
 // @public (undocumented)
-type ConversationHandlerFunctionLogRetention = '1 day' | '3 days' | '5 days' | '1 week' | '2 weeks' | '1 month' | '2 months' | '3 months' | '4 months' | '5 months' | '6 months' | '1 year' | '13 months' | '18 months' | '2 years' | '3 years' | '5 years' | '6 years' | '7 years' | '8 years' | '9 years' | '10 years' | 'infinite';
+type ConversationHandlerFunctionLogRetention = LogRetention;
 
 // @public (undocumented)
 type ConversationTurnEvent = runtime.ConversationTurnEvent;

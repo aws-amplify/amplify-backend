@@ -8,6 +8,8 @@ import { AmplifyResourceGroupName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { LogLevel } from '@aws-amplify/plugin-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StackProvider } from '@aws-amplify/plugin-types';
@@ -39,10 +41,10 @@ export type FunctionLoggingOptions = ({
 };
 
 // @public (undocumented)
-export type FunctionLogLevel = 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace';
+export type FunctionLogLevel = LogLevel;
 
 // @public (undocumented)
-export type FunctionLogRetention = '1 day' | '3 days' | '5 days' | '1 week' | '2 weeks' | '1 month' | '2 months' | '3 months' | '4 months' | '5 months' | '6 months' | '1 year' | '13 months' | '18 months' | '2 years' | '3 years' | '5 years' | '6 years' | '7 years' | '8 years' | '9 years' | '10 years' | 'infinite';
+export type FunctionLogRetention = LogRetention;
 
 // @public (undocumented)
 export type FunctionProps = {

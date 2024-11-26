@@ -1,21 +1,24 @@
-import {
-  FunctionLogLevel,
-  FunctionLogRetention,
-  FunctionLoggingOptions,
-} from './factory.js';
+import { FunctionLoggingOptions } from './factory.js';
 import { ApplicationLogLevel, LoggingFormat } from 'aws-cdk-lib/aws-lambda';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import {
+  LogLevelConverter,
+  LogRetentionConverter,
+} from '@aws-amplify/platform-core/cdk';
 
 /**
- * TODO
+ * Converts logging options to CDK.
  */
-export const parseLoggingOptions = (loggingOptions: FunctionLoggingOptions) => {
+export const convertLoggingOptionsToCDK = (
+  loggingOptions: FunctionLoggingOptions
+) => {
   let level: ApplicationLogLevel | undefined = undefined;
   if ('level' in loggingOptions) {
-    level = parseLogLevel(loggingOptions.level);
+    level = new LogLevelConverter().toApplicationLogLevel(loggingOptions.level);
   }
-  const retention = parseRetention(loggingOptions.retention);
-  const format = parseFormat(loggingOptions.format);
+  const retention = new LogRetentionConverter().toRetentionDays(
+    loggingOptions.retention
+  );
+  const format = convertFormat(loggingOptions.format);
 
   return {
     level,
@@ -24,7 +27,7 @@ export const parseLoggingOptions = (loggingOptions: FunctionLoggingOptions) => {
   };
 };
 
-const parseFormat = (format: 'json' | 'text' | undefined) => {
+const convertFormat = (format: 'json' | 'text' | undefined) => {
   switch (format) {
     case undefined:
       return undefined;
@@ -32,85 +35,5 @@ const parseFormat = (format: 'json' | 'text' | undefined) => {
       return LoggingFormat.JSON;
     case 'text':
       return LoggingFormat.TEXT;
-  }
-};
-
-const parseRetention = (retention: FunctionLogRetention | undefined) => {
-  switch (retention) {
-    case undefined:
-      return undefined;
-
-    case '1 day':
-      return RetentionDays.ONE_DAY;
-    case '3 days':
-      return RetentionDays.THREE_DAYS;
-    case '5 days':
-      return RetentionDays.FIVE_DAYS;
-    case '1 week':
-      return RetentionDays.ONE_WEEK;
-    case '2 weeks':
-      return RetentionDays.TWO_WEEKS;
-    case '1 month':
-      return RetentionDays.ONE_MONTH;
-    case '2 months':
-      return RetentionDays.TWO_MONTHS;
-    case '3 months':
-      return RetentionDays.THREE_MONTHS;
-    case '4 months':
-      return RetentionDays.FOUR_MONTHS;
-    case '5 months':
-      return RetentionDays.FIVE_MONTHS;
-    case '6 months':
-      return RetentionDays.SIX_MONTHS;
-    case '1 year':
-      return RetentionDays.ONE_YEAR;
-    case '13 months':
-      return RetentionDays.THIRTEEN_MONTHS;
-    case '18 months':
-      return RetentionDays.EIGHTEEN_MONTHS;
-    case '2 years':
-      return RetentionDays.TWO_YEARS;
-    case '3 years':
-      return RetentionDays.THREE_YEARS;
-    case '5 years':
-      return RetentionDays.FIVE_YEARS;
-    case '6 years':
-      return RetentionDays.SIX_YEARS;
-    case '7 years':
-      return RetentionDays.SEVEN_YEARS;
-    case '8 years':
-      return RetentionDays.EIGHT_YEARS;
-    case '9 years':
-      return RetentionDays.NINE_YEARS;
-    case '10 years':
-      return RetentionDays.TEN_YEARS;
-    case 'infinite':
-      return RetentionDays.INFINITE;
-  }
-};
-
-const parseLogLevel = (logLevel: FunctionLogLevel | undefined) => {
-  switch (logLevel) {
-    case undefined: {
-      return undefined;
-    }
-    case 'info': {
-      return ApplicationLogLevel.INFO;
-    }
-    case 'debug': {
-      return ApplicationLogLevel.DEBUG;
-    }
-    case 'warn': {
-      return ApplicationLogLevel.WARN;
-    }
-    case 'error': {
-      return ApplicationLogLevel.ERROR;
-    }
-    case 'fatal': {
-      return ApplicationLogLevel.FATAL;
-    }
-    case 'trace': {
-      return ApplicationLogLevel.TRACE;
-    }
   }
 };

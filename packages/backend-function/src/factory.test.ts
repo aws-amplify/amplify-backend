@@ -440,6 +440,36 @@ void describe('AmplifyFunctionFactory', () => {
     });
   });
 
+  void describe('logging options', () => {
+    void it('sets logging options', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        bundling: {
+          minify: false,
+        },
+        logging: {
+          format: 'json',
+          level: 'warn',
+          retention: '13 months',
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+      // Enabling log retention adds extra lambda.
+      template.resourceCountIs('AWS::Lambda::Function', 2);
+      const lambdas = template.findResources('AWS::Lambda::Function');
+      assert.ok(
+        Object.keys(lambdas).some((key) => key.startsWith('LogRetention'))
+      );
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Handler: 'index.handler',
+        LoggingConfig: {
+          ApplicationLogLevel: 'WARN',
+          LogFormat: 'JSON',
+        },
+      });
+    });
+  });
+
   void describe('resourceAccessAcceptor', () => {
     void it('attaches policy to execution role and configures ssm environment context', () => {
       const functionFactory = defineFunction({
