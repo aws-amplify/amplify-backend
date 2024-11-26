@@ -68,8 +68,8 @@ export const convertJsResolverDefinition = (
          * Pipeline resolver request handler
          */
         export const request = (ctx) => {
-          ctx.stash.apiId = '${amplifyApi.apiId}';
-          ctx.stash.amplifyEnvironmentName = '${amplifyEnvironmentName}';
+          ctx.stash.awsAppsyncApiId = '${amplifyApi.apiId}';
+          ctx.stash.awsAmplifyEnvironmentName = '${amplifyEnvironmentName}';
           return {};
         };
         /**
