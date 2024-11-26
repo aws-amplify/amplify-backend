@@ -4,13 +4,13 @@
 
 ```ts
 
-import { AmplifyResourceGroupName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import { StackProvider } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
 export type AddEnvironmentFactory = {
@@ -21,12 +21,7 @@ export type AddEnvironmentFactory = {
 export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
 
 // @public
-export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
-
-// @public (undocumented)
-export type FunctionBundlingOptions = {
-    minify?: boolean;
-};
+export const defineFunction: (props?: FunctionProps | ((scope: Construct) => IFunction)) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory>;
 
 // @public (undocumented)
 export type FunctionProps = {
@@ -37,9 +32,6 @@ export type FunctionProps = {
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
-    layers?: Record<string, string>;
-    bundling?: FunctionBundlingOptions;
-    resourceGroupName?: AmplifyResourceGroupName;
 };
 
 // @public (undocumented)
