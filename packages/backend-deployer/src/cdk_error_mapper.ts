@@ -4,6 +4,7 @@ import {
   AmplifyFault,
   AmplifyUserError,
 } from '@aws-amplify/platform-core';
+import stripANSI from 'strip-ansi';
 import { BackendDeployerOutputFormatter } from './types.js';
 
 /**
@@ -27,13 +28,14 @@ export class CdkErrorMapper {
       return amplifyError;
     }
 
+    const errorMessage = stripANSI(error.message);
     const matchingError = this.getKnownErrors().find((knownError) =>
-      knownError.errorRegex.test(error.message)
+      knownError.errorRegex.test(errorMessage)
     );
 
     if (matchingError) {
       // Extract meaningful contextual information if available
-      const matchGroups = error.message.match(matchingError.errorRegex);
+      const matchGroups = errorMessage.match(matchingError.errorRegex);
 
       if (matchGroups && matchGroups.length > 1) {
         // If the contextual information can be used in the error message use it, else consider it as a downstream cause
@@ -400,6 +402,16 @@ export class CdkErrorMapper {
       errorName: 'AppSyncResolverSyntaxError',
       classification: 'ERROR',
     },
+    {
+      errorRegex: new RegExp(
+        `amplify-.*-(branch|sandbox)-.*fail: (?<publishFailure>.*)${this.multiLineEolRegex}.*Failed to publish asset`,
+        'm'
+      ),
+      humanReadableErrorMessage: `CDK failed to publish assets due to '{publishFailure}'`,
+      resolutionMessage: `Check the error message for more details.`,
+      errorName: 'CDKAssetPublishError',
+      classification: 'ERROR',
+    },
     // Generic error printed by CDK. Order matters so keep this towards the bottom of this list
     {
       // Error: .* is printed to stderr during cdk synth
@@ -447,6 +459,7 @@ export type CDKDeploymentError =
   | 'BootstrapNotDetectedError'
   | 'BootstrapDetectionError'
   | 'BootstrapOutdatedError'
+  | 'CDKAssetPublishError'
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
