@@ -335,7 +335,7 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             runtime: 14 as NodeVersion,
           }).getInstance(getInstanceProps),
-        new Error('runtime must be one of the following: 16, 18, 20')
+        new Error('runtime must be one of the following: 16, 18, 20, 22')
       );
     });
 
