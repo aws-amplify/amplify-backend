@@ -1,4 +1,4 @@
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import { beforeEach, describe, it } from 'node:test';
 import { App, Duration, Stack } from 'aws-cdk-lib';
@@ -157,5 +157,53 @@ void describe('convertJsResolverDefinition', () => {
     });
 
     template.resourceCountIs('AWS::AppSync::Resolver', 1);
+  });
+
+  void it('adds api id and environment name to stash', () => {
+    const absolutePath = resolve(
+      fileURLToPath(import.meta.url),
+      '../../lib/assets',
+      'js_resolver_handler.js'
+    );
+
+    const schema = a.schema({
+      customQuery: a
+        .query()
+        .authorization((allow) => allow.publicApiKey())
+        .returns(a.string())
+        .handler(
+          a.handler.custom({
+            entry: absolutePath,
+          })
+        ),
+    });
+    const { jsFunctions } = schema.transform();
+    convertJsResolverDefinition(stack, amplifyApi, jsFunctions);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::AppSync::Resolver', {
+      Runtime: {
+        Name: 'APPSYNC_JS',
+        RuntimeVersion: '1.0.0',
+      },
+      Kind: 'PIPELINE',
+      TypeName: 'Query',
+      FieldName: 'customQuery',
+      Code: {
+        'Fn::Join': [
+          '',
+          [
+            "\n        /**\n         * Pipeline resolver request handler\n         */\n        export const request = (ctx) => {\n          ctx.stash.apiId = '",
+            {
+              'Fn::GetAtt': [
+                Match.stringLikeRegexp('amplifyDataGraphQLAPI.*'),
+                'ApiId',
+              ],
+            },
+            "';\n          ctx.stash.amplifyEnvironmentName = 'NONE';\n          return {};\n        };\n        /**\n         * Pipeline resolver response handler\n         */\n        export const response = (ctx) => {\n          return ctx.prev.result;\n        };\n      ",
+          ],
+        ],
+      },
+    });
   });
 });
