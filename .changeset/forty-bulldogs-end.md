@@ -1,5 +1,6 @@
 ---
 '@aws-amplify/backend-function': minor
+'@aws-amplify/backend': minor
 ---
 
 Add support to `@aws-amplify/backend-function` for Node 22
