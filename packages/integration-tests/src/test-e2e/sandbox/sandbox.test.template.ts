@@ -91,6 +91,8 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
             );
 
             for (const update of updates) {
+              // wait before hot-swapping to avoid service throttling.
+              await new Promise((resolve) => setTimeout(resolve, 10000));
               processController
                 .do(replaceFiles(update.replacements))
                 .do(ensureDeploymentTimeLessThan(update.deployThresholdSec));
