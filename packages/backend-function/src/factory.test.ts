@@ -460,6 +460,9 @@ void describe('AmplifyFunctionFactory', () => {
       assert.ok(
         Object.keys(lambdas).some((key) => key.startsWith('LogRetention'))
       );
+      template.hasResourceProperties('Custom::LogRetention', {
+        RetentionInDays: 400,
+      });
       template.hasResourceProperties('AWS::Lambda::Function', {
         Handler: 'index.handler',
         LoggingConfig: {
