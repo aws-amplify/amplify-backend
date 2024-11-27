@@ -65,7 +65,7 @@ export type FunctionProps = {
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
 // @public (undocumented)
-export type NodeVersion = 16 | 18 | 20;
+export type NodeVersion = 16 | 18 | 20 | 22;
 
 // @public (undocumented)
 export type TimeInterval = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;
