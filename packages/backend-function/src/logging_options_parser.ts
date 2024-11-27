@@ -20,9 +20,11 @@ export const convertLoggingOptionsToCDK = (
 ): CDKLoggingOptions => {
   let level: ApplicationLogLevel | undefined = undefined;
   if ('level' in loggingOptions) {
-    level = new LogLevelConverter().toApplicationLogLevel(loggingOptions.level);
+    level = new LogLevelConverter().toCDKApplicationLogLevel(
+      loggingOptions.level
+    );
   }
-  const retention = new LogRetentionConverter().toRetentionDays(
+  const retention = new LogRetentionConverter().toCDKRetentionDays(
     loggingOptions.retention
   );
   const format = convertFormat(loggingOptions.format);

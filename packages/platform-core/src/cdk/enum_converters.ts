@@ -6,7 +6,7 @@ import { RetentionDays } from 'aws-cdk-lib/aws-logs';
  * Converts LogRetention to CDK types.
  */
 export class LogRetentionConverter {
-  toRetentionDays = (
+  toCDKRetentionDays = (
     retention: LogRetention | undefined
   ): RetentionDays | undefined => {
     switch (retention) {
@@ -67,7 +67,7 @@ export class LogRetentionConverter {
  * Converts LogLevel to CDK types.
  */
 export class LogLevelConverter {
-  toApplicationLogLevel = (logLevel: LogLevel | undefined) => {
+  toCDKApplicationLogLevel = (logLevel: LogLevel | undefined) => {
     switch (logLevel) {
       case undefined: {
         return undefined;

@@ -55,12 +55,12 @@ class ConversationHandlerFunctionGenerator
     };
     const logging: typeof constructProps.logging = {};
     if (this.props.logging?.level) {
-      logging.level = new LogLevelConverter().toApplicationLogLevel(
+      logging.level = new LogLevelConverter().toCDKApplicationLogLevel(
         this.props.logging.level
       );
     }
     if (this.props.logging?.retention) {
-      logging.retention = new LogRetentionConverter().toRetentionDays(
+      logging.retention = new LogRetentionConverter().toCDKRetentionDays(
         this.props.logging.retention
       );
     }

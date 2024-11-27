@@ -109,7 +109,7 @@ export class ConversationHandlerFunction
         loggingFormat: LoggingFormat.JSON,
         applicationLogLevelV2: this.props.logging?.level,
         logGroup: new LogGroup(this, 'conversationHandlerFunctionLogGroup', {
-          retention: this.props.logging?.retention,
+          retention: this.props.logging?.retention ?? RetentionDays.INFINITE,
           dataProtectionPolicy: new DataProtectionPolicy({
             identifiers: [
               new CustomDataIdentifier(
