@@ -69,7 +69,7 @@ export const convertJsResolverDefinition = (
          */
         export const request = (ctx) => {
           ctx.stash.awsAppsyncApiId = '${amplifyApi.apiId}';
-          ctx.stash.awsAmplifyEnvironmentName = '${amplifyEnvironmentName}';
+          ctx.stash.amplifyBranchName = '${amplifyEnvironmentName}';
           return {};
         };
         /**

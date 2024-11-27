@@ -200,7 +200,7 @@ void describe('convertJsResolverDefinition', () => {
                 'ApiId',
               ],
             },
-            "';\n          ctx.stash.awsAmplifyEnvironmentName = 'NONE';\n          return {};\n        };\n        /**\n         * Pipeline resolver response handler\n         */\n        export const response = (ctx) => {\n          return ctx.prev.result;\n        };\n      ",
+            "';\n          ctx.stash.amplifyBranchName = 'NONE';\n          return {};\n        };\n        /**\n         * Pipeline resolver response handler\n         */\n        export const response = (ctx) => {\n          return ctx.prev.result;\n        };\n      ",
           ],
         ],
       },
