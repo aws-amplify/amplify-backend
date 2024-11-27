@@ -20,7 +20,7 @@ export const convertLoggingOptionsToCDK = (
 ): CDKLoggingOptions => {
   let level: ApplicationLogLevel | undefined = undefined;
   if ('level' in loggingOptions) {
-    level = new LogLevelConverter().toCDKApplicationLogLevel(
+    level = new LogLevelConverter().toCDKLambdaApplicationLogLevel(
       loggingOptions.level
     );
   }

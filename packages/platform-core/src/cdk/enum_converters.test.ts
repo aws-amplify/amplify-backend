@@ -154,9 +154,8 @@ void describe('LogLevelConverter', () => {
 
   testCases.forEach((testCase, index) => {
     void it(`converts log retention[${index}]`, () => {
-      const convertedValue = new LogLevelConverter().toCDKApplicationLogLevel(
-        testCase.input
-      );
+      const convertedValue =
+        new LogLevelConverter().toCDKLambdaApplicationLogLevel(testCase.input);
       assert.strictEqual(convertedValue, testCase.expectedOutput);
     });
   });

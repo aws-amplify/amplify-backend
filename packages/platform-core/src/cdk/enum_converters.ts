@@ -67,7 +67,9 @@ export class LogRetentionConverter {
  * Converts LogLevel to CDK types.
  */
 export class LogLevelConverter {
-  toCDKApplicationLogLevel = (logLevel: LogLevel | undefined) => {
+  toCDKLambdaApplicationLogLevel = (
+    logLevel: LogLevel | undefined
+  ): ApplicationLogLevel | undefined => {
     switch (logLevel) {
       case undefined: {
         return undefined;

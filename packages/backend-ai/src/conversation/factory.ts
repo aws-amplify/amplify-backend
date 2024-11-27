@@ -55,7 +55,7 @@ class ConversationHandlerFunctionGenerator
     };
     const logging: typeof constructProps.logging = {};
     if (this.props.logging?.level) {
-      logging.level = new LogLevelConverter().toCDKApplicationLogLevel(
+      logging.level = new LogLevelConverter().toCDKLambdaApplicationLogLevel(
         this.props.logging.level
       );
     }

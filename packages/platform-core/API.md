@@ -136,7 +136,7 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 // @public
 class LogLevelConverter {
     // (undocumented)
-    toCDKApplicationLogLevel: (logLevel: LogLevel | undefined) => ApplicationLogLevel | undefined;
+    toCDKLambdaApplicationLogLevel: (logLevel: LogLevel | undefined) => ApplicationLogLevel | undefined;
 }
 
 // @public
