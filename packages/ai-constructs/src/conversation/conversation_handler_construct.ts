@@ -6,6 +6,7 @@ import {
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import {
+  ApplicationLogLevel,
   CfnFunction,
   Runtime as LambdaRuntime,
   LoggingFormat,
@@ -40,6 +41,12 @@ export type ConversationHandlerFunctionProps = {
    * Default is 512MB.
    */
   memoryMB?: number;
+
+  logging?: {
+    level?: ApplicationLogLevel;
+    retention?: RetentionDays;
+  };
+
   /**
    * @internal
    */
@@ -100,8 +107,9 @@ export class ConversationHandlerFunction
           bundleAwsSDK: !!this.props.entry,
         },
         loggingFormat: LoggingFormat.JSON,
+        applicationLogLevelV2: this.props.logging?.level,
         logGroup: new LogGroup(this, 'conversationHandlerFunctionLogGroup', {
-          retention: RetentionDays.INFINITE,
+          retention: this.props.logging?.retention ?? RetentionDays.INFINITE,
           dataProtectionPolicy: new DataProtectionPolicy({
             identifiers: [
               new CustomDataIdentifier(

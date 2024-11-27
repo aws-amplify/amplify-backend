@@ -5,9 +5,21 @@
 ```ts
 
 import { AppId } from '@aws-amplify/plugin-types';
+import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
+import { LogLevel } from '@aws-amplify/plugin-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import z from 'zod';
+
+declare namespace __export__cdk {
+    export {
+        LogLevelConverter,
+        LogRetentionConverter
+    }
+}
+export { __export__cdk }
 
 // @public
 export abstract class AmplifyError<T extends string = string> extends Error {
@@ -120,6 +132,18 @@ export class FilePathExtractor {
 
 // @public (undocumented)
 export type LocalConfigurationFileName = 'usage_data_preferences.json';
+
+// @public
+class LogLevelConverter {
+    // (undocumented)
+    toCDKLambdaApplicationLogLevel: (logLevel: LogLevel | undefined) => ApplicationLogLevel | undefined;
+}
+
+// @public
+class LogRetentionConverter {
+    // (undocumented)
+    toCDKRetentionDays: (retention: LogRetention | undefined) => RetentionDays | undefined;
+}
 
 // @public
 export class ObjectAccumulator<T> {

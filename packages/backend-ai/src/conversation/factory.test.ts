@@ -203,4 +203,41 @@ void describe('ConversationHandlerFactory', () => {
       MemorySize: 271,
     });
   });
+
+  void it('passes log level to construct', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [],
+      logging: {
+        level: 'debug',
+      },
+    });
+    const lambda = factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      LoggingConfig: {
+        ApplicationLogLevel: 'DEBUG',
+        LogFormat: 'JSON',
+      },
+    });
+  });
+
+  void it('passes log retention to construct', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [],
+      logging: {
+        retention: '1 day',
+      },
+    });
+    const lambda = factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Logs::LogGroup', {
+      RetentionInDays: 1,
+    });
+  });
 });

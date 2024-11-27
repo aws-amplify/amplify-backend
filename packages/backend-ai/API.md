@@ -8,12 +8,17 @@ import { AiModel } from '@aws-amplify/data-schema-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { ConversationTurnEventVersion } from '@aws-amplify/ai-constructs/conversation';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { LogLevel } from '@aws-amplify/plugin-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import * as runtime from '@aws-amplify/ai-constructs/conversation/runtime';
 
 declare namespace __export__conversation {
     export {
         ConversationHandlerFunctionFactory,
+        ConversationHandlerFunctionLogLevel,
+        ConversationHandlerFunctionLogRetention,
+        ConversationHandlerFunctionLoggingOptions,
         DefineConversationHandlerFunctionProps,
         defineConversationHandlerFunction
     }
@@ -37,6 +42,18 @@ type ConversationHandlerFunctionFactory = ConstructFactory<ResourceProvider<Func
 };
 
 // @public (undocumented)
+type ConversationHandlerFunctionLoggingOptions = {
+    retention?: ConversationHandlerFunctionLogRetention;
+    level?: ConversationHandlerFunctionLogLevel;
+};
+
+// @public (undocumented)
+type ConversationHandlerFunctionLogLevel = LogLevel;
+
+// @public (undocumented)
+type ConversationHandlerFunctionLogRetention = LogRetention;
+
+// @public (undocumented)
 type ConversationTurnEvent = runtime.ConversationTurnEvent;
 
 // @public (undocumented)
@@ -54,6 +71,7 @@ type DefineConversationHandlerFunctionProps = {
         region?: string;
     }>;
     memoryMB?: number;
+    logging?: ConversationHandlerFunctionLoggingOptions;
 };
 
 // @public (undocumented)
