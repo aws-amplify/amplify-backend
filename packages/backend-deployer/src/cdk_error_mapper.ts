@@ -99,7 +99,7 @@ export class CdkErrorMapper {
   }> => [
     {
       errorRegex:
-        /ExpiredToken|Error: The security token included in the request is expired/,
+        /ExpiredToken|(Error|InvalidClientTokenId): The security token included in the request is (expired|invalid)/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
       resolutionMessage:
