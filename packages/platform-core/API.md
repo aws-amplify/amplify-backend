@@ -136,13 +136,13 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 // @public
 class LogLevelConverter {
     // (undocumented)
-    toApplicationLogLevel: (logLevel: LogLevel | undefined) => ApplicationLogLevel | undefined;
+    toCDKApplicationLogLevel: (logLevel: LogLevel | undefined) => ApplicationLogLevel | undefined;
 }
 
 // @public
 class LogRetentionConverter {
     // (undocumented)
-    toRetentionDays: (retention: LogRetention | undefined) => RetentionDays | undefined;
+    toCDKRetentionDays: (retention: LogRetention | undefined) => RetentionDays | undefined;
 }
 
 // @public
