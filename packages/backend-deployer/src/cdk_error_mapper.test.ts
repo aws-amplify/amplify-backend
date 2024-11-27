@@ -32,6 +32,15 @@ const testErrorMappings = [
       'Error: The security token included in the request is expired',
   },
   {
+    errorMessage:
+      'InvalidClientTokenId: The security token included in the request is invalid',
+    expectedTopLevelErrorMessage:
+      'The security token included in the request is invalid.',
+    errorName: 'ExpiredTokenError',
+    expectedDownstreamErrorMessage:
+      'InvalidClientTokenId: The security token included in the request is invalid',
+  },
+  {
     errorMessage: 'Access Denied',
     expectedTopLevelErrorMessage:
       'The deployment role does not have sufficient permissions to perform this deployment.',
