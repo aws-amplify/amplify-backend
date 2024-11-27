@@ -61,7 +61,7 @@ export const convertJsResolverDefinition = (
        *
        * Customer-provided handlers are added as a Functions list in `pipelineConfig.functions`
        *
-       * Use inline code to remove circular dependency when adding the API ID.
+       * Uses synth-time inline code to avoid circular dependency when adding the API ID as an environment variable.
        */
       code: `
         /**
