@@ -19,6 +19,10 @@ import {
 import path from 'path';
 import { CallerDirectoryExtractor } from '@aws-amplify/platform-core';
 import { AiModel } from '@aws-amplify/data-schema-types';
+import {
+  LogLevelConverter,
+  LogRetentionConverter,
+} from '@aws-amplify/platform-core/cdk';
 
 class ConversationHandlerFunctionGenerator
   implements ConstructContainerEntryGenerator
@@ -49,6 +53,18 @@ class ConversationHandlerFunctionGenerator
       outputStorageStrategy: this.outputStorageStrategy,
       memoryMB: this.props.memoryMB,
     };
+    const logging: typeof constructProps.logging = {};
+    if (this.props.logging?.level) {
+      logging.level = new LogLevelConverter().toApplicationLogLevel(
+        this.props.logging.level
+      );
+    }
+    if (this.props.logging?.retention) {
+      logging.retention = new LogRetentionConverter().toRetentionDays(
+        this.props.logging.retention
+      );
+    }
+    constructProps.logging = logging;
     const conversationHandlerFunction = new ConversationHandlerFunction(
       scope,
       this.props.name,

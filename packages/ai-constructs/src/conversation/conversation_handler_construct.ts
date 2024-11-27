@@ -107,10 +107,9 @@ export class ConversationHandlerFunction
           bundleAwsSDK: !!this.props.entry,
         },
         loggingFormat: LoggingFormat.JSON,
-        logRetention: this.props.logging?.retention,
         applicationLogLevelV2: this.props.logging?.level,
         logGroup: new LogGroup(this, 'conversationHandlerFunctionLogGroup', {
-          retention: RetentionDays.INFINITE,
+          retention: this.props.logging?.retention,
           dataProtectionPolicy: new DataProtectionPolicy({
             identifiers: [
               new CustomDataIdentifier(
