@@ -4,13 +4,20 @@ import {
   LogLevelConverter,
   LogRetentionConverter,
 } from '@aws-amplify/platform-core/cdk';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+
+export type CDKLoggingOptions = {
+  level?: ApplicationLogLevel;
+  retention?: RetentionDays;
+  format?: LoggingFormat;
+};
 
 /**
  * Converts logging options to CDK.
  */
 export const convertLoggingOptionsToCDK = (
   loggingOptions: FunctionLoggingOptions
-) => {
+): CDKLoggingOptions => {
   let level: ApplicationLogLevel | undefined = undefined;
   if ('level' in loggingOptions) {
     level = new LogLevelConverter().toApplicationLogLevel(loggingOptions.level);
