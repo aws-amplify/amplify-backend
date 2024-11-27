@@ -2,4 +2,4 @@
 '@aws-amplify/backend-deployer': patch
 ---
 
-Handle invalid package.json error
+extract generic cdk asset publish failures

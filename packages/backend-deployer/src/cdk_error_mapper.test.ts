@@ -163,10 +163,10 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: undefined,
   },
   {
-    errorMessage: `[31m  some-stack failed: The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
+    errorMessage: `[31m  some-stack failed: The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: Some amazing error message (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
     expectedTopLevelErrorMessage: 'The CloudFormation deployment has failed.',
     errorName: 'CloudFormationDeploymentError',
-    expectedDownstreamErrorMessage: `The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
+    expectedDownstreamErrorMessage: `The stack named some-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: Some amazing error message (Service: AppSync, Status Code: 400, Request ID: 12345) (RequestToken: 123, HandlerErrorCode: GeneralServiceException), Embedded stack <escaped ARN> was not successfully updated. Currently in UPDATE_ROLLBACK_IN_PROGRESS with reason: The following resource(s) failed to create: [resource1, resource2]. [39m`,
   },
   {
     errorMessage: `[31m  some-stack failed: The stack named some-stack failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE`,
@@ -407,6 +407,47 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
     expectedDownstreamErrorMessage: undefined,
   },
   {
+    errorMessage: `amplify-stack-user-sandbox failed: BadRequestException: The code contains one or more errors.`,
+    expectedTopLevelErrorMessage:
+      'A custom resolver used in your defineData contains one or more errors',
+    errorName: 'AppSyncResolverSyntaxError',
+    expectedDownstreamErrorMessage:
+      'amplify-stack-user-sandbox failed: BadRequestException: The code contains one or more errors.',
+  },
+  {
+    errorMessage: `Deployment failed: Error: The stack named amplify-stack-user-sandbox failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400,...`,
+    expectedTopLevelErrorMessage:
+      'A custom resolver used in your defineData contains one or more errors',
+    errorName: 'AppSyncResolverSyntaxError',
+    expectedDownstreamErrorMessage:
+      'Deployment failed: Error: The stack named amplify-stack-user-sandbox failed to deploy: UPDATE_ROLLBACK_COMPLETE: Resource handler returned message: The code contains one or more errors. (Service: AppSync, Status Code: 400,...',
+  },
+  {
+    errorMessage: `User: some:great:user is not authorized to perform: appsync:StartSchemaCreation on resource: arn:aws:appsync:us-east-1:235494812930:/v1/api/myApi`,
+    expectedTopLevelErrorMessage:
+      'Unable to deploy due to insufficient permissions',
+    errorName: 'AccessDeniedError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `[31m[1mamplify-stack-sandbox-11[22m: fail: Bucket named 'cdk-abc-assets-11-us-west-2' exists, but we do not have access to it.[39m
+[31m[1mamplify-stack-sandbox-11[22m: fail: Bucket named 'cdk-abc-assets-11-us-west-2' exists, but we do not have access to it.[39m
+[31mFailed to publish asset abc:current_account-current_region[39m`,
+    expectedTopLevelErrorMessage: `CDK failed to publish assets due to 'Bucket named 'cdk-abc-assets-11-us-west-2' exists, but we do not have access to it.'`,
+    errorName: 'CDKAssetPublishError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `[31m[1mamplify-user-sandbox-c71414864a[22m: fail: socket hang up[39m
+
+[31mFailed to publish asset abc:current_account-current_region[39m`,
+    expectedTopLevelErrorMessage: `CDK failed to publish assets due to 'socket hang up'`,
+    errorName: 'CDKAssetPublishError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     errorMessage:
       `Error: Transform failed with 1 error:` +
       EOL +
@@ -504,6 +545,59 @@ for your current platform.
       EOL +
       `at /Users/some-path/esbuild/lib/main.js:678:90`,
     errorName: 'ESBuildError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Error: npm ERR! code ENOENT
+npm ERR! syscall lstat
+npm ERR! path /opt/homebrew/Cellar/node/22.2.0/lib
+npm ERR! errno -2
+npm ERR! enoent ENOENT: no such file or directory, lstat '/opt/homebrew/Cellar/node/22.2.0/lib'
+npm ERR! enoent This is related to npm not being able to find a file.
+npm ERR! enoent
+`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `NPM error occurred: npm ERR! code ENOENT
+npm ERR! syscall lstat
+npm ERR! path /opt/homebrew/Cellar/node/22.2.0/lib
+npm ERR! errno -2
+npm ERR! enoent ENOENT: no such file or directory, lstat '/opt/homebrew/Cellar/node/22.2.0/lib'
+npm ERR! enoent This is related to npm not being able to find a file.
+npm ERR! enoent`,
+    errorName: 'CommonNPMError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `Error: npm error code ENOENT
+npm error syscall lstat
+npm error path C:\\Users\testUser\\AppData\\Roaming\\npm
+npm error errno -4058
+npm error enoent ENOENT: no such file or directory, lstat 'C:\\Users\\testUser\\AppData\\Roaming\\npm'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      `NPM error occurred: npm error code ENOENT
+npm error syscall lstat
+npm error path C:\\Users\testUser\\AppData\\Roaming\\npm
+npm error errno -4058
+npm error enoent ENOENT: no such file or directory, lstat 'C:\\Users\\testUser\\AppData\\Roaming\\npm'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent`,
+    errorName: 'CommonNPMError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `[31m: destroy failed Error: The stack named amplify-some-stack is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED (The following resource(s) failed to delete: [resource1, resource2]. )`,
+    expectedTopLevelErrorMessage:
+      'The CloudFormation deletion failed due to amplify-some-stack being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
+    errorName: 'CloudFormationDeletionError',
     expectedDownstreamErrorMessage: undefined,
   },
 ];

@@ -4,6 +4,7 @@ import {
   AmplifyFault,
   AmplifyUserError,
 } from '@aws-amplify/platform-core';
+import stripANSI from 'strip-ansi';
 import { BackendDeployerOutputFormatter } from './types.js';
 
 /**
@@ -27,13 +28,14 @@ export class CdkErrorMapper {
       return amplifyError;
     }
 
+    const errorMessage = stripANSI(error.message);
     const matchingError = this.getKnownErrors().find((knownError) =>
-      knownError.errorRegex.test(error.message)
+      knownError.errorRegex.test(errorMessage)
     );
 
     if (matchingError) {
       // Extract meaningful contextual information if available
-      const matchGroups = error.message.match(matchingError.errorRegex);
+      const matchGroups = errorMessage.match(matchingError.errorRegex);
 
       if (matchGroups && matchGroups.length > 1) {
         // If the contextual information can be used in the error message use it, else consider it as a downstream cause
@@ -212,8 +214,29 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      //This has some overlap with "User:__ is not authorized to perform:__ on resource: __" - some resources cannot be deleted due to lack of permissions
+      errorRegex:
+        /The stack named (?<stackName>.*) is in a failed state. You may need to delete it from the AWS console : DELETE_FAILED \(The following resource\(s\) failed to delete: (?<resources>.*). \)/,
+      humanReadableErrorMessage:
+        'The CloudFormation deletion failed due to {stackName} being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
+      resolutionMessage:
+        'The following resource(s) failed to delete: {resources}. Ensure they are in a state where they can be deleted. Find more information in the CloudFormation AWS Console for this stack.',
+      errorName: 'CloudFormationDeletionError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex:
         /User:(.*) is not authorized to perform:(.*) on resource:(?<resource>.*) because no identity-based policy allows the (?<action>.*) action/,
+      humanReadableErrorMessage:
+        'Unable to deploy due to insufficient permissions',
+      resolutionMessage:
+        'Ensure you have permissions to call {action} for {resource}',
+      errorName: 'AccessDeniedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /User:(.*) is not authorized to perform:(?<action>.*) on resource:(?<resource>.*)/,
       humanReadableErrorMessage:
         'Unable to deploy due to insufficient permissions',
       resolutionMessage:
@@ -315,6 +338,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: new RegExp(
+        `(?<npmError>(npm error|npm ERR!) code ENOENT${this.multiLineEolRegex}((npm error|npm ERR!) (.*)${this.multiLineEolRegex})*)`
+      ),
+      humanReadableErrorMessage: 'NPM error occurred: {npmError}',
+      resolutionMessage: `See https://docs.npmjs.com/common-errors for resolution.`,
+      errorName: 'CommonNPMError',
+      classification: 'ERROR',
+    },
+    {
       // Error: .* is printed to stderr during cdk synth
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
@@ -364,6 +396,39 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
+        /BadRequestException: The code contains one or more errors|The code contains one or more errors.*AppSync/,
+      humanReadableErrorMessage: `A custom resolver used in your defineData contains one or more errors`,
+      resolutionMessage: `Check for any syntax errors in your custom resolvers code.`,
+      errorName: 'AppSyncResolverSyntaxError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex: new RegExp(
+        `amplify-.*-(branch|sandbox)-.*fail: (?<publishFailure>.*)${this.multiLineEolRegex}.*Failed to publish asset`,
+        'm'
+      ),
+      humanReadableErrorMessage: `CDK failed to publish assets due to '{publishFailure}'`,
+      resolutionMessage: `Check the error message for more details.`,
+      errorName: 'CDKAssetPublishError',
+      classification: 'ERROR',
+    },
+    // Generic error printed by CDK. Order matters so keep this towards the bottom of this list
+    {
+      // Error: .* is printed to stderr during cdk synth
+      // Also extracts the first line in the stack where the error happened
+      errorRegex: new RegExp(
+        `^Error: (.*${this.multiLineEolRegex}.*at.*)`,
+        'm'
+      ),
+      humanReadableErrorMessage:
+        'Unable to build the Amplify backend definition.',
+      resolutionMessage:
+        'Check your backend definition in the `amplify` folder for syntax and type errors.',
+      errorName: 'BackendSynthError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
         /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
       humanReadableErrorMessage:
         'The CloudFormation deployment failed due to {stackName} being in {state} state.',
@@ -388,15 +453,19 @@ export class CdkErrorMapper {
 
 export type CDKDeploymentError =
   | 'AccessDeniedError'
+  | 'AppSyncResolverSyntaxError'
   | 'BackendBuildError'
   | 'BackendSynthError'
   | 'BootstrapNotDetectedError'
   | 'BootstrapDetectionError'
   | 'BootstrapOutdatedError'
+  | 'CDKAssetPublishError'
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
+  | 'CloudFormationDeletionError'
   | 'CloudFormationDeploymentError'
+  | 'CommonNPMError'
   | 'FilePermissionsError'
   | 'MissingDefineBackendError'
   | 'MultipleSandboxInstancesError'
