@@ -625,7 +625,7 @@ void describe('AmplifyFunctionFactory', () => {
             ephemeralStorageSize: 10241,
           }).getInstance(getInstanceProps),
         new Error(
-          'ephemeralStorageSize must be a whole number between 128 and 10240 inclusive'
+          'ephemeralStorageSize must be a whole number between 512 and 10240 inclusive'
         )
       );
     });
@@ -635,7 +635,7 @@ void describe('AmplifyFunctionFactory', () => {
         () =>
           defineFunction({
             entry: './test-assets/default-lambda/handler.ts',
-            memoryMB: 512.5,
+            ephemeralStorageSize: 512.5,
           }).getInstance(getInstanceProps),
         new Error(
           'ephemeralStorageSize must be a whole number between 512 and 10240 inclusive'
