@@ -579,4 +579,68 @@ void describe('AmplifyFunctionFactory', () => {
       'function-Lambda'
     );
   });
+
+  void describe('ephemeralStorageSize property', () => {
+    void it('sets valid ephemeralStorageSize', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        ephemeralStorageSize: 1024,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        EphemeralStorage: { Size: 1024 },
+      });
+    });
+
+    void it('sets default ephemeralStorageSize', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        EphemeralStorage: { Size: 512 },
+      });
+    });
+
+    void it('throws on ephemeralStorageSize below 512 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            ephemeralStorageSize: 511,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'ephemeralStorageSize must be a whole number between 512 and 10240 inclusive'
+        )
+      );
+    });
+
+    void it('throws on ephemeralStorageSize above 10240 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            ephemeralStorageSize: 10241,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'ephemeralStorageSize must be a whole number between 128 and 10240 inclusive'
+        )
+      );
+    });
+
+    void it('throws on fractional ephemeralStorageSize', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            memoryMB: 512.5,
+          }).getInstance(getInstanceProps),
+        new Error(
+          'ephemeralStorageSize must be a whole number between 512 and 10240 inclusive'
+        )
+      );
+    });
+  });
 });
