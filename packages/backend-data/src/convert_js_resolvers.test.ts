@@ -8,7 +8,7 @@ import {
 } from '@aws-amplify/data-construct';
 import { join, resolve } from 'path';
 import { tmpdir } from 'os';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import {
   convertJsResolverDefinition,
   defaultJsResolverCode,
@@ -43,7 +43,9 @@ void describe('defaultJsResolverCode', () => {
     const filename = join(tempDir, 'js_resolver_handler.js');
     writeFileSync(filename, code);
 
-    const resolver = await import(filename);
+    // windows requires dynamic imports to use file urls
+    const fileUrl = pathToFileURL(filename).href;
+    const resolver = await import(fileUrl);
     const context = { stash: {}, prev: { result: 'result' } };
     assert.deepEqual(resolver.request(context), {});
 
