@@ -151,7 +151,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       await fs.rm(tempDir, { recursive: true });
     });
 
-    void it('hotswaps resources', async () => {
+    void it('can hotswap resources', async () => {
       const projectCreator = new HotswappableResourcesTestProjectCreator();
       const testProject = await projectCreator.createProject(tempDir);
 
