@@ -6,10 +6,15 @@ import {
   AmplifyData,
   AmplifyDataDefinition,
 } from '@aws-amplify/data-construct';
-import { resolve } from 'path';
+import { join, resolve } from 'path';
+import { tmpdir } from 'os';
 import { fileURLToPath } from 'url';
-import { convertJsResolverDefinition } from './convert_js_resolvers.js';
+import {
+  convertJsResolverDefinition,
+  defaultJsResolverCode,
+} from './convert_js_resolvers.js';
 import { a } from '@aws-amplify/data-schema';
+import { writeFileSync } from 'node:fs';
 
 // stub schema for the AmplifyApi construct
 // not relevant to this test suite
@@ -27,6 +32,29 @@ const createStackAndSetContext = (): Stack => {
   const stack = new Stack(app);
   return stack;
 };
+
+void describe('defaultJsResolverCode', () => {
+  void it('returns the default JS resolver code with api id and env name in valid JS', async () => {
+    const code = defaultJsResolverCode('testApiId', 'testEnvName');
+    assert(code.includes("ctx.stash.awsAppsyncApiId = 'testApiId';"));
+    assert(code.includes("ctx.stash.amplifyBranchName = 'testEnvName';"));
+
+    const tempDir = tmpdir();
+    const filename = join(tempDir, 'js_resolver_handler.js');
+    writeFileSync(filename, code);
+
+    const resolver = await import(filename);
+    const context = { stash: {}, prev: { result: 'result' } };
+    assert.deepEqual(resolver.request(context), {});
+
+    // assert api id and env name are added to the context stash
+    assert.deepEqual(context.stash, {
+      awsAppsyncApiId: 'testApiId',
+      amplifyBranchName: 'testEnvName',
+    });
+    assert.equal(resolver.response(context), 'result');
+  });
+});
 
 void describe('convertJsResolverDefinition', () => {
   let stack: Stack;

@@ -22,7 +22,7 @@ const JS_PIPELINE_RESOLVER_HANDLER = './assets/js_resolver_handler.js';
  *
  * Add Amplify API ID and environment name to the context stash for use in the customer-provided handlers.
  */
-const defaultJsResolverCode = (
+export const defaultJsResolverCode = (
   amplifyApiId: string,
   amplifyEnvironmentName: string
 ): string => {
