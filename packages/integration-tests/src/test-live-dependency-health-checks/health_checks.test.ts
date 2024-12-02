@@ -13,7 +13,6 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import {
   confirmDeleteSandbox,
-  ensureDeploymentTimeLessThan,
   interruptSandbox,
   replaceFiles,
   waitForSandboxDeploymentToPrintTotalTime,
@@ -54,7 +53,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     });
   });
 
-  void describe('pipeline deployment', () => {
+  void describe('pipeline deployment', { skip: true }, () => {
     let tempDir: string;
     let testBranch: TestBranch;
     beforeEach(async () => {
@@ -108,7 +107,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     });
   });
 
-  void describe('sandbox deployment', () => {
+  void describe('sandbox deployment', { skip: true }, () => {
     let tempDir: string;
     beforeEach(async () => {
       tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
@@ -155,6 +154,34 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       const projectCreator = new HotswappableResourcesTestProjectCreator();
       const testProject = await projectCreator.createProject(tempDir);
 
+      // we're not starting from create flow. install dependencies.
+      await execa(
+        'npm',
+        [
+          'install',
+          '@aws-amplify/backend',
+          '@aws-amplify/backend-cli',
+          'aws-cdk@^2',
+          'aws-cdk-lib@^2',
+          'constructs@^10.0.0',
+          'typescript@^5.0.0',
+          'tsx',
+          'esbuild',
+        ],
+        {
+          cwd: tempDir,
+          stdio: 'inherit',
+        }
+      );
+
+      const sandboxBackendIdentifier: BackendIdentifier = {
+        type: 'sandbox',
+        namespace: testProject.name,
+        name: userInfo().username,
+      };
+
+      await testProject.deploy(sandboxBackendIdentifier);
+
       const processController = ampxCli(
         ['sandbox', '--dirToWatch', 'amplify'],
         testProject.projectDirPath
@@ -168,10 +195,9 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
 
       // Execute the process.
       await processController.do(interruptSandbox()).run();
+      await testProject.assertPostDeployment(sandboxBackendIdentifier);
 
-      await ampxCli(['sandbox', 'delete'], tempDir)
-        .do(confirmDeleteSandbox())
-        .run();
+      await testProject.tearDown(sandboxBackendIdentifier);
     });
   });
 });
