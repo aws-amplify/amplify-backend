@@ -232,7 +232,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
-      environment: this.props.environment ?? {},
+      environment: this.resolveEnvironment(),
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
       bundling: this.resolveBundling(),
@@ -316,6 +316,23 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       );
     }
     return this.props.memoryMB;
+  };
+
+  private resolveEnvironment = () => {
+    if (this.props.environment === undefined) {
+      return {};
+    }
+
+    Object.keys(this.props.environment).forEach((key) => {
+      // validate using key pattern from https://docs.aws.amazon.com/lambda/latest/api/API_Environment.html
+      if (!key.match(/^[a-zA-Z]([a-zA-Z0-9_])+$/) || key.length < 2) {
+        throw new Error(
+          `environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters`
+        );
+      }
+    });
+
+    return this.props.environment;
   };
 
   private resolveRuntime = () => {

@@ -304,6 +304,75 @@ void describe('AmplifyFunctionFactory', () => {
     });
   });
 
+  void describe('environment property', () => {
+    void it('sets valid environment', () => {
+      const functionFactory = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        name: 'myCoolLambda',
+        environment: {
+          TEST_ENV: 'testValue',
+        },
+      });
+      const lambda = functionFactory.getInstance(getInstanceProps);
+      const stack = lambda.stack;
+      const template = Template.fromStack(stack);
+      template.resourceCountIs('AWS::Lambda::Function', 1);
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Environment: {
+          Variables: {
+            TEST_ENV: 'testValue',
+          },
+        },
+      });
+    });
+
+    void it('sets default environment', () => {
+      const functionFactory = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        name: 'myCoolLambda',
+      });
+      const lambda = functionFactory.getInstance(getInstanceProps);
+      const stack = lambda.stack;
+      const template = Template.fromStack(stack);
+      template.resourceCountIs('AWS::Lambda::Function', 1);
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Environment: {},
+      });
+    });
+
+    void it('throws when adding environment variables with invalid key', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            name: 'myCoolLambda',
+            environment: {
+              ['this.is.wrong']: 'testValue',
+            },
+          }).getInstance(getInstanceProps),
+        new Error(
+          `environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters`
+        )
+      );
+    });
+
+    void it('throws when adding environment variables with key less than 2 characters', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            name: 'myCoolLambda',
+            environment: {
+              A: 'testValue',
+            },
+          }).getInstance(getInstanceProps),
+        new Error(
+          `environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters`
+        )
+      );
+    });
+  });
+
   void describe('runtime property', () => {
     void it('sets valid runtime', () => {
       const lambda = defineFunction({
