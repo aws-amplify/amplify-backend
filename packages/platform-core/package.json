@@ -10,6 +10,11 @@
       "types": "./lib/index.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
+    },
+    "./cdk": {
+      "types": "./lib/cdk/index.d.ts",
+      "import": "./lib/cdk/index.js",
+      "require": "./lib/cdk/index.js"
     }
   },
   "main": "lib/index.js",
@@ -31,5 +36,9 @@
     "semver": "^7.6.3",
     "uuid": "^9.0.1",
     "zod": "^3.22.2"
+  },
+  "peerDependencies": {
+    "aws-cdk-lib": "^2.168.0",
+    "constructs": "^10.0.0"
   }
 }

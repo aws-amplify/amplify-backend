@@ -8,6 +8,8 @@ import { AmplifyResourceGroupName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { LogLevel } from '@aws-amplify/plugin-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StackProvider } from '@aws-amplify/plugin-types';
@@ -29,6 +31,22 @@ export type FunctionBundlingOptions = {
 };
 
 // @public (undocumented)
+export type FunctionLoggingOptions = ({
+    format: 'json';
+    level?: FunctionLogLevel;
+} | {
+    format?: 'text';
+}) & {
+    retention?: FunctionLogRetention;
+};
+
+// @public (undocumented)
+export type FunctionLogLevel = LogLevel;
+
+// @public (undocumented)
+export type FunctionLogRetention = LogRetention;
+
+// @public (undocumented)
 export type FunctionProps = {
     name?: string;
     entry?: string;
@@ -40,13 +58,14 @@ export type FunctionProps = {
     layers?: Record<string, string>;
     bundling?: FunctionBundlingOptions;
     resourceGroupName?: AmplifyResourceGroupName;
+    logging?: FunctionLoggingOptions;
 };
 
 // @public (undocumented)
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
 // @public (undocumented)
-export type NodeVersion = 16 | 18 | 20;
+export type NodeVersion = 16 | 18 | 20 | 22;
 
 // @public (undocumented)
 export type TimeInterval = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;

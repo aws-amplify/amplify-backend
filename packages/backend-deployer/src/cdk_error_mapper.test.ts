@@ -32,6 +32,15 @@ const testErrorMappings = [
       'Error: The security token included in the request is expired',
   },
   {
+    errorMessage:
+      'InvalidClientTokenId: The security token included in the request is invalid',
+    expectedTopLevelErrorMessage:
+      'The security token included in the request is invalid.',
+    errorName: 'ExpiredTokenError',
+    expectedDownstreamErrorMessage:
+      'InvalidClientTokenId: The security token included in the request is invalid',
+  },
+  {
     errorMessage: 'Access Denied',
     expectedTopLevelErrorMessage:
       'The deployment role does not have sufficient permissions to perform this deployment.',
@@ -427,6 +436,24 @@ npm error A complete log of this run can be found in: /home/some-path/.npm/_logs
     expectedTopLevelErrorMessage:
       'Unable to deploy due to insufficient permissions',
     errorName: 'AccessDeniedError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `[31m[1mamplify-stack-sandbox-11[22m: fail: Bucket named 'cdk-abc-assets-11-us-west-2' exists, but we do not have access to it.[39m
+[31m[1mamplify-stack-sandbox-11[22m: fail: Bucket named 'cdk-abc-assets-11-us-west-2' exists, but we do not have access to it.[39m
+[31mFailed to publish asset abc:current_account-current_region[39m`,
+    expectedTopLevelErrorMessage: `CDK failed to publish assets due to 'Bucket named 'cdk-abc-assets-11-us-west-2' exists, but we do not have access to it.'`,
+    errorName: 'CDKAssetPublishError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `[31m[1mamplify-user-sandbox-c71414864a[22m: fail: socket hang up[39m
+
+[31mFailed to publish asset abc:current_account-current_region[39m`,
+    expectedTopLevelErrorMessage: `CDK failed to publish assets due to 'socket hang up'`,
+    errorName: 'CDKAssetPublishError',
     expectedDownstreamErrorMessage: undefined,
   },
   {

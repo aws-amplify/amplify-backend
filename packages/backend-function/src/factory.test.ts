@@ -308,12 +308,12 @@ void describe('AmplifyFunctionFactory', () => {
     void it('sets valid runtime', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
-        runtime: 16,
+        runtime: 22,
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Runtime: Runtime.NODEJS_16_X.name,
+        Runtime: Runtime.NODEJS_22_X.name,
       });
     });
 
@@ -335,7 +335,7 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             runtime: 14 as NodeVersion,
           }).getInstance(getInstanceProps),
-        new Error('runtime must be one of the following: 16, 18, 20')
+        new Error('runtime must be one of the following: 16, 18, 20, 22')
       );
     });
 
@@ -436,6 +436,39 @@ void describe('AmplifyFunctionFactory', () => {
       template.resourceCountIs('AWS::Lambda::Function', 1);
       template.hasResourceProperties('AWS::Lambda::Function', {
         Handler: 'index.handler',
+      });
+    });
+  });
+
+  void describe('logging options', () => {
+    void it('sets logging options', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        bundling: {
+          minify: false,
+        },
+        logging: {
+          format: 'json',
+          level: 'warn',
+          retention: '13 months',
+        },
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+      // Enabling log retention adds extra lambda.
+      template.resourceCountIs('AWS::Lambda::Function', 2);
+      const lambdas = template.findResources('AWS::Lambda::Function');
+      assert.ok(
+        Object.keys(lambdas).some((key) => key.startsWith('LogRetention'))
+      );
+      template.hasResourceProperties('Custom::LogRetention', {
+        RetentionInDays: 400,
+      });
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Handler: 'index.handler',
+        LoggingConfig: {
+          ApplicationLogLevel: 'WARN',
+          LogFormat: 'JSON',
+        },
       });
     });
   });

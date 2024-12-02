@@ -7,6 +7,8 @@ import {
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   GenerateContainerEntryProps,
+  LogLevel,
+  LogRetention,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
@@ -17,6 +19,10 @@ import {
 import path from 'path';
 import { CallerDirectoryExtractor } from '@aws-amplify/platform-core';
 import { AiModel } from '@aws-amplify/data-schema-types';
+import {
+  LogLevelConverter,
+  LogRetentionConverter,
+} from '@aws-amplify/platform-core/cdk';
 
 class ConversationHandlerFunctionGenerator
   implements ConstructContainerEntryGenerator
@@ -47,6 +53,18 @@ class ConversationHandlerFunctionGenerator
       outputStorageStrategy: this.outputStorageStrategy,
       memoryMB: this.props.memoryMB,
     };
+    const logging: typeof constructProps.logging = {};
+    if (this.props.logging?.level) {
+      logging.level = new LogLevelConverter().toCDKLambdaApplicationLogLevel(
+        this.props.logging.level
+      );
+    }
+    if (this.props.logging?.retention) {
+      logging.retention = new LogRetentionConverter().toCDKRetentionDays(
+        this.props.logging.retention
+      );
+    }
+    constructProps.logging = logging;
     const conversationHandlerFunction = new ConversationHandlerFunction(
       scope,
       this.props.name,
@@ -115,6 +133,15 @@ class DefaultConversationHandlerFunctionFactory
   };
 }
 
+export type ConversationHandlerFunctionLogLevel = LogLevel;
+
+export type ConversationHandlerFunctionLogRetention = LogRetention;
+
+export type ConversationHandlerFunctionLoggingOptions = {
+  retention?: ConversationHandlerFunctionLogRetention;
+  level?: ConversationHandlerFunctionLogLevel;
+};
+
 export type DefineConversationHandlerFunctionProps = {
   name: string;
   entry?: string;
@@ -128,6 +155,7 @@ export type DefineConversationHandlerFunctionProps = {
    * Default is 512MB.
    */
   memoryMB?: number;
+  logging?: ConversationHandlerFunctionLoggingOptions;
 };
 
 /**

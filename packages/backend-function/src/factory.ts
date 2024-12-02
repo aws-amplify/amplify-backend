@@ -18,6 +18,8 @@ import {
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   GenerateContainerEntryProps,
+  LogLevel,
+  LogRetention,
   ResourceAccessAcceptorFactory,
   ResourceNameValidator,
   ResourceProvider,
@@ -45,6 +47,7 @@ import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
+import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
 
 const functionStackType = 'function-Lambda';
 
@@ -63,6 +66,9 @@ export type TimeInterval =
   | `every month`
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
+
+export type FunctionLogLevel = LogLevel;
+export type FunctionLogRetention = LogRetention;
 
 /**
  * Entry point for defining a function in the Amplify ecosystem
@@ -159,6 +165,8 @@ export type FunctionProps = {
    * resourceGroupName: 'auth' // to group an auth trigger with an auth resource
    */
   resourceGroupName?: AmplifyResourceGroupName;
+
+  logging?: FunctionLoggingOptions;
 };
 
 export type FunctionBundlingOptions = {
@@ -168,6 +176,18 @@ export type FunctionBundlingOptions = {
    * Defaults to true.
    */
   minify?: boolean;
+};
+
+export type FunctionLoggingOptions = (
+  | {
+      format: 'json';
+      level?: FunctionLogLevel;
+    }
+  | {
+      format?: 'text';
+    }
+) & {
+  retention?: FunctionLogRetention;
 };
 
 /**
@@ -218,6 +238,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       bundling: this.resolveBundling(),
       layers,
       resourceGroupName: this.props.resourceGroupName ?? 'function',
+      logging: this.props.logging ?? {},
     };
   };
 
@@ -438,6 +459,7 @@ class AmplifyFunction
     functionEnvironmentTypeGenerator.generateProcessEnvShim();
 
     let functionLambda: NodejsFunction;
+    const cdkLoggingOptions = convertLoggingOptionsToCDK(props.logging);
     try {
       functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
         entry: props.entry,
@@ -451,6 +473,9 @@ class AmplifyFunction
           inject: shims,
           externalModules: Object.keys(props.layers),
         },
+        logRetention: cdkLoggingOptions.retention,
+        applicationLogLevelV2: cdkLoggingOptions.level,
+        loggingFormat: cdkLoggingOptions.format,
       });
     } catch (error) {
       // If the error is from ES Bundler which is executed as a child process by CDK,
@@ -570,10 +595,11 @@ const isWholeNumberBetweenInclusive = (
   max: number
 ) => min <= test && test <= max && test % 1 === 0;
 
-export type NodeVersion = 16 | 18 | 20;
+export type NodeVersion = 16 | 18 | 20 | 22;
 
 const nodeVersionMap: Record<NodeVersion, Runtime> = {
   16: Runtime.NODEJS_16_X,
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
+  22: Runtime.NODEJS_22_X,
 };
