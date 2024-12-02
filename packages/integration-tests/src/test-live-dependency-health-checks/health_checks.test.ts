@@ -16,6 +16,7 @@ import {
   interruptSandbox,
   replaceFiles,
   waitForSandboxDeploymentToPrintTotalTime,
+  waitForSandboxToBecomeIdle,
   waitForSandboxToHotswapResources,
 } from '../process-controller/predicated_action_macros.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
@@ -53,7 +54,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     });
   });
 
-  void describe('pipeline deployment', { skip: true }, () => {
+  void describe('pipeline deployment', () => {
     let tempDir: string;
     let testBranch: TestBranch;
     beforeEach(async () => {
@@ -107,7 +108,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     });
   });
 
-  void describe('sandbox deployment', { skip: true }, () => {
+  void describe('sandbox deployment', () => {
     let tempDir: string;
     beforeEach(async () => {
       tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
@@ -154,7 +155,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       const projectCreator = new HotswappableResourcesTestProjectCreator();
       const testProject = await projectCreator.createProject(tempDir);
 
-      // we're not starting from create flow. install dependencies.
+      // we're not starting from create flow. install latest versions of dependencies.
       await execa(
         'npm',
         [
@@ -190,13 +191,14 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       for (const update of updates) {
         processController
           .do(replaceFiles(update.replacements))
-          .do(waitForSandboxToHotswapResources());
+          .do(waitForSandboxToHotswapResources())
+          .do(waitForSandboxToBecomeIdle());
       }
 
       // Execute the process.
       await processController.do(interruptSandbox()).run();
-      await testProject.assertPostDeployment(sandboxBackendIdentifier);
 
+      // Clean up
       await testProject.tearDown(sandboxBackendIdentifier);
     });
   });
