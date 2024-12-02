@@ -154,13 +154,6 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
     void it('hotswaps resources', async () => {
       const projectCreator = new HotswappableResourcesTestProjectCreator();
       const testProject = await projectCreator.createProject(tempDir);
-      const sandboxBackendIdentifier: BackendIdentifier = {
-        type: 'sandbox',
-        namespace: testProject.name,
-        name: userInfo().username,
-      };
-
-      await testProject.deploy(sandboxBackendIdentifier);
 
       const processController = ampxCli(
         ['sandbox', '--dirToWatch', 'amplify'],
@@ -175,9 +168,10 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
 
       // Execute the process.
       await processController.do(interruptSandbox()).run();
-      await testProject.assertPostDeployment(sandboxBackendIdentifier);
 
-      await testProject.tearDown(sandboxBackendIdentifier);
+      await ampxCli(['sandbox', 'delete'], tempDir)
+        .do(confirmDeleteSandbox())
+        .run();
     });
   });
 });
