@@ -119,6 +119,10 @@ export abstract class AmplifyError<T extends string = string> extends Error {
   };
 
   static fromError = (error: unknown): AmplifyError => {
+    if (AmplifyError.isAmplifyError(error)) {
+      return error;
+    }
+
     const errorMessage =
       error instanceof Error
         ? `${error.name}: ${error.message}`
@@ -182,9 +186,6 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         error
       );
     }
-    if (error instanceof Error && isAmplifyUserError(error)) {
-      return error;
-    }
     return new AmplifyFault(
       'UnknownFault',
       {
@@ -233,10 +234,6 @@ const isInsufficientDiskSpaceError = (err?: Error): boolean => {
       err.message.includes(message)
     )
   );
-};
-
-const isAmplifyUserError = (err?: Error): err is AmplifyUserError => {
-  return !!err && 'classification' in err && err.classification === 'ERROR';
 };
 
 /**
