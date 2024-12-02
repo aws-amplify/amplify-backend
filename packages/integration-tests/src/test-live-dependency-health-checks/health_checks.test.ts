@@ -1,7 +1,7 @@
 import { afterEach, before, beforeEach, describe, it } from 'node:test';
 import fs from 'fs/promises';
 import path from 'path';
-import os from 'os';
+import os, { userInfo } from 'os';
 import { execa } from 'execa';
 import { ampxCli } from '../process-controller/process_controller.js';
 import { TestBranch, amplifyAppPool } from '../amplify_app_pool.js';
@@ -13,12 +13,17 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import {
   confirmDeleteSandbox,
+  ensureDeploymentTimeLessThan,
   interruptSandbox,
+  replaceFiles,
   waitForSandboxDeploymentToPrintTotalTime,
+  waitForSandboxToHotswapResources,
 } from '../process-controller/predicated_action_macros.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { amplifyAtTag } from '../constants.js';
+import { HotswappableResourcesTestProjectCreator } from '../test-project-setup/hotswappable_resources.js';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
 
@@ -132,6 +137,47 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       await ampxCli(['sandbox', 'delete'], tempDir)
         .do(confirmDeleteSandbox())
         .run();
+    });
+  });
+
+  void describe('sandbox hotswap', () => {
+    let tempDir: string;
+
+    beforeEach(async () => {
+      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-amplify'));
+    });
+
+    afterEach(async () => {
+      await fs.rm(tempDir, { recursive: true });
+    });
+
+    void it('hotswaps resources', async () => {
+      const projectCreator = new HotswappableResourcesTestProjectCreator();
+      const testProject = await projectCreator.createProject(tempDir);
+      const sandboxBackendIdentifier: BackendIdentifier = {
+        type: 'sandbox',
+        namespace: testProject.name,
+        name: userInfo().username,
+      };
+
+      await testProject.deploy(sandboxBackendIdentifier);
+
+      const processController = ampxCli(
+        ['sandbox', '--dirToWatch', 'amplify'],
+        testProject.projectDirPath
+      );
+      const updates = await testProject.getUpdates();
+      for (const update of updates) {
+        processController
+          .do(replaceFiles(update.replacements))
+          .do(waitForSandboxToHotswapResources());
+      }
+
+      // Execute the process.
+      await processController.do(interruptSandbox()).run();
+      await testProject.assertPostDeployment(sandboxBackendIdentifier);
+
+      await testProject.tearDown(sandboxBackendIdentifier);
     });
   });
 });
