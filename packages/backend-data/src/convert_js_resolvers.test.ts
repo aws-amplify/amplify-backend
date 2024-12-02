@@ -193,14 +193,14 @@ void describe('convertJsResolverDefinition', () => {
         'Fn::Join': [
           '',
           [
-            "\n        /**\n         * Pipeline resolver request handler\n         */\n        export const request = (ctx) => {\n          ctx.stash.awsAppsyncApiId = '",
+            "/**\n * Pipeline resolver request handler\n */\nexport const request = (ctx) => {\n    ctx.stash.awsAppsyncApiId = '",
             {
               'Fn::GetAtt': [
                 Match.stringLikeRegexp('amplifyDataGraphQLAPI.*'),
                 'ApiId',
               ],
             },
-            "';\n          ctx.stash.amplifyBranchName = 'NONE';\n          return {};\n        };\n        /**\n         * Pipeline resolver response handler\n         */\n        export const response = (ctx) => {\n          return ctx.prev.result;\n        };\n      ",
+            "';\n    ctx.stash.amplifyBranchName = 'NONE';\n    return {};\n};\n/**\n * Pipeline resolver response handler\n */\nexport const response = (ctx) => {\n    return ctx.prev.result;\n};\n",
           ],
         ],
       },

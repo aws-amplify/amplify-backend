@@ -2,12 +2,40 @@ import { Construct } from 'constructs';
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { CfnFunctionConfiguration, CfnResolver } from 'aws-cdk-lib/aws-appsync';
 import { JsResolver } from '@aws-amplify/data-schema-types';
+import { resolve } from 'path';
+import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'fs';
 import { Asset } from 'aws-cdk-lib/aws-s3-assets';
 import { resolveEntryPath } from './resolve_entry_path.js';
 
 const APPSYNC_PIPELINE_RESOLVER = 'PIPELINE';
 const APPSYNC_JS_RUNTIME_NAME = 'APPSYNC_JS';
 const APPSYNC_JS_RUNTIME_VERSION = '1.0.0';
+const JS_PIPELINE_RESOLVER_HANDLER = './assets/js_resolver_handler.js';
+
+/**
+ *
+ * This returns the top-level passthrough resolver request/response handler (see: https://docs.aws.amazon.com/appsync/latest/devguide/resolver-reference-overview-js.html#anatomy-of-a-pipeline-resolver-js)
+ * It's required for defining a pipeline resolver. The only purpose it serves is returning the output of the last function in the pipeline back to the client.
+ *
+ * Customer-provided handlers are added as a Functions list in `pipelineConfig.functions`
+ *
+ * Add Amplify API ID and environment name to the context stash for use in the customer-provided handlers.
+ */
+const defaultJsResolverCode = (
+  amplifyApiId: string,
+  amplifyEnvironmentName: string
+): string => {
+  const resolvedTemplatePath = resolve(
+    fileURLToPath(import.meta.url),
+    '../../lib',
+    JS_PIPELINE_RESOLVER_HANDLER
+  );
+
+  return readFileSync(resolvedTemplatePath, 'utf-8')
+    .replace('${amplifyApiId}', amplifyApiId)
+    .replace('${amplifyEnvironmentName}', amplifyEnvironmentName);
+};
 
 /**
  * Converts JS Resolver definition emitted by data-schema into AppSync pipeline
@@ -54,31 +82,8 @@ export const convertJsResolverDefinition = (
       fieldName: resolver.fieldName,
       typeName: resolver.typeName,
       kind: APPSYNC_PIPELINE_RESOLVER,
-      /**
-       * The top-level passthrough resolver request/response handler (see: https://docs.aws.amazon.com/appsync/latest/devguide/resolver-reference-overview-js.html#anatomy-of-a-pipeline-resolver-js)
-       * It's required for defining a pipeline resolver. Adds the GraphQL API ID and Amplify environment name to the context stash.
-       * Returns the output of the last function in the pipeline back to the client.
-       *
-       * Customer-provided handlers are added as a Functions list in `pipelineConfig.functions`
-       *
-       * Uses synth-time inline code to avoid circular dependency when adding the API ID as an environment variable.
-       */
-      code: `
-        /**
-         * Pipeline resolver request handler
-         */
-        export const request = (ctx) => {
-          ctx.stash.awsAppsyncApiId = '${amplifyApi.apiId}';
-          ctx.stash.amplifyBranchName = '${amplifyEnvironmentName}';
-          return {};
-        };
-        /**
-         * Pipeline resolver response handler
-         */
-        export const response = (ctx) => {
-          return ctx.prev.result;
-        };
-      `,
+      // Uses synth-time inline code to avoid circular dependency when adding the API ID as an environment variable.
+      code: defaultJsResolverCode(amplifyApi.apiId, amplifyEnvironmentName),
       runtime: {
         name: APPSYNC_JS_RUNTIME_NAME,
         runtimeVersion: APPSYNC_JS_RUNTIME_VERSION,
