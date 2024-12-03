@@ -16,7 +16,7 @@ import {
   interruptSandbox,
   replaceFiles,
   waitForSandboxDeploymentToPrintTotalTime,
-  waitForSandboxToHotswapResources,
+  waitForSandboxToBeginHotswappingResources,
 } from '../process-controller/predicated_action_macros.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
@@ -170,7 +170,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       for (const update of updates) {
         processController
           .do(replaceFiles(update.replacements))
-          .do(waitForSandboxToHotswapResources())
+          .do(waitForSandboxToBeginHotswappingResources())
           .do(waitForSandboxDeploymentToPrintTotalTime());
       }
 

@@ -33,7 +33,7 @@ export const waitForSandboxToBecomeIdle = () =>
 /**
  * Reusable predicates: Wait for sandbox to indicate that it's executing hotswap deployment, i.e. "hotswapping resources:"
  */
-export const waitForSandboxToHotswapResources = () =>
+export const waitForSandboxToBeginHotswappingResources = () =>
   new PredicatedActionBuilder().waitForLineIncludes('hotswapping resources:');
 
 /**
