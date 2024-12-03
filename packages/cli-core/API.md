@@ -13,10 +13,12 @@ import { WriteStream } from 'node:tty';
 export class AmplifyPrompter {
     static input: (options: {
         message: string;
+        required?: never;
         defaultValue?: string;
-    }) => Promise<string>;
-    static requiredInput: (options: {
+    } | {
         message: string;
+        required: true;
+        defaultValue?: never;
     }) => Promise<string>;
     static secretValue: (promptMessage?: string) => Promise<string>;
     static yesOrNo: (options: {
