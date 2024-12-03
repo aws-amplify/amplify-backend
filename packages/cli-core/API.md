@@ -15,6 +15,9 @@ export class AmplifyPrompter {
         message: string;
         defaultValue?: string;
     }) => Promise<string>;
+    static requiredInput: (options: {
+        message: string;
+    }) => Promise<string>;
     static secretValue: (promptMessage?: string) => Promise<string>;
     static yesOrNo: (options: {
         message: string;

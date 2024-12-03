@@ -71,7 +71,7 @@ export class ConfigureProfileCommand
       'Enter Secret Access Key:'
     );
 
-    const region = await AmplifyPrompter.input({
+    const region = await AmplifyPrompter.requiredInput({
       message: `Enter the AWS region to use with the '${profileName}' profile (eg us-east-1, us-west-2, etc):`,
     });
 

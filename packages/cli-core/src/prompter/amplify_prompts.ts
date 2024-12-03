@@ -55,4 +55,21 @@ export class AmplifyPrompter {
     });
     return response;
   };
+
+  /**
+   * An input style prompt that mandates a non-empty value.
+   * @param options for displaying the prompt
+   * @param options.message display for the prompt
+   * @returns Promise<string> the user input
+   */
+  static requiredInput = async (options: {
+    message: string;
+  }): Promise<string> => {
+    const response = await input({
+      message: options.message,
+      validate: (val: string) =>
+        val && val.length > 0 ? true : 'Cannot be empty',
+    });
+    return response;
+  };
 }
