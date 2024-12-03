@@ -54,6 +54,13 @@ export class CDKDeployer implements BackendDeployer {
           `secretLastUpdated=${deployProps.secretLastUpdated.getTime()}`
         );
       }
+
+      if (deployProps?.callerPrincipalArn) {
+        cdkCommandArgs.push(
+          '--context',
+          `callerPrincipalArn=${deployProps?.callerPrincipalArn}`
+        );
+      }
     }
 
     // first synth with the backend definition but suppress any errors.

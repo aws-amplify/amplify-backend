@@ -119,11 +119,11 @@ export type DataSchema = string | DerivedModelSchema;
 /**
  * Exposed props for Data which are configurable by the end user.
  */
-export type DataProps = {
+export type DataProps<TSchema extends DataSchemaInput = DataSchemaInput> = {
   /**
    * Graphql Schema as a string to be passed into the CDK construct.
    */
-  schema: DataSchemaInput;
+  schema: TSchema;
 
   /**
    * Optional name for the generated Api.
