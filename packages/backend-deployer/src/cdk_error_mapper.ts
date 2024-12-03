@@ -229,7 +229,7 @@ export class CdkErrorMapper {
       humanReadableErrorMessage:
         'The CloudFormation deletion failed due to {stackName} being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
       resolutionMessage:
-        'The following resource(s) failed to delete: {resources}. Ensure they are in a state where they can be deleted. Find more information in the CloudFormation AWS Console for this stack.',
+        'The following resource(s) failed to delete: {resources}. Check the error message for more details and ensure your resources are in a state where they can be deleted. Check the CloudFormation AWS Console for this stack to find additional information.',
       errorName: 'CloudFormationDeletionError',
       classification: 'ERROR',
     },
