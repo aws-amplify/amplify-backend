@@ -21,7 +21,7 @@ import {
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { amplifyAtTag } from '../constants.js';
-import { HotswappableResourcesTestProjectCreator } from '../test-project-setup/hotswappable_resources.js';
+import { FunctionCodeHotswapTestProjectCreator } from '../test-project-setup/live-dependency-health-checks-projects/function_code_hotswap.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
 const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
@@ -150,29 +150,9 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
       await fs.rm(tempDir, { recursive: true });
     });
 
-    void it('can hotswap resources', async () => {
-      const projectCreator = new HotswappableResourcesTestProjectCreator();
+    void it('can hotswap function code', async () => {
+      const projectCreator = new FunctionCodeHotswapTestProjectCreator();
       const testProject = await projectCreator.createProject(tempDir);
-
-      // we're not starting from create flow. install latest versions of dependencies.
-      await execa(
-        'npm',
-        [
-          'install',
-          '@aws-amplify/backend',
-          '@aws-amplify/backend-cli',
-          'aws-cdk@^2',
-          'aws-cdk-lib@^2',
-          'constructs@^10.0.0',
-          'typescript@^5.0.0',
-          'tsx',
-          'esbuild',
-        ],
-        {
-          cwd: tempDir,
-          stdio: 'inherit',
-        }
-      );
 
       const sandboxBackendIdentifier: BackendIdentifier = {
         type: 'sandbox',

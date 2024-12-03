@@ -1,25 +1,21 @@
 import fs from 'fs/promises';
-import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
+import { createEmptyAmplifyProject } from '../create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { TestProjectBase, TestProjectUpdate } from './test_project_base.js';
+import { TestProjectBase, TestProjectUpdate } from '../test_project_base.js';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'path';
-import { TestProjectCreator } from './test_project_creator.js';
+import { TestProjectCreator } from '../test_project_creator.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
-import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { e2eToolingClientConfig } from '../../e2e_tooling_client_config.js';
+import { execa } from 'execa';
 
 /**
- * Creates test projects with hotswappable resources.
- *
- * This project is used by canary tests. Its goal is to ensure that resources
- * are hotswapped successfully. The priority of this test project is fast runtime.
- * Therefore, assertions and resource mix is kept minimal and complex expansions
- * to provide functional coverage should be avoided.
+ * Creates test projects with function hotswap.
  */
-export class HotswappableResourcesTestProjectCreator
+export class FunctionCodeHotswapTestProjectCreator
   implements TestProjectCreator
 {
-  readonly name = 'hotswappable-resources';
+  readonly name = 'function-code-hotswap';
 
   /**
    * Creates project creator.
@@ -37,7 +33,7 @@ export class HotswappableResourcesTestProjectCreator
     const { projectName, projectRoot, projectAmplifyDir } =
       await createEmptyAmplifyProject(this.name, e2eProjectDir);
 
-    const project = new HotswappableResourcesTestProject(
+    const project = new FunctionCodeHotswapTestTestProject(
       projectName,
       projectRoot,
       projectAmplifyDir,
@@ -52,18 +48,38 @@ export class HotswappableResourcesTestProjectCreator
       }
     );
 
+    // we're not starting from create flow. install latest versions of dependencies.
+    await execa(
+      'npm',
+      [
+        'install',
+        '@aws-amplify/backend',
+        '@aws-amplify/backend-cli',
+        'aws-cdk@^2',
+        'aws-cdk-lib@^2',
+        'constructs@^10.0.0',
+        'typescript@^5.0.0',
+        'tsx',
+        'esbuild',
+      ],
+      {
+        cwd: projectRoot,
+        stdio: 'inherit',
+      }
+    );
+
     return project;
   };
 }
 
 /**
- * Test project with hotswappable resources.
+ * Test project with function hotswap.
  */
-class HotswappableResourcesTestProject extends TestProjectBase {
+class FunctionCodeHotswapTestTestProject extends TestProjectBase {
   // Note that this is pointing to the non-compiled project directory
   // This allows us to test that we are able to deploy js, cjs, ts, etc. without compiling with tsc first
   readonly sourceProjectRootPath =
-    '../../src/test-projects/hotswappable-resources';
+    '../../../src/test-projects/live-dependency-health-checks-projects/function-code-hotswap';
 
   readonly sourceProjectRootURL: URL = new URL(
     this.sourceProjectRootPath,
@@ -106,13 +122,8 @@ class HotswappableResourcesTestProject extends TestProjectBase {
     return [
       {
         replacements: [
-          this.getUpdateReplacementDefinition('data/resource.ts'),
           this.getUpdateReplacementDefinition('func-src/handler.ts'),
         ],
-        deployThresholdSec: {
-          onWindows: 50,
-          onOther: 40,
-        },
       },
     ];
   }
