@@ -43,33 +43,32 @@ export class AmplifyPrompter {
    * @param options for displaying the prompt
    * @param options.message display for the prompt
    * @param options.defaultValue if user submits without typing anything. Default: "."
+   * @param options.required if the user input is required, incompatible with options.defaultValue
    * @returns Promise<string> the user input
    */
-  static input = async (options: {
-    message: string;
-    defaultValue?: string;
-  }): Promise<string> => {
-    const response = await input({
+  static input = async (
+    options:
+      | {
+          message: string;
+          required?: never;
+          defaultValue?: string;
+        }
+      | {
+          message: string;
+          required: true;
+          defaultValue?: never;
+        }
+  ): Promise<string> => {
+    if (options.required) {
+      return input({
+        message: options.message,
+        validate: (val: string) =>
+          val && val.length > 0 ? true : 'Cannot be empty',
+      });
+    }
+    return input({
       message: options.message,
       default: options.defaultValue ?? '',
     });
-    return response;
-  };
-
-  /**
-   * An input style prompt that mandates a non-empty value.
-   * @param options for displaying the prompt
-   * @param options.message display for the prompt
-   * @returns Promise<string> the user input
-   */
-  static requiredInput = async (options: {
-    message: string;
-  }): Promise<string> => {
-    const response = await input({
-      message: options.message,
-      validate: (val: string) =>
-        val && val.length > 0 ? true : 'Cannot be empty',
-    });
-    return response;
   };
 }

@@ -71,8 +71,9 @@ export class ConfigureProfileCommand
       'Enter Secret Access Key:'
     );
 
-    const region = await AmplifyPrompter.requiredInput({
+    const region = await AmplifyPrompter.input({
       message: `Enter the AWS region to use with the '${profileName}' profile (eg us-east-1, us-west-2, etc):`,
+      required: true,
     });
 
     await this.profileController.createOrAppendAWSFiles({
