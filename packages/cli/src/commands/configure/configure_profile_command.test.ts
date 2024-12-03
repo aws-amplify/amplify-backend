@@ -42,7 +42,7 @@ void describe('configure command', () => {
     emitSuccessMock.mock.resetCalls();
   });
 
-  void it('configures a profile with an IAM user', async (contextual) => {
+  void it('fails to configure a profile with a name that already has a profile', async (contextual) => {
     const mockProfileExists = mock.method(
       profileController,
       'profileExists',
@@ -65,7 +65,7 @@ void describe('configure command', () => {
     });
   });
 
-  void it('configures a profile with an IAM user', async (contextual) => {
+  void it('configures a profile with an existing IAM user credentials', async (contextual) => {
     const mockProfileExists = mock.method(
       profileController,
       'profileExists',
@@ -84,10 +84,10 @@ void describe('configure command', () => {
       }
     );
 
-    const mockInput = contextual.mock.method(
+    const mockRequiredInput = contextual.mock.method(
       AmplifyPrompter,
       'input',
-      (options: { message: string; defaultValue?: string }) => {
+      (options: { message: string; required: true }) => {
         if (options.message.includes('Enter the AWS region to use')) {
           return Promise.resolve(testRegion);
         }
@@ -105,7 +105,7 @@ void describe('configure command', () => {
 
     assert.equal(mockProfileExists.mock.callCount(), 1);
     assert.equal(mockSecretValue.mock.callCount(), 2);
-    assert.equal(mockInput.mock.callCount(), 1);
+    assert.equal(mockRequiredInput.mock.callCount(), 1);
     assert.equal(mockHasIAMUser.mock.callCount(), 1);
     assert.equal(mockAppendAWSFiles.mock.callCount(), 1);
     assert.deepStrictEqual(mockAppendAWSFiles.mock.calls[0].arguments[0], {
@@ -121,7 +121,7 @@ void describe('configure command', () => {
     });
   });
 
-  void it('configures a profile without an IAM user', async (contextual) => {
+  void it('configures a profile without an existing IAM user', async (contextual) => {
     const mockProfileExists = mock.method(
       profileController,
       'profileExists',
