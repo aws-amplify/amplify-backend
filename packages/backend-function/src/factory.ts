@@ -325,7 +325,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
 
     Object.keys(this.props.environment).forEach((key) => {
       // validate using key pattern from https://docs.aws.amazon.com/lambda/latest/api/API_Environment.html
-      if (!key.match(/^[a-zA-Z]([a-zA-Z0-9_])+$/) || key.length < 2) {
+      if (!key.match(/^[a-zA-Z]([a-zA-Z0-9_])+$/)) {
         throw new Error(
           `environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters`
         );
