@@ -627,7 +627,7 @@ export type CustomClientConfig = {
 export const DEFAULT_CLIENT_CONFIG_VERSION: ClientConfigVersion;
 
 // @public
-export const generateClientConfig: <T extends "1" | "1.1" | "1.2" | "1.3" | "0">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
+export const generateClientConfig: <T extends "1.3" | "0" | "1" | "1.1" | "1.2">(backendIdentifier: DeployedBackendIdentifier, version: T, awsClientProvider?: AWSClientProvider<{
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
