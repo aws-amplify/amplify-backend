@@ -19,6 +19,7 @@ import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import fsp from 'fs/promises';
 import path from 'node:path';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -207,9 +208,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             timeoutSeconds: 0,
           }).getInstance(getInstanceProps),
-        new Error(
-          'timeoutSeconds must be a whole number between 1 and 900 inclusive'
-        )
+        new AmplifyUserError('InvalidTimeoutError', {
+          message: `Invalid function timeout of 0`,
+          resolution: `timeoutSeconds must be a whole number between 1 and 900 inclusive`,
+        })
       );
     });
 
@@ -220,9 +222,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             timeoutSeconds: 901,
           }).getInstance(getInstanceProps),
-        new Error(
-          'timeoutSeconds must be a whole number between 1 and 900 inclusive'
-        )
+        new AmplifyUserError('InvalidTimeoutError', {
+          message: `Invalid function timeout of 901`,
+          resolution: `timeoutSeconds must be a whole number between 1 and 900 inclusive`,
+        })
       );
     });
 
@@ -233,9 +236,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             timeoutSeconds: 10.5,
           }).getInstance(getInstanceProps),
-        new Error(
-          'timeoutSeconds must be a whole number between 1 and 900 inclusive'
-        )
+        new AmplifyUserError('InvalidTimeoutError', {
+          message: `Invalid function timeout of 10.5`,
+          resolution: `timeoutSeconds must be a whole number between 1 and 900 inclusive`,
+        })
       );
     });
   });
@@ -271,9 +275,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             memoryMB: 127,
           }).getInstance(getInstanceProps),
-        new Error(
-          'memoryMB must be a whole number between 128 and 10240 inclusive'
-        )
+        new AmplifyUserError('InvalidMemoryMBError', {
+          message: `Invalid function memoryMB of 127`,
+          resolution: `memoryMB must be a whole number between 128 and 10240 inclusive`,
+        })
       );
     });
 
@@ -284,9 +289,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             memoryMB: 10241,
           }).getInstance(getInstanceProps),
-        new Error(
-          'memoryMB must be a whole number between 128 and 10240 inclusive'
-        )
+        new AmplifyUserError('InvalidMemoryMBError', {
+          message: `Invalid function memoryMB of 10241`,
+          resolution: `memoryMB must be a whole number between 128 and 10240 inclusive`,
+        })
       );
     });
 
@@ -297,9 +303,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             memoryMB: 256.2,
           }).getInstance(getInstanceProps),
-        new Error(
-          'memoryMB must be a whole number between 128 and 10240 inclusive'
-        )
+        new AmplifyUserError('InvalidMemoryMBError', {
+          message: `Invalid function memoryMB of 256.2`,
+          resolution: `memoryMB must be a whole number between 128 and 10240 inclusive`,
+        })
       );
     });
   });
@@ -347,12 +354,14 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             name: 'myCoolLambda',
             environment: {
-              ['this.is.wrong']: 'testValue',
+              'this.is.wrong': 'testValue',
             },
           }).getInstance(getInstanceProps),
-        new Error(
-          `environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters`
-        )
+        new AmplifyUserError('InvalidEnvironmentKeyError', {
+          message: `Invalid function environment key(s): this.is.wrong`,
+          resolution:
+            'Environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters',
+        })
       );
     });
 
@@ -366,9 +375,31 @@ void describe('AmplifyFunctionFactory', () => {
               A: 'testValue',
             },
           }).getInstance(getInstanceProps),
-        new Error(
-          `environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters`
-        )
+        new AmplifyUserError('InvalidEnvironmentKeyError', {
+          message: `Invalid function environment key(s): A`,
+          resolution:
+            'Environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters',
+        })
+      );
+    });
+
+    void it('throws when multiple environment variables are invalid', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            name: 'lambdaWithMultipleEnvVars',
+            environment: {
+              A: 'testValueA',
+              TEST_ENV: 'envValue',
+              'this.is.wrong': 'testValue',
+            },
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidEnvironmentKeyError', {
+          message: `Invalid function environment key(s): A, this.is.wrong`,
+          resolution:
+            'Environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters',
+        })
       );
     });
   });
@@ -404,7 +435,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             runtime: 14 as NodeVersion,
           }).getInstance(getInstanceProps),
-        new Error('runtime must be one of the following: 16, 18, 20, 22')
+        new AmplifyUserError('InvalidRuntimeError', {
+          message: `Invalid function runtime of 14`,
+          resolution: 'runtime must be one of the following: 16, 18, 20, 22',
+        })
       );
     });
 
