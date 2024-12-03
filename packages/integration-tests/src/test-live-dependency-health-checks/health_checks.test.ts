@@ -16,7 +16,6 @@ import {
   interruptSandbox,
   replaceFiles,
   waitForSandboxDeploymentToPrintTotalTime,
-  waitForSandboxToBecomeIdle,
   waitForSandboxToHotswapResources,
 } from '../process-controller/predicated_action_macros.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
@@ -192,7 +191,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         processController
           .do(replaceFiles(update.replacements))
           .do(waitForSandboxToHotswapResources())
-          .do(waitForSandboxToBecomeIdle());
+          .do(waitForSandboxDeploymentToPrintTotalTime());
       }
 
       // Execute the process.
