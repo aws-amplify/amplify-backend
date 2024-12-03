@@ -185,6 +185,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /EPERM: operation not permitted, rename (?<fileName>.*) → 'C:(.*)synth.lock(.*)/,
+      humanReadableErrorMessage: 'Not permitted to rename file: {fileName}',
+      resolutionMessage:
+        'Check that you have the right permissions to rename this file and try running the command again',
+      errorName: 'FilePermissionsError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${this.multiLineEolRegex}|Error: Cannot find module (.*)`
       ),
