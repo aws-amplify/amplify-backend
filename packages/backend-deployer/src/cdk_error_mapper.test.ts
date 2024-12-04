@@ -369,6 +369,12 @@ const testErrorMappings = [
       (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
   },
   {
+    errorMessage: `error Command cdk not found. Did you mean cdl?`,
+    expectedTopLevelErrorMessage: 'Unable to detect cdk installation',
+    errorName: 'CDKNotFoundError',
+    expectedDownstreamErrorMessage: `error Command cdk not found. Did you mean cdl?`,
+  },
+  {
     errorMessage: `[31m  amplify-some-stack failed: ValidationError: Stack:stack-arn is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
     expectedTopLevelErrorMessage:
       'The CloudFormation deployment failed due to amplify-some-stack being in UPDATE_ROLLBACK_FAILED state.',

@@ -157,6 +157,14 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /Command cdk not found/,
+      humanReadableErrorMessage: 'Unable to detect cdk installation',
+      resolutionMessage:
+        "Install the dependencies in your project by running 'yarn install' or 'npm install'",
+      errorName: 'CDKNotFoundError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `(SyntaxError|ReferenceError|TypeError)( \\[[A-Z_]+])?:((?:.|${this.multiLineEolRegex})*?at .*)`
       ),
@@ -460,6 +468,7 @@ export type CDKDeploymentError =
   | 'BootstrapDetectionError'
   | 'BootstrapOutdatedError'
   | 'CDKAssetPublishError'
+  | 'CDKNotFoundError'
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
