@@ -11,6 +11,11 @@
       "import": "./lib/index.js",
       "require": "./lib/index.js"
     },
+    "./function/runtime": {
+      "types": "./lib/function/runtime/index.d.ts",
+      "import": "./lib/function/runtime/index.js",
+      "require": "./lib/function/runtime/index.js"
+    },
     "./types/platform": {
       "types": "./lib/types/platform.d.ts"
     }
@@ -25,7 +30,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/data-schema": "^1.0.0",
+    "@aws-amplify/data-schema": "^1.13.4",
     "@aws-amplify/backend-auth": "^1.4.1",
     "@aws-amplify/backend-function": "^1.8.0",
     "@aws-amplify/backend-data": "^1.2.1",
