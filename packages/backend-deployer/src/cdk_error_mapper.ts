@@ -206,10 +206,10 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
-        /InvalidParameterValueException:(.*) (size must be smaller than|exceeds the maximum allowed size of) (?<maxSize>.*) bytes/,
+        /InvalidParameterValueException:(.*) (size must be smaller than|exceeds the maximum allowed size of) (?<maxSize>\d+) bytes/,
       humanReadableErrorMessage: 'Maximum Lambda size exceeded',
       resolutionMessage:
-        'Make sure Lambda code is smaller than {maxSize} bytes unzipped',
+        'Make sure your Lambda bundled packages with layers and dependencies is smaller than {maxSize} bytes unzipped.',
       errorName: 'LambdaMaxSizeExceededError',
       classification: 'ERROR',
     },
