@@ -360,6 +360,12 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
   },
   {
+    errorMessage: `EPERM: operation not permitted, rename 'C:/Users/someUser/amplify/artifacts/cdk.out/synth.lock.6785_1' → 'C:/Users/someUser/amplify/artifacts/cdk.out/synth.lock'`,
+    expectedTopLevelErrorMessage: `Not permitted to rename file: 'C:/Users/someUser/amplify/artifacts/cdk.out/synth.lock.6785_1'`,
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     errorMessage: `This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
       (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
     expectedTopLevelErrorMessage:
