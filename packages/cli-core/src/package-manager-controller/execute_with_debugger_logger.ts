@@ -13,6 +13,13 @@ export const executeWithDebugLogger = (
   options?: Options<'utf8'>
 ) => {
   try {
+    console.log('executeWithDebugLogger');
+    console.log(`executable: ${executable}`)
+    console.log(`args: ${args}`)
+    console.log(`args stringified: ${JSON.stringify(args)}`)
+    console.log(`options: ${options}`)
+    console.log(`options stringified: ${JSON.stringify(options)}`)
+    console.log(`cwd: ${cwd}`)
     const childProcess = execa(executable, args, {
       stdin: 'inherit',
       cwd,

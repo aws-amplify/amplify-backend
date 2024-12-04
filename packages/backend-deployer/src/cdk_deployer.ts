@@ -160,6 +160,9 @@ export class CDKDeployer implements BackendDeployer {
       aggregatedStderr += chunk;
       done();
     };
+    console.log(`executing command:`);
+    console.log(commandArgs);
+    console.log(JSON.stringify(commandArgs));
     const childProcess = this.packageManagerController.runWithPackageManager(
       commandArgs,
       process.cwd(),
@@ -191,6 +194,10 @@ export class CDKDeployer implements BackendDeployer {
       await childProcess;
       return cdkOutput;
     } catch (error) {
+      console.log('caught error from this.packageManagerController.runWithPackageManager')
+      console.log(error);
+      console.log('stderr:')
+      console.log(aggregatedStderr);
       // swallow execa error if the cdk cli ran and produced some stderr.
       // Most of the time this error is noise(basically child exited with exit code...)
       // bubbling this up to customers add confusion (Customers don't need to know we are running IPC calls
@@ -283,6 +290,8 @@ export class CDKDeployer implements BackendDeployer {
         additionalArguments
       );
     } catch (err) {
+      console.log(`tryInvokeCdk error`);
+      console.log(err);
       throw this.cdkErrorMapper.getAmplifyError(err as Error);
     }
   };
