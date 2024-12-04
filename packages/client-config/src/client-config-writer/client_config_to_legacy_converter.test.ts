@@ -26,7 +26,7 @@ void describe('ClientConfigLegacyConverter', () => {
           version: '3' as any,
         }),
       new AmplifyFault('UnsupportedClientConfigVersionFault', {
-        message: 'Only version 1.1 of ClientConfig is supported.',
+        message: 'Only version 1.3 of ClientConfig is supported.',
       })
     );
   });
@@ -35,7 +35,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_1,
+      version: ClientConfigVersionOption.V1_3,
       auth: {
         identity_pool_id: 'testIdentityPoolId',
         user_pool_id: 'testUserPoolId',
@@ -133,7 +133,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_1,
+      version: ClientConfigVersionOption.V1_3,
       data: {
         aws_region: 'testRegion',
         url: 'testUrl',
@@ -274,7 +274,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_1,
+      version: ClientConfigVersionOption.V1_3,
       storage: {
         aws_region: 'testRegion',
         bucket_name: 'testBucket',
@@ -296,7 +296,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_1,
+      version: ClientConfigVersionOption.V1_3,
       custom: {
         customKey: {
           customNestedKey: {
@@ -327,7 +327,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_1,
+      version: ClientConfigVersionOption.V1_3,
       analytics: {
         amazon_pinpoint: {
           aws_region: 'testRegion',
@@ -356,7 +356,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     const v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_1,
+      version: ClientConfigVersionOption.V1_3,
       geo: {
         aws_region: 'testRegion',
         maps: {
@@ -409,7 +409,7 @@ void describe('ClientConfigLegacyConverter', () => {
     const converter = new ClientConfigLegacyConverter();
 
     let v1Config: ClientConfig = {
-      version: ClientConfigVersionOption.V1_1,
+      version: ClientConfigVersionOption.V1_3,
       notifications: {
         amazon_pinpoint_app_id: 'testAppId',
         aws_region: 'testRegion',
@@ -452,7 +452,7 @@ void describe('ClientConfigLegacyConverter', () => {
 
     // both APNS and FCM cannot be specified together as they both map to Push.
     v1Config = {
-      version: ClientConfigVersionOption.V1_1,
+      version: ClientConfigVersionOption.V1_3,
       notifications: {
         amazon_pinpoint_app_id: 'testAppId',
         aws_region: 'testRegion',

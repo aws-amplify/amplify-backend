@@ -7,6 +7,12 @@
 import { z } from 'zod';
 
 // @public (undocumented)
+export type AIConversationOutput = z.infer<typeof versionedAIConversationOutputSchema>;
+
+// @public
+export const aiConversationOutputKey = "AWS::Amplify::AI::Conversation";
+
+// @public (undocumented)
 export type AuthOutput = z.infer<typeof versionedAuthOutputSchema>;
 
 // @public
@@ -127,6 +133,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
             oauthClientId: z.ZodOptional<z.ZodString>;
             oauthResponseType: z.ZodOptional<z.ZodString>;
+            groups: z.ZodOptional<z.ZodString>;
         }, "strip", z.ZodTypeAny, {
             authRegion: string;
             userPoolId: string;
@@ -147,6 +154,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         }, {
             authRegion: string;
             userPoolId: string;
@@ -167,6 +175,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         version: "1";
@@ -190,6 +199,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         };
     }, {
         version: "1";
@@ -213,6 +223,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         };
     }>]>>;
     "AWS::Amplify::GraphQL": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -340,6 +351,26 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             definedFunctions: string;
         };
     }>]>>;
+    "AWS::Amplify::AI::Conversation": z.ZodOptional<z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+        version: z.ZodLiteral<"1">;
+        payload: z.ZodObject<{
+            definedConversationHandlers: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            definedConversationHandlers: string;
+        }, {
+            definedConversationHandlers: string;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    }, {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    }>]>>;
 }, "strip", z.ZodTypeAny, {
     "AWS::Amplify::Platform"?: {
         version: "1";
@@ -376,6 +407,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -403,6 +435,12 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
         version: "1";
         payload: {
             definedFunctions: string;
+        };
+    } | undefined;
+    "AWS::Amplify::AI::Conversation"?: {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
         };
     } | undefined;
 }, {
@@ -441,6 +479,7 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             oauthRedirectSignOut?: string | undefined;
             oauthClientId?: string | undefined;
             oauthResponseType?: string | undefined;
+            groups?: string | undefined;
         };
     } | undefined;
     "AWS::Amplify::GraphQL"?: {
@@ -470,7 +509,35 @@ export const unifiedBackendOutputSchema: z.ZodObject<{
             definedFunctions: string;
         };
     } | undefined;
+    "AWS::Amplify::AI::Conversation"?: {
+        version: "1";
+        payload: {
+            definedConversationHandlers: string;
+        };
+    } | undefined;
 }>;
+
+// @public (undocumented)
+export const versionedAIConversationOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
+    version: z.ZodLiteral<"1">;
+    payload: z.ZodObject<{
+        definedConversationHandlers: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        definedConversationHandlers: string;
+    }, {
+        definedConversationHandlers: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    version: "1";
+    payload: {
+        definedConversationHandlers: string;
+    };
+}, {
+    version: "1";
+    payload: {
+        definedConversationHandlers: string;
+    };
+}>]>;
 
 // @public (undocumented)
 export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.ZodObject<{
@@ -495,6 +562,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut: z.ZodOptional<z.ZodString>;
         oauthClientId: z.ZodOptional<z.ZodString>;
         oauthResponseType: z.ZodOptional<z.ZodString>;
+        groups: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         authRegion: string;
         userPoolId: string;
@@ -515,6 +583,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut?: string | undefined;
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
+        groups?: string | undefined;
     }, {
         authRegion: string;
         userPoolId: string;
@@ -535,6 +604,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut?: string | undefined;
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
+        groups?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     version: "1";
@@ -558,6 +628,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut?: string | undefined;
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
+        groups?: string | undefined;
     };
 }, {
     version: "1";
@@ -581,6 +652,7 @@ export const versionedAuthOutputSchema: z.ZodDiscriminatedUnion<"version", [z.Zo
         oauthRedirectSignOut?: string | undefined;
         oauthClientId?: string | undefined;
         oauthResponseType?: string | undefined;
+        groups?: string | undefined;
     };
 }>]>;
 

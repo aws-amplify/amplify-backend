@@ -1,5 +1,107 @@
 # @aws-amplify/ai-constructs
 
+## 1.0.0
+
+### Major Changes
+
+- bbd6add: GA release of backend AI features
+
+### Patch Changes
+
+- fd8759d: Fix a case when Bedrock throws validation error if tool input is not persisted in history
+
+## 0.8.2
+
+### Patch Changes
+
+- bc6dc69: Fix case where tool use does not have input while streaming
+
+## 0.8.1
+
+### Patch Changes
+
+- 1af5060: Add metadata to user agent in conversation handler runtime.
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+
+## 0.8.0
+
+### Minor Changes
+
+- 37dd87c: Propagate errors to AppSync
+
+### Patch Changes
+
+- 613bca9: Remove tool usage for non current turns when looking up message history
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/plugin-types@1.3.1
+
+## 0.7.0
+
+### Minor Changes
+
+- 63fb254: Include accumulated turn content in chunk mutation
+
+## 0.6.2
+
+### Patch Changes
+
+- bd4ff4d: Add memory setting to conversation handler
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
+## 0.6.1
+
+### Patch Changes
+
+- 91e7f3c: Parse client side tool json elements
+
+## 0.6.0
+
+### Minor Changes
+
+- b6761b0: Stream Bedrock responses
+
+## 0.5.0
+
+### Minor Changes
+
+- 46a0e85: Remove deprecated messages field from event
+
+### Patch Changes
+
+- faacd1b: Fix case where bedrock content blocks would be populated with 'null' instead of 'undefined.
+
+## 0.4.0
+
+### Minor Changes
+
+- 4781704: Add information about event version to conversation components
+- 3a29d43: Pass user agent in conversation handler lambda
+
+### Patch Changes
+
+- 6e4a62f: Fix multi tool usage in single turn.
+
+## 0.3.0
+
+### Minor Changes
+
+- 300a72d: Infer executable tool input type from input schema
+- 0a5e51c: Stream conversation logs in sandbox
+
+### Patch Changes
+
+- Updated dependencies [0a5e51c]
+  - @aws-amplify/backend-output-schemas@1.3.0
+
+## 0.2.0
+
+### Minor Changes
+
+- d0a90b1: Use message history instead of event payload for conversational route
+
 ## 0.1.4
 
 ### Patch Changes

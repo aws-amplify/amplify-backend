@@ -1,5 +1,175 @@
 # @aws-amplify/backend
 
+## 1.8.0
+
+### Minor Changes
+
+- f1db886: add resourceGroupName prop to function
+
+### Patch Changes
+
+- 97697a9: set removal policy for resources to destroy in sandbox deployments
+- Updated dependencies [f1db886]
+- Updated dependencies [71ef398]
+  - @aws-amplify/backend-function@1.8.0
+  - @aws-amplify/backend-storage@1.2.3
+  - @aws-amplify/plugin-types@1.5.0
+  - @aws-amplify/backend-auth@1.4.1
+  - @aws-amplify/backend-data@1.2.1
+  - @aws-amplify/platform-core@1.2.1
+
+## 1.7.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
+### Patch Changes
+
+- 12cf209: update error mapping to catch when Lambda layer ARN regions do not match function region
+- Updated dependencies [90a7c49]
+- Updated dependencies [12cf209]
+  - @aws-amplify/backend-auth@1.4.0
+  - @aws-amplify/backend-data@1.2.0
+  - @aws-amplify/plugin-types@1.4.0
+  - @aws-amplify/backend-function@1.7.5
+
+## 1.6.2
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+  - @aws-amplify/backend-data@1.1.7
+
+## 1.6.1
+
+### Patch Changes
+
+- 4e97389: add validation if layer arn region does not match function region
+- Updated dependencies [d0d8d4e]
+- Updated dependencies [4e97389]
+  - @aws-amplify/client-config@1.5.2
+  - @aws-amplify/backend-function@1.7.4
+
+## 1.6.0
+
+### Minor Changes
+
+- 11d62fe: Add support for custom Lambda function email senders in Auth construct
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [11d62fe]
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-auth@1.3.0
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/backend-function@1.7.3
+  - @aws-amplify/backend-storage@1.2.2
+  - @aws-amplify/client-config@1.5.1
+  - @aws-amplify/backend-data@1.1.6
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.5.2
+
+### Patch Changes
+
+- 601a2c1: dedupe environment variables in amplify env type generator
+- Updated dependencies [601a2c1]
+  - @aws-amplify/backend-function@1.7.2
+
+## 1.5.1
+
+### Patch Changes
+
+- 5f46d8d: add user groups to outputs
+- Updated dependencies [0d6489d]
+- Updated dependencies [bd4ff4d]
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-data@1.1.5
+  - @aws-amplify/backend-function@1.7.1
+  - @aws-amplify/backend-output-schemas@1.4.0
+  - @aws-amplify/client-config@1.5.0
+
+## 1.5.0
+
+### Minor Changes
+
+- 4720412: Add minify option to defineFunction
+
+### Patch Changes
+
+- Updated dependencies [f87cc87]
+- Updated dependencies [4720412]
+  - @aws-amplify/backend-secret@1.1.4
+  - @aws-amplify/backend-function@1.7.0
+
+## 1.4.0
+
+### Minor Changes
+
+- f5d0ab4: adds support to reference existing layers in defineFunction
+
+### Patch Changes
+
+- Updated dependencies [f5d0ab4]
+  - @aws-amplify/backend-function@1.6.0
+
+## 1.3.2
+
+### Patch Changes
+
+- 0a5e51c: Stream conversation logs in sandbox
+- Updated dependencies [0a5e51c]
+  - @aws-amplify/backend-output-schemas@1.3.0
+
+## 1.3.1
+
+### Patch Changes
+
+- d538ecc: add storage access rules to outputs
+- Updated dependencies [d538ecc]
+  - @aws-amplify/client-config@1.4.0
+  - @aws-amplify/backend-output-schemas@1.2.1
+  - @aws-amplify/backend-storage@1.2.1
+
+## 1.3.0
+
+### Minor Changes
+
+- 87dbf41: expose stack property for backend, function resource, storage resource, and auth resource
+
+### Patch Changes
+
+- Updated dependencies [87dbf41]
+- Updated dependencies [87dbf41]
+  - @aws-amplify/backend-function@1.5.0
+  - @aws-amplify/backend-auth@1.2.0
+  - @aws-amplify/backend-storage@1.2.0
+  - @aws-amplify/plugin-types@1.3.0
+
+## 1.2.2
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- Updated dependencies [ffc3b42]
+- Updated dependencies [e648e8e]
+- Updated dependencies [0ff73ec]
+- Updated dependencies [c9c873c]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/backend-data@1.1.4
+  - @aws-amplify/backend-function@1.4.1
+  - @aws-amplify/backend-storage@1.1.3
+  - @aws-amplify/backend-secret@1.1.2
+  - @aws-amplify/client-config@1.3.1
+  - @aws-amplify/backend-auth@1.1.5
+  - @aws-amplify/backend-output-storage@1.1.2
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.2.1
 
 ### Patch Changes

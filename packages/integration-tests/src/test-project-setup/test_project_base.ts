@@ -9,13 +9,14 @@ import { ampxCli } from '../process-controller/process_controller.js';
 import {
   confirmDeleteSandbox,
   interruptSandbox,
-  rejectCleanupSandbox,
   waitForSandboxDeploymentToPrintTotalTime,
 } from '../process-controller/predicated_action_macros.js';
 
 import {
   CloudFormationClient,
+  CloudFormationServiceException,
   DeleteStackCommand,
+  DescribeStacksCommand,
 } from '@aws-sdk/client-cloudformation';
 import fsp from 'fs/promises';
 import assert from 'node:assert';
@@ -44,7 +45,7 @@ export type TestProjectUpdate = {
    * Windows has a separate threshold because it is consistently slower than other platforms
    * https://github.com/microsoft/Windows-Dev-Performance/issues/17
    */
-  deployThresholdSec: PlatformDeploymentThresholds;
+  deployThresholdSec?: PlatformDeploymentThresholds;
 };
 
 /**
@@ -77,7 +78,6 @@ export abstract class TestProjectBase {
       })
         .do(waitForSandboxDeploymentToPrintTotalTime())
         .do(interruptSandbox())
-        .do(rejectCleanupSandbox())
         .run();
     } else {
       await ampxCli(
@@ -102,19 +102,80 @@ export abstract class TestProjectBase {
   /**
    * Tear down the project.
    */
-  async tearDown(backendIdentifier: BackendIdentifier) {
+  async tearDown(
+    backendIdentifier: BackendIdentifier,
+    waitForStackDeletion: boolean = false
+  ) {
     if (backendIdentifier.type === 'sandbox') {
       await ampxCli(['sandbox', 'delete'], this.projectDirPath)
         .do(confirmDeleteSandbox())
         .run();
     } else {
+      const stackName =
+        BackendIdentifierConversions.toStackName(backendIdentifier);
       await this.cfnClient.send(
         new DeleteStackCommand({
-          StackName:
-            BackendIdentifierConversions.toStackName(backendIdentifier),
+          StackName: stackName,
         })
       );
+      if (waitForStackDeletion) {
+        await this.waitForStackDeletion(stackName);
+      }
     }
+  }
+
+  /**
+   * Wait for a stack to be deleted, returns true if deleted within allotted time.
+   * @param stackName name of the stack
+   * @returns true if delete completes within allotted time (3 minutes)
+   */
+  async waitForStackDeletion(
+    stackName: string,
+    timeoutInMS: number = 3 * 60 * 1000
+  ): Promise<boolean> {
+    let attempts = 0;
+    let totalTimeWaitedMs = 0;
+    const maxIntervalMs = 32 * 1000;
+    while (totalTimeWaitedMs < timeoutInMS) {
+      attempts++;
+      const intervalMs = Math.min(Math.pow(2, attempts) * 1000, maxIntervalMs);
+      console.log(`waiting: ${intervalMs} milliseconds`);
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      totalTimeWaitedMs += intervalMs;
+      try {
+        const status = await this.cfnClient.send(
+          new DescribeStacksCommand({
+            StackName: stackName,
+          })
+        );
+        console.log(
+          JSON.stringify(status.Stacks?.map((s) => s.StackName) ?? [])
+        );
+        if (!status.Stacks || status.Stacks.length == 0) {
+          console.log(`Stack ${stackName} was deleted successfully.`);
+          return true;
+        }
+      } catch (e) {
+        if (
+          e instanceof CloudFormationServiceException &&
+          e.message.includes('does not exist')
+        ) {
+          console.log(`Stack ${stackName} was deleted successfully.`);
+          return true;
+        }
+        console.error(
+          `Could not describe stack ${stackName} while waiting for deletion.`,
+          e
+        );
+        throw e;
+      }
+    }
+    console.error(
+      `Stack ${stackName} did not delete within ${
+        timeoutInMS / 1000
+      } seconds, continuing.`
+    );
+    return false;
   }
 
   /**

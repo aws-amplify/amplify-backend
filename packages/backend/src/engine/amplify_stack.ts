@@ -1,5 +1,16 @@
-import { AmplifyFault } from '@aws-amplify/platform-core';
-import { Aspects, CfnElement, IAspect, Stack } from 'aws-cdk-lib';
+import {
+  AmplifyFault,
+  BackendIdentifierConversions,
+} from '@aws-amplify/platform-core';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import {
+  Aspects,
+  CfnElement,
+  CfnResource,
+  IAspect,
+  RemovalPolicy,
+  Stack,
+} from 'aws-cdk-lib';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { Construct, IConstruct } from 'constructs';
 
@@ -10,9 +21,13 @@ export class AmplifyStack extends Stack {
   /**
    * Default constructor
    */
-  constructor(scope: Construct, id: string) {
-    super(scope, id);
+  constructor(scope: Construct, backendId: BackendIdentifier) {
+    super(scope, BackendIdentifierConversions.toStackName(backendId));
     Aspects.of(this).add(new CognitoRoleTrustPolicyValidator());
+
+    if (backendId.type === 'sandbox') {
+      Aspects.of(this).add(new SandboxRemovalPolicyDestroyAspect());
+    }
   }
   /**
    * Overrides Stack.allocateLogicalId to prevent redundant nested stack logical IDs
@@ -92,4 +107,13 @@ class CognitoRoleTrustPolicyValidator implements IAspect {
       });
     }
   };
+}
+
+// This aspect sets removal policy of all resources to destroy for sandbox deployments
+class SandboxRemovalPolicyDestroyAspect implements IAspect {
+  visit(node: IConstruct): void {
+    if (CfnResource.isCfnResource(node)) {
+      node.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    }
+  }
 }

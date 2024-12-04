@@ -165,7 +165,7 @@ void describe('AmplifyError.fromError', async () => {
     yargsErrors.forEach((error) => {
       const actual = AmplifyError.fromError(error);
       assert.ok(
-        actual instanceof AmplifyError &&
+        AmplifyError.isAmplifyError(actual) &&
           actual.name === 'InvalidCommandInputError',
         `Failed the test for error ${error.message}`
       );
@@ -175,7 +175,8 @@ void describe('AmplifyError.fromError', async () => {
     const error = new Error('getaddrinfo ENOTFOUND some-domain.com');
     const actual = AmplifyError.fromError(error);
     assert.ok(
-      actual instanceof AmplifyError && actual.name === 'DomainNotFoundError',
+      AmplifyError.isAmplifyError(actual) &&
+        actual.name === 'DomainNotFoundError',
       `Failed the test for error ${error.message}`
     );
   });
@@ -184,8 +185,33 @@ void describe('AmplifyError.fromError', async () => {
     error.name = 'SyntaxError';
     const actual = AmplifyError.fromError(error);
     assert.ok(
-      actual instanceof AmplifyError && actual.name === 'SyntaxError',
+      AmplifyError.isAmplifyError(actual) && actual.name === 'SyntaxError',
       `Failed the test for error ${error.message}`
     );
+  });
+  void it('wraps InsufficientDiskSpaceError in AmplifyUserError', () => {
+    const insufficientDiskSpaceErrors = [
+      new Error(
+        "ENOSPC: no space left on device, open '/some/path/amplify_outputs.json'"
+      ),
+      new Error('npm ERR! code ENOSPC'),
+    ];
+    insufficientDiskSpaceErrors.forEach((error) => {
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        AmplifyError.isAmplifyError(actual) &&
+          actual.name === 'InsufficientDiskSpaceError',
+        `Failed the test for error ${error.message}`
+      );
+    });
+  });
+  void it('return amplify user errors as it is', () => {
+    const error = new AmplifyUserError('DeploymentInProgressError', {
+      message: 'Deployment already in progress',
+      resolution: 'wait for it',
+    });
+    const actual = AmplifyError.fromError(error);
+    assert.deepStrictEqual(error, actual);
+    assert.strictEqual(actual.resolution, error.resolution);
   });
 });

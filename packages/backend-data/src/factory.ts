@@ -1,12 +1,14 @@
 import { IConstruct } from 'constructs';
 import {
   AmplifyFunction,
+  AmplifyResourceGroupName,
   AuthResources,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
+  ReferenceAuthResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
@@ -16,6 +18,7 @@ import {
   TranslationBehavior,
 } from '@aws-amplify/data-construct';
 import { GraphqlOutput } from '@aws-amplify/backend-output-schemas';
+import { generateModelsSync } from '@aws-amplify/graphql-generator';
 import * as path from 'path';
 import { AmplifyDataError, DataProps } from './types.js';
 import {
@@ -38,13 +41,17 @@ import {
   CDKContextKey,
   TagName,
 } from '@aws-amplify/platform-core';
-import { Aspects, IAspect, Tags } from 'aws-cdk-lib';
+import { Aspects, IAspect, RemovalPolicy, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
   FunctionSchemaAccess,
   JsResolver,
 } from '@aws-amplify/data-schema-types';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
+
+const modelIntrospectionSchemaKey = 'modelIntrospectionSchema.json';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -97,9 +104,9 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
         this.props,
         buildConstructFactoryProvidedAuthConfig(
           props.constructContainer
-            .getConstructFactory<ResourceProvider<AuthResources>>(
-              'AuthResources'
-            )
+            .getConstructFactory<
+              ResourceProvider<AuthResources | ReferenceAuthResources>
+            >('AuthResources')
             ?.getInstance(props)
         ),
         props,
@@ -111,7 +118,7 @@ export class DataFactory implements ConstructFactory<AmplifyData> {
 }
 
 class DataGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'data';
+  readonly resourceGroupName: AmplifyResourceGroupName = 'data';
   private readonly name: string;
 
   constructor(
@@ -184,7 +191,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         this.props.authorizationModes
       );
     } catch (error) {
-      if (error instanceof AmplifyError) {
+      if (AmplifyError.isAmplifyError(error)) {
         throw error;
       }
       throw new AmplifyUserError<AmplifyDataError>(
@@ -231,14 +238,21 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       ...schemasLambdaFunctions,
     });
     let amplifyApi = undefined;
+    let modelIntrospectionSchema: string | undefined = undefined;
 
     const isSandboxDeployment =
       scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
 
     try {
+      const combinedSchema = combineCDKSchemas(amplifyGraphqlDefinitions);
+      modelIntrospectionSchema = generateModelsSync({
+        schema: combinedSchema.schema,
+        target: 'introspection',
+      })['model-introspection.json'];
+
       amplifyApi = new AmplifyData(scope, this.name, {
         apiName: this.name,
-        definition: combineCDKSchemas(amplifyGraphqlDefinitions),
+        definition: combinedSchema,
         authorizationModes,
         outputStorageStrategy: this.outputStorageStrategy,
         functionNameMap,
@@ -263,6 +277,24 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       );
     }
 
+    const modelIntrospectionSchemaBucket = new Bucket(
+      scope,
+      'modelIntrospectionSchemaBucket',
+      {
+        enforceSSL: true,
+        autoDeleteObjects: true,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }
+    );
+    new BucketDeployment(scope, 'modelIntrospectionSchemaBucketDeployment', {
+      // See https://github.com/aws-amplify/amplify-category-api/pull/1939
+      memoryLimit: 1536,
+      destinationBucket: modelIntrospectionSchemaBucket,
+      sources: [
+        Source.data(modelIntrospectionSchemaKey, modelIntrospectionSchema),
+      ],
+    });
+
     Tags.of(amplifyApi).add(TagName.FRIENDLY_NAME, this.name);
 
     /**;
@@ -279,10 +311,15 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
         [`${this.name}_GRAPHQL_ENDPOINT`]:
           amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
+        [`${this.name}_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME`]:
+          modelIntrospectionSchemaBucket.bucketName,
+        [`${this.name}_MODEL_INTROSPECTION_SCHEMA_KEY`]:
+          modelIntrospectionSchemaKey,
       });
 
     const policyGenerator = new AppSyncPolicyGenerator(
-      amplifyApi.resources.graphqlApi
+      amplifyApi.resources.graphqlApi,
+      `${modelIntrospectionSchemaBucket.bucketArn}/${modelIntrospectionSchemaKey}`
     );
 
     schemasFunctionSchemaAccess.forEach((accessDefinition) => {

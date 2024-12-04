@@ -1,4 +1,5 @@
 import {
+  AmplifyResourceGroupName,
   ConstructContainerEntryGenerator,
   ConstructFactoryGetInstanceProps,
   GenerateContainerEntryProps,
@@ -17,7 +18,7 @@ import { TagName } from '@aws-amplify/platform-core';
 export class StorageContainerEntryGenerator
   implements ConstructContainerEntryGenerator
 {
-  readonly resourceGroupName = 'storage';
+  readonly resourceGroupName: AmplifyResourceGroupName = 'storage';
 
   /**
    * Initialize with context from storage factory
@@ -78,7 +79,9 @@ export class StorageContainerEntryGenerator
       );
 
     // the orchestrator generates policies according to the accessDefinition and attaches the policies to appropriate roles
-    storageAccessOrchestrator.orchestrateStorageAccess();
+    const storageAccessOutput =
+      storageAccessOrchestrator.orchestrateStorageAccess();
+    amplifyStorage.addAccessDefinition(storageAccessOutput);
 
     return amplifyStorage;
   };

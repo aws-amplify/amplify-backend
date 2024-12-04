@@ -3,6 +3,7 @@ import {
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   ResourceProvider,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
 import * as path from 'path';
 import { AmplifyStorage, StorageResources } from './construct.js';
@@ -74,5 +75,5 @@ export class AmplifyStorageFactory
  */
 export const defineStorage = (
   props: AmplifyStorageFactoryProps
-): ConstructFactory<ResourceProvider<StorageResources>> =>
+): ConstructFactory<ResourceProvider<StorageResources> & StackProvider> =>
   new AmplifyStorageFactory(props, new Error().stack);

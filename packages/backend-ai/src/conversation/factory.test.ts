@@ -15,6 +15,7 @@ import { defaultEntryHandler } from './test-assets/with-default-entry/resource.j
 import { customEntryHandler } from './test-assets/with-custom-entry/resource.js';
 import { Template } from 'aws-cdk-lib/assertions';
 import { defineConversationHandlerFunction } from './factory.js';
+import { ConversationHandlerFunction } from '@aws-amplify/ai-constructs/conversation';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -55,6 +56,14 @@ void describe('ConversationHandlerFactory', () => {
     const instance1 = factory.getInstance(getInstanceProps);
     const instance2 = factory.getInstance(getInstanceProps);
     assert.strictEqual(instance1, instance2);
+  });
+
+  void it('has event version corresponding to construct', () => {
+    const factory = defaultEntryHandler;
+    assert.strictEqual(
+      factory.eventVersion,
+      ConversationHandlerFunction.eventVersion
+    );
   });
 
   void it('resolves default entry when not specified', () => {
@@ -158,8 +167,8 @@ void describe('ConversationHandlerFactory', () => {
       });
       factory.getInstance(getInstanceProps);
       const template = Template.fromStack(rootStack);
-      const outputValue =
-        template.findOutputs('definedFunctions').definedFunctions.Value;
+      const outputValue = template.findOutputs('definedConversationHandlers')
+        .definedConversationHandlers.Value;
       assert.deepStrictEqual(outputValue, {
         ['Fn::Join']: [
           '',
@@ -177,6 +186,58 @@ void describe('ConversationHandlerFactory', () => {
           ],
         ],
       });
+    });
+  });
+
+  void it('passes memory setting to construct', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [],
+      memoryMB: 271,
+    });
+    const lambda = factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      MemorySize: 271,
+    });
+  });
+
+  void it('passes log level to construct', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [],
+      logging: {
+        level: 'debug',
+      },
+    });
+    const lambda = factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      LoggingConfig: {
+        ApplicationLogLevel: 'DEBUG',
+        LogFormat: 'JSON',
+      },
+    });
+  });
+
+  void it('passes log retention to construct', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [],
+      logging: {
+        retention: '1 day',
+      },
+    });
+    const lambda = factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Logs::LogGroup', {
+      RetentionInDays: 1,
     });
   });
 });

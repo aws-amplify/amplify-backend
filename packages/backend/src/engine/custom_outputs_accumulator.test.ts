@@ -59,11 +59,11 @@ void describe('Custom outputs accumulator', () => {
     );
 
     const configPart1: DeepPartialAmplifyGeneratedConfigs<ClientConfig> = {
-      version: '1.1',
+      version: '1.3',
       custom: { output1: 'val1' },
     };
     const configPart2: DeepPartialAmplifyGeneratedConfigs<ClientConfig> = {
-      version: '1.1',
+      version: '1.3',
       custom: { output2: 'val2' },
     };
     accumulator.addOutput(configPart1);
@@ -115,7 +115,7 @@ void describe('Custom outputs accumulator', () => {
 
     assert.throws(
       () =>
-        accumulator.addOutput({ version: '1.1', custom: { output1: 'val1' } }),
+        accumulator.addOutput({ version: '1.3', custom: { output1: 'val1' } }),
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,

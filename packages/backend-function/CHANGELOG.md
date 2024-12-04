@@ -1,5 +1,86 @@
 # @aws-amplify/backend-function
 
+## 1.8.0
+
+### Minor Changes
+
+- f1db886: add resourceGroupName prop to function
+
+### Patch Changes
+
+- Updated dependencies [f1db886]
+  - @aws-amplify/plugin-types@1.5.0
+
+## 1.7.5
+
+### Patch Changes
+
+- 12cf209: update error mapping to catch when Lambda layer ARN regions do not match function region
+- Updated dependencies [90a7c49]
+  - @aws-amplify/plugin-types@1.4.0
+
+## 1.7.4
+
+### Patch Changes
+
+- 4e97389: add validation if layer arn region does not match function region
+
+## 1.7.3
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.7.2
+
+### Patch Changes
+
+- 601a2c1: dedupe environment variables in amplify env type generator
+
+## 1.7.1
+
+### Patch Changes
+
+- bd4ff4d: Fix jsdocs that incorrectly state default memory settings
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
+## 1.7.0
+
+### Minor Changes
+
+- 4720412: Add minify option to defineFunction
+
+## 1.6.0
+
+### Minor Changes
+
+- f5d0ab4: adds support to reference existing layers in defineFunction
+
+## 1.5.0
+
+### Minor Changes
+
+- 87dbf41: expose stack property for backend, function resource, storage resource, and auth resource
+
+### Patch Changes
+
+- Updated dependencies [87dbf41]
+  - @aws-amplify/plugin-types@1.3.0
+
+## 1.4.1
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- c9c873c: throw ESBuild error with correct messages
+- Updated dependencies [8dd7286]
+  - @aws-amplify/backend-output-storage@1.1.2
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.4.0
 
 ### Minor Changes

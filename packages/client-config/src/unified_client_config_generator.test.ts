@@ -26,6 +26,249 @@ const stubClientProvider = {
 };
 void describe('UnifiedClientConfigGenerator', () => {
   void describe('generateClientConfig', () => {
+    void it('transforms backend output into client config for V1.3', async () => {
+      const groups = [
+        {
+          ADMINS: {
+            precedence: 0,
+          },
+        },
+        {
+          EDITORS: {
+            precedence: 1,
+          },
+        },
+      ];
+      const stubOutput: UnifiedBackendOutput = {
+        [platformOutputKey]: {
+          version: '1',
+          payload: {
+            deploymentType: 'branch',
+            region: 'us-east-1',
+          },
+        },
+        [authOutputKey]: {
+          version: '1',
+          payload: {
+            identityPoolId: 'testIdentityPoolId',
+            userPoolId: 'testUserPoolId',
+            webClientId: 'testWebClientId',
+            authRegion: 'us-east-1',
+            passwordPolicyMinLength: '8',
+            passwordPolicyRequirements:
+              '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
+            mfaTypes: '["SMS","TOTP"]',
+            mfaConfiguration: 'OPTIONAL',
+            verificationMechanisms: '["email","phone_number"]',
+            usernameAttributes: '["email"]',
+            signupAttributes: '["email"]',
+            allowUnauthenticatedIdentities: 'true',
+            groups: JSON.stringify(groups),
+          },
+        },
+        [graphqlOutputKey]: {
+          version: '1',
+          payload: {
+            awsAppsyncApiEndpoint: 'testApiEndpoint',
+            awsAppsyncRegion: 'us-east-1',
+            awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
+            awsAppsyncConflictResolutionMode: 'AUTO_MERGE',
+            awsAppsyncApiKey: 'testApiKey',
+            awsAppsyncApiId: 'testApiId',
+            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
+          },
+        },
+        [customOutputKey]: {
+          version: '1',
+          payload: {
+            customOutputs: JSON.stringify({
+              custom: {
+                output1: 'val1',
+                output2: 'val2',
+              },
+            }),
+          },
+        },
+      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      mock.method(
+        modelSchemaAdapter,
+        'getModelIntrospectionSchemaFromS3Uri',
+        () => undefined
+      );
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1.3');
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+      const result = await clientConfigGenerator.generateClientConfig();
+      const expectedClientConfig: ClientConfig = {
+        auth: {
+          user_pool_id: 'testUserPoolId',
+          aws_region: 'us-east-1',
+          user_pool_client_id: 'testWebClientId',
+          identity_pool_id: 'testIdentityPoolId',
+          mfa_methods: ['SMS', 'TOTP'],
+          standard_required_attributes: ['email'],
+          username_attributes: ['email'],
+          user_verification_types: ['email', 'phone_number'],
+          mfa_configuration: 'OPTIONAL',
+
+          password_policy: {
+            min_length: 8,
+            require_lowercase: true,
+            require_numbers: true,
+            require_symbols: false,
+            require_uppercase: true,
+          },
+
+          unauthenticated_identities_enabled: true,
+          groups: [
+            {
+              ADMINS: {
+                precedence: 0,
+              },
+            },
+            {
+              EDITORS: {
+                precedence: 1,
+              },
+            },
+          ],
+        },
+        data: {
+          url: 'testApiEndpoint',
+          aws_region: 'us-east-1',
+          api_key: 'testApiKey',
+          default_authorization_type: 'API_KEY',
+          authorization_types: ['API_KEY'],
+        },
+        custom: {
+          output1: 'val1',
+          output2: 'val2',
+        },
+        version: '1.3',
+      };
+
+      assert.deepStrictEqual(result, expectedClientConfig);
+    });
+
+    void it('transforms backend output into client config for V1.2', async () => {
+      const stubOutput: UnifiedBackendOutput = {
+        [platformOutputKey]: {
+          version: '1',
+          payload: {
+            deploymentType: 'branch',
+            region: 'us-east-1',
+          },
+        },
+        [authOutputKey]: {
+          version: '1',
+          payload: {
+            identityPoolId: 'testIdentityPoolId',
+            userPoolId: 'testUserPoolId',
+            webClientId: 'testWebClientId',
+            authRegion: 'us-east-1',
+            passwordPolicyMinLength: '8',
+            passwordPolicyRequirements:
+              '["REQUIRES_NUMBERS","REQUIRES_LOWERCASE","REQUIRES_UPPERCASE"]',
+            mfaTypes: '["SMS","TOTP"]',
+            mfaConfiguration: 'OPTIONAL',
+            verificationMechanisms: '["email","phone_number"]',
+            usernameAttributes: '["email"]',
+            signupAttributes: '["email"]',
+            allowUnauthenticatedIdentities: 'true',
+          },
+        },
+        [graphqlOutputKey]: {
+          version: '1',
+          payload: {
+            awsAppsyncApiEndpoint: 'testApiEndpoint',
+            awsAppsyncRegion: 'us-east-1',
+            awsAppsyncAuthenticationType: 'API_KEY',
+            awsAppsyncAdditionalAuthenticationTypes: 'API_KEY',
+            awsAppsyncConflictResolutionMode: 'AUTO_MERGE',
+            awsAppsyncApiKey: 'testApiKey',
+            awsAppsyncApiId: 'testApiId',
+            amplifyApiModelSchemaS3Uri: 'testApiSchemaUri',
+          },
+        },
+        [customOutputKey]: {
+          version: '1',
+          payload: {
+            customOutputs: JSON.stringify({
+              custom: {
+                output1: 'val1',
+                output2: 'val2',
+              },
+            }),
+          },
+        },
+      };
+      const outputRetrieval = mock.fn(async () => stubOutput);
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      mock.method(
+        modelSchemaAdapter,
+        'getModelIntrospectionSchemaFromS3Uri',
+        () => undefined
+      );
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1.2');
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+      const result = await clientConfigGenerator.generateClientConfig();
+      const expectedClientConfig: ClientConfig = {
+        auth: {
+          user_pool_id: 'testUserPoolId',
+          aws_region: 'us-east-1',
+          user_pool_client_id: 'testWebClientId',
+          identity_pool_id: 'testIdentityPoolId',
+          mfa_methods: ['SMS', 'TOTP'],
+          standard_required_attributes: ['email'],
+          username_attributes: ['email'],
+          user_verification_types: ['email', 'phone_number'],
+          mfa_configuration: 'OPTIONAL',
+
+          password_policy: {
+            min_length: 8,
+            require_lowercase: true,
+            require_numbers: true,
+            require_symbols: false,
+            require_uppercase: true,
+          },
+
+          unauthenticated_identities_enabled: true,
+        },
+        data: {
+          url: 'testApiEndpoint',
+          aws_region: 'us-east-1',
+          api_key: 'testApiKey',
+          default_authorization_type: 'API_KEY',
+          authorization_types: ['API_KEY'],
+        },
+        custom: {
+          output1: 'val1',
+          output2: 'val2',
+        },
+        version: '1.2',
+      };
+
+      assert.deepStrictEqual(result, expectedClientConfig);
+    });
+
     void it('transforms backend output into client config for V1.1', async () => {
       const stubOutput: UnifiedBackendOutput = {
         [platformOutputKey]: {
@@ -297,7 +540,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1.1'); //Generate with new configuration format
+      ).getContributors('1.3'); //Generate with new configuration format
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
         configContributors
@@ -329,7 +572,7 @@ void describe('UnifiedClientConfigGenerator', () => {
           output1: 'val1',
           output2: 'val2',
         },
-        version: '1.1', // The max version prevails
+        version: '1.3', // The max version prevails
       };
 
       assert.deepStrictEqual(result, expectedClientConfig);
@@ -368,7 +611,7 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1.1');
+      ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -400,7 +643,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1.1');
+      ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -432,7 +675,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1.1');
+      ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -443,6 +686,39 @@ void describe('UnifiedClientConfigGenerator', () => {
         () => clientConfigGenerator.generateClientConfig(),
         (error: AmplifyUserError) => {
           assert.strictEqual(error.message, 'Stack does not exist.');
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
+
+    void it('throws user error if the stack is missing metadata', async () => {
+      const outputRetrieval = mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
+          'Stack template metadata is not a string'
+        );
+      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1.1');
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Stack was not created with Amplify.'
+          );
           assert.ok(error.resolution);
           return true;
         }
@@ -462,7 +738,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1.1');
+      ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,
@@ -495,7 +771,7 @@ void describe('UnifiedClientConfigGenerator', () => {
 
       const configContributors = new ClientConfigContributorFactory(
         modelSchemaAdapter
-      ).getContributors('1.1');
+      ).getContributors('1.3');
 
       const clientConfigGenerator = new UnifiedClientConfigGenerator(
         outputRetrieval,

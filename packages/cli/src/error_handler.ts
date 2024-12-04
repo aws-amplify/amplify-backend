@@ -111,7 +111,7 @@ const handleError = async ({
 
   printMessagePreamble?.();
 
-  if (error instanceof AmplifyError) {
+  if (AmplifyError.isAmplifyError(error)) {
     printer.print(format.error(`${error.name}: ${error.message}`));
 
     if (error.resolution) {
@@ -141,7 +141,7 @@ const handleError = async ({
   }
 
   await usageDataEmitter?.emitFailure(
-    error instanceof AmplifyError
+    AmplifyError.isAmplifyError(error)
       ? error
       : AmplifyError.fromError(
           error && error instanceof Error ? error : new Error(message)

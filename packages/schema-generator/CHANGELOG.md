@@ -1,5 +1,26 @@
 # @aws-amplify/schema-generator
 
+## 1.2.5
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- b56d344: Upgrade @aws-amplify/graphql-schema-generator to v0.11.0
+
+## 1.2.4
+
+### Patch Changes
+
+- e325044: Prefer amplify errors in generators
+- f6b1943: Handle schema errors
+
+## 1.2.3
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- e648e8e: added main field to packages known to lack one
+
 ## 1.2.2
 
 ### Patch Changes

@@ -1,5 +1,61 @@
 # @aws-amplify/client-config
 
+## 1.5.2
+
+### Patch Changes
+
+- d0d8d4e: Fix a bug where $ sign in dart outputs would fail compilation
+
+## 1.5.1
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.5.0
+
+### Minor Changes
+
+- 5f46d8d: add user groups to outputs
+
+### Patch Changes
+
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
+## 1.4.0
+
+### Minor Changes
+
+- d538ecc: add storage access rules to outputs
+
+### Patch Changes
+
+- Updated dependencies [d538ecc]
+  - @aws-amplify/backend-output-schemas@1.2.1
+
+## 1.3.2
+
+### Patch Changes
+
+- 603b75d: Classify pointing client config generator at metadata-less stack as user error
+
+## 1.3.1
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [e648e8e]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/deployed-backend-client@1.4.1
+  - @aws-amplify/model-generator@1.0.7
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.3.0
 
 ### Minor Changes

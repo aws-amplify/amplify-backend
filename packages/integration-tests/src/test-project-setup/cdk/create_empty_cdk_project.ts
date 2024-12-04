@@ -24,5 +24,15 @@ export const createEmptyCdkProject = async (
 
   await cdkCli(['init', 'app', '--language', 'typescript'], projectRoot).run();
 
+  // Remove local node_modules after CDK init.
+  // This is to make sure that test project is using same version of
+  // CDK and constructs as the rest of the codebase.
+  // Otherwise, we might get errors about incompatible classes if
+  // dependencies on npm are ahead of our package-lock.
+  await fsp.rm(path.join(projectRoot, 'node_modules'), {
+    recursive: true,
+    force: true,
+  });
+
   return { projectName, projectRoot };
 };

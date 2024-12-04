@@ -16,6 +16,14 @@ export const storage = defineStorage({
     'public/*': [
       allow.resource(defaultNodeFunc).to(['read', 'write']),
       allow.resource(node16Func).to(['read', 'write']),
+      allow.guest.to(['read']),
+      allow.authenticated.to(['read', 'write']),
+      allow.groups(['Admins']).to(['read', 'write', 'delete']),
+    ],
+    'protected/{entity_id}/*': [
+      allow.authenticated.to(['read']),
+      allow.entity('identity').to(['read', 'write', 'delete']),
+      allow.groups(['Admins']).to(['read', 'write', 'delete']),
     ],
   }),
 });

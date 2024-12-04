@@ -8,6 +8,7 @@ import {
 import { BackendIdentifierResolver } from '../../../backend-identifier/backend_identifier_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type GenerateOutputsCommandOptions =
   ArgumentsKebabCase<GenerateOutputsCommandOptionsCamelCase>;
@@ -54,12 +55,17 @@ export class GenerateOutputsCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateOutputsCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier = await this.backendIdentifierResolver.resolve(
-      args
-    );
+    const backendIdentifier =
+      await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
+        args
+      );
 
     if (!backendIdentifier) {
-      throw new Error('Could not resolve the backend identifier');
+      throw new AmplifyUserError('BackendIdentifierResolverError', {
+        message: 'Could not resolve the backend identifier.',
+        resolution:
+          'Ensure stack name or Amplify App ID and branch specified are correct and exists, then re-run this command.',
+      });
     }
 
     await this.clientConfigGenerator.generateClientConfigToFile(

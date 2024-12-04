@@ -1,5 +1,62 @@
 # @aws-amplify/backend-auth
 
+## 1.4.1
+
+### Patch Changes
+
+- f1db886: add resourceGroupName prop to function
+- Updated dependencies [f1db886]
+  - @aws-amplify/plugin-types@1.5.0
+
+## 1.4.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
+### Patch Changes
+
+- Updated dependencies [90a7c49]
+  - @aws-amplify/auth-construct@1.5.0
+  - @aws-amplify/plugin-types@1.4.0
+
+## 1.3.0
+
+### Minor Changes
+
+- 11d62fe: Add support for custom Lambda function email senders in Auth construct
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [11d62fe]
+- Updated dependencies [b56d344]
+  - @aws-amplify/auth-construct@1.4.0
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.2.0
+
+### Minor Changes
+
+- 87dbf41: expose stack property for backend, function resource, storage resource, and auth resource
+
+### Patch Changes
+
+- Updated dependencies [87dbf41]
+  - @aws-amplify/plugin-types@1.3.0
+
+## 1.1.5
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- Updated dependencies [e648e8e]
+- Updated dependencies [8dd7286]
+  - @aws-amplify/auth-construct@1.3.1
+  - @aws-amplify/backend-output-storage@1.1.2
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.1.4
 
 ### Patch Changes

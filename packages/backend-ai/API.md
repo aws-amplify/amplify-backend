@@ -4,14 +4,21 @@
 
 ```ts
 
+import { AiModel } from '@aws-amplify/data-schema-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
-import { DocumentType } from '@smithy/types';
+import { ConversationTurnEventVersion } from '@aws-amplify/ai-constructs/conversation';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { LogLevel } from '@aws-amplify/plugin-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import * as runtime from '@aws-amplify/ai-constructs/conversation/runtime';
 
 declare namespace __export__conversation {
     export {
+        ConversationHandlerFunctionFactory,
+        ConversationHandlerFunctionLogLevel,
+        ConversationHandlerFunctionLogRetention,
+        ConversationHandlerFunctionLoggingOptions,
         DefineConversationHandlerFunctionProps,
         defineConversationHandlerFunction
     }
@@ -23,37 +30,58 @@ declare namespace __export__conversation__runtime {
         ToolResultContentBlock,
         ExecutableTool,
         ConversationTurnEvent,
-        handleConversationTurnEvent
+        handleConversationTurnEvent,
+        createExecutableTool
     }
 }
 export { __export__conversation__runtime }
 
 // @public (undocumented)
+type ConversationHandlerFunctionFactory = ConstructFactory<ResourceProvider<FunctionResources>> & {
+    readonly eventVersion: ConversationTurnEventVersion;
+};
+
+// @public (undocumented)
+type ConversationHandlerFunctionLoggingOptions = {
+    retention?: ConversationHandlerFunctionLogRetention;
+    level?: ConversationHandlerFunctionLogLevel;
+};
+
+// @public (undocumented)
+type ConversationHandlerFunctionLogLevel = LogLevel;
+
+// @public (undocumented)
+type ConversationHandlerFunctionLogRetention = LogRetention;
+
+// @public (undocumented)
 type ConversationTurnEvent = runtime.ConversationTurnEvent;
 
+// @public (undocumented)
+const createExecutableTool: <TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema, TToolInput = runtime.FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: runtime.ToolInputSchema<TJSONSchema>, handler: (input: TToolInput) => Promise<ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
+
 // @public
-const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConstructFactory<ResourceProvider<FunctionResources>>;
+const defineConversationHandlerFunction: (props: DefineConversationHandlerFunctionProps) => ConversationHandlerFunctionFactory;
 
 // @public (undocumented)
 type DefineConversationHandlerFunctionProps = {
     name: string;
     entry?: string;
     models: Array<{
-        modelId: string | {
-            resourcePath: string;
-        };
+        modelId: string | AiModel;
         region?: string;
     }>;
+    memoryMB?: number;
+    logging?: ConversationHandlerFunctionLoggingOptions;
 };
 
 // @public (undocumented)
-type ExecutableTool = runtime.ToolDefinition & {
-    execute: (input: DocumentType | undefined) => Promise<ToolResultContentBlock>;
+type ExecutableTool<TJSONSchema extends runtime.JSONSchema = runtime.JSONSchema, TToolInput = runtime.FromJSONSchema<TJSONSchema>> = runtime.ToolDefinition<TJSONSchema> & {
+    execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };
 
 // @public (undocumented)
 const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
-    tools?: Array<ExecutableTool>;
+    tools?: Array<ExecutableTool<runtime.JSONSchema, any>>;
 }) => Promise<void>;
 
 // @public (undocumented)

@@ -19,6 +19,7 @@ export class S3StringObjectFetcher {
     );
     const schema = await getSchemaCommandResult.Body?.transformToString();
     if (!schema) {
+      // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
       throw new Error('Error on parsing output schema');
     }
     return schema;

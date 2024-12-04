@@ -27,6 +27,11 @@ import { Stack } from 'aws-cdk-lib';
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
 
 // @public
+export type AmplifyResourceGroupName = 'auth' | 'data' | 'storage' | (string & {
+    resourceGroupNameLike?: any;
+});
+
+// @public
 export type AppId = string;
 
 // @public
@@ -43,6 +48,7 @@ export type AuthResources = {
     userPoolClient: IUserPoolClient;
     authenticatedUserIamRole: IRole;
     unauthenticatedUserIamRole: IRole;
+    identityPoolId: string;
     cfnResources: AuthCfnResources;
     groups: {
         [groupName: string]: {
@@ -169,6 +175,12 @@ export type ImportPathVerifier = {
     verify: (importStack: string | undefined, expectedImportingFile: string, errorMessage: string) => void;
 };
 
+// @public (undocumented)
+export type LogLevel = 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace';
+
+// @public (undocumented)
+export type LogRetention = '1 day' | '3 days' | '5 days' | '1 week' | '2 weeks' | '1 month' | '2 months' | '3 months' | '4 months' | '5 months' | '6 months' | '1 year' | '13 months' | '18 months' | '2 years' | '3 years' | '5 years' | '6 years' | '7 years' | '8 years' | '9 years' | '10 years' | 'infinite';
+
 // @public
 export type MainStackCreator = {
     getOrCreateMainStack: () => Stack;
@@ -191,6 +203,20 @@ export type PackageManagerController = {
 
 // @public (undocumented)
 export type ProjectName = string;
+
+// @public
+export type ReferenceAuthResources = {
+    userPool: IUserPool;
+    userPoolClient: IUserPoolClient;
+    authenticatedUserIamRole: IRole;
+    unauthenticatedUserIamRole: IRole;
+    identityPoolId: string;
+    groups: {
+        [groupName: string]: {
+            role: IRole;
+        };
+    };
+};
 
 // @public (undocumented)
 export type ResolvePathResult = {
@@ -236,6 +262,11 @@ export type SsmEnvironmentEntry = {
 // @public (undocumented)
 export type StableBackendIdentifiers = {
     getStableBackendHash: () => string;
+};
+
+// @public (undocumented)
+export type StackProvider = {
+    stack: Stack;
 };
 
 // (No @packageDocumentation comment for this package)

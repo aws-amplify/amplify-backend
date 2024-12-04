@@ -16,7 +16,7 @@ const sampleIdentityPoolId = 'test_identity_pool_id';
 const sampleUserPoolClientId = 'test_user_pool_client_id';
 
 backend.addOutput({
-  version: '1.1',
+  version: '1.3',
   custom: {
     // test deploy time values
     restApiUrl: restApi.url,
@@ -26,7 +26,7 @@ backend.addOutput({
 });
 
 backend.addOutput({
-  version: '1.1',
+  version: '1.3',
   custom: {
     // test synth time values
     // and composition of config
@@ -36,7 +36,7 @@ backend.addOutput({
 
 const fakeCognitoUserPoolId = 'fakeCognitoUserPoolId';
 backend.addOutput({
-  version: '1.1',
+  version: '1.3',
   // test reserved key
   auth: {
     aws_region: sampleRegion,

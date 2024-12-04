@@ -20,7 +20,7 @@ void describe('client config formatter', () => {
 
   const sampleUserPoolId = randomUUID();
   const clientConfig: ClientConfig = {
-    version: '1.1',
+    version: '1.3',
     auth: {
       aws_region: sampleRegion,
       identity_pool_id: sampleIdentityPoolId,
@@ -109,7 +109,7 @@ void describe('client config formatter', () => {
       expectedLegacyConfig.aws_user_pools_id
     );
 
-    assert.ok(formattedConfig.startsWith("const amplifyConfig = '''"));
+    assert.ok(formattedConfig.startsWith("const amplifyConfig = r'''"));
     assert.ok(
       formattedConfig.includes(JSON.stringify(clientConfigMobile, null, 2))
     );

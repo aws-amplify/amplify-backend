@@ -25,12 +25,21 @@ import { defineFunction } from '@aws-amplify/backend-function';
 import { defineStorage } from '@aws-amplify/backend-storage';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import { GenerateContainerEntryProps } from '@aws-amplify/plugin-types';
+import { getAmplifyDataClientConfig } from '@aws-amplify/backend-function/runtime';
 import { ImportPathVerifier } from '@aws-amplify/plugin-types';
+import { referenceAuth } from '@aws-amplify/backend-auth';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntriesGenerator } from '@aws-amplify/plugin-types';
 import { SsmEnvironmentEntry } from '@aws-amplify/plugin-types';
 import { Stack } from 'aws-cdk-lib';
+
+declare namespace __export__function__runtime {
+    export {
+        getAmplifyDataClientConfig
+    }
+}
+export { __export__function__runtime }
 
 export { a }
 
@@ -49,6 +58,7 @@ export type Backend<T extends DefineBackendProps> = BackendBase & {
 export type BackendBase = {
     createStack: (name: string) => Stack;
     addOutput: (clientConfigPart: DeepPartialAmplifyGeneratedConfigs<ClientConfig>) => void;
+    stack: Stack;
 };
 
 export { BackendOutputEntry }
@@ -88,6 +98,8 @@ export { FunctionResources }
 export { GenerateContainerEntryProps }
 
 export { ImportPathVerifier }
+
+export { referenceAuth }
 
 export { ResourceProvider }
 

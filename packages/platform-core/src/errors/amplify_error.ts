@@ -44,7 +44,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     this.code = options.code;
     this.link = options.link;
 
-    if (cause && cause instanceof AmplifyError) {
+    if (cause && AmplifyError.isAmplifyError(cause)) {
       cause.serializedError = undefined;
     }
     this.serializedError = JSON.stringify(
@@ -98,15 +98,31 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     return undefined;
   };
 
-  static fromError = (
-    error: unknown
-  ): AmplifyError<
-    | 'UnknownFault'
-    | 'CredentialsError'
-    | 'InvalidCommandInputError'
-    | 'DomainNotFoundError'
-    | 'SyntaxError'
-  > => {
+  /**
+   * This function is a type predicate for AmplifyError.
+   * See https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates.
+   *
+   * Checks if error is an AmplifyError by inspecting if required properties are set.
+   * This is recommended instead of instanceof operator.
+   * The instance of operator does not work as expected if AmplifyError class is loaded
+   * from multiple sources, for example when package manager decides to not de-duplicate dependencies.
+   * See https://github.com/nodejs/node/issues/17943.
+   */
+  static isAmplifyError = (error: unknown): error is AmplifyError => {
+    return (
+      error instanceof Error &&
+      'classification' in error &&
+      (error.classification === 'ERROR' || error.classification === 'FAULT') &&
+      typeof error.name === 'string' &&
+      typeof error.message === 'string'
+    );
+  };
+
+  static fromError = (error: unknown): AmplifyError => {
+    if (AmplifyError.isAmplifyError(error)) {
+      return error;
+    }
+
     const errorMessage =
       error instanceof Error
         ? `${error.name}: ${error.message}`
@@ -159,6 +175,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         error
       );
     }
+    if (error instanceof Error && isInsufficientDiskSpaceError(error)) {
+      return new AmplifyUserError(
+        'InsufficientDiskSpaceError',
+        {
+          message: error.message,
+          resolution:
+            'There appears to be insufficient space on your system to finish. Clear up some disk space and try again.',
+        },
+        error
+      );
+    }
     return new AmplifyFault(
       'UnknownFault',
       {
@@ -198,6 +225,15 @@ const isENotFoundError = (err?: Error): boolean => {
 
 const isSyntaxError = (err?: Error): boolean => {
   return !!err && err.name === 'SyntaxError';
+};
+
+const isInsufficientDiskSpaceError = (err?: Error): boolean => {
+  return (
+    !!err &&
+    ['ENOSPC: no space left on device', 'code ENOSPC'].some((message) =>
+      err.message.includes(message)
+    )
+  );
 };
 
 /**

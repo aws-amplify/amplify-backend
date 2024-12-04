@@ -6,29 +6,34 @@
 
 /// <reference types="node" />
 
+import { AIConversationOutput } from '@aws-amplify/backend-output-schemas';
+import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
+import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import * as jsonSchemaToTypeScript from 'json-schema-to-ts';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
-import * as smithy from '@smithy/types';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 declare namespace __export__conversation {
     export {
         ConversationHandlerFunction,
-        ConversationHandlerFunctionProps
+        ConversationHandlerFunctionProps,
+        ConversationTurnEventVersion
     }
 }
 export { __export__conversation }
 
 declare namespace __export__conversation__runtime {
     export {
-        ConversationMessage,
-        ConversationMessageContentBlock,
         ConversationTurnEvent,
+        createExecutableTool,
         ExecutableTool,
+        FromJSONSchema,
+        JSONSchema,
         handleConversationTurnEvent,
         ToolDefinition,
-        ToolExecutionInput,
         ToolInputSchema,
         ToolResultContentBlock
     }
@@ -38,6 +43,8 @@ export { __export__conversation__runtime }
 // @public
 class ConversationHandlerFunction extends Construct implements ResourceProvider<FunctionResources> {
     constructor(scope: Construct, id: string, props: ConversationHandlerFunctionProps);
+    // (undocumented)
+    static readonly eventVersion: ConversationTurnEventVersion;
     // (undocumented)
     resources: FunctionResources;
 }
@@ -49,27 +56,19 @@ type ConversationHandlerFunctionProps = {
         modelId: string;
         region?: string;
     }>;
-};
-
-// @public (undocumented)
-type ConversationMessage = {
-    role: 'user' | 'assistant';
-    content: Array<ConversationMessageContentBlock>;
-};
-
-// @public (undocumented)
-type ConversationMessageContentBlock = bedrock.ContentBlock | {
-    image: Omit<bedrock.ImageBlock, 'source'> & {
-        source: {
-            bytes: string;
-        };
+    memoryMB?: number;
+    logging?: {
+        level?: ApplicationLogLevel;
+        retention?: RetentionDays;
     };
+    outputStorageStrategy?: BackendOutputStorageStrategy<AIConversationOutput>;
 };
 
 // @public (undocumented)
 type ConversationTurnEvent = {
     conversationId: string;
     currentMessageId: string;
+    streamResponse?: boolean;
     responseMutation: {
         name: string;
         inputTypeName: string;
@@ -87,11 +86,15 @@ type ConversationTurnEvent = {
         };
     };
     request: {
-        headers: {
-            authorization: string;
-        };
+        headers: Record<string, string>;
     };
-    messages: Array<ConversationMessage>;
+    messageHistoryQuery: {
+        getQueryName: string;
+        getQueryInputTypeName: string;
+        listQueryName: string;
+        listQueryInputTypeName: string;
+        listQueryLimit?: number;
+    };
     toolsConfiguration?: {
         dataTools?: Array<ToolDefinition & {
             graphqlRequestInputDescriptor: {
@@ -105,27 +108,38 @@ type ConversationTurnEvent = {
 };
 
 // @public (undocumented)
-type ExecutableTool = ToolDefinition & {
-    execute: (input: ToolExecutionInput | undefined) => Promise<ToolResultContentBlock>;
+type ConversationTurnEventVersion = `1.${number}`;
+
+// @public
+const createExecutableTool: <TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>>(name: string, description: string, inputSchema: ToolInputSchema<TJSONSchema>, handler: (input: TToolInput) => Promise<bedrock.ToolResultContentBlock>) => ExecutableTool<TJSONSchema, TToolInput>;
+
+// @public (undocumented)
+type ExecutableTool<TJSONSchema extends JSONSchema = JSONSchema, TToolInput = FromJSONSchema<TJSONSchema>> = ToolDefinition<TJSONSchema> & {
+    execute: (input: TToolInput) => Promise<ToolResultContentBlock>;
 };
+
+// @public (undocumented)
+type FromJSONSchema<TJSONSchema extends JSONSchema> = jsonSchemaToTypeScript.FromSchema<TJSONSchema>;
 
 // @public
 const handleConversationTurnEvent: (event: ConversationTurnEvent, props?: {
-    tools?: Array<ExecutableTool>;
+    tools?: Array<ExecutableTool<JSONSchema, any>>;
 }) => Promise<void>;
 
 // @public (undocumented)
-type ToolDefinition = {
+type JSONSchema = jsonSchemaToTypeScript.JSONSchema;
+
+// @public (undocumented)
+type ToolDefinition<TJSONSchema extends JSONSchema = JSONSchema> = {
     name: string;
     description: string;
-    inputSchema: ToolInputSchema;
+    inputSchema: ToolInputSchema<TJSONSchema>;
 };
 
 // @public (undocumented)
-type ToolExecutionInput = smithy.DocumentType;
-
-// @public (undocumented)
-type ToolInputSchema = bedrock.ToolInputSchema;
+type ToolInputSchema<TJSONSchema extends JSONSchema> = {
+    json: TJSONSchema;
+};
 
 // @public (undocumented)
 type ToolResultContentBlock = bedrock.ToolResultContentBlock;

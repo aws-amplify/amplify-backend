@@ -5,6 +5,7 @@ import { versionedStorageOutputSchema } from './storage/index.js';
 import { versionedStackOutputSchema } from './stack/index.js';
 import { versionedCustomOutputSchema } from './custom';
 import { versionedFunctionOutputSchema } from './function/index.js';
+import { versionedAIConversationOutputSchema } from './ai/conversation/index.js';
 
 /**
  * The auth, graphql and storage exports here are duplicated from the submodule exports in the package.json file
@@ -85,6 +86,20 @@ export * from './function/index.js';
 export const functionOutputKey = 'AWS::Amplify::Function';
 
 /**
+ * ---------- AI conversation exports ----------
+ */
+
+/**
+ * re-export the AI conversation output schema
+ */
+export * from './ai/conversation/index.js';
+
+/**
+ * Expected key that AI conversation output is stored under
+ */
+export const aiConversationOutputKey = 'AWS::Amplify::AI::Conversation';
+
+/**
  * ---------- Unified exports ----------
  */
 
@@ -99,6 +114,7 @@ export const unifiedBackendOutputSchema = z.object({
   [storageOutputKey]: versionedStorageOutputSchema.optional(),
   [customOutputKey]: versionedCustomOutputSchema.optional(),
   [functionOutputKey]: versionedFunctionOutputSchema.optional(),
+  [aiConversationOutputKey]: versionedAIConversationOutputSchema.optional(),
 });
 /**
  * This type is a subset of the BackendOutput type that is exposed by the platform.

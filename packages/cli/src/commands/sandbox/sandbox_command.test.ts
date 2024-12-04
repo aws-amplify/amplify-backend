@@ -8,7 +8,7 @@ import {
   TestCommandError,
   TestCommandRunner,
 } from '../../test-utils/command_runner.js';
-import { AmplifyPrompter, format, printer } from '@aws-amplify/cli-core';
+import { format, printer } from '@aws-amplify/cli-core';
 import { EventHandler, SandboxCommand } from './sandbox_command.js';
 import { createSandboxCommand } from './sandbox_command_factory.js';
 import { SandboxDeleteCommand } from './sandbox-delete/sandbox_delete_command.js';
@@ -20,7 +20,6 @@ import {
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { CommandMiddleware } from '../../command_middleware.js';
-import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { AmplifyError } from '@aws-amplify/platform-core';
 
 mock.method(fsp, 'mkdir', () => Promise.resolve());
@@ -54,11 +53,6 @@ void describe('sandbox command', () => {
   );
   const sandboxProfile = 'test-sandbox';
 
-  const allowsSignalPropagationMock = mock.fn(() => true);
-  const packageManagerControllerMock = {
-    allowsSignalPropagation: allowsSignalPropagationMock,
-  } as unknown as PackageManagerController;
-
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(
       () =>
@@ -80,7 +74,6 @@ void describe('sandbox command', () => {
       [sandboxDeleteCommand, createSandboxSecretCommand()],
       clientConfigGeneratorAdapterMock,
       commandMiddleware,
-      packageManagerControllerMock,
       () => ({
         successfulDeployment: [clientConfigGenerationMock],
         successfulDeletion: [clientConfigDeletionMock],
@@ -128,7 +121,7 @@ void describe('sandbox command', () => {
       () =>
         commandRunner.runCommand(`sandbox --identifier ${invalidIdentifier}`), // invalid identifier
       (err: TestCommandError) => {
-        assert.ok(err.error instanceof AmplifyError);
+        assert.ok(AmplifyError.isAmplifyError(err.error));
         assert.strictEqual(
           err.error.message,
           'Invalid --identifier provided: invalid@'
@@ -189,118 +182,7 @@ void describe('sandbox command', () => {
     );
   });
 
-  void it('asks to delete the sandbox environment when users send ctrl-C and say yes to delete', async (contextual) => {
-    // Mock process and extract the sigint handler after calling the sandbox command
-    const processSignal = contextual.mock.method(process, 'on', () => {
-      /* no op */
-    });
-    const sandboxStartMock = contextual.mock.method(
-      sandbox,
-      'start',
-      async () => Promise.resolve()
-    );
-
-    const sandboxDeleteMock = contextual.mock.method(sandbox, 'delete', () =>
-      Promise.resolve()
-    );
-
-    // User said yes to delete
-    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(true)
-    );
-
-    await commandRunner.runCommand('sandbox');
-
-    // Similar to the later 0ms timeout. Without this tests in github action are failing
-    // but working locally
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
-    if (sigIntHandlerFn) sigIntHandlerFn();
-
-    // I can't find any open node:test or yargs issues that would explain why this is necessary
-    // but for some reason the mock call count does not update without this 0ms wait
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.equal(sandboxDeleteMock.mock.callCount(), 1);
-  });
-
-  void it('asks to delete the sandbox environment when users send ctrl-C and say yes to delete with profile', async (contextual) => {
-    // Mock process and extract the sigint handler after calling the sandbox command
-    const processSignal = contextual.mock.method(process, 'on', () => {
-      /* no op */
-    });
-    const sandboxStartMock = contextual.mock.method(
-      sandbox,
-      'start',
-      async () => Promise.resolve()
-    );
-
-    const sandboxDeleteMock = contextual.mock.method(sandbox, 'delete', () =>
-      Promise.resolve()
-    );
-
-    // User said yes to delete
-    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(true)
-    );
-
-    const profile = 'test_profile';
-    await commandRunner.runCommand(`sandbox --profile ${profile}`);
-
-    // Similar to the later 0ms timeout. Without this tests in github action are failing
-    // but working locally
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
-    if (sigIntHandlerFn) sigIntHandlerFn();
-
-    // I can't find any open node:test or yargs issues that would explain why this is necessary
-    // but for some reason the mock call count does not update without this 0ms wait
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.equal(sandboxDeleteMock.mock.callCount(), 1);
-    assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
-      identifier: undefined,
-      profile,
-    });
-  });
-
-  void it('asks to delete the sandbox environment when users send ctrl-C and say no to delete', async (contextual) => {
-    // Mock process and extract the sigint handler after calling the sandbox command
-    const processSignal = contextual.mock.method(process, 'on', () => {
-      /* no op */
-    });
-    const sandboxStartMock = contextual.mock.method(
-      sandbox,
-      'start',
-      async () => Promise.resolve()
-    );
-
-    const sandboxDeleteMock = contextual.mock.method(
-      sandbox,
-      'delete',
-      async () => Promise.resolve()
-    );
-
-    // User said no to delete
-    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(false)
-    );
-
-    await commandRunner.runCommand('sandbox');
-
-    // Similar to the previous test's 0ms timeout. Without this tests in github action are failing
-    // but working locally
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    const sigIntHandlerFn = processSignal.mock.calls[0].arguments[1];
-    if (sigIntHandlerFn) sigIntHandlerFn();
-
-    assert.equal(sandboxStartMock.mock.callCount(), 1);
-    assert.equal(sandboxDeleteMock.mock.callCount(), 0);
-  });
-
-  void it('Does not prompt for deleting the sandbox if package manager does not allow signal propagation', async (contextual) => {
-    allowsSignalPropagationMock.mock.mockImplementationOnce(() => false);
-
+  void it('Prints stopping sandbox and instructions to delete sandbox when users send ctrl+c', async (contextual) => {
     // Mock process and extract the sigint handler after calling the sandbox command
     const processSignal = contextual.mock.method(process, 'on', () => {
       /* no op */
@@ -371,7 +253,6 @@ void describe('sandbox command', () => {
       [],
       clientConfigGeneratorAdapterMock,
       commandMiddleware,
-      packageManagerControllerMock,
       undefined
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
@@ -427,15 +308,15 @@ void describe('sandbox command', () => {
     );
   });
 
-  void it('sandbox creates an empty client config file if one does not already exist for version 1.1', async (contextual) => {
+  void it('sandbox creates an empty client config file if one does not already exist for version 1.3', async (contextual) => {
     contextual.mock.method(fs, 'existsSync', () => false);
     const writeFileMock = contextual.mock.method(fsp, 'writeFile', () => true);
-    await commandRunner.runCommand('sandbox --outputs-version 1.1');
+    await commandRunner.runCommand('sandbox --outputs-version 1.3');
     assert.equal(sandboxStartMock.mock.callCount(), 1);
     assert.equal(writeFileMock.mock.callCount(), 1);
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[1],
-      `{\n  "version": "1.1"\n}`
+      `{\n  "version": "1.3"\n}`
     );
     assert.deepStrictEqual(
       writeFileMock.mock.calls[0].arguments[0],

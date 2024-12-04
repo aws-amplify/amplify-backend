@@ -1,5 +1,63 @@
 # @aws-amplify/sandbox
 
+## 1.2.6
+
+### Patch Changes
+
+- 8c8fc5e: Print bootstrap url when browser cannot be opened
+- Updated dependencies [f1db886]
+- Updated dependencies [71ef398]
+  - @aws-amplify/plugin-types@1.5.0
+  - @aws-amplify/platform-core@1.2.1
+
+## 1.2.5
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+  - @aws-amplify/backend-deployer@1.1.8
+
+## 1.2.4
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [c3c3057]
+- Updated dependencies [b56d344]
+  - @aws-amplify/cli-core@1.2.0
+  - @aws-amplify/backend-deployer@1.1.6
+  - @aws-amplify/client-config@1.5.1
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.2.3
+
+### Patch Changes
+
+- 0a5e51c: Stream conversation logs in sandbox
+
+## 1.2.2
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- 0ff73ec: add ExpiredToken in the list of credentials error
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [e648e8e]
+- Updated dependencies [0ff73ec]
+- Updated dependencies [c9c873c]
+- Updated dependencies [cbac105]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/deployed-backend-client@1.4.1
+  - @aws-amplify/backend-deployer@1.1.3
+  - @aws-amplify/backend-secret@1.1.2
+  - @aws-amplify/client-config@1.3.1
+  - @aws-amplify/plugin-types@1.2.2
+  - @aws-amplify/cli-core@1.1.3
+
 ## 1.2.1
 
 ### Patch Changes

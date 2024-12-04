@@ -137,6 +137,7 @@ export abstract class PackageManagerControllerBase
   /**
    * allowsSignalPropagation - Determines if the package manager allows the process
    * signals such as SIGINT to be propagated to the underlying node process.
+   * @deprecated
    */
   allowsSignalPropagation = () => true;
 

@@ -122,6 +122,19 @@ void describe('commandMiddleware', () => {
         }
       });
 
+      void it('throws error if region is blank', async () => {
+        process.env.AWS_REGION = '';
+        delete process.env.AWS_DEFAULT_REGION;
+        try {
+          await commandMiddleware.ensureAwsCredentialAndRegion(
+            {} as ArgumentsCamelCase<{ profile: string | undefined }>
+          );
+          assert.fail('expect to throw error');
+        } catch (err) {
+          assert.match((err as Error).message, /The AWS region is blank/);
+        }
+      });
+
       void it('throws error if a profile is provided and no other credential providers', async () => {
         try {
           await commandMiddleware.ensureAwsCredentialAndRegion({

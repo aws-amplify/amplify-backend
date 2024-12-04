@@ -12,3 +12,10 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
+    - name: Hydrate npx cache
+      # This step hydrates npx cache with packages that we use in builds and tests upfront.
+      # Otherwise, concurrent attempt to use these tools with cache miss results in race conditions between
+      # two installations. That may result in corrupted npx cache.
+      shell: bash
+      run: |
+        npx which npx

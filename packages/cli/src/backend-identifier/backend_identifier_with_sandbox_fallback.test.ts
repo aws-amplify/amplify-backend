@@ -15,7 +15,7 @@ void it('if backend identifier resolves without error, the resolved id is return
     defaultResolver,
     sandboxResolver
   );
-  const resolvedId = await backendIdResolver.resolve({
+  const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier({
     appId: 'hello',
     branch: 'world',
   });
@@ -26,7 +26,7 @@ void it('if backend identifier resolves without error, the resolved id is return
   });
 });
 
-void it('uses the sandbox id if the default identifier resolver fails', async () => {
+void it('uses the sandbox id if the default identifier resolver fails and there is no stack, appId or branch in args', async () => {
   const appName = 'testAppName';
   const namespaceResolver = {
     resolve: () => Promise.resolve(appName),
@@ -45,10 +45,37 @@ void it('uses the sandbox id if the default identifier resolver fails', async ()
     defaultResolver,
     sandboxResolver
   );
-  const resolvedId = await backendIdResolver.resolve({});
+  const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier(
+    {}
+  );
   assert.deepEqual(resolvedId, {
     namespace: appName,
     type: 'sandbox',
     name: 'test-user',
   });
+});
+
+void it('does not use sandbox id if the default identifier resolver fails and there is stack, appId or branch in args', async () => {
+  const appName = 'testAppName';
+  const namespaceResolver = {
+    resolve: () => Promise.resolve(appName),
+  };
+
+  const defaultResolver = new AppBackendIdentifierResolver(namespaceResolver);
+  const username = 'test-user';
+  const sandboxResolver = new SandboxBackendIdResolver(
+    namespaceResolver,
+    () =>
+      ({
+        username,
+      } as never)
+  );
+  const backendIdResolver = new BackendIdentifierResolverWithFallback(
+    defaultResolver,
+    sandboxResolver
+  );
+  const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier({
+    appId: 'testAppName',
+  });
+  assert.deepEqual(resolvedId, undefined);
 });
