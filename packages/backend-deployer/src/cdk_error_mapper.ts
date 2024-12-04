@@ -206,6 +206,15 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
+        /InvalidParameterValueException:(.*) (size must be smaller than|exceeds the maximum allowed size of) (?<maxSize>.*) bytes/,
+      humanReadableErrorMessage: 'Maximum Lambda size exceeded',
+      resolutionMessage:
+        'Make sure Lambda code is smaller than {maxSize} bytes unzipped',
+      errorName: 'LambdaMaxSizeExceededError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
         /User:(.*) is not authorized to perform: lambda:GetLayerVersion on resource:(.*) because no resource-based policy allows the lambda:GetLayerVersion action/,
       humanReadableErrorMessage: 'Unable to get Lambda layer version',
       resolutionMessage:
@@ -476,4 +485,5 @@ export type CDKDeploymentError =
   | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
   | 'SyntaxError'
-  | 'GetLambdaLayerVersionError';
+  | 'GetLambdaLayerVersionError'
+  | 'LambdaMaxSizeExceededError';
