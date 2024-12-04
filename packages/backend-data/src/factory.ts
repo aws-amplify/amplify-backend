@@ -41,7 +41,7 @@ import {
   CDKContextKey,
   TagName,
 } from '@aws-amplify/platform-core';
-import { Aspects, IAspect, Tags } from 'aws-cdk-lib';
+import { Aspects, IAspect, RemovalPolicy, Tags } from 'aws-cdk-lib';
 import { convertJsResolverDefinition } from './convert_js_resolvers.js';
 import { AppSyncPolicyGenerator } from './app_sync_policy_generator.js';
 import {
@@ -280,7 +280,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     const modelIntrospectionSchemaBucket = new Bucket(
       scope,
       'modelIntrospectionSchemaBucket',
-      { enforceSSL: true }
+      {
+        enforceSSL: true,
+        autoDeleteObjects: true,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }
     );
     new BucketDeployment(scope, 'modelIntrospectionSchemaBucketDeployment', {
       // See https://github.com/aws-amplify/amplify-category-api/pull/1939
