@@ -201,6 +201,22 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /EPERM: operation not permitted, mkdir '(.*).amplify\/artifacts\/cdk.out'/,
+      humanReadableErrorMessage: `Not permitted to create the directory '.amplify/artifacts/cdk.out'`,
+      resolutionMessage: `Check the permissions of '.amplify' folder and try running the command again`,
+      errorName: 'FilePermissionsError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /EPERM: operation not permitted, (unlink|open) (?<fileName>(.*)\.lock\S+)/,
+      humanReadableErrorMessage: 'Operation not permitted on file: {fileName}',
+      resolutionMessage: `Check the permissions of '.amplify' folder and try running the command again`,
+      errorName: 'FilePermissionsError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${this.multiLineEolRegex}|Error: Cannot find module (.*)`
       ),
