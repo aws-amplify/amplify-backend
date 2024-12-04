@@ -5,12 +5,7 @@ import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
 import { TestProjectCreator } from './test_project_creator.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { LambdaClient } from '@aws-sdk/client-lambda';
-import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { generateClientConfig } from '@aws-amplify/client-config';
-import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
-import { SemVer } from 'semver';
-import crypto from 'node:crypto';
 import {
   ApolloClient,
   ApolloLink,
@@ -22,17 +17,6 @@ import { gql } from 'graphql-tag';
 import assert from 'assert';
 import { NormalizedCacheObject } from '@apollo/client';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
-
-// TODO: this is a work around
-// it seems like as of amplify v6 , some of the code only runs in the browser ...
-// see https://github.com/aws-amplify/amplify-js/issues/12751
-if (process.versions.node) {
-  // node >= 20 now exposes crypto by default. This workaround is not needed: https://github.com/nodejs/node/pull/42083
-  if (new SemVer(process.versions.node).major < 20) {
-    // @ts-expect-error altering typing for global to make compiler happy is not worth the effort assuming this is temporary workaround
-    globalThis.crypto = crypto;
-  }
-}
 
 /**
  * Creates the data and function test project.
@@ -51,14 +35,7 @@ export class DataAccessFromFunctionTestProjectCreator
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
       e2eToolingClientConfig
-    ),
-    private readonly lambdaClient: LambdaClient = new LambdaClient(
-      e2eToolingClientConfig
-    ),
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
-      e2eToolingClientConfig
-    ),
-    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+    )
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -70,10 +47,7 @@ export class DataAccessFromFunctionTestProjectCreator
       projectRoot,
       projectAmplifyDir,
       this.cfnClient,
-      this.amplifyClient,
-      this.lambdaClient,
-      this.cognitoIdentityProviderClient,
-      this.resourceFinder
+      this.amplifyClient
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
@@ -108,14 +82,7 @@ class DataAccessFromFunctionTestProject extends TestProjectBase {
     projectDirPath: string,
     projectAmplifyDirPath: string,
     cfnClient: CloudFormationClient,
-    amplifyClient: AmplifyClient,
-    private readonly lambdaClient: LambdaClient = new LambdaClient(
-      e2eToolingClientConfig
-    ),
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
-      e2eToolingClientConfig
-    ),
-    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+    amplifyClient: AmplifyClient
   ) {
     super(
       name,
@@ -138,8 +105,6 @@ class DataAccessFromFunctionTestProject extends TestProjectBase {
     if (!clientConfig.data.api_key) {
       throw new Error('Data and function project must include api_key');
     }
-
-    // const dataUrl = clientConfig.data?.url;
 
     const httpLink = new HttpLink({ uri: clientConfig.data.url });
     const link = ApolloLink.from([
@@ -166,6 +131,7 @@ class DataAccessFromFunctionTestProject extends TestProjectBase {
   private assertDataFunctionCallSucceeds = async (
     apolloClient: ApolloClient<NormalizedCacheObject>
   ): Promise<void> => {
+    // The todoCount query calls the todoCount lambda
     const response = await apolloClient.query<number>({
       query: gql`
         query todoCount {
@@ -175,12 +141,14 @@ class DataAccessFromFunctionTestProject extends TestProjectBase {
       variables: {},
     });
 
+    // Assert the expected lambda call return
     assert.deepEqual(response.data, { todoCount: 0 });
   };
 
   private assertNoopWithImportCallSucceeds = async (
     apolloClient: ApolloClient<NormalizedCacheObject>
   ): Promise<void> => {
+    // The noopImport query calls the noopImport lambda
     const response = await apolloClient.query<number>({
       query: gql`
         query noopImport {
@@ -190,6 +158,7 @@ class DataAccessFromFunctionTestProject extends TestProjectBase {
       variables: {},
     });
 
+    // Assert the expected lambda call return
     assert.deepEqual(response.data, { noopImport: 'STATIC TEST RESPONSE' });
   };
 }
