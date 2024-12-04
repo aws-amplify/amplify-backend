@@ -160,7 +160,7 @@ export class CdkErrorMapper {
       errorRegex: /Command cdk not found/,
       humanReadableErrorMessage: 'Unable to detect cdk installation',
       resolutionMessage:
-        "Install the dependencies in your project by running 'yarn install' or 'npm install'",
+        "Ensure dependencies in your project are installed with your package manager. For example, by running 'yarn install' or 'npm install'",
       errorName: 'CDKNotFoundError',
       classification: 'ERROR',
     },
