@@ -621,6 +621,18 @@ npm error enoent`,
     errorName: 'CloudFormationDeletionError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `Error: some-stack failed: InvalidParameterValueException: Unzipped size must be smaller than 262144000 bytes`,
+    expectedTopLevelErrorMessage: 'Maximum Lambda size exceeded',
+    errorName: 'LambdaMaxSizeExceededError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `Error: some-stack failed: InvalidParameterValueException: Function code combined with layers exceeds the maximum allowed size of 262144000 bytes. The actual size is 306703523 bytes.`,
+    expectedTopLevelErrorMessage: 'Maximum Lambda size exceeded',
+    errorName: 'LambdaMaxSizeExceededError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
