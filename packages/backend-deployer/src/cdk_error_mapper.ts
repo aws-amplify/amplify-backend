@@ -188,8 +188,7 @@ export class CdkErrorMapper {
       errorRegex:
         /EPERM: operation not permitted, rename (?<fileName>(.*)\/synth\.lock\.\S+) → '(.*)\/synth\.lock'/,
       humanReadableErrorMessage: 'Not permitted to rename file: {fileName}',
-      resolutionMessage:
-        'Try running the command again and check that no other process has this file open and that you have the right permissions to rename this file',
+      resolutionMessage: `Try running the command again and ensure that only one instance of sandbox is running. If it still doesn't work check the permissions of '.amplify' folder`,
       errorName: 'FilePermissionsError',
       classification: 'ERROR',
     },
