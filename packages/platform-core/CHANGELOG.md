@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.2.2
+
+### Patch Changes
+
+- 249c0e5: Handle insufficient disk space errors
+
 ## 1.2.1
 
 ### Patch Changes

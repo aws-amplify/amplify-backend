@@ -5,6 +5,8 @@ import { ConversationHandlerFunction } from './conversation_handler_construct';
 import { Template } from 'aws-cdk-lib/assertions';
 import path from 'path';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
+import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 void describe('Conversation Handler Function construct', () => {
   void it('creates handler with log group with JWT token redacting policy', () => {
@@ -282,6 +284,43 @@ void describe('Conversation Handler Function construct', () => {
           memoryMB: 256.2,
         });
       }, new Error('memoryMB must be a whole number between 128 and 10240 inclusive'));
+    });
+  });
+
+  void describe('logging options', () => {
+    void it('sets log level', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [],
+        logging: {
+          level: ApplicationLogLevel.DEBUG,
+        },
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        LoggingConfig: {
+          ApplicationLogLevel: 'DEBUG',
+          LogFormat: 'JSON',
+        },
+      });
+    });
+
+    void it('sets log retention', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [],
+        logging: {
+          retention: RetentionDays.ONE_YEAR,
+        },
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Logs::LogGroup', {
+        RetentionInDays: 365,
+      });
     });
   });
 });

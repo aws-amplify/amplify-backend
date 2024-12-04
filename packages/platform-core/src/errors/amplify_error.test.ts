@@ -205,4 +205,13 @@ void describe('AmplifyError.fromError', async () => {
       );
     });
   });
+  void it('return amplify user errors as it is', () => {
+    const error = new AmplifyUserError('DeploymentInProgressError', {
+      message: 'Deployment already in progress',
+      resolution: 'wait for it',
+    });
+    const actual = AmplifyError.fromError(error);
+    assert.deepStrictEqual(error, actual);
+    assert.strictEqual(actual.resolution, error.resolution);
+  });
 });
