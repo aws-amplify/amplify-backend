@@ -633,6 +633,12 @@ npm error enoent`,
     errorName: 'LambdaMaxSizeExceededError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `Error: some-stack failed: InvalidParameterValueException: Uploaded file must be a non-empty zip`,
+    expectedTopLevelErrorMessage: 'Lambda bundled into an empty zip',
+    errorName: 'LambdaEmptyZipError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
