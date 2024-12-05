@@ -36,12 +36,12 @@ void describe('top level generate command', () => {
 
   void it('fails if stack argument provided is invalid', async () => {
     await assert.rejects(
-      () => commandRunner.runCommand('generate outputs --stack 3abcd'),
+      () => commandRunner.runCommand('generate outputs --stack 3-Invalid'),
       (error: TestCommandError) => {
         assert.strictEqual(error.error.name, 'InvalidCommandInputError');
         assert.strictEqual(
           error.error.message,
-          'Invalid --stack name provided: 3abcd'
+          'Invalid --stack name provided: 3-Invalid'
         );
         return true;
       }
