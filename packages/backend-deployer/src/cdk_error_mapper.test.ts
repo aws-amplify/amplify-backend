@@ -636,7 +636,7 @@ npm error enoent`,
   {
     errorMessage: `Error: some-stack failed: InvalidParameterValueException: Uploaded file must be a non-empty zip`,
     expectedTopLevelErrorMessage: 'Lambda bundled into an empty zip',
-    errorName: 'LambdaEmptyZipError',
+    errorName: 'LambdaEmptyZipFault',
     expectedDownstreamErrorMessage: undefined,
   },
 ];
