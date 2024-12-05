@@ -234,8 +234,8 @@ export class CdkErrorMapper {
         /InvalidParameterValueException: Uploaded file must be a non-empty zip/,
       humanReadableErrorMessage: 'Lambda bundled into an empty zip',
       resolutionMessage: `Try removing '.amplify/artifacts' then running the command again. If it still doesn't work, see https://github.com/aws/aws-cdk/issues/18459 for more methods.`,
-      errorName: 'LambdaEmptyZipError',
-      classification: 'ERROR',
+      errorName: 'LambdaEmptyZipFault',
+      classification: 'FAULT',
     },
     {
       errorRegex:
@@ -511,5 +511,5 @@ export type CDKDeploymentError =
   | 'SecretNotSetError'
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError'
-  | 'LambdaEmptyZipError'
+  | 'LambdaEmptyZipFault'
   | 'LambdaMaxSizeExceededError';
