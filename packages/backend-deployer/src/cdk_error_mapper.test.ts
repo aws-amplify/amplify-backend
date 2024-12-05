@@ -362,8 +362,26 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
   },
   {
-    errorMessage: `EPERM: operation not permitted, rename 'C:/Users/someUser/amplify/artifacts/cdk.out/synth.lock.6785_1' → 'C:/Users/someUser/amplify/artifacts/cdk.out/synth.lock'`,
-    expectedTopLevelErrorMessage: `Not permitted to rename file: 'C:/Users/someUser/amplify/artifacts/cdk.out/synth.lock.6785_1'`,
+    errorMessage: `[31mEPERM: operation not permitted, rename 'C:/Users/someUser/.amplify/artifacts/cdk.out/synth.lock.6785_1' → 'C:/Users/someUser/amplify/artifacts/cdk.out/synth.lock' [31m`,
+    expectedTopLevelErrorMessage: `Not permitted to rename file: 'C:/Users/someUser/.amplify/artifacts/cdk.out/synth.lock.6785_1'`,
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `[31mEPERM: operation not permitted, unlink '.amplify/artifacts/cdk.out/read.4276_1.lock' [31m`,
+    expectedTopLevelErrorMessage: `Operation not permitted on file: '.amplify/artifacts/cdk.out/read.4276_1.lock'`,
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `[31mEPERM: operation not permitted, open '.amplify/artifacts/cdk.out/synth.lock.6785_1' [31m`,
+    expectedTopLevelErrorMessage: `Operation not permitted on file: '.amplify/artifacts/cdk.out/synth.lock.6785_1'`,
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `Could not create output directory .amplify/artifacts/cdk.out (EPERM: operation not permitted, mkdir '.amplify/artifacts/cdk.out')`,
+    expectedTopLevelErrorMessage: `Not permitted to create the directory '.amplify/artifacts/cdk.out'`,
     errorName: 'FilePermissionsError',
     expectedDownstreamErrorMessage: undefined,
   },
