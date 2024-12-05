@@ -44,14 +44,14 @@ export type ErrorDetails = {
     name: string;
     message: string;
   };
-  cause?: {
+  cause?: Array<{
     name: string;
     message: string;
     methodName: string;
     file: string;
     lineNumber: number;
     columnNumber: string;
-  };
+  }>;
 };
 
 // Project Details
