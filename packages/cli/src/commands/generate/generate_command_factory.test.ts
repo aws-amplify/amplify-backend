@@ -1,7 +1,10 @@
 import yargs from 'yargs';
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { TestCommandRunner } from '../../test-utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../test-utils/command_runner.js';
 import { createGenerateCommand } from './generate_command_factory.js';
 
 /**
@@ -29,6 +32,20 @@ void describe('top level generate command', () => {
   void it('fails if subcommand is not provided', async () => {
     const output = await commandRunner.runCommand('generate');
     assert.match(output, /Not enough non-option arguments/);
+  });
+
+  void it('fails if stack argument provided is invalid', async () => {
+    await assert.rejects(
+      () => commandRunner.runCommand('generate outputs --stack 3abcd'),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
+        assert.strictEqual(
+          error.error.message,
+          'Invalid --stack name provided: 3abcd'
+        );
+        return true;
+      }
+    );
   });
 
   void it('should throw if top level command handler is ever called', () => {
