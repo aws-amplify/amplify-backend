@@ -16,11 +16,13 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: undefined,
   },
   {
-    errorMessage: 'ExpiredToken',
+    errorMessage:
+      'ExpiredToken: The security token included in the request is expired',
     expectedTopLevelErrorMessage:
       'The security token included in the request is invalid.',
     errorName: 'ExpiredTokenError',
-    expectedDownstreamErrorMessage: 'ExpiredToken',
+    expectedDownstreamErrorMessage:
+      'ExpiredToken: The security token included in the request is expired',
   },
   {
     errorMessage:
