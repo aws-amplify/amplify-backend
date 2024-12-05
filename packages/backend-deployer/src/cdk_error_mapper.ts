@@ -247,6 +247,14 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
+        /InvalidParameterValueException: Uploaded file must be a non-empty zip/,
+      humanReadableErrorMessage: 'Lambda bundled into an empty zip',
+      resolutionMessage: `Try removing '.amplify/artifacts' then running the command again. If it still doesn't work, see https://github.com/aws/aws-cdk/issues/18459 for more methods.`,
+      errorName: 'LambdaEmptyZipFault',
+      classification: 'FAULT',
+    },
+    {
+      errorRegex:
         /User:(.*) is not authorized to perform: lambda:GetLayerVersion on resource:(.*) because no resource-based policy allows the lambda:GetLayerVersion action/,
       humanReadableErrorMessage: 'Unable to get Lambda layer version',
       resolutionMessage:
@@ -519,4 +527,5 @@ export type CDKDeploymentError =
   | 'SecretNotSetError'
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError'
+  | 'LambdaEmptyZipFault'
   | 'LambdaMaxSizeExceededError';
