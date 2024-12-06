@@ -238,4 +238,38 @@ void describe('deploy command', () => {
       ClientConfigFormat.DART,
     ]);
   });
+
+  void it('throws when --branch argument has no input', async () => {
+    await assert.rejects(
+      async () =>
+        await getCommandRunner(true).runCommand(
+          'pipeline-deploy --app-id abc --branch'
+        ),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'MissingCommandInputError');
+        assert.strictEqual(
+          error.error.message,
+          'Missing --branch and/or --app-id'
+        );
+        return true;
+      }
+    );
+  });
+
+  void it('throws when --app-id argument has no input', async () => {
+    await assert.rejects(
+      async () =>
+        await getCommandRunner(true).runCommand(
+          'pipeline-deploy --app-id --branch testBranch'
+        ),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'MissingCommandInputError');
+        assert.strictEqual(
+          error.error.message,
+          'Missing --branch and/or --app-id'
+        );
+        return true;
+      }
+    );
+  });
 });
