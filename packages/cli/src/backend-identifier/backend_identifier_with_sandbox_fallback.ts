@@ -23,7 +23,11 @@ export class BackendIdentifierResolverWithFallback
   resolveDeployedBackendIdentifier = async (
     args: BackendIdentifierParameters
   ) => {
-    if (args.stack || args.appId || args.branch) {
+    if (
+      args.stack !== undefined ||
+      args.appId !== undefined ||
+      args.branch !== undefined
+    ) {
       return this.defaultResolver.resolveDeployedBackendIdentifier(args);
     }
 
@@ -33,7 +37,11 @@ export class BackendIdentifierResolverWithFallback
    * Resolves deployed backend id to backend id, falling back to the sandbox id if stack or appId and branch inputs are not provided
    */
   resolveBackendIdentifier = async (args: BackendIdentifierParameters) => {
-    if (args.stack || args.appId || args.branch) {
+    if (
+      args.stack !== undefined ||
+      args.appId !== undefined ||
+      args.branch !== undefined
+    ) {
       return this.defaultResolver.resolveBackendIdentifier(args);
     }
 

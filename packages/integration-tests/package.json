@@ -35,7 +35,7 @@
     "aws-appsync-auth-link": "^3.0.7",
     "aws-cdk-lib": "^2.168.0",
     "constructs": "^10.0.0",
-    "execa": "^8.0.1",
+    "execa": "^9.5.1",
     "fs-extra": "^11.1.1",
     "glob": "^10.2.7",
     "graphql-tag": "^2.12.6",

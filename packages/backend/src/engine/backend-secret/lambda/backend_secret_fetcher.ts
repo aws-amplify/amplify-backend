@@ -22,11 +22,11 @@ export const handler = async (
 
   const physicalId =
     event.RequestType === 'Create' ? randomUUID() : event.PhysicalResourceId;
-  let data: { secretValue: string } | undefined = undefined;
+  let data: Record<string, string> | undefined = undefined;
   if (event.RequestType === 'Update' || event.RequestType === 'Create') {
-    const val = await handleCreateUpdateEvent(secretClient, event);
+    const secretMap = await handleCreateUpdateEvent(secretClient, event);
     data = {
-      secretValue: val,
+      ...secretMap,
     };
   }
 
@@ -47,54 +47,59 @@ export const handler = async (
 export const handleCreateUpdateEvent = async (
   secretClient: SecretClient,
   event: CloudFormationCustomResourceEvent
-): Promise<string> => {
+): Promise<Record<string, string>> => {
   const props = event.ResourceProperties as unknown as SecretResourceProps;
-  let secret: string | undefined;
-
-  try {
-    const resp = await secretClient.getSecret(
-      {
-        namespace: props.namespace,
-        name: props.name,
-        type: props.type,
-      },
-      {
-        name: props.secretName,
-      }
-    );
-    secret = resp?.value;
-  } catch (err) {
-    const secretErr = err as SecretError;
-    if (secretErr.httpStatusCode && secretErr.httpStatusCode >= 500) {
-      throw new Error(
-        `Failed to retrieve backend secret '${props.secretName}' for '${
-          props.namespace
-        }/${props.name}'. Reason: ${JSON.stringify(err)}`
-      );
-    }
-  }
-
-  // if the secret is not available in branch path, try retrieving it at the app-level.
-  if (!secret) {
+  const secretMap: Record<string, string> = {};
+  for (const secretName of props.secretNames) {
+    let secretValue: string | undefined = undefined;
     try {
-      const resp = await secretClient.getSecret(props.namespace, {
-        name: props.secretName,
-      });
-      secret = resp?.value;
+      const resp = await secretClient.getSecret(
+        {
+          namespace: props.namespace,
+          name: props.name,
+          type: props.type,
+        },
+        {
+          name: secretName,
+        }
+      );
+      secretValue = resp.value;
     } catch (err) {
+      const secretErr = err as SecretError;
+      if (secretErr.httpStatusCode && secretErr.httpStatusCode >= 500) {
+        throw new Error(
+          `Failed to retrieve backend secret '${secretName}' for '${
+            props.namespace
+          }/${props.name}'. Reason: ${JSON.stringify(err)}`
+        );
+      }
+    }
+
+    // if the secret is not available in branch path, try retrieving it at the app-level.
+    if (!secretValue) {
+      try {
+        const resp = await secretClient.getSecret(props.namespace, {
+          name: secretName,
+        });
+        secretValue = resp.value;
+      } catch (err) {
+        throw new Error(
+          `Failed to retrieve backend secret '${secretName}' for '${
+            props.namespace
+          }'. Reason: ${JSON.stringify(err)}`
+        );
+      }
+    }
+
+    if (!secretValue) {
       throw new Error(
-        `Failed to retrieve backend secret '${props.secretName}' for '${
-          props.namespace
-        }'. Reason: ${JSON.stringify(err)}`
+        `Unable to find backend secret for backend '${props.namespace}', branch '${props.name}', name '${secretName}'`
       );
     }
+
+    // store the secret->secretValue pair in the secret map
+    secretMap[secretName] = secretValue;
   }
 
-  if (!secret) {
-    throw new Error(
-      `Unable to find backend secret for backend '${props.namespace}', branch '${props.name}', name '${props.secretName}'`
-    );
-  }
-
-  return secret;
+  return secretMap;
 };

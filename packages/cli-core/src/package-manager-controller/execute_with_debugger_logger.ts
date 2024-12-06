@@ -1,6 +1,7 @@
 import { LogLevel } from '../printer/printer.js';
-import { type Options, execa as _execa } from 'execa';
+import { ExecaMethod, execa as _execa } from 'execa';
 import { printer } from '../printer.js';
+import { ExecaOptions } from '@aws-amplify/plugin-types';
 
 /**
  * Abstracts the execution of a command and pipes outputs/errors to `Printer.debug`
@@ -10,8 +11,8 @@ export const executeWithDebugLogger = (
   executable: string,
   args?: Readonly<string[]>,
   execa = _execa,
-  options?: Options<'utf8'>
-) => {
+  options?: ExecaOptions
+): ReturnType<ExecaMethod> => {
   try {
     console.log('executeWithDebugLogger');
     console.log(`executable: ${executable}`)
