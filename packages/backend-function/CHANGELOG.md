@@ -1,5 +1,27 @@
 # @aws-amplify/backend-function
 
+## 1.9.0
+
+### Minor Changes
+
+- 5cbe318: Add lambda data client
+- 72b2fe0: Add support to `@aws-amplify/backend-function` for Node 22
+
+  Add support to `@aws-amplify/backend-function` for Node 22, which is a [supported Lambda runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html#runtime-deprecation-levels) that was added in [`aws-cdk-lib/aws-lambda` version `2.168.0`](https://github.com/aws/aws-cdk/releases/tag/v2.168.0) on November 20th, 2024
+
+- 65abf6a: Add options to control log settings
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- d227f96: change errors in FunctionFactory to AmplifyUserError
+- f6ba240: Upgrade execa
+- d227f96: add validation for environment prop
+- Updated dependencies [72b2fe0]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/backend-output-storage@1.1.4
+  - @aws-amplify/plugin-types@1.6.0
+
 ## 1.8.0
 
 ### Minor Changes
