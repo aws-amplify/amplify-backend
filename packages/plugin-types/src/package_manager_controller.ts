@@ -1,10 +1,27 @@
-/**
- * TODO: use the latest execa.
- * Issue: https://github.com/aws-amplify/amplify-backend/issues/962
- * execa v8 doesn't support commonjs, so we need to use the types from v5
+import { Readable } from 'node:stream';
+
+/*
+ * Execa v6 and onwards doesn't support commonjs, so we need to define our own types
+ * to match execa functionalities we use.
  * https://github.com/sindresorhus/execa/issues/489#issuecomment-1109983390
  */
-import { type ExecaChildProcess, type Options } from 'execa';
+
+export type ExecaOptions = {
+  stdin?: 'inherit';
+  stdout?: 'pipe';
+  stderr?: 'pipe';
+  extendEnv?: boolean;
+  env?: Record<string, string>;
+};
+
+export type ExecaChildProcessResult = {
+  exitCode?: number | undefined;
+};
+
+export type ExecaChildProcess = {
+  stdout: Readable | null;
+  stderr: Readable | null;
+} & Promise<ExecaChildProcessResult>;
 
 export type PackageManagerController = {
   initializeProject: () => Promise<void>;
@@ -16,7 +33,7 @@ export type PackageManagerController = {
   runWithPackageManager: (
     args: string[] | undefined,
     dir: string,
-    options?: Options<'utf8'>
+    options?: ExecaOptions
   ) => ExecaChildProcess;
   getCommand: (args: string[]) => string;
   allowsSignalPropagation: () => boolean;

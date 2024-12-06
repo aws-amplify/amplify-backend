@@ -1,8 +1,11 @@
 import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
-import { type ExecaMethod, type Options, execa as _execa } from 'execa';
+import { execa as _execa } from 'execa';
 import * as _path from 'path';
-import { type PackageManagerController } from '@aws-amplify/plugin-types';
+import {
+  ExecaChildProcess, ExecaOptions,
+  type PackageManagerController
+} from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
@@ -121,8 +124,8 @@ export abstract class PackageManagerControllerBase
   runWithPackageManager(
     args: string[] = [],
     dir: string,
-    options?: Options
-  ): ReturnType<ExecaMethod> {
+    options?: ExecaOptions
+  ): ExecaChildProcess {
     return this.executeWithDebugLogger(
       dir,
       this.binaryRunner,

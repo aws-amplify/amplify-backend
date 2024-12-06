@@ -17,8 +17,5 @@
   },
   "imports": {
     "#package.json": "./package.json"
-  },
-  "devDependencies": {
-    "execa": "^9.5.1"
   }
 }
