@@ -166,7 +166,7 @@ export type ExecaChildProcessResult = {
     exitCode?: number | undefined;
 };
 
-// @public
+// @public (undocumented)
 export type ExecaOptions = {
     stdin?: 'inherit';
     stdout?: 'pipe';
