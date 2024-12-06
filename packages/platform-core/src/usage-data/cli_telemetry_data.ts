@@ -1,6 +1,7 @@
 // Core Identifiers
 export type CoreIdentifiersDetails = {
   sessionUuid: string;
+  eventId: string;
   timestamp: string;
   localProjectId: string;
   accountId?: string;
@@ -9,13 +10,12 @@ export type CoreIdentifiersDetails = {
 };
 
 // Command Details
-export type CommandDetails = {
+export type EventDetails = {
   success: boolean;
   command: {
     path: string[];
     parameters: string[];
   };
-  executionTime: number;
 };
 
 // Environment Details
@@ -31,27 +31,20 @@ export type EnvironmentDetails = {
 };
 
 // Latency (Optional)
-export type Latency = {
+export type LatencyDetails = {
   init?: number;
   synthesis?: number;
   deployment?: number;
   hotSwap?: number;
+  total: number;
 };
 
 // Error Details (Optional)
 export type ErrorDetails = {
-  primary: {
-    name: string;
-    message: string;
-  };
-  cause?: Array<{
-    name: string;
-    message: string;
-    methodName: string;
-    file: string;
-    lineNumber: number;
-    columnNumber: string;
-  }>;
+  name: string;
+  message: string;
+  stack: string;
+  cause?: ErrorDetails;
 };
 
 // Project Details
@@ -62,9 +55,9 @@ export type ProjectDetails = {
 // Main Telemetry Data Structure
 export type AmplifyCliTelemetryData = {
   identifiers: CoreIdentifiersDetails;
-  command: CommandDetails;
+  event: EventDetails;
   environment: EnvironmentDetails;
   project: ProjectDetails;
-  latency?: Latency;
+  latency?: LatencyDetails;
   error?: ErrorDetails;
 };
