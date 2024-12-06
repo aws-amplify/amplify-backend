@@ -246,11 +246,8 @@ void describe('deploy command', () => {
           'pipeline-deploy --app-id abc --branch'
         ),
       (error: TestCommandError) => {
-        assert.strictEqual(error.error.name, 'MissingCommandInputError');
-        assert.strictEqual(
-          error.error.message,
-          'Missing --branch and/or --app-id'
-        );
+        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
+        assert.strictEqual(error.error.message, 'Invalid --branch or --app-id');
         return true;
       }
     );
@@ -263,11 +260,8 @@ void describe('deploy command', () => {
           'pipeline-deploy --app-id --branch testBranch'
         ),
       (error: TestCommandError) => {
-        assert.strictEqual(error.error.name, 'MissingCommandInputError');
-        assert.strictEqual(
-          error.error.message,
-          'Missing --branch and/or --app-id'
-        );
+        assert.strictEqual(error.error.name, 'InvalidCommandInputError');
+        assert.strictEqual(error.error.message, 'Invalid --branch or --app-id');
         return true;
       }
     );
