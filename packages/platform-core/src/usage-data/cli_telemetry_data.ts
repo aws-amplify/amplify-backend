@@ -6,7 +6,7 @@ export type CoreIdentifiersDetails = {
   localProjectId: string;
   accountId?: string;
   payloadVersion: string;
-  awsRegion: string;
+  awsRegion?: string;
 };
 
 // Command Details
@@ -58,6 +58,6 @@ export type AmplifyCliTelemetryData = {
   event: EventDetails;
   environment: EnvironmentDetails;
   project: ProjectDetails;
-  latency?: LatencyDetails;
+  latency: LatencyDetails;
   error?: ErrorDetails;
 };
