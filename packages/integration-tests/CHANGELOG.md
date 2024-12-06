@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.6.1
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+
 ## 0.6.0
 
 ### Minor Changes

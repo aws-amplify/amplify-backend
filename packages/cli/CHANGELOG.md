@@ -1,5 +1,35 @@
 # @aws-amplify/backend-cli
 
+## 1.4.3
+
+### Patch Changes
+
+- 7c5abe2: validate branch and app id inputs for pipeline-deploy command
+- 7c5abe2: update logic for falling back to sandbox resolver for backend id
+- 0cf5c26: add a required input prompt for use in region input
+- fc7e4d4: validate input stack name for generate commands
+- f6ba240: Upgrade execa
+- Updated dependencies [1593ce8]
+- Updated dependencies [a406263]
+- Updated dependencies [37d8564]
+- Updated dependencies [cfdc854]
+- Updated dependencies [d66ab17]
+- Updated dependencies [5a47d21]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [65abf6a]
+- Updated dependencies [0a360fb]
+- Updated dependencies [6015595]
+- Updated dependencies [daaedb6]
+- Updated dependencies [0cf5c26]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/backend-deployer@1.1.11
+  - @aws-amplify/platform-core@1.3.0
+  - @aws-amplify/schema-generator@1.2.6
+  - @aws-amplify/client-config@1.5.3
+  - @aws-amplify/plugin-types@1.6.0
+  - @aws-amplify/sandbox@1.2.7
+  - @aws-amplify/cli-core@1.2.1
+
 ## 1.4.2
 
 ### Patch Changes
