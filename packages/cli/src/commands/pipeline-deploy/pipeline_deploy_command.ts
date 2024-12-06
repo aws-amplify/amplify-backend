@@ -127,6 +127,7 @@ export class PipelineDeployCommand
             resolution: '--branch and --app-id must be at least 1 character',
           });
         }
+        return true;
       });
   };
 }
