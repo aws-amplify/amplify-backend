@@ -58,11 +58,11 @@ export class ProcessController {
     }
 
     if (process.stdout) {
-      void execaProcess.pipeStdout?.(process.stdout);
+      execaProcess.stdout.pipe(process.stdout);
     }
 
     if (process.stderr) {
-      void execaProcess.pipeStderr?.(process.stderr);
+      execaProcess.stderr.pipe(process.stderr);
     }
 
     if (!execaProcess.stdout) {
