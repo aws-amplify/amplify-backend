@@ -3,8 +3,9 @@ import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
 import {
-  ExecaChildProcess, ExecaOptions,
-  type PackageManagerController
+  ExecaChildProcess,
+  ExecaOptions,
+  type PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
