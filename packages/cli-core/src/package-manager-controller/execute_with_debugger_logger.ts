@@ -1,5 +1,5 @@
 import { LogLevel } from '../printer/printer.js';
-import { type Options, execa as _execa } from 'execa';
+import { ExecaMethod, type Options, execa as _execa } from 'execa';
 import { printer } from '../printer.js';
 
 /**
@@ -10,8 +10,8 @@ export const executeWithDebugLogger = (
   executable: string,
   args?: Readonly<string[]>,
   execa = _execa,
-  options?: Options<'utf8'>
-) => {
+  options?: Options
+): ReturnType<ExecaMethod> => {
   try {
     const childProcess = execa(executable, args, {
       stdin: 'inherit',

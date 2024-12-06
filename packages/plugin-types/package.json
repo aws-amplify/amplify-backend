@@ -19,6 +19,6 @@
     "#package.json": "./package.json"
   },
   "devDependencies": {
-    "execa": "^5.1.1"
+    "execa": "^9.5.1"
   }
 }

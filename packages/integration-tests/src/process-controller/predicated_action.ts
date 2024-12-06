@@ -1,4 +1,4 @@
-import { ExecaChildProcess } from 'execa';
+import { ExecaMethod } from 'execa';
 
 /**
  * Type of actions a user can take with their app.
@@ -12,11 +12,11 @@ export enum ActionType {
 
 type SendInputToProcessAction = {
   actionType: ActionType.SEND_INPUT_TO_PROCESS;
-  action: (execaProcess: ExecaChildProcess<string>) => Promise<void>;
+  action: (execaProcess: ReturnType<ExecaMethod>) => Promise<void>;
 };
 type KillProcess = {
   actionType: ActionType.KILL_PROCESS;
-  action: (execaProcess: ExecaChildProcess<string>) => Promise<void>;
+  action: (execaProcess: ReturnType<ExecaMethod>) => Promise<void>;
 };
 type UpdateFileContentAction = {
   actionType: ActionType.UPDATE_FILE_CONTENT;

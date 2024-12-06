@@ -21,7 +21,7 @@
   "dependencies": {
     "@aws-amplify/platform-core": "^1.2.2",
     "@aws-amplify/plugin-types": "^1.4.0",
-    "execa": "^8.0.1",
+    "execa": "^9.5.1",
     "tsx": "^4.6.1",
     "strip-ansi": "^6.0.1"
   },
