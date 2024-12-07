@@ -1,3 +1,7 @@
+<a href="https://aws-amplify.github.io/" target="_blank">
+    <img src="https://s3.amazonaws.com/aws-mobile-hub-images/aws-amplify-logo.png" alt="AWS Amplify" width="550" >
+</a>
+
 # AWS Amplify Gen 2 Backend
 
 This next generation of Amplify’s backend building experience lets you author your frontend and backend definition completely with TypeScript, a file convention, and Git branch-based environments. To learn more, visit [AWS Amplify Gen 2](https://docs.amplify.aws).
