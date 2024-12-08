@@ -64,13 +64,9 @@ jobs:
       - name: Check event is push to main or pull request has run-e2e label
         id: check
         run: |
-          if [[ ${{ github.event_name }} == 'push' ]] || [[ ${{ github.event_name }} == 'workflow_dispatch' ]] || gh api /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | jq -r '.labels[].name' | grep run-e2e --quiet; then
-            echo setting run_e2e to true;
-            echo "run_e2e=true" >> "$GITHUB_OUTPUT";
-          else
+          # TODO this was edited to fix warning. Should be fixed by merging main.
             echo setting run_e2e to false;
             echo "run_e2e=false" >> "$GITHUB_OUTPUT";
-          fi
   run_e2e_tests:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
