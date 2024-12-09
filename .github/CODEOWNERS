@@ -8,3 +8,14 @@
 
 # GitHub actions/checks approval
 /.github/ @aws-amplify/amplify-backend-admins
+
+# Packages used by console team.
+/packages/backend-secret @aws-amplify/amplify-backend @aws-amplify/amplify-studio-uibuilder
+/packages/backend-secret/API.md @aws-amplify/amplify-backend-api-approvers
+/packages/backend-secret/package.json @aws-amplify/amplify-backend-api-approvers @aws-amplify/amplify-studio-uibuilder
+/packages/client-config @aws-amplify/amplify-backend @aws-amplify/amplify-studio-uibuilder
+/packages/client-config/API.md @aws-amplify/amplify-backend-api-approvers
+/packages/client-config/package.json @aws-amplify/amplify-backend-api-approvers @aws-amplify/amplify-studio-uibuilder
+/packages/deployed-backend-client @aws-amplify/amplify-backend @aws-amplify/amplify-studio-uibuilder
+/packages/deployed-backend-client/API.md @aws-amplify/amplify-backend-api-approvers
+/packages/deployed-backend-client/package.json @aws-amplify/amplify-backend-api-approvers @aws-amplify/amplify-studio-uibuilder
