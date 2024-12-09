@@ -82,6 +82,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   listBackends = (
     listBackendsRequest?: ListBackendsRequest
   ): ListBackendsResponse => {
+    throw new Error('test');
     const backends = this.listBackendsInternal(listBackendsRequest);
     return {
       getBackendSummaryByPage: () => backends,
