@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { beforeEach, describe, it, mock } from 'node:test';
+import { after, before, beforeEach, describe, it, mock } from 'node:test';
 
 import { UsageDataEmitterFactory } from './usage_data_emitter_factory';
 import { DefaultUsageDataEmitter } from './usage_data_emitter';
@@ -20,6 +20,19 @@ void describe('UsageDataEmitterFactory', () => {
     'getInstance',
     () => mockedConfigController
   );
+
+  const originalAmplifyDisableTelemetry =
+    process.env['AMPLIFY_DISABLE_TELEMETRY'];
+
+  before(() => {
+    // Unset AMPLIFY_DISABLE_TELEMETRY. We may be setting this variable in GitHub workflows.
+    delete process.env['AMPLIFY_DISABLE_TELEMETRY'];
+  });
+
+  after(() => {
+    // Restore original value after tests.
+    process.env['AMPLIFY_DISABLE_TELEMETRY'] = originalAmplifyDisableTelemetry;
+  });
 
   beforeEach(() => {
     configControllerGet.mock.resetCalls();
