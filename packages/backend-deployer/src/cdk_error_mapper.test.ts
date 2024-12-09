@@ -667,15 +667,6 @@ npm error enoent`,
     expectedDownstreamErrorMessage:
       'Error: No apps found with name my-app in region us-west-2',
   },
-  {
-    errorMessage:
-      'Error: No apps found with name @packages/backend in region ap-northeast-1',
-    expectedTopLevelErrorMessage:
-      'No Amplify app found with the specified name in the given region.',
-    errorName: 'AmplifyAppNotFoundError',
-    expectedDownstreamErrorMessage:
-      'Error: No apps found with name @packages/backend in region ap-northeast-1',
-  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {

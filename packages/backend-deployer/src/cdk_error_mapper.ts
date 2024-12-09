@@ -497,7 +497,7 @@ export class CdkErrorMapper {
       errorName: 'CloudFormationDeploymentError',
       classification: 'ERROR',
     },
-    //This type of error often occurs when:
+    // This type of error often occurs when:
     // Users have not deployed their app to the specified region.
     // There's a mismatch between the app name in the local configuration and the deployed app name.
     // Users are working in a different AWS account or region than where the app is deployed.
