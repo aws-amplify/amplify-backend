@@ -662,10 +662,9 @@ npm error enoent`,
   {
     errorMessage: 'Error: No apps found with name my-app in region us-west-2',
     expectedTopLevelErrorMessage:
-      'No Amplify app found with the specified name in the given region.',
+      'No Amplify app found with name "my-app" in region "us-west-2".',
     errorName: 'AmplifyAppNotFoundError',
-    expectedDownstreamErrorMessage:
-      'Error: No apps found with name my-app in region us-west-2',
+    expectedDownstreamErrorMessage: undefined,
   },
 ];
 

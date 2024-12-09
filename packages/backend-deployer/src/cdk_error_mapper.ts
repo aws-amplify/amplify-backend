@@ -505,7 +505,7 @@ export class CdkErrorMapper {
       errorRegex:
         /No apps found with name (?<appName>.*) in region (?<region>.*)/,
       humanReadableErrorMessage:
-        'No Amplify app found with the specified name in the given region.',
+        'No Amplify app found with name "{appName}" in region "{region}".',
       resolutionMessage:
         'Ensure that an Amplify app named "{appName}" exists in the "{region}" region.',
       errorName: 'AmplifyAppNotFoundError',
