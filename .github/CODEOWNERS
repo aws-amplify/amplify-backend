@@ -11,6 +11,7 @@
 
 # Packages used by console team.
 /packages/backend-secret @aws-amplify/amplify-backend @aws-amplify/amplify-studio-uibuilder
+# API.md change always has related code change. Both teams are notified, but API approval by backend team is mandatory this way.
 /packages/backend-secret/API.md @aws-amplify/amplify-backend-api-approvers
 /packages/backend-secret/package.json @aws-amplify/amplify-backend-api-approvers @aws-amplify/amplify-studio-uibuilder
 /packages/client-config @aws-amplify/amplify-backend @aws-amplify/amplify-studio-uibuilder
