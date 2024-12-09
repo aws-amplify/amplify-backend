@@ -497,6 +497,20 @@ export class CdkErrorMapper {
       errorName: 'CloudFormationDeploymentError',
       classification: 'ERROR',
     },
+    //This type of error often occurs when:
+    // Users have not deployed their app to the specified region.
+    // There's a mismatch between the app name in the local configuration and the deployed app name.
+    // Users are working in a different AWS account or region than where the app is deployed.
+    {
+      errorRegex:
+        /No apps found with name (?<appName>.*) in region (?<region>.*)/,
+      humanReadableErrorMessage:
+        'No Amplify app found with the specified name in the given region.',
+      resolutionMessage:
+        'Ensure that an Amplify app named "{appName}" exists in the "{region}" region.',
+      errorName: 'AmplifyAppNotFoundError',
+      classification: 'ERROR',
+    },
   ];
 }
 
@@ -528,4 +542,5 @@ export type CDKDeploymentError =
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError'
   | 'LambdaEmptyZipFault'
-  | 'LambdaMaxSizeExceededError';
+  | 'LambdaMaxSizeExceededError'
+  | 'AmplifyAppNotFoundError';
