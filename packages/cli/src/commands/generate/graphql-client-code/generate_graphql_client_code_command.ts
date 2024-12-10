@@ -15,6 +15,7 @@ import {
   GenerateModelsOptions,
 } from '@aws-amplify/model-generator';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 type GenerateOptions =
   | GenerateGraphqlCodegenOptions
@@ -89,20 +90,36 @@ export class GenerateGraphqlClientCodeCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateGraphqlClientCodeCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier =
-      await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
-        args
+    try {
+      const backendIdentifier =
+        await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
+          args
+        );
+      const out = this.getOutDir(args);
+      const format = args.format ?? GenerateApiCodeFormat.GRAPHQL_CODEGEN;
+      const formatParams = this.formatParamBuilders[format](args);
+
+      const result = await this.generateApiCodeAdapter.invokeGenerateApiCode({
+        ...backendIdentifier,
+        ...formatParams,
+      } as unknown as InvokeGenerateApiCodeProps);
+
+      await result.writeToDirectory(out);
+    } catch (error) {
+      const appNotFoundMatch = (error as Error).message.match(
+        /No apps found with name (?<appName>.*) in region (?<region>.*)/
       );
-    const out = this.getOutDir(args);
-    const format = args.format ?? GenerateApiCodeFormat.GRAPHQL_CODEGEN;
-    const formatParams = this.formatParamBuilders[format](args);
 
-    const result = await this.generateApiCodeAdapter.invokeGenerateApiCode({
-      ...backendIdentifier,
-      ...formatParams,
-    } as unknown as InvokeGenerateApiCodeProps);
-
-    await result.writeToDirectory(out);
+      if (appNotFoundMatch?.groups) {
+        const { appName, region } = appNotFoundMatch.groups;
+        throw new AmplifyUserError('AmplifyAppNotFoundError', {
+          message: `No Amplify app found with name "${appName}" in region "${region}".`,
+          resolution: `Ensure that an Amplify app named "${appName}" exists in the "${region}" region.`,
+        });
+      }
+      // Re-throw other errors
+      throw error;
+    }
   };
 
   /**
