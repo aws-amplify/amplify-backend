@@ -81,7 +81,7 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
 
     return new ProvidedAmplifyFunction(
       scope,
-      `${providedFunction.functionName}-provided`,
+      `${providedFunction.node.id}-provided`,
       this.outputStorageStrategy,
       providedFunction
     );
@@ -110,10 +110,10 @@ class ProvidedAmplifyFunction
 
     // TODO, this is causing circular dependency. And will prevent log streaming.
     // Perhaps friendly name should be in props instead.
-    // Tags.of(cfnFunction).add(
-    //   TagName.FRIENDLY_NAME,
-    //   providedFunction.functionName
-    // );
+    Tags.of(cfnFunction).add(
+      TagName.FRIENDLY_NAME,
+      providedFunction.node.id
+    );
 
     this.resources = {
       lambda: providedFunction,
