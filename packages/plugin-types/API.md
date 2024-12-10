@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
@@ -12,14 +14,13 @@ import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolGroup } from 'aws-cdk-lib/aws-cognito';
 import { Client } from '@aws-sdk/types';
 import { Construct } from 'constructs';
-import { ExecaChildProcess } from 'execa';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { MetadataBearer } from '@aws-sdk/types';
-import { Options } from 'execa';
 import { Policy } from 'aws-cdk-lib/aws-iam';
+import { Readable } from 'node:stream';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
@@ -155,6 +156,26 @@ export type DeepPartialAmplifyGeneratedConfigs<T> = {
 export type DeploymentType = 'branch' | 'sandbox';
 
 // @public (undocumented)
+export type ExecaChildProcess = {
+    stdout: Readable | null;
+    stderr: Readable | null;
+} & Promise<ExecaChildProcessResult>;
+
+// @public (undocumented)
+export type ExecaChildProcessResult = {
+    exitCode?: number | undefined;
+};
+
+// @public (undocumented)
+export type ExecaOptions = {
+    stdin?: 'inherit';
+    stdout?: 'pipe';
+    stderr?: 'pipe';
+    extendEnv?: boolean;
+    env?: Record<string, string>;
+};
+
+// @public (undocumented)
 export type FunctionResources = {
     lambda: IFunction;
     cfnResources: {
@@ -196,7 +217,7 @@ export type PackageManagerController = {
     initializeProject: () => Promise<void>;
     initializeTsConfig: (targetDir: string) => Promise<void>;
     installDependencies: (packageNames: string[], type: 'dev' | 'prod') => Promise<void>;
-    runWithPackageManager: (args: string[] | undefined, dir: string, options?: Options<'utf8'>) => ExecaChildProcess;
+    runWithPackageManager: (args: string[] | undefined, dir: string, options?: ExecaOptions) => ExecaChildProcess;
     getCommand: (args: string[]) => string;
     allowsSignalPropagation: () => boolean;
 };

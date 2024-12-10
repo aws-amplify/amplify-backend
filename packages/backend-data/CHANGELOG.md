@@ -1,5 +1,16 @@
 # @aws-amplify/backend-data
 
+## 1.2.2
+
+### Patch Changes
+
+- 5cbe318: Add lambda data client
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [72b2fe0]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/backend-output-storage@1.1.4
+  - @aws-amplify/plugin-types@1.6.0
+
 ## 1.2.1
 
 ### Patch Changes
