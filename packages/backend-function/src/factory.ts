@@ -1,4 +1,15 @@
 import {
+  FunctionOutput,
+  functionOutputKey,
+} from '@aws-amplify/backend-output-schemas';
+import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import {
+  AmplifyUserError,
+  CallerDirectoryExtractor,
+  TagName,
+} from '@aws-amplify/platform-core';
+import {
+  AmplifyResourceGroupName,
   BackendOutputStorageStrategy,
   BackendSecret,
   BackendSecretResolver,
@@ -11,32 +22,34 @@ import {
   ResourceNameValidator,
   ResourceProvider,
   SsmEnvironmentEntry,
+  StackProvider,
 } from '@aws-amplify/plugin-types';
-import { Construct } from 'constructs';
-import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
-import * as path from 'path';
 import { Duration, Stack, Tags } from 'aws-cdk-lib';
-import { CfnFunction, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { createRequire } from 'module';
-import { FunctionEnvironmentTranslator } from './function_env_translator.js';
-import { Policy } from 'aws-cdk-lib/aws-iam';
-import { readFileSync } from 'fs';
-import { EOL } from 'os';
-import {
-  FunctionOutput,
-  functionOutputKey,
-} from '@aws-amplify/backend-output-schemas';
-import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
-import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'node:url';
-import {
-  AmplifyUserError,
-  CallerDirectoryExtractor,
-  TagName,
-} from '@aws-amplify/platform-core';
-import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Rule } from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import { Policy } from 'aws-cdk-lib/aws-iam';
+import {
+  CfnFunction,
+  IFunction,
+  ILayerVersion,
+  LayerVersion,
+  Runtime,
+} from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Construct } from 'constructs';
+import { readFileSync } from 'fs';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'node:url';
+import { EOL } from 'os';
+import * as path from 'path';
+import { FunctionEnvironmentTranslator } from './function_env_translator.js';
+import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
+import { FunctionLayerArnParser } from './layer_parser.js';
+import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
+import {
+  ProvidedFunctionFactory,
+  ProvidedFunctionProps,
+} from './provided_function_factory.js';
 
 const functionStackType = 'function-Lambda';
 
@@ -56,16 +69,37 @@ export type TimeInterval =
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
-/**
- * Entry point for defining a function in the Amplify ecosystem
- */
-export const defineFunction = (
-  props: FunctionProps | ((scope: Construct) => IFunction) = {}
+export function defineFunction(
+  props?: FunctionProps
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
-    AddEnvironmentFactory
-> => new FunctionFactory(props, new Error().stack);
+    AddEnvironmentFactory &
+    StackProvider
+>;
+export function defineFunction(
+  provider: (scope: Construct) => IFunction,
+  providerProps?: ProvidedFunctionProps
+): ConstructFactory<
+  ResourceProvider<FunctionResources> &
+    ResourceAccessAcceptorFactory &
+    StackProvider
+>;
+/**
+ * Entry point for defining a function in the Amplify ecosystem
+ */
+// We have to use function notation instead of arrow notation.
+// Arrow notation does not support overloads.
+// eslint-disable-next-line no-restricted-syntax
+export function defineFunction(
+  propsOrProvider: FunctionProps | ((scope: Construct) => IFunction) = {},
+  providerProps?: ProvidedFunctionProps
+): unknown {
+  if (propsOrProvider && typeof propsOrProvider === 'function') {
+    return new ProvidedFunctionFactory(propsOrProvider, providerProps);
+  }
+  return new FunctionFactory(propsOrProvider, new Error().stack);
+}
 
 export type FunctionProps = {
   /**
@@ -96,7 +130,7 @@ export type FunctionProps = {
   /**
    * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB.
    * Must be a whole number.
-   * Default is 128MB.
+   * Default is 512MB.
    */
   memoryMB?: number;
 
@@ -124,6 +158,41 @@ export type FunctionProps = {
    * schedule: "0 9 ? * 2 *" // every Monday at 9am
    */
   schedule?: FunctionSchedule | FunctionSchedule[];
+
+  /**
+   * Attach Lambda layers to a function
+   * - A Lambda layer is represented by an object of key/value pair where the key is the module name that is exported from your layer and the value is the ARN of the layer. The key (module name) is used to externalize the module dependency so it doesn't get bundled with your lambda function
+   * - Maximum of 5 layers can be attached to a function and must be in the same region as the function.
+   * @example
+   * layers: {
+   *    "@aws-lambda-powertools/logger": "arn:aws:lambda:<current-region>:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:11"
+   * },
+   * @see [Amplify documentation for Lambda layers](https://docs.amplify.aws/react/build-a-backend/functions/add-lambda-layers)
+   * @see [AWS documentation for Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
+   */
+  layers?: Record<string, string>;
+
+  /*
+   * Options for bundling the function code.
+   */
+  bundling?: FunctionBundlingOptions;
+
+  /**
+   * Group the function with existing Amplify resources or separate the function into its own group.
+   * @default 'function' // grouping with other Amplify functions
+   * @example
+   * resourceGroupName: 'auth' // to group an auth trigger with an auth resource
+   */
+  resourceGroupName?: AmplifyResourceGroupName;
+};
+
+export type FunctionBundlingOptions = {
+  /**
+   * Whether to minify the function code.
+   *
+   * Defaults to true.
+   */
+  minify?: boolean;
 };
 
 /**
@@ -135,7 +204,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
    * Create a new AmplifyFunctionFactory
    */
   constructor(
-    private readonly props: FunctionProps | ((scope: Construct) => IFunction),
+    private readonly props: FunctionProps,
     private readonly callerStack?: string
   ) {}
 
@@ -150,8 +219,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (!this.generator) {
       this.generator = new FunctionGenerator(
         this.hydrateDefaults(resourceNameValidator),
-        outputStorageStrategy,
-        typeof this.props === 'function' ? this.props : undefined
+        outputStorageStrategy
       );
     }
     return constructContainer.getOrCompute(this.generator) as AmplifyFunction;
@@ -162,15 +230,19 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   ): HydratedFunctionProps => {
     const name = this.resolveName();
     resourceNameValidator?.validate(name);
+    const parser = new FunctionLayerArnParser();
+    const layers = parser.parseLayers(this.props.layers ?? {}, name);
     return {
       name,
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
-      environment:
-        typeof this.props === 'function' ? {} : this.props.environment ?? {},
+      environment: this.props.environment ?? {},
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
+      bundling: this.resolveBundling(),
+      layers,
+      resourceGroupName: this.props.resourceGroupName ?? 'function',
     };
   };
 
@@ -179,12 +251,9 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (this.props.name) {
       return this.props.name;
     }
-
-    if (typeof this.props != 'function') {
-      // If entry is set, use the basename of the entry path
-      if (this.props.entry) {
-        return path.parse(this.props.entry).name;
-      }
+    // If entry is set, use the basename of the entry path
+    if (this.props.entry) {
+      return path.parse(this.props.entry).name;
     }
 
     // Otherwise, use the directory name where the function is defined
@@ -194,29 +263,23 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   };
 
   private resolveEntry = () => {
-    if (typeof this.props != 'function') {
-      // if entry is not set, default to handler.ts
-      if (!this.props.entry) {
-        return path.join(
-          new CallerDirectoryExtractor(this.callerStack).extract(),
-          'handler.ts'
-        );
-      }
-
-      // if entry is absolute use that
-      if (path.isAbsolute(this.props.entry)) {
-        return this.props.entry;
-      }
-
-      // if entry is relative, compute with respect to the caller directory
+    // if entry is not set, default to handler.ts
+    if (!this.props.entry) {
       return path.join(
         new CallerDirectoryExtractor(this.callerStack).extract(),
-        this.props.entry
+        'handler.ts'
       );
     }
+
+    // if entry is absolute use that
+    if (path.isAbsolute(this.props.entry)) {
+      return this.props.entry;
+    }
+
+    // if entry is relative, compute with respect to the caller directory
     return path.join(
       new CallerDirectoryExtractor(this.callerStack).extract(),
-      'handler.ts'
+      this.props.entry
     );
   };
 
@@ -224,108 +287,121 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     const timeoutMin = 1;
     const timeoutMax = 60 * 15; // 15 minutes in seconds
     const timeoutDefault = 3;
-
-    if (typeof this.props != 'function') {
-      if (this.props.timeoutSeconds === undefined) {
-        return timeoutDefault;
-      }
-
-      if (
-        !isWholeNumberBetweenInclusive(
-          this.props.timeoutSeconds,
-          timeoutMin,
-          timeoutMax
-        )
-      ) {
-        throw new Error(
-          `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
-        );
-      }
-      return this.props.timeoutSeconds;
+    if (this.props.timeoutSeconds === undefined) {
+      return timeoutDefault;
     }
-    return timeoutDefault;
+
+    if (
+      !isWholeNumberBetweenInclusive(
+        this.props.timeoutSeconds,
+        timeoutMin,
+        timeoutMax
+      )
+    ) {
+      throw new Error(
+        `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
+      );
+    }
+    return this.props.timeoutSeconds;
   };
 
   private resolveMemory = () => {
     const memoryMin = 128;
     const memoryMax = 10240;
     const memoryDefault = 512;
-    if (typeof this.props != 'function') {
-      if (this.props.memoryMB === undefined) {
-        return memoryDefault;
-      }
-      if (
-        !isWholeNumberBetweenInclusive(
-          this.props.memoryMB,
-          memoryMin,
-          memoryMax
-        )
-      ) {
-        throw new Error(
-          `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
-        );
-      }
-      return this.props.memoryMB;
+    if (this.props.memoryMB === undefined) {
+      return memoryDefault;
     }
-    return memoryDefault;
+    if (
+      !isWholeNumberBetweenInclusive(this.props.memoryMB, memoryMin, memoryMax)
+    ) {
+      throw new Error(
+        `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
+      );
+    }
+    return this.props.memoryMB;
   };
 
   private resolveRuntime = () => {
     const runtimeDefault = 18;
 
-    if (typeof this.props != 'function') {
-      // if runtime is not set, default to the oldest LTS
-      if (!this.props.runtime) {
-        return runtimeDefault;
-      }
-
-      if (!(this.props.runtime in nodeVersionMap)) {
-        throw new Error(
-          `runtime must be one of the following: ${Object.keys(
-            nodeVersionMap
-          ).join(', ')}`
-        );
-      }
-
-      return this.props.runtime;
+    // if runtime is not set, default to the oldest LTS
+    if (!this.props.runtime) {
+      return runtimeDefault;
     }
-    return runtimeDefault;
+
+    if (!(this.props.runtime in nodeVersionMap)) {
+      throw new Error(
+        `runtime must be one of the following: ${Object.keys(
+          nodeVersionMap
+        ).join(', ')}`
+      );
+    }
+
+    return this.props.runtime;
   };
 
   private resolveSchedule = () => {
-    if (typeof this.props != 'function') {
-      if (!this.props.schedule) {
-        return [];
-      }
-
-      return this.props.schedule;
+    if (!this.props.schedule) {
+      return [];
     }
-    return [];
+
+    return this.props.schedule;
+  };
+
+  private resolveBundling = () => {
+    const bundlingDefault = {
+      format: OutputFormat.ESM,
+      bundleAwsSDK: true,
+      loader: {
+        '.node': 'file',
+      },
+      minify: true,
+      sourceMap: true,
+    };
+
+    return {
+      ...bundlingDefault,
+      minify: this.resolveMinify(this.props.bundling),
+    };
+  };
+
+  private resolveMinify = (bundling?: FunctionBundlingOptions) => {
+    return bundling?.minify === undefined ? true : bundling.minify;
   };
 }
 
 type HydratedFunctionProps = Required<FunctionProps>;
 
 class FunctionGenerator implements ConstructContainerEntryGenerator {
-  readonly resourceGroupName = 'function';
+  readonly resourceGroupName: AmplifyResourceGroupName;
 
   constructor(
     private readonly props: HydratedFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
-    private readonly callback?: ((scope: Construct) => IFunction) | undefined
-  ) {}
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+  ) {
+    this.resourceGroupName = props.resourceGroupName;
+  }
 
   generateContainerEntry = ({
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps) => {
+    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
+    const resolvedLayers = Object.entries(this.props.layers).map(([key, arn]) =>
+      LayerVersion.fromLayerVersionArn(
+        scope,
+        `${this.props.name}-${key}-layer`,
+        arn
+      )
+    );
+
     return new AmplifyFunction(
       scope,
       this.props.name,
-      typeof this.props === 'function' ? this.props : this.props,
+      { ...this.props, resolvedLayers },
       backendSecretResolver,
-      this.outputStorageStrategy,
-      this.callback
+      this.outputStorageStrategy
     );
   };
 }
@@ -338,16 +414,18 @@ class AmplifyFunction
     AddEnvironmentFactory
 {
   readonly resources: FunctionResources;
+  readonly stack: Stack;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
     id: string,
-    props: HydratedFunctionProps,
+    props: HydratedFunctionProps & { resolvedLayers: ILayerVersion[] },
     backendSecretResolver: BackendSecretResolver,
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
-    callback: ((scope: Construct) => IFunction) | undefined
+    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
     super(scope, id);
+
+    this.stack = Stack.of(scope);
 
     const runtime = nodeVersionMap[props.runtime];
 
@@ -377,70 +455,65 @@ class AmplifyFunction
       .map((line) => line.replace(/\/\/.*$/, '')) // strip out inline comments because the banner is going to be flattened into a single line
       .join('');
 
-    let functionEnvironmentTypeGenerator:
-      | FunctionEnvironmentTypeGenerator
-      | undefined;
+    const functionEnvironmentTypeGenerator =
+      new FunctionEnvironmentTypeGenerator(id);
 
-    if (!callback) {
-      const functionEnvironmentTypeGenerator =
-        new FunctionEnvironmentTypeGenerator(id);
+    // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
+    // This will be overwritten with the typed file at the end of synthesis
+    functionEnvironmentTypeGenerator.generateProcessEnvShim();
 
-      // esbuild runs as part of the NodejsFunction constructor, so we eagerly generate the process env shim without types so it can be included in the function bundle.
-      // This will be overwritten with the typed file at the end of synthesis
-      functionEnvironmentTypeGenerator.generateProcessEnvShim();
-    }
-
-    let functionLambda: NodejsFunction | IFunction;
+    let functionLambda: NodejsFunction;
     try {
-      if (!callback) {
-        functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
-          entry: props.entry,
-          timeout: Duration.seconds(props.timeoutSeconds),
-          memorySize: props.memoryMB,
-          runtime: nodeVersionMap[props.runtime],
-          bundling: {
-            format: OutputFormat.ESM,
-            banner: bannerCode,
-            bundleAwsSDK: true,
-            inject: shims,
-            loader: {
-              '.node': 'file',
-            },
-            minify: true,
-            sourceMap: true,
-          },
-        });
-      } else {
-        functionLambda = callback(scope);
-      }
+      functionLambda = new NodejsFunction(scope, `${id}-lambda`, {
+        entry: props.entry,
+        timeout: Duration.seconds(props.timeoutSeconds),
+        memorySize: props.memoryMB,
+        runtime: nodeVersionMap[props.runtime],
+        layers: props.resolvedLayers,
+        bundling: {
+          ...props.bundling,
+          banner: bannerCode,
+          inject: shims,
+          externalModules: Object.keys(props.layers),
+        },
+      });
     } catch (error) {
+      // If the error is from ES Bundler which is executed as a child process by CDK,
+      // then the error from CDK contains the command that was executed along with the exit status.
+      // Wrapping it here  would cause the cdk_deployer to re-throw this wrapped exception
+      // instead of scraping the stderr for actual ESBuild error.
+      if (
+        error instanceof Error &&
+        error.message.match(/Failed to bundle asset.*exited with status/)
+      ) {
+        throw error;
+      }
       throw new AmplifyUserError(
         'NodeJSFunctionConstructInitializationError',
         {
           message: 'Failed to instantiate nodejs function construct',
-          resolution: 'See the underlying error message for more details.',
+          resolution:
+            'See the underlying error message for more details. Use `--debug` for additional debugging information.',
         },
         error as Error
       );
     }
 
     try {
-      if (!callback) {
-        const schedules = convertFunctionSchedulesToRuleSchedules(
-          functionLambda as NodejsFunction,
-          props.schedule
-        );
-        const lambdaTarget = new targets.LambdaFunction(functionLambda);
+      const schedules = convertFunctionSchedulesToRuleSchedules(
+        functionLambda,
+        props.schedule
+      );
+      const lambdaTarget = new targets.LambdaFunction(functionLambda);
 
-        schedules.forEach((schedule, index) => {
-          // Lambda name will be prepended to rule id, so only using index here for uniqueness
-          const rule = new Rule(functionLambda, `schedule${index}`, {
-            schedule,
-          });
-
-          rule.addTarget(lambdaTarget);
+      schedules.forEach((schedule, index) => {
+        // Lambda name will be prepended to rule id, so only using index here for uniqueness
+        const rule = new Rule(functionLambda, `schedule${index}`, {
+          schedule,
         });
-      }
+
+        rule.addTarget(lambdaTarget);
+      });
     } catch (error) {
       throw new AmplifyUserError(
         'FunctionScheduleInitializationError',
@@ -455,7 +528,7 @@ class AmplifyFunction
     Tags.of(functionLambda).add(TagName.FRIENDLY_NAME, id);
 
     this.functionEnvironmentTranslator = new FunctionEnvironmentTranslator(
-      functionLambda as NodejsFunction,
+      functionLambda,
       props.environment,
       backendSecretResolver,
       functionEnvironmentTypeGenerator
