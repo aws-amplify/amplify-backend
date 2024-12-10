@@ -83,7 +83,7 @@ export class GenerateFormsCommand
       output = await backendOutputClient.getOutput(backendIdentifier);
     } catch (error) {
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS
       ) {
         throw new AmplifyUserError(
@@ -96,7 +96,7 @@ export class GenerateFormsCommand
         );
       }
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.NO_STACK_FOUND
       ) {
         throw new AmplifyUserError(
@@ -110,7 +110,7 @@ export class GenerateFormsCommand
         );
       }
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.CREDENTIALS_ERROR
       ) {
         throw new AmplifyUserError(
@@ -125,7 +125,7 @@ export class GenerateFormsCommand
         );
       }
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.ACCESS_DENIED
       ) {
         throw new AmplifyUserError(
