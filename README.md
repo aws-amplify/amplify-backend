@@ -1,4 +1,4 @@
-<a href="https://aws-amplify.github.io/" target="_blank">
+<a href="https://docs.amplify.aws/" target="_blank">
     <img src="https://s3.amazonaws.com/aws-mobile-hub-images/aws-amplify-logo.png" alt="AWS Amplify" width="550" >
 </a>
 
