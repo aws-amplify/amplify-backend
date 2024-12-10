@@ -39,9 +39,8 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
         type: 'branch',
       };
     } else if (args.branch) {
-      const resolvedNamespace = await this.namespaceResolver.resolve();
       return {
-        appName: resolvedNamespace,
+        appName: await this.namespaceResolver.resolve(),
         branchName: args.branch,
       };
     }
