@@ -118,16 +118,11 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     );
   };
 
-  static fromError = (
-    error: unknown
-  ): AmplifyError<
-    | 'UnknownFault'
-    | 'CredentialsError'
-    | 'InsufficientDiskSpaceError'
-    | 'InvalidCommandInputError'
-    | 'DomainNotFoundError'
-    | 'SyntaxError'
-  > => {
+  static fromError = (error: unknown): AmplifyError => {
+    if (AmplifyError.isAmplifyError(error)) {
+      return error;
+    }
+
     const errorMessage =
       error instanceof Error
         ? `${error.name}: ${error.message}`

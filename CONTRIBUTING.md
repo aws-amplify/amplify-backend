@@ -146,6 +146,13 @@ At a minimum, each package needs:
 6. An `.npmignore` file
 7. A `README.md` file that gives a brief description of the intent of the package
 
+## Debugging
+
+For debugging purposes you can use the following knobs:
+
+1. Most of `npx ampx` commands take `--debug` parameter. It enables verbose console output.
+2. We are using `execa` for spawning child processes. You can set `export NODE_DEBUG=execa` to reveal exact command lines.
+
 ## Licensing
 
 See the [LICENSE](LICENSE) file for our project's licensing. We will ask you to confirm the licensing of your contribution.

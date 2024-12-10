@@ -9,7 +9,7 @@ import {
 } from './backend_secret_fetcher_factory.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
-const secretResourceType = 'Custom::SecretFetcherResource';
+const secretResourceType = 'Custom::AmplifySecretFetcherResource';
 const namespace = 'testId';
 const name = 'testBranch';
 const secretName1 = 'testSecretName1';
@@ -33,22 +33,14 @@ void describe('getOrCreate', () => {
     resourceFactory.getOrCreate(stack, secretName2, backendId);
 
     const template = Template.fromStack(stack);
-    template.resourceCountIs(secretResourceType, 2);
-    let customResources = template.findResources(secretResourceType, {
+    // only one custom resource is created that fetches all secrets
+    template.resourceCountIs(secretResourceType, 1);
+    const customResources = template.findResources(secretResourceType, {
       Properties: {
         namespace,
         name,
-        secretName: secretName1,
+        secretNames: [secretName1, secretName2],
         secretLastUpdated,
-      },
-    });
-    assert.equal(Object.keys(customResources).length, 1);
-
-    customResources = template.findResources(secretResourceType, {
-      Properties: {
-        namespace,
-        name,
-        secretName: secretName2,
       },
     });
     assert.equal(Object.keys(customResources).length, 1);
@@ -67,6 +59,8 @@ void describe('getOrCreate', () => {
   void it('does not create duplicate resource for the same secret name', () => {
     const app = new App();
     const stack = new Stack(app);
+
+    // ensure only 1 resource is created even if this is called twice
     resourceFactory.getOrCreate(stack, secretName1, backendId);
     resourceFactory.getOrCreate(stack, secretName1, backendId);
 
@@ -78,6 +72,7 @@ void describe('getOrCreate', () => {
     const body = customResources[resourceName]['Properties'];
     assert.strictEqual(body['namespace'], namespace);
     assert.strictEqual(body['name'], name);
-    assert.strictEqual(body['secretName'], secretName1);
+    assert.equal(body['secretNames'].length, 1);
+    assert.equal(body['secretNames'][0], secretName1);
   });
 });

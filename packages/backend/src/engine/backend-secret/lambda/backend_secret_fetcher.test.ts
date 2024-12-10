@@ -43,7 +43,7 @@ const customResourceEventCommon = {
   ResourceType: 'AWS::CloudFormation::CustomResource',
   ResourceProperties: {
     ...testBackendIdentifier,
-    secretName: testSecretName,
+    secretNames: [testSecretName],
     ServiceToken: 'token',
   },
   OldResourceProperties: {},
@@ -84,7 +84,7 @@ void describe('handleCreateUpdateEvent', () => {
       Promise.resolve(testSecret)
     );
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
-    assert.equal(val, testSecretValue);
+    assert.equal(val[testSecretName], testSecretValue);
 
     assert.equal(mockGetSecret.mock.callCount(), 1);
     assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
@@ -120,7 +120,7 @@ void describe('handleCreateUpdateEvent', () => {
     );
 
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
-    assert.equal(val, testSecretValue);
+    assert.equal(val[testSecretName], testSecretValue);
 
     assert.equal(mockGetSecret.mock.callCount(), 2);
     assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
@@ -145,7 +145,7 @@ void describe('handleCreateUpdateEvent', () => {
       }
     );
     const val = await handleCreateUpdateEvent(secretHandler, createCfnEvent);
-    assert.equal(val, testSecretValue);
+    assert.equal(val[testSecretName], testSecretValue);
 
     assert.equal(mockGetSecret.mock.callCount(), 2);
     assert.deepStrictEqual(mockGetSecret.mock.calls[0].arguments, [
