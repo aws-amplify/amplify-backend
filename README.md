@@ -1,5 +1,5 @@
 <a href="https://docs.amplify.aws/" target="_blank">
-<img alt="favicon-purple-64x64.png" src="https://github.com/aws-amplify/docs/blob/main/public/assets/icon/favicon-purple-64x64.png?raw=true" data-hpc="true" class="Box-sc-g0xbh4-0 fzFXnm">   
+<img alt="Amplify logo" src="https://docs.amplify.aws/assets/icon/favicon-purple-64x64.png">   
 </a>
 
 # AWS Amplify Gen 2 Backend
