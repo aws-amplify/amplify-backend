@@ -2,4 +2,4 @@
 '@aws-amplify/sandbox': patch
 ---
 
-start streaming function logs if deployment successful
+do not stream function logs if stack does not exist

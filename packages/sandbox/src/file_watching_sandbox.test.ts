@@ -85,10 +85,8 @@ const sandboxExecutor = new AmplifySandboxExecutor(
   printer as unknown as Printer
 );
 
-const backendDeployerDeployMock = mock.method(
-  backendDeployer,
-  'deploy',
-  () => Promise.resolve({}) // resolve to some DeployResult
+const backendDeployerDeployMock = mock.method(backendDeployer, 'deploy', () =>
+  Promise.resolve()
 );
 const backendDeployerDestroyMock = mock.method(backendDeployer, 'destroy', () =>
   Promise.resolve()
@@ -1139,54 +1137,6 @@ void describe('Sandbox using local project name resolver', () => {
     assert.strictEqual(
       functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
       2 // We resume watching logs after the second deployment is finished.
-    );
-  });
-
-  void it('does not stream function logs if BackendDeployer deploy has an error', async (contextual) => {
-    ({ sandboxInstance, fileChangeEventCallback } = await setupAndStartSandbox(
-      {
-        executor: sandboxExecutor,
-        ssmClient: ssmClientMock,
-        functionsLogStreamer:
-          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
-      },
-      {
-        functionStreamingOptions: {
-          enabled: true,
-          logsFilters: ['func1', 'func2'],
-          logsOutFile: 'testFileName',
-        }, // enabling lambda function log watcher
-      }
-    ));
-    contextual.mock.method(
-      backendDeployer,
-      'deploy',
-      () => Promise.reject(new Error('random BackendDeployer error')),
-      { times: 1 }
-    );
-
-    // Initial deployment
-    assert.strictEqual(
-      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
-      1 // We deactivate before making any deployment, even the first one.
-    );
-    assert.strictEqual(
-      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
-      1
-    );
-
-    // Make another deployment that has BackendDeployer error
-    await fileChangeEventCallback(null, [
-      { type: 'update', path: 'foo/test1.ts' },
-    ]);
-
-    assert.strictEqual(
-      functionsLogStreamerMock.stopStreamingLogs.mock.callCount(),
-      2
-    );
-    assert.strictEqual(
-      functionsLogStreamerMock.startStreamingLogs.mock.callCount(),
-      1 // We do not stream function logs if BackendDeployer has an error
     );
   });
 });
