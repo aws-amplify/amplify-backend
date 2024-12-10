@@ -1,10 +1,7 @@
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { NamespaceResolver } from './local_namespace_resolver.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import {
-  AmplifyUserError,
-  BackendIdentifierConversions,
-} from '@aws-amplify/platform-core';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 export type BackendIdentifierParameters = {
   stack?: string;
@@ -33,39 +30,22 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
   resolveDeployedBackendIdentifier = async (
     args: BackendIdentifierParameters
   ): Promise<DeployedBackendIdentifier | undefined> => {
-    try {
-      if (args.stack) {
-        return { stackName: args.stack };
-      } else if (args.appId && args.branch) {
-        return {
-          namespace: args.appId,
-          name: args.branch,
-          type: 'branch',
-        };
-      } else if (args.branch) {
-        const resolvedNamespace = await this.namespaceResolver.resolve();
-        return {
-          appName: resolvedNamespace,
-          branchName: args.branch,
-        };
-      }
-      return undefined;
-    } catch (error) {
-      const appNotFoundMatch = (error as Error).message.match(
-        /No apps found with name (?<appName>.*) in region (?<region>.*)/
-      );
-
-      if (appNotFoundMatch?.groups) {
-        const { appName, region } = appNotFoundMatch.groups;
-        throw new AmplifyUserError('AmplifyAppNotFoundError', {
-          message: `No Amplify app found with name "${appName}" in region "${region}".`,
-          resolution: `Ensure that an Amplify app named "${appName}" exists in the "${region}" region.`,
-        });
-      }
-
-      // Re-throw any other errors
-      throw error;
+    if (args.stack) {
+      return { stackName: args.stack };
+    } else if (args.appId && args.branch) {
+      return {
+        namespace: args.appId,
+        name: args.branch,
+        type: 'branch',
+      };
+    } else if (args.branch) {
+      const resolvedNamespace = await this.namespaceResolver.resolve();
+      return {
+        appName: resolvedNamespace,
+        branchName: args.branch,
+      };
     }
+    return undefined;
   };
   resolveBackendIdentifier = async (
     args: BackendIdentifierParameters
