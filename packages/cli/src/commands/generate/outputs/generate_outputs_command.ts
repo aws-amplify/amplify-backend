@@ -55,25 +55,42 @@ export class GenerateOutputsCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateOutputsCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier =
-      await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
-        args
+    try {
+      const backendIdentifier =
+        await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
+          args
+        );
+
+      if (!backendIdentifier) {
+        throw new AmplifyUserError('BackendIdentifierResolverError', {
+          message: 'Could not resolve the backend identifier.',
+          resolution:
+            'Ensure stack name or Amplify App ID and branch specified are correct and exists, then re-run this command.',
+        });
+      }
+
+      await this.clientConfigGenerator.generateClientConfigToFile(
+        backendIdentifier,
+        args.outputsVersion as ClientConfigVersion,
+        args.outDir,
+        args.format
+      );
+    } catch (error) {
+      const appNotFoundMatch = (error as Error).message.match(
+        /No apps found with name (?<appName>.*) in region (?<region>.*)/
       );
 
-    if (!backendIdentifier) {
-      throw new AmplifyUserError('BackendIdentifierResolverError', {
-        message: 'Could not resolve the backend identifier.',
-        resolution:
-          'Ensure stack name or Amplify App ID and branch specified are correct and exists, then re-run this command.',
-      });
-    }
+      if (appNotFoundMatch?.groups) {
+        const { appName, region } = appNotFoundMatch.groups;
+        throw new AmplifyUserError('AmplifyAppNotFoundError', {
+          message: `No Amplify app found with name "${appName}" in region "${region}".`,
+          resolution: `Ensure that an Amplify app named "${appName}" exists in the "${region}" region.`,
+        });
+      }
 
-    await this.clientConfigGenerator.generateClientConfigToFile(
-      backendIdentifier,
-      args.outputsVersion as ClientConfigVersion,
-      args.outDir,
-      args.format
-    );
+      // Re-throw any other errors
+      throw error;
+    }
   };
 
   /**
