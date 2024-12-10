@@ -173,7 +173,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       // Stop streaming the logs so that deployment logs don't get mixed up
       this.functionsLogStreamer.stopStreamingLogs();
 
-      await this.deploy(options);
+      let deployResult = await this.deploy(options);
 
       // If latch is still 'deploying' after the 'await', that's fine,
       // but if it's 'queued', that means we need to deploy again
@@ -184,16 +184,19 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         this.printer.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
-        await this.deploy(options);
+        deployResult = await this.deploy(options);
       }
       latch = 'open';
 
-      // Idle state, let customers know and start streaming function logs
+      // Idle state, let customers know
       this.emitWatching();
-      await this.functionsLogStreamer.startStreamingLogs(
-        await this.backendIdSandboxResolver(options.identifier),
-        options.functionStreamingOptions
-      );
+      // if deployment was successful, start streaming function logs
+      if (deployResult) {
+        await this.functionsLogStreamer.startStreamingLogs(
+          await this.backendIdSandboxResolver(options.identifier),
+          options.functionStreamingOptions
+        );
+      }
     });
 
     if (watchForChanges) {
@@ -271,8 +274,9 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
   };
 
   private deploy = async (options: SandboxOptions) => {
+    let deployResult;
     try {
-      const deployResult = await this.executor.deploy(
+      deployResult = await this.executor.deploy(
         await this.backendIdSandboxResolver(options.identifier),
         // It's important to pass this as callback so that debounce does
         // not reset tracker prematurely
@@ -297,6 +301,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       }
       // else do not propagate and let the sandbox continue to run
     }
+    return deployResult;
   };
 
   private reset = async (options: SandboxOptions) => {
