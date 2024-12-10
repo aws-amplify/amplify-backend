@@ -25,8 +25,6 @@ export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` |
 // @public (undocumented)
 export function defineFunction(props?: FunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
 
-// Warning: (ae-forgotten-export) The symbol "ProvidedFunctionProps" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export function defineFunction(provider: (scope: Construct) => IFunction, providerProps?: ProvidedFunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & StackProvider>;
 
@@ -54,6 +52,11 @@ export type FunctionSchedule = TimeInterval | CronSchedule;
 
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20 | 22;
+
+// @public (undocumented)
+export type ProvidedFunctionProps = {
+    resourceGroupName?: AmplifyResourceGroupName;
+};
 
 // @public (undocumented)
 export type TimeInterval = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;
