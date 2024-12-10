@@ -88,6 +88,7 @@ export function defineFunction(
 /**
  * Entry point for defining a function in the Amplify ecosystem
  */
+// This is the "implementation overload", it's not visible in public api.
 // We have to use function notation instead of arrow notation.
 // Arrow notation does not support overloads.
 // eslint-disable-next-line no-restricted-syntax
