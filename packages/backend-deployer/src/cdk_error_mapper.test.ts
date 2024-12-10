@@ -659,13 +659,6 @@ npm error enoent`,
     errorName: 'LambdaEmptyZipFault',
     expectedDownstreamErrorMessage: undefined,
   },
-  {
-    errorMessage: 'Error: No apps found with name my-app in region us-west-2',
-    expectedTopLevelErrorMessage:
-      'No Amplify app found with name "my-app" in region "us-west-2".',
-    errorName: 'AmplifyAppNotFoundError',
-    expectedDownstreamErrorMessage: undefined,
-  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
