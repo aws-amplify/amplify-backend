@@ -1,5 +1,14 @@
 # @aws-amplify/sandbox
 
+## 1.2.8
+
+### Patch Changes
+
+- 3cf0738: do not stream function logs if stack does not exist
+- Updated dependencies [3cf0738]
+  - @aws-amplify/deployed-backend-client@1.5.0
+  - @aws-amplify/client-config@1.5.4
+
 ## 1.2.7
 
 ### Patch Changes

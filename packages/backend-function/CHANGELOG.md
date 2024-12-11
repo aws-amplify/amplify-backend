@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.10.0
+
+### Minor Changes
+
+- 560878f: updates layer to also use layername:version
+
 ## 1.9.0
 
 ### Minor Changes
