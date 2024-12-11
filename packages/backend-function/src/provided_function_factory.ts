@@ -137,8 +137,6 @@ class ProvidedAmplifyFunction
       'Resource'
     ) as CfnFunction;
 
-    // TODO, this is causing circular dependency. And will prevent log streaming.
-    // Perhaps friendly name should be in props instead.
     Tags.of(cfnFunction).add(TagName.FRIENDLY_NAME, providedFunction.node.id);
 
     this.resources = {
