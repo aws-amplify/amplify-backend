@@ -1,5 +1,14 @@
 # @aws-amplify/schema-generator
 
+## 1.2.6
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [cfdc854]
+- Updated dependencies [65abf6a]
+  - @aws-amplify/platform-core@1.3.0
+
 ## 1.2.5
 
 ### Patch Changes

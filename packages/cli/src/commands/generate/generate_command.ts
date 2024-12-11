@@ -4,6 +4,7 @@ import { GenerateFormsCommand } from './forms/generate_forms_command.js';
 import { GenerateGraphqlClientCodeCommand } from './graphql-client-code/generate_graphql_client_code_command.js';
 import { CommandMiddleware } from '../../command_middleware.js';
 import { GenerateSchemaCommand } from './schema-from-database/generate_schema_command.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * An entry point for generate command.
@@ -61,6 +62,20 @@ export class GenerateCommand implements CommandModule {
           describe: 'An AWS profile name.',
           type: 'string',
           array: false,
+        })
+        .check(async (argv) => {
+          const stackNameRegex =
+            /^[a-zA-Z][-a-zA-Z0-9]{1,127}$|^arn:[-a-zA-Z0-9:/._+]$/;
+          if (argv['stack'] && typeof argv['stack'] === 'string') {
+            if (!argv.stack.match(stackNameRegex)) {
+              throw new AmplifyUserError('InvalidCommandInputError', {
+                message: `Invalid --stack name provided: ${argv.stack}`,
+                resolution:
+                  'Check the value of the stack name provided and try again.',
+              });
+            }
+          }
+          return true;
         })
         .middleware([this.commandMiddleware.ensureAwsCredentialAndRegion])
     );

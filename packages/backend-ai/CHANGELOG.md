@@ -1,5 +1,23 @@
 # @aws-amplify/backend-ai
 
+## 1.1.0
+
+### Minor Changes
+
+- 65abf6a: Add options to control log settings
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [cfdc854]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [65abf6a]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/platform-core@1.3.0
+  - @aws-amplify/backend-output-storage@1.1.4
+  - @aws-amplify/ai-constructs@1.1.0
+  - @aws-amplify/plugin-types@1.6.0
+
 ## 1.0.1
 
 ### Patch Changes

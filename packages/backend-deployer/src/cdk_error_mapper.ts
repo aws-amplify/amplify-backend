@@ -99,7 +99,7 @@ export class CdkErrorMapper {
   }> => [
     {
       errorRegex:
-        /ExpiredToken|(Error|InvalidClientTokenId): The security token included in the request is (expired|invalid)/,
+        /ExpiredToken: .*|(Error|InvalidClientTokenId): The security token included in the request is (expired|invalid)/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
       resolutionMessage:
@@ -201,6 +201,22 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /EPERM: operation not permitted, mkdir '(.*).amplify\/artifacts\/cdk.out'/,
+      humanReadableErrorMessage: `Not permitted to create the directory '.amplify/artifacts/cdk.out'`,
+      resolutionMessage: `Check the permissions of '.amplify' folder and try running the command again`,
+      errorName: 'FilePermissionsError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /EPERM: operation not permitted, (unlink|open) (?<fileName>(.*)\.lock\S+)/,
+      humanReadableErrorMessage: 'Operation not permitted on file: {fileName}',
+      resolutionMessage: `Check the permissions of '.amplify' folder and try running the command again`,
+      errorName: 'FilePermissionsError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${this.multiLineEolRegex}|Error: Cannot find module (.*)`
       ),
@@ -219,6 +235,23 @@ export class CdkErrorMapper {
         'Make sure only one instance of sandbox is running for this project',
       errorName: 'MultipleSandboxInstancesError',
       classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /InvalidParameterValueException:(.*) (size must be smaller than|exceeds the maximum allowed size of) (?<maxSize>\d+) bytes/,
+      humanReadableErrorMessage: 'Maximum Lambda size exceeded',
+      resolutionMessage:
+        'Make sure your Lambda bundled packages with layers and dependencies is smaller than {maxSize} bytes unzipped.',
+      errorName: 'LambdaMaxSizeExceededError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /InvalidParameterValueException: Uploaded file must be a non-empty zip/,
+      humanReadableErrorMessage: 'Lambda bundled into an empty zip',
+      resolutionMessage: `Try removing '.amplify/artifacts' then running the command again. If it still doesn't work, see https://github.com/aws/aws-cdk/issues/18459 for more methods.`,
+      errorName: 'LambdaEmptyZipFault',
+      classification: 'FAULT',
     },
     {
       errorRegex:
@@ -504,4 +537,6 @@ export type CDKDeploymentError =
   | 'SecretNotSetError'
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError'
-  | 'GenerateSchemaFromDatabaseError';
+  | 'GenerateSchemaFromDatabaseError'
+  | 'LambdaEmptyZipFault'
+  | 'LambdaMaxSizeExceededError';
