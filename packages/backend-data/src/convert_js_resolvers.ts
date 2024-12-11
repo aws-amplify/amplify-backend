@@ -33,8 +33,11 @@ export const defaultJsResolverCode = (
   );
 
   return readFileSync(resolvedTemplatePath, 'utf-8')
-    .replace('${amplifyApiId}', amplifyApiId)
-    .replace('${amplifyEnvironmentName}', amplifyEnvironmentName);
+    .replace(new RegExp(/\$\{amplifyApiId\}/, 'g'), amplifyApiId)
+    .replace(
+      new RegExp(/\$\{amplifyEnvironmentName\}/, 'g'),
+      amplifyEnvironmentName
+    );
 };
 
 /**
