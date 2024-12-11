@@ -40,7 +40,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
       output = await this.fetchOutput();
     } catch (error) {
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS
       ) {
         throw new AmplifyUserError(
@@ -53,7 +53,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
         );
       }
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.NO_STACK_FOUND
       ) {
         throw new AmplifyUserError(
@@ -67,7 +67,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
         );
       }
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR
       ) {
         throw new AmplifyUserError(
@@ -81,7 +81,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
         );
       }
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.CREDENTIALS_ERROR
       ) {
         throw new AmplifyUserError(
@@ -96,7 +96,7 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
         );
       }
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.ACCESS_DENIED
       ) {
         throw new AmplifyUserError(
