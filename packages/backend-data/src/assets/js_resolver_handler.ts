@@ -1,7 +1,9 @@
 /**
  * Pipeline resolver request handler
  */
-export const request = () => {
+export const request = (ctx: Record<string, Record<string, string>>) => {
+  ctx.stash.awsAppsyncApiId = '${amplifyApiId}';
+  ctx.stash.amplifyBranchName = '${amplifyEnvironmentName}';
   return {};
 };
 /**
