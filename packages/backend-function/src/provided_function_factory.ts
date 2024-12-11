@@ -17,7 +17,7 @@ import {
   functionOutputKey,
 } from '@aws-amplify/backend-output-schemas';
 import { Stack, Tags } from 'aws-cdk-lib';
-import { TagName } from '@aws-amplify/platform-core';
+import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
 import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
 import { fileURLToPath } from 'node:url';
 import { Policy } from 'aws-cdk-lib/aws-iam';
@@ -77,8 +77,37 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
   }
 
   generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
-    const providedFunction = this.functionProvider(scope);
-
+    let providedFunction: IFunction;
+    try {
+      providedFunction = this.functionProvider(scope);
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        (e.message.includes('docker exited with status 1') ||
+          e.message.includes('docker ENOENT'))
+      ) {
+        throw new AmplifyUserError(
+          'FunctionBundlingDockerError',
+          {
+            message: e.message,
+            // TODO better resolution
+            resolution:
+              'Ensure that docker is present and works correctly. See https://some.link.about.docker.',
+          },
+          e
+        );
+      } else {
+        throw new AmplifyUserError(
+          'FunctionProviderError',
+          {
+            message: e instanceof Error ? e.message : JSON.stringify(e),
+            // TODO better resolution
+            resolution: 'Ensure that function provider is working.',
+          },
+          e instanceof Error ? e : undefined
+        );
+      }
+    }
     return new ProvidedAmplifyFunction(
       scope,
       `${providedFunction.node.id}-provided`,
@@ -110,10 +139,7 @@ class ProvidedAmplifyFunction
 
     // TODO, this is causing circular dependency. And will prevent log streaming.
     // Perhaps friendly name should be in props instead.
-    Tags.of(cfnFunction).add(
-      TagName.FRIENDLY_NAME,
-      providedFunction.node.id
-    );
+    Tags.of(cfnFunction).add(TagName.FRIENDLY_NAME, providedFunction.node.id);
 
     this.resources = {
       lambda: providedFunction,
