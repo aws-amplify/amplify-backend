@@ -46,8 +46,8 @@ import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
-import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
+import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
 const functionStackType = 'function-Lambda';
 
@@ -148,6 +148,11 @@ export type FunctionProps = {
    * layers: {
    *    "@aws-lambda-powertools/logger": "arn:aws:lambda:<current-region>:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:11"
    * },
+   * or
+   * @example
+   * layers: {
+   *    "Sharp": "SharpLayer:1"
+   * },
    * @see [Amplify documentation for Lambda layers](https://docs.amplify.aws/react/build-a-backend/functions/add-lambda-layers)
    * @see [AWS documentation for Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
    */
@@ -225,8 +230,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   ): HydratedFunctionProps => {
     const name = this.resolveName();
     resourceNameValidator?.validate(name);
-    const parser = new FunctionLayerArnParser();
-    const layers = parser.parseLayers(this.props.layers ?? {}, name);
+
     return {
       name,
       entry: this.resolveEntry(),
@@ -236,7 +240,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
       bundling: this.resolveBundling(),
-      layers,
+      layers: this.props.layers ?? {},
       resourceGroupName: this.props.resourceGroupName ?? 'function',
       logging: this.props.logging ?? {},
     };
@@ -413,8 +417,18 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps) => {
-    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
-    const resolvedLayers = Object.entries(this.props.layers).map(([key, arn]) =>
+    // Move layer resolution here where we have access to scope
+    const parser = new FunctionLayerArnParser(
+      Stack.of(scope).region,
+      Stack.of(scope).account
+    );
+    const resolvedLayerArns = parser.parseLayers(
+      this.props.layers ?? {},
+      this.props.name
+    );
+
+    // resolve layers to LayerVersion objects for the NodejsFunction constructor
+    const resolvedLayers = Object.entries(resolvedLayerArns).map(([key, arn]) =>
       LayerVersion.fromLayerVersionArn(
         scope,
         `${this.props.name}-${key}-layer`,
