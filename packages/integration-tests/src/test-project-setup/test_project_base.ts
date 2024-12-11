@@ -45,7 +45,7 @@ export type TestProjectUpdate = {
    * Windows has a separate threshold because it is consistently slower than other platforms
    * https://github.com/microsoft/Windows-Dev-Performance/issues/17
    */
-  deployThresholdSec: PlatformDeploymentThresholds;
+  deployThresholdSec?: PlatformDeploymentThresholds;
 };
 
 /**

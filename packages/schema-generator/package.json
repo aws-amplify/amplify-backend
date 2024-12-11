@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/schema-generator",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@aws-amplify/graphql-schema-generator": "^0.11.0",
-    "@aws-amplify/platform-core": "^1.0.5"
+    "@aws-amplify/platform-core": "^1.3.0"
   },
   "license": "Apache-2.0"
 }

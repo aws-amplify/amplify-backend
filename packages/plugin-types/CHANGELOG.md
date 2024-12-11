@@ -1,5 +1,15 @@
 # @aws-amplify/plugin-types
 
+## 1.6.0
+
+### Minor Changes
+
+- f6ba240: Upgrade execa
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+
 ## 1.5.0
 
 ### Minor Changes

@@ -79,3 +79,30 @@ void it('does not use sandbox id if the default identifier resolver fails and th
   });
   assert.deepEqual(resolvedId, undefined);
 });
+
+// stack, appId and branch can be empty string if option is added to command but no value is present (eg. 'ampx generate outputs --stack')
+// this shows intent for deployed backend id so we should not fallback to sandbox id
+void it('does not use sandbox id if the default identifier resolver fails and stack, appId or branch are empty strings', async () => {
+  const appName = 'testAppName';
+  const namespaceResolver = {
+    resolve: () => Promise.resolve(appName),
+  };
+
+  const defaultResolver = new AppBackendIdentifierResolver(namespaceResolver);
+  const username = 'test-user';
+  const sandboxResolver = new SandboxBackendIdResolver(
+    namespaceResolver,
+    () =>
+      ({
+        username,
+      } as never)
+  );
+  const backendIdResolver = new BackendIdentifierResolverWithFallback(
+    defaultResolver,
+    sandboxResolver
+  );
+  const resolvedId = await backendIdResolver.resolveDeployedBackendIdentifier({
+    stack: '',
+  });
+  assert.deepEqual(resolvedId, undefined);
+});
