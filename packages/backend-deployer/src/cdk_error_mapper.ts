@@ -454,6 +454,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /No valid tables found\. Make sure at least one table has a primary key\./,
+      humanReadableErrorMessage:
+        'No valid tables found. Make sure at least one table has a primary key.',
+      resolutionMessage:
+        "If you are using the 'generate schema-from-database' command, make sure the database has at least one table with a primary key.",
+      errorName: 'GenerateSchemaFromDatabaseError',
+      classification: 'ERROR',
+    },
+    {
       // Note that the order matters, this should be the last as it captures generic CFN error
       errorRegex: new RegExp(
         `Deployment failed: (.*)${this.multiLineEolRegex}|The stack named (.*) failed (to deploy:|creation,) (.*)`
@@ -493,4 +503,5 @@ export type CDKDeploymentError =
   | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
   | 'SyntaxError'
-  | 'GetLambdaLayerVersionError';
+  | 'GetLambdaLayerVersionError'
+  | 'GenerateSchemaFromDatabaseError';

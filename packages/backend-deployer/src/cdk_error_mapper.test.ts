@@ -621,6 +621,13 @@ npm error enoent`,
     errorName: 'CloudFormationDeletionError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `No valid tables found. Make sure at least one table has a primary key.`,
+    expectedTopLevelErrorMessage:
+      'No valid tables found. Make sure at least one table has a primary key.',
+    errorName: 'GenerateSchemaFromDatabaseError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
