@@ -1,5 +1,11 @@
 # @aws-amplify/deployed-backend-client
 
+## 1.5.0
+
+### Minor Changes
+
+- 3cf0738: update detection of BackendOutputClientErrors
+
 ## 1.4.2
 
 ### Patch Changes
