@@ -165,6 +165,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /ValidationError: Role (?<roleArn>.*) is invalid or cannot be assumed/,
+      humanReadableErrorMessage:
+        'Role {roleArn} is invalid or cannot be assumed',
+      resolutionMessage:
+        'Ensure the role exists and AWS credentials have an IAM policy that grants sts:AssumeRole for the role',
+      errorName: 'InvalidOrCannotAssumeRoleError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `(SyntaxError|ReferenceError|TypeError)( \\[[A-Z_]+])?:((?:.|${this.multiLineEolRegex})*?at .*)`
       ),
@@ -523,6 +533,7 @@ export type CDKDeploymentError =
   | 'ExpiredTokenError'
   | 'FileConventionError'
   | 'ModuleNotFoundError'
+  | 'InvalidOrCannotAssumeRoleError'
   | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
   | 'SyntaxError'
