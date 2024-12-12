@@ -1,7 +1,11 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import assert from 'node:assert';
-import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
+import {
+  BackendOutputClient,
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '@aws-amplify/deployed-backend-client';
 
 import { CloudWatchLogsClient } from '@aws-sdk/client-cloudwatch-logs';
 import {
@@ -138,6 +142,23 @@ void describe('LambdaFunctionLogStreamer', () => {
           version: '1',
         },
       } as BackendOutput);
+    });
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: true,
+    });
+
+    // No lambda calls to retrieve tags
+    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 0);
+  });
+
+  void it('return early if backend output client throws with stack does not exist', async () => {
+    backendOutputClientMock.getOutput.mock.mockImplementationOnce(() => {
+      return Promise.reject(
+        new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_STACK_FOUND,
+          'Stack with id test-stack does not exist'
+        )
+      );
     });
     await classUnderTest.startStreamingLogs(testSandboxBackendId, {
       enabled: true,
