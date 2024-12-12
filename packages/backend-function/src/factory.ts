@@ -118,7 +118,7 @@ export type FunctionProps = {
   /**
    * The size of the function's /tmp directory in MiB.
    * Must be a whole number.
-   * Default is 512MiB.
+   * @default 512
    */
   ephemeralStorageSize?: number;
 
