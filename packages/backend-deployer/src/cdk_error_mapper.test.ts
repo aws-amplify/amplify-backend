@@ -659,6 +659,13 @@ npm error enoent`,
     errorName: 'LambdaEmptyZipFault',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `Error: some-stack failed: ValidationError: Role role-arn is invalid or cannot be assumed`,
+    expectedTopLevelErrorMessage:
+      'Role role-arn is invalid or cannot be assumed',
+    errorName: 'InvalidOrCannotAssumeRoleError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
