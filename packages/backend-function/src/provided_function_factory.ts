@@ -7,20 +7,15 @@ import {
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   GenerateContainerEntryProps,
-  ResourceAccessAcceptorFactory,
-  ResourceProvider,
+  ResourceAccessAcceptor,
 } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
 import { CfnFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
-import {
-  FunctionOutput,
-  functionOutputKey,
-} from '@aws-amplify/backend-output-schemas';
-import { Stack, Tags } from 'aws-cdk-lib';
+import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
+import { Tags } from 'aws-cdk-lib';
 import { AmplifyUserError, TagName } from '@aws-amplify/platform-core';
-import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
-import { fileURLToPath } from 'node:url';
-import { Policy } from 'aws-cdk-lib/aws-iam';
+import { AmplifyFunctionBase } from './function_construct_base.js';
+import { FunctionResourceAccessAcceptor } from './resource_access_acceptor.js';
 
 export type ProvidedFunctionProps = {
   /**
@@ -117,21 +112,15 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
   };
 }
 
-class ProvidedAmplifyFunction
-  extends Construct
-  implements ResourceProvider<FunctionResources>, ResourceAccessAcceptorFactory
-{
+class ProvidedAmplifyFunction extends AmplifyFunctionBase {
   readonly resources: FunctionResources;
-  readonly stack: Stack;
   constructor(
     scope: Construct,
     id: string,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
     providedFunction: IFunction
   ) {
-    super(scope, id);
-
-    this.stack = Stack.of(scope);
+    super(scope, id, outputStorageStrategy);
 
     const cfnFunction = providedFunction.node.findChild(
       'Resource'
@@ -146,40 +135,9 @@ class ProvidedAmplifyFunction
       },
     };
 
-    this.storeOutput(outputStorageStrategy);
-
-    new AttributionMetadataStorage().storeAttributionMetadata(
-      Stack.of(this),
-      'provided-function-Lambda',
-      fileURLToPath(new URL('../package.json', import.meta.url))
-    );
+    this.storeOutput();
   }
 
-  getResourceAccessAcceptor = () => ({
-    identifier: `${this.node.id}LambdaResourceAccessAcceptor`,
-    acceptResourceAccess: (policy: Policy) => {
-      const role = this.resources.lambda.role;
-      if (!role) {
-        // This should never happen since we are using the Function L2 construct
-        throw new Error(
-          'No execution role found to attach lambda permissions to'
-        );
-      }
-      policy.attachToRole(role);
-    },
-  });
-
-  /**
-   * Store storage outputs using provided strategy
-   */
-  private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-  ): void => {
-    outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
-      version: '1',
-      payload: {
-        definedFunctions: this.resources.lambda.functionName,
-      },
-    });
-  };
+  getResourceAccessAcceptor = (): ResourceAccessAcceptor =>
+    new FunctionResourceAccessAcceptor(this);
 }
