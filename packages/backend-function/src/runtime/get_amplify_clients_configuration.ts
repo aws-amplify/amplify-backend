@@ -5,37 +5,62 @@ import {
   S3ServiceException,
 } from '@aws-sdk/client-s3';
 
+const dataKeyNameContent = '_MODEL_INTROSPECTION_SCHEMA_KEY';
+const dataBucketNameContent = '_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME';
+const dataEndpointNameContent = '_GRAPHQL_ENDPOINT';
+
 export type DataClientEnv = {
   /* eslint-disable @typescript-eslint/naming-convention */
-  AMPLIFY_DATA_GRAPHQL_ENDPOINT: string;
-  AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME: string;
-  AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY: string;
   AWS_ACCESS_KEY_ID: string;
   AWS_SECRET_ACCESS_KEY: string;
   AWS_SESSION_TOKEN: string;
   AWS_REGION: string;
   /* eslint-enable @typescript-eslint/naming-convention */
+} & Record<string, unknown>;
+
+type DataEnvExtension = {
+  dataBucket: string;
+  dataKey: string;
+  dataEndpoint: string;
 };
 
-const isDataClientEnv = (env: unknown): env is DataClientEnv => {
+type ExtendedAmplifyClientEnv = DataClientEnv & DataEnvExtension;
+
+const getKeyPrefixesOf = (keys: string[], content: string) => {
+  return keys
+    .filter((key) => key.endsWith(content))
+    .map((key) => key.slice(0, -1 * content.length));
+};
+
+const getDataName = (env: object): string => {
+  const keys = Object.keys(env);
+  const bucketNamePrefixes = getKeyPrefixesOf(keys, dataBucketNameContent);
+  const keyPrefixes = getKeyPrefixesOf(keys, dataKeyNameContent);
+  const endpointPrefixes = getKeyPrefixesOf(keys, dataEndpointNameContent);
+  if (
+    bucketNamePrefixes.length !== 1 ||
+    keyPrefixes.length !== 1 ||
+    endpointPrefixes.length !== 1 ||
+    bucketNamePrefixes[0] !== keyPrefixes[0] ||
+    bucketNamePrefixes[0] !== endpointPrefixes[0]
+  ) {
+    throw new Error(
+      "The data backend name couldn't be determined. This function may need to be granted `authorization((allow) => [allow.resource(fcn)])` on the data schema."
+    );
+  }
+  return bucketNamePrefixes[0];
+};
+
+const isAmplifyClientEnv = (env: object): env is DataClientEnv => {
   return (
-    env !== null &&
-    typeof env === 'object' &&
-    'AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME' in env &&
-    'AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY' in env &&
     'AWS_ACCESS_KEY_ID' in env &&
-    'AWS_SECRET_ACCESS_KEY' in env &&
-    'AWS_SESSION_TOKEN' in env &&
-    'AWS_REGION' in env &&
-    'AMPLIFY_DATA_GRAPHQL_ENDPOINT' in env &&
-    typeof env.AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME ===
-      'string' &&
-    typeof env.AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY === 'string' &&
     typeof env.AWS_ACCESS_KEY_ID === 'string' &&
+    'AWS_SECRET_ACCESS_KEY' in env &&
     typeof env.AWS_SECRET_ACCESS_KEY === 'string' &&
+    'AWS_SESSION_TOKEN' in env &&
     typeof env.AWS_SESSION_TOKEN === 'string' &&
-    typeof env.AWS_REGION === 'string' &&
-    typeof env.AMPLIFY_DATA_GRAPHQL_ENDPOINT === 'string'
+    'AWS_REGION' in env &&
+    typeof env.AWS_REGION === 'string'
   );
 };
 
@@ -56,16 +81,15 @@ export type ResourceConfig = {
 /* eslint-enable @typescript-eslint/naming-convention */
 
 const getResourceConfig = (
-  env: DataClientEnv,
+  env: ExtendedAmplifyClientEnv,
   modelIntrospectionSchema: object
 ): ResourceConfig => {
   return {
     API: {
       GraphQL: {
-        endpoint: env.AMPLIFY_DATA_GRAPHQL_ENDPOINT,
+        endpoint: env.dataEndpoint,
         region: env.AWS_REGION,
         defaultAuthMode: 'iam' as const,
-
         modelIntrospection: modelIntrospectionSchema,
       },
     },
@@ -108,7 +132,7 @@ const getLibraryOptions = (env: DataClientEnv): LibraryOptions => {
 };
 
 export type InvalidConfig = unknown & {
-  invalidType: 'This function needs to be granted `authorization((allow) => [allow.resource(fcn)])` on the data schema.';
+  invalidType: 'Some of the AWS environment variables needed to configure Amplify are missing.';
 };
 
 export type DataClientError = {
@@ -124,6 +148,38 @@ export type DataClientConfig = {
 export type DataClientReturn<T> = T extends DataClientEnv
   ? DataClientConfig
   : DataClientError;
+
+const extendEnv = <T extends string>(
+  env: DataClientEnv & Record<string, unknown>,
+  dataName: T
+): ExtendedAmplifyClientEnv => {
+  const bucketName = `${dataName}${dataBucketNameContent}`;
+  const keyName = `${dataName}${dataKeyNameContent}`;
+  const endpointName = `${dataName}${dataEndpointNameContent}`;
+  if (
+    !(
+      bucketName in env &&
+      keyName in env &&
+      endpointName in env &&
+      typeof env[bucketName] === 'string' &&
+      typeof env[keyName] === 'string' &&
+      typeof env[endpointName] === 'string'
+    )
+  ) {
+    throw new Error('The data environment fields are malformed');
+  }
+
+  const dataBucket = env[bucketName] as string;
+  const dataKey = env[keyName] as string;
+  const dataEndpoint = env[endpointName] as string;
+
+  return {
+    ...env,
+    dataBucket,
+    dataKey,
+    dataEndpoint,
+  };
+};
 
 /**
  * Generate the `resourceConfig` and `libraryOptions` need to configure
@@ -141,17 +197,24 @@ export const getAmplifyDataClientConfig = async <T>(
   if (!s3Client) {
     s3Client = new S3Client();
   }
+  if (env === null || typeof env !== 'object') {
+    throw new Error(`Invalid environment variables: ${JSON.stringify(env)}`);
+  }
 
-  if (!isDataClientEnv(env)) {
+  if (!isAmplifyClientEnv(env)) {
     return { resourceConfig: {}, libraryOptions: {} } as DataClientReturn<T>;
   }
+
+  const dataName = getDataName(env);
+  const extendedEnv = extendEnv(env, dataName);
+
   let modelIntrospectionSchema: object;
 
   try {
     const response = await s3Client.send(
       new GetObjectCommand({
-        Bucket: env.AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME,
-        Key: env.AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY,
+        Bucket: extendedEnv.dataBucket,
+        Key: extendedEnv.dataKey,
       })
     );
     const modelIntrospectionSchemaJson =
@@ -173,7 +236,10 @@ export const getAmplifyDataClientConfig = async <T>(
 
   const libraryOptions = getLibraryOptions(env);
 
-  const resourceConfig = getResourceConfig(env, modelIntrospectionSchema);
+  const resourceConfig = getResourceConfig(
+    extendedEnv,
+    modelIntrospectionSchema
+  );
 
   return { resourceConfig, libraryOptions } as DataClientReturn<T>;
 };
