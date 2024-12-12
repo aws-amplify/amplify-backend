@@ -3,10 +3,13 @@ import { amplifyErrorNameRule } from './rules/amplify_error_name.js';
 import { preferAmplifyErrorsRule } from './rules/prefer_amplify_errors.js';
 import { noAmplifyErrors } from './rules/no_amplify_errors.js';
 import { amplifyErrorNoInstanceOf } from './rules/amplify_error_no_instance_of';
+import { backendOutputClientErrorNoInstanceOf } from './rules/backent_output_client_error_no_instance_of.js';
 
 export const rules: Record<string, unknown> = {
   'amplify-error-name': amplifyErrorNameRule,
   'amplify-error-no-instanceof': amplifyErrorNoInstanceOf,
+  'backend-output-client-error-no-instanceof':
+    backendOutputClientErrorNoInstanceOf,
   'no-empty-catch': noEmptyCatchRule,
   'prefer-amplify-errors': preferAmplifyErrorsRule,
   'no-amplify-errors': noAmplifyErrors,
@@ -18,6 +21,8 @@ export const configs = {
     rules: {
       'amplify-backend-rules/amplify-error-name': 'error',
       'amplify-backend-rules/amplify-error-no-instanceof': 'error',
+      'amplify-backend-rules/backend-output-client-error-no-instanceof':
+        'error',
       'amplify-backend-rules/no-empty-catch': 'error',
       'amplify-backend-rules/prefer-amplify-errors': 'off',
       'amplify-backend-rules/no-amplify-errors': 'off',

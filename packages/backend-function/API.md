@@ -12,7 +12,22 @@ import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
+import { S3Client } from '@aws-sdk/client-s3';
 import { StackProvider } from '@aws-amplify/plugin-types';
+
+declare namespace __export__runtime {
+    export {
+        getAmplifyDataClientConfig,
+        DataClientConfig,
+        DataClientEnv,
+        DataClientError,
+        DataClientReturn,
+        InvalidConfig,
+        LibraryOptions,
+        ResourceConfig
+    }
+}
+export { __export__runtime }
 
 // @public (undocumented)
 export type AddEnvironmentFactory = {
@@ -21,6 +36,32 @@ export type AddEnvironmentFactory = {
 
 // @public (undocumented)
 export type CronSchedule = `${string} ${string} ${string} ${string} ${string}` | `${string} ${string} ${string} ${string} ${string} ${string}`;
+
+// @public (undocumented)
+type DataClientConfig = {
+    resourceConfig: ResourceConfig;
+    libraryOptions: LibraryOptions;
+};
+
+// @public (undocumented)
+type DataClientEnv = {
+    AMPLIFY_DATA_GRAPHQL_ENDPOINT: string;
+    AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME: string;
+    AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_KEY: string;
+    AWS_ACCESS_KEY_ID: string;
+    AWS_SECRET_ACCESS_KEY: string;
+    AWS_SESSION_TOKEN: string;
+    AWS_REGION: string;
+};
+
+// @public (undocumented)
+type DataClientError = {
+    resourceConfig: InvalidConfig;
+    libraryOptions: InvalidConfig;
+};
+
+// @public (undocumented)
+type DataClientReturn<T> = T extends DataClientEnv ? DataClientConfig : DataClientError;
 
 // @public
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
@@ -65,8 +106,44 @@ export type FunctionProps = {
 // @public (undocumented)
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
+// @public
+const getAmplifyDataClientConfig: <T>(env: T, s3Client?: S3Client) => Promise<DataClientReturn<T>>;
+
+// @public (undocumented)
+type InvalidConfig = unknown & {
+    invalidType: 'This function needs to be granted `authorization((allow) => [allow.resource(fcn)])` on the data schema.';
+};
+
+// @public (undocumented)
+type LibraryOptions = {
+    Auth: {
+        credentialsProvider: {
+            getCredentialsAndIdentityId: () => Promise<{
+                credentials: {
+                    accessKeyId: string;
+                    secretAccessKey: string;
+                    sessionToken: string;
+                };
+            }>;
+            clearCredentialsAndIdentityId: () => void;
+        };
+    };
+};
+
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20 | 22;
+
+// @public (undocumented)
+type ResourceConfig = {
+    API: {
+        GraphQL: {
+            endpoint: string;
+            region: string;
+            defaultAuthMode: 'iam';
+            modelIntrospection: any;
+        };
+    };
+};
 
 // @public (undocumented)
 export type TimeInterval = `every ${number}m` | `every ${number}h` | `every day` | `every week` | `every month` | `every year`;

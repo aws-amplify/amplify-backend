@@ -46,8 +46,8 @@ import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
-import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
+import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 
 const functionStackType = 'function-Lambda';
 
@@ -155,6 +155,11 @@ export type FunctionProps = {
    * layers: {
    *    "@aws-lambda-powertools/logger": "arn:aws:lambda:<current-region>:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:11"
    * },
+   * or
+   * @example
+   * layers: {
+   *    "Sharp": "SharpLayer:1"
+   * },
    * @see [Amplify documentation for Lambda layers](https://docs.amplify.aws/react/build-a-backend/functions/add-lambda-layers)
    * @see [AWS documentation for Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
    */
@@ -232,19 +237,18 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   ): HydratedFunctionProps => {
     const name = this.resolveName();
     resourceNameValidator?.validate(name);
-    const parser = new FunctionLayerArnParser();
-    const layers = parser.parseLayers(this.props.layers ?? {}, name);
+
     return {
       name,
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
       ephemeralStorageSize: this.resolveEphemeralStorageSize(),
-      environment: this.props.environment ?? {},
+      environment: this.resolveEnvironment(),
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
       bundling: this.resolveBundling(),
-      layers,
+      layers: this.props.layers ?? {},
       resourceGroupName: this.props.resourceGroupName ?? 'function',
       logging: this.props.logging ?? {},
     };
@@ -302,9 +306,10 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
         timeoutMax
       )
     ) {
-      throw new Error(
-        `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
-      );
+      throw new AmplifyUserError('InvalidTimeoutError', {
+        message: `Invalid function timeout of ${this.props.timeoutSeconds}`,
+        resolution: `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`,
+      });
     }
     return this.props.timeoutSeconds;
   };
@@ -319,9 +324,10 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     if (
       !isWholeNumberBetweenInclusive(this.props.memoryMB, memoryMin, memoryMax)
     ) {
-      throw new Error(
-        `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`
-      );
+      throw new AmplifyUserError('InvalidMemoryMBError', {
+        message: `Invalid function memoryMB of ${this.props.memoryMB}`,
+        resolution: `memoryMB must be a whole number between ${memoryMin} and ${memoryMax} inclusive`,
+      });
     }
     return this.props.memoryMB;
   };
@@ -347,6 +353,33 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     return this.props.ephemeralStorageSize;
   };
 
+  private resolveEnvironment = () => {
+    if (this.props.environment === undefined) {
+      return {};
+    }
+
+    const invalidKeys: string[] = [];
+
+    Object.keys(this.props.environment).forEach((key) => {
+      // validate using key pattern from https://docs.aws.amazon.com/lambda/latest/api/API_Environment.html
+      if (!key.match(/^[a-zA-Z]([a-zA-Z0-9_])+$/)) {
+        invalidKeys.push(key);
+      }
+    });
+
+    if (invalidKeys.length > 0) {
+      throw new AmplifyUserError('InvalidEnvironmentKeyError', {
+        message: `Invalid function environment key(s): ${invalidKeys.join(
+          ', '
+        )}`,
+        resolution:
+          'Environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters',
+      });
+    }
+
+    return this.props.environment;
+  };
+
   private resolveRuntime = () => {
     const runtimeDefault = 18;
 
@@ -356,11 +389,12 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
 
     if (!(this.props.runtime in nodeVersionMap)) {
-      throw new Error(
-        `runtime must be one of the following: ${Object.keys(
+      throw new AmplifyUserError('InvalidRuntimeError', {
+        message: `Invalid function runtime of ${this.props.runtime}`,
+        resolution: `runtime must be one of the following: ${Object.keys(
           nodeVersionMap
-        ).join(', ')}`
-      );
+        ).join(', ')}`,
+      });
     }
 
     return this.props.runtime;
@@ -412,8 +446,18 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps) => {
-    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
-    const resolvedLayers = Object.entries(this.props.layers).map(([key, arn]) =>
+    // Move layer resolution here where we have access to scope
+    const parser = new FunctionLayerArnParser(
+      Stack.of(scope).region,
+      Stack.of(scope).account
+    );
+    const resolvedLayerArns = parser.parseLayers(
+      this.props.layers ?? {},
+      this.props.name
+    );
+
+    // resolve layers to LayerVersion objects for the NodejsFunction constructor
+    const resolvedLayers = Object.entries(resolvedLayerArns).map(([key, arn]) =>
       LayerVersion.fromLayerVersionArn(
         scope,
         `${this.props.name}-${key}-layer`,

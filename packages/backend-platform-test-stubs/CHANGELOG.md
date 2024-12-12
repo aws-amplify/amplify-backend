@@ -1,5 +1,14 @@
 # @aws-amplify/backend-platform-test-stubs
 
+## 0.3.7
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [72b2fe0]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/plugin-types@1.6.0
+
 ## 0.3.6
 
 ### Patch Changes

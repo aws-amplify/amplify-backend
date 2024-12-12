@@ -99,7 +99,7 @@ export class CdkErrorMapper {
   }> => [
     {
       errorRegex:
-        /ExpiredToken|(Error|InvalidClientTokenId): The security token included in the request is (expired|invalid)/,
+        /ExpiredToken: .*|(Error|InvalidClientTokenId): The security token included in the request is (expired|invalid)/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
       resolutionMessage:
@@ -157,6 +157,14 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /Command cdk not found/,
+      humanReadableErrorMessage: 'Unable to detect cdk installation',
+      resolutionMessage:
+        "Ensure dependencies in your project are installed with your package manager. For example, by running 'yarn install' or 'npm install'",
+      errorName: 'CDKNotFoundError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `(SyntaxError|ReferenceError|TypeError)( \\[[A-Z_]+])?:((?:.|${this.multiLineEolRegex})*?at .*)`
       ),
@@ -185,6 +193,30 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /EPERM: operation not permitted, rename (?<fileName>(.*)\/synth\.lock\.\S+) → '(.*)\/synth\.lock'/,
+      humanReadableErrorMessage: 'Not permitted to rename file: {fileName}',
+      resolutionMessage: `Try running the command again and ensure that only one instance of sandbox is running. If it still doesn't work check the permissions of '.amplify' folder`,
+      errorName: 'FilePermissionsError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /EPERM: operation not permitted, mkdir '(.*).amplify\/artifacts\/cdk.out'/,
+      humanReadableErrorMessage: `Not permitted to create the directory '.amplify/artifacts/cdk.out'`,
+      resolutionMessage: `Check the permissions of '.amplify' folder and try running the command again`,
+      errorName: 'FilePermissionsError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /EPERM: operation not permitted, (unlink|open) (?<fileName>(.*)\.lock\S+)/,
+      humanReadableErrorMessage: 'Operation not permitted on file: {fileName}',
+      resolutionMessage: `Check the permissions of '.amplify' folder and try running the command again`,
+      errorName: 'FilePermissionsError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `\\[ERR_MODULE_NOT_FOUND\\]:(.*)${this.multiLineEolRegex}|Error: Cannot find module (.*)`
       ),
@@ -206,6 +238,23 @@ export class CdkErrorMapper {
     },
     {
       errorRegex:
+        /InvalidParameterValueException:(.*) (size must be smaller than|exceeds the maximum allowed size of) (?<maxSize>\d+) bytes/,
+      humanReadableErrorMessage: 'Maximum Lambda size exceeded',
+      resolutionMessage:
+        'Make sure your Lambda bundled packages with layers and dependencies is smaller than {maxSize} bytes unzipped.',
+      errorName: 'LambdaMaxSizeExceededError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /InvalidParameterValueException: Uploaded file must be a non-empty zip/,
+      humanReadableErrorMessage: 'Lambda bundled into an empty zip',
+      resolutionMessage: `Try removing '.amplify/artifacts' then running the command again. If it still doesn't work, see https://github.com/aws/aws-cdk/issues/18459 for more methods.`,
+      errorName: 'LambdaEmptyZipFault',
+      classification: 'FAULT',
+    },
+    {
+      errorRegex:
         /User:(.*) is not authorized to perform: lambda:GetLayerVersion on resource:(.*) because no resource-based policy allows the lambda:GetLayerVersion action/,
       humanReadableErrorMessage: 'Unable to get Lambda layer version',
       resolutionMessage:
@@ -220,7 +269,7 @@ export class CdkErrorMapper {
       humanReadableErrorMessage:
         'The CloudFormation deletion failed due to {stackName} being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
       resolutionMessage:
-        'The following resource(s) failed to delete: {resources}. Ensure they are in a state where they can be deleted. Find more information in the CloudFormation AWS Console for this stack.',
+        'The following resource(s) failed to delete: {resources}. Check the error message for more details and ensure your resources are in a state where they can be deleted. Check the CloudFormation AWS Console for this stack to find additional information.',
       errorName: 'CloudFormationDeletionError',
       classification: 'ERROR',
     },
@@ -460,6 +509,7 @@ export type CDKDeploymentError =
   | 'BootstrapDetectionError'
   | 'BootstrapOutdatedError'
   | 'CDKAssetPublishError'
+  | 'CDKNotFoundError'
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
@@ -476,4 +526,6 @@ export type CDKDeploymentError =
   | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
   | 'SyntaxError'
-  | 'GetLambdaLayerVersionError';
+  | 'GetLambdaLayerVersionError'
+  | 'LambdaEmptyZipFault'
+  | 'LambdaMaxSizeExceededError';

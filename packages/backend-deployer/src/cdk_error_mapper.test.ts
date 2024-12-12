@@ -16,11 +16,13 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: undefined,
   },
   {
-    errorMessage: 'ExpiredToken',
+    errorMessage:
+      'ExpiredToken: The security token included in the request is expired',
     expectedTopLevelErrorMessage:
       'The security token included in the request is invalid.',
     errorName: 'ExpiredTokenError',
-    expectedDownstreamErrorMessage: 'ExpiredToken',
+    expectedDownstreamErrorMessage:
+      'ExpiredToken: The security token included in the request is expired',
   },
   {
     errorMessage:
@@ -360,6 +362,30 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: `EACCES: permission denied, unlink '.amplify/artifacts/cdk.out/synth.lock'`,
   },
   {
+    errorMessage: `[31mEPERM: operation not permitted, rename 'C:/Users/someUser/.amplify/artifacts/cdk.out/synth.lock.6785_1' → 'C:/Users/someUser/amplify/artifacts/cdk.out/synth.lock' [31m`,
+    expectedTopLevelErrorMessage: `Not permitted to rename file: 'C:/Users/someUser/.amplify/artifacts/cdk.out/synth.lock.6785_1'`,
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `[31mEPERM: operation not permitted, unlink '.amplify/artifacts/cdk.out/read.4276_1.lock' [31m`,
+    expectedTopLevelErrorMessage: `Operation not permitted on file: '.amplify/artifacts/cdk.out/read.4276_1.lock'`,
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `[31mEPERM: operation not permitted, open '.amplify/artifacts/cdk.out/synth.lock.6785_1' [31m`,
+    expectedTopLevelErrorMessage: `Operation not permitted on file: '.amplify/artifacts/cdk.out/synth.lock.6785_1'`,
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `Could not create output directory .amplify/artifacts/cdk.out (EPERM: operation not permitted, mkdir '.amplify/artifacts/cdk.out')`,
+    expectedTopLevelErrorMessage: `Not permitted to create the directory '.amplify/artifacts/cdk.out'`,
+    errorName: 'FilePermissionsError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     errorMessage: `This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
       (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
     expectedTopLevelErrorMessage:
@@ -367,6 +393,12 @@ const testErrorMappings = [
     errorName: 'CDKVersionMismatchError',
     expectedDownstreamErrorMessage: `This CDK CLI is not compatible with the CDK library used by your application. Please upgrade the CLI to the latest version.
       (Cloud assembly schema version mismatch: Maximum schema version supported is 36.0.0, but found 36.1.1)`,
+  },
+  {
+    errorMessage: `error Command cdk not found. Did you mean cdl?`,
+    expectedTopLevelErrorMessage: 'Unable to detect cdk installation',
+    errorName: 'CDKNotFoundError',
+    expectedDownstreamErrorMessage: `error Command cdk not found. Did you mean cdl?`,
   },
   {
     errorMessage: `[31m  amplify-some-stack failed: ValidationError: Stack:stack-arn is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
@@ -607,6 +639,24 @@ npm error enoent`,
     expectedTopLevelErrorMessage:
       'The CloudFormation deletion failed due to amplify-some-stack being in DELETE_FAILED state. Ensure all your resources are able to be deleted',
     errorName: 'CloudFormationDeletionError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `Error: some-stack failed: InvalidParameterValueException: Unzipped size must be smaller than 262144000 bytes`,
+    expectedTopLevelErrorMessage: 'Maximum Lambda size exceeded',
+    errorName: 'LambdaMaxSizeExceededError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `Error: some-stack failed: InvalidParameterValueException: Function code combined with layers exceeds the maximum allowed size of 262144000 bytes. The actual size is 306703523 bytes.`,
+    expectedTopLevelErrorMessage: 'Maximum Lambda size exceeded',
+    errorName: 'LambdaMaxSizeExceededError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `Error: some-stack failed: InvalidParameterValueException: Uploaded file must be a non-empty zip`,
+    expectedTopLevelErrorMessage: 'Lambda bundled into an empty zip',
+    errorName: 'LambdaEmptyZipFault',
     expectedDownstreamErrorMessage: undefined,
   },
 ];
