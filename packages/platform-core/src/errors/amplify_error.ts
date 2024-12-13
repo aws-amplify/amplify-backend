@@ -229,7 +229,7 @@ const isYargsValidationError = (err?: Error): boolean => {
 };
 
 const isENotFoundError = (err?: Error): boolean => {
-  return !!err && err.message.startsWith('getaddrinfo ENOTFOUND');
+  return !!err && err.message.includes('getaddrinfo ENOTFOUND');
 };
 
 const isSyntaxError = (err?: Error): boolean => {
