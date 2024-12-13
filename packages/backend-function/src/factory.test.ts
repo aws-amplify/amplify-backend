@@ -683,11 +683,11 @@ void describe('AmplifyFunctionFactory', () => {
     );
   });
 
-  void describe('ephemeralStorageSize property', () => {
+  void describe('ephemeralStorageSizeMB property', () => {
     void it('sets valid ephemeralStorageSize', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
-        ephemeralStorageSize: 1024,
+        ephemeralStorageSizeMB: 1024,
       }).getInstance(getInstanceProps);
       const template = Template.fromStack(lambda.stack);
 
@@ -696,7 +696,7 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
-    void it('sets default ephemeralStorageSize', () => {
+    void it('sets default ephemeralStorageSizeMB', () => {
       const lambda = defineFunction({
         entry: './test-assets/default-lambda/handler.ts',
       }).getInstance(getInstanceProps);
@@ -707,41 +707,41 @@ void describe('AmplifyFunctionFactory', () => {
       });
     });
 
-    void it('throws on ephemeralStorageSize below 512 MB', () => {
+    void it('throws on ephemeralStorageSizeMB below 512 MB', () => {
       assert.throws(
         () =>
           defineFunction({
             entry: './test-assets/default-lambda/handler.ts',
-            ephemeralStorageSize: 511,
+            ephemeralStorageSizeMB: 511,
           }).getInstance(getInstanceProps),
         new Error(
-          'ephemeralStorageSize must be a whole number between 512 and 10240 inclusive'
+          'ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive'
         )
       );
     });
 
-    void it('throws on ephemeralStorageSize above 10240 MB', () => {
+    void it('throws on ephemeralStorageSizeMB above 10240 MB', () => {
       assert.throws(
         () =>
           defineFunction({
             entry: './test-assets/default-lambda/handler.ts',
-            ephemeralStorageSize: 10241,
+            ephemeralStorageSizeMB: 10241,
           }).getInstance(getInstanceProps),
         new Error(
-          'ephemeralStorageSize must be a whole number between 512 and 10240 inclusive'
+          'ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive'
         )
       );
     });
 
-    void it('throws on fractional ephemeralStorageSize', () => {
+    void it('throws on fractional ephemeralStorageSizeMB', () => {
       assert.throws(
         () =>
           defineFunction({
             entry: './test-assets/default-lambda/handler.ts',
-            ephemeralStorageSize: 512.5,
+            ephemeralStorageSizeMB: 512.5,
           }).getInstance(getInstanceProps),
         new Error(
-          'ephemeralStorageSize must be a whole number between 512 and 10240 inclusive'
+          'ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive'
         )
       );
     });

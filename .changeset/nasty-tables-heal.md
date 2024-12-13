@@ -2,4 +2,4 @@
 '@aws-amplify/backend-function': minor
 ---
 
-Add ephemeralStorageSize option to defineFunction
+Add ephemeralStorageSizeMB option to defineFunction
