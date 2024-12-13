@@ -1,6 +1,10 @@
 import { MainStackNameResolver } from '@aws-amplify/plugin-types';
 import { AmplifyClient, ListAppsCommand } from '@aws-sdk/client-amplify';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '../backend_output_client_factory.js';
 
 /**
  * Tuple of Amplify App name and branch
@@ -38,7 +42,8 @@ export class AppNameAndBranchMainStackNameResolver
     );
     const region = await this.amplifyClient.config.region();
     if (appMatches.length === 0) {
-      throw new Error(
+      throw new BackendOutputClientError(
+        BackendOutputClientErrorType.NO_APP_FOUND_ERROR,
         `No apps found with name ${this.appNameAndBranch.appName} in region ${region}`
       );
     } else if (appMatches.length >= 2) {

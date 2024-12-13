@@ -11,6 +11,11 @@ import { SandboxBackendIdResolver } from '../../sandbox/sandbox_id_resolver.js';
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '@aws-amplify/deployed-backend-client';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 void describe('generate outputs command', () => {
   const clientConfigGeneratorAdapter = new ClientConfigGeneratorAdapter({
@@ -247,5 +252,103 @@ void describe('generate outputs command', () => {
       'outputs --stack foo --branch baz'
     );
     assert.match(output, /Arguments .* mutually exclusive/);
+  });
+});
+
+void describe('GenerateOutputsCommand error handling', () => {
+  let clientConfigGenerator: ClientConfigGeneratorAdapter;
+  let backendIdentifierResolver: AppBackendIdentifierResolver;
+  let generateOutputsCommand: GenerateOutputsCommand;
+
+  beforeEach(() => {
+    // Mock the dependencies
+    clientConfigGenerator = {
+      generateClientConfigToFile: mock.fn(),
+    } as unknown as ClientConfigGeneratorAdapter;
+
+    backendIdentifierResolver = {
+      resolveDeployedBackendIdentifier: mock.fn(),
+    } as unknown as AppBackendIdentifierResolver;
+
+    generateOutputsCommand = new GenerateOutputsCommand(
+      clientConfigGenerator,
+      backendIdentifierResolver
+    );
+  });
+
+  void it('should throw AmplifyUserError when NO_APP_FOUND_ERROR occurs', async () => {
+    // Mock the resolver to simulate successful resolution
+    mock.method(
+      backendIdentifierResolver,
+      'resolveDeployedBackendIdentifier',
+      () => Promise.resolve({ appId: 'test-app', branchName: 'main' })
+    );
+
+    // Mock the generator to throw NO_APP_FOUND_ERROR
+    mock.method(clientConfigGenerator, 'generateClientConfigToFile', () => {
+      throw new BackendOutputClientError(
+        BackendOutputClientErrorType.NO_APP_FOUND_ERROR,
+        'No Amplify app found in the specified region'
+      );
+    });
+    try {
+      await generateOutputsCommand.handler({
+        stack: undefined,
+        appId: 'test-app',
+        'app-id': 'test-app',
+        branch: 'main',
+        format: undefined,
+        outDir: undefined,
+        'out-dir': undefined,
+        outputsVersion: '1.3',
+        'outputs-version': '1.3',
+        _: [],
+        $0: 'command-name',
+      });
+      assert.fail('Expected error was not thrown');
+    } catch (error) {
+      if (error instanceof AmplifyUserError) {
+        assert.equal(error.name, 'AmplifyAppNotFoundError');
+        assert.equal(
+          error.message,
+          'No Amplify app found in the specified region'
+        );
+      }
+    }
+  });
+
+  void it('should re-throw other types of errors', async () => {
+    // Mock the resolver to simulate successful resolution
+    mock.method(
+      backendIdentifierResolver,
+      'resolveDeployedBackendIdentifier',
+      () => Promise.resolve({ appId: 'test-app', branchName: 'main' })
+    );
+
+    // Mock the generator to throw a different type of error
+    const originalError = new Error('Some other error');
+    mock.method(clientConfigGenerator, 'generateClientConfigToFile', () => {
+      throw originalError;
+    });
+
+    try {
+      await generateOutputsCommand.handler({
+        stack: undefined,
+        appId: 'test-app',
+        'app-id': 'test-app',
+        branch: 'main',
+        format: undefined,
+        outDir: undefined,
+        'out-dir': undefined,
+        outputsVersion: '1.3',
+        'outputs-version': '1.3',
+        _: [],
+        $0: 'command-name',
+      });
+      assert.fail('Expected error was not thrown');
+    } catch (error) {
+      assert.equal(error, originalError);
+      assert(!(error instanceof AmplifyUserError));
+    }
   });
 });

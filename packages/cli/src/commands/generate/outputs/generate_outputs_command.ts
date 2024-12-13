@@ -9,6 +9,10 @@ import { BackendIdentifierResolver } from '../../../backend-identifier/backend_i
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '@aws-amplify/deployed-backend-client';
 
 export type GenerateOutputsCommandOptions =
   ArgumentsKebabCase<GenerateOutputsCommandOptionsCamelCase>;
@@ -76,18 +80,15 @@ export class GenerateOutputsCommand
         args.format
       );
     } catch (error) {
-      const appNotFoundMatch = (error as Error).message.match(
-        /No apps found with name (?<appName>.*) in region (?<region>.*)/
-      );
-
-      if (appNotFoundMatch?.groups) {
-        const { appName, region } = appNotFoundMatch.groups;
+      if (
+        error instanceof BackendOutputClientError &&
+        error.code === BackendOutputClientErrorType.NO_APP_FOUND_ERROR
+      ) {
         throw new AmplifyUserError('AmplifyAppNotFoundError', {
-          message: `No Amplify app found with name "${appName}" in region "${region}".`,
-          resolution: `Ensure that an Amplify app named "${appName}" exists in the "${region}" region.`,
+          message: error.message,
+          resolution: `Ensure that an Amplify app exists in the region.`,
         });
       }
-
       // Re-throw any other errors
       throw error;
     }

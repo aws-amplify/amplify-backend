@@ -18,6 +18,11 @@ import { BackendIdentifierResolverWithFallback } from '../../../backend-identifi
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '@aws-amplify/deployed-backend-client';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 void describe('generate graphql-client-code command', () => {
   const generateApiCodeAdapter = new GenerateApiCodeAdapter({
@@ -354,5 +359,151 @@ void describe('generate graphql-client-code command', () => {
       'graphql-client-code --stack foo --branch baz'
     );
     assert.match(output, /Arguments .* are mutually exclusive/);
+  });
+});
+
+void describe('GenerateGraphqlClientCodeCommand error handling', () => {
+  let generateApiCodeAdapter: GenerateApiCodeAdapter;
+  let backendIdentifierResolver: AppBackendIdentifierResolver;
+  let generateGraphqlClientCodeCommand: GenerateGraphqlClientCodeCommand;
+
+  beforeEach(() => {
+    // Mock the dependencies
+    generateApiCodeAdapter = {
+      invokeGenerateApiCode: mock.fn(),
+    } as unknown as GenerateApiCodeAdapter;
+
+    backendIdentifierResolver = {
+      resolveDeployedBackendIdentifier: mock.fn(),
+    } as unknown as AppBackendIdentifierResolver;
+
+    generateGraphqlClientCodeCommand = new GenerateGraphqlClientCodeCommand(
+      generateApiCodeAdapter,
+      backendIdentifierResolver
+    );
+  });
+
+  void it('should throw AmplifyUserError when NO_APP_FOUND_ERROR occurs', async () => {
+    // Mock the resolver to simulate successful resolution
+    mock.method(
+      backendIdentifierResolver,
+      'resolveDeployedBackendIdentifier',
+      () => Promise.resolve({ appId: 'test-app', branchName: 'main' })
+    );
+
+    // Mock the adapter to throw NO_APP_FOUND_ERROR
+    mock.method(generateApiCodeAdapter, 'invokeGenerateApiCode', () => {
+      throw new BackendOutputClientError(
+        BackendOutputClientErrorType.NO_APP_FOUND_ERROR,
+        'No Amplify app found in the specified region'
+      );
+    });
+
+    try {
+      await generateGraphqlClientCodeCommand.handler({
+        stack: undefined,
+        appId: 'test-app',
+        'app-id': 'test-app',
+        branch: 'main',
+        format: undefined,
+        modelTarget: undefined,
+        'model-target': undefined,
+        statementTarget: undefined,
+        'statement-target': undefined,
+        typeTarget: undefined,
+        'type-target': undefined,
+        out: undefined,
+        modelGenerateIndexRules: undefined,
+        'model-generate-index-rules': undefined,
+        modelEmitAuthProvider: undefined,
+        'model-emit-auth-provider': undefined,
+        modelRespectPrimaryKeyAttributesOnConnectionField: undefined,
+        'model-respect-primary-key-attributes-on-connection-field': undefined,
+        modelGenerateModelsForLazyLoadAndCustomSelectionSet: undefined,
+        'model-generate-models-for-lazy-load-and-custom-selection-set':
+          undefined,
+        modelAddTimestampFields: undefined,
+        'model-add-timestamp-fields': undefined,
+        modelHandleListNullabilityTransparently: undefined,
+        'model-handle-list-nullability-transparently': undefined,
+        statementMaxDepth: undefined,
+        'statement-max-depth': undefined,
+        statementTypenameIntrospection: undefined,
+        'statement-typename-introspection': undefined,
+        typeMultipleSwiftFiles: undefined,
+        'type-multiple-swift-files': undefined,
+        _: [],
+        $0: 'command-name',
+      });
+      assert.fail('Expected error was not thrown');
+    } catch (error) {
+      if (error instanceof AmplifyUserError) {
+        assert.equal(error.name, 'AmplifyAppNotFoundError');
+        assert.equal(
+          error.message,
+          'No Amplify app found in the specified region'
+        );
+        assert.equal(
+          error.resolution,
+          'Ensure that an Amplify app exists in the region.'
+        );
+      }
+    }
+  });
+
+  void it('should re-throw other types of errors', async () => {
+    // Mock the resolver to simulate successful resolution
+    mock.method(
+      backendIdentifierResolver,
+      'resolveDeployedBackendIdentifier',
+      () => Promise.resolve({ appId: 'test-app', branchName: 'main' })
+    );
+
+    // Mock the adapter to throw a different type of error
+    const originalError = new Error('Some other error');
+    mock.method(generateApiCodeAdapter, 'invokeGenerateApiCode', () => {
+      throw originalError;
+    });
+
+    try {
+      await generateGraphqlClientCodeCommand.handler({
+        stack: undefined,
+        appId: 'test-app',
+        'app-id': 'test-app',
+        branch: 'main',
+        format: undefined,
+        modelTarget: undefined,
+        'model-target': undefined,
+        statementTarget: undefined,
+        'statement-target': undefined,
+        typeTarget: undefined,
+        'type-target': undefined,
+        out: undefined,
+        modelGenerateIndexRules: undefined,
+        'model-generate-index-rules': undefined,
+        modelEmitAuthProvider: undefined,
+        'model-emit-auth-provider': undefined,
+        modelRespectPrimaryKeyAttributesOnConnectionField: undefined,
+        'model-respect-primary-key-attributes-on-connection-field': undefined,
+        modelGenerateModelsForLazyLoadAndCustomSelectionSet: undefined,
+        'model-generate-models-for-lazy-load-and-custom-selection-set':
+          undefined,
+        modelAddTimestampFields: undefined,
+        'model-add-timestamp-fields': undefined,
+        modelHandleListNullabilityTransparently: undefined,
+        'model-handle-list-nullability-transparently': undefined,
+        statementMaxDepth: undefined,
+        'statement-max-depth': undefined,
+        statementTypenameIntrospection: undefined,
+        'statement-typename-introspection': undefined,
+        typeMultipleSwiftFiles: undefined,
+        'type-multiple-swift-files': undefined,
+        _: [],
+        $0: 'command-name',
+      });
+      assert.fail('Expected error was not thrown');
+    } catch (error) {
+      assert.equal(error, originalError);
+    }
   });
 });
