@@ -281,24 +281,21 @@ void describe('generate outputs command', () => {
       }
     );
   });
-  void it('re-throw other types of errors'),
-    async () => {
-      const originalError = new Error('Some other error');
-      mock.method(
-        clientConfigGeneratorAdapter,
-        'generateClientConfigToFile',
-        () => {
-          throw originalError;
-        }
-      );
-
-      await assert.rejects(
-        () =>
-          commandRunner.runCommand('outputs --app-id test-app --branch main'),
-        (error: Error) => {
-          assert.strictEqual(error, originalError);
-          return true;
-        }
-      );
-    };
+  void it('re-throw other types of errors', async () => {
+    const originalError = new Error('Some other error');
+    mock.method(
+      clientConfigGeneratorAdapter,
+      'generateClientConfigToFile',
+      () => {
+        throw originalError;
+      }
+    );
+    await assert.rejects(
+      () => commandRunner.runCommand('outputs --app-id test-app --branch main'),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error, originalError);
+        return true;
+      }
+    );
+  });
 });
