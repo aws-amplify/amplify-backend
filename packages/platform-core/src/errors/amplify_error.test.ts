@@ -189,6 +189,26 @@ void describe('AmplifyError.fromError', async () => {
       `Failed the test for error ${error.message}`
     );
   });
+  void it('wraps credentials related errors in AmplifyUserError', () => {
+    const error = new Error(
+      'The security token included in the request is expired'
+    );
+    [
+      'ExpiredToken',
+      'ExpiredTokenException',
+      'CredentialsProviderError',
+      'InvalidClientTokenId',
+      'CredentialsError',
+    ].forEach((name) => {
+      error.name = name;
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        AmplifyError.isAmplifyError(actual) &&
+          actual.name === 'CredentialsError',
+        `Failed the test while wrapping error ${name}`
+      );
+    });
+  });
   void it('wraps InsufficientDiskSpaceError in AmplifyUserError', () => {
     const insufficientDiskSpaceErrors = [
       new Error(

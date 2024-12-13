@@ -25,13 +25,12 @@ const testErrorMappings = [
       'ExpiredToken: The security token included in the request is expired',
   },
   {
-    errorMessage:
-      'Error: The security token included in the request is expired',
+    errorMessage: 'The security token included in the request is expired',
     expectedTopLevelErrorMessage:
       'The security token included in the request is invalid.',
     errorName: 'ExpiredTokenError',
     expectedDownstreamErrorMessage:
-      'Error: The security token included in the request is expired',
+      'The security token included in the request is expired',
   },
   {
     errorMessage:
@@ -40,7 +39,7 @@ const testErrorMappings = [
       'The security token included in the request is invalid.',
     errorName: 'ExpiredTokenError',
     expectedDownstreamErrorMessage:
-      'InvalidClientTokenId: The security token included in the request is invalid',
+      'The security token included in the request is invalid',
   },
   {
     errorMessage: 'Access Denied',
