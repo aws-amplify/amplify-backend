@@ -1,3 +1,4 @@
+import { toScreamingSnakeCase } from '@aws-amplify/platform-core';
 import {
   GetObjectCommand,
   NoSuchKey,
@@ -15,6 +16,7 @@ export type DataClientEnv = {
   AWS_SECRET_ACCESS_KEY: string;
   AWS_SESSION_TOKEN: string;
   AWS_REGION: string;
+  AMPLIFY_DATA_DEFAULT_NAME: string;
   /* eslint-enable @typescript-eslint/naming-convention */
 } & Record<string, unknown>;
 
@@ -26,31 +28,6 @@ type DataEnvExtension = {
 
 type ExtendedAmplifyClientEnv = DataClientEnv & DataEnvExtension;
 
-const getKeyPrefixesOf = (keys: string[], content: string) => {
-  return keys
-    .filter((key) => key.endsWith(content))
-    .map((key) => key.slice(0, -1 * content.length));
-};
-
-const getDataName = (env: object): string => {
-  const keys = Object.keys(env);
-  const bucketNamePrefixes = getKeyPrefixesOf(keys, dataBucketNameContent);
-  const keyPrefixes = getKeyPrefixesOf(keys, dataKeyNameContent);
-  const endpointPrefixes = getKeyPrefixesOf(keys, dataEndpointNameContent);
-  if (
-    bucketNamePrefixes.length !== 1 ||
-    keyPrefixes.length !== 1 ||
-    endpointPrefixes.length !== 1 ||
-    bucketNamePrefixes[0] !== keyPrefixes[0] ||
-    bucketNamePrefixes[0] !== endpointPrefixes[0]
-  ) {
-    throw new Error(
-      "The data backend name couldn't be determined. This function may need to be granted `authorization((allow) => [allow.resource(fcn)])` on the data schema."
-    );
-  }
-  return bucketNamePrefixes[0];
-};
-
 const isAmplifyClientEnv = (env: object): env is DataClientEnv => {
   return (
     'AWS_ACCESS_KEY_ID' in env &&
@@ -60,7 +37,9 @@ const isAmplifyClientEnv = (env: object): env is DataClientEnv => {
     'AWS_SESSION_TOKEN' in env &&
     typeof env.AWS_SESSION_TOKEN === 'string' &&
     'AWS_REGION' in env &&
-    typeof env.AWS_REGION === 'string'
+    typeof env.AWS_REGION === 'string' &&
+    'AMPLIFY_DATA_DEFAULT_NAME' in env &&
+    typeof env.AMPLIFY_DATA_DEFAULT_NAME === 'string'
   );
 };
 
@@ -149,9 +128,9 @@ export type DataClientReturn<T> = T extends DataClientEnv
   ? DataClientConfig
   : DataClientError;
 
-const extendEnv = <T extends string>(
+const extendEnv = (
   env: DataClientEnv & Record<string, unknown>,
-  dataName: T
+  dataName: string
 ): ExtendedAmplifyClientEnv => {
   const bucketName = `${dataName}${dataBucketNameContent}`;
   const keyName = `${dataName}${dataKeyNameContent}`;
@@ -166,7 +145,7 @@ const extendEnv = <T extends string>(
       typeof env[endpointName] === 'string'
     )
   ) {
-    throw new Error('The data environment fields are malformed');
+    throw new Error('The data environment variables are malformed');
   }
 
   const dataBucket = env[bucketName] as string;
@@ -205,7 +184,7 @@ export const getAmplifyDataClientConfig = async <T>(
     return { resourceConfig: {}, libraryOptions: {} } as DataClientReturn<T>;
   }
 
-  const dataName = getDataName(env);
+  const dataName = toScreamingSnakeCase(env.AMPLIFY_DATA_DEFAULT_NAME);
   const extendedEnv = extendEnv(env, dataName);
 
   let modelIntrospectionSchema: object;

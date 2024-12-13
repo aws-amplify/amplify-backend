@@ -212,6 +212,9 @@ export enum TagName {
 }
 
 // @public
+export const toScreamingSnakeCase: (input: string) => string;
+
+// @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 
 // @public (undocumented)
