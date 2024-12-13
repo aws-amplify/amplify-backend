@@ -114,10 +114,14 @@ export class GenerateGraphqlClientCodeCommand
         error instanceof BackendOutputClientError &&
         error.code === BackendOutputClientErrorType.NO_APP_FOUND_ERROR
       ) {
-        throw new AmplifyUserError('AmplifyAppNotFoundError', {
-          message: error.message,
-          resolution: `Ensure that an Amplify app exists in the region.`,
-        });
+        throw new AmplifyUserError(
+          'AmplifyAppNotFoundError',
+          {
+            message: error.message,
+            resolution: `Ensure that an Amplify app exists in the region.`,
+          },
+          error
+        );
       }
       // Re-throw any other errors
       throw error;
