@@ -175,6 +175,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: |
           npm run set-script-shell
@@ -214,6 +215,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Publish packages locally
         timeout-minutes: 2
@@ -349,6 +351,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os }}')"
       - id: generateMatrix
@@ -396,6 +399,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os }}')"
       - id: generateMatrix
@@ -525,6 +529,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run lint
   check_dependencies:
@@ -561,6 +566,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run check:api
   docs_build_and_publish:
@@ -573,6 +579,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run docs
       - if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
@@ -682,6 +689,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
