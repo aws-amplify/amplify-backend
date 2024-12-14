@@ -23,6 +23,6 @@ runs:
         npm ci
         if [ ! -z "${{ inputs.cdk-version }}" ]; then
           echo "Installing CDK version ${{ inputs.cdk-version }}"
-          npm install aws-cdk@${{ inputs.cdk-version }} aws-cdk-lib@${{ inputs.cdk-version }}
+          npm install --no-save aws-cdk@${{ inputs.cdk-version }} aws-cdk-lib@${{ inputs.cdk-version }}
           npx cdk --version
         fi
