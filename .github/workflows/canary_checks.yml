@@ -62,7 +62,8 @@ jobs:
       desired-cdk-version: latest
       # Exclude additional runtimes in canaries.
       # They don't bring much value, but may bring instability and extra latency.
-      os: '["ubuntu-latest"]'
+      include-macos: false
+      include-windows: false
       node: '["18"]'
       # Exclude package manager and create-amplify tests.
       # They're redundant with live_dependency_health_checks.

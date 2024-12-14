@@ -33,11 +33,16 @@ on:
         required: false
         type: boolean
         default: true
-      os:
-        description: 'Agent OS list (as JSON array).'
+      include-macos:
+        description: 'Include MacOS?'
         required: false
-        type: string
-        default: '["ubuntu-latest", "macos-14", "windows-latest"]'
+        type: boolean
+        default: true
+      include-windows:
+        description: 'Include Windows?'
+        required: false
+        type: boolean
+        default: true
       node:
         description: 'Node versions list (as JSON array).'
         required: false
@@ -59,11 +64,16 @@ on:
         required: false
         type: boolean
         default: true
-      os:
-        description: 'Agent OS list (as JSON array).'
+      include-macos:
+        description: 'Include MacOS?'
         required: false
-        type: string
-        default: '["ubuntu-latest", "macos-14", "windows-latest"]'
+        type: boolean
+        default: true
+      include-windows:
+        description: 'Include Windows?'
+        required: false
+        type: boolean
+        default: true
       node:
         description: 'Node versions list (as JSON array).'
         required: false
@@ -83,21 +93,35 @@ jobs:
     outputs:
       cdk_version: ${{ steps.resolve_inputs.outputs.cdk_version }}
       os: ${{ steps.resolve_inputs.outputs.os }}
+      os_for_e2e: ${{ steps.resolve_inputs.outputs.os_for_e2e }}
       node: ${{ steps.resolve_inputs.outputs.node }}
     steps:
       - name: Resolve Inputs
         id: resolve_inputs
+        # This is intentionally in pure bash to make this job independent of repo checkout and fast.
         run: |
           if [ -z "${{ inputs.desired-cdk-version }}" ]; then
             echo "cdk_version=FROM_PACKAGE_LOCK" >> "$GITHUB_OUTPUT"
           else
             echo "cdk_version=$(npm view aws-cdk@${{ inputs.desired-cdk-version }} version)" >> "$GITHUB_OUTPUT"
           fi
-          if [ -z "${{ inputs.os }}" ]; then
+          # Build JSON array in readable way in bash...
+          os='["ubuntu-latest"'
+          os_for_e2e='["ubuntu-latest"'
+          if [ "${{ inputs.include-macos }}" != "false" ]; then
+            os+=', "macos-14"'
+            os_for_e2e+=', "macos-14-xlarge"'
             echo 'os=["ubuntu-latest", "macos-14", "windows-latest"]' >> "$GITHUB_OUTPUT"
-          else
-            echo 'os=${{ inputs.os }}' >> "$GITHUB_OUTPUT"
           fi
+          if [ "${{ inputs.include-windows }}" != "false" ]; then
+            os+=', "windows-latest"'
+            os_for_e2e+=', "windows-latest"'
+            echo 'os=["ubuntu-latest", "macos-14", "windows-latest"]' >> "$GITHUB_OUTPUT"
+          fi
+          os+=']'
+          os_for_e2e+=']'
+          echo "os=$os" >> "$GITHUB_OUTPUT"
+          echo "os_for_e2e=os_for_e2e" >> "$GITHUB_OUTPUT"
           if [ -z "${{ inputs.node }}" ]; then
             echo 'node=["18", "20"]' >> "$GITHUB_OUTPUT"
           else
@@ -105,6 +129,7 @@ jobs:
           fi
       - run: echo cdk_version set to ${{ steps.resolve_inputs.outputs.cdk_version }}
       - run: echo os set to ${{ steps.resolve_inputs.outputs.os }}
+      - run: echo os_for_e2e set to ${{ steps.resolve_inputs.outputs.os_for_e2e }}
       - run: echo node set to ${{ steps.resolve_inputs.outputs.node }}
   install:
     strategy:
@@ -355,9 +380,9 @@ jobs:
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
-      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os }}')"
+      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - id: generateMatrix
-        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os }}')" >> "$GITHUB_OUTPUT"
+        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -403,9 +428,9 @@ jobs:
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
-      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os }}')"
+      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - id: generateMatrix
-        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os }}')" >> "$GITHUB_OUTPUT"
+        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
   e2e_sandbox:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
