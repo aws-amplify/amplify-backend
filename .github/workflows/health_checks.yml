@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       desired-cdk-version:
-        description: 'Desired version of AWS CDK (exact version or tag)'
+        description: 'AWS CDK version (exact or tag). Defaults to package-locked version.'
         required: false
         type: string
 
@@ -37,8 +37,12 @@ jobs:
     steps:
       - name: Resolve CDK Version
         id: resolve_cdk_version
-        if: inputs.desired-cdk-version != null
-        run: echo "cdk_version=$(npm view aws-cdk@${{ inputs.desired-cdk-version }} version)" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ -z "${{ inputs.desired-cdk-version }}" ]; then
+            echo "cdk_version=FROM_PACKAGE_LOCK" >> "$GITHUB_OUTPUT"
+          else
+            echo "cdk_version=$(npm view aws-cdk@${{ inputs.desired-cdk-version }} version)" >> "$GITHUB_OUTPUT"
+          fi
       - run: echo cdk_version set to ${{ steps.resolve_cdk_version.outputs.cdk_version }}
   install:
     strategy:
