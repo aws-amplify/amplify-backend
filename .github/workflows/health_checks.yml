@@ -83,6 +83,7 @@ jobs:
     outputs:
       cdk_version: ${{ steps.resolve_cdk_version.outputs.cdk_version }}
       os: ${{ steps.resolve_os.outputs.os }}
+      node: ${{ steps.resolve_node.outputs.node }}
     steps:
       - name: Resolve CDK Version
         id: resolve_cdk_version
@@ -102,6 +103,15 @@ jobs:
             echo 'os=${{ inputs.os}}' >> "$GITHUB_OUTPUT"
           fi
       - run: echo os set to ${{ steps.resolve_os.outputs.os }}
+      - name: Resolve Node
+        id: resolve_node
+        run: |
+          if [ -z "${{ inputs.node }}" ]; then
+            echo 'node=["18", "20"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'node=${{ inputs.node }}' >> "$GITHUB_OUTPUT"
+          fi
+      - run: echo os set to ${{ steps.resolve_node.outputs.node }}
   install:
     strategy:
       matrix:
@@ -110,7 +120,7 @@ jobs:
         # creates file system links that include drive letter.
         # Changing between standard and custom workers requires full install cache invalidation
         os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
-        node: [18, 20]
+        node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
     runs-on: ${{ matrix.os }}
     needs:
       - resolve_inputs
@@ -127,7 +137,7 @@ jobs:
   build:
     strategy:
       matrix:
-        node: [18, 20]
+        node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
     runs-on: ubuntu-latest
     needs:
       - install
@@ -148,7 +158,7 @@ jobs:
     strategy:
       matrix:
         os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
-        node: [18, 20]
+        node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
