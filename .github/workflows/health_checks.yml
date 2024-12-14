@@ -19,7 +19,7 @@ on:
     - cron: '0 0,6,12,18 * * *'
   workflow_dispatch:
     inputs:
-      cdk-version:
+      desired-cdk-version:
         description: 'Desired version of AWS CDK'
         required: false
         type: string
@@ -30,6 +30,16 @@ env:
   AMPLIFY_DISABLE_TELEMETRY: true
 
 jobs:
+  resolve_cdk_version:
+    if: inputs.cdk-version != null
+    runs-on: ubuntu-latest
+    outputs:
+      cdk_version: ${{ steps.resolve_cdk_version.outputs.cdk_version }}
+    steps:
+      - name: Resolve CDK Version
+        id: resolve_cdk_version
+        run: echo "cdk_version=$(npm view aws-cdk@${{ inputs.desired-cdk-version }} version)" >> "$GITHUB_OUTPUT"
+      - run: echo cdk_version set to ${{ steps.resolve_cdk_version.outputs.cdk_version }}
   install:
     strategy:
       matrix:
@@ -40,6 +50,8 @@ jobs:
         os: [ubuntu-latest, macos-14, windows-latest]
         node: [18, 20]
     runs-on: ${{ matrix.os }}
+    needs:
+      - resolve_cdk_version
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
