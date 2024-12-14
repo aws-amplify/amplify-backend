@@ -60,6 +60,8 @@ jobs:
     with:
       # This runs all deployment and sandbox tests with latest CDK.
       desired-cdk-version: latest
+      os: '["ubuntu-latest"]'
+      node: '["18"]'
       # Exclude package manager and create-amplify tests.
       # They're redundant with live_dependency_health_checks.
       # I.e. they all test create-amplify -> deployment scenario.
