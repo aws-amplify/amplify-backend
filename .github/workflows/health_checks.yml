@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       desired-cdk-version:
-        description: 'Desired version of AWS CDK'
+        description: 'Desired version of AWS CDK (exact version or tag)'
         required: false
         type: string
 
