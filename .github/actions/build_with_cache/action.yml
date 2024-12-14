@@ -2,20 +2,24 @@ name: build_with_cache
 description: builds the source code if cache miss and caches the result
 inputs:
   node-version:
-    default: 18
+    required: true
   cdk-version:
     required: true
 runs:
   using: composite
   steps:
-    # Validate that non-blank CDK version is provided.
-    # This is to ensure that CDK version is plumbed and not defaulted accidentally in action call chains.
+    # Validate that non-blank inputs are provided.
+    # This is to ensure that inputs are plumbed and not defaulted accidentally in action call chains.
     # The 'required' input property does not assert this if value is provided at runtime.
     - name: Validate input
       shell: bash
       run: |
         if [ -z "${{ inputs.cdk-version }}" ]; then
           echo "CDK version must be provided"
+          exit 1;
+        fi
+        if [ -z "${{ inputs.node-version }}" ]; then
+          echo "Node version must be provided"
           exit 1;
         fi
     - uses: ./.github/actions/install_with_cache

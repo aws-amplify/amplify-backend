@@ -9,7 +9,7 @@ inputs:
     required: false
   node_version:
     description: node version used to configure environment with
-    required: false
+    required: true
   e2e_test_accounts:
     description: Serialized JSON array of strings with account numbers
     required: true

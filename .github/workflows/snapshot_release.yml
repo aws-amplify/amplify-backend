@@ -11,6 +11,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/install_with_cache
         with:
+          node-version: 18
           cdk-version: FROM_PACKAGE_LOCK
   build:
     runs-on: ubuntu-latest
@@ -21,6 +22,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/build_with_cache
         with:
+          node-version: 18
           cdk-version: FROM_PACKAGE_LOCK
   test:
     needs:
@@ -31,6 +33,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: 18
           cdk-version: FROM_PACKAGE_LOCK
       - run: npm run set-script-shell
       - run: npm run test
@@ -43,6 +46,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_build_cache
         with:
+          node-version: 18
           cdk-version: FROM_PACKAGE_LOCK
       - name: Authenticate
         run: |

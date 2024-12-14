@@ -46,7 +46,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ matrix.node-version }}
+          node_version: 18
           # Use version from package lock. Tests projects are created outside of repository root
           # and are using latest CDK version.
           cdk-version: FROM_PACKAGE_LOCK

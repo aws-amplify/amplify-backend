@@ -26,6 +26,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/install_with_cache
         with:
+          node-version: 18
           cdk-version: FROM_PACKAGE_LOCK
   restore_release:
     needs:
@@ -46,6 +47,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
         with:
+          node-version: 18
           cdk-version: FROM_PACKAGE_LOCK
       - name: Restore release versions
         run: npx tsx scripts/restore_release.ts

@@ -190,6 +190,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Pin some dependencies to nearest patch and rebuild
         run: |
