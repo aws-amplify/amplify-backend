@@ -299,7 +299,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ matrix.node-version }}
+          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
@@ -330,7 +330,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ matrix.node-version }}
+          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
@@ -446,7 +446,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ matrix.node-version }}
+          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           link_cli: true
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
@@ -457,7 +457,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
-        node-version: [18, 20]
+        node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
         # skip multiple node version test on other os
         exclude:
           - os: macos-14
