@@ -252,6 +252,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Check if any E2E tests should run
         id: check
@@ -542,6 +543,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run check:dependencies
   check_tsconfig_refs:
@@ -554,6 +556,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run check:tsconfig-refs
   check_api_extract:
@@ -599,6 +602,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: git fetch origin
       - run: npm run diff:check "$BASE_SHA"
@@ -618,6 +622,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Validate that PR has changeset
         run: npx changeset status --since origin/"$BASE_REF"
@@ -644,6 +649,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npx changeset version
       - run: npm run check:package-versions
@@ -659,6 +665,7 @@ jobs:
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
         with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
