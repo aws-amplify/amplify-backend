@@ -4,11 +4,17 @@ inputs:
   node-version:
     default: 18
   cdk-version:
-    # This is intentionally required to assert that CDK version is plumbed through.
     required: true
 runs:
   using: composite
   steps:
+    - name: Validate input
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.cdk-version }}" ]; then
+          echo "CDK version must be provided"
+          exit 1;
+        fi
     # cache node_modules based on package-lock.json hash
     - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # version 4.0.2
       id: npm-cache

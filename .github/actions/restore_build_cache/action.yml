@@ -5,11 +5,17 @@ inputs:
     description: node version used to configure environment with
     default: 18
   cdk-version:
-    # This is intentionally required to assert that CDK version is plumbed through.
     required: true
 runs:
   using: composite
   steps:
+    - name: Validate input
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.cdk-version }}" ]; then
+          echo "CDK version must be provided"
+          exit 1;
+        fi
     - uses: ./.github/actions/restore_install_cache
       with:
         node-version: ${{ inputs.node-version }}
