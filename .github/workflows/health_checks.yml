@@ -23,14 +23,6 @@ on:
         description: 'Desired version of AWS CDK (exact version or tag)'
         required: false
         type: string
-      include-package-manager-e2e-tests:
-        description: Include package manager e2e tests?
-        type: boolean
-        default: true
-      include-create-amplify-e2e-tests:
-        description: Include create-amplify e2e tests?
-        type: boolean
-        default: true
 
 env:
   # Health checks can run on un-released code. Often work in progress.
@@ -363,7 +355,7 @@ jobs:
           link_cli: true
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
   e2e_create_amplify:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true' && inputs.include-create-amplify-e2e-tests
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
@@ -395,7 +387,7 @@ jobs:
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true' && inputs.include-package-manager-e2e-tests
+    if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
