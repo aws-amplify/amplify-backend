@@ -4,7 +4,8 @@ inputs:
   node-version:
     default: 18
   cdk-version:
-    required: false
+    # This is intentionally required to assert that CDK version is plumbed through.
+    required: true
 runs:
   using: composite
   steps:

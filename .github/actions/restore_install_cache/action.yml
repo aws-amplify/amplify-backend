@@ -5,7 +5,8 @@ inputs:
     description: node version used to configure environment with
     default: 18
   cdk-version:
-    required: false
+    # This is intentionally required to assert that CDK version is plumbed through.
+    required: true
 runs:
   using: composite
   steps:
