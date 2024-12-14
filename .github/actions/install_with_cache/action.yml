@@ -10,7 +10,7 @@ runs:
   steps:
     # Validate that non-blank CDK version is provided.
     # This is to ensure that CDK version is plumbed and not defaulted accidentally in action call chains.
-    # The 'required' input property does not assert this if value is computed dynamically.
+    # The 'required' input property does not assert this if value is provided at runtime.
     - name: Validate input
       shell: bash
       run: |

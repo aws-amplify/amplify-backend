@@ -25,6 +25,8 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/install_with_cache
+        with:
+          cdk-version: FROM_PACKAGE_LOCK
   restore_release:
     needs:
       - install
@@ -43,5 +45,7 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
       - uses: ./.github/actions/restore_install_cache
+        with:
+          cdk-version: FROM_PACKAGE_LOCK
       - name: Restore release versions
         run: npx tsx scripts/restore_release.ts
