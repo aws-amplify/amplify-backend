@@ -1,5 +1,5 @@
 import debounce from 'debounce-promise';
-import parcelWatcher, { subscribe } from '@parcel/watcher';
+import { subscribe } from '@parcel/watcher';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
   BackendIdSandboxResolver,
@@ -197,7 +197,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     });
 
     if (watchForChanges) {
-      this.watcherSubscription = await parcelWatcher.subscribe(
+      this.watcherSubscription = await subscribe(
         watchDir,
         async (_, events) => {
           // Log and track file changes.
