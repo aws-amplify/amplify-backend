@@ -28,6 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/install_with_cache
         with:
           node-version: 18
@@ -50,6 +52,8 @@ jobs:
           # fetch full history so that we can properly lookup past releases
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18

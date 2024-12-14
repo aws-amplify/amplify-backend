@@ -196,6 +196,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -211,6 +213,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -237,6 +241,8 @@ jobs:
       - name: Checkout pull request ref
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -274,6 +280,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -320,6 +328,8 @@ jobs:
       - name: Setup baseline version
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
+        with:
+          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e iam access drift test
@@ -351,6 +361,8 @@ jobs:
       - name: Setup baseline version
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
+        with:
+          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e amplify outputs backwards compatibility test
@@ -552,6 +564,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -565,6 +579,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -578,6 +594,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -591,6 +609,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -604,6 +624,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -624,6 +646,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -644,6 +668,8 @@ jobs:
           # fetch full history so that changeset can properly compute divergence point
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -671,6 +697,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -687,6 +715,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
@@ -718,6 +748,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}

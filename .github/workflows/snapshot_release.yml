@@ -9,6 +9,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/install_with_cache
         with:
           node-version: 18
@@ -20,6 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/build_with_cache
         with:
           node-version: 18
@@ -31,6 +35,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
@@ -44,6 +50,8 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
