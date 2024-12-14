@@ -33,6 +33,21 @@ on:
         required: false
         type: boolean
         default: true
+  workflow_call:
+    desired-cdk-version:
+      description: 'AWS CDK version (exact or tag). Defaults to package-locked version.'
+      required: false
+      type: string
+    include-package-manager-e2e-tests:
+      description: 'Include package manager e2e tests?'
+      required: false
+      type: boolean
+      default: true
+    include-create-amplify-e2e-tests:
+      description: 'Include create-amplify e2e tests?'
+      required: false
+      type: boolean
+      default: true
 
 env:
   # Health checks can run on un-released code. Often work in progress.
