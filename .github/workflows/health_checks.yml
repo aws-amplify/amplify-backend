@@ -81,37 +81,31 @@ jobs:
   resolve_inputs:
     runs-on: ubuntu-latest
     outputs:
-      cdk_version: ${{ steps.resolve_cdk_version.outputs.cdk_version }}
-      os: ${{ steps.resolve_os.outputs.os }}
-      node: ${{ steps.resolve_node.outputs.node }}
+      cdk_version: ${{ steps.resolve_inputs.outputs.cdk_version }}
+      os: ${{ steps.resolve_inputs.outputs.os }}
+      node: ${{ steps.resolve_inputs.outputs.node }}
     steps:
-      - name: Resolve CDK Version
-        id: resolve_cdk_version
+      - name: Resolve Inputs
+        id: resolve_inputs
         run: |
           if [ -z "${{ inputs.desired-cdk-version }}" ]; then
             echo "cdk_version=FROM_PACKAGE_LOCK" >> "$GITHUB_OUTPUT"
           else
             echo "cdk_version=$(npm view aws-cdk@${{ inputs.desired-cdk-version }} version)" >> "$GITHUB_OUTPUT"
           fi
-      - run: echo cdk_version set to ${{ steps.resolve_cdk_version.outputs.cdk_version }}
-      - name: Resolve OS
-        id: resolve_os
-        run: |
           if [ -z "${{ inputs.os }}" ]; then
             echo 'os=["ubuntu-latest", "macos-14", "windows-latest"]' >> "$GITHUB_OUTPUT"
           else
-            echo 'os=${{ inputs.os}}' >> "$GITHUB_OUTPUT"
+            echo 'os=${{ inputs.os }}' >> "$GITHUB_OUTPUT"
           fi
-      - run: echo os set to ${{ steps.resolve_os.outputs.os }}
-      - name: Resolve Node
-        id: resolve_node
-        run: |
           if [ -z "${{ inputs.node }}" ]; then
             echo 'node=["18", "20"]' >> "$GITHUB_OUTPUT"
           else
             echo 'node=${{ inputs.node }}' >> "$GITHUB_OUTPUT"
           fi
-      - run: echo os set to ${{ steps.resolve_node.outputs.node }}
+      - run: echo cdk_version set to ${{ steps.resolve_inputs.outputs.cdk_version }}
+      - run: echo os set to ${{ steps.resolve_inputs.outputs.os }}
+      - run: echo node set to ${{ steps.resolve_inputs.outputs.node }}
   install:
     strategy:
       matrix:
