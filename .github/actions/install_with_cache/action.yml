@@ -31,7 +31,7 @@ runs:
       shell: bash
       run: |
         npm ci
-        if [ ! -z "${{ inputs.cdk-version }}" ]; then
+        if [[ ${{ inputs.cdk-version }} != 'FROM_PACKAGE_LOCK' ]]; then
           echo "Installing CDK version ${{ inputs.cdk-version }}"
           npm install --no-save aws-cdk@${{ inputs.cdk-version }} aws-cdk-lib@${{ inputs.cdk-version }}
           npx cdk --version
