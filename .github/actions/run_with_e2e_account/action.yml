@@ -22,6 +22,8 @@ inputs:
   fresh_build:
     description: Whether should build from scratch
     default: false
+  cdk-version:
+    required: true
 runs:
   using: composite
   steps:
@@ -32,9 +34,13 @@ runs:
     - name: Restore Build Cache
       if: inputs.fresh_build != 'true'
       uses: ./.github/actions/restore_build_cache
+      with:
+        cdk-version: ${{ inputs.cdk-version }}
     - name: Build With Cache
       if: inputs.fresh_build == 'true'
       uses: ./.github/actions/build_with_cache
+      with:
+        cdk-version: ${{ inputs.cdk-version }}
     - name: Link CLI
       if: inputs.link_cli == 'true'
       shell: bash

@@ -194,6 +194,7 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - resolve_cdk_version
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -213,6 +214,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_cdk_version.outputs.cdk_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -223,6 +225,7 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - resolve_cdk_version
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -242,6 +245,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_cdk_version.outputs.cdk_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -276,6 +280,7 @@ jobs:
       - do_include_e2e
       - build
       - e2e_generate_deployment_tests_matrix
+      - resolve_cdk_version
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -287,6 +292,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_cdk_version.outputs.cdk_version }}
           link_cli: true
           run: |
             npm run test:dir ${{ matrix.testPaths }}
@@ -321,6 +327,7 @@ jobs:
       - do_include_e2e
       - build
       - e2e_generate_sandbox_tests_matrix
+      - resolve_cdk_version
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -332,6 +339,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_cdk_version.outputs.cdk_version }}
           link_cli: true
           run: npm run test:dir ${{ matrix.testPaths }}
   e2e_backend_output:
@@ -341,6 +349,7 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - resolve_cdk_version
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -352,6 +361,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_cdk_version.outputs.cdk_version }}
           link_cli: true
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
   e2e_create_amplify:
@@ -402,6 +412,7 @@ jobs:
     needs:
       - build
       - do_include_e2e
+      - resolve_cdk_version
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -414,6 +425,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_cdk_version.outputs.cdk_version }}
           shell: bash
           run: |
             PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
