@@ -28,6 +28,11 @@ on:
         required: false
         type: boolean
         default: true
+      include-create-amplify-e2e-tests:
+        description: 'Include create-amplify e2e tests?'
+        required: false
+        type: boolean
+        default: true
 
 env:
   # Health checks can run on un-released code. Often work in progress.
@@ -187,6 +192,7 @@ jobs:
     outputs:
       run_e2e: ${{ steps.check.outputs.run_e2e }}
       include_package_manager_e2e: ${{ steps.check_package_manager.outputs.include_package_manager_e2e }}
+      include_create_amplify_e2e: ${{ steps.check_create_amplify.outputs.include_create_amplify_e2e }}
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
@@ -205,7 +211,16 @@ jobs:
           else
             echo "include_package_manager_e2e=${{ inputs.include-package-manager-e2e-tests }}" >> "$GITHUB_OUTPUT"
           fi
-      - run: echo run_e2e set to ${{ steps.check_package_manager.outputs.include_package_manager_e2e }}
+      - run: echo include_package_manager_e2e set to ${{ steps.check_package_manager.outputs.include_package_manager_e2e }}
+      - name: Check if Create Amplify E2E tests should be included
+        id: check_create_amplify
+        run: |
+          if [ -z "${{ inputs.include-create-amplify-e2e-tests }}" ]; then
+            echo "include_create_amplify_e2e=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "include_create_amplify_e2e=${{ inputs.include-create-amplify-e2e-tests }}" >> "$GITHUB_OUTPUT"
+          fi
+      - run: echo include_create_amplify_e2e set to ${{ steps.check_create_amplify.outputs.include_create_amplify_e2e }}
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -384,7 +399,7 @@ jobs:
           link_cli: true
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
   e2e_create_amplify:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'true' && needs.do_include_e2e.outputs.include_create_amplify_e2e == 'true'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
