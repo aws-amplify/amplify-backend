@@ -111,17 +111,15 @@ jobs:
           if [ "${{ inputs.include-macos }}" != "false" ]; then
             os+=', "macos-14"'
             os_for_e2e+=', "macos-14-xlarge"'
-            echo 'os=["ubuntu-latest", "macos-14", "windows-latest"]' >> "$GITHUB_OUTPUT"
           fi
           if [ "${{ inputs.include-windows }}" != "false" ]; then
             os+=', "windows-latest"'
             os_for_e2e+=', "windows-latest"'
-            echo 'os=["ubuntu-latest", "macos-14", "windows-latest"]' >> "$GITHUB_OUTPUT"
           fi
           os+=']'
           os_for_e2e+=']'
           echo "os=$os" >> "$GITHUB_OUTPUT"
-          echo "os_for_e2e=os_for_e2e" >> "$GITHUB_OUTPUT"
+          echo "os_for_e2e=$os_for_e2e" >> "$GITHUB_OUTPUT"
           if [ -z "${{ inputs.node }}" ]; then
             echo 'node=["18", "20"]' >> "$GITHUB_OUTPUT"
           else
