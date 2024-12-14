@@ -5,6 +5,7 @@ import {
 } from './predicated_action.js';
 import os from 'os';
 import fs from 'fs/promises';
+import stripANSI from 'strip-ansi';
 
 import { killExecaProcess } from './execa_process_killer.js';
 import { ExecaMethod } from 'execa';
@@ -92,6 +93,7 @@ export class PredicatedActionBuilder {
       action: (strWithDeploymentTime: string) => {
         // the time can be in fractional or whole seconds. 24.3, 24, 24.22 etc.
         const regex = /^✨ {2}Total time: (\d*\.*\d*)s.*$/;
+        strWithDeploymentTime = stripANSI(strWithDeploymentTime);
         const deploymentTime = strWithDeploymentTime.match(regex);
         if (
           deploymentTime &&
