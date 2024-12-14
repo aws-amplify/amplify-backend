@@ -55,7 +55,7 @@ jobs:
           shell: bash
           run: ./scripts/retry.js npm run live-dependency-health-checks
   health_checks_with_latest_cdk:
-    uses: .github/workflows/health_checks.yml
+    uses: ./.github/workflows/health_checks.yml
     secrets: inherit
     with:
       # This runs all deployment and sandbox tests with latest CDK.
