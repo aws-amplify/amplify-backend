@@ -31,13 +31,13 @@ env:
 
 jobs:
   resolve_cdk_version:
-    if: inputs.cdk-version != null
     runs-on: ubuntu-latest
     outputs:
       cdk_version: ${{ steps.resolve_cdk_version.outputs.cdk_version }}
     steps:
       - name: Resolve CDK Version
         id: resolve_cdk_version
+        if: inputs.cdk-version != null
         run: echo "cdk_version=$(npm view aws-cdk@${{ inputs.desired-cdk-version }} version)" >> "$GITHUB_OUTPUT"
       - run: echo cdk_version set to ${{ steps.resolve_cdk_version.outputs.cdk_version }}
   install:
