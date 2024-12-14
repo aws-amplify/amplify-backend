@@ -346,9 +346,10 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
         ephemeralStorageSizeMax
       )
     ) {
-      throw new Error(
-        `ephemeralStorageSizeMB must be a whole number between ${ephemeralStorageSizeMin} and ${ephemeralStorageSizeMax} inclusive`
-      );
+      throw new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+        message: `Invalid function ephemeralStorageSizeMB of ${this.props.ephemeralStorageSizeMB}`,
+        resolution: `ephemeralStorageSizeMB must be a whole number between ${ephemeralStorageSizeMin} and ${ephemeralStorageSizeMax} inclusive`,
+      });
     }
     return this.props.ephemeralStorageSizeMB;
   };

@@ -714,9 +714,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             ephemeralStorageSizeMB: 511,
           }).getInstance(getInstanceProps),
-        new Error(
-          'ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive'
-        )
+        new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+          message: `Invalid function ephemeralStorageSizeMB of 511`,
+          resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
+        })
       );
     });
 
@@ -727,9 +728,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             ephemeralStorageSizeMB: 10241,
           }).getInstance(getInstanceProps),
-        new Error(
-          'ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive'
-        )
+        new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+          message: `Invalid function ephemeralStorageSizeMB of 10241`,
+          resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
+        })
       );
     });
 
@@ -740,9 +742,10 @@ void describe('AmplifyFunctionFactory', () => {
             entry: './test-assets/default-lambda/handler.ts',
             ephemeralStorageSizeMB: 512.5,
           }).getInstance(getInstanceProps),
-        new Error(
-          'ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive'
-        )
+        new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+          message: `Invalid function ephemeralStorageSizeMB of 512.5`,
+          resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
+        })
       );
     });
   });
