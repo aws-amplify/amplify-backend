@@ -4,6 +4,8 @@ inputs:
   node-version:
     description: node version used to configure environment with
     default: 18
+  cdk-version:
+    required: false
 runs:
   using: composite
   steps:
@@ -13,6 +15,6 @@ runs:
       id: build-cache
       with:
         path: '**/lib'
-        key: ${{ github.sha }}-node${{ inputs.node-version }}
+        key: ${{ github.sha }}-node${{ inputs.node-version }}-cdk${{ inputs.cdk-version }}
         fail-on-cache-miss: true
         enableCrossOsArchive: true

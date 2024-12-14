@@ -3,6 +3,8 @@ description: installs node_modules if cache miss and stores in the cache
 inputs:
   node-version:
     default: 18
+  cdk-version:
+    required: false
 runs:
   using: composite
   steps:
@@ -13,8 +15,14 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-cdk${{ inputs.cdk-version }}
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: npm ci
+      run: |
+        npm ci
+        if [ ! -z "${{ inputs.cdk-version }}" ]; then
+          echo "Installing CDK version ${{ inputs.cdk-version }}"
+          npm install aws-cdk@${{ inputs.cdk-version }} aws-cdk-lib@${{ inputs.cdk-version }}
+          npx cdk --version
+        fi

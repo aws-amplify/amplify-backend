@@ -3,16 +3,21 @@ description: builds the source code if cache miss and caches the result
 inputs:
   node-version:
     default: 18
+  cdk-version:
+    required: false
 runs:
   using: composite
   steps:
     - uses: ./.github/actions/install_with_cache
+      with:
+        node-version: ${{ inputs.node-version }}
+        cdk-version: ${{ inputs.cdk-version }}
     # cache build output based on commit sha
     - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # version 4.0.2
       id: build-cache
       with:
         path: '**/lib'
-        key: ${{ github.sha }}-node${{ inputs.node-version }}
+        key: ${{ github.sha }}-node${{ inputs.node-version }}-cdk${{ inputs.cdk-version }}
         enableCrossOsArchive: true
     # only build if cache miss
     - if: steps.build-cache.outputs.cache-hit != 'true'
