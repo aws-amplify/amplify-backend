@@ -58,6 +58,7 @@ jobs:
     uses: .github/workflows/health_checks.yml
     secrets: inherit
     with:
+      # This runs all deployment and sandbox tests with latest CDK.
       desired-cdk-version: latest
       # Exclude package manager and create-amplify tests.
       # They're redundant with live_dependency_health_checks.
