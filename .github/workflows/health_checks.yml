@@ -18,6 +18,11 @@ on:
     # 2) transient failures may happen and auto recover;
     - cron: '0 0,6,12,18 * * *'
   workflow_dispatch:
+    inputs:
+      cdk-version:
+        description: 'Desired version of AWS CDK'
+        required: false
+        type: string
 
 env:
   # Health checks can run on un-released code. Often work in progress.
@@ -44,6 +49,7 @@ jobs:
       - uses: ./.github/actions/install_with_cache
         with:
           node-version: ${{ matrix.node }}
+          cdk-version: ${{ inputs.cdk-version }}
   build:
     strategy:
       matrix:
@@ -59,6 +65,7 @@ jobs:
       - uses: ./.github/actions/build_with_cache
         with:
           node-version: ${{ matrix.node }}
+          cdk-version: ${{ inputs.cdk-version }}
   test_with_coverage:
     needs:
       - build
@@ -179,6 +186,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ inputs.cdk-version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -208,6 +216,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ inputs.cdk-version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
