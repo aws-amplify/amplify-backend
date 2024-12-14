@@ -683,4 +683,71 @@ void describe('AmplifyFunctionFactory', () => {
       'function-Lambda'
     );
   });
+
+  void describe('ephemeralStorageSizeMB property', () => {
+    void it('sets valid ephemeralStorageSize', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        ephemeralStorageSizeMB: 1024,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        EphemeralStorage: { Size: 1024 },
+      });
+    });
+
+    void it('sets default ephemeralStorageSizeMB', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        EphemeralStorage: { Size: 512 },
+      });
+    });
+
+    void it('throws on ephemeralStorageSizeMB below 512 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            ephemeralStorageSizeMB: 511,
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+          message: `Invalid function ephemeralStorageSizeMB of 511`,
+          resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
+        })
+      );
+    });
+
+    void it('throws on ephemeralStorageSizeMB above 10240 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            ephemeralStorageSizeMB: 10241,
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+          message: `Invalid function ephemeralStorageSizeMB of 10241`,
+          resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
+        })
+      );
+    });
+
+    void it('throws on fractional ephemeralStorageSizeMB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            ephemeralStorageSizeMB: 512.5,
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+          message: `Invalid function ephemeralStorageSizeMB of 512.5`,
+          resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
+        })
+      );
+    });
+  });
 });
