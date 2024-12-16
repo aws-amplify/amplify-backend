@@ -373,6 +373,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     if (!s3Response.Body) {
       throw new Error(`s3Response from ${schemaS3Uri} does not contain a Body`);
     }
+
     return await s3Response.Body?.transformToString();
   };
 }
