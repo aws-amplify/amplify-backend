@@ -22,7 +22,7 @@ on:
 env:
   # Health checks can run on un-released code. Often work in progress.
   # Disable data from there.
-  AMPLIFY_DISABLE_TELEMETRY: true
+  AMPLIFY_DISABLE_TELEMETRY: false
 
 jobs:
   install:
