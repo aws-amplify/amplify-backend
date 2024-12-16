@@ -154,7 +154,7 @@ jobs:
         run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
       - run: echo run_e2e set to ${{ steps.check.outputs.run_e2e }}
   e2e_iam_access_drift:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs:
@@ -183,7 +183,7 @@ jobs:
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
   e2e_amplify_outputs_backwards_compatibility:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs:
@@ -212,7 +212,7 @@ jobs:
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
   e2e_generate_deployment_tests_matrix:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'false'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.generateMatrix.outputs.matrix }}
@@ -227,7 +227,7 @@ jobs:
       - id: generateMatrix
         run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js')" >> "$GITHUB_OUTPUT"
   e2e_deployment:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'false'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
@@ -254,7 +254,7 @@ jobs:
           run: |
             npm run test:dir ${{ matrix.testPaths }}
   e2e_generate_sandbox_tests_matrix:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'false'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.generateMatrix.outputs.matrix }}
@@ -269,7 +269,7 @@ jobs:
       - id: generateMatrix
         run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js')" >> "$GITHUB_OUTPUT"
   e2e_sandbox:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'false'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
@@ -295,7 +295,7 @@ jobs:
           link_cli: true
           run: npm run test:dir ${{ matrix.testPaths }}
   e2e_backend_output:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     needs:
@@ -315,7 +315,7 @@ jobs:
           link_cli: true
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
   e2e_create_amplify:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'false'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
@@ -343,7 +343,7 @@ jobs:
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'false'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
