@@ -17,7 +17,6 @@ export class S3StringObjectFetcher {
     const getSchemaCommandResult = await this.s3Client.send(
       new GetObjectCommand({ Bucket: bucket, Key: key })
     );
-
     const schema = await getSchemaCommandResult.Body?.transformToString();
     if (!schema) {
       // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
