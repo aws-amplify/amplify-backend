@@ -145,7 +145,9 @@ const extendEnv = (
       typeof env[endpointName] === 'string'
     )
   ) {
-    throw new Error('The data environment variables are malformed');
+    throw new Error(
+      `The data environment variables are malformed. env=${JSON.stringify(env)}`
+    );
   }
 
   const dataBucket = env[bucketName] as string;
