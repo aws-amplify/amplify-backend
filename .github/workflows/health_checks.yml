@@ -11,13 +11,74 @@ on:
       - hotfix
       - feature/**
   schedule:
-    # Every day at At minute 0 past hour 0, 6, 12, and 18 UTC.
+    # Every day at minute 0 past hour 0, 6, 12, and 18 UTC.
     # This is to make sure that there is at least one workflow run every 24 hours
     # taking into account that
     # 1) scheduled runs may not fire at exact prescribed time;
     # 2) transient failures may happen and auto recover;
     - cron: '0 0,6,12,18 * * *'
   workflow_dispatch:
+    inputs:
+      desired-cdk-version:
+        description: 'AWS CDK version (exact or tag). Defaults to package-locked version.'
+        required: false
+        type: string
+      include-package-manager-e2e-tests:
+        description: 'Include package manager e2e tests?'
+        required: false
+        type: boolean
+        default: true
+      include-create-amplify-e2e-tests:
+        description: 'Include create-amplify e2e tests?'
+        required: false
+        type: boolean
+        default: true
+      include-macos:
+        description: 'Include MacOS?'
+        required: false
+        type: boolean
+        default: true
+      include-windows:
+        description: 'Include Windows?'
+        required: false
+        type: boolean
+        default: true
+      node:
+        description: 'Node versions list (as JSON array).'
+        required: false
+        type: string
+        default: '["18", "20"]'
+  workflow_call:
+    inputs:
+      desired-cdk-version:
+        description: 'AWS CDK version (exact or tag). Defaults to package-locked version.'
+        required: false
+        type: string
+      include-package-manager-e2e-tests:
+        description: 'Include package manager e2e tests?'
+        required: false
+        type: boolean
+        default: true
+      include-create-amplify-e2e-tests:
+        description: 'Include create-amplify e2e tests?'
+        required: false
+        type: boolean
+        default: true
+      include-macos:
+        description: 'Include MacOS?'
+        required: false
+        type: boolean
+        default: true
+      include-windows:
+        description: 'Include Windows?'
+        required: false
+        type: boolean
+        default: true
+      node:
+        description: 'Node versions list (as JSON array).'
+        required: false
+        type: string
+        default: '["18", "20"]'
 
 env:
   # Health checks can run on un-released code. Often work in progress.
@@ -25,6 +86,49 @@ env:
   AMPLIFY_DISABLE_TELEMETRY: true
 
 jobs:
+  # This workflow may be called by variety of events.
+  # This steps resolves and applies appropriate defaults depending on the trigger.
+  resolve_inputs:
+    runs-on: ubuntu-latest
+    outputs:
+      cdk_version: ${{ steps.resolve_inputs.outputs.cdk_version }}
+      os: ${{ steps.resolve_inputs.outputs.os }}
+      os_for_e2e: ${{ steps.resolve_inputs.outputs.os_for_e2e }}
+      node: ${{ steps.resolve_inputs.outputs.node }}
+    steps:
+      - name: Resolve Inputs
+        id: resolve_inputs
+        # This is intentionally in pure bash to make this job independent of repo checkout and fast.
+        run: |
+          if [ -z "${{ inputs.desired-cdk-version }}" ]; then
+            echo "cdk_version=FROM_PACKAGE_LOCK" >> "$GITHUB_OUTPUT"
+          else
+            echo "cdk_version=$(npm view aws-cdk@${{ inputs.desired-cdk-version }} version)" >> "$GITHUB_OUTPUT"
+          fi
+          # Build JSON array in readable way in bash...
+          os='["ubuntu-latest"'
+          os_for_e2e='["ubuntu-latest"'
+          if [ "${{ inputs.include-macos }}" != "false" ]; then
+            os+=', "macos-14"'
+            os_for_e2e+=', "macos-14-xlarge"'
+          fi
+          if [ "${{ inputs.include-windows }}" != "false" ]; then
+            os+=', "windows-latest"'
+            os_for_e2e+=', "windows-latest"'
+          fi
+          os+=']'
+          os_for_e2e+=']'
+          echo "os=$os" >> "$GITHUB_OUTPUT"
+          echo "os_for_e2e=$os_for_e2e" >> "$GITHUB_OUTPUT"
+          if [ -z "${{ inputs.node }}" ]; then
+            echo 'node=["18", "20"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'node=${{ inputs.node }}' >> "$GITHUB_OUTPUT"
+          fi
+      - run: echo cdk_version set to ${{ steps.resolve_inputs.outputs.cdk_version }}
+      - run: echo os set to ${{ steps.resolve_inputs.outputs.os }}
+      - run: echo os_for_e2e set to ${{ steps.resolve_inputs.outputs.os_for_e2e }}
+      - run: echo node set to ${{ steps.resolve_inputs.outputs.node }}
   install:
     strategy:
       matrix:
@@ -32,9 +136,15 @@ jobs:
         # Larger workers use different drive (C: instead of D:) to check out project and NPM installation
         # creates file system links that include drive letter.
         # Changing between standard and custom workers requires full install cache invalidation
-        os: [ubuntu-latest, macos-14, windows-latest]
-        node: [18, 20]
+        os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
+        node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
+        # Always include Node 18 and Ubuntu. Non-testing jobs depend on it.
+        include:
+          - os: ubuntu-latest
+            node: 18
     runs-on: ${{ matrix.os }}
+    needs:
+      - resolve_inputs
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
@@ -44,13 +154,18 @@ jobs:
       - uses: ./.github/actions/install_with_cache
         with:
           node-version: ${{ matrix.node }}
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
   build:
     strategy:
       matrix:
-        node: [18, 20]
+        node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
+        # Always include Node 18. Non-testing jobs depend on it.
+        include:
+          - node: 18
     runs-on: ubuntu-latest
     needs:
       - install
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
@@ -59,13 +174,15 @@ jobs:
       - uses: ./.github/actions/build_with_cache
         with:
           node-version: ${{ matrix.node }}
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
   test_with_coverage:
     needs:
       - build
+      - resolve_inputs
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-14, windows-latest]
-        node: [18, 20]
+        os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
+        node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
@@ -75,27 +192,40 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ matrix.node }}
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run set-script-shell
       - run: npm run test:coverage:threshold
   test_scripts:
     needs:
       - build
+      - resolve_inputs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: |
           npm run set-script-shell
           npm run test:scripts
   test_with_baseline_dependencies:
     needs:
       - install
+      - resolve_inputs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Pin some dependencies to nearest patch and rebuild
         run: |
           npx tsx scripts/set_baseline_dependency_versions.ts
@@ -111,13 +241,19 @@ jobs:
     if: github.event_name == 'pull_request'
     needs:
       - build
+      - resolve_inputs
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout pull request ref
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Publish packages locally
         timeout-minutes: 2
         run: |
@@ -136,6 +272,7 @@ jobs:
   do_include_e2e:
     needs:
       - install
+      - resolve_inputs
     runs-on: ubuntu-latest
     permissions:
       # This is required so that the step can read the labels on the pull request
@@ -145,14 +282,39 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       run_e2e: ${{ steps.check.outputs.run_e2e }}
+      include_package_manager_e2e: ${{ steps.check_package_manager.outputs.include_package_manager_e2e }}
+      include_create_amplify_e2e: ${{ steps.check_create_amplify.outputs.include_create_amplify_e2e }}
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
-      - name: Check if E2E tests should run
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+      - name: Check if any E2E tests should run
         id: check
         run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
       - run: echo run_e2e set to ${{ steps.check.outputs.run_e2e }}
+      - name: Check if Package Manager E2E tests should be included
+        id: check_package_manager
+        run: |
+          if [ -z "${{ inputs.include-package-manager-e2e-tests }}" ]; then
+            echo "include_package_manager_e2e=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "include_package_manager_e2e=${{ inputs.include-package-manager-e2e-tests }}" >> "$GITHUB_OUTPUT"
+          fi
+      - run: echo include_package_manager_e2e set to ${{ steps.check_package_manager.outputs.include_package_manager_e2e }}
+      - name: Check if Create Amplify E2E tests should be included
+        id: check_create_amplify
+        run: |
+          if [ -z "${{ inputs.include-create-amplify-e2e-tests }}" ]; then
+            echo "include_create_amplify_e2e=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "include_create_amplify_e2e=${{ inputs.include-create-amplify-e2e-tests }}" >> "$GITHUB_OUTPUT"
+          fi
+      - run: echo include_create_amplify_e2e set to ${{ steps.check_create_amplify.outputs.include_create_amplify_e2e }}
   e2e_iam_access_drift:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     runs-on: ubuntu-latest
@@ -160,6 +322,7 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - resolve_inputs
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -172,13 +335,16 @@ jobs:
       - name: Setup baseline version
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
+        with:
+          node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e iam access drift test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ matrix.node-version }}
+          node_version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -189,6 +355,7 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - resolve_inputs
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -201,13 +368,16 @@ jobs:
       - name: Setup baseline version
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
+        with:
+          node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e amplify outputs backwards compatibility test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ matrix.node-version }}
+          node_version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -220,12 +390,16 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
-      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js')"
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - id: generateMatrix
-        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js')" >> "$GITHUB_OUTPUT"
+        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
   e2e_deployment:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -239,6 +413,7 @@ jobs:
       - do_include_e2e
       - build
       - e2e_generate_deployment_tests_matrix
+      - resolve_inputs
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -250,6 +425,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           link_cli: true
           run: |
             npm run test:dir ${{ matrix.testPaths }}
@@ -262,12 +438,16 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
-      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js')"
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+      - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - id: generateMatrix
-        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js')" >> "$GITHUB_OUTPUT"
+        run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
   e2e_sandbox:
     if: needs.do_include_e2e.outputs.run_e2e == 'true'
     strategy:
@@ -281,6 +461,7 @@ jobs:
       - do_include_e2e
       - build
       - e2e_generate_sandbox_tests_matrix
+      - resolve_inputs
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -292,6 +473,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           link_cli: true
           run: npm run test:dir ${{ matrix.testPaths }}
   e2e_backend_output:
@@ -301,6 +483,7 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - resolve_inputs
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -311,17 +494,18 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ matrix.node-version }}
+          node_version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           link_cli: true
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
   e2e_create_amplify:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'true' && needs.do_include_e2e.outputs.include_create_amplify_e2e == 'true'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14, windows-latest]
-        node-version: [18, 20]
+        os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
+        node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
         # skip multiple node version test on other os
         exclude:
           - os: macos-14
@@ -333,22 +517,26 @@ jobs:
     needs:
       - do_include_e2e
       - build
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
           node-version: ${{ matrix.node-version }}
       - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: cd packages/cli && npm link
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
   e2e_package_manager:
-    if: needs.do_include_e2e.outputs.run_e2e == 'true'
+    if: needs.do_include_e2e.outputs.run_e2e == 'true' && needs.do_include_e2e.outputs.include_package_manager_e2e == 'true'
     strategy:
       # will finish running other test matrices even if one fails
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-14, windows-latest]
+        os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
         pkg-manager: [npm, yarn-classic, yarn-modern, pnpm]
         node-version: ['20']
     env:
@@ -358,6 +546,7 @@ jobs:
     needs:
       - build
       - do_include_e2e
+      - resolve_inputs
     permissions:
       # these permissions are required for the configure-aws-credentials action to get a JWT from GitHub
       id-token: write
@@ -370,6 +559,7 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           shell: bash
           run: |
             PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
@@ -377,46 +567,76 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run lint
   check_dependencies:
     runs-on: ubuntu-latest
     needs:
       - install
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run check:dependencies
   check_tsconfig_refs:
     runs-on: ubuntu-latest
     needs:
       - install
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run check:tsconfig-refs
   check_api_extract:
     runs-on: ubuntu-latest
     needs:
       - build
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run check:api
   docs_build_and_publish:
     runs-on: ubuntu-latest
     needs:
       - build
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run docs
       - if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
         uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # version 4.0.0
@@ -429,10 +649,16 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - install
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: git fetch origin
       - run: npm run diff:check "$BASE_SHA"
         env:
@@ -442,13 +668,19 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - install
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
         with:
           # fetch full history so that changeset can properly compute divergence point
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Validate that PR has changeset
         run: npx changeset status --since origin/"$BASE_REF"
         env:
@@ -468,10 +700,16 @@ jobs:
     timeout-minutes: 10
     needs:
       - install
+      - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npx changeset version
       - run: npm run check:package-versions
 
@@ -479,11 +717,17 @@ jobs:
     if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'hotfix') }}
     needs:
       - install
+      - resolve_inputs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
       - name: Create or update Version Packages PR
@@ -506,11 +750,17 @@ jobs:
       - e2e_deployment
       - e2e_sandbox
       - e2e_create_amplify
+      - resolve_inputs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
       - name: Publish packages
