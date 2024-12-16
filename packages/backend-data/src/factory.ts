@@ -319,7 +319,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         [`${namePrefix}${this.name}_MODEL_INTROSPECTION_SCHEMA_KEY`]:
           modelIntrospectionSchemaKey,
         ['AMPLIFY_DATA_DEFAULT_NAME']: `${namePrefix}${this.name}`,
-        // @deprecated: This backwards compatible name without a prefix will be removed
+        // @deprecated
         [`${this.name}_GRAPHQL_ENDPOINT`]:
           amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
       });
