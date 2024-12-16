@@ -4,4 +4,4 @@
 '@aws-amplify/platform-core': minor
 ---
 
-Lambda client env var name issue
+Update getAmplifyDataClientConfig to work with named data backend
