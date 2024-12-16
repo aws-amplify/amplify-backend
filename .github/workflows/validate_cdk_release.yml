@@ -2,8 +2,9 @@ name: validate_cdk_release
 
 on:
   schedule:
-    # Every day at 16:00 UTC (8:00 PST)
-    - cron: '0 16 * * *'
+    # Every day at 16:00 UTC (8:00 PST) and 18:00 UTC (10:00 PST)
+    # So that it produces at least 2 data points daily.
+    - cron: '0 16,18 * * *'
   workflow_dispatch:
     inputs:
       desired-cdk-version:
