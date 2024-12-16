@@ -29,7 +29,7 @@ import {
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
 
-import { GetObjectCommand, NoSuchBucket, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import {
   authOutputKey,
   functionOutputKey,
@@ -366,25 +366,13 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       throw new Error('schemaS3Uri is not valid');
     }
 
-    try {
-      const s3Response = await this.s3Client.send(
-        new GetObjectCommand({ Bucket: bucketName, Key: objectPath })
-      );
+    const s3Response = await this.s3Client.send(
+      new GetObjectCommand({ Bucket: bucketName, Key: objectPath })
+    );
 
-      if (!s3Response.Body) {
-        throw new Error(
-          `s3Response from ${schemaS3Uri} does not contain a Body`
-        );
-      }
-      return await s3Response.Body?.transformToString();
-    } catch (caught) {
-      if (caught instanceof NoSuchBucket) {
-        throw new Error(
-          `Cannot find bucket ${bucketName}, ensure that this bucket exists.`
-        );
-      } else {
-        throw caught;
-      }
+    if (!s3Response.Body) {
+      throw new Error(`s3Response from ${schemaS3Uri} does not contain a Body`);
     }
+    return await s3Response.Body?.transformToString();
   };
 }

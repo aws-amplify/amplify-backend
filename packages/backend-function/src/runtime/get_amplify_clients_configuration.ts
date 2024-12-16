@@ -1,6 +1,5 @@
 import {
   GetObjectCommand,
-  NoSuchBucket,
   NoSuchKey,
   S3Client,
   S3ServiceException,
@@ -162,10 +161,6 @@ export const getAmplifyDataClientConfig = async <T>(
     if (caught instanceof NoSuchKey) {
       throw new Error(
         'Error retrieving the schema from S3. Please confirm that your project has a `defineData` included in the `defineBackend` definition.'
-      );
-    } else if (caught instanceof NoSuchBucket) {
-      throw new Error(
-        `Error cannot find bucket: ${env.AMPLIFY_DATA_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME}. Ensure that this bucket exists.`
       );
     } else if (caught instanceof S3ServiceException) {
       throw new Error(
