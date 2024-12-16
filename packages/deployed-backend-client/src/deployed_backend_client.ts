@@ -40,6 +40,7 @@ import {
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
+import { ResourceNotFoundException } from '@aws-sdk/client-amplify';
 
 /**
  * Deployment Client
@@ -366,14 +367,25 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       throw new Error('schemaS3Uri is not valid');
     }
 
-    const s3Response = await this.s3Client.send(
-      new GetObjectCommand({ Bucket: bucketName, Key: objectPath })
-    );
+    try {
+      const s3Response = await this.s3Client.send(
+        new GetObjectCommand({ Bucket: bucketName, Key: objectPath })
+      );
 
-    if (!s3Response.Body) {
-      throw new Error(`s3Response from ${schemaS3Uri} does not contain a Body`);
+      if (!s3Response.Body) {
+        throw new Error(
+          `s3Response from ${schemaS3Uri} does not contain a Body`
+        );
+      }
+      return await s3Response.Body?.transformToString();
+    } catch (caught) {
+      if (caught instanceof ResourceNotFoundException) {
+        throw new Error(
+          `Cannot find bucket ${bucketName}, ensure that this bucket exists.`
+        );
+      } else {
+        throw caught;
+      }
     }
-
-    return await s3Response.Body?.transformToString();
   };
 }
