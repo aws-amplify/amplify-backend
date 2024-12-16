@@ -147,8 +147,7 @@ class LogRetentionConverter {
 
 // @public
 export class NamingConverter {
-    constructor(input: string);
-    get toScreamingSnakeCase(): string;
+    toScreamingSnakeCase(input: string): string;
 }
 
 // @public
