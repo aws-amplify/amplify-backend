@@ -29,7 +29,7 @@ import {
   StackSummary,
 } from '@aws-sdk/client-cloudformation';
 
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, NoSuchBucket, S3Client } from '@aws-sdk/client-s3';
 import {
   authOutputKey,
   functionOutputKey,
@@ -40,7 +40,6 @@ import {
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
 import { StackStatusMapper } from './deployed-backend-client/stack_status_mapper.js';
 import { ArnParser } from './deployed-backend-client/arn_parser.js';
-import { ResourceNotFoundException } from '@aws-sdk/client-amplify';
 
 /**
  * Deployment Client
@@ -379,7 +378,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
       }
       return await s3Response.Body?.transformToString();
     } catch (caught) {
-      if (caught instanceof ResourceNotFoundException) {
+      if (caught instanceof NoSuchBucket) {
         throw new Error(
           `Cannot find bucket ${bucketName}, ensure that this bucket exists.`
         );
