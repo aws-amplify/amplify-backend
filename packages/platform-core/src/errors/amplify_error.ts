@@ -197,7 +197,16 @@ export abstract class AmplifyError<T extends string = string> extends Error {
 }
 
 const isCredentialsError = (err?: Error): boolean => {
-  return !!err && err?.name === 'CredentialsProviderError';
+  return (
+    !!err &&
+    [
+      'ExpiredToken',
+      'ExpiredTokenException',
+      'CredentialsProviderError',
+      'InvalidClientTokenId',
+      'CredentialsError',
+    ].includes(err.name)
+  );
 };
 
 // These validation messages are taken from https://github.com/yargs/yargs/blob/0c95f9c79e1810cf9c8964fbf7d139009412f7e7/lib/validation.ts
@@ -220,7 +229,7 @@ const isYargsValidationError = (err?: Error): boolean => {
 };
 
 const isENotFoundError = (err?: Error): boolean => {
-  return !!err && err.message.startsWith('getaddrinfo ENOTFOUND');
+  return !!err && err.message.includes('getaddrinfo ENOTFOUND');
 };
 
 const isSyntaxError = (err?: Error): boolean => {

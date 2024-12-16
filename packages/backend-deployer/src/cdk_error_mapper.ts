@@ -99,7 +99,7 @@ export class CdkErrorMapper {
   }> => [
     {
       errorRegex:
-        /ExpiredToken: .*|(Error|InvalidClientTokenId): The security token included in the request is (expired|invalid)/,
+        /ExpiredToken: .*|The security token included in the request is (expired|invalid)/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
       resolutionMessage:
@@ -162,6 +162,16 @@ export class CdkErrorMapper {
       resolutionMessage:
         "Ensure dependencies in your project are installed with your package manager. For example, by running 'yarn install' or 'npm install'",
       errorName: 'CDKNotFoundError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /ValidationError: Role (?<roleArn>.*) is invalid or cannot be assumed/,
+      humanReadableErrorMessage:
+        'Role {roleArn} is invalid or cannot be assumed',
+      resolutionMessage:
+        'Ensure the role exists and AWS credentials have an IAM policy that grants sts:AssumeRole for the role',
+      errorName: 'InvalidOrCannotAssumeRoleError',
       classification: 'ERROR',
     },
     {
@@ -523,6 +533,7 @@ export type CDKDeploymentError =
   | 'ExpiredTokenError'
   | 'FileConventionError'
   | 'ModuleNotFoundError'
+  | 'InvalidOrCannotAssumeRoleError'
   | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
   | 'SyntaxError'

@@ -26,7 +26,7 @@ import {
   SsmEnvironmentEntry,
   StackProvider,
 } from '@aws-amplify/plugin-types';
-import { Duration, Stack, Tags } from 'aws-cdk-lib';
+import { Duration, Size, Stack, Tags } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Policy } from 'aws-cdk-lib/aws-iam';
@@ -114,6 +114,13 @@ export type FunctionProps = {
    * Default is 512MB.
    */
   memoryMB?: number;
+
+  /**
+   * The size of the function's /tmp directory in MB.
+   * Must be a whole number.
+   * @default 512
+   */
+  ephemeralStorageSizeMB?: number;
 
   /**
    * Environment variables that will be available during function execution
@@ -236,6 +243,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
+      ephemeralStorageSizeMB: this.resolveEphemeralStorageSize(),
       environment: this.resolveEnvironment(),
       runtime: this.resolveRuntime(),
       schedule: this.resolveSchedule(),
@@ -322,6 +330,28 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       });
     }
     return this.props.memoryMB;
+  };
+
+  private resolveEphemeralStorageSize = () => {
+    const ephemeralStorageSizeMin = 512;
+    const ephemeralStorageSizeMax = 10240;
+    const ephemeralStorageSizeDefault = 512;
+    if (this.props.ephemeralStorageSizeMB === undefined) {
+      return ephemeralStorageSizeDefault;
+    }
+    if (
+      !isWholeNumberBetweenInclusive(
+        this.props.ephemeralStorageSizeMB,
+        ephemeralStorageSizeMin,
+        ephemeralStorageSizeMax
+      )
+    ) {
+      throw new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+        message: `Invalid function ephemeralStorageSizeMB of ${this.props.ephemeralStorageSizeMB}`,
+        resolution: `ephemeralStorageSizeMB must be a whole number between ${ephemeralStorageSizeMin} and ${ephemeralStorageSizeMax} inclusive`,
+      });
+    }
+    return this.props.ephemeralStorageSizeMB;
   };
 
   private resolveEnvironment = () => {
@@ -509,6 +539,7 @@ class AmplifyFunction
         entry: props.entry,
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
+        ephemeralStorageSize: Size.mebibytes(props.ephemeralStorageSizeMB),
         runtime: nodeVersionMap[props.runtime],
         layers: props.resolvedLayers,
         bundling: {

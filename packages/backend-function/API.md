@@ -91,6 +91,7 @@ export type FunctionProps = {
     entry?: string;
     timeoutSeconds?: number;
     memoryMB?: number;
+    ephemeralStorageSizeMB?: number;
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
     schedule?: FunctionSchedule | FunctionSchedule[];
