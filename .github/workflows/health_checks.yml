@@ -138,6 +138,10 @@ jobs:
         # Changing between standard and custom workers requires full install cache invalidation
         os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
         node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
+        # Always include Node 18 and Ubuntu. Non-testing jobs depend on it.
+        include:
+          - os: ubuntu-latest
+            node: 18
     runs-on: ${{ matrix.os }}
     needs:
       - resolve_inputs
@@ -155,6 +159,9 @@ jobs:
     strategy:
       matrix:
         node: ${{ fromJSON(needs.resolve_inputs.outputs.node) }}
+        # Always include Node 18. Non-testing jobs depend on it.
+        include:
+          - node: 18
     runs-on: ubuntu-latest
     needs:
       - install
@@ -197,10 +204,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: |
           npm run set-script-shell
@@ -214,10 +221,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Pin some dependencies to nearest patch and rebuild
         run: |
@@ -242,10 +249,10 @@ jobs:
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Publish packages locally
         timeout-minutes: 2
@@ -281,10 +288,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Check if any E2E tests should run
         id: check
@@ -329,14 +336,14 @@ jobs:
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
         with:
-          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e iam access drift test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node_version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
@@ -362,14 +369,14 @@ jobs:
         uses: ./.github/actions/setup_baseline_version
         id: setup_baseline_version
         with:
-          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node_version: 18
       - name: Checkout current version
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - name: Run e2e amplify outputs backwards compatibility test
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node_version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
@@ -388,7 +395,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - id: generateMatrix
@@ -436,7 +443,7 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - id: generateMatrix
@@ -487,7 +494,7 @@ jobs:
         uses: ./.github/actions/run_with_e2e_account
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
-          node_version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node_version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
           link_cli: true
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
@@ -565,10 +572,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run lint
   check_dependencies:
@@ -580,10 +587,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run check:dependencies
   check_tsconfig_refs:
@@ -595,10 +602,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run check:tsconfig-refs
   check_api_extract:
@@ -610,10 +617,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run check:api
   docs_build_and_publish:
@@ -625,10 +632,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run docs
       - if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
@@ -647,10 +654,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: git fetch origin
       - run: npm run diff:check "$BASE_SHA"
@@ -669,10 +676,10 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Validate that PR has changeset
         run: npx changeset status --since origin/"$BASE_REF"
@@ -698,10 +705,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npx changeset version
       - run: npm run check:package-versions
@@ -716,10 +723,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
@@ -749,10 +756,10 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
       - uses: ./.github/actions/restore_build_cache
         with:
-          node-version: ${{ fromJSON(needs.resolve_inputs.outputs.node)[0] }}
+          node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
