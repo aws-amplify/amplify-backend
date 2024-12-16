@@ -56,21 +56,3 @@ jobs:
           fresh_build: true
           shell: bash
           run: ./scripts/retry.js npm run live-dependency-health-checks
-  health_checks_with_latest_cdk:
-    uses: ./.github/workflows/health_checks.yml
-    secrets: inherit
-    with:
-      # This runs all deployment and sandbox tests with latest CDK.
-      desired-cdk-version: latest
-      # Exclude additional runtimes in canaries.
-      # They don't bring much value, but may bring instability and extra latency.
-      include-macos: false
-      include-windows: false
-      node: '["18"]'
-      # Exclude package manager and create-amplify tests.
-      # They're redundant with live_dependency_health_checks.
-      # I.e. they all test create-amplify -> deployment scenario.
-      # Additionally, these tests in health-checks are using NPM proxy
-      # and unpublished version of create-amplify, that makes them less stable.
-      include-package-manager-e2e-tests: false
-      include-create-amplify-e2e-tests: false

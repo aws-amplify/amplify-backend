@@ -1,0 +1,29 @@
+name: validate_cdk_release
+
+on:
+  schedule:
+    # Every day at 16:00 UTC (8:00 PST)
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+    inputs:
+      desired-cdk-version:
+        description: 'AWS CDK version (exact or tag). Defaults to latest version.'
+        required: false
+        type: string
+
+jobs:
+  health_checks_with_cdk_version:
+    uses: ./.github/workflows/health_checks.yml
+    secrets: inherit
+    with:
+      # This runs all deployment and sandbox tests with latest CDK.
+      desired-cdk-version: ${{ inputs.desired-cdk-version || 'latest' }}
+      # Exclude additional runtimes.
+      # They don't bring much value, but may bring instability and extra latency.
+      include-macos: false
+      include-windows: false
+      node: '["18"]'
+      # Exclude package manager and create-amplify tests.
+      # They don't bring functional coverage for CDK usage patterns.
+      include-package-manager-e2e-tests: false
+      include-create-amplify-e2e-tests: false
