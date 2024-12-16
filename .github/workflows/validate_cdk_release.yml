@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/health_checks.yml
     secrets: inherit
     with:
-      # This runs all deployment and sandbox tests with latest CDK.
+      # This runs all deployment and sandbox tests.
       desired-cdk-version: ${{ inputs.desired-cdk-version || 'latest' }}
       # Exclude additional runtimes.
       # They don't bring much value, but may bring instability and extra latency.
