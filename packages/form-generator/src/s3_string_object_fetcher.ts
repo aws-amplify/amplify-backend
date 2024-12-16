@@ -28,9 +28,8 @@ export class S3StringObjectFetcher {
       return schema;
     } catch (caught) {
       if (caught instanceof NoSuchBucket) {
-        ('');
         throw new AmplifyUserError('BucketDoesNotExistError', {
-          message: `${caught.name} the bucket, ${bucket} does not exist.`,
+          message: `${caught.name} the bucket, ${bucket} does not exist. Form Gen`,
           resolution: `Ensure that ${bucket} exists and contains its expected contents before trying this command again.\n
             To find the expected contents, create a new sandbox and investigate the contents of buckets with a similar name to this one.`,
         });
