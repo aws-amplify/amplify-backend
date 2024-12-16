@@ -35,7 +35,6 @@ export class S3StringObjectFetcher {
         throw caught;
       }
     }
-    return undefined;
   };
 
   private parseS3Uri = (uri: string): { bucket: string; key: string } => {
