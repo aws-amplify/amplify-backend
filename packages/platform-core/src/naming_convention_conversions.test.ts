@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { toScreamingSnakeCase } from './naming_convention_conversions.js';
+import { NamingConverter } from './naming_convention_conversions.js';
 import assert from 'node:assert';
 
 void describe('screaming snake conversions', () => {
@@ -16,7 +16,10 @@ void describe('screaming snake conversions', () => {
   ];
   testCases.forEach((testCase) => {
     void it(`should successfully convert ${testCase.input} to ${testCase.expected}`, () => {
-      assert.equal(toScreamingSnakeCase(testCase.input), testCase.expected);
+      assert.equal(
+        new NamingConverter().toScreamingSnakeCase(testCase.input),
+        testCase.expected
+      );
     });
   });
 });

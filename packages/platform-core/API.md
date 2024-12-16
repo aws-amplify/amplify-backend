@@ -146,6 +146,12 @@ class LogRetentionConverter {
 }
 
 // @public
+export class NamingConverter {
+    constructor(input: string);
+    get toScreamingSnakeCase(): string;
+}
+
+// @public
 export class ObjectAccumulator<T> {
     constructor(accumulator: DeepPartialAmplifyGeneratedConfigs<T>, versionKey?: string);
     accumulate: (part: DeepPartialAmplifyGeneratedConfigs<T>) => ObjectAccumulator<T>;
@@ -210,9 +216,6 @@ export enum TagName {
     // (undocumented)
     FRIENDLY_NAME = "amplify:friendly-name"
 }
-
-// @public
-export const toScreamingSnakeCase: (input: string) => string;
 
 // @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";

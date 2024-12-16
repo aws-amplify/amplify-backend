@@ -1,6 +1,6 @@
 import {
+  NamingConverter,
   ParameterPathConversions,
-  toScreamingSnakeCase,
 } from '@aws-amplify/platform-core';
 import {
   BackendIdentifier,
@@ -52,7 +52,9 @@ export class BackendIdScopedSsmEnvironmentEntriesGenerator
    */
   generateSsmEnvironmentEntries = (scopeContext: Record<string, string>) =>
     Object.entries(scopeContext).map(([contextKey, contextValue]) => {
-      const sanitizedContextKey = toScreamingSnakeCase(contextKey);
+      const sanitizedContextKey = new NamingConverter().toScreamingSnakeCase(
+        contextKey
+      );
       const parameterPath =
         ParameterPathConversions.toResourceReferenceFullPath(
           this.backendId,

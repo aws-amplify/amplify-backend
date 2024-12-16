@@ -1,4 +1,4 @@
-import { toScreamingSnakeCase } from '@aws-amplify/platform-core';
+import { NamingConverter } from '@aws-amplify/platform-core';
 import {
   GetObjectCommand,
   NoSuchKey,
@@ -184,7 +184,9 @@ export const getAmplifyDataClientConfig = async <T>(
     return { resourceConfig: {}, libraryOptions: {} } as DataClientReturn<T>;
   }
 
-  const dataName = toScreamingSnakeCase(env.AMPLIFY_DATA_DEFAULT_NAME);
+  const dataName = new NamingConverter().toScreamingSnakeCase(
+    env.AMPLIFY_DATA_DEFAULT_NAME
+  );
   const extendedEnv = extendEnv(env, dataName);
 
   let modelIntrospectionSchema: object;
