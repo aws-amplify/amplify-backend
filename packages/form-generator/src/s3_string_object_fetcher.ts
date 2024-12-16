@@ -1,4 +1,5 @@
 import { GetObjectCommand, NoSuchBucket, S3Client } from '@aws-sdk/client-s3';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Handles fetching an object from an s3 bucket and parsing the object contents to a string
@@ -27,10 +28,12 @@ export class S3StringObjectFetcher {
       return schema;
     } catch (caught) {
       if (caught instanceof NoSuchBucket) {
-        // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-        throw new Error(
-          `Error ${caught.name} the bucket, ${bucket} does not exist. Ensure that ${bucket} exists before trying this command again.`
-        );
+        ('');
+        throw new AmplifyUserError('BucketDoesNotExistError', {
+          message: `${caught.name} the bucket, ${bucket} does not exist.`,
+          resolution: `Ensure that ${bucket} exists and contains its expected contents before trying this command again.\n
+            To find the expected contents, create a new sandbox and investigate the contents of buckets with a similar name to this one.`,
+        });
       } else {
         throw caught;
       }
