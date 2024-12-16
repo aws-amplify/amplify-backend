@@ -6,6 +6,6 @@ if (!process.env.E2E_TEST_ACCOUNTS) {
 
 const accounts = JSON.parse(process.env.E2E_TEST_ACCOUNTS);
 
-const selectedAccount = accounts[Math.floor(Math.random() * accounts.length)];
-
+//const selectedAccount = accounts[Math.floor(Math.random() * accounts.length)];
+const selectedAccount = "061039800489";
 console.log(selectedAccount);
