@@ -40,7 +40,7 @@ runs:
         ref: ${{ steps.get_baseline_commit_sha.outputs.baseline_commit_sha }}
     - uses: ./.github/actions/setup_node
       with:
-        node-version: ${{ inputs.node-version }}
+        node-version: ${{ inputs.node_version }}
     - name: Install and build baseline version
       shell: bash
       run: |
