@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import path from 'path';
-import watcher from '@parcel/watcher';
+import watcher, { subscribe } from '@parcel/watcher';
 import {
   CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
   FileWatchingSandbox,
@@ -39,7 +39,8 @@ import {
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
-const subscribeMock = mock.method(watcher, 'subscribe', async () => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const subscribeMock = mock.fn(async (_dir, _effect, _options) => {
   return { unsubscribe: unsubscribeMockFn };
 });
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
@@ -147,7 +148,8 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       ssmClientMock,
       functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       printer as unknown as Printer,
-      openMock as never
+      openMock as never,
+      subscribeMock as never
     );
 
     ssmClientSendMock.mock.resetCalls();
@@ -1163,7 +1165,8 @@ const setupAndStartSandbox = async (
     testData.ssmClient,
     testData.functionsLogStreamer,
     printer as unknown as Printer,
-    testData.open ?? _open
+    testData.open ?? _open,
+    testData.subscribe ?? subscribe
   );
 
   await sandboxInstance.start(sandboxOptions);
@@ -1216,4 +1219,5 @@ type SandboxTestData = {
   ssmClient: SSMClient;
   functionsLogStreamer: LambdaFunctionLogStreamer;
   open?: typeof _open;
+  subscribe?: typeof subscribe;
 };
