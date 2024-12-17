@@ -277,7 +277,8 @@ export class AuthResourceCreator {
   setupUserPoolGroup = async (
     groupName: string,
     userPoolId: string,
-    identityPoolId: string
+    identityPoolId: string,
+    permissionBoundaryArn: string
   ) => {
     const groupRole = await this.createRoleBase({
       RoleName: 'ref-auth-group-role',
@@ -285,6 +286,7 @@ export class AuthResourceCreator {
         identityPoolId,
         'authenticated'
       ),
+      PermissionsBoundary: permissionBoundaryArn,
     });
     const group = await this.createUserPoolGroupBase({
       GroupName: groupName,
@@ -304,7 +306,8 @@ export class AuthResourceCreator {
   setupIdentityPoolRoles = async (
     userPoolId: string,
     userPoolClientId: string,
-    identityPoolId: string
+    identityPoolId: string,
+    permissionBoundaryArn: string
   ) => {
     const authRole = await this.createRoleBase({
       RoleName: `ref-auth-role`,
@@ -312,6 +315,7 @@ export class AuthResourceCreator {
         identityPoolId,
         'authenticated'
       ),
+      PermissionsBoundary: permissionBoundaryArn,
     });
     const unauthRole = await this.createRoleBase({
       RoleName: `ref-unauth-role`,
@@ -319,6 +323,7 @@ export class AuthResourceCreator {
         identityPoolId,
         'unauthenticated'
       ),
+      PermissionsBoundary: permissionBoundaryArn,
     });
     const region = await this.cognitoIdentityClient.config.region();
     await this.cognitoIdentityClient.send(
