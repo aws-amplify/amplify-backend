@@ -146,6 +146,11 @@ class LogRetentionConverter {
 }
 
 // @public
+export class NamingConverter {
+    toScreamingSnakeCase(input: string): string;
+}
+
+// @public
 export class ObjectAccumulator<T> {
     constructor(accumulator: DeepPartialAmplifyGeneratedConfigs<T>, versionKey?: string);
     accumulate: (part: DeepPartialAmplifyGeneratedConfigs<T>) => ObjectAccumulator<T>;

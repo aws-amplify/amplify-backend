@@ -2,10 +2,26 @@ name: install_with_cache
 description: installs node_modules if cache miss and stores in the cache
 inputs:
   node-version:
-    default: 18
+    required: true
+  cdk-version:
+    required: true
 runs:
   using: composite
   steps:
+    # Validate that non-blank inputs are provided.
+    # This is to ensure that inputs are plumbed and not defaulted accidentally in action call chains.
+    # The 'required' input property does not assert this if value is provided at runtime.
+    - name: Validate input
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.cdk-version }}" ]; then
+          echo "CDK version must be provided"
+          exit 1;
+        fi
+        if [ -z "${{ inputs.node-version }}" ]; then
+          echo "Node version must be provided"
+          exit 1;
+        fi
     # cache node_modules based on package-lock.json hash
     - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # version 4.0.2
       id: npm-cache
@@ -13,8 +29,14 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-cdk${{ inputs.cdk-version }}
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash
-      run: npm ci
+      run: |
+        npm ci
+        if [[ ${{ inputs.cdk-version }} != 'FROM_PACKAGE_LOCK' ]]; then
+          echo "Installing CDK version ${{ inputs.cdk-version }}"
+          npm install --no-save aws-cdk@${{ inputs.cdk-version }} aws-cdk-lib@${{ inputs.cdk-version }}
+          npx cdk --version
+        fi
