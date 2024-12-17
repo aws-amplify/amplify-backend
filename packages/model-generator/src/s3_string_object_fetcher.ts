@@ -1,3 +1,4 @@
+import { AmplifyFault } from '@aws-amplify/platform-core';
 import { GetObjectCommand, NoSuchBucket, S3Client } from '@aws-sdk/client-s3';
 
 /**
@@ -27,9 +28,11 @@ export class S3StringObjectFetcher {
     } catch (caught) {
       if (caught instanceof NoSuchBucket) {
         //eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-        throw new Error(`${caught.name} the bucket, ${bucket} does not exist. \n
-          Ensure that ${bucket} exists and contains its expected contents before trying this command again.\n
-          To find the expected contents, create a new sandbox and investigate the contents of buckets with a similar name to this one.`);
+        throw new AmplifyFault('NoSuchBucketFault', {
+          message: `${caught.name} the bucket, ${bucket} does not exist. \n
+            Ensure that ${bucket} exists and contains its expected contents before trying this command again.\n
+            To find the expected contents, create a new sandbox and investigate the contents of buckets with a similar name to this one.`,
+        });
       } else {
         throw caught;
       }
