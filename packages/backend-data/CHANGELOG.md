@@ -1,5 +1,11 @@
 # @aws-amplify/backend-data
 
+## 1.2.3
+
+### Patch Changes
+
+- f193105: Update getAmplifyDataClientConfig to work with named data backend
+
 ## 1.2.2
 
 ### Patch Changes

@@ -31,6 +31,7 @@ const schema = a
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
+  name: 'DATATEST',
   schema,
   authorizationModes: {
     defaultAuthorizationMode: 'apiKey',
