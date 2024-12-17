@@ -310,18 +310,30 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     const namePrefix = this.name === defaultName ? '' : defaultName;
 
+    const ssmEnvironmentScopeContext = {
+      [`${namePrefix}${this.name}_GRAPHQL_ENDPOINT`]:
+        amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
+      [`${namePrefix}${this.name}_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME`]:
+        modelIntrospectionSchemaBucket.bucketName,
+      [`${namePrefix}${this.name}_MODEL_INTROSPECTION_SCHEMA_KEY`]:
+        modelIntrospectionSchemaKey,
+      ['AMPLIFY_DATA_DEFAULT_NAME']: `${namePrefix}${this.name}`,
+    };
+
+    const backwardsCompatibleScopeContext =
+      `${this.name}_GRAPHQL_ENDPOINT` !==
+      `${namePrefix}${this.name}_GRAPHQL_ENDPOINT`
+        ? {
+            // @deprecated
+            [`${this.name}_GRAPHQL_ENDPOINT`]:
+              amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
+          }
+        : {};
+
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${namePrefix}${this.name}_GRAPHQL_ENDPOINT`]:
-          amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
-        [`${namePrefix}${this.name}_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME`]:
-          modelIntrospectionSchemaBucket.bucketName,
-        [`${namePrefix}${this.name}_MODEL_INTROSPECTION_SCHEMA_KEY`]:
-          modelIntrospectionSchemaKey,
-        ['AMPLIFY_DATA_DEFAULT_NAME']: `${namePrefix}${this.name}`,
-        // @deprecated
-        [`${this.name}_GRAPHQL_ENDPOINT`]:
-          amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
+        ...ssmEnvironmentScopeContext,
+        ...backwardsCompatibleScopeContext,
       });
 
     const policyGenerator = new AppSyncPolicyGenerator(
