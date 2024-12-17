@@ -1,5 +1,13 @@
 # @aws-amplify/backend-function
 
+## 1.10.0
+
+### Minor Changes
+
+- d32e4cd: Add ephemeralStorageSizeMB option to defineFunction
+- 560878f: updates layer to also use layername:version
+- f193105: Update getAmplifyDataClientConfig to work with named data backend
+
 ## 1.9.0
 
 ### Minor Changes

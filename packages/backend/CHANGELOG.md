@@ -1,5 +1,24 @@
 # @aws-amplify/backend
 
+## 1.10.0
+
+### Minor Changes
+
+- 560878f: updates layer to also use layername:version
+
+### Patch Changes
+
+- Updated dependencies [95942c5]
+- Updated dependencies [3cf0738]
+- Updated dependencies [f679cf6]
+- Updated dependencies [d32e4cd]
+- Updated dependencies [560878f]
+- Updated dependencies [f193105]
+  - @aws-amplify/platform-core@1.4.0
+  - @aws-amplify/client-config@1.5.4
+  - @aws-amplify/backend-function@1.10.0
+  - @aws-amplify/backend-data@1.2.3
+
 ## 1.9.0
 
 ### Minor Changes
