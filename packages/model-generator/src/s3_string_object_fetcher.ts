@@ -27,7 +27,7 @@ export class S3StringObjectFetcher {
     } catch (caught) {
       if (caught instanceof NoSuchBucket) {
         //eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-        throw new Error(`${caught.name} the bucket, ${bucket} does not exist. 
+        throw new Error(`${caught.name} the bucket, ${bucket} does not exist. \n
           Ensure that ${bucket} exists and contains its expected contents before trying this command again.\n
           To find the expected contents, create a new sandbox and investigate the contents of buckets with a similar name to this one.`);
       } else {
