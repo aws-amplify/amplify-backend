@@ -487,6 +487,32 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      // This error pattern is observed when circular dependency is between stacks but not resources in a stack
+      errorRegex:
+        /ValidationError: Circular dependency between resources: \[(?<resources>.*)\]/,
+      humanReadableErrorMessage:
+        'The CloudFormation deployment failed due to circular dependency found between nested stacks [{resources}]',
+      resolutionMessage: `If you are using functions then you can assign them to existing nested stacks that are dependent on functions or functions depend on them, for example:
+1. If your function is defined as auth triggers, you should assign this function to auth stack.
+2. If your function is used as data resolver or calls data API, you should assign this function to data stack.
+To assign a function to a different stack, use the property 'resourceGroupName' in the defineFunction call and choose auth, data or any custom stack.
+
+If your circular dependency issue is not resolved with this workaround, please create an issue here https://github.com/aws-amplify/amplify-backend/issues/new/choose
+`,
+      errorName: 'CloudformationStackCircularDependencyError',
+      classification: 'ERROR',
+    },
+    {
+      // This error pattern is observed when circular dependency is between resources in a single stack, i.e. ValidationError is absent from the error message
+      errorRegex:
+        /(?<!ValidationError: )Circular dependency between resources: \[(?<resources>.*)\]/,
+      humanReadableErrorMessage:
+        'The CloudFormation deployment failed due to circular dependency found between resources [{resources}] in a single stack',
+      resolutionMessage: `If you are creating custom stacks or adding new CDK resources to amplify stacks, ensure that there are no cyclic dependencies. For more details see: https://aws.amazon.com/blogs/infrastructure-and-automation/handling-circular-dependency-errors-in-aws-cloudformation/`,
+      errorName: 'CloudformationResourceCircularDependencyError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex:
         /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
       humanReadableErrorMessage:
@@ -523,6 +549,8 @@ export type CDKDeploymentError =
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
+  | 'CloudformationResourceCircularDependencyError'
+  | 'CloudformationStackCircularDependencyError'
   | 'CloudFormationDeletionError'
   | 'CloudFormationDeploymentError'
   | 'CommonNPMError'
