@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import path from 'path';
-import watcher, { subscribe } from '@parcel/watcher';
+import watcher, { subscribe as _subscribe } from '@parcel/watcher';
 import {
   CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
   FileWatchingSandbox,
@@ -40,7 +40,11 @@ import {
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const subscribeMock = mock.fn(async (_dir, _effect, _options) => {
+const subscribeMock = mock.fn<
+  (
+    ...args: Parameters<typeof _subscribe>
+  ) => Promise<{ unsubscribe: typeof unsubscribeMockFn }>
+>(async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
@@ -1166,7 +1170,7 @@ const setupAndStartSandbox = async (
     testData.functionsLogStreamer,
     printer as unknown as Printer,
     testData.open ?? _open,
-    testData.subscribe ?? subscribe
+    subscribeMock as never
   );
 
   await sandboxInstance.start(sandboxOptions);
@@ -1219,5 +1223,4 @@ type SandboxTestData = {
   ssmClient: SSMClient;
   functionsLogStreamer: LambdaFunctionLogStreamer;
   open?: typeof _open;
-  subscribe?: typeof subscribe;
 };
