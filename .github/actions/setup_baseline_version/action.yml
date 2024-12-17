@@ -1,5 +1,9 @@
 name: setup_baseline_version
 description: Set up a baseline or "previous" version of the library for testing. Mostly useful for backwards compatibility
+inputs:
+  node_version:
+    description: node version used to configure environment with
+    required: true
 outputs:
   baseline_dir:
     description: 'Path where baseline project directory is setup'
@@ -35,6 +39,8 @@ runs:
       with:
         ref: ${{ steps.get_baseline_commit_sha.outputs.baseline_commit_sha }}
     - uses: ./.github/actions/setup_node
+      with:
+        node-version: ${{ inputs.node_version }}
     - name: Install and build baseline version
       shell: bash
       run: |

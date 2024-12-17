@@ -27,6 +27,8 @@ import {
 import {
   CognitoIdentityProviderClient,
   DeleteUserPoolCommand,
+  DeleteUserPoolDomainCommand,
+  DescribeUserPoolCommand,
   ListUserPoolsCommand,
   ListUserPoolsCommandOutput,
   UserPoolDescriptionType,
@@ -296,6 +298,19 @@ const staleUserPools = await listStaleCognitoUserPools();
 for (const staleUserPool of staleUserPools) {
   if (staleUserPool.Name) {
     try {
+      const describeUserPoolResponse = await cognitoClient.send(
+        new DescribeUserPoolCommand({
+          UserPoolId: staleUserPool.Id,
+        })
+      );
+      if (describeUserPoolResponse.UserPool?.Domain) {
+        await cognitoClient.send(
+          new DeleteUserPoolDomainCommand({
+            UserPoolId: describeUserPoolResponse.UserPool.Id,
+            Domain: describeUserPoolResponse.UserPool?.Domain,
+          })
+        );
+      }
       await cognitoClient.send(
         new DeleteUserPoolCommand({
           UserPoolId: staleUserPool.Id,
