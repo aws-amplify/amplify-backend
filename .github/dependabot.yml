@@ -1,0 +1,14 @@
+# Dependabot version updates raises a maximum of five pull requests each time it checks dependencies.
+# Note that there is some overlap with Dependabot security updates so some options can effect security updates as well,
+# see https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file.
+
+version: 2
+updates:
+  # Maintain dependencies for npm ecosystem
+  - package-ecosystem: 'npm'
+    # Checks all directories from the current layer and below recursively for package.json files
+    directories:
+      - '**/*'
+    schedule:
+      # Runs every Monday
+      interval: 'weekly'
