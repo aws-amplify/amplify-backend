@@ -7,11 +7,12 @@
   },
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
+      "types": "./lib/types.d.ts",
       "import": "./lib/index.js",
       "require": "./lib/index.js"
     }
   },
+  "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "update:api": "api-extractor run --local"
