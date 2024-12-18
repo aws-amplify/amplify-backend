@@ -1,5 +1,8 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
-  "references": [{ "path": "../backend-secret" }]
+  "references": [
+    { "path": "../backend-secret" },
+    { "path": "../platform-core" }
+  ]
 }
