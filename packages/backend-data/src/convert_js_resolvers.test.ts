@@ -37,7 +37,9 @@ void describe('defaultJsResolverCode', () => {
   void it('returns the default JS resolver code with api id and env name in valid JS', async () => {
     const code = defaultJsResolverCode('testApiId', 'testEnvName');
     assert(code.includes("ctx.stash.awsAppsyncApiId = 'testApiId';"));
-    assert(code.includes("ctx.stash.amplifyBranchName = 'testEnvName';"));
+    assert(
+      code.includes("ctx.stash.amplifyApiEnvironmentName = 'testEnvName';")
+    );
 
     const tempDir = tmpdir();
     const filename = join(tempDir, 'js_resolver_handler.js');
@@ -52,7 +54,7 @@ void describe('defaultJsResolverCode', () => {
     // assert api id and env name are added to the context stash
     assert.deepEqual(context.stash, {
       awsAppsyncApiId: 'testApiId',
-      amplifyBranchName: 'testEnvName',
+      amplifyApiEnvironmentName: 'testEnvName',
     });
     assert.equal(resolver.response(context), 'result');
   });
@@ -230,7 +232,7 @@ void describe('convertJsResolverDefinition', () => {
                 'ApiId',
               ],
             },
-            "';\n    ctx.stash.amplifyBranchName = 'NONE';\n    return {};\n};\n/**\n * Pipeline resolver response handler\n */\nexport const response = (ctx) => {\n    return ctx.prev.result;\n};\n",
+            "';\n    ctx.stash.amplifyApiEnvironmentName = 'NONE';\n    return {};\n};\n/**\n * Pipeline resolver response handler\n */\nexport const response = (ctx) => {\n    return ctx.prev.result;\n};\n",
           ],
         ],
       },

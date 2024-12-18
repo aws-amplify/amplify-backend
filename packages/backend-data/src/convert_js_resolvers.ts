@@ -24,7 +24,7 @@ const JS_PIPELINE_RESOLVER_HANDLER = './assets/js_resolver_handler.js';
  */
 export const defaultJsResolverCode = (
   amplifyApiId: string,
-  amplifyEnvironmentName: string
+  amplifyApiEnvironmentName: string
 ): string => {
   const resolvedTemplatePath = resolve(
     fileURLToPath(import.meta.url),
@@ -35,8 +35,8 @@ export const defaultJsResolverCode = (
   return readFileSync(resolvedTemplatePath, 'utf-8')
     .replace(new RegExp(/\$\{amplifyApiId\}/, 'g'), amplifyApiId)
     .replace(
-      new RegExp(/\$\{amplifyEnvironmentName\}/, 'g'),
-      amplifyEnvironmentName
+      new RegExp(/\$\{amplifyApiEnvironmentName\}/, 'g'),
+      amplifyApiEnvironmentName
     );
 };
 
@@ -78,7 +78,7 @@ export const convertJsResolverDefinition = (
 
     const resolverName = `Resolver_${resolver.typeName}_${resolver.fieldName}`;
 
-    const amplifyEnvironmentName =
+    const amplifyApiEnvironmentName =
       scope.node.tryGetContext('amplifyEnvironmentName') ?? 'NONE';
     new CfnResolver(scope, resolverName, {
       apiId: amplifyApi.apiId,
@@ -86,7 +86,7 @@ export const convertJsResolverDefinition = (
       typeName: resolver.typeName,
       kind: APPSYNC_PIPELINE_RESOLVER,
       // Uses synth-time inline code to avoid circular dependency when adding the API ID as an environment variable.
-      code: defaultJsResolverCode(amplifyApi.apiId, amplifyEnvironmentName),
+      code: defaultJsResolverCode(amplifyApi.apiId, amplifyApiEnvironmentName),
       runtime: {
         name: APPSYNC_JS_RUNTIME_NAME,
         runtimeVersion: APPSYNC_JS_RUNTIME_VERSION,
