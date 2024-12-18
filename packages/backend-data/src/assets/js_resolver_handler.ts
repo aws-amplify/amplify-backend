@@ -3,7 +3,7 @@
  */
 export const request = (ctx: Record<string, Record<string, string>>) => {
   ctx.stash.awsAppsyncApiId = '${amplifyApiId}';
-  ctx.stash.amplifyBranchName = '${amplifyEnvironmentName}';
+  ctx.stash.amplifyApiEnvironmentName = '${amplifyApiEnvironmentName}';
   return {};
 };
 /**
