@@ -1,7 +1,10 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { AmplifyPrompter, printer } from '@aws-amplify/cli-core';
 import yargs, { CommandModule } from 'yargs';
-import { TestCommandRunner } from '../../../test-utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import {
@@ -11,6 +14,7 @@ import {
 import { SandboxSecretSetCommand } from './sandbox_secret_set_command.js';
 import { ReadStream } from 'node:tty';
 import { PassThrough } from 'node:stream';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 const testSecretName = 'testSecretName';
 const testSecretValue = 'testSecretValue';
@@ -143,6 +147,23 @@ void describe('sandbox secret set command', () => {
       testSecretName,
       testSecretValue,
     ]);
+  });
+
+  void it('throws AmplifyUserError if invalid secret name is provided', async () => {
+    const invalidSecretName = 'invalid@';
+    await assert.rejects(
+      () => commandRunner.runCommand(`set ${invalidSecretName}`),
+      (err: TestCommandError) => {
+        assert.ok(AmplifyError.isAmplifyError(err.error));
+        assert.strictEqual(
+          err.error.message,
+          'Invalid secret name provided: invalid@'
+        );
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
+        return true;
+      }
+    );
+    assert.equal(secretSetMock.mock.callCount(), 0);
   });
 
   void it('show --help', async () => {
