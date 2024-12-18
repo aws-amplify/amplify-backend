@@ -31,8 +31,7 @@ export class S3StringObjectFetcher {
           'NoSuchBucketFault',
           {
             message: `${caught.name} the bucket, ${bucket} does not exist. \n
-            Ensure that ${bucket} exists and contains its expected contents before trying this command again.\n
-            To find the expected contents, create a new sandbox and investigate the contents of buckets with a similar name to this one.`,
+            Try redeploying your changes again, if the error persists, create a bug report here: https://github.com/aws-amplify/amplify-backend/issues/new/choose`,
           },
           caught
         );
