@@ -5,7 +5,7 @@
 ```ts
 
 // @public (undocumented)
-export const getSecret: (secretName: string) => Promise<string>;
+export const GetSeedSecret: (secretName: string) => Promise<string>;
 
 // (No @packageDocumentation comment for this package)
 
