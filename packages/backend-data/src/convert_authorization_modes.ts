@@ -60,7 +60,7 @@ export const buildConstructFactoryProvidedAuthConfig = (
 const convertApiKeyAuthConfigToCDK = ({
   description,
   expiresInDays = DEFAULT_API_KEY_EXPIRATION_DAYS,
-}: ApiKeyAuthorizationModeProps): CDKApiKeyAuthorizationConfig => ({
+}: ApiKeyAuthorizationModeProps = {}): CDKApiKeyAuthorizationConfig => ({
   description,
   expires: Duration.days(expiresInDays),
 });
@@ -207,9 +207,12 @@ export const convertAuthorizationModesToCDK = (
   const cdkAuthorizationMode = convertAuthorizationModeToCDK(
     defaultAuthorizationMode
   );
-  const apiKeyConfig = authModes?.apiKeyAuthorizationMode
-    ? convertApiKeyAuthConfigToCDK(authModes.apiKeyAuthorizationMode)
-    : computeApiKeyAuthFromResource(authResources, authModes);
+  const apiKeyConfig =
+    authModes?.apiKeyAuthorizationMode ||
+    // If default auth mode is apiKey, don't require apiKeyAuthorizationMode to be defined
+    defaultAuthorizationMode === 'apiKey'
+      ? convertApiKeyAuthConfigToCDK(authModes?.apiKeyAuthorizationMode)
+      : computeApiKeyAuthFromResource(authResources, authModes);
   const userPoolConfig = computeUserPoolAuthFromResource(authResources);
   const identityPoolConfig = computeIdentityPoolAuthFromResource(authResources);
   const lambdaConfig = authModes?.lambdaAuthorizationMode
