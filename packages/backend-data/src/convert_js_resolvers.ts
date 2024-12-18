@@ -79,7 +79,7 @@ export const convertJsResolverDefinition = (
     const resolverName = `Resolver_${resolver.typeName}_${resolver.fieldName}`;
 
     const amplifyApiEnvironmentName =
-      scope.node.tryGetContext('amplifyApiEnvironmentName') ?? 'NONE';
+      scope.node.tryGetContext('amplifyEnvironmentName') ?? 'NONE';
     new CfnResolver(scope, resolverName, {
       apiId: amplifyApi.apiId,
       fieldName: resolver.fieldName,
