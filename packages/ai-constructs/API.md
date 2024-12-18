@@ -11,6 +11,7 @@ import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import * as bedrock from '@aws-sdk/client-bedrock-runtime';
 import { Construct } from 'constructs';
+import { Duration } from 'aws-cdk-lib';
 import { FunctionResources } from '@aws-amplify/plugin-types';
 import * as jsonSchemaToTypeScript from 'json-schema-to-ts';
 import { ResourceProvider } from '@aws-amplify/plugin-types';
@@ -51,6 +52,7 @@ class ConversationHandlerFunction extends Construct implements ResourceProvider<
 
 // @public (undocumented)
 type ConversationHandlerFunctionProps = {
+    timeout?: Duration;
     entry?: string;
     models: Array<{
         modelId: string;
