@@ -1,1 +1,1 @@
-export * from './get_secret_seed.js';
+export { GetSeedSecret } from './get_secret_seed.js';
