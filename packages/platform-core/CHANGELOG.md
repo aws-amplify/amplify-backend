@@ -1,5 +1,16 @@
 # @aws-amplify/platform-core
 
+## 1.4.0
+
+### Minor Changes
+
+- f193105: Update getAmplifyDataClientConfig to work with named data backend
+
+### Patch Changes
+
+- 95942c5: expand wrapping of credentials related errors
+- f679cf6: expand handling of getaddrinfo ENOTFOUND errors
+
 ## 1.3.0
 
 ### Minor Changes

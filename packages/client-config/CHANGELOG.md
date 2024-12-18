@@ -1,5 +1,18 @@
 # @aws-amplify/client-config
 
+## 1.5.4
+
+### Patch Changes
+
+- 3cf0738: update detection of BackendOutputClientErrors
+- Updated dependencies [95942c5]
+- Updated dependencies [3cf0738]
+- Updated dependencies [f679cf6]
+- Updated dependencies [f193105]
+  - @aws-amplify/platform-core@1.4.0
+  - @aws-amplify/deployed-backend-client@1.5.0
+  - @aws-amplify/model-generator@1.0.10
+
 ## 1.5.3
 
 ### Patch Changes
