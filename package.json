@@ -29,7 +29,7 @@
     "setup:test-project": "tsx scripts/setup_test_project.ts",
     "start:npm-proxy": "tsx scripts/start_npm_proxy.ts",
     "stop:npm-proxy": "tsx scripts/stop_npm_proxy.ts",
-    "test": "npm run test:dir $(tsx scripts/get_unit_test_dir_list.ts)",
+    "test": "npm run test:dir $(tsx scripts/get_unit_test_file_list.ts)",
     "test:coverage:generate": "NODE_V8_COVERAGE=coverage/ npm run test",
     "test:coverage:threshold": "c8 npm run test",
     "test:dir": "tsx --test --test-reporter spec",
