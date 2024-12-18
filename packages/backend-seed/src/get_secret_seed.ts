@@ -3,13 +3,11 @@ import { LocalNamespaceResolver } from './namespace_resolver.js';
 import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
 
-//ultimately want the API to look something like this: getSecret(secretName)
 //eslint-disable-next-line jsdoc/require-description
 /**
  *
  */
 export const GetSeedSecret = async (secretName: string): Promise<string> => {
-  //need to get access to the BackendIdentifier
   const backendId = await new SandboxBackendIdResolver(
     new LocalNamespaceResolver(new PackageJsonReader())
   ).resolve();
