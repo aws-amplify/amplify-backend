@@ -18,7 +18,7 @@ export class AmplifyProjectCreator {
     'aws-cdk@^2',
     'aws-cdk-lib@^2',
     'constructs@^10.0.0',
-    'typescript@^5.0.0',
+    'typescript@^5.4.0',
     'tsx',
     'esbuild',
   ];
