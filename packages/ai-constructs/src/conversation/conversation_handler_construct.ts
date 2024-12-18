@@ -30,6 +30,7 @@ const resourcesRoot = path.normalize(path.join(__dirname, 'runtime'));
 const defaultHandlerFilePath = path.join(resourcesRoot, 'default_handler.js');
 
 export type ConversationHandlerFunctionProps = {
+  timeout?: Duration;
   entry?: string;
   models: Array<{
     modelId: string;
@@ -96,7 +97,7 @@ export class ConversationHandlerFunction
       `conversationHandlerFunction`,
       {
         runtime: LambdaRuntime.NODEJS_18_X,
-        timeout: Duration.seconds(60),
+        timeout: this.props.timeout ?? Duration.seconds(60),
         entry: this.props.entry ?? defaultHandlerFilePath,
         handler: 'handler',
         memorySize: this.resolveMemory(),
