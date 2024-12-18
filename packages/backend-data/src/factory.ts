@@ -52,6 +52,7 @@ import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 
 const modelIntrospectionSchemaKey = 'modelIntrospectionSchema.json';
+const defaultName = 'amplifyData';
 
 /**
  * Singleton factory for AmplifyGraphqlApi constructs that can be used in Amplify project files.
@@ -127,7 +128,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {
-    this.name = props.name ?? 'amplifyData';
+    this.name = props.name ?? defaultName;
   }
 
   generateContainerEntry = ({
@@ -307,14 +308,32 @@ class DataGenerator implements ConstructContainerEntryGenerator {
 
     convertJsResolverDefinition(scope, amplifyApi, schemasJsFunctions);
 
+    const namePrefix = this.name === defaultName ? '' : defaultName;
+
+    const ssmEnvironmentScopeContext = {
+      [`${namePrefix}${this.name}_GRAPHQL_ENDPOINT`]:
+        amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
+      [`${namePrefix}${this.name}_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME`]:
+        modelIntrospectionSchemaBucket.bucketName,
+      [`${namePrefix}${this.name}_MODEL_INTROSPECTION_SCHEMA_KEY`]:
+        modelIntrospectionSchemaKey,
+      ['AMPLIFY_DATA_DEFAULT_NAME']: `${namePrefix}${this.name}`,
+    };
+
+    const backwardsCompatibleScopeContext =
+      `${this.name}_GRAPHQL_ENDPOINT` !==
+      `${namePrefix}${this.name}_GRAPHQL_ENDPOINT`
+        ? {
+            // @deprecated
+            [`${this.name}_GRAPHQL_ENDPOINT`]:
+              amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
+          }
+        : {};
+
     const ssmEnvironmentEntries =
       ssmEnvironmentEntriesGenerator.generateSsmEnvironmentEntries({
-        [`${this.name}_GRAPHQL_ENDPOINT`]:
-          amplifyApi.resources.cfnResources.cfnGraphqlApi.attrGraphQlUrl,
-        [`${this.name}_MODEL_INTROSPECTION_SCHEMA_BUCKET_NAME`]:
-          modelIntrospectionSchemaBucket.bucketName,
-        [`${this.name}_MODEL_INTROSPECTION_SCHEMA_KEY`]:
-          modelIntrospectionSchemaKey,
+        ...ssmEnvironmentScopeContext,
+        ...backwardsCompatibleScopeContext,
       });
 
     const policyGenerator = new AppSyncPolicyGenerator(

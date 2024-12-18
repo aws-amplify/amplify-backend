@@ -25,13 +25,12 @@ const testErrorMappings = [
       'ExpiredToken: The security token included in the request is expired',
   },
   {
-    errorMessage:
-      'Error: The security token included in the request is expired',
+    errorMessage: 'The security token included in the request is expired',
     expectedTopLevelErrorMessage:
       'The security token included in the request is invalid.',
     errorName: 'ExpiredTokenError',
     expectedDownstreamErrorMessage:
-      'Error: The security token included in the request is expired',
+      'The security token included in the request is expired',
   },
   {
     errorMessage:
@@ -40,7 +39,7 @@ const testErrorMappings = [
       'The security token included in the request is invalid.',
     errorName: 'ExpiredTokenError',
     expectedDownstreamErrorMessage:
-      'InvalidClientTokenId: The security token included in the request is invalid',
+      'The security token included in the request is invalid',
   },
   {
     errorMessage: 'Access Denied',
@@ -657,6 +656,27 @@ npm error enoent`,
     errorMessage: `Error: some-stack failed: InvalidParameterValueException: Uploaded file must be a non-empty zip`,
     expectedTopLevelErrorMessage: 'Lambda bundled into an empty zip',
     errorName: 'LambdaEmptyZipFault',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `Error: some-stack failed: ValidationError: Role role-arn is invalid or cannot be assumed`,
+    expectedTopLevelErrorMessage:
+      'Role role-arn is invalid or cannot be assumed',
+    errorName: 'InvalidOrCannotAssumeRoleError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `some-stack failed: ValidationError: Circular dependency between resources: [storage1, data1, function1] `,
+    expectedTopLevelErrorMessage:
+      'The CloudFormation deployment failed due to circular dependency found between nested stacks [storage1, data1, function1]',
+    errorName: 'CloudformationStackCircularDependencyError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `The stack named named-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Circular dependency between resources: [resource1, resource2] `,
+    expectedTopLevelErrorMessage:
+      'The CloudFormation deployment failed due to circular dependency found between resources [resource1, resource2] in a single stack',
+    errorName: 'CloudformationResourceCircularDependencyError',
     expectedDownstreamErrorMessage: undefined,
   },
 ];

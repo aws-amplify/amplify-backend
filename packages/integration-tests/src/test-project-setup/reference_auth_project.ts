@@ -183,6 +183,9 @@ class ReferenceAuthTestProject extends TestProjectBase {
         DeletionProtection: 'INACTIVE',
       });
 
+      const accountId = userPool.Arn!.split(':')[4]; // arn:aws:cognito-idp:<region>:<account>:userpool/<userpoolid>
+      const permissionBoundaryArn = `arn:aws:iam::${accountId}:policy/CreateRolePermissionBoundaryPolicy`;
+
       const domain = await this.authResourceCreator.createUserPoolDomainBase({
         UserPoolId: userPool.Id,
         Domain: `ref-auth`,
@@ -307,13 +310,15 @@ class ReferenceAuthTestProject extends TestProjectBase {
       const roles = await this.authResourceCreator.setupIdentityPoolRoles(
         userPool.Id!,
         userPoolClient.ClientId!,
-        identityPool.IdentityPoolId
+        identityPool.IdentityPoolId,
+        permissionBoundaryArn
       );
 
       const adminGroup = await this.authResourceCreator.setupUserPoolGroup(
         'ADMINS',
         userPool.Id!,
-        identityPool.IdentityPoolId
+        identityPool.IdentityPoolId,
+        permissionBoundaryArn
       );
       return {
         userPool,

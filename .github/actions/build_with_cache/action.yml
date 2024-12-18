@@ -2,17 +2,36 @@ name: build_with_cache
 description: builds the source code if cache miss and caches the result
 inputs:
   node-version:
-    default: 18
+    required: true
+  cdk-version:
+    required: true
 runs:
   using: composite
   steps:
+    # Validate that non-blank inputs are provided.
+    # This is to ensure that inputs are plumbed and not defaulted accidentally in action call chains.
+    # The 'required' input property does not assert this if value is provided at runtime.
+    - name: Validate input
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.cdk-version }}" ]; then
+          echo "CDK version must be provided"
+          exit 1;
+        fi
+        if [ -z "${{ inputs.node-version }}" ]; then
+          echo "Node version must be provided"
+          exit 1;
+        fi
     - uses: ./.github/actions/install_with_cache
+      with:
+        node-version: ${{ inputs.node-version }}
+        cdk-version: ${{ inputs.cdk-version }}
     # cache build output based on commit sha
     - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # version 4.0.2
       id: build-cache
       with:
         path: '**/lib'
-        key: ${{ github.sha }}-node${{ inputs.node-version }}
+        key: ${{ github.sha }}-node${{ inputs.node-version }}-cdk${{ inputs.cdk-version }}
         enableCrossOsArchive: true
     # only build if cache miss
     - if: steps.build-cache.outputs.cache-hit != 'true'
