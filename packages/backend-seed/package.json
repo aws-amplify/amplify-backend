@@ -19,6 +19,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-amplify/backend-secret": "^1.1.5"
+    "@aws-amplify/backend-secret": "^1.1.5",
+    "@aws-amplify/platform-core": "^1.4.0"
   }
 }
