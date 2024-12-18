@@ -1,6 +1,3 @@
-import { PackageJsonReader } from '@aws-amplify/platform-core';
-import { LocalNamespaceResolver } from './namespace_resolver.js';
-import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
 
 //eslint-disable-next-line jsdoc/require-description
@@ -8,9 +5,13 @@ import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-se
  *
  */
 export const GetSeedSecret = async (secretName: string): Promise<string> => {
-  const backendId = await new SandboxBackendIdResolver(
-    new LocalNamespaceResolver(new PackageJsonReader())
-  ).resolve();
+  const serializedBackendId = process.env.SANDBOX_IDENTIFIER;
+  if (!serializedBackendId) {
+    throw new Error(
+      'SANDBOX_IDENTIFIER is undefined. Have you run ampx sandbox seed yet?'
+    );
+  }
+  const backendId = JSON.parse(process.env.SANDBOX_IDENTIFIER!);
   const secretClient = getSecretClientWithAmplifyErrorHandling();
   const secret = await secretClient.getSecret(backendId, { name: secretName });
   return secret.value;
