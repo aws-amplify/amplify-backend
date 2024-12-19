@@ -121,7 +121,7 @@ void describe('LogRetentionConverter', () => {
   });
 });
 
-void describe('Lambda Application LogLevelConverter', () => {
+void describe('Lambda ApplicationLogLevelConverter', () => {
   const testCases: Array<TestCase<LogLevel, ApplicationLogLevel>> = [
     {
       input: undefined,
