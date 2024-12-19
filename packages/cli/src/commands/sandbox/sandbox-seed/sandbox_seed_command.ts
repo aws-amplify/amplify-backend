@@ -30,11 +30,13 @@ export class SandboxSeedCommand implements CommandModule<object> {
    * @inheritDoc
    */
   handler = async (): Promise<void> => {
-    //this is where the resolver stuff should go
     const sandboxID = await new SandboxBackendIdResolver(
       new LocalNamespaceResolver(new PackageJsonReader())
     ).resolve();
-    process.env.SANDBOX_IDENTIFIER = JSON.stringify(sandboxID);
+
+    process.env.AMPLIFY_SANDBOX_IDENTIFIER = JSON.stringify(sandboxID);
+
+    //process.env.SANDBOX_IDENTIFIER = JSON.stringify(sandboxID);
     //eslint-disable-next-line no-console
     console.log(`Seeding is happening...`);
   };
