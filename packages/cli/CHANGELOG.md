@@ -1,5 +1,13 @@
 # @aws-amplify/backend-cli
 
+## 1.4.5
+
+### Patch Changes
+
+- 0ef53e2: add validation for sandbox set command secret-name
+- Updated dependencies [107600b]
+  - @aws-amplify/model-generator@1.0.11
+
 ## 1.4.4
 
 ### Patch Changes

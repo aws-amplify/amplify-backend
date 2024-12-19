@@ -1,5 +1,16 @@
 # @aws-amplify/backend-ai
 
+## 1.2.0
+
+### Minor Changes
+
+- a66f5f2: Expose timeout property
+
+### Patch Changes
+
+- Updated dependencies [a66f5f2]
+  - @aws-amplify/ai-constructs@1.2.0
+
 ## 1.1.0
 
 ### Minor Changes
