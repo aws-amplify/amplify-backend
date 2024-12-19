@@ -1,4 +1,6 @@
 import { defineFunction } from '@aws-amplify/backend';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 export const funcWithSsm = defineFunction({
   name: 'funcWithSsm',
@@ -22,6 +24,14 @@ export const funcNoMinify = defineFunction({
   bundling: {
     minify: false,
   },
+});
+
+export const funcProvided = defineFunction((scope) => {
+  return new NodejsFunction(scope, 'funcProvided', {
+    entry:
+      './packages/integration-tests/src/test-projects/advanced-auth-and-functions/amplify/func-src/handler_provided.ts',
+    runtime: Runtime.NODEJS_18_X,
+  });
 });
 
 export const funcCustomEmailSender = defineFunction({
