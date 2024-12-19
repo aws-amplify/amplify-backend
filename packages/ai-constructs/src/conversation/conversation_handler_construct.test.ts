@@ -287,6 +287,68 @@ void describe('Conversation Handler Function construct', () => {
     });
   });
 
+  void describe('timeout property', () => {
+    void it('sets valid timeout', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [],
+        timeoutSeconds: 124,
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Timeout: 124,
+      });
+    });
+
+    void it('sets default timeout', () => {
+      const app = new App();
+      const stack = new Stack(app);
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [],
+      });
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Timeout: 60,
+      });
+    });
+
+    void it('throws on timeout below 1', () => {
+      assert.throws(() => {
+        const app = new App();
+        const stack = new Stack(app);
+        new ConversationHandlerFunction(stack, 'conversationHandler', {
+          models: [],
+          timeoutSeconds: 0,
+        });
+      }, new Error('timeoutSeconds must be a whole number between 1 and 900 inclusive'));
+    });
+
+    void it('throws on timeout above 15 minutes', () => {
+      assert.throws(() => {
+        const app = new App();
+        const stack = new Stack(app);
+        new ConversationHandlerFunction(stack, 'conversationHandler', {
+          models: [],
+          timeoutSeconds: 60 * 15 + 1,
+        });
+      }, new Error('timeoutSeconds must be a whole number between 1 and 900 inclusive'));
+    });
+
+    void it('throws on fractional memory', () => {
+      assert.throws(() => {
+        const app = new App();
+        const stack = new Stack(app);
+        new ConversationHandlerFunction(stack, 'conversationHandler', {
+          models: [],
+          memoryMB: 256.2,
+        });
+      }, new Error('memoryMB must be a whole number between 128 and 10240 inclusive'));
+    });
+  });
+
   void describe('logging options', () => {
     void it('sets log level', () => {
       const app = new App();

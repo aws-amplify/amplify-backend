@@ -42,6 +42,13 @@ export type ConversationHandlerFunctionProps = {
    */
   memoryMB?: number;
 
+  /**
+   * An amount of time in seconds between 1 second and 15 minutes.
+   * Must be a whole number.
+   * Default is 60 seconds.
+   */
+  timeoutSeconds?: number;
+
   logging?: {
     level?: ApplicationLogLevel;
     retention?: RetentionDays;
@@ -96,7 +103,7 @@ export class ConversationHandlerFunction
       `conversationHandlerFunction`,
       {
         runtime: LambdaRuntime.NODEJS_18_X,
-        timeout: Duration.seconds(60),
+        timeout: Duration.seconds(this.resolveTimeout()),
         entry: this.props.entry ?? defaultHandlerFilePath,
         handler: 'handler',
         memorySize: this.resolveMemory(),
@@ -184,6 +191,28 @@ export class ConversationHandlerFunction
       );
     }
     return this.props.memoryMB;
+  };
+
+  private resolveTimeout = () => {
+    const timeoutMin = 1;
+    const timeoutMax = 60 * 15; // 15 minutes in seconds
+    const timeoutDefault = 60;
+    if (this.props.timeoutSeconds === undefined) {
+      return timeoutDefault;
+    }
+
+    if (
+      !isWholeNumberBetweenInclusive(
+        this.props.timeoutSeconds,
+        timeoutMin,
+        timeoutMax
+      )
+    ) {
+      throw new Error(
+        `timeoutSeconds must be a whole number between ${timeoutMin} and ${timeoutMax} inclusive`
+      );
+    }
+    return this.props.timeoutSeconds;
   };
 }
 

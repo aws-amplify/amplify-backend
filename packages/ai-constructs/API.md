@@ -57,6 +57,7 @@ type ConversationHandlerFunctionProps = {
         region?: string;
     }>;
     memoryMB?: number;
+    timeoutSeconds?: number;
     logging?: {
         level?: ApplicationLogLevel;
         retention?: RetentionDays;
