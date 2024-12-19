@@ -139,6 +139,12 @@ export type DataProps = {
    * Functions invokable by the API. The specific input type of the function is subject to change or removal.
    */
   functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+
+  /**
+   * stackMapping override the assigned nested stack on a per-resource basis. Only applies to resolvers, and takes the form
+   * { <logicalId>: <stackName> }
+   */
+  stackMapping?: Record<string, string>;
 };
 
 export type AmplifyDataError =
