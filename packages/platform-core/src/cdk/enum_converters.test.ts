@@ -1,9 +1,18 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { LogLevel, LogRetention } from '@aws-amplify/plugin-types';
+import {
+  DataLogLevel,
+  LogLevel,
+  LogRetention,
+} from '@aws-amplify/plugin-types';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { LogLevelConverter, LogRetentionConverter } from './enum_converters';
+import {
+  DataLogLevelConverter,
+  LogLevelConverter,
+  LogRetentionConverter,
+} from './enum_converters';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
+import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 
 type TestCase<TSource, TTarget> = {
   input: TSource | undefined;
@@ -156,6 +165,44 @@ void describe('LogLevelConverter', () => {
     void it(`converts log retention[${index}]`, () => {
       const convertedValue =
         new LogLevelConverter().toCDKLambdaApplicationLogLevel(testCase.input);
+      assert.strictEqual(convertedValue, testCase.expectedOutput);
+    });
+  });
+});
+
+void describe('DataLogLevelConverter', () => {
+  const testCases: Array<TestCase<DataLogLevel, FieldLogLevel>> = [
+    {
+      input: undefined,
+      expectedOutput: undefined,
+    },
+    {
+      input: 'none',
+      expectedOutput: FieldLogLevel.NONE,
+    },
+    {
+      input: 'error',
+      expectedOutput: FieldLogLevel.ERROR,
+    },
+    {
+      input: 'info',
+      expectedOutput: FieldLogLevel.INFO,
+    },
+    {
+      input: 'debug',
+      expectedOutput: FieldLogLevel.DEBUG,
+    },
+    {
+      input: 'all',
+      expectedOutput: FieldLogLevel.ALL,
+    },
+  ];
+
+  testCases.forEach((testCase, index) => {
+    void it(`converts data log level[${index}]`, () => {
+      const convertedValue = new DataLogLevelConverter().toCDKFieldLogLevel(
+        testCase.input
+      );
       assert.strictEqual(convertedValue, testCase.expectedOutput);
     });
   });

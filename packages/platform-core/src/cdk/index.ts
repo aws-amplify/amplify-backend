@@ -1,3 +1,7 @@
-import { LogLevelConverter, LogRetentionConverter } from './enum_converters.js';
+import {
+  DataLogLevelConverter,
+  LogLevelConverter,
+  LogRetentionConverter,
+} from './enum_converters.js';
 
-export { LogLevelConverter, LogRetentionConverter };
+export { DataLogLevelConverter, LogLevelConverter, LogRetentionConverter };
