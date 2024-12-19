@@ -10,6 +10,7 @@ import { SandboxBackendIdResolver } from './sandbox_id_resolver.js';
 import { ClientConfigGeneratorAdapter } from '../../client-config/client_config_generator_adapter.js';
 import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace_resolver.js';
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
+import { SandboxSeedCommand } from './sandbox-seed/sandbox_seed_command.js';
 import {
   PackageJsonReader,
   UsageDataEmitterFactory,
@@ -63,7 +64,11 @@ export const createSandboxCommand = (): CommandModule<
   const commandMiddleWare = new CommandMiddleware(printer);
   return new SandboxCommand(
     sandboxFactory,
-    [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
+    [
+      new SandboxDeleteCommand(sandboxFactory),
+      createSandboxSecretCommand(),
+      new SandboxSeedCommand(sandboxFactory),
+    ],
     clientConfigGeneratorAdapter,
     commandMiddleWare,
     eventHandlerFactory.getSandboxEventHandlers

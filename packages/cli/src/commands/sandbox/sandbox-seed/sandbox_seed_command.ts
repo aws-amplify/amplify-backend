@@ -19,7 +19,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
   readonly describe: string;
 
   /**
-   * Deletes sandbox environment.
+   * Seeds sandbox environment.
    */
   constructor(private readonly sandboxFactory: SandboxSingletonFactory) {
     this.command = 'seed';
