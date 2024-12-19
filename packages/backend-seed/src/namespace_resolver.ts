@@ -4,6 +4,7 @@ import {
 } from '@aws-amplify/platform-core';
 import { EOL } from 'os';
 
+//not using this anymore
 //stole this from ../packages/cli/src/backend-identifier/local_namespace_resolver.ts for the POC
 
 export type NamespaceResolver = {

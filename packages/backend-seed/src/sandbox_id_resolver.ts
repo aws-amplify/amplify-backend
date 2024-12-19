@@ -2,6 +2,7 @@ import { userInfo as _userInfo } from 'os';
 import { NamespaceResolver } from './namespace_resolver.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 
+//not using this anymore
 //stole this from ../packages/cli/src/commands/sandbox/sandbox_id_resolver.ts for the POC
 
 /**
