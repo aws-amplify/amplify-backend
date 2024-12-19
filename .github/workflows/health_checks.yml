@@ -47,7 +47,7 @@ on:
         description: 'Node versions list (as JSON array).'
         required: false
         type: string
-        default: '["18", "20"]'
+        default: '["18", "20", "22"]'
   workflow_call:
     inputs:
       desired-cdk-version:
@@ -78,7 +78,7 @@ on:
         description: 'Node versions list (as JSON array).'
         required: false
         type: string
-        default: '["18", "20"]'
+        default: '["18", "20", "22"]'
 
 env:
   # Health checks can run on un-released code. Often work in progress.
@@ -121,7 +121,7 @@ jobs:
           echo "os=$os" >> "$GITHUB_OUTPUT"
           echo "os_for_e2e=$os_for_e2e" >> "$GITHUB_OUTPUT"
           if [ -z "${{ inputs.node }}" ]; then
-            echo 'node=["18", "20"]' >> "$GITHUB_OUTPUT"
+            echo 'node=["18", "20", "22"]' >> "$GITHUB_OUTPUT"
           else
             echo 'node=${{ inputs.node }}' >> "$GITHUB_OUTPUT"
           fi
@@ -512,6 +512,10 @@ jobs:
             node-version: 20
           - os: windows-latest
             node-version: 20
+          - os: macos-14
+            node-version: 22
+          - os: windows-latest
+            node-version: 22
     runs-on: ${{ matrix.os }}
     timeout-minutes: ${{ matrix.os == 'windows-latest' && 35 || 25 }}
     needs:
@@ -538,7 +542,7 @@ jobs:
       matrix:
         os: ${{ fromJSON(needs.resolve_inputs.outputs.os) }}
         pkg-manager: [npm, yarn-classic, yarn-modern, pnpm]
-        node-version: ['20']
+        node-version: ['22']
     env:
       PACKAGE_MANAGER: ${{ matrix.pkg-manager }}
     runs-on: ${{ matrix.os }}
