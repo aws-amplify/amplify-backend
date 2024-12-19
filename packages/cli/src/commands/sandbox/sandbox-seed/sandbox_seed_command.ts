@@ -44,9 +44,6 @@ export class SandboxSeedCommand implements CommandModule<object> {
         AMPLIFY_SANDBOX_IDENTIFIER: JSON.stringify(sandboxID),
       },
     });
-
-    //eslint-disable-next-line no-console
-    console.log(`Seeding is happening...`);
   };
 
   /**

@@ -15,9 +15,6 @@ export const GetSeedSecret = async (secretName: string): Promise<string> => {
     process.env.AMPLIFY_SANDBOX_IDENTIFIER
   );
 
-  //eslint-disable-next-line no-console
-  console.log(`Sandbox ID: ${backendId.name}`);
-
   const secretClient = getSecretClientWithAmplifyErrorHandling();
   const secret = await secretClient.getSecret(backendId, { name: secretName });
   return secret.value;
