@@ -80,7 +80,7 @@ export type FunctionLoggingOptions = ({
 };
 
 // @public (undocumented)
-export type FunctionLogLevel = LogLevel;
+export type FunctionLogLevel = Extract<LogLevel, 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace'>;
 
 // @public (undocumented)
 export type FunctionLogRetention = LogRetention;

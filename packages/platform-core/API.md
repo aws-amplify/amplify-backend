@@ -7,7 +7,6 @@
 import { AppId } from '@aws-amplify/plugin-types';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { DataLogLevel } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 import { LogLevel } from '@aws-amplify/plugin-types';
@@ -17,7 +16,6 @@ import z from 'zod';
 
 declare namespace __export__cdk {
     export {
-        DataLogLevelConverter,
         LogLevelConverter,
         LogRetentionConverter
     }
@@ -127,12 +125,6 @@ export class ConfigurationControllerFactory {
 }
 
 // @public
-class DataLogLevelConverter {
-    // (undocumented)
-    toCDKFieldLogLevel: (logLevel: DataLogLevel | undefined) => FieldLogLevel | undefined;
-}
-
-// @public
 export class FilePathExtractor {
     constructor(stackTraceLine: string);
     // (undocumented)
@@ -144,6 +136,8 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 // @public
 class LogLevelConverter {
+    // (undocumented)
+    toCDKAppsyncFieldLogLevel: (logLevel: LogLevel | undefined) => FieldLogLevel | undefined;
     // (undocumented)
     toCDKLambdaApplicationLogLevel: (logLevel: LogLevel | undefined) => ApplicationLogLevel | undefined;
 }

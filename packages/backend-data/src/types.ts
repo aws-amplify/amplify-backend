@@ -5,7 +5,7 @@ import {
 import {
   AmplifyFunction,
   ConstructFactory,
-  DataLogLevel,
+  LogLevel,
   LogRetention,
 } from '@aws-amplify/plugin-types';
 
@@ -165,7 +165,7 @@ export type AmplifyDataError =
  * ### Defaults
  * Default settings will be applied when logging is set to `true` or an empty object, or for unspecified fields:
  * - `excludeVerboseContent`: `true`
- * - `fieldLogLevel`: `none`
+ * - `level`: `none`
  * - `retention`: `1 week`
  *
  * **WARNING**: Verbose logging will log the full incoming query including user parameters.
@@ -183,7 +183,7 @@ export type DataLoggingOptions = true | DataLogConfig;
  *
  * For information on AppSync's LogConfig, refer to https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-appsync-graphqlapi-logconfig.html.
  * For information on RetentionDays, refer to https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_logs.RetentionDays.html.
- * @default excludeVerboseContent: true, fieldLogLevel: 'none', retention: '1 week'
+ * @default excludeVerboseContent: true, level: 'none', retention: '1 week'
  */
 export type DataLogConfig = {
   /**
@@ -232,3 +232,8 @@ export type DataLogConfig = {
    */
   level?: DataLogLevel;
 };
+
+export type DataLogLevel = Extract<
+  LogLevel,
+  'none' | 'all' | 'info' | 'debug' | 'error'
+>;

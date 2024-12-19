@@ -1,11 +1,11 @@
-import { DataLoggingOptions } from './types.js';
+import { DataLogLevel, DataLoggingOptions } from './types.js';
 import {
-  DataLogLevelConverter,
+  LogLevelConverter,
   LogRetentionConverter,
 } from '@aws-amplify/platform-core/cdk';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
-import { DataLogLevel, LogRetention } from '@aws-amplify/plugin-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
 
 export type CDKLoggingOptions = {
   excludeVerboseContent: boolean;
@@ -50,7 +50,7 @@ export const convertLoggingOptionsToCDK = (
     ? DEFAULT_RETENTION
     : config.retention ?? DEFAULT_RETENTION;
 
-  const fieldLogLevel = new DataLogLevelConverter().toCDKFieldLogLevel(
+  const fieldLogLevel = new LogLevelConverter().toCDKAppsyncFieldLogLevel(
     dataLogLevel
   )!;
   const retention = new LogRetentionConverter().toCDKRetentionDays(
