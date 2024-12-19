@@ -30,6 +30,8 @@ export type DataProps = {
     name?: string;
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+    importedAmplifyDynamoDBTableMap?: Record<string, string>;
+    importedModels?: string[];
 };
 
 // @public
