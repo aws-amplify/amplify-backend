@@ -5,7 +5,6 @@ import { execa } from 'execa';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
 import { LocalNamespaceResolver } from '../../../backend-identifier/local_namespace_resolver.js';
-//import { BackendSeedIdScopedSsmEnvironmentEntriesGenerator } from '@aws-amplify/backend-seed';
 
 /**
  *
