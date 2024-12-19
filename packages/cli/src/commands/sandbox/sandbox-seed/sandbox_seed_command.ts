@@ -3,6 +3,7 @@ import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { LocalNamespaceResolver } from '../../../backend-identifier/local_namespace_resolver.js';
 import { PackageJsonReader } from '@aws-amplify/platform-core';
+//import { BackendSeedIdScopedSsmEnvironmentEntriesGenerator } from '@aws-amplify/backend-seed';
 
 /**
  *
@@ -34,9 +35,12 @@ export class SandboxSeedCommand implements CommandModule<object> {
       new LocalNamespaceResolver(new PackageJsonReader())
     ).resolve();
 
-    process.env.AMPLIFY_SANDBOX_IDENTIFIER = JSON.stringify(sandboxID);
-
-    //process.env.SANDBOX_IDENTIFIER = JSON.stringify(sandboxID);
+    /*const ssmEnvEntriesGenerator = new BackendSeedIdScopedSsmEnvironmentEntriesGenerator();
+    ssmEnvEntriesGenerator.generateSsmEnvironmentEntries({
+     ['SANDBOX_IDENTIFIER']: JSON.stringify(sandboxID),
+    })
+    */
+    process.env.SANDBOX_IDENTIFIER = JSON.stringify(sandboxID);
     //eslint-disable-next-line no-console
     console.log(`Seeding is happening...`);
   };

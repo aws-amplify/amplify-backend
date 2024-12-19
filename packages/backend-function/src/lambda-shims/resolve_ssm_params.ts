@@ -12,37 +12,43 @@ import type { SsmEnvVars } from '../function_env_translator.js';
 export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
   const envPathObject: SsmEnvVars = JSON.parse(
     process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}'
-  );
-  const paths = Object.keys(envPathObject);
+  ); //these are the paths of the objects we are looking to reaolve
+  const paths = Object.keys(envPathObject); //alters the DS of the paths so they are easier to match later on
 
   if (paths.length === 0) {
-    return;
+    return; //if there are no paths, we don't do anything
   }
 
   let actualSsmClient: SSM;
   if (client) {
+    //if a client was passed to us, we assume the client
     actualSsmClient = client;
   } else {
+    //otherwise to make a new client
     const ssmSdk = await import('@aws-sdk/client-ssm');
     actualSsmClient = new ssmSdk.SSM();
   }
-
+  //up to here, I can probably just take and reuse for my thingy
+  //here, onwards is going to be different
   const resolveSecrets = async (paths: string[]) => {
+    //we take in the paths as an array of strings
     const response = await actualSsmClient.getParameters({
       Names: paths,
       WithDecryption: true,
-    });
+    }); //get the paths the client knows about
 
     if (response.Parameters && response.Parameters.length > 0) {
       for (const parameter of response.Parameters) {
+        //go through all the responses
         if (parameter.Name) {
+          //if we have a name, try to find it in the envPathObjects
           const envKey = Object.keys(envPathObject).find(
             (key) => envPathObject[key].sharedPath === parameter.Name
           );
           const envName = envKey
             ? envPathObject[envKey].name
             : envPathObject[parameter.Name]?.name;
-          process.env[envName] = parameter.Value;
+          process.env[envName] = parameter.Value; //set env var based on the object name we get
         }
       }
     }
