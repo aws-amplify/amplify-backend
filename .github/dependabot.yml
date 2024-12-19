@@ -12,3 +12,5 @@ updates:
     schedule:
       # Runs every Monday
       interval: 'weekly'
+    # Update if new version is outside of version range specified in package.json
+    versioning-strategy: increase-if-necessary
