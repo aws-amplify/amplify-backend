@@ -1,5 +1,18 @@
 # @aws-amplify/backend
 
+## 1.11.0
+
+### Minor Changes
+
+- fbf209e: Add GraphQL API ID and Amplify environment name to custom JS resolver stash
+
+### Patch Changes
+
+- 07fe7d4: Allow apiKeyAuthorizationMode to be undefined if defaultAuthorizationMode is apiKey
+- Updated dependencies [07fe7d4]
+- Updated dependencies [fbf209e]
+  - @aws-amplify/backend-data@1.3.0
+
 ## 1.10.0
 
 ### Minor Changes
