@@ -20,6 +20,7 @@ import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import fsp from 'fs/promises';
 import path from 'node:path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -748,6 +749,37 @@ void describe('AmplifyFunctionFactory', () => {
           resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
         })
       );
+    });
+  });
+
+  void describe('provided function runtime property', () => {
+    void it('sets valid runtime', () => {
+      const lambda = defineFunction((scope) => {
+        return new NodejsFunction(scope, 'nodejs-provided', {
+          entry:
+            './packages/backend-function/src/test-assets/default-lambda/handler.ts',
+          runtime: Runtime.NODEJS_22_X,
+        });
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: Runtime.NODEJS_22_X.name,
+      });
+    });
+
+    void it('provided function defaults to oldest runtime', () => {
+      const lambda = defineFunction((scope) => {
+        return new NodejsFunction(scope, 'nodejs-provided', {
+          entry:
+            './packages/backend-function/src/test-assets/default-lambda/handler.ts',
+        });
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: Runtime.NODEJS_16_X.name,
+      });
     });
   });
 });
