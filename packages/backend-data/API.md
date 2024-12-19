@@ -27,6 +27,16 @@ export type AuthorizationModes = {
 };
 
 // @public
+export type DataLogConfig = {
+    retention?: LogRetention;
+    excludeVerboseContent?: boolean;
+    level?: DataLogLevel;
+};
+
+// @public
+export type DataLoggingOptions = true | DataLogConfig;
+
+// @public
 export type DataProps = {
     schema: DataSchemaInput;
     name?: string;
@@ -58,10 +68,6 @@ export type OIDCAuthorizationModeProps = {
     tokenExpiryFromAuthInSeconds: number;
     tokenExpireFromIssueInSeconds: number;
 };
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:146:3 - (ae-forgotten-export) The symbol "DataLoggingOptions" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

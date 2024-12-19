@@ -7,4 +7,6 @@ export {
   AuthorizationModes,
   DataSchemaInput,
   DataProps,
+  DataLoggingOptions,
+  DataLogConfig,
 } from './types.js';
