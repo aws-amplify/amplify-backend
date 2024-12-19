@@ -71,6 +71,7 @@ type DefineConversationHandlerFunctionProps = {
         region?: string;
     }>;
     memoryMB?: number;
+    timeoutSeconds?: number;
     logging?: ConversationHandlerFunctionLoggingOptions;
 };
 
