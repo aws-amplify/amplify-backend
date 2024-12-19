@@ -34,8 +34,8 @@ export class SandboxSeedCommand implements CommandModule<object> {
     const sandboxID = await new SandboxBackendIdResolver(
       new LocalNamespaceResolver(new PackageJsonReader())
     ).resolve();
-    process.env.SANDBOX_IDENTIFIER = JSON.stringify(sandboxID);
+    process.env.AMPLIFY_SSM_ENV_CONFIG = JSON.stringify(sandboxID);
     //eslint-disable-next-line no-console
-    console.log(`Seeding is happening...\n${process.env.SANDBOX_IDENTIFIER}`);
+    console.log(`Seeding is happening...`);
   };
 }

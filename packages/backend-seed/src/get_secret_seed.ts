@@ -5,16 +5,19 @@ import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-se
  *
  */
 export const GetSeedSecret = async (secretName: string): Promise<string> => {
-  const serializedBackendId = process.env.SANDBOX_IDENTIFIER;
+  const envObject: string = JSON.parse(
+    process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}'
+  );
+
   //eslint-disable-next-line no-console
-  console.log(serializedBackendId);
-  if (!serializedBackendId) {
+  console.log(`Sandbox ID: ${envObject}`);
+  if (!envObject) {
     throw new Error(
       'SANDBOX_IDENTIFIER is undefined. Have you run ampx sandbox seed yet?'
     );
   }
-  const backendId = JSON.parse(serializedBackendId);
+
   const secretClient = getSecretClientWithAmplifyErrorHandling();
-  const secret = await secretClient.getSecret(backendId, { name: secretName });
+  const secret = await secretClient.getSecret(envObject, { name: secretName });
   return secret.value;
 };
