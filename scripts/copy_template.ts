@@ -24,14 +24,12 @@ if (!values?.name || !values?.template) {
 }
 
 const sourcePath = path.resolve(
-  new URL('.', import.meta.url).pathname,
-  '..',
+  new URL('.', import.meta.url).host,
   'templates',
   values.template as string
 );
 const destPath = path.resolve(
-  new URL('.', import.meta.url).pathname,
-  '..',
+  new URL('.', import.meta.url).host,
   'packages',
   values.name as string
 );
