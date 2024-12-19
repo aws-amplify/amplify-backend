@@ -665,6 +665,20 @@ npm error enoent`,
     errorName: 'InvalidOrCannotAssumeRoleError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `some-stack failed: ValidationError: Circular dependency between resources: [storage1, data1, function1] `,
+    expectedTopLevelErrorMessage:
+      'The CloudFormation deployment failed due to circular dependency found between nested stacks [storage1, data1, function1]',
+    errorName: 'CloudformationStackCircularDependencyError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `The stack named named-stack failed to deploy: UPDATE_ROLLBACK_COMPLETE: Circular dependency between resources: [resource1, resource2] `,
+    expectedTopLevelErrorMessage:
+      'The CloudFormation deployment failed due to circular dependency found between resources [resource1, resource2] in a single stack',
+    errorName: 'CloudformationResourceCircularDependencyError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
