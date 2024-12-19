@@ -36,6 +36,6 @@ export class SandboxSeedCommand implements CommandModule<object> {
     ).resolve();
     process.env.SANDBOX_IDENTIFIER = JSON.stringify(sandboxID);
     //eslint-disable-next-line no-console
-    console.log('Seeding is happening...');
+    console.log(`Seeding is happening...\n${process.env.SANDBOX_IDENTIFIER}`);
   };
 }
