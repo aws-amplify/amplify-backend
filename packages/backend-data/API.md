@@ -7,8 +7,10 @@
 import { AmplifyData } from '@aws-amplify/data-construct';
 import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
+import { DataLogLevel } from '@aws-amplify/plugin-types';
 import { DerivedCombinedSchema } from '@aws-amplify/data-schema-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
 
 // @public
 export type ApiKeyAuthorizationModeProps = {
@@ -30,6 +32,7 @@ export type DataProps = {
     name?: string;
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+    logging?: DataLoggingOptions;
 };
 
 // @public
@@ -55,6 +58,10 @@ export type OIDCAuthorizationModeProps = {
     tokenExpiryFromAuthInSeconds: number;
     tokenExpireFromIssueInSeconds: number;
 };
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:146:3 - (ae-forgotten-export) The symbol "DataLoggingOptions" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
