@@ -66,6 +66,14 @@ export class GitClient {
   };
 
   /**
+   * Get changes made in a specific modified file from getChangedFiles
+   */
+  getFileChanges = async (file: string) => {
+    const { stdout: changes } = await this.exec`git show ${file}`;
+    return changes;
+  };
+
+  /**
    * Switches to branchName. Creates the branch if it does not exist.
    */
   switchToBranch = async (branchName: string) => {
