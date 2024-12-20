@@ -1,7 +1,10 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import { GenerateGraphqlClientCodeCommand } from './generate_graphql_client_code_command.js';
 import yargs, { CommandModule } from 'yargs';
-import { TestCommandRunner } from '../../../test-utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import path from 'path';
@@ -18,6 +21,10 @@ import { BackendIdentifierResolverWithFallback } from '../../../backend-identifi
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '@aws-amplify/deployed-backend-client';
 
 void describe('generate graphql-client-code command', () => {
   const generateApiCodeAdapter = new GenerateApiCodeAdapter({
@@ -354,5 +361,46 @@ void describe('generate graphql-client-code command', () => {
       'graphql-client-code --stack foo --branch baz'
     );
     assert.match(output, /Arguments .* are mutually exclusive/);
+  });
+
+  void it('throws user error when NO_APP_FOUND_ERROR occurs', async () => {
+    mock.method(generateApiCodeAdapter, 'invokeGenerateApiCode', () => {
+      throw new BackendOutputClientError(
+        BackendOutputClientErrorType.NO_APP_FOUND_ERROR,
+        'No app found for stack stack_name'
+      );
+    });
+
+    await assert.rejects(
+      () =>
+        commandRunner.runCommand(
+          'graphql-client-code --app-id test-app --branch main'
+        ),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'AmplifyAppNotFoundError');
+        assert.strictEqual(
+          error.error.message,
+          'No app found for stack stack_name'
+        );
+        return true;
+      }
+    );
+  });
+
+  void it('re-throw other types of errors', async () => {
+    const originalError = new Error('Some other error');
+    mock.method(generateApiCodeAdapter, 'invokeGenerateApiCode', () => {
+      throw originalError;
+    });
+    await assert.rejects(
+      () =>
+        commandRunner.runCommand(
+          'graphql-client-code --app-id test-app --branch main'
+        ),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error, originalError);
+        return true;
+      }
+    );
   });
 });
