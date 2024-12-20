@@ -809,3 +809,24 @@ jobs:
         uses: actions/dependency-review-action@0c155c5e8556a497adf53f2c18edabf945ed8e70 # version 4.3.2
         with:
           config-file: ./.github/dependency_review_config.yml
+  generate_changeset:
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+    runs_on: ubuntu-latest
+    needs:
+      - install
+      - resolve_inputs
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+        fetch-depth: 0
+      - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
+      - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 18
+          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+      - name: Generate changesets for packages with version updates
+        run: npx tsx scripts/dependabot_generate_changesets.ts "$BASE_SHA" "$HEAD_SHA"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
