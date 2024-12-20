@@ -52,16 +52,12 @@ export class SandboxSeedCommand implements CommandModule<object> {
    */
   //this section also comes from the initial POC for seed
   builder = (yargs: Argv) => {
-    return yargs
-      .option('local', {
-        type: 'boolean',
-      })
-      .check(() => {
-        const seedPath = path.join(process.cwd(), 'seed.ts');
-        if (!existsSync(seedPath)) {
-          throw new Error(`${seedPath} must exist`);
-        }
-        return true;
-      });
+    return yargs.check(() => {
+      const seedPath = path.join(process.cwd(), 'seed.ts');
+      if (!existsSync(seedPath)) {
+        throw new Error(`${seedPath} must exist`);
+      }
+      return true;
+    });
   };
 }
