@@ -811,10 +811,10 @@ jobs:
           config-file: ./.github/dependency_review_config.yml
   generate_changeset:
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
-    runs_on: ubuntu-latest
     needs:
       - install
       - resolve_inputs
+    runs_on: ubuntu-latest
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
