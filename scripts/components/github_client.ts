@@ -57,6 +57,14 @@ export class GithubClient {
     });
     return response.data;
   };
+
+  labelPullRequest = async (pullRequestNumber: number, labels: string[]) => {
+    await this.ghClient.issues.addLabels({
+      issue_number: pullRequestNumber,
+      labels,
+      ...ghContext.repo,
+    });
+  };
 }
 
 /**
