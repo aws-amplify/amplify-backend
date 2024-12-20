@@ -817,7 +817,6 @@ jobs:
       - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
-        fetch-depth: 0
       - uses: ./.github/actions/setup_node
         with:
           node-version: 18
