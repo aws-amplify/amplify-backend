@@ -36,7 +36,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
       new LocalNamespaceResolver(new PackageJsonReader())
     ).resolve();
 
-    const seedPath = path.join('amplify', 'seed.ts');
+    const seedPath = path.join('seed.ts');
     await execa('tsx', [seedPath], {
       cwd: process.cwd(),
       stdio: 'inherit',
@@ -55,7 +55,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
         type: 'boolean',
       })
       .check(() => {
-        const seedPath = path.join(process.cwd(), 'amplify', 'seed.ts');
+        const seedPath = path.join(process.cwd(), 'seed.ts');
         if (!existsSync(seedPath)) {
           throw new Error(`${seedPath} must exist`);
         }
