@@ -1,5 +1,11 @@
 # @aws-amplify/model-generator
 
+## 1.0.11
+
+### Patch Changes
+
+- 107600b: Updated error handling with S3 Client
+
 ## 1.0.10
 
 ### Patch Changes
