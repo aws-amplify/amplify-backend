@@ -17,7 +17,10 @@ import {
   ConversationTurnEventVersion,
 } from '@aws-amplify/ai-constructs/conversation';
 import path from 'path';
-import { CallerDirectoryExtractor } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  CallerDirectoryExtractor,
+} from '@aws-amplify/platform-core';
 import { AiModel } from '@aws-amplify/data-schema-types';
 import {
   LogLevelConverter,
@@ -52,6 +55,7 @@ class ConversationHandlerFunctionGenerator
       }),
       outputStorageStrategy: this.outputStorageStrategy,
       memoryMB: this.props.memoryMB,
+      timeoutSeconds: this.props.timeoutSeconds,
     };
     const logging: typeof constructProps.logging = {};
     if (this.props.logging?.level) {
@@ -65,12 +69,34 @@ class ConversationHandlerFunctionGenerator
       );
     }
     constructProps.logging = logging;
-    const conversationHandlerFunction = new ConversationHandlerFunction(
-      scope,
-      this.props.name,
-      constructProps
-    );
-    return conversationHandlerFunction;
+    try {
+      return new ConversationHandlerFunction(
+        scope,
+        this.props.name,
+        constructProps
+      );
+    } catch (e) {
+      throw this.mapConstructErrors(e);
+    }
+  };
+
+  private mapConstructErrors = (e: unknown) => {
+    if (!(e instanceof Error)) {
+      return e;
+    }
+    if (e.message.startsWith('memoryMB must be')) {
+      return new AmplifyUserError('InvalidMemoryMBError', {
+        message: `Invalid memoryMB of ${this.props.memoryMB}`,
+        resolution: e.message,
+      });
+    }
+    if (e.message.startsWith('timeoutSeconds must be')) {
+      return new AmplifyUserError('InvalidTimeoutError', {
+        message: `Invalid timeout of ${this.props.timeoutSeconds} seconds`,
+        resolution: e.message,
+      });
+    }
+    return e;
   };
 }
 
@@ -158,6 +184,12 @@ export type DefineConversationHandlerFunctionProps = {
    * Default is 512MB.
    */
   memoryMB?: number;
+  /**
+   * An amount of time in seconds between 1 second and 15 minutes.
+   * Must be a whole number.
+   * Default is 60 seconds.
+   */
+  timeoutSeconds?: number;
   logging?: ConversationHandlerFunctionLoggingOptions;
 };
 

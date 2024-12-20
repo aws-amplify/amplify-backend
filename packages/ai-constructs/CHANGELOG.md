@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 1.2.0
+
+### Minor Changes
+
+- a66f5f2: Expose timeout property
+
 ## 1.1.0
 
 ### Minor Changes
