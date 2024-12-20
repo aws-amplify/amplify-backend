@@ -50,7 +50,7 @@ import {
 } from '@aws-amplify/data-schema-types';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-
+import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
 const modelIntrospectionSchemaKey = 'modelIntrospectionSchema.json';
 const defaultName = 'amplifyData';
 
@@ -244,6 +244,10 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     const isSandboxDeployment =
       scope.node.tryGetContext(CDKContextKey.DEPLOYMENT_TYPE) === 'sandbox';
 
+    const cdkLoggingOptions = convertLoggingOptionsToCDK(
+      this.props.logging ?? undefined
+    );
+
     try {
       const combinedSchema = combineCDKSchemas(amplifyGraphqlDefinitions);
       modelIntrospectionSchema = generateModelsSync({
@@ -266,6 +270,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
           allowDestructiveGraphqlSchemaUpdates: true,
           _provisionHotswapFriendlyResources: isSandboxDeployment,
         },
+        logging: cdkLoggingOptions,
       });
     } catch (error) {
       throw new AmplifyUserError(

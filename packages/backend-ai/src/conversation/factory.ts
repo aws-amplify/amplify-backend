@@ -159,7 +159,10 @@ class DefaultConversationHandlerFunctionFactory
   };
 }
 
-export type ConversationHandlerFunctionLogLevel = LogLevel;
+export type ConversationHandlerFunctionLogLevel = Extract<
+  LogLevel,
+  'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace'
+>;
 
 export type ConversationHandlerFunctionLogRetention = LogRetention;
 

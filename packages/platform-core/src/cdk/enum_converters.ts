@@ -1,6 +1,7 @@
 import { LogLevel, LogRetention } from '@aws-amplify/plugin-types';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 
 /**
  * Converts LogRetention to CDK types.
@@ -92,6 +93,29 @@ export class LogLevelConverter {
       case 'trace': {
         return ApplicationLogLevel.TRACE;
       }
+      default:
+        throw new Error(`Invalid Lambda application log level: ${logLevel}`);
+    }
+  };
+
+  toCDKAppsyncFieldLogLevel = (
+    logLevel: LogLevel | undefined
+  ): FieldLogLevel | undefined => {
+    switch (logLevel) {
+      case undefined:
+        return undefined;
+      case 'none':
+        return FieldLogLevel.NONE;
+      case 'error':
+        return FieldLogLevel.ERROR;
+      case 'info':
+        return FieldLogLevel.INFO;
+      case 'debug':
+        return FieldLogLevel.DEBUG;
+      case 'all':
+        return FieldLogLevel.ALL;
+      default:
+        throw new Error(`Invalid Appsync field log level: ${logLevel}`);
     }
   };
 }
