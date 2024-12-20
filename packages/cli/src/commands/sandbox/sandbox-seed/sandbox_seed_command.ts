@@ -36,6 +36,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
       new LocalNamespaceResolver(new PackageJsonReader())
     ).resolve();
 
+    //most of this comes from the initial POC for seed, changed filepath to be more inline with discussions that have happened since then
     const seedPath = path.join('seed.ts');
     await execa('tsx', [seedPath], {
       cwd: process.cwd(),
@@ -49,6 +50,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
   /**
    * @inheritDoc
    */
+  //this section also comes from the initial POC for seed
   builder = (yargs: Argv) => {
     return yargs
       .option('local', {

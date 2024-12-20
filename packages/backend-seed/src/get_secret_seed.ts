@@ -7,9 +7,7 @@ import { BackendIdentifier } from '@aws-amplify/plugin-types';
  */
 export const GetSeedSecret = async (secretName: string): Promise<string> => {
   if (!process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
-    throw new Error(
-      'SANDBOX_IDENTIFIER is undefined. Have you run ampx sandbox seed yet?'
-    );
+    throw new Error('SANDBOX_IDENTIFIER is undefined.');
   }
   const backendId: BackendIdentifier = JSON.parse(
     process.env.AMPLIFY_SANDBOX_IDENTIFIER
