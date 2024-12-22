@@ -1,5 +1,4 @@
 ---
-'@aws-amplify/integration-tests': minor
 '@aws-amplify/backend-function': minor
 ---
 

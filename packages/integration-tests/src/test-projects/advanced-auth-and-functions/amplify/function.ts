@@ -28,8 +28,7 @@ export const funcNoMinify = defineFunction({
 
 export const funcProvided = defineFunction((scope) => {
   return new NodejsFunction(scope, 'funcProvided', {
-    entry:
-      './packages/integration-tests/src/test-projects/advanced-auth-and-functions/amplify/func-src/handler_provided.ts',
+    entry: './func-src/handler_provided.ts',
     runtime: Runtime.NODEJS_18_X,
   });
 });
