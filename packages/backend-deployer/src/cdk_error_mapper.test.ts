@@ -679,6 +679,13 @@ npm error enoent`,
     errorName: 'CloudformationResourceCircularDependencyError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: `destroy failed Error: Stack [someStackArn] cannot be deleted while in status UPDATE_COMPLETE_CLEANUP_IN_PROGRESS`,
+    expectedTopLevelErrorMessage:
+      'Backend failed to be deleted since the previous deployment is still in progress.',
+    errorName: 'DeleteFailedWhileDeploymentInProgressError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
