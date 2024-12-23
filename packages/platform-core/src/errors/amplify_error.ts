@@ -186,6 +186,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         error
       );
     }
+    if (error instanceof Error && isOutOfMemoryError(error)) {
+      return new AmplifyUserError(
+        'InsufficientMemorySpaceError',
+        {
+          message: error.message,
+          resolution:
+            'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
+        },
+        error
+      );
+    }
     return new AmplifyFault(
       'UnknownFault',
       {
@@ -243,6 +254,10 @@ const isInsufficientDiskSpaceError = (err?: Error): boolean => {
       err.message.includes(message)
     )
   );
+};
+
+const isOutOfMemoryError = (err?: Error): boolean => {
+  return !!err && err.message.includes('process out of memory');
 };
 
 /**
