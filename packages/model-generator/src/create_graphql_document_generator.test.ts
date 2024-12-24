@@ -100,6 +100,37 @@ void describe('model generator factory', () => {
     );
   });
 
+  void it('throws an error if outputs do not exist', async () => {
+    const fakeBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
+          'stack outputs are undefined'
+        );
+      }),
+    };
+    mock.method(
+      BackendOutputClientFactory,
+      'getInstance',
+      () => fakeBackendOutputClient
+    );
+    const generator = createGraphqlDocumentGenerator({
+      backendIdentifier: { stackName: 'stackThatDoesNotHaveOutputs' },
+      awsClientProvider,
+    });
+    await assert.rejects(
+      () => generator.generateModels({ targetFormat: 'javascript' }),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(
+          error.message,
+          'Amplify outputs not found in stack metadata'
+        );
+        assert.ok(error.resolution);
+        return true;
+      }
+    );
+  });
+
   void it('throws an error if credentials are expired when getting backend outputs', async () => {
     const fakeBackendOutputClient = {
       getOutput: mock.fn(() => {

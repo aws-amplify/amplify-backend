@@ -344,6 +344,60 @@ void describe('generate forms command', () => {
     );
   });
 
+  void it('throws user error if the stack outputs are undefined', async () => {
+    const fakeSandboxId = 'my-fake-app-my-fake-username';
+    const backendIdResolver = {
+      resolveDeployedBackendIdentifier: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
+      resolveBackendIdentifier: mock.fn(() =>
+        Promise.resolve({
+          namespace: fakeSandboxId,
+          name: fakeSandboxId,
+          type: 'sandbox',
+        })
+      ),
+    } as BackendIdentifierResolver;
+    const formGenerationHandler = new FormGenerationHandler({
+      awsClientProvider,
+    });
+
+    const fakedBackendOutputClient = {
+      getOutput: mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
+          'stack outputs are undefined'
+        );
+      }),
+    };
+
+    const generateFormsCommand = new GenerateFormsCommand(
+      backendIdResolver,
+      () => fakedBackendOutputClient,
+      formGenerationHandler
+    );
+
+    const parser = yargs().command(
+      generateFormsCommand as unknown as CommandModule
+    );
+    const commandRunner = new TestCommandRunner(parser);
+    await assert.rejects(
+      () => commandRunner.runCommand('forms'),
+      (error: TestCommandError) => {
+        assert.strictEqual(error.error.name, 'AmplifyOutputsNotFoundError');
+        assert.strictEqual(
+          error.error.message,
+          'Amplify outputs not found in stack metadata'
+        );
+        return true;
+      }
+    );
+  });
+
   void it('throws user error if credentials are expired when getting backend outputs', async () => {
     const fakeSandboxId = 'my-fake-app-my-fake-username';
     const backendIdResolver = {
