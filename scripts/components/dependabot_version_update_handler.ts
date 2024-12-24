@@ -6,7 +6,7 @@ import { GithubClient } from './github_client.js';
 import { readPackageJson } from './package-json/package_json.js';
 
 /**
- * Handles the follow up procesess of Dependabot opening a version update PR
+ * Handles the follow up processes of Dependabot opening a version update PR
  */
 export class DependabotVersionUpdateHandler {
   /**

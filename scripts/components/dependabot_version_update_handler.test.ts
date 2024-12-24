@@ -120,8 +120,8 @@ void describe('dependabot version update handler', async () => {
     await dependabotVersionUpdateHandler.handleVersionUpdate();
 
     const changesetFilePath = path.join(
-      process.cwd(),
-      `changeset/dependabot-${headRef}.md`
+      testWorkingDir,
+      `.changeset/dependabot-${headRef}.md`
     );
 
     // Taken from 'test-resources/github_pull_request_event.json' pull_request.body
@@ -161,9 +161,7 @@ const assertChangesetFile = async (
   packageNames: string[],
   message: string
 ) => {
-  const changesetFileContent = await fsp.readFile(filePath, {
-    encoding: 'utf-8',
-  });
+  const changesetFileContent = await fsp.readFile(filePath, 'utf-8');
   const frontmatterContent = packageNames
     .map((name) => `'${name}': patch`)
     .join(EOL);
