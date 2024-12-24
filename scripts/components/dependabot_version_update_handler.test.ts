@@ -46,7 +46,8 @@ void describe('dependabot version update handler', async () => {
     // create temp dir
     const shortId = randomUUID().split('-')[0];
     const testNameNormalized = testName.slice(0, 15).replaceAll(/\s/g, '');
-    testWorkingDir = path.join(tmpdir(), `${testNameNormalized}-${shortId}`);
+    const tempDir = await fsp.mkdtemp(tmpdir());
+    testWorkingDir = path.join(tempDir, `${testNameNormalized}-${shortId}`);
     await fsp.mkdir(testWorkingDir);
     console.log(testWorkingDir);
 
