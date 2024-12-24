@@ -102,6 +102,7 @@ void describe('dependabot version update handler', async () => {
       'labelPullRequest',
       async () => {}
     );
+    const gitPushMocked = mock.method(gitClient, 'push', async () => {});
 
     // Update package.json files for both packages and commit to match what Dependabot will do for a version update PR
     await gitClient.switchToBranch('dependabot/test_update');
@@ -137,6 +138,7 @@ void describe('dependabot version update handler', async () => {
       pullRequestNumber: 1,
       labels: ['run-e2e'],
     });
+    assert.deepEqual(gitPushMocked.mock.callCount(), 1);
   });
 });
 
