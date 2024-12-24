@@ -114,7 +114,8 @@ void describe('dependabot version update handler', async () => {
       baseRef,
       headRef,
       gitClient,
-      githubClient
+      githubClient,
+      testWorkingDir
     );
 
     await dependabotVersionUpdateHandler.handleVersionUpdate();

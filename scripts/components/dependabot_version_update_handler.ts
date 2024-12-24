@@ -4,6 +4,7 @@ import { EOL } from 'os';
 import { GitClient } from './git_client.js';
 import { GithubClient } from './github_client.js';
 import { readPackageJson } from './package-json/package_json.js';
+import path from 'path';
 
 /**
  * Handles the follow up processes of Dependabot opening a version update PR
@@ -16,7 +17,8 @@ export class DependabotVersionUpdateHandler {
     private readonly baseRef: string,
     private readonly headRef: string,
     private readonly gitClient: GitClient,
-    private readonly ghClient: GithubClient
+    private readonly ghClient: GithubClient,
+    private readonly rootDir: string = process.cwd()
   ) {}
 
   /**
@@ -63,7 +65,9 @@ export class DependabotVersionUpdateHandler {
 
     const packageNames = [];
     for (const modifiedPackageDir of modifiedPackageDirs) {
-      const packageJson = await readPackageJson(modifiedPackageDir);
+      const packageJson = await readPackageJson(
+        path.join(this.rootDir, modifiedPackageDir)
+      );
       if (!packageJson.private) {
         packageNames.push(packageJson.name);
       }
