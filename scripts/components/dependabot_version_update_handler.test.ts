@@ -32,13 +32,9 @@ void describe('dependabot version update handler', async () => {
 
   let baseRef: string;
 
+  const pullRequestBody = 'Bumps testDep from 1.0.0 to 1.1.0.';
+
   before(async () => {
-    // Mock GitHub context by using env variable that it reads from to point to test event.json file,
-    // see https://github.com/actions/toolkit/blob/master/packages/github/src/context.ts#L25.
-    process.env.GITHUB_EVENT_PATH = path.join(
-      process.cwd(),
-      'scripts/components/test-resources/github_pull_request_event.json'
-    );
     process.env.GITHUB_TOKEN = 'testToken';
   });
 
@@ -103,6 +99,35 @@ void describe('dependabot version update handler', async () => {
       async () => {}
     );
     const gitPushMocked = mock.method(gitClient, 'push', async () => {});
+    const ghContextMocked = {
+      eventName: '',
+      sha: '',
+      ref: '',
+      workflow: '',
+      action: '',
+      actor: '',
+      job: '',
+      runNumber: 0,
+      runId: 0,
+      apiUrl: '',
+      serverUrl: '',
+      graphqlUrl: '',
+      payload: {
+        pull_request: {
+          number: 1,
+          body: pullRequestBody,
+        },
+      },
+      issue: {
+        owner: '',
+        repo: '',
+        number: 0,
+      },
+      repo: {
+        owner: '',
+        repo: '',
+      },
+    };
 
     // Update package.json files for both packages and commit to match what Dependabot will do for a version update PR
     await gitClient.switchToBranch('dependabot/test_update');
@@ -116,7 +141,8 @@ void describe('dependabot version update handler', async () => {
       headRef,
       gitClient,
       githubClient,
-      testWorkingDir
+      testWorkingDir,
+      ghContextMocked
     );
 
     await dependabotVersionUpdateHandler.handleVersionUpdate();
@@ -126,18 +152,15 @@ void describe('dependabot version update handler', async () => {
       `.changeset/dependabot-${headRef}.md`
     );
 
-    // Taken from 'test-resources/github_pull_request_event.json' pull_request.body
-    const changesetMessage = 'Bumps testDep from 1.0.0 to 1.1.0.';
-
     await assertChangesetFile(
       changesetFilePath,
       [cantaloupePackageName, platypusPackageName],
-      changesetMessage
+      pullRequestBody
     );
-    assert.deepEqual(labelPullRequestMocked.mock.calls[0].arguments, {
-      pullRequestNumber: 1,
-      labels: ['run-e2e'],
-    });
+    assert.deepEqual(labelPullRequestMocked.mock.calls[0].arguments, [
+      1,
+      ['run-e2e'],
+    ]);
     assert.deepEqual(gitPushMocked.mock.callCount(), 1);
   });
 });

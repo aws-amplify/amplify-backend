@@ -1,4 +1,5 @@
 import { context as ghContext } from '@actions/github';
+import { Context } from '@actions/github/lib/context.js';
 import fsp from 'fs/promises';
 import { EOL } from 'os';
 import { GitClient } from './git_client.js';
@@ -18,7 +19,8 @@ export class DependabotVersionUpdateHandler {
     private readonly headRef: string,
     private readonly gitClient: GitClient,
     private readonly ghClient: GithubClient,
-    private readonly rootDir: string = process.cwd()
+    private readonly _rootDir: string = process.cwd(),
+    private readonly _ghContext: Context = ghContext
   ) {}
 
   /**
@@ -33,7 +35,7 @@ export class DependabotVersionUpdateHandler {
    * 3. PR already has a changeset in list of files changed
    */
   handleVersionUpdate = async () => {
-    if (!ghContext.payload.pull_request) {
+    if (!this._ghContext.payload.pull_request) {
       // event is not a pull request, return early
       process.exit();
     }
@@ -66,7 +68,7 @@ export class DependabotVersionUpdateHandler {
     const packageNames = [];
     for (const modifiedPackageDir of modifiedPackageDirs) {
       const packageJson = await readPackageJson(
-        path.join(this.rootDir, modifiedPackageDir)
+        path.join(this._rootDir, modifiedPackageDir)
       );
       if (!packageJson.private) {
         packageNames.push(packageJson.name);
@@ -75,7 +77,7 @@ export class DependabotVersionUpdateHandler {
 
     // Create and commit the changeset file, then add the 'run-e2e' label and force push to the PR
     const fileName = path.join(
-      this.rootDir,
+      this._rootDir,
       `.changeset/dependabot-${this.headRef}.md`
     );
     const versionUpdates = await this.getVersionUpdates();
@@ -83,7 +85,7 @@ export class DependabotVersionUpdateHandler {
     await this.gitClient.status();
     await this.gitClient.commitAllChanges('add changeset');
     await this.ghClient.labelPullRequest(
-      ghContext.payload.pull_request.number,
+      this._ghContext.payload.pull_request.number,
       ['run-e2e']
     );
     await this.gitClient.push({ force: true });
@@ -95,6 +97,7 @@ export class DependabotVersionUpdateHandler {
     packageNames: string[]
   ) => {
     let message = '';
+    let content = '';
 
     for (const update of versionUpdates) {
       message += `${update}${EOL}`;
@@ -103,13 +106,18 @@ export class DependabotVersionUpdateHandler {
     const frontmatterContent = packageNames
       .map((name) => `'${name}': patch`)
       .join(EOL);
-    const body = `---${EOL}${frontmatterContent}${EOL}---${EOL}${EOL}${message.trim()}${EOL}`;
-    await fsp.writeFile(fileName, body);
+
+    if (packageNames.length === 0 || versionUpdates.length === 0) {
+      content = `---${EOL}---${EOL}`;
+    } else {
+      content = `---${EOL}${frontmatterContent}${EOL}---${EOL}${EOL}${message.trim()}${EOL}`;
+    }
+    await fsp.writeFile(fileName, content);
   };
 
   private getVersionUpdates = async () => {
     const updates: string[] = [];
-    const prBody = ghContext.payload.pull_request?.body;
+    const prBody = this._ghContext.payload.pull_request?.body;
 
     // Match lines in PR body that are one of the following:
     // Updates `<dependency>` from <old-version> to <new-version>
