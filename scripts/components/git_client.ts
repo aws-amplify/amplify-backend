@@ -197,6 +197,14 @@ export class GitClient {
     return previousReleaseTags;
   };
 
+  /**
+   * Get commit hash at HEAD for the current branch
+   */
+  getHashForCurrentCommit = async () => {
+    const { stdout: currentCommitHash } = await this.exec`git rev-parse HEAD`;
+    return currentCommitHash;
+  };
+
   private validateReleaseCommitHash = async (releaseCommitHash: string) => {
     // check that the hash points to a valid commit
     const { stdout: hashType } = await this
