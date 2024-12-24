@@ -46,9 +46,9 @@ void describe('dependabot version update handler', async () => {
     // create temp dir
     const shortId = randomUUID().split('-')[0];
     const testNameNormalized = testName.slice(0, 15).replaceAll(/\s/g, '');
-    const tempDir = await fsp.mkdtemp(tmpdir());
-    testWorkingDir = path.join(tempDir, `${testNameNormalized}-${shortId}`);
-    await fsp.mkdir(testWorkingDir);
+    testWorkingDir = await fsp.mkdtemp(
+      path.join(tmpdir(), `${testNameNormalized}-${shortId}`)
+    );
     console.log(testWorkingDir);
 
     gitClient = new GitClient(testWorkingDir);
