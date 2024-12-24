@@ -74,7 +74,10 @@ export class DependabotVersionUpdateHandler {
     }
 
     // Create and commit the changeset file, then add the 'run-e2e' label and force push to the PR
-    const fileName = `.changeset/dependabot-${this.headRef}.md`;
+    const fileName = path.join(
+      this.rootDir,
+      `.changeset/dependabot-${this.headRef}.md`
+    );
     const versionUpdates = await this.getVersionUpdates();
     await this.createChangesetFile(fileName, versionUpdates, packageNames);
     await this.gitClient.status();
