@@ -65,6 +65,9 @@ type DataClientReturn<T> = T extends DataClientEnv ? DataClientConfig : DataClie
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
 
 // @public (undocumented)
+export type FunctionArchitecture = 'x86_64' | 'arm64';
+
+// @public (undocumented)
 export type FunctionBundlingOptions = {
     minify?: boolean;
 };
@@ -94,6 +97,7 @@ export type FunctionProps = {
     ephemeralStorageSizeMB?: number;
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
+    architecture?: FunctionArchitecture;
     schedule?: FunctionSchedule | FunctionSchedule[];
     layers?: Record<string, string>;
     bundling?: FunctionBundlingOptions;
