@@ -87,6 +87,7 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
             // retry hotswapping resources if deployment time is higher than the threshold
             await runWithRetry(
               async () => {
+                // keeping initial deployment in retry loop to reset app state for each hotswap to be a non no-op
                 const processController = ampxCli(
                   ['sandbox', '--dirToWatch', 'amplify'],
                   testProject.projectDirPath,
