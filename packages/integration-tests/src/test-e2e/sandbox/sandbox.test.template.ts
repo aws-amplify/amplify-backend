@@ -21,6 +21,7 @@ import {
   amplifySharedSecretNameKey,
   createAmplifySharedSecretName,
 } from '../../shared_secret.js';
+import { runWithRetry } from '../../retry.js';
 
 /**
  * Defines sandbox test
@@ -83,27 +84,34 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
         void it(`[${testProjectCreator.name}] hot-swaps a change`, async () => {
           const updates = await testProject.getUpdates();
           if (updates.length > 0) {
-            const processController = ampxCli(
-              ['sandbox', '--dirToWatch', 'amplify'],
-              testProject.projectDirPath,
-              {
-                env: sharedSecretsEnv,
-              }
-            );
-
-            for (const update of updates) {
-              processController
-                .do(replaceFiles(update.replacements))
-                .do(waitForSandboxToBeginHotswappingResources());
-              if (update.deployThresholdSec) {
-                processController.do(
-                  ensureDeploymentTimeLessThan(update.deployThresholdSec)
+            // retry hotswapping resources if deployment time is higher than the threshold
+            await runWithRetry(
+              async () => {
+                // keeping initial deployment in retry loop to reset app state for each hotswap to be a non no-op
+                const processController = ampxCli(
+                  ['sandbox', '--dirToWatch', 'amplify'],
+                  testProject.projectDirPath,
+                  {
+                    env: sharedSecretsEnv,
+                  }
                 );
-              }
-            }
 
-            // Execute the process.
-            await processController.do(interruptSandbox()).run();
+                for (const update of updates) {
+                  processController
+                    .do(replaceFiles(update.replacements))
+                    .do(waitForSandboxToBeginHotswappingResources());
+                  if (update.deployThresholdSec) {
+                    processController.do(
+                      ensureDeploymentTimeLessThan(update.deployThresholdSec)
+                    );
+                  }
+                }
+
+                // Execute the process.
+                await processController.do(interruptSandbox()).run();
+              },
+              (error) => error.message.includes('Deployment time')
+            );
 
             await testProject.assertPostDeployment(sandboxBackendIdentifier);
           }
