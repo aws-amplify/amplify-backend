@@ -30,26 +30,26 @@ export class DependabotVersionUpdateHandler {
    * We also want to run our E2E tests on these version updates to ensure new dependency updates don't break us.
    *
    * Running this method when either of the following are true results in a no-op:
-   * 1. GitHub context event is not a pull request
-   * 2. Branch PR does not start with 'dependabot/', meaning the branch isn't for a Dependabot PR
-   * 3. PR already has a changeset in list of files changed
+   * - GitHub context event is not a pull request
+   * - Branch PR does not start with `dependabot/`, meaning the branch isn't for a Dependabot PR
+   * - PR already has a changeset in list of files changed
    */
   handleVersionUpdate = async () => {
     if (!this._ghContext.payload.pull_request) {
       // event is not a pull request, return early
-      process.exit();
+      return;
     }
 
     const branch = await this.gitClient.getCurrentBranch();
     if (!branch.startsWith('dependabot/')) {
       // if branch is not a dependabot branch, return early
-      process.exit();
+      return;
     }
 
     const changedFiles = await this.gitClient.getChangedFiles(this.baseRef);
     if (changedFiles.find((file) => file.startsWith('.changeset'))) {
       // if changeset file already exists, return early
-      process.exit();
+      return;
     }
 
     // Get all of the public packages with version updates (where 'package.json' is modified)
