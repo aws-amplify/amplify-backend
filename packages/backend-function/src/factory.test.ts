@@ -467,7 +467,7 @@ void describe('AmplifyFunctionFactory', () => {
       const template = Template.fromStack(lambda.stack);
 
       template.hasResourceProperties('AWS::Lambda::Function', {
-        Architecture: Architecture.ARM_64.name,
+        Architectures: [Architecture.ARM_64.name],
       });
     });
   });
