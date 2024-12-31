@@ -481,7 +481,7 @@ void describe('AmplifyFunctionFactory', () => {
         }).getInstance(getInstanceProps),
       new AmplifyUserError('InvalidArchitectureError', {
         message: `Invalid function architecture of invalid`,
-        resolution: 'runtime must be one of the following: arm64, x86_64',
+        resolution: 'architecture must be one of the following: arm64, x86_64',
       })
     );
   });
