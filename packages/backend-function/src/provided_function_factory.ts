@@ -82,12 +82,11 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
           e.message.includes('docker ENOENT'))
       ) {
         throw new AmplifyUserError(
-          'FunctionBundlingDockerError',
+          'CustomFunctionProviderDockerRequiredError',
           {
             message: e.message,
-            // TODO better resolution
             resolution:
-              'Ensure that docker is present and works correctly. See https://some.link.about.docker.',
+              'See https://docs.amplify.aws/react/build-a-backend/functions/custom-functions for more details about current limitations and troubleshooting steps.',
           },
           e
         );
