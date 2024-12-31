@@ -28,7 +28,12 @@ export const funcNoMinify = defineFunction({
 
 export const funcProvided = defineFunction((scope) => {
   return new NodejsFunction(scope, 'funcProvided', {
-    entry: './func-src/handler_provided.ts',
+    entry: path.resolve(
+      fileURLToPath(import.meta.url),
+      '..',
+      'func-src',
+      'handler_provider.ts'
+    ),
     runtime: Runtime.NODEJS_18_X,
   });
 });
