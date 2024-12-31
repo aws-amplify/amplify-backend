@@ -92,11 +92,10 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
         );
       } else {
         throw new AmplifyUserError(
-          'FunctionProviderError',
+          'CustomFunctionProviderError',
           {
             message: e instanceof Error ? e.message : JSON.stringify(e),
-            // TODO better resolution
-            resolution: 'Ensure that function provider is working.',
+            resolution: "Ensure that callback passed to 'defineFunction' executes without error. See https://docs.amplify.aws/react/build-a-backend/functions/custom-functions for more details.",
           },
           e instanceof Error ? e : undefined
         );
