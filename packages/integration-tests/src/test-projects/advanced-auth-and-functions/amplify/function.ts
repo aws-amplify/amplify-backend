@@ -1,6 +1,8 @@
 import { defineFunction } from '@aws-amplify/backend';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 export const funcWithSsm = defineFunction({
   name: 'funcWithSsm',
