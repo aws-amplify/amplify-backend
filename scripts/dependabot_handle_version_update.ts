@@ -9,16 +9,8 @@ if (baseRef === undefined) {
   );
 }
 
-const headRef = process.argv[3];
-if (headRef === undefined) {
-  throw new Error(
-    'No head ref specified for handle dependabot version update check'
-  );
-}
-
 const dependabotVersionUpdateHandler = new DependabotVersionUpdateHandler(
   baseRef,
-  headRef,
   new GitClient(),
   new GithubClient()
 );
