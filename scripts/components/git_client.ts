@@ -66,6 +66,14 @@ export class GitClient {
   };
 
   /**
+   * Get changes made in a specific modified file from getChangedFiles
+   */
+  getFileChanges = async (file: string) => {
+    const { stdout: changes } = await this.exec`git show ${file}`;
+    return changes;
+  };
+
+  /**
    * Switches to branchName. Creates the branch if it does not exist.
    */
   switchToBranch = async (branchName: string) => {
@@ -187,6 +195,14 @@ export class GitClient {
     }
 
     return previousReleaseTags;
+  };
+
+  /**
+   * Get commit hash at HEAD for the current branch
+   */
+  getHashForCurrentCommit = async () => {
+    const { stdout: currentCommitHash } = await this.exec`git rev-parse HEAD`;
+    return currentCommitHash;
   };
 
   private validateReleaseCommitHash = async (releaseCommitHash: string) => {
