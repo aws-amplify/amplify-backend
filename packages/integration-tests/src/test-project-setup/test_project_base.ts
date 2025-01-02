@@ -26,6 +26,7 @@ import path from 'path';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { pathToFileURL } from 'url';
 import isMatch from 'lodash.ismatch';
+import { setupDirAsEsmModule } from './setup_dir_as_esm_module.js';
 
 export type PlatformDeploymentThresholds = {
   onWindows: number;
@@ -246,5 +247,16 @@ export abstract class TestProjectBase {
     const npmOutputs = await npmBackendOutputClient.getOutput(backendId);
 
     assert.ok(isMatch(currentCodebaseOutputs, npmOutputs));
+  }
+
+  /**
+   * Resets the project to its initial state
+   */
+  async reset() {
+    await fsp.rm(this.projectAmplifyDirPath, { recursive: true, force: true });
+    await fsp.cp(this.sourceProjectAmplifyDirURL, this.projectAmplifyDirPath, {
+      recursive: true,
+    });
+    await setupDirAsEsmModule(this.projectAmplifyDirPath);
   }
 }
