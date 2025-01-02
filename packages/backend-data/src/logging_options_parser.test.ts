@@ -45,16 +45,16 @@ const testCases: Array<TestCase> = [
     },
   },
   {
-    description: 'custom - level: error',
-    input: { level: 'error' },
+    description: 'custom - fieldLogLevel: error',
+    input: { fieldLogLevel: 'error' },
     expectedOutput: {
       ...DEFAULT_LOGGING_OPTIONS,
       fieldLogLevel: FieldLogLevel.ERROR,
     },
   },
   {
-    description: 'custom - level: info, retention: 1 month',
-    input: { level: 'info', retention: '1 month' },
+    description: 'custom - fieldLogLevel: info, retention: 1 month',
+    input: { fieldLogLevel: 'info', retention: '1 month' },
     expectedOutput: {
       ...DEFAULT_LOGGING_OPTIONS,
       fieldLogLevel: FieldLogLevel.INFO,
@@ -66,7 +66,7 @@ const testCases: Array<TestCase> = [
       'custom - excludeVerboseContent: false, level: debug, retention: 13 months',
     input: {
       excludeVerboseContent: false,
-      level: 'debug',
+      fieldLogLevel: 'debug',
       retention: '13 months',
     },
     expectedOutput: {

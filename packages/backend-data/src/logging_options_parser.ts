@@ -44,7 +44,7 @@ export const convertLoggingOptionsToCDK = (
   // For level and retention, we rely on converters. If config is empty or logging is true, use defaults.
   const dataLogLevel = shouldApplyDefaultLogging
     ? DEFAULT_LEVEL
-    : config.level ?? DEFAULT_LEVEL;
+    : config.fieldLogLevel ?? DEFAULT_LEVEL;
 
   const logRetention = shouldApplyDefaultLogging
     ? DEFAULT_RETENTION
