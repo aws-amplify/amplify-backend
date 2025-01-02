@@ -30,7 +30,7 @@ export type AuthorizationModes = {
 export type DataLogConfig = {
     retention?: LogRetention;
     excludeVerboseContent?: boolean;
-    level?: DataLogLevel;
+    fieldLogLevel?: DataLogLevel;
 };
 
 // @public
