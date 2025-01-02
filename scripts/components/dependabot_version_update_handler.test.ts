@@ -119,6 +119,7 @@ void describe('dependabot version update handler', async () => {
           body: pullRequestBody,
           head: {
             ref: 'dependabot/test_version_update_branch',
+            // eslint-disable-next-line spellcheck/spell-checker
             sha: 'abcd1234', // used for naming the changeset file
           },
         },
@@ -152,6 +153,7 @@ void describe('dependabot version update handler', async () => {
 
     const changesetFilePath = path.join(
       testWorkingDir,
+      // eslint-disable-next-line spellcheck/spell-checker
       '.changeset/dependabot-abcd1234.md'
     );
 
