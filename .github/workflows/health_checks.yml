@@ -270,7 +270,7 @@ jobs:
           mkdir api-validation-projects
           npx tsx scripts/check_api_changes.ts base-branch-content api-validation-projects
   handle_dependabot_version_update:
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs:
       - install

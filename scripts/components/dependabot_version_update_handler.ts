@@ -35,20 +35,24 @@ export class DependabotVersionUpdateHandler {
    * - PR already has a changeset in list of files changed
    */
   handleVersionUpdate = async () => {
+    console.log(this._ghContext.payload);
     if (!this._ghContext.payload.pull_request) {
       // event is not a pull request, return early
+      console.log('Event is not a pull request');
       return;
     }
 
     const branch = await this.gitClient.getCurrentBranch();
     if (!branch.startsWith('dependabot/')) {
       // if branch is not a dependabot branch, return early
+      console.log('Branch is not a dependabot branch');
       return;
     }
 
     const changedFiles = await this.gitClient.getChangedFiles(this.baseRef);
     if (changedFiles.find((file) => file.startsWith('.changeset'))) {
       // if changeset file already exists, return early
+      console.log('Found changeset file,');
       return;
     }
 
@@ -81,6 +85,12 @@ export class DependabotVersionUpdateHandler {
       `.changeset/dependabot-${this.headRef}.md`
     );
     const versionUpdates = await this.getVersionUpdates();
+    console.log(
+      `Found the following lines in the PR for version updates:${EOL}`
+    );
+    console.log(versionUpdates.join(EOL));
+
+    console.log('Creating changeset file');
     await this.createChangesetFile(fileName, versionUpdates, packageNames);
     await this.gitClient.status();
     await this.gitClient.commitAllChanges('add changeset');
@@ -112,6 +122,7 @@ export class DependabotVersionUpdateHandler {
     } else {
       content = `---${EOL}${frontmatterContent}${EOL}---${EOL}${EOL}${message.trim()}${EOL}`;
     }
+    console.log(`Changeset file content:${EOL}${content}`);
     await fsp.writeFile(fileName, content);
   };
 
