@@ -35,7 +35,6 @@ export class DependabotVersionUpdateHandler {
    * - PR already has a changeset in list of files changed
    */
   handleVersionUpdate = async () => {
-    console.log(this._ghContext.payload);
     if (!this._ghContext.payload.pull_request) {
       // event is not a pull request, return early
       console.log('Event is not a pull request');
@@ -43,6 +42,7 @@ export class DependabotVersionUpdateHandler {
     }
 
     const branch = await this.gitClient.getCurrentBranch();
+    console.log(`Branch is ${branch}`);
     if (!branch.startsWith('dependabot/')) {
       // if branch is not a dependabot branch, return early
       console.log('Branch is not a dependabot branch');
