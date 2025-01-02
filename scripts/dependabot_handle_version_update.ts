@@ -4,17 +4,13 @@ import { DependabotVersionUpdateHandler } from './components/dependabot_version_
 
 const baseRef = process.argv[2];
 if (baseRef === undefined) {
-  throw new Error('No base ref specified for generate changeset check');
-}
-
-const headRef = process.argv[3];
-if (headRef === undefined) {
-  throw new Error('No head ref specified for generate changeset check');
+  throw new Error(
+    'No base ref specified for handle dependabot version update check'
+  );
 }
 
 const dependabotVersionUpdateHandler = new DependabotVersionUpdateHandler(
   baseRef,
-  headRef,
   new GitClient(),
   new GithubClient()
 );

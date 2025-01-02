@@ -117,6 +117,10 @@ void describe('dependabot version update handler', async () => {
         pull_request: {
           number: 1,
           body: pullRequestBody,
+          head: {
+            ref: 'dependabot/test_version_update_branch',
+            sha: 'abcd1234', // used for naming the changeset file
+          },
         },
       },
       issue: {
@@ -131,15 +135,13 @@ void describe('dependabot version update handler', async () => {
     };
 
     // Update package.json files for both packages and commit to match what Dependabot will do for a version update PR
-    await gitClient.switchToBranch('dependabot/test_update');
+    await gitClient.switchToBranch('dependabot/test_version_update_branch');
     await setPackageDependencies(cantaloupePackagePath, { testDep: '^1.1.0' });
     await setPackageDependencies(platypusPackagePath, { testDep: '^1.1.0' });
     await gitClient.commitAllChanges('Bump dependencies');
-    const headRef = await gitClient.getHashForCurrentCommit();
 
     const dependabotVersionUpdateHandler = new DependabotVersionUpdateHandler(
       baseRef,
-      headRef,
       gitClient,
       githubClient,
       testWorkingDir,
@@ -150,7 +152,7 @@ void describe('dependabot version update handler', async () => {
 
     const changesetFilePath = path.join(
       testWorkingDir,
-      `.changeset/dependabot-${headRef}.md`
+      '.changeset/dependabot-abcd1234.md'
     );
 
     await assertChangesetFile(
