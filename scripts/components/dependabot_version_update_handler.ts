@@ -16,7 +16,6 @@ export class DependabotVersionUpdateHandler {
    */
   constructor(
     private readonly baseRef: string,
-    private readonly headRef: string,
     private readonly gitClient: GitClient,
     private readonly ghClient: GithubClient,
     private readonly _rootDir: string = process.cwd(),
@@ -37,18 +36,24 @@ export class DependabotVersionUpdateHandler {
   handleVersionUpdate = async () => {
     if (!this._ghContext.payload.pull_request) {
       // event is not a pull request, return early
+      console.log('Event is not a pull request');
       return;
     }
 
+    await this.gitClient.switchToBranch(
+      this._ghContext.payload.pull_request.head.ref
+    );
     const branch = await this.gitClient.getCurrentBranch();
     if (!branch.startsWith('dependabot/')) {
       // if branch is not a dependabot branch, return early
+      console.log(`${branch} is not a dependabot branch`);
       return;
     }
 
     const changedFiles = await this.gitClient.getChangedFiles(this.baseRef);
     if (changedFiles.find((file) => file.startsWith('.changeset'))) {
       // if changeset file already exists, return early
+      console.log('Changeset file already exists');
       return;
     }
 
@@ -78,7 +83,7 @@ export class DependabotVersionUpdateHandler {
     // Create and commit the changeset file, then add the 'run-e2e' label and force push to the PR
     const fileName = path.join(
       this._rootDir,
-      `.changeset/dependabot-${this.headRef}.md`
+      `.changeset/dependabot-${this._ghContext.payload.pull_request.head.sha}.md`
     );
     const versionUpdates = await this.getVersionUpdates();
     await this.createChangesetFile(fileName, versionUpdates, packageNames);
