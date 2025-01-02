@@ -40,10 +40,13 @@ export class DependabotVersionUpdateHandler {
       return;
     }
 
-    const branch = await this._ghContext.payload.pull_request.head.ref;
+    await this.gitClient.switchToBranch(
+      this._ghContext.payload.pull_request.head.ref
+    );
+    const branch = await this.gitClient.getCurrentBranch();
     if (!branch.startsWith('dependabot/')) {
       // if branch is not a dependabot branch, return early
-      console.log('Branch is not a dependabot branch');
+      console.log(`${branch} is not a dependabot branch`);
       return;
     }
 
