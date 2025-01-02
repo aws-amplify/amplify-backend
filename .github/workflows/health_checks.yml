@@ -277,6 +277,8 @@ jobs:
       - resolve_inputs
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
+        with:
+          fetch-depth: 0
       - uses: ./.github/actions/setup_node
         with:
           node-version: 18
@@ -285,10 +287,9 @@ jobs:
           node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - name: Handle Dependabot version update pull request
-        run: npx tsx scripts/dependabot_handle_version_update.ts "$BASE_SHA" "$HEAD_SHA"
+        run: npx tsx scripts/dependabot_handle_version_update.ts "$BASE_SHA"
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           # The dependabot_handler_version_update script needs to add the 'run-e2e' pull request label
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   do_include_e2e:

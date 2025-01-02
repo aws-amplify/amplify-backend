@@ -16,7 +16,6 @@ export class DependabotVersionUpdateHandler {
    */
   constructor(
     private readonly baseRef: string,
-    private readonly headRef: string,
     private readonly gitClient: GitClient,
     private readonly ghClient: GithubClient,
     private readonly _rootDir: string = process.cwd(),
@@ -40,7 +39,8 @@ export class DependabotVersionUpdateHandler {
       return;
     }
 
-    const branch = await this.gitClient.getCurrentBranch();
+    const branch = this._ghContext.payload.pull_request.head.ref;
+    await this.gitClient.switchToBranch(branch);
     if (!branch.startsWith('dependabot/')) {
       // if branch is not a dependabot branch, return early
       return;
@@ -78,7 +78,7 @@ export class DependabotVersionUpdateHandler {
     // Create and commit the changeset file, then add the 'run-e2e' label and force push to the PR
     const fileName = path.join(
       this._rootDir,
-      `.changeset/dependabot-${this.headRef}.md`
+      `.changeset/dependabot-${this._ghContext.payload.pull_request.head.sha}.md`
     );
     const versionUpdates = await this.getVersionUpdates();
     await this.createChangesetFile(fileName, versionUpdates, packageNames);
