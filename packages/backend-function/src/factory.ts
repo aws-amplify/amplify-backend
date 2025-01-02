@@ -68,7 +68,10 @@ export type TimeInterval =
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
-export type FunctionLogLevel = LogLevel;
+export type FunctionLogLevel = Extract<
+  LogLevel,
+  'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace'
+>;
 export type FunctionLogRetention = LogRetention;
 
 /**
