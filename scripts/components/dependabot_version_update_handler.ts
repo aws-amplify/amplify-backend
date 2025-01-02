@@ -83,12 +83,6 @@ export class DependabotVersionUpdateHandler {
       `.changeset/dependabot-${this._ghContext.payload.pull_request.head.sha}.md`
     );
     const versionUpdates = await this.getVersionUpdates();
-    console.log(
-      `Found the following lines in the PR for version updates:${EOL}`
-    );
-    console.log(versionUpdates.join(EOL));
-
-    console.log('Creating changeset file');
     await this.createChangesetFile(fileName, versionUpdates, packageNames);
     await this.gitClient.status();
     await this.gitClient.commitAllChanges('add changeset');
@@ -120,7 +114,6 @@ export class DependabotVersionUpdateHandler {
     } else {
       content = `---${EOL}${frontmatterContent}${EOL}---${EOL}${EOL}${message.trim()}${EOL}`;
     }
-    console.log(`Changeset file content:${EOL}${content}`);
     await fsp.writeFile(fileName, content);
   };
 
