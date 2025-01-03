@@ -1,5 +1,18 @@
 # @aws-amplify/backend-ai
 
+## 1.3.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+
+### Patch Changes
+
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
 ## 1.2.0
 
 ### Minor Changes

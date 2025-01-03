@@ -1,5 +1,21 @@
 # @aws-amplify/backend-cli
 
+## 1.4.6
+
+### Patch Changes
+
+- a7506f9: wraps no outputs found error from backend output client
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/model-generator@1.0.12
+  - @aws-amplify/client-config@1.5.5
+  - @aws-amplify/sandbox@1.2.9
+  - @aws-amplify/backend-deployer@1.1.13
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
 ## 1.4.5
 
 ### Patch Changes
