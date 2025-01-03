@@ -95,7 +95,8 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
           'CustomFunctionProviderError',
           {
             message: e instanceof Error ? e.message : JSON.stringify(e),
-            resolution: "Ensure that callback passed to 'defineFunction' executes without error. See https://docs.amplify.aws/react/build-a-backend/functions/custom-functions for more details.",
+            resolution:
+              "Ensure that callback passed to 'defineFunction' executes without error. See https://docs.amplify.aws/react/build-a-backend/functions/custom-functions for more details.",
           },
           e instanceof Error ? e : undefined
         );
