@@ -1,5 +1,17 @@
 # @aws-amplify/backend-function
 
+## 1.11.0
+
+### Minor Changes
+
+- 23f1240: added data logging api to defineData
+- b1c0f0d: adds support for architecture property on defineFunction
+
+### Patch Changes
+
+- Updated dependencies [23f1240]
+  - @aws-amplify/plugin-types@1.7.0
+
 ## 1.10.0
 
 ### Minor Changes
