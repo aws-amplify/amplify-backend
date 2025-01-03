@@ -276,8 +276,9 @@ jobs:
       - install
       - resolve_inputs
     permissions:
-      # This is required so that this job can add the 'run-e2e' label on the pull request
+      # This is required so that this job can add the 'run-e2e' label and push to the pull request
       pull-requests: write
+      contents: write
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
         with:
