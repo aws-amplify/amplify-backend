@@ -1,17 +1,5 @@
 # @aws-amplify/client-config
 
-## 1.5.5
-
-### Patch Changes
-
-- aaeda9b: wraps no outputs found error from backend output client
-- Updated dependencies [aaeda9b]
-- Updated dependencies [23f1240]
-- Updated dependencies [abff5a0]
-  - @aws-amplify/model-generator@1.0.12
-  - @aws-amplify/platform-core@1.5.0
-  - @aws-amplify/plugin-types@1.7.0
-
 ## 1.5.4
 
 ### Patch Changes
