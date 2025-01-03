@@ -1,8 +1,4 @@
-import {
-  FunctionOutput,
-  functionOutputKey,
-} from '@aws-amplify/backend-output-schemas';
-import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
 import {
   AmplifyUserError,
   CallerDirectoryExtractor,
@@ -20,19 +16,19 @@ import {
   GenerateContainerEntryProps,
   LogLevel,
   LogRetention,
+  ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceNameValidator,
   ResourceProvider,
-  SsmEnvironmentEntry,
   StackProvider,
 } from '@aws-amplify/plugin-types';
 import { Duration, Size, Stack, Tags } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
-import { Policy } from 'aws-cdk-lib/aws-iam';
 import {
   Architecture,
   CfnFunction,
+  IFunction,
   ILayerVersion,
   LayerVersion,
   Runtime,
@@ -41,7 +37,6 @@ import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import { readFileSync } from 'fs';
 import { createRequire } from 'module';
-import { fileURLToPath } from 'node:url';
 import { EOL } from 'os';
 import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
@@ -49,8 +44,12 @@ import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.
 import { FunctionLayerArnParser } from './layer_parser.js';
 import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
 import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
-
-const functionStackType = 'function-Lambda';
+import {
+  ProvidedFunctionFactory,
+  ProvidedFunctionProps,
+} from './provided_function_factory.js';
+import { AmplifyFunctionBase } from './function_construct_base.js';
+import { FunctionResourceAccessAcceptor } from './resource_access_acceptor.js';
 
 export type AddEnvironmentFactory = {
   addEnvironment: (key: string, value: string | BackendSecret) => void;
@@ -74,17 +73,38 @@ export type FunctionLogLevel = Extract<
 >;
 export type FunctionLogRetention = LogRetention;
 
-/**
- * Entry point for defining a function in the Amplify ecosystem
- */
-export const defineFunction = (
-  props: FunctionProps = {}
+export function defineFunction(
+  props?: FunctionProps
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
     AddEnvironmentFactory &
     StackProvider
-> => new FunctionFactory(props, new Error().stack);
+>;
+export function defineFunction(
+  provider: (scope: Construct) => IFunction,
+  providerProps?: ProvidedFunctionProps
+): ConstructFactory<
+  ResourceProvider<FunctionResources> &
+    ResourceAccessAcceptorFactory &
+    StackProvider
+>;
+/**
+ * Entry point for defining a function in the Amplify ecosystem
+ */
+// This is the "implementation overload", it's not visible in public api.
+// We have to use function notation instead of arrow notation.
+// Arrow notation does not support overloads.
+// eslint-disable-next-line no-restricted-syntax
+export function defineFunction(
+  propsOrProvider: FunctionProps | ((scope: Construct) => IFunction) = {},
+  providerProps?: ProvidedFunctionProps
+): unknown {
+  if (propsOrProvider && typeof propsOrProvider === 'function') {
+    return new ProvidedFunctionFactory(propsOrProvider, providerProps);
+  }
+  return new FunctionFactory(propsOrProvider, new Error().stack);
+}
 
 export type FunctionProps = {
   /**
@@ -507,14 +527,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 }
 
 class AmplifyFunction
-  extends Construct
-  implements
-    ResourceProvider<FunctionResources>,
-    ResourceAccessAcceptorFactory,
-    AddEnvironmentFactory
+  extends AmplifyFunctionBase
+  implements AddEnvironmentFactory
 {
   readonly resources: FunctionResources;
-  readonly stack: Stack;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
@@ -523,9 +539,7 @@ class AmplifyFunction
     backendSecretResolver: BackendSecretResolver,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
-    super(scope, id);
-
-    this.stack = Stack.of(scope);
+    super(scope, id, outputStorageStrategy);
 
     const runtime = nodeVersionMap[props.runtime];
 
@@ -647,52 +661,18 @@ class AmplifyFunction
       },
     };
 
-    this.storeOutput(outputStorageStrategy);
-
-    new AttributionMetadataStorage().storeAttributionMetadata(
-      Stack.of(this),
-      functionStackType,
-      fileURLToPath(new URL('../package.json', import.meta.url))
-    );
+    this.storeOutput();
   }
 
   addEnvironment = (key: string, value: string | BackendSecret) => {
     this.functionEnvironmentTranslator.addEnvironmentEntry(key, value);
   };
 
-  getResourceAccessAcceptor = () => ({
-    identifier: `${this.node.id}LambdaResourceAccessAcceptor`,
-    acceptResourceAccess: (
-      policy: Policy,
-      ssmEnvironmentEntries: SsmEnvironmentEntry[]
-    ) => {
-      const role = this.resources.lambda.role;
-      if (!role) {
-        // This should never happen since we are using the Function L2 construct
-        throw new Error(
-          'No execution role found to attach lambda permissions to'
-        );
-      }
-      policy.attachToRole(role);
-      ssmEnvironmentEntries.forEach(({ name, path }) => {
-        this.functionEnvironmentTranslator.addSsmEnvironmentEntry(name, path);
-      });
-    },
-  });
-
-  /**
-   * Store storage outputs using provided strategy
-   */
-  private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-  ): void => {
-    outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
-      version: '1',
-      payload: {
-        definedFunctions: this.resources.lambda.functionName,
-      },
-    });
-  };
+  getResourceAccessAcceptor = (): ResourceAccessAcceptor =>
+    new FunctionResourceAccessAcceptor(
+      this,
+      this.functionEnvironmentTranslator
+    );
 }
 
 const isWholeNumberBetweenInclusive = (

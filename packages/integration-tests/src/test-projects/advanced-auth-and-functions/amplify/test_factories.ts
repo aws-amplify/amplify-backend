@@ -4,6 +4,7 @@ import {
   funcWithAwsSdk,
   funcWithSchedule,
   funcWithSsm,
+  funcProvided,
 } from './function.js';
 import { auth } from './auth/resource.js';
 
@@ -14,4 +15,5 @@ export const authAndFunctions = {
   funcWithSchedule,
   funcNoMinify,
   funcCustomEmailSender,
+  funcProvided,
 };
