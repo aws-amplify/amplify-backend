@@ -1,11 +1,5 @@
 # @aws-amplify/plugin-types
 
-## 1.7.0
-
-### Minor Changes
-
-- 23f1240: added data logging api to defineData
-
 ## 1.6.0
 
 ### Minor Changes
