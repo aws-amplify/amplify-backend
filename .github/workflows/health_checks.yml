@@ -296,7 +296,6 @@ jobs:
     needs:
       - install
       - resolve_inputs
-      - handle_dependabot_version_update
     runs-on: ubuntu-latest
     permissions:
       # This is required so that the step can read the labels on the pull request
