@@ -113,7 +113,7 @@ const getAmplifyDataClientConfig: <T>(env: T, s3Client?: S3Client) => Promise<Da
 
 // @public (undocumented)
 type InvalidConfig = unknown & {
-    invalidType: 'Some of the AWS environment variables needed to configure Amplify are missing.';
+    invalidType: 'Some of the AWS environment variables needed to configure Amplify are missing. Check the sandbox output for an error with resolution guidance.';
 };
 
 // @public (undocumented)

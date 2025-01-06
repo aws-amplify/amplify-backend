@@ -111,7 +111,7 @@ const getLibraryOptions = (env: DataClientEnv): LibraryOptions => {
 };
 
 export type InvalidConfig = unknown & {
-  invalidType: 'Some of the AWS environment variables needed to configure Amplify are missing.';
+  invalidType: 'Some of the AWS environment variables needed to configure Amplify are missing. Check the sandbox output for an error with resolution guidance.';
 };
 
 export type DataClientError = {
