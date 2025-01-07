@@ -82,9 +82,9 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
           e.message.includes('docker ENOENT'))
       ) {
         throw new AmplifyUserError(
-          'CustomFunctionProviderDockerRequiredError',
+          'CustomFunctionProviderDockerError',
           {
-            message: e.message,
+            message: 'Failed to instantiate custom function provider',
             resolution:
               'See https://docs.amplify.aws/react/build-a-backend/functions/custom-functions for more details about current limitations and troubleshooting steps.',
           },
