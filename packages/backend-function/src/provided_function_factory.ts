@@ -94,9 +94,9 @@ class ProvidedFunctionGenerator implements ConstructContainerEntryGenerator {
         throw new AmplifyUserError(
           'CustomFunctionProviderError',
           {
-            message: e instanceof Error ? e.message : JSON.stringify(e),
+            message: 'Failed to instantiate custom function provider',
             resolution:
-              "Ensure that callback passed to 'defineFunction' executes without error. See https://docs.amplify.aws/react/build-a-backend/functions/custom-functions for more details.",
+              "Check the definition of your custom function provided in `defineFunction` and refer to the logs for more information. See https://docs.amplify.aws/react/build-a-backend/functions/custom-functions for more details.",
           },
           e instanceof Error ? e : undefined
         );
