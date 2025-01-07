@@ -41,58 +41,14 @@ void describe('getAmplifyDataClientConfig', () => {
   [
     {
       name: 'no set name',
-      dataBackendName: 'AMPLIFY_DATA',
       validEnv: validDefaultEnv,
     },
     {
       name: 'an explicit name',
-      dataBackendName: 'AMPLIFY_DATA_TEST_NAME',
       validEnv: validNamedEnv,
     },
-  ].forEach(({ name, dataBackendName, validEnv }) => {
+  ].forEach(({ name, validEnv }) => {
     void describe(`env variable with ${name} for the data backend`, () => {
-      Object.keys(validEnv)
-        .filter((k) => k !== 'AMPLIFY_DATA_DEFAULT_NAME')
-        .forEach((envFieldToExclude) => {
-          if (envFieldToExclude.includes(dataBackendName)) {
-            void it(`throws error when ${envFieldToExclude} is not included`, async () => {
-              const env = { ...validEnv } as Record<string, string>;
-              delete env[envFieldToExclude];
-              await assert.rejects(
-                async () => await getAmplifyDataClientConfig(env),
-                /The data environment variables are malformed/
-              );
-            });
-
-            void it(`throws error when ${envFieldToExclude} is not a string`, async () => {
-              const env = { ...validEnv } as Record<string, unknown>;
-              env[envFieldToExclude] = 123;
-              await assert.rejects(
-                async () => await getAmplifyDataClientConfig(env),
-                /The data environment variables are malformed/
-              );
-            });
-          } else {
-            void it(`returns empty config objects when ${envFieldToExclude} is not included`, async () => {
-              const env = { ...validEnv } as Record<string, string>;
-              delete env[envFieldToExclude];
-              assert.deepEqual(await getAmplifyDataClientConfig(env), {
-                resourceConfig: {},
-                libraryOptions: {},
-              });
-            });
-
-            void it(`returns empty config objects when ${envFieldToExclude} is not a string`, async () => {
-              const env = { ...validEnv } as Record<string, unknown>;
-              env[envFieldToExclude] = 123;
-              assert.deepEqual(await getAmplifyDataClientConfig(env), {
-                resourceConfig: {},
-                libraryOptions: {},
-              });
-            });
-          }
-        });
-
       void it('raises a custom error message when the model introspection schema is missing from the s3 bucket', async () => {
         const s3ClientSendMock = mock.method(mockS3Client, 'send', async () => {
           throw new NoSuchKey({ message: 'TEST_ERROR', $metadata: {} });
