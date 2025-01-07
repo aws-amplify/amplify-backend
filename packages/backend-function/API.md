@@ -6,8 +6,10 @@
 
 import { AmplifyResourceGroupName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
@@ -49,8 +51,20 @@ type DataClientEnv = {
     AMPLIFY_DATA_DEFAULT_NAME: string;
 } & Record<string, unknown>;
 
-// @public
-export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
+// @public (undocumented)
+type DataClientError = {
+    resourceConfig: InvalidConfig;
+    libraryOptions: InvalidConfig;
+};
+
+// @public (undocumented)
+type DataClientReturn<T> = T extends DataClientEnv ? DataClientConfig : DataClientError;
+
+// @public (undocumented)
+export function defineFunction(props?: FunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
+
+// @public (undocumented)
+export function defineFunction(provider: (scope: Construct) => IFunction, providerProps?: ProvidedFunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & StackProvider>;
 
 // @public (undocumented)
 export type FunctionArchitecture = 'x86_64' | 'arm64';
@@ -117,6 +131,11 @@ type LibraryOptions = {
 
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20 | 22;
+
+// @public (undocumented)
+export type ProvidedFunctionProps = {
+    resourceGroupName?: AmplifyResourceGroupName;
+};
 
 // @public (undocumented)
 type ResourceConfig = {
