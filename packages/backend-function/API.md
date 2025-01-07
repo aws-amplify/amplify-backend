@@ -20,9 +20,6 @@ declare namespace __export__runtime {
         getAmplifyDataClientConfig,
         DataClientConfig,
         DataClientEnv,
-        DataClientError,
-        DataClientReturn,
-        InvalidConfig,
         LibraryOptions,
         ResourceConfig
     }
@@ -43,7 +40,7 @@ type DataClientConfig = {
     libraryOptions: LibraryOptions;
 };
 
-// @public (undocumented)
+// @public
 type DataClientEnv = {
     AWS_ACCESS_KEY_ID: string;
     AWS_SECRET_ACCESS_KEY: string;
@@ -51,15 +48,6 @@ type DataClientEnv = {
     AWS_REGION: string;
     AMPLIFY_DATA_DEFAULT_NAME: string;
 } & Record<string, unknown>;
-
-// @public (undocumented)
-type DataClientError = {
-    resourceConfig: InvalidConfig;
-    libraryOptions: InvalidConfig;
-};
-
-// @public (undocumented)
-type DataClientReturn<T> = T extends DataClientEnv ? DataClientConfig : DataClientError;
 
 // @public
 export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
@@ -109,12 +97,7 @@ export type FunctionProps = {
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
 // @public
-const getAmplifyDataClientConfig: <T>(env: T, s3Client?: S3Client) => Promise<DataClientReturn<T>>;
-
-// @public (undocumented)
-type InvalidConfig = unknown & {
-    invalidType: 'Some of the AWS environment variables needed to configure Amplify are missing. Check the sandbox output for an error with resolution guidance.';
-};
+const getAmplifyDataClientConfig: (env: DataClientEnv, s3Client?: S3Client) => Promise<DataClientConfig>;
 
 // @public (undocumented)
 type LibraryOptions = {
