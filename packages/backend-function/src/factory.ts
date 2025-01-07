@@ -26,6 +26,7 @@ import { Duration, Size, Stack, Tags } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import {
+  Architecture,
   CfnFunction,
   IFunction,
   ILayerVersion,
@@ -66,7 +67,10 @@ export type TimeInterval =
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
-export type FunctionLogLevel = LogLevel;
+export type FunctionLogLevel = Extract<
+  LogLevel,
+  'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace'
+>;
 export type FunctionLogRetention = LogRetention;
 
 export function defineFunction(
@@ -153,6 +157,12 @@ export type FunctionProps = {
    * Defaults to the oldest NodeJS LTS version. See https://nodejs.org/en/about/previous-releases
    */
   runtime?: NodeVersion;
+
+  /**
+   * The architecture of the target platform for the lambda environment.
+   * Defaults to X86_64.
+   */
+  architecture?: FunctionArchitecture;
 
   /**
    * A time interval string to periodically run the function.
@@ -266,6 +276,7 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
       ephemeralStorageSizeMB: this.resolveEphemeralStorageSize(),
       environment: this.resolveEnvironment(),
       runtime: this.resolveRuntime(),
+      architecture: this.resolveArchitecture(),
       schedule: this.resolveSchedule(),
       bundling: this.resolveBundling(),
       layers: this.props.layers ?? {},
@@ -421,6 +432,25 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     return this.props.runtime;
   };
 
+  private resolveArchitecture = () => {
+    const architectureDefault = 'x86_64';
+
+    if (!this.props.architecture) {
+      return architectureDefault;
+    }
+
+    if (!(this.props.architecture in architectureMap)) {
+      throw new AmplifyUserError('InvalidArchitectureError', {
+        message: `Invalid function architecture of ${this.props.architecture}`,
+        resolution: `architecture must be one of the following: ${Object.keys(
+          architectureMap
+        ).join(', ')}`,
+      });
+    }
+
+    return this.props.architecture;
+  };
+
   private resolveSchedule = () => {
     if (!this.props.schedule) {
       return [];
@@ -553,6 +583,7 @@ class AmplifyFunction
         entry: props.entry,
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
+        architecture: architectureMap[props.architecture],
         ephemeralStorageSize: Size.mebibytes(props.ephemeralStorageSizeMB),
         runtime: nodeVersionMap[props.runtime],
         layers: props.resolvedLayers,
@@ -657,4 +688,11 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
   22: Runtime.NODEJS_22_X,
+};
+
+export type FunctionArchitecture = 'x86_64' | 'arm64';
+
+const architectureMap: Record<FunctionArchitecture, Architecture> = {
+  arm64: Architecture.ARM_64,
+  x86_64: Architecture.X86_64,
 };

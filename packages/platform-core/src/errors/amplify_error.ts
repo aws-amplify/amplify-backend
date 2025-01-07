@@ -47,55 +47,41 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     if (cause && AmplifyError.isAmplifyError(cause)) {
       cause.serializedError = undefined;
     }
-    this.serializedError = JSON.stringify(
-      {
-        name,
-        classification,
-        options,
-        cause,
-      },
-      errorSerializer
-    );
+    this.serializedError = Buffer.from(
+      JSON.stringify(
+        {
+          name,
+          classification,
+          options,
+          cause,
+        },
+        errorSerializer
+      )
+    ).toString('base64');
   }
 
   static fromStderr = (_stderr: string): AmplifyError | undefined => {
-    /**
-     * `["']?serializedError["']?:[ ]?` captures the start of the serialized error. The quotes depend on which OS is being used
-     * `(?:`(.+?)`|'(.+?)'|"((?:\\"|[^"])*?)")` captures the rest of the serialized string enclosed in either single quote,
-     * double quotes or back-ticks.
-     */
-    const extractionRegex =
-      /["']?serializedError["']?:[ ]?(?:`(.+?)`|'(.+?)'|"((?:\\"|[^"])*?)")/;
-    const serialized = _stderr.match(extractionRegex);
-    if (serialized && serialized.length === 4) {
-      // 4 because 1 match and 3 capturing groups
-      try {
-        const serializedString = serialized
-          .slice(1)
-          .find((item) => item && item.length > 0)
-          ?.replaceAll('\\"', '"')
-          .replaceAll("\\'", "'");
+    try {
+      const serializedString = tryFindSerializedErrorJSONString(_stderr);
 
-        if (!serializedString) {
-          return undefined;
-        }
-
-        const { name, classification, options, cause } =
-          JSON.parse(serializedString);
-
-        let serializedCause = cause;
-        if (cause && ErrorSerializerDeserializer.isSerializedErrorType(cause)) {
-          serializedCause = ErrorSerializerDeserializer.deserialize(cause);
-        }
-        return classification === 'ERROR'
-          ? new AmplifyUserError(name, options, serializedCause)
-          : new AmplifyFault(name, options, serializedCause);
-      } catch (error) {
-        // cannot deserialize
+      if (!serializedString) {
         return undefined;
       }
+
+      const { name, classification, options, cause } =
+        JSON.parse(serializedString);
+
+      let serializedCause = cause;
+      if (cause && ErrorSerializerDeserializer.isSerializedErrorType(cause)) {
+        serializedCause = ErrorSerializerDeserializer.deserialize(cause);
+      }
+      return classification === 'ERROR'
+        ? new AmplifyUserError(name, options, serializedCause)
+        : new AmplifyFault(name, options, serializedCause);
+    } catch (error) {
+      // cannot deserialize
+      return undefined;
     }
-    return undefined;
   };
 
   /**
@@ -186,6 +172,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         error
       );
     }
+    if (error instanceof Error && isOutOfMemoryError(error)) {
+      return new AmplifyUserError(
+        'InsufficientMemorySpaceError',
+        {
+          message: error.message,
+          resolution:
+            'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
+        },
+        error
+      );
+    }
     return new AmplifyFault(
       'UnknownFault',
       {
@@ -195,6 +192,68 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     );
   };
 }
+
+const tryFindSerializedErrorJSONString = (
+  _stderr: string
+): string | undefined => {
+  let errorJSONString = tryFindSerializedErrorJSONStringV2(_stderr);
+  if (!errorJSONString) {
+    errorJSONString = tryFindSerializedErrorJSONStringV1(_stderr);
+  }
+  return errorJSONString;
+};
+
+/**
+ * Tries to find serialized string assuming that it is in a form of serialized JSON encoded with base64.
+ */
+const tryFindSerializedErrorJSONStringV2 = (
+  _stderr: string
+): string | undefined => {
+  /**
+   * `["']?serializedError["']?:[ ]?` captures the start of the serialized error. The quotes depend on which OS is being used
+   * `(?:`([a-zA-Z0-9+/=]+?)`|'([a-zA-Z0-9+/=]+?)'|"([a-zA-Z0-9+/=]+?)")` captures the rest of the serialized string enclosed in either single quote,
+   * double quotes or back-ticks.
+   */
+  const extractionRegex =
+    /["']?serializedError["']?:[ ]?(?:`([a-zA-Z0-9+/=]+?)`|'([a-zA-Z0-9+/=]+?)'|"([a-zA-Z0-9+/=]+?)")/;
+  const serialized = _stderr.match(extractionRegex);
+  if (serialized && serialized.length === 4) {
+    // 4 because 1 match and 3 capturing groups
+    const base64SerializedString = serialized
+      .slice(1)
+      .find((item) => item && item.length > 0);
+    if (base64SerializedString) {
+      return Buffer.from(base64SerializedString, 'base64').toString('utf-8');
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Tries to find serialized string assuming that it is in a form of serialized JSON.
+ * @deprecated This is old format left for backwards compatibility in case that synth-time components are using older version of platform-core.
+ */
+const tryFindSerializedErrorJSONStringV1 = (
+  _stderr: string
+): string | undefined => {
+  /**
+   * `["']?serializedError["']?:[ ]?` captures the start of the serialized error. The quotes depend on which OS is being used
+   * `(?:`(.+?)`|'(.+?)'|"((?:\\"|[^"])*?)")` captures the rest of the serialized string enclosed in either single quote,
+   * double quotes or back-ticks.
+   */
+  const extractionRegex =
+    /["']?serializedError["']?:[ ]?(?:`(.+?)`|'(.+?)'|"((?:\\"|[^"])*?)")/;
+  const serialized = _stderr.match(extractionRegex);
+  if (serialized && serialized.length === 4) {
+    // 4 because 1 match and 3 capturing groups
+    return serialized
+      .slice(1)
+      .find((item) => item && item.length > 0)
+      ?.replaceAll('\\"', '"')
+      .replaceAll("\\'", "'");
+  }
+  return undefined;
+};
 
 const isCredentialsError = (err?: Error): boolean => {
   return (
@@ -243,6 +302,10 @@ const isInsufficientDiskSpaceError = (err?: Error): boolean => {
       err.message.includes(message)
     )
   );
+};
+
+const isOutOfMemoryError = (err?: Error): boolean => {
+  return !!err && err.message.includes('process out of memory');
 };
 
 /**

@@ -70,6 +70,9 @@ export function defineFunction(props?: FunctionProps): ConstructFactory<Resource
 export function defineFunction(provider: (scope: Construct) => IFunction, providerProps?: ProvidedFunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & StackProvider>;
 
 // @public (undocumented)
+export type FunctionArchitecture = 'x86_64' | 'arm64';
+
+// @public (undocumented)
 export type FunctionBundlingOptions = {
     minify?: boolean;
 };
@@ -85,7 +88,7 @@ export type FunctionLoggingOptions = ({
 };
 
 // @public (undocumented)
-export type FunctionLogLevel = LogLevel;
+export type FunctionLogLevel = Extract<LogLevel, 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace'>;
 
 // @public (undocumented)
 export type FunctionLogRetention = LogRetention;
@@ -99,6 +102,7 @@ export type FunctionProps = {
     ephemeralStorageSizeMB?: number;
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
+    architecture?: FunctionArchitecture;
     schedule?: FunctionSchedule | FunctionSchedule[];
     layers?: Record<string, string>;
     bundling?: FunctionBundlingOptions;

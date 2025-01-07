@@ -13,9 +13,13 @@ import {
 } from '@aws-amplify/backend-platform-test-stubs';
 import { defaultLambda } from './test-assets/default-lambda/resource.js';
 import { Template } from 'aws-cdk-lib/assertions';
-import { NodeVersion, defineFunction } from './factory.js';
+import {
+  FunctionArchitecture,
+  NodeVersion,
+  defineFunction,
+} from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import fsp from 'fs/promises';
 import path from 'node:path';
@@ -453,6 +457,34 @@ void describe('AmplifyFunctionFactory', () => {
 
       assert.ok(endDate > currentDate);
     });
+  });
+
+  void describe('architecture property', () => {
+    void it('sets valid architecture', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        architecture: 'arm64',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Architectures: [Architecture.ARM_64.name],
+      });
+    });
+  });
+
+  void it('throws on invalid architecture', () => {
+    assert.throws(
+      () =>
+        defineFunction({
+          entry: './test-assets/default-lambda/handler.ts',
+          architecture: 'invalid' as FunctionArchitecture,
+        }).getInstance(getInstanceProps),
+      new AmplifyUserError('InvalidArchitectureError', {
+        message: `Invalid function architecture of invalid`,
+        resolution: 'architecture must be one of the following: arm64, x86_64',
+      })
+    );
   });
 
   void describe('schedule property', () => {
