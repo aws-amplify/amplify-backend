@@ -951,22 +951,22 @@ void describe('Bedrock converse adapter', () => {
     await askBedrockWithStreaming(adapter);
 
     const progressCalls = consoleInfoMock.mock.calls.filter((call) =>
-      call.arguments[0].includes('from Bedrock Converse Stream response')
+      call.arguments[0].includes('chunks from Bedrock Converse Stream response')
     );
     assert.strictEqual(progressCalls.length, 3);
     assert.strictEqual(
       progressCalls[0].arguments[0],
-      'Processed 1000 from Bedrock Converse Stream response, requestId=testRequestId'
+      'Processed 1000 chunks from Bedrock Converse Stream response, requestId=testRequestId'
     );
     assert.strictEqual(
       progressCalls[1].arguments[0],
-      'Processed 2000 from Bedrock Converse Stream response, requestId=testRequestId'
+      'Processed 2000 chunks from Bedrock Converse Stream response, requestId=testRequestId'
     );
     // each block is decomposed into 4 chunks + start and stop of whole message.
     const expectedNumberOfAllChunks = numberOfBlocks * 4 + 2;
     assert.strictEqual(
       progressCalls[2].arguments[0],
-      `Total processed ${expectedNumberOfAllChunks.toString()} from Bedrock Converse Stream response, requestId=testRequestId`
+      `Completed processing ${expectedNumberOfAllChunks.toString()} chunks from Bedrock Converse Stream response, requestId=testRequestId`
     );
   });
 

@@ -300,13 +300,13 @@ export class BedrockConverseAdapter {
           processedBedrockChunks++;
           if (processedBedrockChunks % 1000 === 0) {
             this.logger.info(
-              `Processed ${processedBedrockChunks} from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
+              `Processed ${processedBedrockChunks} chunks from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
             );
           }
         }
       } finally {
         this.logger.info(
-          `Total processed ${processedBedrockChunks} from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
+          `Completed processing ${processedBedrockChunks} chunks from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
         );
       }
       this.logger.debug(
