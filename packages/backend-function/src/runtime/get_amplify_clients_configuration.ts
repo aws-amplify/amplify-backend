@@ -28,21 +28,6 @@ type DataEnvExtension = {
 
 type ExtendedAmplifyClientEnv = DataClientEnv & DataEnvExtension;
 
-const isAmplifyClientEnv = (env: object): env is DataClientEnv => {
-  return (
-    'AWS_ACCESS_KEY_ID' in env &&
-    typeof env.AWS_ACCESS_KEY_ID === 'string' &&
-    'AWS_SECRET_ACCESS_KEY' in env &&
-    typeof env.AWS_SECRET_ACCESS_KEY === 'string' &&
-    'AWS_SESSION_TOKEN' in env &&
-    typeof env.AWS_SESSION_TOKEN === 'string' &&
-    'AWS_REGION' in env &&
-    typeof env.AWS_REGION === 'string' &&
-    'AMPLIFY_DATA_DEFAULT_NAME' in env &&
-    typeof env.AMPLIFY_DATA_DEFAULT_NAME === 'string'
-  );
-};
-
 /* eslint-disable @typescript-eslint/naming-convention */
 export type ResourceConfig = {
   API: {
@@ -110,23 +95,10 @@ const getLibraryOptions = (env: DataClientEnv): LibraryOptions => {
   };
 };
 
-export type InvalidConfig = unknown & {
-  invalidType: 'Some of the AWS environment variables needed to configure Amplify are missing. Check the sandbox output for an error with resolution guidance.';
-};
-
-export type DataClientError = {
-  resourceConfig: InvalidConfig;
-  libraryOptions: InvalidConfig;
-};
-
 export type DataClientConfig = {
   resourceConfig: ResourceConfig;
   libraryOptions: LibraryOptions;
 };
-
-export type DataClientReturn<T> = T extends DataClientEnv
-  ? DataClientConfig
-  : DataClientError;
 
 const extendEnv = (
   env: DataClientEnv & Record<string, unknown>,
@@ -171,19 +143,12 @@ const extendEnv = (
  * @param env - The environment variables for the data client
  * @returns An object containing the `resourceConfig` and `libraryOptions`
  */
-export const getAmplifyDataClientConfig = async <T>(
-  env: T,
+export const getAmplifyDataClientConfig = async (
+  env: DataClientEnv,
   s3Client?: S3Client
-): Promise<DataClientReturn<T>> => {
+): Promise<DataClientConfig> => {
   if (!s3Client) {
     s3Client = new S3Client();
-  }
-  if (env === null || typeof env !== 'object') {
-    throw new Error(`Invalid environment variables: ${JSON.stringify(env)}`);
-  }
-
-  if (!isAmplifyClientEnv(env)) {
-    return { resourceConfig: {}, libraryOptions: {} } as DataClientReturn<T>;
   }
 
   const dataName = new NamingConverter().toScreamingSnakeCase(
@@ -224,5 +189,5 @@ export const getAmplifyDataClientConfig = async <T>(
     modelIntrospectionSchema
   );
 
-  return { resourceConfig, libraryOptions } as DataClientReturn<T>;
+  return { resourceConfig, libraryOptions };
 };
