@@ -52,15 +52,6 @@ type DataClientEnv = {
 } & Record<string, unknown>;
 
 // @public (undocumented)
-type DataClientError = {
-    resourceConfig: InvalidConfig;
-    libraryOptions: InvalidConfig;
-};
-
-// @public (undocumented)
-type DataClientReturn<T> = T extends DataClientEnv ? DataClientConfig : DataClientError;
-
-// @public (undocumented)
 export function defineFunction(props?: FunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
 
 // @public (undocumented)
