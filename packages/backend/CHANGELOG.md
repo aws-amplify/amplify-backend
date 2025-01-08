@@ -1,5 +1,20 @@
 # @aws-amplify/backend
 
+## 1.13.0
+
+### Minor Changes
+
+- 3f521c3: add custom provided function support to define function
+
+### Patch Changes
+
+- c5d54c2: Update getAmplifyDataClient to have strict env type and remove narrowing logic
+- Updated dependencies [c5d54c2]
+- Updated dependencies [3f521c3]
+- Updated dependencies [a712983]
+  - @aws-amplify/backend-function@1.12.0
+  - @aws-amplify/platform-core@1.5.1
+
 ## 1.12.0
 
 ### Minor Changes
