@@ -5,7 +5,6 @@ import path from 'path';
 import { YarnModernLockFileReader } from './yarn_modern_lock_file_reader';
 
 void describe('YarnModernLockFileReader', () => {
-  const fspAccessMock = mock.method(fsp, 'access', () => true);
   const fspReadFileMock = mock.method(
     fsp,
     'readFile',
@@ -58,37 +57,18 @@ __metadata:
     };
     assert.deepEqual(lockFileContents, expectedLockFileContents);
     assert.strictEqual(
-      fspAccessMock.mock.calls[0].arguments[0],
+      fspReadFileMock.mock.calls[0].arguments[0],
       path.resolve(process.cwd(), 'yarn.lock')
     );
     assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
   });
 
-  void it('throws when yarn.lock is not present', async () => {
-    fspAccessMock.mock.mockImplementationOnce(() =>
-      Promise.reject(new Error())
-    );
-    await assert.rejects(
-      () => yarnModernLockFileReader.getLockFileContentsFromCwd(),
-      (error: Error) => {
-        assert.ok(error.message.startsWith('Could not find a yarn.lock file'));
-        return true;
-      }
-    );
-    assert.strictEqual(fspReadFileMock.mock.callCount(), 0);
-  });
-
-  void it('throws when yarn.lock is not parse-able', async () => {
+  void it('returns empty lock file contents when yarn.lock is not present or parse-able', async () => {
     fspReadFileMock.mock.mockImplementationOnce(() =>
       Promise.reject(new Error())
     );
-    await assert.rejects(
-      () => yarnModernLockFileReader.getLockFileContentsFromCwd(),
-      (error: Error) => {
-        assert.ok(error.message.startsWith('Could not parse the contents'));
-        return true;
-      }
-    );
-    assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
+    const lockFileContents =
+      await yarnModernLockFileReader.getLockFileContentsFromCwd();
+    assert.deepEqual(lockFileContents, { dependencies: [] });
   });
 });

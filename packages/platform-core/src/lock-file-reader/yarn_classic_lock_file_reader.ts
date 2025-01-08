@@ -6,25 +6,14 @@ import {
   LockFileContents,
   LockFileReader,
 } from './lock_file_reader_factory';
-import { AmplifyUserError } from '../errors';
 
 /**
  * YarnClassicLockFileReader is an abstraction around the logic used to read and parse lock file contents
  */
 export class YarnClassicLockFileReader implements LockFileReader {
   getLockFileContentsFromCwd = async (): Promise<LockFileContents> => {
-    const yarnLockPath = path.resolve(process.cwd(), 'yarn.lock');
-
-    try {
-      await fsp.access(yarnLockPath);
-    } catch (error) {
-      throw new AmplifyUserError('InvalidPackageLockJsonError', {
-        message: `Could not find a yarn.lock file at ${yarnLockPath}`,
-        resolution: `Ensure that ${yarnLockPath} exists and is a valid yarn.lock file`,
-      });
-    }
-
     const dependencies: Dependencies = [];
+    const yarnLockPath = path.resolve(process.cwd(), 'yarn.lock');
 
     try {
       const yarnLockContents = await fsp.readFile(yarnLockPath, 'utf-8');
@@ -46,14 +35,8 @@ export class YarnClassicLockFileReader implements LockFileReader {
         dependencies.push({ name: dependencyName, version: dependencyVersion });
       }
     } catch (error) {
-      throw new AmplifyUserError(
-        'InvalidPackageLockJsonError',
-        {
-          message: `Could not parse the contents of ${yarnLockPath}`,
-          resolution: `Ensure that ${yarnLockPath} exists and is a valid yarn.lock file`,
-        },
-        error as Error
-      );
+      // We failed to get lock file contents either because file doesn't exist or it is not parse-able
+      return { dependencies };
     }
 
     return { dependencies };

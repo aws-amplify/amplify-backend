@@ -5,10 +5,10 @@ import path from 'path';
 import { PnpmLockFileReader } from './pnpm_lock_file_reader';
 
 void describe('PnpmLockFileReader', () => {
-  const fspAccessMock = mock.method(fsp, 'access', () => true);
   const fspReadFileMock = mock.method(
     fsp,
     'readFile',
+    // eslint-disable-next-line spellcheck/spell-checker
     () => `lockfileVersion: '9.0'
 
 settings:
@@ -81,39 +81,18 @@ packages:
     };
     assert.deepEqual(lockFileContents, expectedLockFileContents);
     assert.strictEqual(
-      fspAccessMock.mock.calls[0].arguments[0],
+      fspReadFileMock.mock.calls[0].arguments[0],
       path.resolve(process.cwd(), 'pnpm-lock.yaml')
     );
     assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
   });
 
-  void it('throws when pnpm-lock.yaml is not present', async () => {
-    fspAccessMock.mock.mockImplementationOnce(() =>
-      Promise.reject(new Error())
-    );
-    await assert.rejects(
-      () => pnpmLockFileReader.getLockFileContentsFromCwd(),
-      (error: Error) => {
-        assert.ok(
-          error.message.startsWith('Could not find a pnpm-lock.yaml file')
-        );
-        return true;
-      }
-    );
-    assert.strictEqual(fspReadFileMock.mock.callCount(), 0);
-  });
-
-  void it('throws when pnpm-lock.yaml is not parse-able', async () => {
+  void it('returns empty lock file contents when pnpm-lock.yaml is not present or parse-able', async () => {
     fspReadFileMock.mock.mockImplementationOnce(() =>
       Promise.reject(new Error())
     );
-    await assert.rejects(
-      () => pnpmLockFileReader.getLockFileContentsFromCwd(),
-      (error: Error) => {
-        assert.ok(error.message.startsWith('Could not parse the contents'));
-        return true;
-      }
-    );
-    assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
+    const lockFileContents =
+      await pnpmLockFileReader.getLockFileContentsFromCwd();
+    assert.deepEqual(lockFileContents, { dependencies: [] });
   });
 });

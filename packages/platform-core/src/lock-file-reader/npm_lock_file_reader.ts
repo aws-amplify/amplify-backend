@@ -1,7 +1,6 @@
 import fsp from 'fs/promises';
 import path from 'path';
 import z from 'zod';
-import { AmplifyUserError } from '../errors';
 import {
   Dependencies,
   LockFileContents,
@@ -13,39 +12,23 @@ import {
  */
 export class NpmLockFileReader implements LockFileReader {
   getLockFileContentsFromCwd = async (): Promise<LockFileContents> => {
+    const dependencies: Dependencies = [];
     const packageLockJsonPath = path.resolve(
       process.cwd(),
       'package-lock.json'
     );
-
-    try {
-      await fsp.access(packageLockJsonPath);
-    } catch (error) {
-      throw new AmplifyUserError('InvalidPackageLockJsonError', {
-        message: `Could not find a package-lock.json file at ${packageLockJsonPath}`,
-        resolution: `Ensure that ${packageLockJsonPath} exists and is a valid JSON file`,
-      });
-    }
 
     let jsonLockParsedValue: Record<string, unknown>;
     try {
       const jsonLockContents = await fsp.readFile(packageLockJsonPath, 'utf-8');
       jsonLockParsedValue = JSON.parse(jsonLockContents);
     } catch (error) {
-      throw new AmplifyUserError(
-        'InvalidPackageLockJsonError',
-        {
-          message: `Could not parse the contents of ${packageLockJsonPath}`,
-          resolution: `Ensure that ${packageLockJsonPath} exists and is a valid JSON file`,
-        },
-        error as Error
-      );
+      // We failed to get lock file contents either because file doesn't exist or it is not parse-able
+      return { dependencies };
     }
 
     // This will strip fields that are not part of the package lock schema
     const packageLockJson = packageLockJsonSchema.parse(jsonLockParsedValue);
-
-    const dependencies: Dependencies = [];
 
     for (const key in packageLockJson.packages) {
       if (key === '') {

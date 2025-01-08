@@ -6,25 +6,14 @@ import {
   LockFileContents,
   LockFileReader,
 } from './lock_file_reader_factory';
-import { AmplifyUserError } from '../errors';
 
 /**
  * PnpmLockFileReader is an abstraction around the logic used to read and parse lock file contents
  */
 export class PnpmLockFileReader implements LockFileReader {
   getLockFileContentsFromCwd = async (): Promise<LockFileContents> => {
-    const pnpmLockPath = path.resolve(process.cwd(), 'pnpm-lock.yaml');
-
-    try {
-      await fsp.access(pnpmLockPath);
-    } catch (error) {
-      throw new AmplifyUserError('InvalidPackageLockJsonError', {
-        message: `Could not find a pnpm-lock.yaml file at ${pnpmLockPath}`,
-        resolution: `Ensure that ${pnpmLockPath} exists and is a valid pnpm-lock.yaml file`,
-      });
-    }
-
     const dependencies: Dependencies = [];
+    const pnpmLockPath = path.resolve(process.cwd(), 'pnpm-lock.yaml');
 
     try {
       const pnpmLockContents = await fsp.readFile(pnpmLockPath, 'utf-8');
@@ -52,14 +41,8 @@ export class PnpmLockFileReader implements LockFileReader {
         dependencies.push({ name: dependencyName, version: dependencyVersion });
       }
     } catch (error) {
-      throw new AmplifyUserError(
-        'InvalidPackageLockJsonError',
-        {
-          message: `Could not parse the contents of ${pnpmLockPath}`,
-          resolution: `Ensure that ${pnpmLockPath} exists and is a valid pnpm-lock.yaml file`,
-        },
-        error as Error
-      );
+      // We failed to get lock file contents either because file doesn't exist or it is not parse-able
+      return { dependencies };
     }
 
     return { dependencies };

@@ -5,7 +5,6 @@ import path from 'path';
 import { NpmLockFileReader } from './npm_lock_file_reader';
 
 void describe('NpmLockFileReader', () => {
-  const fspAccessMock = mock.method(fsp, 'access', () => true);
   const fspReadFileMock = mock.method(fsp, 'readFile', () =>
     JSON.stringify({
       name: 'test_project',
@@ -47,37 +46,18 @@ void describe('NpmLockFileReader', () => {
     };
     assert.deepEqual(lockFileContents, expectedLockFileContents);
     assert.strictEqual(
-      fspAccessMock.mock.calls[0].arguments[0],
+      fspReadFileMock.mock.calls[0].arguments[0],
       path.resolve(process.cwd(), 'package-lock.json')
     );
     assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
   });
 
-  void it('throws when package-lock.json is not present', async () => {
-    fspAccessMock.mock.mockImplementationOnce(() =>
+  void it('returns empty lock file contents when package-lock.json is not present or parse-able', async () => {
+    fspReadFileMock.mock.mockImplementationOnce(() =>
       Promise.reject(new Error())
     );
-    await assert.rejects(
-      () => npmLockFileReader.getLockFileContentsFromCwd(),
-      (error: Error) => {
-        assert.ok(
-          error.message.startsWith('Could not find a package-lock.json file')
-        );
-        return true;
-      }
-    );
-    assert.strictEqual(fspReadFileMock.mock.callCount(), 0);
-  });
-
-  void it('throws when package-lock.json is not parse-able', async () => {
-    fspReadFileMock.mock.mockImplementationOnce(() => 'not json content');
-    await assert.rejects(
-      () => npmLockFileReader.getLockFileContentsFromCwd(),
-      (error: Error) => {
-        assert.ok(error.message.startsWith('Could not parse the contents'));
-        return true;
-      }
-    );
-    assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
+    const lockFileContents =
+      await npmLockFileReader.getLockFileContentsFromCwd();
+    assert.deepEqual(lockFileContents, { dependencies: [] });
   });
 });

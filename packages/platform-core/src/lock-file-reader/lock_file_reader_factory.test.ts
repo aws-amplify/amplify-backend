@@ -49,7 +49,7 @@ void describe('LockFileReaderFactory', () => {
       });
     }
 
-    void it('should throw an error for unsupport package managers', () => {
+    void it('should throw an error for unsupported package managers', () => {
       process.env.npm_config_user_agent =
         'unsupported/1.0.0 node/v15.0.0 darwin x64';
       assert.throws(() => new LockFileReaderFactory().getLockFileReader(), {
