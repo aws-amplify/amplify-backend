@@ -1,5 +1,4 @@
 import fsp from 'fs/promises';
-import { EOL } from 'os';
 import path from 'path';
 import {
   Dependencies,
@@ -12,12 +11,15 @@ import {
  */
 export class PnpmLockFileReader implements LockFileReader {
   getLockFileContentsFromCwd = async (): Promise<LockFileContents> => {
+    const eolRegex = '[\r\n]';
     const dependencies: Dependencies = [];
     const pnpmLockPath = path.resolve(process.cwd(), 'pnpm-lock.yaml');
 
     try {
       const pnpmLockContents = await fsp.readFile(pnpmLockPath, 'utf-8');
-      const pnpmLockContentsArray = pnpmLockContents.split(EOL + EOL);
+      const pnpmLockContentsArray = pnpmLockContents.split(
+        new RegExp(`${eolRegex}${eolRegex}`)
+      );
 
       const startOfPackagesIndex = pnpmLockContentsArray.indexOf('packages:');
       const pnpmLockPackages = pnpmLockContentsArray.slice(
@@ -28,7 +30,7 @@ export class PnpmLockFileReader implements LockFileReader {
         // Get line that contains dependency name and version and remove quotes and colon
         const pnpmDependencyLine = pnpmDependencyBlock
           .trim()
-          .split(EOL)[0]
+          .split(new RegExp(eolRegex))[0]
           .replaceAll(/[':]/g, '');
         const dependencyName = pnpmDependencyLine.slice(
           0,
