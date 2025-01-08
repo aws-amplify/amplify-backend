@@ -1,4 +1,3 @@
-import { AmplifyUserError } from '../errors';
 import { NpmLockFileReader } from './npm_lock_file_reader';
 import { PnpmLockFileReader } from './pnpm_lock_file_reader';
 import { YarnClassicLockFileReader } from './yarn_classic_lock_file_reader';
@@ -22,26 +21,14 @@ export class LockFileReaderFactory {
       case 'npm':
         return new NpmLockFileReader();
       case 'pnpm':
-        if (this.platform === 'win32') {
-          const message = 'Amplify does not support PNPM on Windows.';
-          const details =
-            'Details: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md';
-          throw new AmplifyUserError('UnsupportedPackageManagerError', {
-            message,
-            details,
-            resolution: 'Use a supported package manager for your OS',
-          });
-        }
         return new PnpmLockFileReader();
       case 'yarn-classic':
         return new YarnClassicLockFileReader();
       case 'yarn-modern':
         return new YarnModernLockFileReader();
       default:
-        throw new AmplifyUserError('UnsupportedPackageManagerError', {
-          message: `Package Manager ${packageManagerName} is not supported.`,
-          resolution: 'Use npm, yarn or pnpm.',
-        });
+        // defaults to npm lock file reader as it is the most used package manager by customers
+        return new NpmLockFileReader();
     }
   }
 

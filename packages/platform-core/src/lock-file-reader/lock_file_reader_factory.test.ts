@@ -49,24 +49,11 @@ void describe('LockFileReaderFactory', () => {
       });
     }
 
-    void it('should throw an error for unsupported package managers', () => {
+    void it('defaults to npm lock file reader', () => {
       process.env.npm_config_user_agent =
         'unsupported/1.0.0 node/v15.0.0 darwin x64';
-      assert.throws(() => new LockFileReaderFactory().getLockFileReader(), {
-        message: 'Package Manager unsupported is not supported.',
-      });
-    });
-
-    void it('should throw an error for pnpm on Windows', () => {
-      process.env.npm_config_user_agent = 'pnpm/1.0.0 node/v15.0.0 darwin x64';
-      assert.throws(
-        () => new LockFileReaderFactory('win32').getLockFileReader(),
-        {
-          message: 'Amplify does not support PNPM on Windows.',
-          details:
-            'Details: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md',
-        }
-      );
+      const lockFileReader = new LockFileReaderFactory().getLockFileReader();
+      assert.ok(lockFileReader instanceof NpmLockFileReader);
     });
   });
 });
