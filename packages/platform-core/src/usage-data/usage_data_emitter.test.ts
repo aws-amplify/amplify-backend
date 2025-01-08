@@ -11,6 +11,7 @@ import { AccountIdFetcher } from './account_id_fetcher';
 import { UsageData } from './usage_data';
 import isCI from 'is-ci';
 import { AmplifyError, AmplifyUserError } from '..';
+import { LockFileReader } from '../lock-file-reader/lock_file_reader_factory';
 
 const originalNpmUserAgent = process.env.npm_config_user_agent;
 const testNpmUserAgent = 'testNpmUserAgent';
@@ -39,6 +40,23 @@ void describe('UsageDataEmitter', () => {
   const accountIdFetcherMock = {
     fetch: async () => '123456789012',
   } as AccountIdFetcher;
+
+  // For LockFileReader
+  const lockFileReaderMock = {
+    getLockFileContentsFromCwd: async () =>
+      Promise.resolve({
+        dependencies: [
+          {
+            name: 'aws-cdk',
+            version: '1.2.4',
+          },
+          {
+            name: 'test_dep',
+            version: '12.13.14',
+          },
+        ],
+      }),
+  } as LockFileReader;
 
   mock.method(https, 'request', () => reqMock);
 
@@ -157,7 +175,8 @@ void describe('UsageDataEmitter', () => {
       testLibraryVersion,
       v4(),
       testURL,
-      accountIdFetcherMock
+      accountIdFetcherMock,
+      lockFileReaderMock
     );
 
     let usageDataEmitterPromise;

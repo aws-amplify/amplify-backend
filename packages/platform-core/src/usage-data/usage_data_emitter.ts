@@ -10,6 +10,8 @@ import isCI from 'is-ci';
 import { SerializableError } from './serializable_error.js';
 import { UsageDataEmitter } from './usage_data_emitter_factory.js';
 import { AmplifyError } from '../index.js';
+import { getDependencyVersions } from './get_dependency_versions.js';
+import { LockFileReaderFactory } from '../lock-file-reader/lock_file_reader_factory.js';
 
 /**
  * Entry point for sending usage data metrics
@@ -22,7 +24,8 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     private readonly libraryVersion: string,
     private readonly sessionUuid = uuid(),
     private readonly url = getUrl(),
-    private readonly accountIdFetcher = new AccountIdFetcher()
+    private readonly accountIdFetcher = new AccountIdFetcher(),
+    private readonly lockFileReader = new LockFileReaderFactory().getLockFileReader()
   ) {}
 
   emitSuccess = async (
@@ -65,6 +68,9 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     dimensions?: Record<string, string>;
     error?: AmplifyError;
   }): Promise<UsageData> => {
+    const lockFileContents =
+      await this.lockFileReader.getLockFileContentsFromCwd();
+    const dependencyVersions = getDependencyVersions(lockFileContents);
     return {
       accountId: await this.accountIdFetcher.fetch(),
       sessionUuid: this.sessionUuid,
@@ -88,6 +94,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       isCi: isCI,
       projectSetting: {
         editor: process.env.npm_config_user_agent,
+        details: JSON.stringify(dependencyVersions),
       },
     };
   };
