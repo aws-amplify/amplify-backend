@@ -1,5 +1,4 @@
 import fsp from 'fs/promises';
-import { EOL } from 'os';
 import path from 'path';
 import {
   Dependencies,
@@ -12,16 +11,21 @@ import {
  */
 export class YarnClassicLockFileReader implements LockFileReader {
   getLockFileContentsFromCwd = async (): Promise<LockFileContents> => {
+    const eolRegex = '[\r\n]';
     const dependencies: Dependencies = [];
     const yarnLockPath = path.resolve(process.cwd(), 'yarn.lock');
 
     try {
       const yarnLockContents = await fsp.readFile(yarnLockPath, 'utf-8');
-      const yarnLockContentsArray = yarnLockContents.split(EOL + EOL);
+      const yarnLockContentsArray = yarnLockContents.split(
+        new RegExp(`${eolRegex}${eolRegex}`)
+      );
 
       // Slice to remove comment block at the start of the lock file
       for (const yarnDependencyBlock of yarnLockContentsArray.slice(1)) {
-        const yarnDependencyLines = yarnDependencyBlock.trim().split(EOL);
+        const yarnDependencyLines = yarnDependencyBlock
+          .trim()
+          .split(new RegExp(eolRegex));
         const yarnDependencyName = yarnDependencyLines[0];
         const yarnDependencyVersion = yarnDependencyLines[1];
 
