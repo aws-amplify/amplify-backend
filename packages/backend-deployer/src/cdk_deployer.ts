@@ -19,6 +19,7 @@ import {
   CDKContextKey,
 } from '@aws-amplify/platform-core';
 import { dirname } from 'path';
+import { CloudAssemblySource, IIoHost, IoMessage, IoRequest, Toolkit } from '@aws-cdk/toolkit';
 
 /**
  * Commands that can be invoked
@@ -46,6 +47,11 @@ export class CDKDeployer implements BackendDeployer {
    * Invokes cdk deploy command
    */
   deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
+
+    const cdk_toolkit = new Toolkit({ ioHost: new MyHost() });
+    const cx = CloudAssemblySource.fromCdkAppDirectory(dirname(this.backendLocator.locate()), { app: this.getAppCommand() });
+    const cloudAssembly = await cdk_toolkit.synth(cx);
+
     const cdkCommandArgs: string[] = [];
     if (backendId.type === 'sandbox') {
       cdkCommandArgs.push('--hotswap-fallback');
@@ -355,4 +361,14 @@ export class CDKDeployer implements BackendDeployer {
       }
     }
   };
+}
+
+class MyHost implements IIoHost {
+  notify<T>(msg: IoMessage<T>): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  requestResponse<T, U>(msg: IoRequest<T, U>): Promise<U | undefined> {
+    throw new Error('Method not implemented.');
+  }
+  
 }

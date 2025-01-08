@@ -23,7 +23,8 @@
     "@aws-amplify/plugin-types": "^1.6.0",
     "execa": "^9.5.1",
     "tsx": "^4.6.1",
-    "strip-ansi": "^6.0.1"
+    "strip-ansi": "^6.0.1",
+    "@aws-cdk/toolkit": "file:../aws-cdk-toolkit"
   },
   "peerDependencies": {
     "aws-cdk": "^2.168.0",
