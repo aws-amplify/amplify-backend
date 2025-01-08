@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.5.1
+
+### Patch Changes
+
+- a712983: Base64 encode serialized Amplify Errors
+
 ## 1.5.0
 
 ### Minor Changes
