@@ -231,7 +231,7 @@ export type UsageDataEmitter = {
 
 // @public
 export class UsageDataEmitterFactory {
-    getInstance: (libraryVersion: string, dependencies: Array<Dependency>) => Promise<UsageDataEmitter>;
+    getInstance: (libraryVersion: string, dependencies?: Array<Dependency>) => Promise<UsageDataEmitter>;
 }
 
 // (No @packageDocumentation comment for this package)

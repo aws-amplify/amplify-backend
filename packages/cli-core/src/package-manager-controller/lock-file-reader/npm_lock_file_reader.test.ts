@@ -52,9 +52,21 @@ void describe('NpmLockFileReader', () => {
     assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
   });
 
-  void it('returns empty lock file contents when package-lock.json is not present or parse-able', async () => {
+  void it('returns undefined when package-lock.json is not present or parse-able', async () => {
     fspReadFileMock.mock.mockImplementationOnce(() =>
       Promise.reject(new Error())
+    );
+    const lockFileContents =
+      await npmLockFileReader.getLockFileContentsFromCwd();
+    assert.deepEqual(lockFileContents, undefined);
+  });
+
+  void it('returns empty dependency array when package-lock.json does not have dependencies', async () => {
+    fspReadFileMock.mock.mockImplementationOnce(() =>
+      JSON.stringify({
+        name: 'test_project',
+        version: '1.0.0',
+      })
     );
     const lockFileContents =
       await npmLockFileReader.getLockFileContentsFromCwd();

@@ -64,7 +64,7 @@ export const createSandboxCommand = (): CommandModule<
     async () => {
       const dependencies = await new PackageManagerControllerFactory()
         .getPackageManagerController()
-        .getDependencies();
+        .tryGetDependencies();
       return await new UsageDataEmitterFactory().getInstance(
         libraryVersion,
         dependencies

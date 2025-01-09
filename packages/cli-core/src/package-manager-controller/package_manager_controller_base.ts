@@ -6,13 +6,13 @@ import {
   Dependency,
   ExecaChildProcess,
   ExecaOptions,
-  LockFileReader,
   type PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 import { getPackageManagerRunnerName } from './get_package_manager_name.js';
+import { LockFileReader } from './lock-file-reader/types.js';
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -149,22 +149,13 @@ export abstract class PackageManagerControllerBase
   allowsSignalPropagation = () => true;
 
   /**
-   * getDependencies - Retrieves dependency versions from the lock file in the project root
+   * tryGetDependencies - Tries to retrieve dependency versions from the lock file in the project root
    */
-  getDependencies = async (): Promise<Array<Dependency>> => {
+  tryGetDependencies = async (): Promise<Array<Dependency> | undefined> => {
     const lockFileContents =
       await this.lockFileReader.getLockFileContentsFromCwd();
-    const targetDependencies = ['aws-cdk', 'aws-cdk-lib'];
 
-    const dependencyVersions: Array<Dependency> = [];
-
-    for (const { name, version } of lockFileContents.dependencies) {
-      if (targetDependencies.includes(name)) {
-        dependencyVersions.push({ name, version });
-      }
-    }
-
-    return dependencyVersions;
+    return lockFileContents?.dependencies;
   };
 
   /**

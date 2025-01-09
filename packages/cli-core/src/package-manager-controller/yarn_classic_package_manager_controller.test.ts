@@ -5,7 +5,7 @@ import assert from 'assert';
 import { execa } from 'execa';
 import { YarnClassicPackageManagerController } from './yarn_classic_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
-import { LockFileReader } from '@aws-amplify/plugin-types';
+import { LockFileReader } from './lock-file-reader/types.js';
 
 void describe('YarnClassicPackageManagerController', () => {
   const fspMock = {
@@ -131,9 +131,8 @@ void describe('YarnClassicPackageManagerController', () => {
   });
 
   void describe('getDependencies', () => {
-    const existsSyncMock = mock.fn(() => true);
-
     void it('successfully returns dependency versions', async () => {
+      const existsSyncMock = mock.fn(() => true);
       const lockFileReaderMock = {
         getLockFileContentsFromCwd: async () =>
           Promise.resolve({
@@ -168,7 +167,7 @@ void describe('YarnClassicPackageManagerController', () => {
           lockFileReaderMock
         );
       const dependencyVersions =
-        await yarnClassicPackageManagerController.getDependencies();
+        await yarnClassicPackageManagerController.tryGetDependencies();
       const expectedVersions = [
         {
           name: 'aws-cdk',
@@ -178,41 +177,17 @@ void describe('YarnClassicPackageManagerController', () => {
           name: 'aws-cdk-lib',
           version: '12.13.14',
         },
+        {
+          name: 'test_dep',
+          version: '1.23.45',
+        },
+        {
+          name: 'some_other_dep',
+          version: '12.1.3',
+        },
       ];
 
       assert.deepEqual(dependencyVersions, expectedVersions);
-    });
-
-    void it('returns empty array if there are no matching dependencies', async () => {
-      const lockFileReaderMock = {
-        getLockFileContentsFromCwd: async () =>
-          Promise.resolve({
-            dependencies: [
-              {
-                name: 'test_dep',
-                version: '1.23.45',
-              },
-              {
-                name: 'some_other_dep',
-                version: '12.1.3',
-              },
-            ],
-          }),
-      } as LockFileReader;
-      const yarnClassicPackageManagerController =
-        new YarnClassicPackageManagerController(
-          '/testProjectRoot',
-          fspMock as unknown as typeof fsp,
-          pathMock as unknown as typeof path,
-          execaMock as unknown as typeof execa,
-          executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
-          existsSyncMock,
-          lockFileReaderMock
-        );
-      const dependencyVersions =
-        await yarnClassicPackageManagerController.getDependencies();
-
-      assert.deepEqual(dependencyVersions, []);
     });
   });
 });

@@ -25,14 +25,6 @@ export type ExecaChildProcess = {
 
 export type Dependency = { name: string; version: string };
 
-export type LockFileContents = {
-  dependencies: Array<Dependency>;
-};
-
-export type LockFileReader = {
-  getLockFileContentsFromCwd: () => Promise<LockFileContents>;
-};
-
 export type PackageManagerController = {
   initializeProject: () => Promise<void>;
   initializeTsConfig: (targetDir: string) => Promise<void>;
@@ -47,5 +39,5 @@ export type PackageManagerController = {
   ) => ExecaChildProcess;
   getCommand: (args: string[]) => string;
   allowsSignalPropagation: () => boolean;
-  getDependencies: () => Promise<Array<Dependency>>;
+  tryGetDependencies: () => Promise<Array<Dependency> | undefined>;
 };

@@ -29,7 +29,7 @@ if (libraryVersion == undefined) {
 
 const dependencies = await new PackageManagerControllerFactory()
   .getPackageManagerController()
-  .getDependencies();
+  .tryGetDependencies();
 
 const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
   libraryVersion,

@@ -25,7 +25,7 @@ export class UsageDataEmitterFactory {
    */
   getInstance = async (
     libraryVersion: string,
-    dependencies: Array<Dependency>
+    dependencies?: Array<Dependency>
   ): Promise<UsageDataEmitter> => {
     const configController = configControllerFactory.getInstance(
       'usage_data_preferences.json'

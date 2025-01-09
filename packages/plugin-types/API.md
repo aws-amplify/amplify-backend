@@ -203,16 +203,6 @@ export type ImportPathVerifier = {
 };
 
 // @public (undocumented)
-export type LockFileContents = {
-    dependencies: Array<Dependency>;
-};
-
-// @public (undocumented)
-export type LockFileReader = {
-    getLockFileContentsFromCwd: () => Promise<LockFileContents>;
-};
-
-// @public (undocumented)
 export type LogLevel = 'all' | 'debug' | 'error' | 'fatal' | 'info' | 'none' | 'trace' | 'warn';
 
 // @public (undocumented)
@@ -236,7 +226,7 @@ export type PackageManagerController = {
     runWithPackageManager: (args: string[] | undefined, dir: string, options?: ExecaOptions) => ExecaChildProcess;
     getCommand: (args: string[]) => string;
     allowsSignalPropagation: () => boolean;
-    getDependencies: () => Promise<Array<Dependency>>;
+    tryGetDependencies: () => Promise<Array<Dependency> | undefined>;
 };
 
 // @public (undocumented)

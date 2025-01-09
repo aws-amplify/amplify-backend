@@ -1,10 +1,7 @@
-import {
-  Dependency,
-  LockFileContents,
-  LockFileReader,
-} from '@aws-amplify/plugin-types';
+import { Dependency } from '@aws-amplify/plugin-types';
 import fsp from 'fs/promises';
 import path from 'path';
+import { LockFileContents, LockFileReader } from './types.js';
 import { printer } from '../../printer.js';
 import { LogLevel } from '../../printer/printer.js';
 
@@ -12,7 +9,9 @@ import { LogLevel } from '../../printer/printer.js';
  * YarnModernLockFileReader is an abstraction around the logic used to read and parse lock file contents
  */
 export class YarnModernLockFileReader implements LockFileReader {
-  getLockFileContentsFromCwd = async (): Promise<LockFileContents> => {
+  getLockFileContentsFromCwd = async (): Promise<
+    LockFileContents | undefined
+  > => {
     const eolRegex = '[\r\n]';
     const dependencies: Array<Dependency> = [];
     const yarnLockPath = path.resolve(process.cwd(), 'yarn.lock');
@@ -22,6 +21,11 @@ export class YarnModernLockFileReader implements LockFileReader {
       const yarnLockContentsArray = yarnLockContents.split(
         new RegExp(`${eolRegex}${eolRegex}`)
       );
+
+      if (yarnLockContentsArray.length === 3) {
+        // Contents are only comment block, metadata, and workspace info
+        return { dependencies };
+      }
 
       // Slice to remove comment block and metadata at the start of the lock file
       for (const yarnDependencyBlock of yarnLockContentsArray.slice(2)) {
@@ -45,7 +49,7 @@ export class YarnModernLockFileReader implements LockFileReader {
         `Failed to get lock file contents because ${yarnLockPath} does not exist or is not parse-able`,
         LogLevel.DEBUG
       );
-      return { dependencies };
+      return;
     }
 
     return { dependencies };

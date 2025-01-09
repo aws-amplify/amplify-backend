@@ -92,6 +92,54 @@ packages:
     );
     const lockFileContents =
       await pnpmLockFileReader.getLockFileContentsFromCwd();
+    assert.deepEqual(lockFileContents, undefined);
+  });
+
+  void it('returns empty dependency array when pnpm-lock.yaml does not have dependencies', async () => {
+    mock.method(
+      fsp,
+      'readFile',
+      () => `lockfileVersion: '9.0'
+  
+  settings:
+    autoInstallPeers: true
+    excludeLinksFromLockfile: false
+  
+  importers:
+  
+    .:
+      dependencies:
+        aws-amplify:
+          specifier: ^6.12.0
+          version: 6.12.0
+      devDependencies:
+        '@aws-amplify/backend':
+          specifier: ^1.11.0
+          version: 1.12.0(@aws-sdk/client-cloudformation@3.723.0)(@aws-sdk/client-s3@3.723.0)(@aws-sdk/client-sso-oidc@3.621.0(@aws-sdk/client-sts@3.621.0))(@aws-sdk/types@3.723.0)(aws-cdk-lib@2.174.1(constructs@10.4.2))(constructs@10.4.2)(zod@3.24.1)
+        '@aws-amplify/backend-cli':
+          specifier: ^1.4.5
+          version: 1.4.6(@aws-sdk/client-sso-oidc@3.621.0(@aws-sdk/client-sts@3.621.0))(@aws-sdk/client-sts@3.621.0)(@aws-sdk/types@3.723.0)(aws-cdk-lib@2.174.1(constructs@10.4.2))(aws-cdk@2.174.1)(constructs@10.4.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.7.2)
+        aws-cdk:
+          specifier: ^2.173.4
+          version: 2.174.1
+        aws-cdk-lib:
+          specifier: ^2.173.4
+          version: 2.174.1(constructs@10.4.2)
+        constructs:
+          specifier: ^10.4.2
+          version: 10.4.2
+        esbuild:
+          specifier: ^0.24.2
+          version: 0.24.2
+        tsx:
+          specifier: ^4.19.2
+          version: 4.19.2
+        typescript:
+          specifier: ^5.7.2
+          version: 5.7.2`
+    );
+    const lockFileContents =
+      await pnpmLockFileReader.getLockFileContentsFromCwd();
     assert.deepEqual(lockFileContents, { dependencies: [] });
   });
 });

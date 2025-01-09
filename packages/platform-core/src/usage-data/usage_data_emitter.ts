@@ -16,16 +16,23 @@ import { Dependency } from '@aws-amplify/plugin-types';
  * Entry point for sending usage data metrics
  */
 export class DefaultUsageDataEmitter implements UsageDataEmitter {
+  private dependenciesToReport?: Array<Dependency>;
   /**
    * Constructor for UsageDataEmitter
    */
   constructor(
     private readonly libraryVersion: string,
-    private readonly dependencies: Array<Dependency>,
+    private readonly dependencies?: Array<Dependency>,
     private readonly sessionUuid = uuid(),
     private readonly url = getUrl(),
     private readonly accountIdFetcher = new AccountIdFetcher()
-  ) {}
+  ) {
+    const targetDependencies = ['aws-cdk', 'aws-cdk-lib'];
+
+    this.dependenciesToReport = this.dependencies?.filter((dependency) =>
+      targetDependencies.includes(dependency.name)
+    );
+  }
 
   emitSuccess = async (
     metrics?: Record<string, number>,
@@ -90,7 +97,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       isCi: isCI,
       projectSetting: {
         editor: process.env.npm_config_user_agent,
-        details: JSON.stringify(this.dependencies),
+        details: JSON.stringify(this.dependenciesToReport),
       },
     };
   };
