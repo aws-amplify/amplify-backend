@@ -1,18 +1,20 @@
+import {
+  Dependency,
+  LockFileContents,
+  LockFileReader,
+} from '@aws-amplify/plugin-types';
 import fsp from 'fs/promises';
 import path from 'path';
 import z from 'zod';
-import {
-  Dependencies,
-  LockFileContents,
-  LockFileReader,
-} from './lock_file_reader_factory';
+import { printer } from '../../printer.js';
+import { LogLevel } from '../../printer/printer.js';
 
 /**
  * NpmLockFileReader is an abstraction around the logic used to read and parse lock file contents
  */
 export class NpmLockFileReader implements LockFileReader {
   getLockFileContentsFromCwd = async (): Promise<LockFileContents> => {
-    const dependencies: Dependencies = [];
+    const dependencies: Array<Dependency> = [];
     const packageLockJsonPath = path.resolve(
       process.cwd(),
       'package-lock.json'
@@ -23,7 +25,10 @@ export class NpmLockFileReader implements LockFileReader {
       const jsonLockContents = await fsp.readFile(packageLockJsonPath, 'utf-8');
       jsonLockParsedValue = JSON.parse(jsonLockContents);
     } catch (error) {
-      // We failed to get lock file contents either because file doesn't exist or it is not parse-able
+      printer.log(
+        `Failed to get lock file contents because ${packageLockJsonPath} does not exist or is not parse-able`,
+        LogLevel.DEBUG
+      );
       return { dependencies };
     }
 

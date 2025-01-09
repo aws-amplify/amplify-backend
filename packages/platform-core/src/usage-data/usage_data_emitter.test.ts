@@ -11,8 +11,6 @@ import { AccountIdFetcher } from './account_id_fetcher';
 import { UsageData } from './usage_data';
 import isCI from 'is-ci';
 import { AmplifyError, AmplifyUserError } from '..';
-import { LockFileReader } from '../lock-file-reader/lock_file_reader_factory';
-import { DependencyVersionFetcher } from './dependency_version_fetcher';
 
 const originalNpmUserAgent = process.env.npm_config_user_agent;
 const testNpmUserAgent = 'testNpmUserAgent';
@@ -21,6 +19,16 @@ void describe('UsageDataEmitter', () => {
   let usageDataEmitter: DefaultUsageDataEmitter;
 
   const testLibraryVersion = '1.2.3';
+  const testDependencies = [
+    {
+      name: 'test-dep',
+      version: '1.2.3',
+    },
+    {
+      name: 'some_other_dep',
+      version: '12.13.14',
+    },
+  ];
   const testURL = url.parse('https://aws.amazon.com/amplify/');
   const onReqEndMock = mock.fn();
   const onReqWriteMock = mock.fn();
@@ -41,26 +49,6 @@ void describe('UsageDataEmitter', () => {
   const accountIdFetcherMock = {
     fetch: async () => '123456789012',
   } as AccountIdFetcher;
-
-  // For DependencyVersionFetcher
-  const lockFileReaderMock = {
-    getLockFileContentsFromCwd: async () =>
-      Promise.resolve({
-        dependencies: [
-          {
-            name: 'aws-cdk',
-            version: '1.2.4',
-          },
-          {
-            name: 'test_dep',
-            version: '12.13.14',
-          },
-        ],
-      }),
-  } as LockFileReader;
-  const dependencyVersionFetcherMock = new DependencyVersionFetcher(
-    lockFileReaderMock
-  );
 
   mock.method(https, 'request', () => reqMock);
 
@@ -177,10 +165,10 @@ void describe('UsageDataEmitter', () => {
 
     usageDataEmitter = new DefaultUsageDataEmitter(
       testLibraryVersion,
+      testDependencies,
       v4(),
       testURL,
-      accountIdFetcherMock,
-      dependencyVersionFetcherMock
+      accountIdFetcherMock
     );
 
     let usageDataEmitterPromise;

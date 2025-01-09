@@ -2,13 +2,12 @@ import assert from 'assert';
 import fsp from 'fs/promises';
 import { afterEach, describe, it, mock } from 'node:test';
 import path from 'path';
-import { PnpmLockFileReader } from './pnpm_lock_file_reader';
+import { PnpmLockFileReader } from './pnpm_lock_file_reader.js';
 
 void describe('PnpmLockFileReader', () => {
   const fspReadFileMock = mock.method(
     fsp,
     'readFile',
-    // eslint-disable-next-line spellcheck/spell-checker
     () => `lockfileVersion: '9.0'
 
 settings:

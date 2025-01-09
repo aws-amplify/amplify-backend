@@ -3,8 +3,10 @@ import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
 import {
+  Dependency,
   ExecaChildProcess,
   ExecaOptions,
+  LockFileReader,
   type PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
@@ -27,6 +29,7 @@ export abstract class PackageManagerControllerBase
     protected readonly executable: string,
     protected readonly initDefault: string[],
     protected readonly installCommand: string,
+    protected readonly lockFileReader: LockFileReader,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,
@@ -144,6 +147,25 @@ export abstract class PackageManagerControllerBase
    * @deprecated
    */
   allowsSignalPropagation = () => true;
+
+  /**
+   * getDependencies - Retrieves dependency versions from the lock file in the project root
+   */
+  getDependencies = async (): Promise<Array<Dependency>> => {
+    const lockFileContents =
+      await this.lockFileReader.getLockFileContentsFromCwd();
+    const targetDependencies = ['aws-cdk', 'aws-cdk-lib'];
+
+    const dependencyVersions: Array<Dependency> = [];
+
+    for (const { name, version } of lockFileContents.dependencies) {
+      if (targetDependencies.includes(name)) {
+        dependencyVersions.push({ name, version });
+      }
+    }
+
+    return dependencyVersions;
+  };
 
   /**
    * Check if a package.json file exists in projectRoot

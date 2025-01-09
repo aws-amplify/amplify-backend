@@ -1,10 +1,12 @@
-import fsp from 'fs/promises';
-import path from 'path';
 import {
-  Dependencies,
+  Dependency,
   LockFileContents,
   LockFileReader,
-} from './lock_file_reader_factory';
+} from '@aws-amplify/plugin-types';
+import fsp from 'fs/promises';
+import path from 'path';
+import { printer } from '../../printer.js';
+import { LogLevel } from '../../printer/printer.js';
 
 /**
  * PnpmLockFileReader is an abstraction around the logic used to read and parse lock file contents
@@ -12,7 +14,7 @@ import {
 export class PnpmLockFileReader implements LockFileReader {
   getLockFileContentsFromCwd = async (): Promise<LockFileContents> => {
     const eolRegex = '[\r\n]';
-    const dependencies: Dependencies = [];
+    const dependencies: Array<Dependency> = [];
     const pnpmLockPath = path.resolve(process.cwd(), 'pnpm-lock.yaml');
 
     try {
@@ -43,7 +45,10 @@ export class PnpmLockFileReader implements LockFileReader {
         dependencies.push({ name: dependencyName, version: dependencyVersion });
       }
     } catch (error) {
-      // We failed to get lock file contents either because file doesn't exist or it is not parse-able
+      printer.log(
+        `Failed to get lock file contents because ${pnpmLockPath} does not exist or is not parse-able`,
+        LogLevel.DEBUG
+      );
       return { dependencies };
     }
 

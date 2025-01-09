@@ -2,7 +2,7 @@ import assert from 'assert';
 import fsp from 'fs/promises';
 import { afterEach, describe, it, mock } from 'node:test';
 import path from 'path';
-import { NpmLockFileReader } from './npm_lock_file_reader';
+import { NpmLockFileReader } from './npm_lock_file_reader.js';
 
 void describe('NpmLockFileReader', () => {
   const fspReadFileMock = mock.method(fsp, 'readFile', () =>

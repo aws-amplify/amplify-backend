@@ -10,7 +10,7 @@ import isCI from 'is-ci';
 import { SerializableError } from './serializable_error.js';
 import { UsageDataEmitter } from './usage_data_emitter_factory.js';
 import { AmplifyError } from '../index.js';
-import { DependencyVersionFetcher } from './dependency_version_fetcher.js';
+import { Dependency } from '@aws-amplify/plugin-types';
 
 /**
  * Entry point for sending usage data metrics
@@ -21,10 +21,10 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
    */
   constructor(
     private readonly libraryVersion: string,
+    private readonly dependencies: Array<Dependency>,
     private readonly sessionUuid = uuid(),
     private readonly url = getUrl(),
-    private readonly accountIdFetcher = new AccountIdFetcher(),
-    private readonly dependencyVersionFetcher = new DependencyVersionFetcher()
+    private readonly accountIdFetcher = new AccountIdFetcher()
   ) {}
 
   emitSuccess = async (
@@ -90,9 +90,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
       isCi: isCI,
       projectSetting: {
         editor: process.env.npm_config_user_agent,
-        details: JSON.stringify(
-          await this.dependencyVersionFetcher.getDependencyVersions()
-        ),
+        details: JSON.stringify(this.dependencies),
       },
     };
   };
