@@ -1,5 +1,11 @@
 # @aws-amplify/plugin-types
 
+## 1.8.0
+
+### Minor Changes
+
+- 2dab201: Report cdk versions
+
 ## 1.7.0
 
 ### Minor Changes
