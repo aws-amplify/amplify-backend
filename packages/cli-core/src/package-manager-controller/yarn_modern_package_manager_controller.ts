@@ -6,6 +6,7 @@ import { LogLevel, Printer } from '../printer/printer.js';
 import { format } from '../format/format.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 import { PackageManagerControllerBase } from './package_manager_controller_base.js';
+import { YarnModernLockFileReader } from './lock-file-reader/yarn_modern_lock_file_reader.js';
 
 /**
  * YarnModernPackageManagerController is an abstraction around yarn modern (yarn v2+) commands that are needed to initialize a project and install dependencies
@@ -21,13 +22,15 @@ export class YarnModernPackageManagerController extends PackageManagerController
     protected readonly path = _path,
     protected readonly execa = _execa,
     protected readonly executeWithDebugLogger = _executeWithDebugLogger,
-    protected readonly existsSync = _existsSync
+    protected readonly existsSync = _existsSync,
+    protected readonly lockFileReader = new YarnModernLockFileReader()
   ) {
     super(
       cwd,
       'yarn',
       ['init', '--yes'],
       'add',
+      lockFileReader,
       fsp,
       path,
       execa,

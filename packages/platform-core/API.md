@@ -8,6 +8,7 @@ import { AppId } from '@aws-amplify/plugin-types';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
+import { Dependency } from '@aws-amplify/plugin-types';
 import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
@@ -230,7 +231,7 @@ export type UsageDataEmitter = {
 
 // @public
 export class UsageDataEmitterFactory {
-    getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
+    getInstance: (libraryVersion: string, dependencies?: Array<Dependency>) => Promise<UsageDataEmitter>;
 }
 
 // (No @packageDocumentation comment for this package)

@@ -41,7 +41,8 @@ void describe('UsageDataEmitterFactory', () => {
   void it('returns DefaultUsageDataEmitter by default', async () => {
     configControllerGet.mock.mockImplementationOnce(() => undefined);
     const dataEmitter = await new UsageDataEmitterFactory().getInstance(
-      '0.0.0'
+      '0.0.0',
+      []
     );
     assert.strictEqual(configControllerGet.mock.callCount(), 1);
     assert.strictEqual(dataEmitter instanceof DefaultUsageDataEmitter, true);
@@ -51,7 +52,8 @@ void describe('UsageDataEmitterFactory', () => {
     configControllerGet.mock.mockImplementationOnce(() => undefined);
     process.env['AMPLIFY_DISABLE_TELEMETRY'] = '1';
     const dataEmitter = await new UsageDataEmitterFactory().getInstance(
-      '0.0.0'
+      '0.0.0',
+      []
     );
     assert.strictEqual(dataEmitter instanceof NoOpUsageDataEmitter, true);
     assert.strictEqual(configControllerGet.mock.callCount(), 1);
@@ -61,7 +63,8 @@ void describe('UsageDataEmitterFactory', () => {
   void it('returns NoOpUsageDataEmitter if local config file exists and reads true', async () => {
     configControllerGet.mock.mockImplementationOnce(() => false);
     const dataEmitter = await new UsageDataEmitterFactory().getInstance(
-      '0.0.0'
+      '0.0.0',
+      []
     );
     assert.strictEqual(configControllerGet.mock.callCount(), 1);
     assert.strictEqual(dataEmitter instanceof NoOpUsageDataEmitter, true);

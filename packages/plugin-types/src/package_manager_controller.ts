@@ -23,6 +23,8 @@ export type ExecaChildProcess = {
   stderr: Readable | null;
 } & Promise<ExecaChildProcessResult>;
 
+export type Dependency = { name: string; version: string };
+
 export type PackageManagerController = {
   initializeProject: () => Promise<void>;
   initializeTsConfig: (targetDir: string) => Promise<void>;
@@ -37,4 +39,5 @@ export type PackageManagerController = {
   ) => ExecaChildProcess;
   getCommand: (args: string[]) => string;
   allowsSignalPropagation: () => boolean;
+  tryGetDependencies: () => Promise<Array<Dependency> | undefined>;
 };

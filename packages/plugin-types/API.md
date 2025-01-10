@@ -152,6 +152,12 @@ export type DeepPartialAmplifyGeneratedConfigs<T> = {
     [P in keyof T]?: P extends 'auth' | 'data' | 'storage' ? T[P] extends object ? DeepPartialAmplifyGeneratedConfigs<T[P]> : Partial<T[P]> : T[P];
 };
 
+// @public (undocumented)
+export type Dependency = {
+    name: string;
+    version: string;
+};
+
 // @public
 export type DeploymentType = 'branch' | 'sandbox';
 
@@ -220,6 +226,7 @@ export type PackageManagerController = {
     runWithPackageManager: (args: string[] | undefined, dir: string, options?: ExecaOptions) => ExecaChildProcess;
     getCommand: (args: string[]) => string;
     allowsSignalPropagation: () => boolean;
+    tryGetDependencies: () => Promise<Array<Dependency> | undefined>;
 };
 
 // @public (undocumented)
