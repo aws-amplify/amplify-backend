@@ -4,11 +4,28 @@ name: setup_node
 inputs:
   node-version:
     description: node version used to configure environment with
-    default: 18
+    required: true
 runs:
   using: composite
   steps:
+    # Validate that non-blank inputs are provided.
+    # This is to ensure that inputs are plumbed and not defaulted accidentally in action call chains.
+    # The 'required' input property does not assert this if value is provided at runtime.
+    - name: Validate input
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.node-version }}" ]; then
+          echo "Node version must be provided"
+          exit 1;
+        fi
     - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # version 4.0.2
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
+    - name: Hydrate npx cache
+      # This step hydrates npx cache with packages that we use in builds and tests upfront.
+      # Otherwise, concurrent attempt to use these tools with cache miss results in race conditions between
+      # two installations. That may result in corrupted npx cache.
+      shell: bash
+      run: |
+        npx which npx

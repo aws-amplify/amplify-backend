@@ -1,5 +1,121 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.13
+
+### Patch Changes
+
+- a7506f9: catch and wrap deployment in progress when deleting the backend
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.1.12
+
+### Patch Changes
+
+- dedcc27: add error mapping for role is invalid or cannot be assumed error'
+- 95942c5: expand wrapping of credentials related errors
+- 1eced2c: add mapping for circular dependency failures with resolution
+- Updated dependencies [95942c5]
+- Updated dependencies [f679cf6]
+- Updated dependencies [f193105]
+  - @aws-amplify/platform-core@1.4.0
+
+## 1.1.11
+
+### Patch Changes
+
+- 1593ce8: add error mapping for lambda bundling into an empty zip
+- a406263: Narrow the error parsing for ExpiredToken regex
+- 37d8564: handle cdk error mapping for more generic invalid credentials
+- d66ab17: added mapping for additional EPERM errors
+- 5a47d21: add error mapping for lambda exceeding max size
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- 0a360fb: extract generic cdk asset publish failures
+- 6015595: Catches most common EPERM error and update to resolution message for stack in failed state
+- daaedb6: add cdk error mapping for error "cdk command not found"
+- f6ba240: Upgrade execa
+- Updated dependencies [cfdc854]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [65abf6a]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/platform-core@1.3.0
+  - @aws-amplify/plugin-types@1.6.0
+
+## 1.1.10
+
+### Patch Changes
+
+- d332c51: map a form of deletion/destroy failed error
+- a6fa42e: specifically catch AppSync "Code contains one or more errors"
+- a23f656: add more forms of transform errors to cdk error mapping
+- 754d0f7: map another form of access denied validation error
+- 716f844: Handle ENOENT error from npm
+- 691e7ca: truncate large error messages before printing to customer
+- b6f4c54: handle not authorized to perform on resource error
+- 0114549: Handle invalid package.json error
+- Updated dependencies [249c0e5]
+  - @aws-amplify/platform-core@1.2.2
+
+## 1.1.9
+
+### Patch Changes
+
+- 7f2f68b: Handle errors when checking CDK bootstrap.
+- 12cf209: update error mapping to catch when Lambda layer ARN regions do not match function region
+- Updated dependencies [90a7c49]
+  - @aws-amplify/plugin-types@1.4.0
+
+## 1.1.8
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+
+## 1.1.7
+
+### Patch Changes
+
+- 7bf0c64: reclassify as error, UnknownFault, Error: The security token included in the request is expired
+- 889bdb7: Handle case where synthesis renders empty cdk assembly
+- a191fe5: add stack is in a state and can not be updated to error mapper
+
+## 1.1.6
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.1.5
+
+### Patch Changes
+
+- 93d419f: detect more generic CFN deployment failure errors
+- 777c80d: detect transform errors with multiple errors
+- b35f01d: detect generic CFN stack creation errors
+
+## 1.1.4
+
+### Patch Changes
+
+- 98673b0: Improve type error regex
+
+## 1.1.3
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- c9c873c: throw ESBuild error with correct messages
+- cbac105: Handle CDK version mismatch
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [8dd7286]
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.1.2
 
 ### Patch Changes

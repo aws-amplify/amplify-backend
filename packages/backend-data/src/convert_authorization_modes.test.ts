@@ -36,6 +36,7 @@ void describe('buildConstructFactoryProvidedAuthConfig', () => {
           userPool: 'ThisIsAUserPool',
           authenticatedUserIamRole: 'ThisIsAnAuthenticatedUserIamRole',
           unauthenticatedUserIamRole: 'ThisIsAnUnauthenticatedUserIamRole',
+          identityPoolId: 'us-fake-1:123123-123123',
           cfnResources: {
             cfnIdentityPool: {
               logicalId: 'IdentityPoolLogicalId',
@@ -86,6 +87,7 @@ void describe('convertAuthorizationModesToCDK', () => {
       defaultAuthorizationMode: 'API_KEY',
       apiKeyConfig: {
         expires: Duration.days(7),
+        description: undefined,
       },
       iamConfig: {
         enableIamAuthorizationMode: true,
@@ -98,6 +100,26 @@ void describe('convertAuthorizationModesToCDK', () => {
         undefined,
         undefined
       ),
+      expectedOutput
+    );
+  });
+
+  void it('defaults api key expiry if default auth mode is api key and apiKeyConfig is undefined', () => {
+    const expectedOutput: CDKAuthorizationModes = {
+      defaultAuthorizationMode: 'API_KEY',
+      apiKeyConfig: {
+        expires: Duration.days(7),
+        description: undefined,
+      },
+      iamConfig: {
+        enableIamAuthorizationMode: true,
+      },
+    };
+
+    assert.deepStrictEqual(
+      convertAuthorizationModesToCDK(getInstancePropsStub, undefined, {
+        defaultAuthorizationMode: 'apiKey',
+      }),
       expectedOutput
     );
   });

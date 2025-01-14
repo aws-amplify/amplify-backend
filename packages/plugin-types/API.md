@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference types="node" />
+
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 import { CfnIdentityPool } from 'aws-cdk-lib/aws-cognito';
 import { CfnIdentityPoolRoleAttachment } from 'aws-cdk-lib/aws-cognito';
@@ -12,19 +14,23 @@ import { CfnUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { CfnUserPoolGroup } from 'aws-cdk-lib/aws-cognito';
 import { Client } from '@aws-sdk/types';
 import { Construct } from 'constructs';
-import { ExecaChildProcess } from 'execa';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { MetadataBearer } from '@aws-sdk/types';
-import { Options } from 'execa';
 import { Policy } from 'aws-cdk-lib/aws-iam';
+import { Readable } from 'node:stream';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
 
 // @public (undocumented)
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
+
+// @public
+export type AmplifyResourceGroupName = 'auth' | 'data' | 'storage' | (string & {
+    resourceGroupNameLike?: any;
+});
 
 // @public
 export type AppId = string;
@@ -43,6 +49,7 @@ export type AuthResources = {
     userPoolClient: IUserPoolClient;
     authenticatedUserIamRole: IRole;
     unauthenticatedUserIamRole: IRole;
+    identityPoolId: string;
     cfnResources: AuthCfnResources;
     groups: {
         [groupName: string]: {
@@ -145,8 +152,34 @@ export type DeepPartialAmplifyGeneratedConfigs<T> = {
     [P in keyof T]?: P extends 'auth' | 'data' | 'storage' ? T[P] extends object ? DeepPartialAmplifyGeneratedConfigs<T[P]> : Partial<T[P]> : T[P];
 };
 
+// @public (undocumented)
+export type Dependency = {
+    name: string;
+    version: string;
+};
+
 // @public
 export type DeploymentType = 'branch' | 'sandbox';
+
+// @public (undocumented)
+export type ExecaChildProcess = {
+    stdout: Readable | null;
+    stderr: Readable | null;
+} & Promise<ExecaChildProcessResult>;
+
+// @public (undocumented)
+export type ExecaChildProcessResult = {
+    exitCode?: number | undefined;
+};
+
+// @public (undocumented)
+export type ExecaOptions = {
+    stdin?: 'inherit';
+    stdout?: 'pipe';
+    stderr?: 'pipe';
+    extendEnv?: boolean;
+    env?: Record<string, string>;
+};
 
 // @public (undocumented)
 export type FunctionResources = {
@@ -169,6 +202,12 @@ export type ImportPathVerifier = {
     verify: (importStack: string | undefined, expectedImportingFile: string, errorMessage: string) => void;
 };
 
+// @public (undocumented)
+export type LogLevel = 'all' | 'debug' | 'error' | 'fatal' | 'info' | 'none' | 'trace' | 'warn';
+
+// @public (undocumented)
+export type LogRetention = '1 day' | '3 days' | '5 days' | '1 week' | '2 weeks' | '1 month' | '2 months' | '3 months' | '4 months' | '5 months' | '6 months' | '1 year' | '13 months' | '18 months' | '2 years' | '3 years' | '5 years' | '6 years' | '7 years' | '8 years' | '9 years' | '10 years' | 'infinite';
+
 // @public
 export type MainStackCreator = {
     getOrCreateMainStack: () => Stack;
@@ -184,13 +223,28 @@ export type PackageManagerController = {
     initializeProject: () => Promise<void>;
     initializeTsConfig: (targetDir: string) => Promise<void>;
     installDependencies: (packageNames: string[], type: 'dev' | 'prod') => Promise<void>;
-    runWithPackageManager: (args: string[] | undefined, dir: string, options?: Options<'utf8'>) => ExecaChildProcess;
+    runWithPackageManager: (args: string[] | undefined, dir: string, options?: ExecaOptions) => ExecaChildProcess;
     getCommand: (args: string[]) => string;
     allowsSignalPropagation: () => boolean;
+    tryGetDependencies: () => Promise<Array<Dependency> | undefined>;
 };
 
 // @public (undocumented)
 export type ProjectName = string;
+
+// @public
+export type ReferenceAuthResources = {
+    userPool: IUserPool;
+    userPoolClient: IUserPoolClient;
+    authenticatedUserIamRole: IRole;
+    unauthenticatedUserIamRole: IRole;
+    identityPoolId: string;
+    groups: {
+        [groupName: string]: {
+            role: IRole;
+        };
+    };
+};
 
 // @public (undocumented)
 export type ResolvePathResult = {
@@ -236,6 +290,11 @@ export type SsmEnvironmentEntry = {
 // @public (undocumented)
 export type StableBackendIdentifiers = {
     getStableBackendHash: () => string;
+};
+
+// @public (undocumented)
+export type StackProvider = {
+    stack: Stack;
 };
 
 // (No @packageDocumentation comment for this package)

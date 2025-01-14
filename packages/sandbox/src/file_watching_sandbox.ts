@@ -37,6 +37,7 @@ import {
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
+
 /**
  * CDK stores bootstrap version in parameter store. Example parameter name looks like /cdk-bootstrap/<qualifier>/version.
  * The default value for qualifier is hnb659fds, i.e. default parameter path is /cdk-bootstrap/hnb659fds/version.
@@ -125,7 +126,23 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       );
       // get region from an available sdk client;
       const region = await this.ssmClient.config.region();
-      await this.open(getBootstrapUrl(region));
+      const bootstrapUrl = getBootstrapUrl(region);
+      try {
+        await this.open(bootstrapUrl);
+      } catch (e) {
+        // If opening the link fails for any reason we fall back to
+        // printing the url in the console.
+        // This might happen:
+        // - in headless environments
+        // - if user does not have any app to open URL
+        // - if browser crashes
+        let logEntry = 'Unable to open bootstrap url';
+        if (e instanceof Error) {
+          logEntry = `${logEntry}, ${e.message}`;
+        }
+        this.printer.log(logEntry, LogLevel.DEBUG);
+        this.printer.log(`Open ${bootstrapUrl} in the browser.`);
+      }
       return;
     }
 
@@ -273,7 +290,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-userpool.html#cfn-cognito-userpool-aliasattributes
       // offer to recreate the sandbox or revert the change
       if (
-        error instanceof AmplifyError &&
+        AmplifyError.isAmplifyError(error) &&
         error.name === 'CFNUpdateNotSupportedError'
       ) {
         await this.handleUnsupportedDestructiveChanges(options);
@@ -385,7 +402,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         message = `${message}\nCaused By: ${error.cause.message}\n`;
       }
 
-      if (error instanceof AmplifyError && error.resolution) {
+      if (AmplifyError.isAmplifyError(error) && error.resolution) {
         message = `${message}\nResolution: ${error.resolution}\n`;
       }
     } else message = String(error);

@@ -5,9 +5,10 @@ import {
 } from './predicated_action.js';
 import os from 'os';
 import fs from 'fs/promises';
+import stripANSI from 'strip-ansi';
 
 import { killExecaProcess } from './execa_process_killer.js';
-import { ExecaChildProcess } from 'execa';
+import { ExecaMethod } from 'execa';
 import { CopyDefinition } from './types.js';
 
 export const CONTROL_C = '\x03';
@@ -54,7 +55,7 @@ export class PredicatedActionBuilder {
         str === CONTROL_C
           ? ActionType.KILL_PROCESS
           : ActionType.SEND_INPUT_TO_PROCESS,
-      action: async (execaProcess: ExecaChildProcess) => {
+      action: async (execaProcess: ReturnType<ExecaMethod>) => {
         if (str === CONTROL_C) {
           await killExecaProcess(execaProcess);
         } else {
@@ -92,6 +93,7 @@ export class PredicatedActionBuilder {
       action: (strWithDeploymentTime: string) => {
         // the time can be in fractional or whole seconds. 24.3, 24, 24.22 etc.
         const regex = /^✨ {2}Total time: (\d*\.*\d*)s.*$/;
+        strWithDeploymentTime = stripANSI(strWithDeploymentTime);
         const deploymentTime = strWithDeploymentTime.match(regex);
         if (
           deploymentTime &&

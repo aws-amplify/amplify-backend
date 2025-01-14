@@ -1,31 +1,41 @@
+import { AIConversationOutput } from '@aws-amplify/backend-output-schemas';
 import {
-  FunctionOutput,
-  functionOutputKey,
-} from '@aws-amplify/backend-output-schemas';
-import {
+  AmplifyResourceGroupName,
   BackendOutputStorageStrategy,
   ConstructContainerEntryGenerator,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
   FunctionResources,
   GenerateContainerEntryProps,
+  LogLevel,
+  LogRetention,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import {
   ConversationHandlerFunction,
   ConversationHandlerFunctionProps,
+  ConversationTurnEventVersion,
 } from '@aws-amplify/ai-constructs/conversation';
 import path from 'path';
-import { CallerDirectoryExtractor } from '@aws-amplify/platform-core';
+import {
+  AmplifyUserError,
+  CallerDirectoryExtractor,
+} from '@aws-amplify/platform-core';
+import { AiModel } from '@aws-amplify/data-schema-types';
+import {
+  LogLevelConverter,
+  LogRetentionConverter,
+} from '@aws-amplify/platform-core/cdk';
 
 class ConversationHandlerFunctionGenerator
   implements ConstructContainerEntryGenerator
 {
-  readonly resourceGroupName = 'conversationHandlerFunction';
+  readonly resourceGroupName: AmplifyResourceGroupName =
+    'conversationHandlerFunction';
 
   constructor(
     private readonly props: DefineConversationHandlerFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<AIConversationOutput>
   ) {}
 
   generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
@@ -43,38 +53,64 @@ class ConversationHandlerFunctionGenerator
           region: model.region,
         };
       }),
+      outputStorageStrategy: this.outputStorageStrategy,
+      memoryMB: this.props.memoryMB,
+      timeoutSeconds: this.props.timeoutSeconds,
     };
-    const conversationHandlerFunction = new ConversationHandlerFunction(
-      scope,
-      this.props.name,
-      constructProps
-    );
-    this.storeOutput(this.outputStorageStrategy, conversationHandlerFunction);
-    return conversationHandlerFunction;
+    const logging: typeof constructProps.logging = {};
+    if (this.props.logging?.level) {
+      logging.level = new LogLevelConverter().toCDKLambdaApplicationLogLevel(
+        this.props.logging.level
+      );
+    }
+    if (this.props.logging?.retention) {
+      logging.retention = new LogRetentionConverter().toCDKRetentionDays(
+        this.props.logging.retention
+      );
+    }
+    constructProps.logging = logging;
+    try {
+      return new ConversationHandlerFunction(
+        scope,
+        this.props.name,
+        constructProps
+      );
+    } catch (e) {
+      throw this.mapConstructErrors(e);
+    }
   };
 
-  /**
-   * Append conversation handler to defined functions.
-   * Explicitly defined custom handler is customer's function and should be visible
-   * in the outputs.
-   */
-  private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
-    conversationHandlerFunction: ConversationHandlerFunction
-  ): void => {
-    outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
-      version: '1',
-      payload: {
-        definedFunctions:
-          conversationHandlerFunction.resources.lambda.functionName,
-      },
-    });
+  private mapConstructErrors = (e: unknown) => {
+    if (!(e instanceof Error)) {
+      return e;
+    }
+    if (e.message.startsWith('memoryMB must be')) {
+      return new AmplifyUserError('InvalidMemoryMBError', {
+        message: `Invalid memoryMB of ${this.props.memoryMB}`,
+        resolution: e.message,
+      });
+    }
+    if (e.message.startsWith('timeoutSeconds must be')) {
+      return new AmplifyUserError('InvalidTimeoutError', {
+        message: `Invalid timeout of ${this.props.timeoutSeconds} seconds`,
+        resolution: e.message,
+      });
+    }
+    return e;
   };
 }
 
-class ConversationHandlerFunctionFactory
-  implements ConstructFactory<ConversationHandlerFunction>
+export type ConversationHandlerFunctionFactory = ConstructFactory<
+  ResourceProvider<FunctionResources>
+> & {
+  readonly eventVersion: ConversationTurnEventVersion;
+};
+
+class DefaultConversationHandlerFunctionFactory
+  implements ConversationHandlerFunctionFactory
 {
+  readonly eventVersion: ConversationTurnEventVersion =
+    ConversationHandlerFunction.eventVersion;
   private generator: ConstructContainerEntryGenerator;
 
   constructor(
@@ -123,18 +159,38 @@ class ConversationHandlerFunctionFactory
   };
 }
 
+export type ConversationHandlerFunctionLogLevel = Extract<
+  LogLevel,
+  'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace'
+>;
+
+export type ConversationHandlerFunctionLogRetention = LogRetention;
+
+export type ConversationHandlerFunctionLoggingOptions = {
+  retention?: ConversationHandlerFunctionLogRetention;
+  level?: ConversationHandlerFunctionLogLevel;
+};
+
 export type DefineConversationHandlerFunctionProps = {
   name: string;
   entry?: string;
   models: Array<{
-    modelId:
-      | string
-      | {
-          // This is to match return of 'a.ai.model.anthropic.claude3Haiku()'
-          resourcePath: string;
-        };
+    modelId: string | AiModel;
     region?: string;
   }>;
+  /**
+   * An amount of memory (RAM) to allocate to the function between 128 and 10240 MB.
+   * Must be a whole number.
+   * Default is 512MB.
+   */
+  memoryMB?: number;
+  /**
+   * An amount of time in seconds between 1 second and 15 minutes.
+   * Must be a whole number.
+   * Default is 60 seconds.
+   */
+  timeoutSeconds?: number;
+  logging?: ConversationHandlerFunctionLoggingOptions;
 };
 
 /**
@@ -142,6 +198,6 @@ export type DefineConversationHandlerFunctionProps = {
  */
 export const defineConversationHandlerFunction = (
   props: DefineConversationHandlerFunctionProps
-): ConstructFactory<ResourceProvider<FunctionResources>> =>
+): ConversationHandlerFunctionFactory =>
   // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-  new ConversationHandlerFunctionFactory(props, new Error().stack);
+  new DefaultConversationHandlerFunctionFactory(props, new Error().stack);

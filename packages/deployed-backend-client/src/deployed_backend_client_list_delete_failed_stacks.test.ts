@@ -6,15 +6,9 @@ import {
   ListStacksCommand,
   StackStatus,
 } from '@aws-sdk/client-cloudformation';
-import { platformOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DefaultBackendOutputClient } from './backend_output_client.js';
 import { DefaultDeployedBackendClient } from './deployed_backend_client.js';
 import { BackendStatus } from './deployed_backend_client_factory.js';
-import {
-  BackendOutputClientError,
-  BackendOutputClientErrorType,
-  StackIdentifier,
-} from './index.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { S3 } from '@aws-sdk/client-s3';
 import { DeployedResourcesEnumerator } from './deployed-backend-client/deployed_resources_enumerator.js';
@@ -34,14 +28,6 @@ const listStacksMock = {
   ],
 };
 
-const getOutputMockResponse = {
-  [platformOutputKey]: {
-    payload: {
-      deploymentType: 'branch',
-    },
-  },
-};
-
 void describe('Deployed Backend Client list delete failed stacks', () => {
   const mockCfnClient = new CloudFormation();
   const mockS3Client = new S3();
@@ -56,9 +42,19 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
         const matchingStack = listStacksMock.StackSummaries.find((stack) => {
           return stack.StackName === request.input.StackName;
         });
-        const stack = matchingStack;
+        // Add tags that are used to detect deployment type
         return {
-          Stacks: [stack],
+          Stacks: [
+            {
+              ...matchingStack,
+              Tags: [
+                {
+                  Key: 'amplify:deployment-type',
+                  Value: 'branch',
+                },
+              ],
+            },
+          ],
         };
       }
       throw request;
@@ -83,23 +79,6 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     mockCfnClient,
     new AmplifyClient()
   );
-  const getOutputMock = mock.method(
-    mockBackendOutputClient,
-    'getOutput',
-    (backendIdentifier: StackIdentifier) => {
-      if (backendIdentifier.stackName === 'amplify-test-not-a-sandbox') {
-        return {
-          ...getOutputMockResponse,
-          [platformOutputKey]: {
-            payload: {
-              deploymentType: 'branch',
-            },
-          },
-        };
-      }
-      return getOutputMockResponse;
-    }
-  );
   const returnedDeleteFailedStacks = [
     {
       deploymentType: 'branch',
@@ -116,7 +95,6 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
   ];
 
   beforeEach(() => {
-    getOutputMock.mock.resetCalls();
     listStacksMockFn.mock.resetCalls();
     cfnClientSendMock.mock.resetCalls();
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
@@ -170,99 +148,5 @@ void describe('Deployed Backend Client list delete failed stacks', () => {
     );
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
-  });
-
-  void it('paginates listBackends when one page contains stacks, but it gets filtered due to not deleted failed status', async () => {
-    listStacksMockFn.mock.mockImplementationOnce(() => {
-      return {
-        StackSummaries: [],
-        NextToken: 'abc',
-      };
-    });
-    const failedStacks = deployedBackendClient.listBackends({
-      deploymentType: 'branch',
-      backendStatusFilters: [BackendStatus.DELETE_FAILED],
-    });
-    assert.deepEqual(
-      (await failedStacks.getBackendSummaryByPage().next()).value,
-      returnedDeleteFailedStacks
-    );
-
-    assert.equal(listStacksMockFn.mock.callCount(), 2);
-  });
-
-  void it('paginates listBackends when one page contains stacks, but it gets filtered due to sandbox deploymentType', async () => {
-    listStacksMockFn.mock.mockImplementationOnce(() => {
-      return {
-        StackSummaries: [],
-        NextToken: 'abc',
-      };
-    });
-    const failedStacks = deployedBackendClient.listBackends({
-      deploymentType: 'branch',
-      backendStatusFilters: [BackendStatus.DELETE_FAILED],
-    });
-    assert.deepEqual(
-      (await failedStacks.getBackendSummaryByPage().next()).value,
-      returnedDeleteFailedStacks
-    );
-
-    assert.equal(listStacksMockFn.mock.callCount(), 2);
-  });
-
-  void it('paginates listBackends when one page contains a stack, but it gets filtered due to not having gen2 outputs', async () => {
-    getOutputMock.mock.mockImplementationOnce(() => {
-      throw new BackendOutputClientError(
-        BackendOutputClientErrorType.METADATA_RETRIEVAL_ERROR,
-        'Test metadata retrieval error'
-      );
-    });
-    listStacksMockFn.mock.mockImplementationOnce(() => {
-      return {
-        StackSummaries: [
-          {
-            StackName: 'amplify-123-name-branch-testHash',
-            StackStatus: StackStatus.DELETE_FAILED,
-            CreationTime: new Date(0),
-            LastUpdatedTime: new Date(1),
-          },
-        ],
-        NextToken: 'abc',
-      };
-    });
-    const failedStacks = deployedBackendClient.listBackends({
-      deploymentType: 'branch',
-      backendStatusFilters: [BackendStatus.DELETE_FAILED],
-    });
-    assert.deepEqual(
-      (await failedStacks.getBackendSummaryByPage().next()).value,
-      returnedDeleteFailedStacks
-    );
-
-    assert.equal(listStacksMockFn.mock.callCount(), 2);
-  });
-
-  void it('does not paginate listBackends when one page throws an unexpected error fetching gen2 outputs', async () => {
-    getOutputMock.mock.mockImplementationOnce(() => {
-      throw new Error('Unexpected Error!');
-    });
-    listStacksMockFn.mock.mockImplementationOnce(() => {
-      return {
-        StackSummaries: [
-          {
-            StackName: 'amplify-123-name-branch-testHash',
-            StackStatus: StackStatus.DELETE_FAILED,
-            CreationTime: new Date(0),
-            LastUpdatedTime: new Date(1),
-          },
-        ],
-        NextToken: 'abc',
-      };
-    });
-    const listBackendsPromise = deployedBackendClient.listBackends({
-      deploymentType: 'branch',
-      backendStatusFilters: [BackendStatus.DELETE_FAILED],
-    });
-    await assert.rejects(listBackendsPromise.getBackendSummaryByPage().next());
   });
 });

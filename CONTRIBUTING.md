@@ -82,6 +82,8 @@ For local testing we recommend writing unit tests that exercise the code you are
 npm run test:dir packages/<package name>/lib/<file-name>.test.ts
 ```
 
+> Note: If your test depends on \_\_dirname or import.meta.url paths, you may see errors resolving paths if you specify the entire path to the test file. You should specify just the `packages/<package name>` portion of the test you are running.
+
 > Note: You must rebuild using `npm run build` for tests to pick up your changes.
 
 Sometimes it's nice to have a test project to use as a testing environment for local changes. You can create test projects in the `local-testing` directory using
@@ -143,6 +145,13 @@ At a minimum, each package needs:
 5. A `typedoc.json` file
 6. An `.npmignore` file
 7. A `README.md` file that gives a brief description of the intent of the package
+
+## Debugging
+
+For debugging purposes you can use the following knobs:
+
+1. Most of `npx ampx` commands take `--debug` parameter. It enables verbose console output.
+2. We are using `execa` for spawning child processes. You can set `export NODE_DEBUG=execa` to reveal exact command lines.
 
 ## Licensing
 

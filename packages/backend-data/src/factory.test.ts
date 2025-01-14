@@ -38,7 +38,10 @@ import {
 import { AmplifyDataResources } from '@aws-amplify/data-construct';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { a } from '@aws-amplify/data-schema';
-import { AmplifyDataError } from './types.js';
+import { AmplifyDataError, DataLoggingOptions } from './types.js';
+import { CDKLoggingOptions } from './logging_options_parser.js';
+import { CfnGraphQLApi, FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 const CUSTOM_DDB_CFN_TYPE = 'Custom::AmplifyDynamoDBTable';
 
@@ -100,6 +103,7 @@ const createConstructContainerWithUserPoolAuthRegistered = (
           ),
         },
         groups: {},
+        identityPoolId: 'identityPool',
       },
     }),
   });
@@ -535,25 +539,8 @@ void describe('DataFactory', () => {
                   'Fn::Join': [
                     '',
                     [
-                      'arn:',
                       {
-                        Ref: 'AWS::Partition',
-                      },
-                      ':appsync:',
-                      {
-                        Ref: 'AWS::Region',
-                      },
-                      ':',
-                      {
-                        Ref: 'AWS::AccountId',
-                      },
-                      // eslint-disable-next-line spellcheck/spell-checker
-                      ':apis/',
-                      {
-                        'Fn::GetAtt': [
-                          'amplifyDataGraphQLAPI42A6FA33',
-                          'ApiId',
-                        ],
+                        'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                       },
                       '/types/Query/*',
                     ],
@@ -563,25 +550,8 @@ void describe('DataFactory', () => {
                   'Fn::Join': [
                     '',
                     [
-                      'arn:',
                       {
-                        Ref: 'AWS::Partition',
-                      },
-                      ':appsync:',
-                      {
-                        Ref: 'AWS::Region',
-                      },
-                      ':',
-                      {
-                        Ref: 'AWS::AccountId',
-                      },
-                      // eslint-disable-next-line spellcheck/spell-checker
-                      ':apis/',
-                      {
-                        'Fn::GetAtt': [
-                          'amplifyDataGraphQLAPI42A6FA33',
-                          'ApiId',
-                        ],
+                        'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                       },
                       '/types/Mutation/*',
                     ],
@@ -591,31 +561,31 @@ void describe('DataFactory', () => {
                   'Fn::Join': [
                     '',
                     [
-                      'arn:',
                       {
-                        Ref: 'AWS::Partition',
-                      },
-                      ':appsync:',
-                      {
-                        Ref: 'AWS::Region',
-                      },
-                      ':',
-                      {
-                        Ref: 'AWS::AccountId',
-                      },
-                      // eslint-disable-next-line spellcheck/spell-checker
-                      ':apis/',
-                      {
-                        'Fn::GetAtt': [
-                          'amplifyDataGraphQLAPI42A6FA33',
-                          'ApiId',
-                        ],
+                        'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                       },
                       '/types/Subscription/*',
                     ],
                   ],
                 },
               ],
+            },
+            {
+              Action: 's3:GetObject',
+              Resource: {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': [
+                        'modelIntrospectionSchemaBucketF566B665',
+                        'Arn',
+                      ],
+                    },
+                    '/modelIntrospectionSchema.json',
+                  ],
+                ],
+              },
             },
           ],
         },
@@ -717,24 +687,27 @@ void describe('DataFactory', () => {
                 'Fn::Join': [
                   '',
                   [
-                    'arn:',
                     {
-                      Ref: 'AWS::Partition',
-                    },
-                    ':appsync:',
-                    {
-                      Ref: 'AWS::Region',
-                    },
-                    ':',
-                    {
-                      Ref: 'AWS::AccountId',
-                    },
-                    // eslint-disable-next-line spellcheck/spell-checker
-                    ':apis/',
-                    {
-                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'ApiId'],
+                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                     },
                     '/types/Mutation/*',
+                  ],
+                ],
+              },
+            },
+            {
+              Action: 's3:GetObject',
+              Resource: {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': [
+                        'modelIntrospectionSchemaBucketF566B665',
+                        'Arn',
+                      ],
+                    },
+                    '/modelIntrospectionSchema.json',
                   ],
                 ],
               },
@@ -757,24 +730,27 @@ void describe('DataFactory', () => {
                 'Fn::Join': [
                   '',
                   [
-                    'arn:',
                     {
-                      Ref: 'AWS::Partition',
-                    },
-                    ':appsync:',
-                    {
-                      Ref: 'AWS::Region',
-                    },
-                    ':',
-                    {
-                      Ref: 'AWS::AccountId',
-                    },
-                    // eslint-disable-next-line spellcheck/spell-checker
-                    ':apis/',
-                    {
-                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'ApiId'],
+                      'Fn::GetAtt': ['amplifyDataGraphQLAPI42A6FA33', 'Arn'],
                     },
                     '/types/Query/*',
+                  ],
+                ],
+              },
+            },
+            {
+              Action: 's3:GetObject',
+              Resource: {
+                'Fn::Join': [
+                  '',
+                  [
+                    {
+                      'Fn::GetAtt': [
+                        'modelIntrospectionSchemaBucketF566B665',
+                        'Arn',
+                      ],
+                    },
+                    '/modelIntrospectionSchema.json',
                   ],
                 ],
               },
@@ -825,6 +801,144 @@ void describe('Destructive Schema Updates & Replace tables upon GSI updates', ()
     amplifyTableStackTemplate.hasResourceProperties(CUSTOM_DDB_CFN_TYPE, {
       allowDestructiveGraphqlSchemaUpdates: true,
       replaceTableUponGsiUpdate: true,
+    });
+  });
+});
+
+void describe('Logging Options', () => {
+  let stack: Stack;
+  let constructContainer: ConstructContainer;
+  let outputStorageStrategy: BackendOutputStorageStrategy<BackendOutputEntry>;
+  let importPathVerifier: ImportPathVerifierStub;
+  let resourceNameValidator: ResourceNameValidatorStub;
+  let getInstanceProps: ConstructFactoryGetInstanceProps;
+
+  const DEFAULT_LOGGING_OPTIONS: CDKLoggingOptions = {
+    excludeVerboseContent: true,
+    fieldLogLevel: FieldLogLevel.NONE,
+    retention: RetentionDays.ONE_WEEK,
+  };
+
+  const testCases: {
+    description: string;
+    input: DataLoggingOptions | undefined;
+    expectedOutput: CDKLoggingOptions | undefined;
+  }[] = [
+    {
+      description: 'no logging options provided',
+      input: undefined,
+      expectedOutput: undefined,
+    },
+    {
+      description: 'default - logging: true',
+      input: true,
+      expectedOutput: DEFAULT_LOGGING_OPTIONS,
+    },
+    {
+      description: 'default - logging: {}',
+      input: {},
+      expectedOutput: DEFAULT_LOGGING_OPTIONS,
+    },
+    {
+      description: 'custom - excludeVerboseContent: false',
+      input: { excludeVerboseContent: false },
+      expectedOutput: {
+        ...DEFAULT_LOGGING_OPTIONS,
+        excludeVerboseContent: false,
+      },
+    },
+    {
+      description: 'custom - fieldLogLevel: error',
+      input: { fieldLogLevel: 'error' },
+      expectedOutput: {
+        ...DEFAULT_LOGGING_OPTIONS,
+        fieldLogLevel: FieldLogLevel.ERROR,
+      },
+    },
+    {
+      description: 'custom - fieldLogLevel: info, retention: 1 month',
+      input: { fieldLogLevel: 'info', retention: '1 month' },
+      expectedOutput: {
+        ...DEFAULT_LOGGING_OPTIONS,
+        fieldLogLevel: FieldLogLevel.INFO,
+        retention: RetentionDays.ONE_MONTH,
+      },
+    },
+    {
+      description:
+        'custom - excludeVerboseContent: false, level: debug, retention: 13 months',
+      input: {
+        excludeVerboseContent: false,
+        fieldLogLevel: 'debug',
+        retention: '13 months',
+      },
+      expectedOutput: {
+        excludeVerboseContent: false,
+        fieldLogLevel: FieldLogLevel.DEBUG,
+        retention: RetentionDays.THIRTEEN_MONTHS,
+      },
+    },
+  ];
+
+  beforeEach(() => {
+    resetFactoryCount();
+    stack = createStackAndSetContext({ isSandboxMode: true });
+
+    constructContainer =
+      createConstructContainerWithUserPoolAuthRegistered(stack);
+    outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
+      stack
+    );
+    importPathVerifier = new ImportPathVerifierStub();
+    resourceNameValidator = new ResourceNameValidatorStub();
+
+    getInstanceProps = {
+      constructContainer,
+      outputStorageStrategy,
+      importPathVerifier,
+      resourceNameValidator,
+    };
+  });
+
+  testCases.forEach((testCase) => {
+    void it(`${testCase.description}`, () => {
+      const dataFactory = defineData({
+        schema: testSchema,
+        name: 'testLoggingOptions',
+        logging: testCase.input,
+      });
+      const dataConstruct = dataFactory.getInstance(getInstanceProps);
+      const template = Template.fromStack(
+        Stack.of(dataConstruct.resources.graphqlApi)
+      );
+
+      if (testCase.expectedOutput) {
+        const createdLogConfig = dataConstruct.resources.cfnResources
+          .cfnGraphqlApi.logConfig as CfnGraphQLApi.LogConfigProperty;
+        assert.ok(createdLogConfig, 'logConfig should be defined');
+        assert.strictEqual(
+          createdLogConfig.fieldLogLevel,
+          testCase.expectedOutput.fieldLogLevel
+        );
+        assert.strictEqual(
+          createdLogConfig.excludeVerboseContent,
+          testCase.expectedOutput.excludeVerboseContent
+        );
+
+        template.hasResourceProperties('Custom::LogRetention', {
+          RetentionInDays: testCase.expectedOutput.retention,
+        });
+      } else {
+        const createdLogConfig = dataConstruct.resources.cfnResources
+          .cfnGraphqlApi.logConfig as CfnGraphQLApi.LogConfigProperty;
+        assert.strictEqual(createdLogConfig, undefined);
+
+        template.resourcePropertiesCountIs(
+          'Custom::LogRetention',
+          'LogRetention',
+          0
+        );
+      }
     });
   });
 });

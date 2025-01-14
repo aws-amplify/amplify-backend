@@ -85,67 +85,113 @@ and some after the error message
     assert.deepStrictEqual(actual?.cause?.message, testError.cause?.message);
   });
 
-  void it('deserialize when string is encoded with single quote and has double quotes in it', () => {
-    const sampleStderr = `some random stderr
+  void describe('V1 deserialization', () => {
+    void it('deserialize when string is encoded with single quote and has double quotes in it', () => {
+      const sampleStderr = `some random stderr
     ${util.inspect({
       serializedError:
         '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}',
     })}
 and some after the error message
     `;
-    const actual = AmplifyError.fromStderr(sampleStderr);
-    assert.deepStrictEqual(actual?.name, 'SyntaxError');
-    assert.deepStrictEqual(actual?.classification, 'ERROR');
-    assert.deepStrictEqual(actual?.message, 'test error message');
-    assert.deepStrictEqual(actual?.resolution, 'test resolution');
-  });
+      const actual = AmplifyError.fromStderr(sampleStderr);
+      assert.deepStrictEqual(actual?.name, 'SyntaxError');
+      assert.deepStrictEqual(actual?.classification, 'ERROR');
+      assert.deepStrictEqual(actual?.message, 'test error message');
+      assert.deepStrictEqual(actual?.resolution, 'test resolution');
+    });
 
-  void it('deserialize when string is encoded with single quote and has double quotes escaped in between', () => {
-    const sampleStderr = `some random stderr
+    void it('deserialize when string is encoded with single quote and has double quotes escaped in between', () => {
+      const sampleStderr = `some random stderr
     ${util.inspect({
       serializedError:
         '{"name":"SyntaxError","classification":"ERROR","options":{"message":"paths must start with \\"/\\" and end with \\"/*","resolution":"test resolution"}}',
     })}
 and some after the error message
     `;
-    const actual = AmplifyError.fromStderr(sampleStderr);
-    assert.deepStrictEqual(actual?.name, 'SyntaxError');
-    assert.deepStrictEqual(actual?.classification, 'ERROR');
-    assert.deepStrictEqual(
-      actual?.message,
-      'paths must start with "/" and end with "/*'
-    );
-    assert.deepStrictEqual(actual?.resolution, 'test resolution');
-  });
+      const actual = AmplifyError.fromStderr(sampleStderr);
+      assert.deepStrictEqual(actual?.name, 'SyntaxError');
+      assert.deepStrictEqual(actual?.classification, 'ERROR');
+      assert.deepStrictEqual(
+        actual?.message,
+        'paths must start with "/" and end with "/*'
+      );
+      assert.deepStrictEqual(actual?.resolution, 'test resolution');
+    });
 
-  void it('deserialize when string is encoded with double quote and has double quotes string in it', () => {
-    const sampleStderr = `some random stderr
+    void it('deserialize when string is encoded with double quote and has double quotes string in it', () => {
+      const sampleStderr = `some random stderr
     serializedError: "{\\"name\\":\\"SyntaxError\\",\\"classification\\":\\"ERROR\\",\\"options\\":{\\"message\\":\\"test error message\\",\\"resolution\\":\\"test resolution\\"}}"
 and some after the error message
     `;
-    const actual = AmplifyError.fromStderr(sampleStderr);
-    assert.deepStrictEqual(actual?.name, 'SyntaxError');
-    assert.deepStrictEqual(actual?.classification, 'ERROR');
-    assert.deepStrictEqual(actual?.message, 'test error message');
-    assert.deepStrictEqual(actual?.resolution, 'test resolution');
-  });
+      const actual = AmplifyError.fromStderr(sampleStderr);
+      assert.deepStrictEqual(actual?.name, 'SyntaxError');
+      assert.deepStrictEqual(actual?.classification, 'ERROR');
+      assert.deepStrictEqual(actual?.message, 'test error message');
+      assert.deepStrictEqual(actual?.resolution, 'test resolution');
+    });
 
-  void it('deserialize when string has single quotes in between', () => {
-    const sampleStderr = `some random stderr
+    void it('deserialize when string has single quotes in between', () => {
+      const sampleStderr = `some random stderr
     ${util.inspect({
       serializedError:
         '{"name":"SyntaxError","classification":"ERROR","options":{"message":"Cannot read properties of undefined (reading \'data\')","resolution":"test resolution"}}',
     })}
 and some after the error message
     `;
-    const actual = AmplifyError.fromStderr(sampleStderr);
-    assert.deepStrictEqual(actual?.name, 'SyntaxError');
-    assert.deepStrictEqual(actual?.classification, 'ERROR');
-    assert.deepStrictEqual(
-      actual?.message,
-      `Cannot read properties of undefined (reading 'data')`
-    );
-    assert.deepStrictEqual(actual?.resolution, 'test resolution');
+      const actual = AmplifyError.fromStderr(sampleStderr);
+      assert.deepStrictEqual(actual?.name, 'SyntaxError');
+      assert.deepStrictEqual(actual?.classification, 'ERROR');
+      assert.deepStrictEqual(
+        actual?.message,
+        `Cannot read properties of undefined (reading 'data')`
+      );
+      assert.deepStrictEqual(actual?.resolution, 'test resolution');
+    });
+  });
+
+  void describe('V2 deserialization', () => {
+    void it('deserialize when string is encoded with single quote', () => {
+      const sampleStderr = `some random stderr
+      serializedError: '${Buffer.from(
+        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}'
+      ).toString('base64')}',
+and some after the error message
+    `;
+      const actual = AmplifyError.fromStderr(sampleStderr);
+      assert.deepStrictEqual(actual?.name, 'SyntaxError');
+      assert.deepStrictEqual(actual?.classification, 'ERROR');
+      assert.deepStrictEqual(actual?.message, 'test error message');
+      assert.deepStrictEqual(actual?.resolution, 'test resolution');
+    });
+
+    void it('deserialize when string is encoded with double quote', () => {
+      const sampleStderr = `some random stderr
+      serializedError: "${Buffer.from(
+        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}'
+      ).toString('base64')}",
+and some after the error message
+    `;
+      const actual = AmplifyError.fromStderr(sampleStderr);
+      assert.deepStrictEqual(actual?.name, 'SyntaxError');
+      assert.deepStrictEqual(actual?.classification, 'ERROR');
+      assert.deepStrictEqual(actual?.message, 'test error message');
+      assert.deepStrictEqual(actual?.resolution, 'test resolution');
+    });
+
+    void it('deserialize when string is encoded with back ticks', () => {
+      const sampleStderr = `some random stderr
+      serializedError: \`${Buffer.from(
+        '{"name":"SyntaxError","classification":"ERROR","options":{"message":"test error message","resolution":"test resolution"}}'
+      ).toString('base64')}\`,
+and some after the error message
+    `;
+      const actual = AmplifyError.fromStderr(sampleStderr);
+      assert.deepStrictEqual(actual?.name, 'SyntaxError');
+      assert.deepStrictEqual(actual?.classification, 'ERROR');
+      assert.deepStrictEqual(actual?.message, 'test error message');
+      assert.deepStrictEqual(actual?.resolution, 'test resolution');
+    });
   });
 });
 
@@ -165,7 +211,7 @@ void describe('AmplifyError.fromError', async () => {
     yargsErrors.forEach((error) => {
       const actual = AmplifyError.fromError(error);
       assert.ok(
-        actual instanceof AmplifyError &&
+        AmplifyError.isAmplifyError(actual) &&
           actual.name === 'InvalidCommandInputError',
         `Failed the test for error ${error.message}`
       );
@@ -175,7 +221,8 @@ void describe('AmplifyError.fromError', async () => {
     const error = new Error('getaddrinfo ENOTFOUND some-domain.com');
     const actual = AmplifyError.fromError(error);
     assert.ok(
-      actual instanceof AmplifyError && actual.name === 'DomainNotFoundError',
+      AmplifyError.isAmplifyError(actual) &&
+        actual.name === 'DomainNotFoundError',
       `Failed the test for error ${error.message}`
     );
   });
@@ -184,7 +231,63 @@ void describe('AmplifyError.fromError', async () => {
     error.name = 'SyntaxError';
     const actual = AmplifyError.fromError(error);
     assert.ok(
-      actual instanceof AmplifyError && actual.name === 'SyntaxError',
+      AmplifyError.isAmplifyError(actual) && actual.name === 'SyntaxError',
+      `Failed the test for error ${error.message}`
+    );
+  });
+  void it('wraps credentials related errors in AmplifyUserError', () => {
+    const error = new Error(
+      'The security token included in the request is expired'
+    );
+    [
+      'ExpiredToken',
+      'ExpiredTokenException',
+      'CredentialsProviderError',
+      'InvalidClientTokenId',
+      'CredentialsError',
+    ].forEach((name) => {
+      error.name = name;
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        AmplifyError.isAmplifyError(actual) &&
+          actual.name === 'CredentialsError',
+        `Failed the test while wrapping error ${name}`
+      );
+    });
+  });
+  void it('wraps InsufficientDiskSpaceError in AmplifyUserError', () => {
+    const insufficientDiskSpaceErrors = [
+      new Error(
+        "ENOSPC: no space left on device, open '/some/path/amplify_outputs.json'"
+      ),
+      new Error('npm ERR! code ENOSPC'),
+    ];
+    insufficientDiskSpaceErrors.forEach((error) => {
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        AmplifyError.isAmplifyError(actual) &&
+          actual.name === 'InsufficientDiskSpaceError',
+        `Failed the test for error ${error.message}`
+      );
+    });
+  });
+  void it('return amplify user errors as it is', () => {
+    const error = new AmplifyUserError('DeploymentInProgressError', {
+      message: 'Deployment already in progress',
+      resolution: 'wait for it',
+    });
+    const actual = AmplifyError.fromError(error);
+    assert.deepStrictEqual(error, actual);
+    assert.strictEqual(actual.resolution, error.resolution);
+  });
+  void it('wraps InsufficientMemorySpaceError in AmplifyUserError', () => {
+    const error = new Error(
+      'FATAL ERROR: Zone Allocation failed - process out of memory.'
+    );
+    const actual = AmplifyError.fromError(error);
+    assert.ok(
+      AmplifyError.isAmplifyError(actual) &&
+        actual.name === 'InsufficientMemorySpaceError',
       `Failed the test for error ${error.message}`
     );
   });

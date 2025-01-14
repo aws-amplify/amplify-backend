@@ -29,6 +29,8 @@ export const createMainParser = (libraryVersion: string): Argv => {
     .command(createConfigureCommand())
     .command(createInfoCommand())
     .help()
+    .alias('h', 'help')
+    .alias('v', 'version')
     .demandCommand()
     .strictCommands()
     .recommendCommands()

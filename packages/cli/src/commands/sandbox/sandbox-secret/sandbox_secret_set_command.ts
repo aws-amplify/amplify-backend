@@ -6,6 +6,7 @@ import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { SandboxCommandGlobalOptions } from '../option_types.js';
 import { once } from 'events';
 import { ReadStream } from 'node:tty';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Command to set sandbox secret.
@@ -57,11 +58,24 @@ export class SandboxSecretSetCommand
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv<SecretSetCommandOptionsKebabCase> => {
-    return yargs.positional('secret-name', {
-      describe: 'Name of the secret to set',
-      type: 'string',
-      demandOption: true,
-    });
+    return yargs
+      .positional('secret-name', {
+        describe: 'Name of the secret to set',
+        type: 'string',
+        demandOption: true,
+      })
+      .check(async (argv) => {
+        if (argv['secret-name']) {
+          const secretNameRegex = /^[a-zA-Z0-9_.-]+$/;
+          if (!argv['secret-name'].match(secretNameRegex)) {
+            throw new AmplifyUserError('InvalidCommandInputError', {
+              message: `Invalid secret name provided: ${argv['secret-name']}`,
+              resolution: 'Use a secret name that matches [a-zA-Z0-9_.-]+',
+            });
+          }
+        }
+        return true;
+      });
   };
 
   /**

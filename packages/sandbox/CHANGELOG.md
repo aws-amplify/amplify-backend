@@ -1,5 +1,117 @@
 # @aws-amplify/sandbox
 
+## 1.2.9
+
+### Patch Changes
+
+- a7506f9: wraps no outputs found error from backend output client
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/client-config@1.5.5
+  - @aws-amplify/backend-deployer@1.1.13
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.2.8
+
+### Patch Changes
+
+- 3cf0738: do not stream function logs if stack does not exist
+- Updated dependencies [dedcc27]
+- Updated dependencies [95942c5]
+- Updated dependencies [1eced2c]
+- Updated dependencies [3cf0738]
+- Updated dependencies [f679cf6]
+- Updated dependencies [f193105]
+  - @aws-amplify/backend-deployer@1.1.12
+  - @aws-amplify/platform-core@1.4.0
+  - @aws-amplify/deployed-backend-client@1.5.0
+  - @aws-amplify/client-config@1.5.4
+
+## 1.2.7
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [1593ce8]
+- Updated dependencies [a406263]
+- Updated dependencies [37d8564]
+- Updated dependencies [cfdc854]
+- Updated dependencies [d66ab17]
+- Updated dependencies [5a47d21]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [65abf6a]
+- Updated dependencies [0a360fb]
+- Updated dependencies [6015595]
+- Updated dependencies [daaedb6]
+- Updated dependencies [0cf5c26]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/backend-deployer@1.1.11
+  - @aws-amplify/platform-core@1.3.0
+  - @aws-amplify/client-config@1.5.3
+  - @aws-amplify/plugin-types@1.6.0
+  - @aws-amplify/cli-core@1.2.1
+
+## 1.2.6
+
+### Patch Changes
+
+- 8c8fc5e: Print bootstrap url when browser cannot be opened
+- Updated dependencies [f1db886]
+- Updated dependencies [71ef398]
+  - @aws-amplify/plugin-types@1.5.0
+  - @aws-amplify/platform-core@1.2.1
+
+## 1.2.5
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+  - @aws-amplify/backend-deployer@1.1.8
+
+## 1.2.4
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [c3c3057]
+- Updated dependencies [b56d344]
+  - @aws-amplify/cli-core@1.2.0
+  - @aws-amplify/backend-deployer@1.1.6
+  - @aws-amplify/client-config@1.5.1
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.2.3
+
+### Patch Changes
+
+- 0a5e51c: Stream conversation logs in sandbox
+
+## 1.2.2
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- 0ff73ec: add ExpiredToken in the list of credentials error
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [e648e8e]
+- Updated dependencies [0ff73ec]
+- Updated dependencies [c9c873c]
+- Updated dependencies [cbac105]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/deployed-backend-client@1.4.1
+  - @aws-amplify/backend-deployer@1.1.3
+  - @aws-amplify/backend-secret@1.1.2
+  - @aws-amplify/client-config@1.3.1
+  - @aws-amplify/plugin-types@1.2.2
+  - @aws-amplify/cli-core@1.1.3
+
 ## 1.2.1
 
 ### Patch Changes

@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import { SecretClient } from '@aws-amplify/backend-secret';
+import { SecretClient, getSecretClient } from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
@@ -17,12 +17,13 @@ import {
 import { HeadBucketCommand, S3Client } from '@aws-sdk/client-s3';
 import { GetRoleCommand, IAMClient } from '@aws-sdk/client-iam';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
+
 import {
-  DeleteMessageCommand,
-  ReceiveMessageCommand,
-  SQSClient,
-} from '@aws-sdk/client-sqs';
+  CloudTrailClient,
+  LookupEventsCommand,
+} from '@aws-sdk/client-cloudtrail';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import isMatch from 'lodash.ismatch';
 
 /**
  * Creates test projects with data, storage, and auth categories.
@@ -36,14 +37,26 @@ export class DataStorageAuthWithTriggerTestProjectCreator
    * Creates project creator.
    */
   constructor(
-    private readonly cfnClient: CloudFormationClient,
-    private readonly amplifyClient: AmplifyClient,
-    private readonly secretClient: SecretClient,
-    private readonly lambdaClient: LambdaClient,
-    private readonly s3Client: S3Client,
-    private readonly iamClient: IAMClient,
-    private readonly sqsClient: SQSClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
+      e2eToolingClientConfig
+    ),
+    private readonly amplifyClient: AmplifyClient = new AmplifyClient(
+      e2eToolingClientConfig
+    ),
+    private readonly secretClient: SecretClient = getSecretClient(
+      e2eToolingClientConfig
+    ),
+    private readonly lambdaClient: LambdaClient = new LambdaClient(
+      e2eToolingClientConfig
+    ),
+    private readonly s3Client: S3Client = new S3Client(e2eToolingClientConfig),
+    private readonly iamClient: IAMClient = new IAMClient(
+      e2eToolingClientConfig
+    ),
+    private readonly cloudTrailClient: CloudTrailClient = new CloudTrailClient(
+      e2eToolingClientConfig
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -60,7 +73,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
       this.lambdaClient,
       this.s3Client,
       this.iamClient,
-      this.sqsClient,
+      this.cloudTrailClient,
       this.resourceFinder
     );
     await fs.cp(
@@ -80,7 +93,7 @@ export class DataStorageAuthWithTriggerTestProjectCreator
  */
 class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
   // Note that this is pointing to the non-compiled project directory
-  // This allows us to test that we are able to deploy js, cjs, ts, etc without compiling with tsc first
+  // This allows us to test that we are able to deploy js, cjs, ts, etc. without compiling with tsc first
   readonly sourceProjectRootPath =
     '../../src/test-projects/data-storage-auth-with-triggers-ts';
 
@@ -126,7 +139,7 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     private readonly lambdaClient: LambdaClient,
     private readonly s3Client: S3Client,
     private readonly iamClient: IAMClient,
-    private readonly sqsClient: SQSClient,
+    private readonly cloudTrailClient: CloudTrailClient,
     private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(
@@ -150,10 +163,12 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         ? environment[amplifySharedSecretNameKey]
         : createAmplifySharedSecretName();
     const { region } = e2eToolingClientConfig;
-    const env = {
+    const env: Record<string, string> = {
       [amplifySharedSecretNameKey]: this.amplifySharedSecret,
-      AWS_REGION: region ?? '',
     };
+    if (region) {
+      env.AWS_REGION = region;
+    }
 
     await this.setUpDeployEnvironment(backendIdentifier);
     await super.deploy(backendIdentifier, env);
@@ -212,29 +227,8 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       (name) => name.includes('node16Function')
     );
 
-    const funcWithSsm = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::Lambda::Function',
-      (name) => name.includes('funcWithSsm')
-    );
-
-    const funcWithAwsSdk = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::Lambda::Function',
-      (name) => name.includes('funcWithAwsSdk')
-    );
-
-    const funcWithSchedule = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::Lambda::Function',
-      (name) => name.includes('funcWithSchedule')
-    );
-
     assert.equal(defaultNodeLambda.length, 1);
     assert.equal(node16Lambda.length, 1);
-    assert.equal(funcWithSsm.length, 1);
-    assert.equal(funcWithAwsSdk.length, 1);
-    assert.equal(funcWithSchedule.length, 1);
 
     const expectedResponse = {
       s3TestContent: 'this is some test content',
@@ -245,10 +239,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
     await this.checkLambdaResponse(defaultNodeLambda[0], expectedResponse);
     await this.checkLambdaResponse(node16Lambda[0], expectedResponse);
-    await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
-    await this.checkLambdaResponse(funcWithAwsSdk[0], 'It is working');
-
-    await this.assertScheduleInvokesFunction(backendId);
 
     const bucketName = await this.resourceFinder.findByBackendIdentifier(
       backendId,
@@ -298,6 +288,46 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
     );
     assert.ok(fileContent.includes('newKey: string;')); // Env var added via addEnvironment
     assert.ok(fileContent.includes('TEST_SECRET: string;')); // Env var added via defineFunction
+
+    // assert specific config are correct in the outputs file
+    const outputsObject = JSON.parse(
+      await fs.readFile(
+        path.join(this.projectDirPath, 'amplify_outputs.json'),
+        'utf-8'
+      )
+    );
+    assert.ok(
+      isMatch(outputsObject.storage.buckets[0].paths, {
+        'public/*': {
+          guest: ['get', 'list'],
+          authenticated: ['get', 'list', 'write'],
+          groupsAdmins: ['get', 'list', 'write', 'delete'],
+        },
+        'protected/*': {
+          authenticated: ['get', 'list'],
+          groupsAdmins: ['get', 'list', 'write', 'delete'],
+        },
+        'protected/${cognito-identity.amazonaws.com:sub}/*': {
+          // eslint-disable-next-line spellcheck/spell-checker
+          entityidentity: ['get', 'list', 'write', 'delete'],
+        },
+      })
+    );
+
+    assert.ok(
+      isMatch(outputsObject.auth.groups, [
+        {
+          Editors: {
+            precedence: 2, // previously 0 but was overwritten
+          },
+        },
+        {
+          Admins: {
+            precedence: 1,
+          },
+        },
+      ])
+    );
   }
 
   private getUpdateReplacementDefinition = (suffix: string) => ({
@@ -364,21 +394,42 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
 
   /**
    * There is some eventual consistency between deleting a bucket and when HeadBucket returns NotFound
-   * So we are polling HeadBucket until it returns NotFound or until we time out (after 30 seconds)
+   * So we are polling HeadBucket and CloudTrail events
+   * until it returns NotFound or until we time out (after 3 minutes)
    */
   private waitForBucketDeletion = async (bucketName: string): Promise<void> => {
-    const TIMEOUT_MS = 1000 * 30; // 30 seconds
+    // Poll for 3 minutes.
+    // If HeadBucket doesn't become eventually consistent then
+    // there's at least pretty good chance that BucketDelete event
+    // managed to arrive at CloudTrail.
+    const TIMEOUT_MS = 1000 * 60 * 3;
     const startTime = Date.now();
 
-    while (Date.now() - startTime < TIMEOUT_MS) {
+    let elapsedTimeMs = 0;
+    let pollingIntervalMs = 1000;
+    do {
       const bucketExists = await this.checkBucketExists(bucketName);
       if (!bucketExists) {
         // bucket has been deleted
         return;
       }
-      // wait a second before polling again
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
+      // Start querying Cloud Trail after a minute.
+      // So that we don't burn down request quota unnecessarily.
+      if (elapsedTimeMs >= 1000 * 60) {
+        // Bump polling interval to wait 10 seconds before polling again.
+        // Cloud trail has low TPS quota.
+        pollingIntervalMs = 10000;
+        const deleteBucketEventArrived =
+          await this.checkIfDeleteBucketEventArrived(bucketName);
+        if (deleteBucketEventArrived) {
+          // bucket has been deleted
+          return;
+        }
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, pollingIntervalMs));
+      elapsedTimeMs = Date.now() - startTime;
+    } while (elapsedTimeMs < TIMEOUT_MS);
     assert.fail(`Timed out waiting for ${bucketName} to be deleted`);
   };
 
@@ -389,6 +440,39 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
       return true;
     } catch (err) {
       if (err instanceof Error && err.name === 'NotFound') {
+        return false;
+      }
+      throw err;
+    }
+  };
+
+  private checkIfDeleteBucketEventArrived = async (
+    bucketName: string
+  ): Promise<boolean> => {
+    try {
+      const lookupEventsResponse = await this.cloudTrailClient.send(
+        new LookupEventsCommand({
+          LookupAttributes: [
+            {
+              AttributeKey: 'EventName',
+              AttributeValue: 'DeleteBucket',
+            },
+            {
+              AttributeKey: 'ResourceType',
+              AttributeValue: 'AWS::S3::Bucket',
+            },
+            {
+              AttributeKey: 'ResourceName',
+              AttributeValue: bucketName,
+            },
+          ],
+        })
+      );
+      return (lookupEventsResponse.Events?.length ?? 0) > 0;
+    } catch (err) {
+      if (err instanceof Error && err.name === 'ThrottlingException') {
+        // This is a best effort check.
+        // If we get throttled pretend that we haven't seen event yet.
         return false;
       }
       throw err;
@@ -442,44 +526,6 @@ class DataStorageAuthWithTriggerTestProject extends TestProjectBase {
         return false;
       }
       throw err;
-    }
-  };
-
-  private assertScheduleInvokesFunction = async (
-    backendId: BackendIdentifier
-  ) => {
-    const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
-    const startTime = Date.now();
-    let messageCount = 0;
-
-    const queue = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::SQS::Queue',
-      (name) => name.includes('testFuncQueue')
-    );
-
-    // wait for schedule to invoke the function one time for it to send a message
-    while (Date.now() - startTime < TIMEOUT_MS && messageCount < 1) {
-      const response = await this.sqsClient.send(
-        new ReceiveMessageCommand({
-          QueueUrl: queue[0],
-          WaitTimeSeconds: 20,
-        })
-      );
-
-      if (response.Messages) {
-        messageCount += response.Messages.length;
-
-        // delete messages afterwards
-        for (const message of response.Messages) {
-          await this.sqsClient.send(
-            new DeleteMessageCommand({
-              QueueUrl: queue[0],
-              ReceiptHandle: message.ReceiptHandle,
-            })
-          );
-        }
-      }
     }
   };
 }

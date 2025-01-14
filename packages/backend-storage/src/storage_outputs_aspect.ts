@@ -7,6 +7,7 @@ import { BackendOutputStorageStrategy } from '@aws-amplify/plugin-types';
 import { IAspect, Stack } from 'aws-cdk-lib';
 import { IConstruct } from 'constructs';
 import { AmplifyStorage } from './construct.js';
+import { StorageAccessDefinitionOutput } from './private_types.js';
 
 /**
  * Aspect to store the storage outputs in the backend
@@ -95,16 +96,22 @@ export class StorageOutputsAspect implements IAspect {
         },
       });
     }
-
+    const bucketsPayload: Record<
+      string,
+      string | StorageAccessDefinitionOutput
+    > = {
+      name: node.name,
+      bucketName: node.resources.bucket.bucketName,
+      storageRegion: Stack.of(node).region,
+    };
+    if (node.accessDefinition) {
+      bucketsPayload.paths = node.accessDefinition;
+    }
     // both default and non-default buckets should have the name, bucket name, and storage region stored in `buckets` field
     outputStorageStrategy.appendToBackendOutputList(storageOutputKey, {
       version: '1',
       payload: {
-        buckets: JSON.stringify({
-          name: node.name,
-          bucketName: node.resources.bucket.bucketName,
-          storageRegion: Stack.of(node).region,
-        }),
+        buckets: JSON.stringify(bucketsPayload),
       },
     });
   };

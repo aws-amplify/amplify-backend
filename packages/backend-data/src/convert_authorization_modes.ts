@@ -20,6 +20,7 @@ import {
 import {
   AuthResources,
   ConstructFactoryGetInstanceProps,
+  ReferenceAuthResources,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
@@ -38,14 +39,14 @@ export type ProvidedAuthConfig = {
  * Function instance provider which uses the
  */
 export const buildConstructFactoryProvidedAuthConfig = (
-  authResourceProvider: ResourceProvider<AuthResources> | undefined
+  authResourceProvider:
+    | ResourceProvider<AuthResources | ReferenceAuthResources>
+    | undefined
 ): ProvidedAuthConfig | undefined => {
   if (!authResourceProvider) return;
-
   return {
     userPool: authResourceProvider.resources.userPool,
-    identityPoolId:
-      authResourceProvider.resources.cfnResources.cfnIdentityPool.ref,
+    identityPoolId: authResourceProvider.resources.identityPoolId,
     authenticatedUserRole:
       authResourceProvider.resources.authenticatedUserIamRole,
     unauthenticatedUserRole:
@@ -59,7 +60,7 @@ export const buildConstructFactoryProvidedAuthConfig = (
 const convertApiKeyAuthConfigToCDK = ({
   description,
   expiresInDays = DEFAULT_API_KEY_EXPIRATION_DAYS,
-}: ApiKeyAuthorizationModeProps): CDKApiKeyAuthorizationConfig => ({
+}: ApiKeyAuthorizationModeProps = {}): CDKApiKeyAuthorizationConfig => ({
   description,
   expires: Duration.days(expiresInDays),
 });
@@ -206,9 +207,12 @@ export const convertAuthorizationModesToCDK = (
   const cdkAuthorizationMode = convertAuthorizationModeToCDK(
     defaultAuthorizationMode
   );
-  const apiKeyConfig = authModes?.apiKeyAuthorizationMode
-    ? convertApiKeyAuthConfigToCDK(authModes.apiKeyAuthorizationMode)
-    : computeApiKeyAuthFromResource(authResources, authModes);
+  const apiKeyConfig =
+    authModes?.apiKeyAuthorizationMode ||
+    // If default auth mode is apiKey, don't require apiKeyAuthorizationMode to be defined
+    defaultAuthorizationMode === 'apiKey'
+      ? convertApiKeyAuthConfigToCDK(authModes?.apiKeyAuthorizationMode)
+      : computeApiKeyAuthFromResource(authResources, authModes);
   const userPoolConfig = computeUserPoolAuthFromResource(authResources);
   const identityPoolConfig = computeIdentityPoolAuthFromResource(authResources);
   const lambdaConfig = authModes?.lambdaAuthorizationMode

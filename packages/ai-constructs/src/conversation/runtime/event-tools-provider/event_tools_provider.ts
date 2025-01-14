@@ -1,6 +1,7 @@
 import { ConversationTurnEvent, ExecutableTool } from '../types';
 import { GraphQlTool } from './graphql_tool';
 import { GraphQlQueryFactory } from './graphql_query_factory';
+import { UserAgentProvider } from '../user_agent_provider';
 
 /**
  * Creates executable tools from definitions in conversation turn event.
@@ -28,7 +29,8 @@ export class ConversationTurnEventToolsProvider {
         inputSchema,
         graphqlApiEndpoint,
         query,
-        this.event.request.headers.authorization
+        this.event.request.headers.authorization,
+        new UserAgentProvider(this.event)
       );
     });
     return tools ?? [];

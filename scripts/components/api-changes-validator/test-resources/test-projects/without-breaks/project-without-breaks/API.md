@@ -79,4 +79,15 @@ export type SampleTypeUsingClass = {
 export type SampleTypeThatReferencesFunction<T extends typeof someFunction1> = {
   sampleProperty: T;
 };
+
+// This type is intentionally different from what's in sources
+export type SampleIgnoredType = {
+  someProperty: string;
+};
+
+export const sampleTypePredicate: (input: unknown) => input is SampleType;
+
+export class SampleClassWithTypePredicate {
+  static sampleTypePredicate: (input: unknown) => input is SampleType;
+}
 ```

@@ -21,8 +21,13 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { IAMClient } from '@aws-sdk/client-iam';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import { DataStorageAuthWithTriggerTestProjectCreator } from '../test-project-setup/data_storage_auth_with_triggers.js';
-import { SQSClient } from '@aws-sdk/client-sqs';
 import { setupDeployedBackendClient } from '../test-project-setup/setup_deployed_backend_client.js';
+import { CloudTrailClient } from '@aws-sdk/client-cloudtrail';
+
+/**
+ * This E2E test is to check whether current (aka latest) repository content introduces breaking changes
+ * for our deployed backend client to read outputs.
+ */
 
 // Different root test dir to avoid race conditions with e2e deployment tests
 const rootTestDir = fileURLToPath(
@@ -34,12 +39,12 @@ void describe(
   { concurrency: testConcurrencyLevel },
   () => {
     const cfnClient = new CloudFormationClient(e2eToolingClientConfig);
+    const cloudTrailClient = new CloudTrailClient(e2eToolingClientConfig);
     const amplifyClient = new AmplifyClient(e2eToolingClientConfig);
     const secretClient = getSecretClient(e2eToolingClientConfig);
     const lambdaClient = new LambdaClient(e2eToolingClientConfig);
     const s3Client = new S3Client(e2eToolingClientConfig);
     const iamClient = new IAMClient(e2eToolingClientConfig);
-    const sqsClient = new SQSClient(e2eToolingClientConfig);
     const resourceFinder = new DeployedResourcesFinder(cfnClient);
     const dataStorageAuthWithTriggerTestProjectCreator =
       new DataStorageAuthWithTriggerTestProjectCreator(
@@ -49,7 +54,7 @@ void describe(
         lambdaClient,
         s3Client,
         iamClient,
-        sqsClient,
+        cloudTrailClient,
         resourceFinder
       );
 
@@ -83,7 +88,6 @@ void describe(
 
       await testProject.deploy(branchBackendIdentifier, sharedSecretsEnv);
       await testProject.assertPostDeployment(branchBackendIdentifier);
-
       await testProject.assertDeployedClientOutputs(branchBackendIdentifier);
     });
   }

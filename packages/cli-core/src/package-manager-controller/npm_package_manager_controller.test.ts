@@ -5,6 +5,7 @@ import assert from 'assert';
 import { execa } from 'execa';
 import { NpmPackageManagerController } from './npm_package_manager_controller.js';
 import { executeWithDebugLogger } from './execute_with_debugger_logger.js';
+import { LockFileReader } from './lock-file-reader/types.js';
 
 void describe('NpmPackageManagerController', () => {
   const fspMock = {
@@ -122,6 +123,66 @@ void describe('NpmPackageManagerController', () => {
       await npmPackageManagerController.initializeTsConfig('./amplify');
       assert.equal(executeWithDebugLoggerMock.mock.callCount(), 0);
       assert.equal(fspMock.writeFile.mock.callCount(), 1);
+    });
+  });
+
+  void describe('getDependencies', () => {
+    void it('successfully returns dependency versions', async () => {
+      const existsSyncMock = mock.fn(() => true);
+      const lockFileReaderMock = {
+        getLockFileContentsFromCwd: async () =>
+          Promise.resolve({
+            dependencies: [
+              {
+                name: 'aws-cdk',
+                version: '1.2.3',
+              },
+              {
+                name: 'aws-cdk-lib',
+                version: '12.13.14',
+              },
+              {
+                name: 'test_dep',
+                version: '1.23.45',
+              },
+              {
+                name: 'some_other_dep',
+                version: '12.1.3',
+              },
+            ],
+          }),
+      } as LockFileReader;
+      const npmPackageManagerController = new NpmPackageManagerController(
+        '/testProjectRoot',
+        fspMock as unknown as typeof fsp,
+        pathMock as unknown as typeof path,
+        execaMock as unknown as typeof execa,
+        executeWithDebugLoggerMock as unknown as typeof executeWithDebugLogger,
+        existsSyncMock,
+        lockFileReaderMock
+      );
+      const dependencyVersions =
+        await npmPackageManagerController.tryGetDependencies();
+      const expectedVersions = [
+        {
+          name: 'aws-cdk',
+          version: '1.2.3',
+        },
+        {
+          name: 'aws-cdk-lib',
+          version: '12.13.14',
+        },
+        {
+          name: 'test_dep',
+          version: '1.23.45',
+        },
+        {
+          name: 'some_other_dep',
+          version: '12.1.3',
+        },
+      ];
+
+      assert.deepEqual(dependencyVersions, expectedVersions);
     });
   });
 });

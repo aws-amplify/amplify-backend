@@ -8,6 +8,11 @@
  */
 export const bedrockModelId = 'anthropic.claude-3-haiku-20240307-v1:0';
 
-export const expectedTemperatureInProgrammaticToolScenario = 75;
+export const expectedTemperaturesInProgrammaticToolScenario = {
+  Seattle: 75,
+  Boston: 58,
+};
 
 export const expectedTemperatureInDataToolScenario = 85;
+
+export const expectedRandomNumber = 42;

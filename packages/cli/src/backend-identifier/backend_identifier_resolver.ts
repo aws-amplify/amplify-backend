@@ -1,5 +1,7 @@
 import { DeployedBackendIdentifier } from '@aws-amplify/deployed-backend-client';
 import { NamespaceResolver } from './local_namespace_resolver.js';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 export type BackendIdentifierParameters = {
   stack?: string;
@@ -8,9 +10,12 @@ export type BackendIdentifierParameters = {
 };
 
 export type BackendIdentifierResolver = {
-  resolve: (
+  resolveDeployedBackendIdentifier: (
     args: BackendIdentifierParameters
   ) => Promise<DeployedBackendIdentifier | undefined>;
+  resolveBackendIdentifier: (
+    args: BackendIdentifierParameters
+  ) => Promise<BackendIdentifier | undefined>;
 };
 
 /**
@@ -22,7 +27,7 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
    * Instantiates BackendIdentifierResolver
    */
   constructor(private readonly namespaceResolver: NamespaceResolver) {}
-  resolve = async (
+  resolveDeployedBackendIdentifier = async (
     args: BackendIdentifierParameters
   ): Promise<DeployedBackendIdentifier | undefined> => {
     if (args.stack) {
@@ -39,6 +44,27 @@ export class AppBackendIdentifierResolver implements BackendIdentifierResolver {
         branchName: args.branch,
       };
     }
+    return undefined;
+  };
+  resolveBackendIdentifier = async (
+    args: BackendIdentifierParameters
+  ): Promise<BackendIdentifier | undefined> => {
+    if (args.stack) {
+      return BackendIdentifierConversions.fromStackName(args.stack);
+    } else if (args.appId && args.branch) {
+      return {
+        namespace: args.appId,
+        name: args.branch,
+        type: 'branch',
+      };
+    } else if (args.branch) {
+      return {
+        namespace: await this.namespaceResolver.resolve(),
+        name: args.branch,
+        type: 'branch',
+      };
+    }
+
     return undefined;
   };
 }

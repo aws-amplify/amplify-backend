@@ -1,5 +1,34 @@
 # @aws-amplify/deployed-backend-client
 
+## 1.5.0
+
+### Minor Changes
+
+- 3cf0738: update detection of BackendOutputClientErrors
+
+### Patch Changes
+
+- Updated dependencies [95942c5]
+- Updated dependencies [f679cf6]
+- Updated dependencies [f193105]
+  - @aws-amplify/platform-core@1.4.0
+
+## 1.4.2
+
+### Patch Changes
+
+- fdf28bd: fix: detect deploymentType from Stack Tags
+
+## 1.4.1
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [8dd7286]
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.4.0
 
 ### Minor Changes

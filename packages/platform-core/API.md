@@ -5,9 +5,23 @@
 ```ts
 
 import { AppId } from '@aws-amplify/plugin-types';
+import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
+import { Dependency } from '@aws-amplify/plugin-types';
+import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
+import { LogLevel } from '@aws-amplify/plugin-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import z from 'zod';
+
+declare namespace __export__cdk {
+    export {
+        LogLevelConverter,
+        LogRetentionConverter
+    }
+}
+export { __export__cdk }
 
 // @public
 export abstract class AmplifyError<T extends string = string> extends Error {
@@ -21,9 +35,10 @@ export abstract class AmplifyError<T extends string = string> extends Error {
     // (undocumented)
     readonly details?: string;
     // (undocumented)
-    static fromError: (error: unknown) => AmplifyError<'UnknownFault' | 'CredentialsError' | 'InvalidCommandInputError' | 'DomainNotFoundError' | 'SyntaxError'>;
+    static fromError: (error: unknown) => AmplifyError;
     // (undocumented)
     static fromStderr: (_stderr: string) => AmplifyError | undefined;
+    static isAmplifyError: (error: unknown) => error is AmplifyError<string>;
     // (undocumented)
     readonly link?: string;
     // (undocumented)
@@ -121,6 +136,25 @@ export class FilePathExtractor {
 export type LocalConfigurationFileName = 'usage_data_preferences.json';
 
 // @public
+class LogLevelConverter {
+    // (undocumented)
+    toCDKAppsyncFieldLogLevel: (logLevel: LogLevel | undefined) => FieldLogLevel | undefined;
+    // (undocumented)
+    toCDKLambdaApplicationLogLevel: (logLevel: LogLevel | undefined) => ApplicationLogLevel | undefined;
+}
+
+// @public
+class LogRetentionConverter {
+    // (undocumented)
+    toCDKRetentionDays: (retention: LogRetention | undefined) => RetentionDays | undefined;
+}
+
+// @public
+export class NamingConverter {
+    toScreamingSnakeCase(input: string): string;
+}
+
+// @public
 export class ObjectAccumulator<T> {
     constructor(accumulator: DeepPartialAmplifyGeneratedConfigs<T>, versionKey?: string);
     accumulate: (part: DeepPartialAmplifyGeneratedConfigs<T>) => ObjectAccumulator<T>;
@@ -197,7 +231,7 @@ export type UsageDataEmitter = {
 
 // @public
 export class UsageDataEmitterFactory {
-    getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
+    getInstance: (libraryVersion: string, dependencies?: Array<Dependency>) => Promise<UsageDataEmitter>;
 }
 
 // (No @packageDocumentation comment for this package)

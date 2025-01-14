@@ -3,6 +3,7 @@
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
   "references": [
     { "path": "../auth-construct" },
+    { "path": "../backend-output-schemas" },
     { "path": "../backend-output-storage" },
     { "path": "../plugin-types" },
     { "path": "../backend-platform-test-stubs" },

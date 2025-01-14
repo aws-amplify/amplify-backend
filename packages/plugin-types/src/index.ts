@@ -20,3 +20,7 @@ export * from './deep_partial.js';
 export * from './stable_backend_identifiers.js';
 export * from './resource_name_validator.js';
 export * from './aws_client_provider.js';
+export * from './stack_provider.js';
+export * from './amplify_resource_group_name.js';
+export * from './log_level.js';
+export * from './log_retention.js';

@@ -1,4 +1,4 @@
-import { afterEach, describe, mock, test } from 'node:test';
+import { after, afterEach, before, describe, mock, test } from 'node:test';
 import assert from 'node:assert';
 import { DefaultUsageDataEmitter } from './usage_data_emitter';
 import { v4, validate } from 'uuid';
@@ -12,10 +12,31 @@ import { UsageData } from './usage_data';
 import isCI from 'is-ci';
 import { AmplifyError, AmplifyUserError } from '..';
 
+const originalNpmUserAgent = process.env.npm_config_user_agent;
+const testNpmUserAgent = 'testNpmUserAgent';
+
 void describe('UsageDataEmitter', () => {
   let usageDataEmitter: DefaultUsageDataEmitter;
 
   const testLibraryVersion = '1.2.3';
+  const testDependencies = [
+    {
+      name: 'aws-cdk',
+      version: '1.2.3',
+    },
+    {
+      name: 'aws-cdk-lib',
+      version: '12.13.14',
+    },
+    {
+      name: 'test-dep',
+      version: '1.2.4',
+    },
+    {
+      name: 'some_other_dep',
+      version: '12.12.14',
+    },
+  ];
   const testURL = url.parse('https://aws.amazon.com/amplify/');
   const onReqEndMock = mock.fn();
   const onReqWriteMock = mock.fn();
@@ -38,6 +59,14 @@ void describe('UsageDataEmitter', () => {
   } as AccountIdFetcher;
 
   mock.method(https, 'request', () => reqMock);
+
+  before(() => {
+    process.env.npm_config_user_agent = testNpmUserAgent;
+  });
+
+  after(() => {
+    process.env.npm_config_user_agent = originalNpmUserAgent;
+  });
 
   afterEach(() => {
     onReqEndMock.mock.resetCalls();
@@ -72,10 +101,27 @@ void describe('UsageDataEmitter', () => {
     assert.deepStrictEqual(usageDataSent.isCi, isCI);
     assert.deepStrictEqual(usageDataSent.osPlatform, os.platform());
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
+    assert.deepStrictEqual(
+      usageDataSent.projectSetting.editor,
+      testNpmUserAgent
+    );
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
     assert.ok(usageDataSent.error == undefined);
     assert.ok(usageDataSent.downstreamException == undefined);
+    assert.deepStrictEqual(
+      usageDataSent.projectSetting.details,
+      JSON.stringify([
+        {
+          name: 'aws-cdk',
+          version: '1.2.3',
+        },
+        {
+          name: 'aws-cdk-lib',
+          version: '12.13.14',
+        },
+      ])
+    );
   });
 
   void test('happy case, emitFailure generates and send correct usage data', async () => {
@@ -105,6 +151,10 @@ void describe('UsageDataEmitter', () => {
     assert.deepStrictEqual(usageDataSent.isCi, isCI);
     assert.deepStrictEqual(usageDataSent.osPlatform, os.platform());
     assert.deepStrictEqual(usageDataSent.osRelease, os.release());
+    assert.deepStrictEqual(
+      usageDataSent.projectSetting.editor,
+      testNpmUserAgent
+    );
     assert.ok(validate(usageDataSent.sessionUuid));
     assert.ok(validate(usageDataSent.installationUuid));
     assert.strictEqual(usageDataSent.error?.message, 'some error message');
@@ -136,6 +186,7 @@ void describe('UsageDataEmitter', () => {
 
     usageDataEmitter = new DefaultUsageDataEmitter(
       testLibraryVersion,
+      testDependencies,
       v4(),
       testURL,
       accountIdFetcherMock

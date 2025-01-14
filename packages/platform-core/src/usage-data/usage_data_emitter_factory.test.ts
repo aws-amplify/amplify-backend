@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { beforeEach, describe, it, mock } from 'node:test';
+import { after, before, beforeEach, describe, it, mock } from 'node:test';
 
 import { UsageDataEmitterFactory } from './usage_data_emitter_factory';
 import { DefaultUsageDataEmitter } from './usage_data_emitter';
@@ -21,6 +21,19 @@ void describe('UsageDataEmitterFactory', () => {
     () => mockedConfigController
   );
 
+  const originalAmplifyDisableTelemetry =
+    process.env['AMPLIFY_DISABLE_TELEMETRY'];
+
+  before(() => {
+    // Unset AMPLIFY_DISABLE_TELEMETRY. We may be setting this variable in GitHub workflows.
+    delete process.env['AMPLIFY_DISABLE_TELEMETRY'];
+  });
+
+  after(() => {
+    // Restore original value after tests.
+    process.env['AMPLIFY_DISABLE_TELEMETRY'] = originalAmplifyDisableTelemetry;
+  });
+
   beforeEach(() => {
     configControllerGet.mock.resetCalls();
   });
@@ -28,7 +41,8 @@ void describe('UsageDataEmitterFactory', () => {
   void it('returns DefaultUsageDataEmitter by default', async () => {
     configControllerGet.mock.mockImplementationOnce(() => undefined);
     const dataEmitter = await new UsageDataEmitterFactory().getInstance(
-      '0.0.0'
+      '0.0.0',
+      []
     );
     assert.strictEqual(configControllerGet.mock.callCount(), 1);
     assert.strictEqual(dataEmitter instanceof DefaultUsageDataEmitter, true);
@@ -38,7 +52,8 @@ void describe('UsageDataEmitterFactory', () => {
     configControllerGet.mock.mockImplementationOnce(() => undefined);
     process.env['AMPLIFY_DISABLE_TELEMETRY'] = '1';
     const dataEmitter = await new UsageDataEmitterFactory().getInstance(
-      '0.0.0'
+      '0.0.0',
+      []
     );
     assert.strictEqual(dataEmitter instanceof NoOpUsageDataEmitter, true);
     assert.strictEqual(configControllerGet.mock.callCount(), 1);
@@ -48,7 +63,8 @@ void describe('UsageDataEmitterFactory', () => {
   void it('returns NoOpUsageDataEmitter if local config file exists and reads true', async () => {
     configControllerGet.mock.mockImplementationOnce(() => false);
     const dataEmitter = await new UsageDataEmitterFactory().getInstance(
-      '0.0.0'
+      '0.0.0',
+      []
     );
     assert.strictEqual(configControllerGet.mock.callCount(), 1);
     assert.strictEqual(dataEmitter instanceof NoOpUsageDataEmitter, true);

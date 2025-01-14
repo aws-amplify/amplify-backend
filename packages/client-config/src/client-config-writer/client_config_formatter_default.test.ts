@@ -13,7 +13,7 @@ void describe('client config formatter', () => {
   const sampleIdentityPoolId = 'test_identity_pool_id';
   const sampleUserPoolClientId = 'test_user_pool_client_id';
   const clientConfig: ClientConfig = {
-    version: '1.1',
+    version: '1.3',
     auth: {
       aws_region: sampleRegion,
       identity_pool_id: sampleIdentityPoolId,
@@ -23,7 +23,7 @@ void describe('client config formatter', () => {
   };
 
   const expectedConfigReturned: ClientConfig = {
-    version: '1.1',
+    version: '1.3',
     auth: {
       aws_region: sampleRegion,
       identity_pool_id: sampleIdentityPoolId,
@@ -50,7 +50,7 @@ void describe('client config formatter', () => {
       ClientConfigFormat.DART
     );
 
-    assert.ok(formattedConfig.startsWith("const amplifyConfig = '''"));
+    assert.ok(formattedConfig.startsWith("const amplifyConfig = r'''"));
     assert.ok(
       formattedConfig.includes(JSON.stringify(expectedConfigReturned, null, 2))
     );

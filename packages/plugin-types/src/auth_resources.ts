@@ -52,6 +52,10 @@ export type AuthResources = {
    */
   unauthenticatedUserIamRole: IRole;
   /**
+   * Identity pool Id
+   */
+  identityPoolId: string;
+  /**
    * L1 Cfn Resources, for when dipping down a level of abstraction is desirable.
    */
   cfnResources: AuthCfnResources;
@@ -64,6 +68,43 @@ export type AuthResources = {
        * The generated CfnUserPoolGroup for this group
        */
       cfnUserGroup: CfnUserPoolGroup;
+      /**
+       * The generated Role for this group
+       */
+      role: IRole;
+    };
+  };
+};
+
+/**
+ * Reference auth resources
+ */
+export type ReferenceAuthResources = {
+  /**
+   * The referenced UserPool L2 Resource.
+   */
+  userPool: IUserPool;
+  /**
+   * The referenced UserPoolClient L2 Resource.
+   */
+  userPoolClient: IUserPoolClient;
+  /**
+   * The referenced auth role.
+   */
+  authenticatedUserIamRole: IRole;
+  /**
+   * The referenced unauth role.
+   */
+  unauthenticatedUserIamRole: IRole;
+  /**
+   * Identity pool Id
+   */
+  identityPoolId: string;
+  /**
+   * A map of existing group names and their associated group role.
+   */
+  groups: {
+    [groupName: string]: {
       /**
        * The generated Role for this group
        */

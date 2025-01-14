@@ -1,5 +1,273 @@
 # @aws-amplify/backend
 
+## 1.13.0
+
+### Minor Changes
+
+- 3f521c3: add custom provided function support to define function
+
+### Patch Changes
+
+- c5d54c2: Update getAmplifyDataClient to have strict env type and remove narrowing logic
+- Updated dependencies [c5d54c2]
+- Updated dependencies [3f521c3]
+- Updated dependencies [a712983]
+  - @aws-amplify/backend-function@1.12.0
+  - @aws-amplify/platform-core@1.5.1
+
+## 1.12.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+- a7506f9: adds support for architecture property on defineFunction
+
+### Patch Changes
+
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/client-config@1.5.5
+  - @aws-amplify/backend-function@1.11.0
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/backend-data@1.4.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.11.0
+
+### Minor Changes
+
+- fbf209e: Add GraphQL API ID and Amplify environment name to custom JS resolver stash
+
+### Patch Changes
+
+- 07fe7d4: Allow apiKeyAuthorizationMode to be undefined if defaultAuthorizationMode is apiKey
+- Updated dependencies [07fe7d4]
+- Updated dependencies [fbf209e]
+  - @aws-amplify/backend-data@1.3.0
+
+## 1.10.0
+
+### Minor Changes
+
+- 560878f: updates layer to also use layername:version
+
+### Patch Changes
+
+- Updated dependencies [95942c5]
+- Updated dependencies [3cf0738]
+- Updated dependencies [f679cf6]
+- Updated dependencies [d32e4cd]
+- Updated dependencies [560878f]
+- Updated dependencies [f193105]
+  - @aws-amplify/platform-core@1.4.0
+  - @aws-amplify/client-config@1.5.4
+  - @aws-amplify/backend-function@1.10.0
+  - @aws-amplify/backend-data@1.2.3
+
+## 1.9.0
+
+### Minor Changes
+
+- 5cbe318: Add lambda data client
+- 72b2fe0: Add support to `@aws-amplify/backend-function` for Node 22
+
+  Add support to `@aws-amplify/backend-function` for Node 22, which is a [supported Lambda runtime](https://docs.aws.amazon.com/lambda/latest/dg/lambda-runtimes.html#runtime-deprecation-levels) that was added in [`aws-cdk-lib/aws-lambda` version `2.168.0`](https://github.com/aws/aws-cdk/releases/tag/v2.168.0) on November 20th, 2024
+
+- 65abf6a: Add options to control log settings
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- e0e62bd: Backend Secrets now use a single custom resource to reduce concurrent lambda executions.
+- Updated dependencies [5cbe318]
+- Updated dependencies [cfdc854]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [65abf6a]
+- Updated dependencies [d227f96]
+- Updated dependencies [f6ba240]
+- Updated dependencies [d227f96]
+  - @aws-amplify/backend-function@1.9.0
+  - @aws-amplify/backend-data@1.2.2
+  - @aws-amplify/platform-core@1.3.0
+  - @aws-amplify/backend-output-storage@1.1.4
+  - @aws-amplify/backend-storage@1.2.4
+  - @aws-amplify/client-config@1.5.3
+  - @aws-amplify/backend-auth@1.4.2
+  - @aws-amplify/plugin-types@1.6.0
+
+## 1.8.0
+
+### Minor Changes
+
+- f1db886: add resourceGroupName prop to function
+
+### Patch Changes
+
+- 97697a9: set removal policy for resources to destroy in sandbox deployments
+- Updated dependencies [f1db886]
+- Updated dependencies [71ef398]
+  - @aws-amplify/backend-function@1.8.0
+  - @aws-amplify/backend-storage@1.2.3
+  - @aws-amplify/plugin-types@1.5.0
+  - @aws-amplify/backend-auth@1.4.1
+  - @aws-amplify/backend-data@1.2.1
+  - @aws-amplify/platform-core@1.2.1
+
+## 1.7.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
+### Patch Changes
+
+- 12cf209: update error mapping to catch when Lambda layer ARN regions do not match function region
+- Updated dependencies [90a7c49]
+- Updated dependencies [12cf209]
+  - @aws-amplify/backend-auth@1.4.0
+  - @aws-amplify/backend-data@1.2.0
+  - @aws-amplify/plugin-types@1.4.0
+  - @aws-amplify/backend-function@1.7.5
+
+## 1.6.2
+
+### Patch Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+- Updated dependencies [583a3f2]
+  - @aws-amplify/platform-core@1.2.0
+  - @aws-amplify/backend-data@1.1.7
+
+## 1.6.1
+
+### Patch Changes
+
+- 4e97389: add validation if layer arn region does not match function region
+- Updated dependencies [d0d8d4e]
+- Updated dependencies [4e97389]
+  - @aws-amplify/client-config@1.5.2
+  - @aws-amplify/backend-function@1.7.4
+
+## 1.6.0
+
+### Minor Changes
+
+- 11d62fe: Add support for custom Lambda function email senders in Auth construct
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [11d62fe]
+- Updated dependencies [b56d344]
+  - @aws-amplify/backend-auth@1.3.0
+  - @aws-amplify/backend-output-storage@1.1.3
+  - @aws-amplify/backend-function@1.7.3
+  - @aws-amplify/backend-storage@1.2.2
+  - @aws-amplify/client-config@1.5.1
+  - @aws-amplify/backend-data@1.1.6
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.5.2
+
+### Patch Changes
+
+- 601a2c1: dedupe environment variables in amplify env type generator
+- Updated dependencies [601a2c1]
+  - @aws-amplify/backend-function@1.7.2
+
+## 1.5.1
+
+### Patch Changes
+
+- 5f46d8d: add user groups to outputs
+- Updated dependencies [0d6489d]
+- Updated dependencies [bd4ff4d]
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-data@1.1.5
+  - @aws-amplify/backend-function@1.7.1
+  - @aws-amplify/backend-output-schemas@1.4.0
+  - @aws-amplify/client-config@1.5.0
+
+## 1.5.0
+
+### Minor Changes
+
+- 4720412: Add minify option to defineFunction
+
+### Patch Changes
+
+- Updated dependencies [f87cc87]
+- Updated dependencies [4720412]
+  - @aws-amplify/backend-secret@1.1.4
+  - @aws-amplify/backend-function@1.7.0
+
+## 1.4.0
+
+### Minor Changes
+
+- f5d0ab4: adds support to reference existing layers in defineFunction
+
+### Patch Changes
+
+- Updated dependencies [f5d0ab4]
+  - @aws-amplify/backend-function@1.6.0
+
+## 1.3.2
+
+### Patch Changes
+
+- 0a5e51c: Stream conversation logs in sandbox
+- Updated dependencies [0a5e51c]
+  - @aws-amplify/backend-output-schemas@1.3.0
+
+## 1.3.1
+
+### Patch Changes
+
+- d538ecc: add storage access rules to outputs
+- Updated dependencies [d538ecc]
+  - @aws-amplify/client-config@1.4.0
+  - @aws-amplify/backend-output-schemas@1.2.1
+  - @aws-amplify/backend-storage@1.2.1
+
+## 1.3.0
+
+### Minor Changes
+
+- 87dbf41: expose stack property for backend, function resource, storage resource, and auth resource
+
+### Patch Changes
+
+- Updated dependencies [87dbf41]
+- Updated dependencies [87dbf41]
+  - @aws-amplify/backend-function@1.5.0
+  - @aws-amplify/backend-auth@1.2.0
+  - @aws-amplify/backend-storage@1.2.0
+  - @aws-amplify/plugin-types@1.3.0
+
+## 1.2.2
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- Updated dependencies [ffc3b42]
+- Updated dependencies [e648e8e]
+- Updated dependencies [0ff73ec]
+- Updated dependencies [c9c873c]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/backend-data@1.1.4
+  - @aws-amplify/backend-function@1.4.1
+  - @aws-amplify/backend-storage@1.1.3
+  - @aws-amplify/backend-secret@1.1.2
+  - @aws-amplify/client-config@1.3.1
+  - @aws-amplify/backend-auth@1.1.5
+  - @aws-amplify/backend-output-storage@1.1.2
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.2.1
 
 ### Patch Changes

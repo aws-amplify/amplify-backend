@@ -61,7 +61,15 @@ export const createSandboxCommand = (): CommandModule<
 
   const eventHandlerFactory = new SandboxEventHandlerFactory(
     sandboxBackendIdPartsResolver.resolve,
-    async () => await new UsageDataEmitterFactory().getInstance(libraryVersion)
+    async () => {
+      const dependencies = await new PackageManagerControllerFactory()
+        .getPackageManagerController()
+        .tryGetDependencies();
+      return await new UsageDataEmitterFactory().getInstance(
+        libraryVersion,
+        dependencies
+      );
+    }
   );
 
   const commandMiddleWare = new CommandMiddleware(printer);
@@ -70,7 +78,6 @@ export const createSandboxCommand = (): CommandModule<
     [new SandboxDeleteCommand(sandboxFactory), createSandboxSecretCommand()],
     clientConfigGeneratorAdapter,
     commandMiddleWare,
-    new PackageManagerControllerFactory().getPackageManagerController(),
     eventHandlerFactory.getSandboxEventHandlers
   );
 };

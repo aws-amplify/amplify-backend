@@ -1,4 +1,4 @@
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import assert from 'node:assert';
 import { beforeEach, describe, it } from 'node:test';
 import { App, Duration, Stack } from 'aws-cdk-lib';
@@ -6,10 +6,15 @@ import {
   AmplifyData,
   AmplifyDataDefinition,
 } from '@aws-amplify/data-construct';
-import { resolve } from 'path';
-import { fileURLToPath } from 'url';
-import { convertJsResolverDefinition } from './convert_js_resolvers.js';
+import { join, resolve } from 'path';
+import { tmpdir } from 'os';
+import { fileURLToPath, pathToFileURL } from 'url';
+import {
+  convertJsResolverDefinition,
+  defaultJsResolverCode,
+} from './convert_js_resolvers.js';
 import { a } from '@aws-amplify/data-schema';
+import { writeFileSync } from 'node:fs';
 
 // stub schema for the AmplifyApi construct
 // not relevant to this test suite
@@ -27,6 +32,33 @@ const createStackAndSetContext = (): Stack => {
   const stack = new Stack(app);
   return stack;
 };
+
+void describe('defaultJsResolverCode', () => {
+  void it('returns the default JS resolver code with api id and env name in valid JS', async () => {
+    const code = defaultJsResolverCode('testApiId', 'testEnvName');
+    assert(code.includes("ctx.stash.awsAppsyncApiId = 'testApiId';"));
+    assert(
+      code.includes("ctx.stash.amplifyApiEnvironmentName = 'testEnvName';")
+    );
+
+    const tempDir = tmpdir();
+    const filename = join(tempDir, 'js_resolver_handler.js');
+    writeFileSync(filename, code);
+
+    // windows requires dynamic imports to use file urls
+    const fileUrl = pathToFileURL(filename).href;
+    const resolver = await import(fileUrl);
+    const context = { stash: {}, prev: { result: 'result' } };
+    assert.deepEqual(resolver.request(context), {});
+
+    // assert api id and env name are added to the context stash
+    assert.deepEqual(context.stash, {
+      awsAppsyncApiId: 'testApiId',
+      amplifyApiEnvironmentName: 'testEnvName',
+    });
+    assert.equal(resolver.response(context), 'result');
+  });
+});
 
 void describe('convertJsResolverDefinition', () => {
   let stack: Stack;
@@ -157,5 +189,53 @@ void describe('convertJsResolverDefinition', () => {
     });
 
     template.resourceCountIs('AWS::AppSync::Resolver', 1);
+  });
+
+  void it('adds api id and environment name to stash', () => {
+    const absolutePath = resolve(
+      fileURLToPath(import.meta.url),
+      '../../lib/assets',
+      'js_resolver_handler.js'
+    );
+
+    const schema = a.schema({
+      customQuery: a
+        .query()
+        .authorization((allow) => allow.publicApiKey())
+        .returns(a.string())
+        .handler(
+          a.handler.custom({
+            entry: absolutePath,
+          })
+        ),
+    });
+    const { jsFunctions } = schema.transform();
+    convertJsResolverDefinition(stack, amplifyApi, jsFunctions);
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::AppSync::Resolver', {
+      Runtime: {
+        Name: 'APPSYNC_JS',
+        RuntimeVersion: '1.0.0',
+      },
+      Kind: 'PIPELINE',
+      TypeName: 'Query',
+      FieldName: 'customQuery',
+      Code: {
+        'Fn::Join': [
+          '',
+          [
+            "/**\n * Pipeline resolver request handler\n */\nexport const request = (ctx) => {\n    ctx.stash.awsAppsyncApiId = '",
+            {
+              'Fn::GetAtt': [
+                Match.stringLikeRegexp('amplifyDataGraphQLAPI.*'),
+                'ApiId',
+              ],
+            },
+            "';\n    ctx.stash.amplifyApiEnvironmentName = 'NONE';\n    return {};\n};\n/**\n * Pipeline resolver response handler\n */\nexport const response = (ctx) => {\n    return ctx.prev.result;\n};\n",
+          ],
+        ],
+      },
+    });
   });
 });

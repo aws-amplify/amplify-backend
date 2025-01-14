@@ -61,6 +61,7 @@ void describe('Api changes validator', { concurrency: true }, () => {
         latestPackagePath,
         baselinePackageApiReportPath,
         workingDirectory,
+        [],
         'npmLocalLink'
       );
 
@@ -92,6 +93,7 @@ void describe('Api changes validator', { concurrency: true }, () => {
         latestPackagePath,
         baselinePackageApiReportPath,
         workingDirectory,
+        ['SampleIgnoredType'],
         'npmLocalLink'
       );
 

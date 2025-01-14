@@ -1,5 +1,67 @@
 # @aws-amplify/platform-core
 
+## 1.5.1
+
+### Patch Changes
+
+- a712983: Base64 encode serialized Amplify Errors
+
+## 1.5.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+
+### Patch Changes
+
+- a7506f9: add InsufficientMemorySpaceError wrapping
+- Updated dependencies [a7506f9]
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.4.0
+
+### Minor Changes
+
+- f193105: Update getAmplifyDataClientConfig to work with named data backend
+
+### Patch Changes
+
+- 95942c5: expand wrapping of credentials related errors
+- f679cf6: expand handling of getaddrinfo ENOTFOUND errors
+
+## 1.3.0
+
+### Minor Changes
+
+- 65abf6a: Add options to control log settings
+
+### Patch Changes
+
+- cfdc854: return amplify user error as it is from `AmplifyError.fromError`
+- Updated dependencies [72b2fe0]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/plugin-types@1.6.0
+
+## 1.2.2
+
+### Patch Changes
+
+- 249c0e5: Handle insufficient disk space errors
+
+## 1.2.1
+
+### Patch Changes
+
+- 71ef398: Report npm user agent
+- Updated dependencies [f1db886]
+  - @aws-amplify/plugin-types@1.5.0
+
+## 1.2.0
+
+### Minor Changes
+
+- 583a3f2: Fix detection of AmplifyErrors
+
 ## 1.1.0
 
 ### Minor Changes

@@ -8,6 +8,7 @@ import {
   OidcProviderProps,
 } from '@aws-amplify/auth-construct';
 import {
+  AmplifyFunction,
   BackendSecret,
   ConstructFactory,
   ConstructFactoryGetInstanceProps,
@@ -15,6 +16,7 @@ import {
   ResourceAccessAcceptorFactory,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 
 /**
  * This utility allows us to expand nested types in auto complete prompts.
@@ -252,3 +254,11 @@ export type ActionIam =
   | 'updateDeviceStatus'
   | 'updateGroup'
   | 'updateUserAttributes';
+
+/**
+ * CustomEmailSender type for configuring a custom Lambda function for email sending
+ */
+export type CustomEmailSender = {
+  handler: ConstructFactory<AmplifyFunction> | IFunction;
+  kmsKeyArn?: string;
+};

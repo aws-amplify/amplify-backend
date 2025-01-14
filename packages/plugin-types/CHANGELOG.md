@@ -1,5 +1,51 @@
 # @aws-amplify/plugin-types
 
+## 1.7.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+
+## 1.6.0
+
+### Minor Changes
+
+- f6ba240: Upgrade execa
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+
+## 1.5.0
+
+### Minor Changes
+
+- f1db886: add resourceGroupName prop to function
+
+## 1.4.0
+
+### Minor Changes
+
+- 90a7c49: Add support for referenceAuth.
+
+## 1.3.1
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+
+## 1.3.0
+
+### Minor Changes
+
+- 87dbf41: add new type to handle exposing stack
+
+## 1.2.2
+
+### Patch Changes
+
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+
 ## 1.2.1
 
 ### Patch Changes

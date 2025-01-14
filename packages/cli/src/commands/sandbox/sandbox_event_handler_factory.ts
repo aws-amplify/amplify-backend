@@ -64,7 +64,7 @@ export class SandboxEventHandlerFactory {
             return;
           }
           const deployError = args[0];
-          if (deployError && deployError instanceof AmplifyError) {
+          if (deployError && AmplifyError.isAmplifyError(deployError)) {
             await usageDataEmitter.emitFailure(deployError, {
               command: 'Sandbox',
             });

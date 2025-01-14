@@ -1,12 +1,18 @@
 import { existsSync as _existsSync } from 'fs';
 import _fsp from 'fs/promises';
-import { type ExecaChildProcess, type Options, execa as _execa } from 'execa';
+import { execa as _execa } from 'execa';
 import * as _path from 'path';
-import { type PackageManagerController } from '@aws-amplify/plugin-types';
+import {
+  Dependency,
+  ExecaChildProcess,
+  ExecaOptions,
+  type PackageManagerController,
+} from '@aws-amplify/plugin-types';
 import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 import { getPackageManagerRunnerName } from './get_package_manager_name.js';
+import { LockFileReader } from './lock-file-reader/types.js';
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -23,6 +29,7 @@ export abstract class PackageManagerControllerBase
     protected readonly executable: string,
     protected readonly initDefault: string[],
     protected readonly installCommand: string,
+    protected readonly lockFileReader: LockFileReader,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,
@@ -121,7 +128,7 @@ export abstract class PackageManagerControllerBase
   runWithPackageManager(
     args: string[] = [],
     dir: string,
-    options?: Options<'utf8'>
+    options?: ExecaOptions
   ): ExecaChildProcess {
     return this.executeWithDebugLogger(
       dir,
@@ -137,8 +144,19 @@ export abstract class PackageManagerControllerBase
   /**
    * allowsSignalPropagation - Determines if the package manager allows the process
    * signals such as SIGINT to be propagated to the underlying node process.
+   * @deprecated
    */
   allowsSignalPropagation = () => true;
+
+  /**
+   * tryGetDependencies - Tries to retrieve dependency versions from the lock file in the project root
+   */
+  tryGetDependencies = async (): Promise<Array<Dependency> | undefined> => {
+    const lockFileContents =
+      await this.lockFileReader.getLockFileContentsFromCwd();
+
+    return lockFileContents?.dependencies;
+  };
 
   /**
    * Check if a package.json file exists in projectRoot

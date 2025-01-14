@@ -1,5 +1,98 @@
 # @aws-amplify/client-config
 
+## 1.5.5
+
+### Patch Changes
+
+- a7506f9: wraps no outputs found error from backend output client
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/model-generator@1.0.12
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.5.4
+
+### Patch Changes
+
+- 3cf0738: update detection of BackendOutputClientErrors
+- Updated dependencies [95942c5]
+- Updated dependencies [3cf0738]
+- Updated dependencies [f679cf6]
+- Updated dependencies [f193105]
+  - @aws-amplify/platform-core@1.4.0
+  - @aws-amplify/deployed-backend-client@1.5.0
+  - @aws-amplify/model-generator@1.0.10
+
+## 1.5.3
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [cfdc854]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [65abf6a]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/platform-core@1.3.0
+  - @aws-amplify/plugin-types@1.6.0
+
+## 1.5.2
+
+### Patch Changes
+
+- d0d8d4e: Fix a bug where $ sign in dart outputs would fail compilation
+
+## 1.5.1
+
+### Patch Changes
+
+- b56d344: update aws-cdk lib to ^2.158.0
+- Updated dependencies [b56d344]
+  - @aws-amplify/plugin-types@1.3.1
+
+## 1.5.0
+
+### Minor Changes
+
+- 5f46d8d: add user groups to outputs
+
+### Patch Changes
+
+- Updated dependencies [5f46d8d]
+  - @aws-amplify/backend-output-schemas@1.4.0
+
+## 1.4.0
+
+### Minor Changes
+
+- d538ecc: add storage access rules to outputs
+
+### Patch Changes
+
+- Updated dependencies [d538ecc]
+  - @aws-amplify/backend-output-schemas@1.2.1
+
+## 1.3.2
+
+### Patch Changes
+
+- 603b75d: Classify pointing client config generator at metadata-less stack as user error
+
+## 1.3.1
+
+### Patch Changes
+
+- e648e8e: added main field to package.json so these packages are resolvable
+- 8dd7286: fixed errors in plugin-types and cli-core along with any extraneous dependencies in other packages
+- e648e8e: added main field to packages known to lack one
+- Updated dependencies [e648e8e]
+- Updated dependencies [8dd7286]
+- Updated dependencies [e648e8e]
+  - @aws-amplify/deployed-backend-client@1.4.1
+  - @aws-amplify/model-generator@1.0.7
+  - @aws-amplify/plugin-types@1.2.2
+
 ## 1.3.0
 
 ### Minor Changes

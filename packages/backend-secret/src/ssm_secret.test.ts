@@ -1,6 +1,7 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import {
   GetParameterCommandOutput,
+  GetParametersByPathCommandInput,
   GetParametersByPathCommandOutput,
   InternalServerError,
   ParameterNotFound,
@@ -306,6 +307,7 @@ void describe('SSMSecret', () => {
       assert.deepStrictEqual(
         mockGetParametersByPath.mock.calls[0].arguments[0],
         {
+          NextToken: undefined,
           Path: testBranchPath,
           WithDecryption: true,
         }
@@ -337,11 +339,74 @@ void describe('SSMSecret', () => {
       assert.deepStrictEqual(
         mockGetParametersByPath.mock.calls[0].arguments[0],
         {
+          NextToken: undefined,
           Path: testSharedPath,
           WithDecryption: true,
         }
       );
       assert.deepEqual(secrets, [testSecretListItem]);
+    });
+
+    void it('lists all secrets by internally paginating calls', async () => {
+      const mockGetParametersByPath = mock.method(
+        ssmClient,
+        'getParametersByPath',
+        (input: GetParametersByPathCommandInput) => {
+          let nextToken: string | undefined = undefined;
+          if (!input.NextToken) {
+            nextToken = '1';
+          } else if (input.NextToken === '1') {
+            nextToken = '2';
+          } else if (input.NextToken === '2') {
+            nextToken = undefined;
+          }
+          return Promise.resolve({
+            NextToken: nextToken,
+            Parameters: [
+              {
+                Name: testSharedSecretFullNamePath.concat(
+                  input.NextToken ?? ''
+                ),
+                Value: testSecretValue,
+                Version: testSecretVersion,
+                LastModifiedDate: testSecretLastUpdated,
+              },
+            ],
+          } as GetParametersByPathCommandOutput);
+        }
+      );
+
+      const secrets = await ssmSecretClient.listSecrets(testBackendId);
+      assert.deepStrictEqual(mockGetParametersByPath.mock.calls.length, 3);
+      assert.deepStrictEqual(
+        mockGetParametersByPath.mock.calls[0].arguments[0],
+        {
+          NextToken: undefined,
+          Path: testSharedPath,
+          WithDecryption: true,
+        }
+      );
+      assert.deepStrictEqual(
+        mockGetParametersByPath.mock.calls[1].arguments[0],
+        {
+          NextToken: '1',
+          Path: testSharedPath,
+          WithDecryption: true,
+        }
+      );
+      assert.deepStrictEqual(
+        mockGetParametersByPath.mock.calls[2].arguments[0],
+        {
+          NextToken: '2',
+          Path: testSharedPath,
+          WithDecryption: true,
+        }
+      );
+      assert.deepEqual(secrets, [
+        { ...testSecretListItem, name: testSecretName },
+        { ...testSecretListItem, name: testSecretName + '1' },
+        { ...testSecretListItem, name: testSecretName + '2' },
+      ]);
     });
 
     void it('lists an empty list', async () => {
@@ -359,6 +424,7 @@ void describe('SSMSecret', () => {
       assert.deepStrictEqual(
         mockGetParametersByPath.mock.calls[0].arguments[0],
         {
+          NextToken: undefined,
           Path: testBranchPath,
           WithDecryption: true,
         }
