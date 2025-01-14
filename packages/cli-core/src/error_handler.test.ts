@@ -3,63 +3,101 @@ import {
   attachUnhandledExceptionListeners,
   generateCommandFailureHandler,
 } from './error_handler.js';
-import { LogLevel, printer } from '@aws-amplify/cli-core';
+import { Argv } from 'yargs';
+import { LogLevel } from './printer/printer.js';
+import { printer } from './printer.js';
 import assert from 'node:assert';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyUserError, UsageDataEmitter } from '@aws-amplify/platform-core';
 
 const mockPrint = mock.method(printer, 'print');
 const mockLog = mock.method(printer, 'log');
+const mockEmitSuccess = mock.fn();
+const mockEmitFailure = mock.fn();
+
+const usageDataEmitter = {
+  emitSuccess: mockEmitSuccess,
+  emitFailure: mockEmitFailure,
+} as unknown as UsageDataEmitter;
 
 void describe('generateCommandFailureHandler', () => {
+  const mockShowHelp = mock.fn();
+  const mockExit = mock.fn();
+
+  const parser = {
+    showHelp: mockShowHelp,
+    exit: mockExit,
+  } as unknown as Argv;
+
   beforeEach(() => {
     mockPrint.mock.resetCalls();
     mockLog.mock.resetCalls();
+    mockShowHelp.mock.resetCalls();
+    mockExit.mock.resetCalls();
+    mockEmitFailure.mock.resetCalls();
+    mockEmitSuccess.mock.resetCalls();
   });
 
   void it('prints specified message with undefined error', async () => {
     const someMsg = 'some msg';
     // undefined error is encountered with --help option.
-    await generateCommandFailureHandler()(
+    await generateCommandFailureHandler(parser, usageDataEmitter)(
       someMsg,
       undefined as unknown as Error
     );
     assert.equal(mockPrint.mock.callCount(), 1);
+    assert.equal(mockShowHelp.mock.callCount(), 1);
+    assert.equal(mockExit.mock.callCount(), 1);
     assert.match(mockPrint.mock.calls[0].arguments[0], new RegExp(someMsg));
+    assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('prints message from error object', async () => {
     const errMsg = 'some error msg';
-    await generateCommandFailureHandler()('', new Error(errMsg));
+    await generateCommandFailureHandler(parser, usageDataEmitter)(
+      '',
+      new Error(errMsg)
+    );
     assert.equal(mockPrint.mock.callCount(), 1);
+    assert.equal(mockShowHelp.mock.callCount(), 1);
+    assert.equal(mockExit.mock.callCount(), 1);
     assert.match(
       mockPrint.mock.calls[0].arguments[0] as string,
       new RegExp(errMsg)
     );
+    assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('handles a prompt force close error', async () => {
-    await generateCommandFailureHandler()(
+    await generateCommandFailureHandler(parser, usageDataEmitter)(
       '',
       new Error('User force closed the prompt')
     );
+    assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 0);
+    assert.equal(mockEmitFailure.mock.callCount(), 0);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('prints error cause message, if any', async () => {
     const errorMessage = 'this is the upstream cause';
-    await generateCommandFailureHandler()(
+    await generateCommandFailureHandler(parser, usageDataEmitter)(
       '',
       new Error('some error msg', { cause: new Error(errorMessage) })
     );
+    assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 2);
     assert.match(
       mockPrint.mock.calls[1].arguments[0] as string,
       new RegExp(errorMessage)
     );
+    assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('prints AmplifyErrors', async () => {
-    await generateCommandFailureHandler()(
+    await generateCommandFailureHandler(parser, usageDataEmitter)(
       '',
       new AmplifyUserError('TestNameError', {
         message: 'test error message',
@@ -68,6 +106,7 @@ void describe('generateCommandFailureHandler', () => {
       })
     );
 
+    assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockPrint.mock.callCount(), 3);
     assert.match(
       mockPrint.mock.calls[0].arguments[0],
@@ -78,6 +117,8 @@ void describe('generateCommandFailureHandler', () => {
       'Resolution: test resolution'
     );
     assert.equal(mockPrint.mock.calls[2].arguments[0], 'Details: test details');
+    assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
   });
 
   void it('prints debug stack traces', async () => {
@@ -91,8 +132,14 @@ void describe('generateCommandFailureHandler', () => {
       },
       causeError
     );
-    await generateCommandFailureHandler()('', amplifyError);
+    await generateCommandFailureHandler(parser, usageDataEmitter)(
+      '',
+      amplifyError
+    );
+    assert.equal(mockExit.mock.callCount(), 1);
     assert.equal(mockLog.mock.callCount(), 2);
+    assert.equal(mockEmitFailure.mock.callCount(), 1);
+    assert.equal(mockEmitSuccess.mock.callCount(), 0);
     assert.deepStrictEqual(mockLog.mock.calls[0].arguments, [
       amplifyError.stack,
       LogLevel.DEBUG,
@@ -109,11 +156,12 @@ void describe(
   { concurrency: 1 },
   async () => {
     before(async () => {
-      attachUnhandledExceptionListeners();
+      attachUnhandledExceptionListeners(usageDataEmitter);
     });
 
     beforeEach(() => {
       mockPrint.mock.resetCalls();
+      mockEmitFailure.mock.resetCalls();
     });
 
     after(() => {
@@ -132,6 +180,8 @@ void describe(
         ) >= 0
       );
       expectProcessExitCode1AndReset();
+      assert.equal(mockEmitFailure.mock.callCount(), 1);
+      assert.equal(mockEmitSuccess.mock.callCount(), 0);
     });
 
     void it('handles rejected strings', () => {
@@ -145,6 +195,7 @@ void describe(
         ) >= 0
       );
       expectProcessExitCode1AndReset();
+      assert.equal(mockEmitFailure.mock.callCount(), 1);
     });
 
     void it('handles rejected symbols of other types', () => {
@@ -160,6 +211,7 @@ void describe(
         ) >= 0
       );
       expectProcessExitCode1AndReset();
+      assert.equal(mockEmitFailure.mock.callCount(), 1);
     });
 
     void it('handles uncaught errors', () => {
@@ -173,6 +225,7 @@ void describe(
         ) >= 0
       );
       expectProcessExitCode1AndReset();
+      assert.equal(mockEmitFailure.mock.callCount(), 1);
     });
 
     void it('does nothing when called multiple times', () => {
@@ -183,8 +236,8 @@ void describe(
       const uncaughtExceptionListenerCount =
         process.listenerCount('uncaughtException');
 
-      attachUnhandledExceptionListeners();
-      attachUnhandledExceptionListeners();
+      attachUnhandledExceptionListeners(usageDataEmitter);
+      attachUnhandledExceptionListeners(usageDataEmitter);
 
       assert.equal(
         process.listenerCount('unhandledRejection'),
@@ -194,6 +247,7 @@ void describe(
         process.listenerCount('uncaughtException'),
         uncaughtExceptionListenerCount
       );
+      assert.equal(mockEmitFailure.mock.callCount(), 0);
     });
   }
 );

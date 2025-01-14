@@ -1,5 +1,10 @@
-import { LogLevel, format, printer } from '@aws-amplify/cli-core';
-import { AmplifyError } from '@aws-amplify/platform-core';
+import { LogLevel } from './printer/printer.js';
+import { format } from './format/format.js';
+import { printer } from './printer.js';
+
+import { Argv } from 'yargs';
+import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
+import { extractSubCommands } from './extract_sub_commands.js';
 
 let hasAttachUnhandledExceptionListenersBeenCalled = false;
 
@@ -7,35 +12,38 @@ type HandleErrorProps = {
   error?: Error;
   printMessagePreamble?: () => void;
   message?: string;
+  usageDataEmitter?: UsageDataEmitter;
+  command?: string;
 };
 
 /**
  * Attaches process listeners to handle unhandled exceptions and rejections
  */
-export const attachUnhandledExceptionListeners = (): void => {
+export const attachUnhandledExceptionListeners = (
+  usageDataEmitter?: UsageDataEmitter
+): void => {
   if (hasAttachUnhandledExceptionListenersBeenCalled) {
     return;
   }
   process.on('unhandledRejection', (reason) => {
     process.exitCode = 1;
     if (reason instanceof Error) {
-      void handleErrorSafe({ error: reason });
+      void handleErrorSafe({ error: reason, usageDataEmitter });
     } else if (typeof reason === 'string') {
-      // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-      void handleErrorSafe({ error: new Error(reason) });
+      void handleErrorSafe({ error: new Error(reason), usageDataEmitter });
     } else {
       void handleErrorSafe({
-        // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
         error: new Error(`Unhandled rejection of type [${typeof reason}]`, {
           cause: reason,
         }),
+        usageDataEmitter,
       });
     }
   });
 
   process.on('uncaughtException', (error) => {
     process.exitCode = 1;
-    void handleErrorSafe({ error });
+    void handleErrorSafe({ error, usageDataEmitter });
   });
   hasAttachUnhandledExceptionListenersBeenCalled = true;
 };
@@ -43,21 +51,45 @@ export const attachUnhandledExceptionListeners = (): void => {
 /**
  * Generates a function that is intended to be used as a callback to yargs.fail()
  * All logic for actually handling errors should be delegated to handleError.
+ *
+ * For some reason the yargs object that is injected into the fail callback does not include all methods on the Argv type
+ * This generator allows us to inject the yargs parser into the callback so that we can call parser.exit() from the failure handler
+ * This prevents our top-level error handler from being invoked after the yargs error handler has already been invoked
  */
-export const generateCommandFailureHandler = (): ((
-  message: string,
-  error: Error
-) => Promise<void>) => {
+export const generateCommandFailureHandler = (
+  parser?: Argv,
+  usageDataEmitter?: UsageDataEmitter
+): ((message: string, error: Error) => Promise<void>) => {
   /**
    * Format error output when a command fails
-   * @param message error message
-   * @param error error
+   * @param message error message set by the yargs:check validations
+   * @param error error thrown by yargs handler
    */
   const handleCommandFailure = async (message: string, error?: Error) => {
-    await handleErrorSafe({
-      error,
-      message,
-    });
+    // create-amplify command
+    if (!parser) {
+      await handleErrorSafe({
+        error,
+        message,
+      });
+    }
+
+    // for ampx commands
+    if (parser) {
+      const printHelp = () => {
+        printer.printNewLine();
+        parser.showHelp();
+        printer.printNewLine();
+      };
+      await handleErrorSafe({
+        command: extractSubCommands(parser),
+        printMessagePreamble: printHelp,
+        error,
+        message,
+        usageDataEmitter,
+      });
+      parser.exit(1, error || new Error(message));
+    }
   };
   return handleCommandFailure;
 };
@@ -83,6 +115,8 @@ const handleError = async ({
   error,
   printMessagePreamble,
   message,
+  usageDataEmitter,
+  command,
 }: HandleErrorProps) => {
   // If yargs threw an error because the customer force-closed a prompt (ie Ctrl+C during a prompt) then the intent to exit the process is clear
   if (isUserForceClosePromptError(error)) {
@@ -91,7 +125,7 @@ const handleError = async ({
 
   printMessagePreamble?.();
 
-  if (error instanceof AmplifyError) {
+  if (AmplifyError.isAmplifyError(error)) {
     printer.print(format.error(`${error.name}: ${error.message}`));
 
     if (error.resolution) {
@@ -119,6 +153,15 @@ const handleError = async ({
   if (errorHasCauseStackTrace(error)) {
     printer.log(error.cause.stack, LogLevel.DEBUG);
   }
+
+  await usageDataEmitter?.emitFailure(
+    AmplifyError.isAmplifyError(error)
+      ? error
+      : AmplifyError.fromError(
+          error && error instanceof Error ? error : new Error(message)
+        ),
+    { command: command ?? 'UnknownCommand' }
+  );
 };
 
 const isUserForceClosePromptError = (err?: Error): boolean => {

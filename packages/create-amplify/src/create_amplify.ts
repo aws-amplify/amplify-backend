@@ -7,16 +7,17 @@
   If customers have a cached version of the create-amplify package, they might execute that cached version even after we publish features and fixes to the package on npm.
  */
 
-import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
+import {
+  PackageManagerControllerFactory,
+  attachUnhandledExceptionListeners,
+  format,
+  generateCommandFailureHandler,
+} from '@aws-amplify/cli-core';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import {
-  attachUnhandledExceptionListeners,
-  generateCommandFailureHandler,
-} from './error_handler.js';
 
 attachUnhandledExceptionListeners();
 const errorHandler = generateCommandFailureHandler();
