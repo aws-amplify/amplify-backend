@@ -59,7 +59,10 @@ export const configs = {
         },
       },
       {
-        files: ['packages/backend-deployer/src/**'],
+        files: [
+          'packages/backend-deployer/src/**',
+          'packages/model-generator/src/**',
+        ],
         excludedFiles: ['**/*.test.ts'],
         rules: {
           'amplify-backend-rules/propagate-error-cause': 'error',
