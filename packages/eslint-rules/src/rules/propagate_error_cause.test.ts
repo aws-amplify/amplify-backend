@@ -28,7 +28,7 @@ ruleTester.run('propagate-error-cause', propagateErrorCause, {
       ],
     },
     {
-      code: "new AmplifyFault('SomeFault', {}",
+      code: "new AmplifyFault('SomeFault', {})",
       errors: [
         {
           messageId: 'noCausePropagation',
