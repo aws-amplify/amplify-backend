@@ -11,15 +11,16 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
             node.callee.type === 'Identifier' &&
             node.callee.name === errorType
           ) {
-            context.report({
-              node,
-              messageId: 'noCausePropagation',
-            });
+            if (node.arguments && node.arguments.length < 3) {
+              context.report({
+                node,
+                messageId: 'noCausePropagation',
+              });
+            }
           }
         };
         checkNode('AmplifyFault');
         checkNode('AmplifyUserError');
-        checkNode('AmplifyError');
       },
     };
   },
