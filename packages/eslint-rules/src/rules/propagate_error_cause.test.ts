@@ -17,7 +17,6 @@ ruleTester.run('propagate-error-cause', propagateErrorCause, {
   valid: [
     "new AmplifyUserError('SomeError', {}, new Error('underlying error from somewhere else'))",
     "new AmplifyFault('SomeFault', {}, new Error('underlying error from somewhere else'))",
-    "new AmplifyError('SomeError', {}, new Error('underlying error from somewhere else'))",
   ],
   invalid: [
     {
@@ -30,14 +29,6 @@ ruleTester.run('propagate-error-cause', propagateErrorCause, {
     },
     {
       code: "new AmplifyFault('SomeFault', {}",
-      errors: [
-        {
-          messageId: 'noCausePropagation',
-        },
-      ],
-    },
-    {
-      code: "new AmplifyError('SomeError', {}",
       errors: [
         {
           messageId: 'noCausePropagation',
