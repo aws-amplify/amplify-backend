@@ -51,5 +51,13 @@ ruleTester.run('propagate-error-cause', propagateErrorCause, {
         },
       ],
     },
+    {
+      code: 'try {} catch { throw new Error() }',
+      errors: [
+        {
+          messageId: 'noCausePropagation',
+        },
+      ],
+    },
   ],
 });
