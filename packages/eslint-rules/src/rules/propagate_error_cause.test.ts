@@ -28,7 +28,23 @@ ruleTester.run('propagate-error-cause', propagateErrorCause, {
       ],
     },
     {
+      code: "try {} catch (e) { throw new AmplifyUserError('SomeError', {}, new Error('some other error'))) }",
+      errors: [
+        {
+          messageId: 'noCausePropagation',
+        },
+      ],
+    },
+    {
       code: "try {} catch (e) { throw new AmplifyFault('SomeFault', {})) }",
+      errors: [
+        {
+          messageId: 'noCausePropagation',
+        },
+      ],
+    },
+    {
+      code: "try {} catch (e) { throw new AmplifyFault('SomeFault', {}, new Error('some other error'))) }",
       errors: [
         {
           messageId: 'noCausePropagation',
