@@ -1,5 +1,16 @@
 # @aws-amplify/platform-core
 
+## 1.6.0
+
+### Minor Changes
+
+- 2dab201: Report cdk versions
+
+### Patch Changes
+
+- Updated dependencies [2dab201]
+  - @aws-amplify/plugin-types@1.8.0
+
 ## 1.5.1
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # create-amplify
 
+## 1.0.8
+
+### Patch Changes
+
+- 2dab201: Report cdk versions
+- Updated dependencies [2dab201]
+  - @aws-amplify/cli-core@1.2.2
+  - @aws-amplify/platform-core@1.6.0
+  - @aws-amplify/plugin-types@1.8.0
+
 ## 1.0.7
 
 ### Patch Changes
