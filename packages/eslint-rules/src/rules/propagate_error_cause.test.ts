@@ -15,12 +15,12 @@ const ruleTester = new RuleTester();
 
 ruleTester.run('propagate-error-cause', propagateErrorCause, {
   valid: [
-    "new AmplifyUserError('SomeError', {}, new Error('underlying error from somewhere else'))",
-    "new AmplifyFault('SomeFault', {}, new Error('underlying error from somewhere else'))",
+    "try {} catch (e) { new AmplifyUserError('SomeError', {}, e as Error)) }",
+    "try {} catch (e) { new AmplifyFault('SomeFault', {}, e as Error)) }",
   ],
   invalid: [
     {
-      code: "new AmplifyUserError('SomeError', {})",
+      code: "try {} catch (e) { new AmplifyUserError('SomeError', {})) }",
       errors: [
         {
           messageId: 'noCausePropagation',
@@ -28,7 +28,7 @@ ruleTester.run('propagate-error-cause', propagateErrorCause, {
       ],
     },
     {
-      code: "new AmplifyFault('SomeFault', {})",
+      code: "try {} catch (e) { new AmplifyFault('SomeFault', {})) }",
       errors: [
         {
           messageId: 'noCausePropagation',

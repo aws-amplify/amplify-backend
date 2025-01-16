@@ -28,7 +28,7 @@ export const configs = {
       'amplify-backend-rules/no-empty-catch': 'error',
       'amplify-backend-rules/prefer-amplify-errors': 'off',
       'amplify-backend-rules/no-amplify-errors': 'off',
-      'amplify-backend-rules/propagate-error-cause': 'off',
+      'amplify-backend-rules/propagate-error-cause': 'error',
     },
     overrides: [
       {
@@ -56,16 +56,6 @@ export const configs = {
         ],
         rules: {
           'amplify-backend-rules/no-amplify-errors': 'error',
-        },
-      },
-      {
-        files: [
-          'packages/backend-deployer/src/**',
-          'packages/model-generator/src/**',
-        ],
-        excludedFiles: ['**/*.test.ts'],
-        rules: {
-          'amplify-backend-rules/propagate-error-cause': 'error',
         },
       },
     ],
