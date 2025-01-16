@@ -42,5 +42,10 @@ export const funcProvided = defineFunction((scope) => {
 
 export const funcCustomEmailSender = defineFunction({
   name: 'funcCustomEmailSender',
-  entry: './func-src/handler_custom_email_sender.ts',
+  entry: './func-src/handler_custom_sender.ts',
+});
+
+export const funcCustomSmsSender = defineFunction({
+  name: 'funcCustomSmsSender',
+  entry: './func-src/handler_custom_sender.ts',
 });

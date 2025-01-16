@@ -43,8 +43,10 @@ import {
   AttributeMapping,
   AuthProps,
   CustomAttribute,
+  CustomSmsSender,
   EmailLoginSettings,
   ExternalProviderOptions,
+  UserPoolSnsOptions,
 } from './types.js';
 import { DEFAULTS } from './defaults.js';
 import {
@@ -136,7 +138,7 @@ export class AmplifyAuth
    * The KMS key used for encrypting custom email sender data.
    * This is only set when using a custom email sender.
    */
-  private customEmailSenderKMSkey: IKey | undefined;
+  private customSenderKMSkey: IKey | undefined;
 
   /**
    * Create a new Auth construct with AuthProps.
@@ -166,13 +168,31 @@ export class AmplifyAuth
     if (
       props.senders?.email &&
       'handler' in props.senders.email &&
-      this.customEmailSenderKMSkey
+      this.customSenderKMSkey
     ) {
-      this.customEmailSenderKMSkey.grantDecrypt(props.senders.email.handler);
-      this.customEmailSenderKMSkey.grantEncrypt(props.senders.email.handler);
+      this.customSenderKMSkey.grantDecrypt(props.senders.email.handler);
+      this.customSenderKMSkey.grantEncrypt(props.senders.email.handler);
       this.userPool.addTrigger(
         UserPoolOperation.of('customEmailSender'),
         props.senders.email.handler
+      );
+    }
+
+    /**
+     * Configure custom sms sender for Cognito User Pool
+     * Grant necessary permissions for Lambda function to decrypt the requests
+     * and allow Cognito to invoke the Lambda function
+     */
+    if (
+      props.senders?.sms &&
+      'handler' in props.senders.sms &&
+      this.customSenderKMSkey
+    ) {
+      this.customSenderKMSkey.grantDecrypt(props.senders.sms.handler);
+      this.customSenderKMSkey.grantEncrypt(props.senders.sms.handler);
+      this.userPool.addTrigger(
+        UserPoolOperation.of('customSmsSender'),
+        props.senders.sms.handler
       );
     }
 
@@ -502,29 +522,60 @@ export class AmplifyAuth
       { standardAttributes: {}, customAttributes: {} }
     );
     /**
-     * Handle KMS key for custom email sender
-     * If a custom email sender is provided, we either use the provided KMS key ARN
+     * Handle KMS key for custom email and sms senders
+     * If a custom sender is provided, we either use the provided KMS key ARN
      * or create a new KMS key if one is not provided.
+     *
+     * If KMS key is provided in both senders, we throw an error
      */
-    if (props.senders?.email && 'handler' in props.senders.email) {
-      if (props.senders.email.kmsKeyArn) {
-        // Use the provided KMS key ARN
-        this.customEmailSenderKMSkey = Key.fromKeyArn(
+    if (props.senders) {
+      const customSmsSender =
+        props.senders.sms && 'handler' in props.senders.sms
+          ? props.senders.sms
+          : undefined;
+      const customEmailSender =
+        props.senders.email && 'handler' in props.senders.email
+          ? props.senders.email
+          : undefined;
+      // If both custom senders are configured and don't provide same KMS Key, then throw
+      if (
+        customSmsSender &&
+        customEmailSender &&
+        customSmsSender.kmsKeyArn &&
+        customEmailSender.kmsKeyArn &&
+        customSmsSender.kmsKeyArn !== customEmailSender.kmsKeyArn
+      ) {
+        throw new Error(
+          'KMS key ARN must be the same for both email and sms senders'
+        );
+      } else if (
+        (customSmsSender && customSmsSender.kmsKeyArn) ||
+        (customEmailSender && customEmailSender.kmsKeyArn)
+      ) {
+        // If at least one custom sender is configured with KMS key, we use it
+        const kmsKeyArn =
+          customSmsSender?.kmsKeyArn ?? customEmailSender?.kmsKeyArn;
+        this.customSenderKMSkey = Key.fromKeyArn(
           this,
           `${this.name}CustomSenderKey`,
-          props.senders.email.kmsKeyArn
+          kmsKeyArn! // In if condition we ensure that at lest one of the key is available
         );
-      } else {
-        // Create a new KMS key if not provided
-        this.customEmailSenderKMSkey = new Key(
-          props.senders.email.handler.stack,
-          `${this.name}CustomSenderKey`,
-          {
-            enableKeyRotation: true,
-          }
-        );
+      } else if (customSmsSender || customEmailSender) {
+        {
+          // If at least one custom sender is configured but no KMS key provided, we create one.
+          this.customSenderKMSkey = new Key(
+            customSmsSender
+              ? customSmsSender.handler.stack
+              : customEmailSender!.handler.stack, // In if condition we ensure that at lest one of the handler is available
+            `${this.name}CustomSenderKey`,
+            {
+              enableKeyRotation: true,
+            }
+          );
+        }
       }
     }
+    const smsConfiguration = this.getSmsConfiguration(props.senders?.sms);
     const userPoolProps: UserPoolProps = {
       signInCaseSensitive: DEFAULTS.SIGN_IN_CASE_SENSITIVE,
       signInAliases: {
@@ -550,7 +601,7 @@ export class AmplifyAuth
         ...customAttributes,
       },
       email:
-        props.senders && 'fromEmail' in props.senders.email
+        props.senders?.email && 'fromEmail' in props.senders.email
           ? cognito.UserPoolEmail.withSES({
               fromEmail: props.senders.email.fromEmail,
               fromName: props.senders.email.fromName,
@@ -558,6 +609,10 @@ export class AmplifyAuth
               sesRegion: Stack.of(this).region,
             })
           : undefined,
+      smsRole: smsConfiguration?.snsCallerArn,
+      smsRoleExternalId: smsConfiguration?.externalId,
+      snsRegion: smsConfiguration?.snsRegion,
+      enableSmsRole: smsConfiguration?.enableSMSRole,
       selfSignUpEnabled: DEFAULTS.ALLOW_SELF_SIGN_UP,
       mfa: mfaMode,
       mfaMessage: this.getMFAMessage(props.multifactor),
@@ -574,10 +629,43 @@ export class AmplifyAuth
               props.loginWith.email?.userInvitation
             )
           : undefined,
-      customSenderKmsKey: this.customEmailSenderKMSkey,
+      customSenderKmsKey: this.customSenderKMSkey,
     };
     return userPoolProps;
   };
+
+  /**
+   * Sanitize customer input and return Cognito User pool compatible Sms configurations
+   */
+  private getSmsConfiguration(
+    props: UserPoolSnsOptions | CustomSmsSender | undefined
+  ) {
+    if (!props || 'handler' in props) {
+      // Either no configuration or custom sender is configured
+      return undefined;
+    }
+    if (
+      (props.snsCallerArn && !props.externalId) ||
+      (!props.snsCallerArn && props.externalId)
+    ) {
+      throw new Error(
+        'Both externalId and snsCallerArn are required when providing a custom IAM role. Ensure that your IAM role trust policy have an sts:ExternalId condition and is equal to the externalId value'
+      );
+    }
+    return {
+      externalId: 'externalId' in props ? props.externalId : undefined,
+      snsCallerArn:
+        'snsCallerArn' in props && props.snsCallerArn
+          ? Role.fromRoleArn(
+              this,
+              `${this.name}SmsSenderRole`,
+              props.snsCallerArn
+            )
+          : undefined,
+      snsRegion: props.snsRegion,
+      enableSMSRole: !!props,
+    };
+  }
 
   /**
    * Parses the user invitation settings and inserts codes/usernames where necessary.

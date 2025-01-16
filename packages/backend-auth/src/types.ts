@@ -262,3 +262,11 @@ export type CustomEmailSender = {
   handler: ConstructFactory<AmplifyFunction> | IFunction;
   kmsKeyArn?: string;
 };
+
+/**
+ * CustomSmsSender type for configuring a custom Lambda function for sms sending
+ */
+export type CustomSmsSender = {
+  handler: ConstructFactory<AmplifyFunction> | IFunction;
+  kmsKeyArn?: string;
+};

@@ -27,6 +27,8 @@ export {
   CustomAttributeDateTime,
   CustomAttributeBase,
   CustomEmailSender,
+  CustomSmsSender,
+  UserPoolSnsOptions,
 } from './types.js';
 export { AmplifyAuth } from './construct.js';
 export { triggerEvents } from './trigger_events.js';
