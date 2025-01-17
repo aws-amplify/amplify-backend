@@ -1,5 +1,14 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.14
+
+### Patch Changes
+
+- 2dab201: Report cdk versions
+- Updated dependencies [2dab201]
+  - @aws-amplify/platform-core@1.6.0
+  - @aws-amplify/plugin-types@1.8.0
+
 ## 1.1.13
 
 ### Patch Changes
