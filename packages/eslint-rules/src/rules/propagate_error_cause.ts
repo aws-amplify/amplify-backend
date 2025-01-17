@@ -107,8 +107,8 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                         if (
                           //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                           body.argument.arguments[2].consequent.name &&
-                          //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                           !causeVar.includes(
+                            //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                             body.argument.arguments[2].consequent.name
                           )
                         ) {
@@ -122,8 +122,8 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                         if (
                           //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                           body.argument.arguments[2].expression.name &&
-                          //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                           !causeVar.includes(
+                            //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                             body.argument.arguments[2].expression.name
                           )
                         ) {
