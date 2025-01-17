@@ -23,8 +23,33 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
             node.param.name &&
             node.body.body.length
           ) {
+            const causeVar = [];
+            causeVar.push(node.param.name);
             const queue = [];
             let body = node.body.body[0];
+
+            if (
+              body.type !== 'ThrowStatement' &&
+              body.type !== 'IfStatement' &&
+              body.type !== 'SwitchStatement' &&
+              body.type !== 'BlockStatement'
+            ) {
+              for (const newBody of node.body.body) {
+                if (newBody.type === 'VariableDeclaration') {
+                  //@ts-expect-error assumes incorrect type for body.declarations[0].id
+                  causeVar.push(body.declarations[0].id.name);
+                } else if (
+                  newBody.type === 'ThrowStatement' ||
+                  newBody.type === 'IfStatement' ||
+                  newBody.type === 'SwitchStatement' ||
+                  newBody.type === 'BlockStatement'
+                ) {
+                  body = newBody;
+                  break;
+                }
+              }
+            }
+
             let curInd = 0;
             queue.push(body);
 
@@ -39,9 +64,36 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                   body.argument.callee.name === errorType
                 ) {
                   if (errorType === 'Error') {
-                    // eslint-disable-next-line no-console
-                    //console.log(node.param.name);
-                    //console.log(body.argument.arguments[0]);
+                    /*
+                    //console.log(body.argument.arguments[0].expressions);
+                    //@ts-expect-error incorrectly assumes type of body.argument is 'never'
+                    if (body.argument.arguments[0].expressions) {
+                      //@ts-expect-error incorrectly assumes type of body.argument is 'never'
+                      for (const exp of body.argument.arguments[0].expressions) {
+                        // eslint-disable-next-line no-console
+                        //console.log(exp);
+                        if(exp.type === 'CallExpression') {
+                          for(const arg of exp.arguments) {
+                            // eslint-disable-next-line no-console
+                            console.log(arg);
+                            if(arg.type === 'Identifier' && arg.name === node.param.name) {
+                              // eslint-disable-next-line no-console
+                              console.log('Error was thrown with cause, nothing to report');
+                              return; // the error was thrown with a cause
+                            }
+                          }
+                        }
+                      }
+                      context.report({
+                        messageId: 'noCausePropagation',
+                        node,
+                      });
+                    } else {
+                      context.report({
+                        messageId: 'noCausePropagation',
+                        node,
+                      });
+                    }*/
                   } else {
                     //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                     if (body.argument.arguments.length < 3) {
@@ -56,8 +108,9 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                           //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                           body.argument.arguments[2].consequent.name &&
                           //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                          body.argument.arguments[2].consequent.name !==
-                            node.param.name
+                          !causeVar.includes(
+                            body.argument.arguments[2].consequent.name
+                          )
                         ) {
                           context.report({
                             messageId: 'noCausePropagation',
@@ -70,8 +123,9 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                           //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                           body.argument.arguments[2].expression.name &&
                           //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                          body.argument.arguments[2].expression.name !==
-                            node.param.name
+                          !causeVar.includes(
+                            body.argument.arguments[2].expression.name
+                          )
                         ) {
                           context.report({
                             messageId: 'noCausePropagation',
@@ -82,9 +136,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                       } else if (body.argument.arguments[2].name) {
                         if (
                           //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                          body.argument.arguments[2].name &&
-                          //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                          body.argument.arguments[2].name !== node.param.name
+                          !causeVar.includes(body.argument.arguments[2].name)
                         ) {
                           context.report({
                             messageId: 'noCausePropagation',
