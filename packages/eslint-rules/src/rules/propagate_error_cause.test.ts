@@ -17,6 +17,8 @@ ruleTester.run('propagate-error-cause', propagateErrorCause, {
   valid: [
     "try {} catch (e) { throw new AmplifyUserError('SomeError', {}, e as Error); }",
     "try {} catch (e) { throw new AmplifyFault('SomeFault', {}, e as Error); }",
+    "try {} catch (e) { throw new Error('Some error', { cause: e }); }",
+    "try {} catch (e) { const diffErrorName = e; throw new Error('Some error', {cause: diffErrorName}); }",
   ],
   invalid: [
     {
@@ -45,6 +47,30 @@ ruleTester.run('propagate-error-cause', propagateErrorCause, {
     },
     {
       code: "try {} catch (e) { throw new AmplifyFault('SomeFault', {}, 'something else'); }",
+      errors: [
+        {
+          messageId: 'noCausePropagation',
+        },
+      ],
+    },
+    {
+      code: "try {} catch (e) { throw new Error('SomeError'); }",
+      errors: [
+        {
+          messageId: 'noCausePropagation',
+        },
+      ],
+    },
+    {
+      code: "try {} catch (e) { throw new Error('SomeError', {cause: 'something else'}); }",
+      errors: [
+        {
+          messageId: 'noCausePropagation',
+        },
+      ],
+    },
+    {
+      code: "try {} catch { throw new Error('SomeError'); }",
       errors: [
         {
           messageId: 'noCausePropagation',

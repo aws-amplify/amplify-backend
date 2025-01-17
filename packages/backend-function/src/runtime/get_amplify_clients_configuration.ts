@@ -168,10 +168,12 @@ export const getAmplifyDataClientConfig = async (
     const modelIntrospectionSchemaJson =
       await response.Body?.transformToString();
     modelIntrospectionSchema = JSON.parse(modelIntrospectionSchemaJson ?? '{}');
+    // eslint-disable-next-line amplify-backend-rules/propagate-error-cause
   } catch (caught) {
     if (caught instanceof NoSuchKey) {
       throw new Error(
-        'Error retrieving the schema from S3. Please confirm that your project has a `defineData` included in the `defineBackend` definition.'
+        'Error retrieving the schema from S3. Please confirm that your project has a `defineData` included in the `defineBackend` definition.',
+        { cause: caught }
       );
     } else if (caught instanceof S3ServiceException) {
       throw new Error(

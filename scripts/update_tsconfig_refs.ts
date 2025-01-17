@@ -52,6 +52,7 @@ for (const packagePath of packagePaths) {
   let tsconfigObject: Record<string, unknown>;
   try {
     tsconfigObject = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8'));
+    // eslint-disable-next-line amplify-backend-rules/propagate-error-cause
   } catch {
     throw new Error(`Failed to parse tsconfig ${tsconfigPath}`);
   }

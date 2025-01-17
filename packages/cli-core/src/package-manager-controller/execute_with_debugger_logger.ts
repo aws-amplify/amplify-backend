@@ -28,6 +28,7 @@ export const executeWithDebugLogger = (
     );
 
     return childProcess;
+    // eslint-disable-next-line amplify-backend-rules/propagate-error-cause
   } catch {
     throw new Error(
       `\`${executable}${

@@ -7,24 +7,28 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
       // eslint-disable-next-line @typescript-eslint/naming-convention
       CatchClause(node) {
         const checkNode = (errorType: string) => {
-          if (
-            // currently this is doing nothing -- need to fix that
-            node.param &&
-            node.param.type === 'Identifier' &&
-            !node.param.name
-          ) {
-            context.report({
-              messageId: 'noCausePropagation',
-              node,
-            });
+          if (!node.param) {
+            // we encounter this, presumably the error will not be wrapped in If/SwitchStatements
+            for (const throwBody of node.body.body) {
+              if (
+                throwBody.type === 'ThrowStatement' &&
+                //@ts-expect-error assumes incorrect type for body.argument
+                throwBody.argument.callee.name === errorType
+              ) {
+                context.report({
+                  messageId: 'noCausePropagation',
+                  node,
+                });
+              }
+            }
           } else if (
             node.param &&
             node.param.type === 'Identifier' &&
             node.param.name &&
             node.body.body.length
           ) {
-            const causeVar = [];
-            causeVar.push(node.param.name);
+            const causeVarNames = [];
+            causeVarNames.push(node.param.name);
             const queue = [];
             let body = node.body.body[0];
 
@@ -37,7 +41,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
               for (const newBody of node.body.body) {
                 if (newBody.type === 'VariableDeclaration') {
                   //@ts-expect-error assumes incorrect type for body.declarations[0].id
-                  causeVar.push(body.declarations[0].id.name);
+                  causeVarNames.push(body.declarations[0].id.name);
                 } else if (
                   newBody.type === 'ThrowStatement' ||
                   newBody.type === 'IfStatement' ||
@@ -64,24 +68,16 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                   body.argument.callee.name === errorType
                 ) {
                   if (errorType === 'Error') {
-                    /*
-                    //console.log(body.argument.arguments[0].expressions);
                     //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                    if (body.argument.arguments[0].expressions) {
+                    if (body.argument.arguments.length > 1) {
                       //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                      for (const exp of body.argument.arguments[0].expressions) {
-                        // eslint-disable-next-line no-console
-                        //console.log(exp);
-                        if(exp.type === 'CallExpression') {
-                          for(const arg of exp.arguments) {
-                            // eslint-disable-next-line no-console
-                            console.log(arg);
-                            if(arg.type === 'Identifier' && arg.name === node.param.name) {
-                              // eslint-disable-next-line no-console
-                              console.log('Error was thrown with cause, nothing to report');
-                              return; // the error was thrown with a cause
-                            }
-                          }
+                      for (const prop of body.argument.arguments[1]
+                        .properties) {
+                        if (
+                          prop.key.name === 'cause' &&
+                          causeVarNames.includes(prop.value.name)
+                        ) {
+                          return; // the error was thrown with a cause and the cause was valid
                         }
                       }
                       context.report({
@@ -93,7 +89,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                         messageId: 'noCausePropagation',
                         node,
                       });
-                    }*/
+                    }
                   } else {
                     //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                     if (body.argument.arguments.length < 3) {
@@ -107,7 +103,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                         if (
                           //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                           body.argument.arguments[2].consequent.name &&
-                          !causeVar.includes(
+                          !causeVarNames.includes(
                             //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                             body.argument.arguments[2].consequent.name
                           )
@@ -122,7 +118,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                         if (
                           //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                           body.argument.arguments[2].expression.name &&
-                          !causeVar.includes(
+                          !causeVarNames.includes(
                             //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                             body.argument.arguments[2].expression.name
                           )
@@ -135,8 +131,10 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                         //@ts-expect-error incorrectly assumes type of body.argument is 'never'
                       } else if (body.argument.arguments[2].name) {
                         if (
-                          //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                          !causeVar.includes(body.argument.arguments[2].name)
+                          !causeVarNames.includes(
+                            //@ts-expect-error incorrectly assumes type of body.argument is 'never'
+                            body.argument.arguments[2].name
+                          )
                         ) {
                           context.report({
                             messageId: 'noCausePropagation',
@@ -180,7 +178,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
   meta: {
     docs: {
       description:
-        'The underlying error must be displayed as a cause for errors we wrap in Amplify Error logic',
+        'The error message must be presented with a cause because it wraps another error.',
     },
     messages: {
       noCausePropagation:
