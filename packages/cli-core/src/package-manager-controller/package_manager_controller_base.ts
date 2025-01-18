@@ -80,10 +80,10 @@ export abstract class PackageManagerControllerBase
         this.initDefault,
         this.execa
       );
-      // eslint-disable-next-line amplify-backend-rules/propagate-error-cause
-    } catch {
+    } catch (err) {
       throw new Error(
-        `\`${this.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
+        `\`${this.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`,
+        { cause: err }
       );
     }
 

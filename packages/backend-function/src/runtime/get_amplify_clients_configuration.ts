@@ -168,7 +168,6 @@ export const getAmplifyDataClientConfig = async (
     const modelIntrospectionSchemaJson =
       await response.Body?.transformToString();
     modelIntrospectionSchema = JSON.parse(modelIntrospectionSchemaJson ?? '{}');
-    // eslint-disable-next-line amplify-backend-rules/propagate-error-cause
   } catch (caught) {
     if (caught instanceof NoSuchKey) {
       throw new Error(
@@ -177,7 +176,8 @@ export const getAmplifyDataClientConfig = async (
       );
     } else if (caught instanceof S3ServiceException) {
       throw new Error(
-        `Error retrieving the schema from S3. You may need to grant this function authorization on the schema. ${caught.name}: ${caught.message}.`
+        `Error retrieving the schema from S3. You may need to grant this function authorization on the schema. ${caught.name}: ${caught.message}.`,
+        { cause: caught }
       );
     } else {
       throw caught;

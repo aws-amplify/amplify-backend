@@ -28,12 +28,12 @@ export const executeWithDebugLogger = (
     );
 
     return childProcess;
-    // eslint-disable-next-line amplify-backend-rules/propagate-error-cause
-  } catch {
+  } catch (err) {
     throw new Error(
       `\`${executable}${
         args ? ' ' + args.join(' ') : ''
-      }\` did not exit successfully. Rerun with --debug for more information.`
+      }\` did not exit successfully. Rerun with --debug for more information.`,
+      { cause: err }
     );
   }
 };
