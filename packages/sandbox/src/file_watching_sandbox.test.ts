@@ -191,7 +191,11 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     assert.strictEqual(printer.log.mock.callCount(), 1);
     assert.strictEqual(
       printer.log.mock.calls[0].arguments[0],
-      `The region '${region}' has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox. ${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use '--profile <profile-name>' to specify a profile with the correct region.`
+      `The region ${format.highlight(
+        region
+      )} has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox. ${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use ${format.command(
+        '--profile <profile-name>'
+      )} to specify a profile with the correct region.`
     );
     assert.strictEqual(printer.log.mock.calls[0].arguments[1], undefined);
   });
@@ -222,7 +226,11 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     assert.strictEqual(printer.log.mock.callCount(), 3);
     assert.strictEqual(
       printer.log.mock.calls[0].arguments[0],
-      `The region '${region}' has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox. ${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use '--profile <profile-name>' to specify a profile with the correct region.`
+      `The region ${format.highlight(
+        region
+      )} has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox. ${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use ${format.command(
+        '--profile <profile-name>'
+      )} to specify a profile with the correct region.`
     );
     assert.strictEqual(printer.log.mock.calls[0].arguments[1], undefined);
     assert.strictEqual(
