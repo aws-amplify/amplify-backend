@@ -15,7 +15,7 @@ import {
   ResourceNameValidator,
   ResourceProvider,
 } from '@aws-amplify/plugin-types';
-import { triggerEvents } from '@aws-amplify/auth-construct';
+import { UserPoolSnsOptions, triggerEvents } from '@aws-amplify/auth-construct';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import {
   ConstructContainerStub,
@@ -27,7 +27,7 @@ import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { CfnFunction } from 'aws-cdk-lib/aws-lambda';
 import { Key } from 'aws-cdk-lib/aws-kms';
-import { CustomEmailSender } from './types.js';
+import { CustomEmailSender, CustomSmsSender } from './types.js';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -403,6 +403,133 @@ void describe('AmplifyAuthFactory', () => {
       },
     });
   });
+
+  void it('sets Sms sender configuration when provided', () => {
+    const snsSmsSettings: UserPoolSnsOptions = {
+      externalId: 'fake-external-id',
+      snsCallerArn: 'arn:aws:iam::123456789012:role/myRole',
+      snsRegion: 'fake-region',
+    };
+    resetFactoryCount();
+
+    const authWithTriggerFactory = defineAuth({
+      loginWith: { email: true },
+      senders: { sms: snsSmsSettings },
+    });
+
+    const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(backendAuth.stack);
+
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      SmsConfiguration: {
+        ExternalId: snsSmsSettings.externalId,
+        SnsCallerArn: snsSmsSettings.snsCallerArn,
+        SnsRegion: snsSmsSettings.snsRegion,
+      },
+    });
+  });
+
+  void it('sets customSmsSender when function is provided as sms sender', () => {
+    const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+      code: aws_lambda.Code.fromInline('test placeholder'),
+      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+    });
+    const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+      getInstance: () => {
+        return {
+          resources: {
+            lambda: testFunc,
+            cfnResources: {
+              cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+            },
+          },
+        };
+      },
+    };
+    const customSmsSender: CustomSmsSender = {
+      handler: funcStub,
+    };
+    resetFactoryCount();
+
+    const authWithTriggerFactory = defineAuth({
+      loginWith: { email: true },
+      senders: { sms: customSmsSender },
+    });
+
+    const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(backendAuth.stack);
+
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        CustomSMSSender: {
+          LambdaArn: {
+            Ref: Match.stringLikeRegexp('testFunc'),
+          },
+        },
+        KMSKeyID: {
+          Ref: Match.stringLikeRegexp('CustomSenderKey'),
+        },
+      },
+    });
+  });
+
+  void it('sets custom senders when functions are provided for both sms and email', () => {
+    const testFunc = new aws_lambda.Function(stack, 'testFunc', {
+      code: aws_lambda.Code.fromInline('test placeholder'),
+      runtime: aws_lambda.Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+    });
+    const funcStub: ConstructFactory<ResourceProvider<FunctionResources>> = {
+      getInstance: () => {
+        return {
+          resources: {
+            lambda: testFunc,
+            cfnResources: {
+              cfnFunction: testFunc.node.findChild('Resource') as CfnFunction,
+            },
+          },
+        };
+      },
+    };
+    const customEmailSender: CustomEmailSender = {
+      handler: funcStub,
+    };
+    const customSmsSender: CustomSmsSender = {
+      handler: funcStub,
+    };
+    resetFactoryCount();
+
+    const authWithTriggerFactory = defineAuth({
+      loginWith: { email: true },
+      senders: { sms: customSmsSender, email: customEmailSender },
+    });
+
+    const backendAuth = authWithTriggerFactory.getInstance(getInstanceProps);
+
+    const template = Template.fromStack(backendAuth.stack);
+
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        CustomSMSSender: {
+          LambdaArn: {
+            Ref: Match.stringLikeRegexp('testFunc'),
+          },
+        },
+        CustomEmailSender: {
+          LambdaArn: {
+            Ref: Match.stringLikeRegexp('testFunc'),
+          },
+        },
+        KMSKeyID: {
+          Ref: Match.stringLikeRegexp('CustomSenderKey'),
+        },
+      },
+    });
+  });
+
   void it('ensures empty lambdaTriggers do not remove triggers added elsewhere', () => {
     const testFunc = new aws_lambda.Function(stack, 'testFunc', {
       code: aws_lambda.Code.fromInline('test placeholder'),
