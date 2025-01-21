@@ -1,5 +1,5 @@
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
-//import { findNestedNodes } from './traverse_ast_tree';
+import { visitNestedNodes } from './find_nested_nodes';
 
 export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
   create(context) {
@@ -32,192 +32,153 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
           ) {
             const causeVarNames = [];
             causeVarNames.push(node.param.name);
-            let body = node.body.body[0];
 
-            if (body.type === 'VariableDeclaration') {
-              for (const newBody of node.body.body) {
-                if (newBody.type === 'VariableDeclaration') {
-                  causeVarNames.push(
-                    (
-                      (body as TSESTree.VariableDeclaration).declarations[0]
-                        .id as TSESTree.Identifier
-                    ).name
-                  );
-                } else if (
-                  newBody.type === 'ThrowStatement' ||
-                  newBody.type === 'IfStatement' ||
-                  newBody.type === 'SwitchStatement' ||
-                  newBody.type === 'BlockStatement'
-                ) {
-                  body = newBody;
-                  break;
-                }
-              }
-            }
-
-            const queue = [];
-
-            let curInd = 0;
-            queue.push(body);
-            while (curInd < queue.length) {
-              body = queue[curInd];
-              if (body.type === 'ThrowStatement') {
-                if (
-                  body.argument &&
-                  (body.argument as unknown as TSESTree.NewExpression).type ===
+            for (const curNode of visitNestedNodes(
+              node,
+              (node) => {
+                return (
+                  node.argument! &&
+                  (node.argument as unknown as TSESTree.NewExpression).type ===
                     'NewExpression' &&
                   (
-                    (body.argument as unknown as TSESTree.NewExpression)
+                    (node.argument as unknown as TSESTree.NewExpression)
                       .callee as TSESTree.Identifier
                   ).name === errorType
+                );
+              },
+              (name) => {
+                causeVarNames.push(name);
+              }
+            )) {
+              if (errorType === 'Error') {
+                if (
+                  (curNode.argument as unknown as TSESTree.NewExpression)
+                    .arguments.length > 1
                 ) {
-                  if (errorType === 'Error') {
+                  for (const prop of (
+                    (curNode.argument as unknown as TSESTree.NewExpression)
+                      .arguments[1] as TSESTree.ObjectExpression
+                  ).properties) {
                     if (
-                      (body.argument as unknown as TSESTree.NewExpression)
-                        .arguments.length > 1
+                      ((prop as TSESTree.Property).key as TSESTree.Identifier)
+                        .name === 'cause' &&
+                      causeVarNames.includes(
+                        (
+                          (prop as TSESTree.Property)
+                            .value as TSESTree.Identifier
+                        ).name
+                      )
                     ) {
-                      for (const prop of (
-                        (body.argument as unknown as TSESTree.NewExpression)
-                          .arguments[1] as TSESTree.ObjectExpression
-                      ).properties) {
-                        if (
+                      return; // the error was thrown with a cause and the cause was valid
+                    }
+                  }
+                  context.report({
+                    messageId: 'noCausePropagation',
+                    node,
+                  });
+                } else {
+                  context.report({
+                    messageId: 'noCausePropagation',
+                    node,
+                  });
+                }
+              } else {
+                if (
+                  (curNode.argument as unknown as TSESTree.NewExpression)
+                    .arguments.length < 3
+                ) {
+                  context.report({
+                    messageId: 'noCausePropagation',
+                    node,
+                  });
+                } else {
+                  if (
+                    (
+                      (curNode.argument as unknown as TSESTree.NewExpression)
+                        .arguments[2] as TSESTree.ConditionalExpression
+                    ).consequent
+                  ) {
+                    if (
+                      (
+                        (
                           (
-                            (prop as TSESTree.Property)
-                              .key as TSESTree.Identifier
-                          ).name === 'cause' &&
-                          causeVarNames.includes(
+                            curNode.argument as unknown as TSESTree.NewExpression
+                          ).arguments[2] as TSESTree.ConditionalExpression
+                        ).consequent as TSESTree.Identifier
+                      ).name &&
+                      !causeVarNames.includes(
+                        (
+                          (
                             (
-                              (prop as TSESTree.Property)
-                                .value as TSESTree.Identifier
-                            ).name
-                          )
-                        ) {
-                          return; // the error was thrown with a cause and the cause was valid
-                        }
-                      }
+                              curNode.argument as unknown as TSESTree.NewExpression
+                            ).arguments[2] as TSESTree.ConditionalExpression
+                          ).consequent as TSESTree.Identifier
+                        ).name
+                      )
+                    ) {
                       context.report({
                         messageId: 'noCausePropagation',
                         node,
                       });
-                    } else {
+                    }
+                  } else if (
+                    (
+                      (curNode.argument as unknown as TSESTree.NewExpression)
+                        .arguments[2] as TSESTree.TSAsExpression
+                    ).expression
+                  ) {
+                    if (
+                      (
+                        (
+                          (
+                            curNode.argument as unknown as TSESTree.NewExpression
+                          ).arguments[2] as TSESTree.TSAsExpression
+                        ).expression as TSESTree.Identifier
+                      ).name &&
+                      !causeVarNames.includes(
+                        (
+                          (
+                            (
+                              curNode.argument as unknown as TSESTree.NewExpression
+                            ).arguments[2] as TSESTree.TSAsExpression
+                          ).expression as TSESTree.Identifier
+                        ).name
+                      )
+                    ) {
+                      context.report({
+                        messageId: 'noCausePropagation',
+                        node,
+                      });
+                    }
+                  } else if (
+                    (
+                      (curNode.argument as unknown as TSESTree.NewExpression)
+                        .arguments[2] as TSESTree.Identifier
+                    ).name
+                  ) {
+                    if (
+                      !causeVarNames.includes(
+                        (
+                          (
+                            curNode.argument as unknown as TSESTree.NewExpression
+                          ).arguments[2] as TSESTree.Identifier
+                        ).name
+                      )
+                    ) {
                       context.report({
                         messageId: 'noCausePropagation',
                         node,
                       });
                     }
                   } else {
-                    if (
-                      (body.argument as unknown as TSESTree.NewExpression)
-                        .arguments.length < 3
-                    ) {
-                      context.report({
-                        messageId: 'noCausePropagation',
-                        node,
-                      });
-                    } else {
-                      if (
-                        (
-                          (body.argument as unknown as TSESTree.NewExpression)
-                            .arguments[2] as TSESTree.ConditionalExpression
-                        ).consequent
-                      ) {
-                        if (
-                          (
-                            (
-                              (
-                                body.argument as unknown as TSESTree.NewExpression
-                              ).arguments[2] as TSESTree.ConditionalExpression
-                            ).consequent as TSESTree.Identifier
-                          ).name &&
-                          !causeVarNames.includes(
-                            (
-                              (
-                                (
-                                  body.argument as unknown as TSESTree.NewExpression
-                                ).arguments[2] as TSESTree.ConditionalExpression
-                              ).consequent as TSESTree.Identifier
-                            ).name
-                          )
-                        ) {
-                          context.report({
-                            messageId: 'noCausePropagation',
-                            node,
-                          });
-                        }
-                      } else if (
-                        (
-                          (body.argument as unknown as TSESTree.NewExpression)
-                            .arguments[2] as TSESTree.TSAsExpression
-                        ).expression
-                      ) {
-                        if (
-                          (
-                            (
-                              (
-                                body.argument as unknown as TSESTree.NewExpression
-                              ).arguments[2] as TSESTree.TSAsExpression
-                            ).expression as TSESTree.Identifier
-                          ).name &&
-                          !causeVarNames.includes(
-                            (
-                              (
-                                (
-                                  body.argument as unknown as TSESTree.NewExpression
-                                ).arguments[2] as TSESTree.TSAsExpression
-                              ).expression as TSESTree.Identifier
-                            ).name
-                          )
-                        ) {
-                          context.report({
-                            messageId: 'noCausePropagation',
-                            node,
-                          });
-                        }
-                      } else if (
-                        (
-                          (body.argument as unknown as TSESTree.NewExpression)
-                            .arguments[2] as TSESTree.Identifier
-                        ).name
-                      ) {
-                        if (
-                          !causeVarNames.includes(
-                            (
-                              (
-                                body.argument as unknown as TSESTree.NewExpression
-                              ).arguments[2] as TSESTree.Identifier
-                            ).name
-                          )
-                        ) {
-                          context.report({
-                            messageId: 'noCausePropagation',
-                            node,
-                          });
-                        }
-                      } else {
-                        // if we find some other configuration, assume it is invalid
-                        context.report({
-                          messageId: 'noCausePropagation',
-                          node,
-                        });
-                      }
-                    }
+                    // if we find some other configuration, assume it is invalid
+                    context.report({
+                      messageId: 'noCausePropagation',
+                      node,
+                    });
                   }
                 }
-              } else if (body.type === 'IfStatement') {
-                if (body.consequent) {
-                  queue.push(body.consequent);
-                }
-                if (body.alternate) {
-                  queue.push(body.alternate);
-                }
-              } else if (body.type === 'BlockStatement') {
-                queue.push(body.body[0]);
-              } else if (body.type === 'SwitchStatement') {
-                for (const switchCase of body.cases) {
-                  queue.push(switchCase.consequent[0]);
-                }
               }
-              curInd++;
             }
           }
         };
