@@ -4,7 +4,7 @@ import { TSESTree } from '@typescript-eslint/utils';
  * Generator function that runs BFS on nodes in catch block AST
  */
 //eslint-disable-next-line no-restricted-syntax
-export function* visitNestedNodes(
+export function* findNestedNodes(
   root: TSESTree.CatchClause,
   nodeOfInterest: (node: TSESTree.ThrowStatement) => boolean,
   addToCauseNames: (name: string) => void

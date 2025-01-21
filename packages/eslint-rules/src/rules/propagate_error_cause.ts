@@ -1,5 +1,5 @@
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
-import { visitNestedNodes } from './find_nested_nodes';
+import { findNestedNodes } from './find_nested_nodes';
 
 export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
   create(context) {
@@ -33,7 +33,7 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
             const causeVarNames = [];
             causeVarNames.push(node.param.name);
 
-            for (const curNode of visitNestedNodes(
+            for (const curNode of findNestedNodes(
               node,
               (node) => {
                 return (
