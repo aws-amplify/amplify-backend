@@ -6,7 +6,6 @@ import { TSESTree } from '@typescript-eslint/utils';
 //eslint-disable-next-line no-restricted-syntax
 export function* findNestedNodes(
   root: TSESTree.CatchClause,
-  nodeOfInterest: (node: TSESTree.ThrowStatement) => boolean,
   addToCauseNames: (name: string) => void
 ) {
   const queue = [];
@@ -31,9 +30,7 @@ export function* findNestedNodes(
   while (curInd < queue.length) {
     body = queue[curInd];
     if (body.type === 'ThrowStatement') {
-      if (nodeOfInterest(body)) {
-        yield body;
-      }
+      yield body;
     } else if (body.type === 'IfStatement') {
       if (body.consequent) {
         queue.push(body.consequent);
