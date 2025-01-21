@@ -39,12 +39,15 @@ export const getProjectRoot = async () => {
     printer.log(`Creating directory ${projectRoot}`, LogLevel.DEBUG);
     try {
       await fsp.mkdir(projectRoot, { recursive: true });
-      // eslint-disable-next-line amplify-backend-rules/propagate-error-cause
     } catch (err) {
-      throw new AmplifyUserError('ProjectDirectoryCreateError', {
-        message: `Failed to create project directory`,
-        resolution: `Ensure that ${projectRoot} is the correct path and you have write permissions to this location.`,
-      });
+      throw new AmplifyUserError(
+        'ProjectDirectoryCreateError',
+        {
+          message: `Failed to create project directory`,
+          resolution: `Ensure that ${projectRoot} is the correct path and you have write permissions to this location.`,
+        },
+        err as Error
+      );
     }
   }
   return projectRoot;
