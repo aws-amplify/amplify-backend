@@ -1,4 +1,5 @@
-import { ESLintUtils } from '@typescript-eslint/utils';
+import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+//import { findNestedNodes } from './traverse_ast_tree';
 
 export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
   create(context) {
@@ -12,8 +13,10 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
             for (const throwBody of node.body.body) {
               if (
                 throwBody.type === 'ThrowStatement' &&
-                //@ts-expect-error assumes incorrect type for body.argument
-                throwBody.argument.callee.name === errorType
+                (
+                  (throwBody.argument as unknown as TSESTree.NewExpression)
+                    .callee as TSESTree.Identifier
+                ).name === errorType
               ) {
                 context.report({
                   messageId: 'noCausePropagation',
@@ -29,19 +32,17 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
           ) {
             const causeVarNames = [];
             causeVarNames.push(node.param.name);
-            const queue = [];
             let body = node.body.body[0];
 
-            if (
-              body.type !== 'ThrowStatement' &&
-              body.type !== 'IfStatement' &&
-              body.type !== 'SwitchStatement' &&
-              body.type !== 'BlockStatement'
-            ) {
+            if (body.type === 'VariableDeclaration') {
               for (const newBody of node.body.body) {
                 if (newBody.type === 'VariableDeclaration') {
-                  //@ts-expect-error assumes incorrect type for body.declarations[0].id
-                  causeVarNames.push(body.declarations[0].id.name);
+                  causeVarNames.push(
+                    (
+                      (body as TSESTree.VariableDeclaration).declarations[0]
+                        .id as TSESTree.Identifier
+                    ).name
+                  );
                 } else if (
                   newBody.type === 'ThrowStatement' ||
                   newBody.type === 'IfStatement' ||
@@ -54,28 +55,42 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
               }
             }
 
+            const queue = [];
+
             let curInd = 0;
             queue.push(body);
-
             while (curInd < queue.length) {
               body = queue[curInd];
               if (body.type === 'ThrowStatement') {
                 if (
                   body.argument &&
-                  //@ts-expect-error assumes incorrect type for body.argument
-                  body.argument?.type === 'NewExpression' &&
-                  //@ts-expect-error assumes incorrect type for body.argument
-                  body.argument.callee.name === errorType
+                  (body.argument as unknown as TSESTree.NewExpression).type ===
+                    'NewExpression' &&
+                  (
+                    (body.argument as unknown as TSESTree.NewExpression)
+                      .callee as TSESTree.Identifier
+                  ).name === errorType
                 ) {
                   if (errorType === 'Error') {
-                    //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                    if (body.argument.arguments.length > 1) {
-                      //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                      for (const prop of body.argument.arguments[1]
-                        .properties) {
+                    if (
+                      (body.argument as unknown as TSESTree.NewExpression)
+                        .arguments.length > 1
+                    ) {
+                      for (const prop of (
+                        (body.argument as unknown as TSESTree.NewExpression)
+                          .arguments[1] as TSESTree.ObjectExpression
+                      ).properties) {
                         if (
-                          prop.key.name === 'cause' &&
-                          causeVarNames.includes(prop.value.name)
+                          (
+                            (prop as TSESTree.Property)
+                              .key as TSESTree.Identifier
+                          ).name === 'cause' &&
+                          causeVarNames.includes(
+                            (
+                              (prop as TSESTree.Property)
+                                .value as TSESTree.Identifier
+                            ).name
+                          )
                         ) {
                           return; // the error was thrown with a cause and the cause was valid
                         }
@@ -91,21 +106,37 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                       });
                     }
                   } else {
-                    //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                    if (body.argument.arguments.length < 3) {
+                    if (
+                      (body.argument as unknown as TSESTree.NewExpression)
+                        .arguments.length < 3
+                    ) {
                       context.report({
                         messageId: 'noCausePropagation',
                         node,
                       });
                     } else {
-                      //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                      if (body.argument.arguments[2].consequent) {
+                      if (
+                        (
+                          (body.argument as unknown as TSESTree.NewExpression)
+                            .arguments[2] as TSESTree.ConditionalExpression
+                        ).consequent
+                      ) {
                         if (
-                          //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                          body.argument.arguments[2].consequent.name &&
+                          (
+                            (
+                              (
+                                body.argument as unknown as TSESTree.NewExpression
+                              ).arguments[2] as TSESTree.ConditionalExpression
+                            ).consequent as TSESTree.Identifier
+                          ).name &&
                           !causeVarNames.includes(
-                            //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                            body.argument.arguments[2].consequent.name
+                            (
+                              (
+                                (
+                                  body.argument as unknown as TSESTree.NewExpression
+                                ).arguments[2] as TSESTree.ConditionalExpression
+                              ).consequent as TSESTree.Identifier
+                            ).name
                           )
                         ) {
                           context.report({
@@ -113,14 +144,28 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                             node,
                           });
                         }
-                        //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                      } else if (body.argument.arguments[2].expression) {
+                      } else if (
+                        (
+                          (body.argument as unknown as TSESTree.NewExpression)
+                            .arguments[2] as TSESTree.TSAsExpression
+                        ).expression
+                      ) {
                         if (
-                          //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                          body.argument.arguments[2].expression.name &&
+                          (
+                            (
+                              (
+                                body.argument as unknown as TSESTree.NewExpression
+                              ).arguments[2] as TSESTree.TSAsExpression
+                            ).expression as TSESTree.Identifier
+                          ).name &&
                           !causeVarNames.includes(
-                            //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                            body.argument.arguments[2].expression.name
+                            (
+                              (
+                                (
+                                  body.argument as unknown as TSESTree.NewExpression
+                                ).arguments[2] as TSESTree.TSAsExpression
+                              ).expression as TSESTree.Identifier
+                            ).name
                           )
                         ) {
                           context.report({
@@ -128,12 +173,19 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
                             node,
                           });
                         }
-                        //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                      } else if (body.argument.arguments[2].name) {
+                      } else if (
+                        (
+                          (body.argument as unknown as TSESTree.NewExpression)
+                            .arguments[2] as TSESTree.Identifier
+                        ).name
+                      ) {
                         if (
                           !causeVarNames.includes(
-                            //@ts-expect-error incorrectly assumes type of body.argument is 'never'
-                            body.argument.arguments[2].name
+                            (
+                              (
+                                body.argument as unknown as TSESTree.NewExpression
+                              ).arguments[2] as TSESTree.Identifier
+                            ).name
                           )
                         ) {
                           context.report({
