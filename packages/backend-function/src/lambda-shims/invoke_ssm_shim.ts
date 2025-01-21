@@ -9,5 +9,7 @@ await internalAmplifyFunctionResolveSsmParams();
 const SSM_PARAMETER_REFRESH_MS = 1000 * 60;
 
 setInterval(() => {
-  void internalAmplifyFunctionResolveSsmParams();
+  // Catch errors and do nothing in the case we are retrieving secrets when the Lambda starts shutting down
+  // eslint-disable-next-line promise/prefer-await-to-then
+  void internalAmplifyFunctionResolveSsmParams().catch(() => {});
 }, SSM_PARAMETER_REFRESH_MS);
