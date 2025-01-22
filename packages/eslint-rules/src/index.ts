@@ -4,6 +4,7 @@ import { preferAmplifyErrorsRule } from './rules/prefer_amplify_errors.js';
 import { noAmplifyErrors } from './rules/no_amplify_errors.js';
 import { amplifyErrorNoInstanceOf } from './rules/amplify_error_no_instance_of';
 import { backendOutputClientErrorNoInstanceOf } from './rules/backent_output_client_error_no_instance_of.js';
+import { propagateErrorCause } from './rules/propagate_error_cause.js';
 
 export const rules: Record<string, unknown> = {
   'amplify-error-name': amplifyErrorNameRule,
@@ -13,6 +14,7 @@ export const rules: Record<string, unknown> = {
   'no-empty-catch': noEmptyCatchRule,
   'prefer-amplify-errors': preferAmplifyErrorsRule,
   'no-amplify-errors': noAmplifyErrors,
+  'propagate-error-cause': propagateErrorCause,
 };
 
 export const configs = {
@@ -26,6 +28,7 @@ export const configs = {
       'amplify-backend-rules/no-empty-catch': 'error',
       'amplify-backend-rules/prefer-amplify-errors': 'off',
       'amplify-backend-rules/no-amplify-errors': 'off',
+      'amplify-backend-rules/propagate-error-cause': 'error',
     },
     overrides: [
       {

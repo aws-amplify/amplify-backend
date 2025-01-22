@@ -80,9 +80,10 @@ export abstract class PackageManagerControllerBase
         this.initDefault,
         this.execa
       );
-    } catch {
+    } catch (err) {
       throw new Error(
-        `\`${this.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
+        `\`${this.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`,
+        { cause: err }
       );
     }
 
