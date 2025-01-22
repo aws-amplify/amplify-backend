@@ -4,18 +4,13 @@ import { TSESTree } from '@typescript-eslint/utils';
  * Generator function that runs BFS on nodes in catch block AST
  */
 //eslint-disable-next-line no-restricted-syntax
-export function* findNestedNodes(
-  root: TSESTree.CatchClause,
-  addToCauseNames: (name: string) => void
-) {
+export function* findNestedNodes(root: TSESTree.CatchClause) {
   const queue = [];
   let body = root.body.body[0];
 
   if (body.type === 'VariableDeclaration') {
     for (const newBody of root.body.body) {
-      if (newBody.type === 'VariableDeclaration') {
-        addToCauseNames((body.declarations[0].id as TSESTree.Identifier).name);
-      } else if (
+      if (
         newBody.type === 'ThrowStatement' ||
         newBody.type === 'IfStatement' ||
         newBody.type === 'SwitchStatement'

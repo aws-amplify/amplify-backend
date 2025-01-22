@@ -33,9 +33,20 @@ export const propagateErrorCause = ESLintUtils.RuleCreator.withoutDocs({
             const causeVarNames = [];
             causeVarNames.push(node.param.name);
 
-            for (const curNode of findNestedNodes(node, (name) => {
-              causeVarNames.push(name);
-            })) {
+            if (node.body.body[0].type === 'VariableDeclaration') {
+              for (const newBody of node.body.body) {
+                if (newBody.type === 'VariableDeclaration') {
+                  causeVarNames.push(
+                    (
+                      node.body.body[0].declarations[0]
+                        .id as TSESTree.Identifier
+                    ).name
+                  );
+                }
+              }
+            }
+
+            for (const curNode of findNestedNodes(node)) {
               if (
                 curNode.argument &&
                 (curNode.argument as unknown as TSESTree.NewExpression).type ===
