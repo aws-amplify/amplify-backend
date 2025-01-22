@@ -1,5 +1,12 @@
 # @aws-amplify/backend-function
 
+## 1.12.1
+
+### Patch Changes
+
+- 0a85696: fixed violations to cause propagation lint rule
+- 521bbb0: catch errors during secret refreshes
+
 ## 1.12.0
 
 ### Minor Changes

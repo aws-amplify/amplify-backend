@@ -1,5 +1,14 @@
 # @aws-amplify/sandbox
 
+## 1.2.10
+
+### Patch Changes
+
+- 060bfdb: updates bootstrap message
+- Updated dependencies [0a85696]
+  - @aws-amplify/backend-deployer@1.1.15
+  - @aws-amplify/cli-core@1.2.3
+
 ## 1.2.9
 
 ### Patch Changes

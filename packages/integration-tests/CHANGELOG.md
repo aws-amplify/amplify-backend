@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.6.2
+
+### Patch Changes
+
+- 0a85696: fixed violations to cause propagation lint rule
+
 ## 0.6.1
 
 ### Patch Changes

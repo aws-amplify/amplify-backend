@@ -1,5 +1,20 @@
 # @aws-amplify/backend
 
+## 1.14.0
+
+### Minor Changes
+
+- 040272d: add sms configuration and custom sms sender to auth
+
+### Patch Changes
+
+- 0a85696: fixed violations to cause propagation lint rule
+- Updated dependencies [0a85696]
+- Updated dependencies [040272d]
+- Updated dependencies [521bbb0]
+  - @aws-amplify/backend-function@1.12.1
+  - @aws-amplify/backend-auth@1.5.0
+
 ## 1.13.0
 
 ### Minor Changes

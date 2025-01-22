@@ -1,5 +1,16 @@
 # @aws-amplify/backend-auth
 
+## 1.5.0
+
+### Minor Changes
+
+- 040272d: add sms configuration and custom sms sender to auth
+
+### Patch Changes
+
+- Updated dependencies [040272d]
+  - @aws-amplify/auth-construct@1.6.0
+
 ## 1.4.2
 
 ### Patch Changes
