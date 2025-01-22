@@ -1,0 +1,26 @@
+{
+  "name": "@aws-amplify/seed",
+  "version": "0.1.0",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "update:api": "api-extractor run --local"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-amplify/backend-secret": "^1.1.5",
+    "@aws-amplify/platform-core": "^1.6.0",
+    "@aws-amplify/plugin-types": "^1.8.0"
+  }
+}
