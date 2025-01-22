@@ -8,8 +8,18 @@ await internalAmplifyFunctionResolveSsmParams();
 
 const SSM_PARAMETER_REFRESH_MS = 1000 * 60;
 
-setInterval(() => {
-  // Catch errors and do nothing in the case we are retrieving secrets when the Lambda starts shutting down
-  // eslint-disable-next-line promise/prefer-await-to-then
-  void internalAmplifyFunctionResolveSsmParams().catch(() => {});
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+setInterval(async () => {
+  try {
+    await internalAmplifyFunctionResolveSsmParams();
+  } catch (error) {
+    try {
+      // Attempt to log error
+      // eslint-disable-next-line no-console
+      console.debug(error);
+      // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+    } catch (error) {
+      // Do nothing if logging fails
+    }
+  }
 }, SSM_PARAMETER_REFRESH_MS);
