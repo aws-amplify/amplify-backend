@@ -8,18 +8,19 @@ await internalAmplifyFunctionResolveSsmParams();
 
 const SSM_PARAMETER_REFRESH_MS = 1000 * 60;
 
-// eslint-disable-next-line @typescript-eslint/no-misused-promises
-setInterval(async () => {
-  try {
-    await internalAmplifyFunctionResolveSsmParams();
-  } catch (error) {
+setInterval(
+  void (async () => {
     try {
-      // Attempt to log error
-      // eslint-disable-next-line no-console
-      console.debug(error);
-      // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+      await internalAmplifyFunctionResolveSsmParams();
     } catch (error) {
-      // Do nothing if logging fails
+      try {
+        // Attempt to log error
+        console.debug(error);
+        // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+      } catch (error) {
+        // Do nothing if logging fails
+      }
     }
-  }
-}, SSM_PARAMETER_REFRESH_MS);
+  }),
+  SSM_PARAMETER_REFRESH_MS
+);
