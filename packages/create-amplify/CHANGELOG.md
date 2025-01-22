@@ -1,5 +1,13 @@
 # create-amplify
 
+## 1.0.9
+
+### Patch Changes
+
+- 0a85696: fixed violations to cause propagation lint rule
+- Updated dependencies [0a85696]
+  - @aws-amplify/cli-core@1.2.3
+
 ## 1.0.8
 
 ### Patch Changes
