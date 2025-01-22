@@ -8,6 +8,19 @@ await internalAmplifyFunctionResolveSsmParams();
 
 const SSM_PARAMETER_REFRESH_MS = 1000 * 60;
 
-setInterval(() => {
-  void internalAmplifyFunctionResolveSsmParams();
-}, SSM_PARAMETER_REFRESH_MS);
+setInterval(
+  void (async () => {
+    try {
+      await internalAmplifyFunctionResolveSsmParams();
+    } catch (error) {
+      try {
+        // Attempt to log error
+        console.debug(error);
+        // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+      } catch (error) {
+        // Do nothing if logging fails
+      }
+    }
+  }),
+  SSM_PARAMETER_REFRESH_MS
+);
