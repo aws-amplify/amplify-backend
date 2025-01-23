@@ -1,11 +1,5 @@
 # @aws-amplify/backend-deployer
 
-## 1.1.15
-
-### Patch Changes
-
-- 0a85696: fixed violations to cause propagation lint rule
-
 ## 1.1.14
 
 ### Patch Changes
