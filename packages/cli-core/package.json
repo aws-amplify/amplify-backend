@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/cli-core",
-  "version": "1.2.3",
+  "version": "1.2.2",
   "type": "module",
   "publishConfig": {
     "access": "public"

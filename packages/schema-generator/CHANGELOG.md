@@ -1,11 +1,5 @@
 # @aws-amplify/schema-generator
 
-## 1.2.7
-
-### Patch Changes
-
-- 0a85696: fixed violations to cause propagation lint rule
-
 ## 1.2.6
 
 ### Patch Changes
