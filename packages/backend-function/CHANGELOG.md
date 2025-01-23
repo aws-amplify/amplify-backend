@@ -1,5 +1,13 @@
 # @aws-amplify/backend-function
 
+## 1.12.1
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- ff2f2ce: catch errors during secret refreshes
+- 501ec56: remove the workaround for no-misused-promises as it broke lambdas execution
+
 ## 1.12.0
 
 ### Minor Changes

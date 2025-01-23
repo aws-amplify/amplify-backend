@@ -1,5 +1,22 @@
 # @aws-amplify/backend
 
+## 1.14.0
+
+### Minor Changes
+
+- ff2f2ce: add sms configuration and custom sms sender to auth
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- 501ec56: remove the workaround for no-misused-promises as it broke lambdas execution
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [501ec56]
+  - @aws-amplify/backend-function@1.12.1
+  - @aws-amplify/backend-auth@1.5.0
+
 ## 1.13.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.15
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+
 ## 1.1.14
 
 ### Patch Changes
