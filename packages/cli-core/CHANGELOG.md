@@ -1,5 +1,11 @@
 # @aws-amplify/cli-core
 
+## 1.2.3
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+
 ## 1.2.2
 
 ### Patch Changes
