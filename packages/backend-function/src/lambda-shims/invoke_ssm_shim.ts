@@ -9,7 +9,8 @@ await internalAmplifyFunctionResolveSsmParams();
 const SSM_PARAMETER_REFRESH_MS = 1000 * 60;
 
 setInterval(
-  void (async () => {
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+  async () => {
     try {
       await internalAmplifyFunctionResolveSsmParams();
     } catch (error) {
@@ -21,6 +22,6 @@ setInterval(
         // Do nothing if logging fails
       }
     }
-  }),
+  },
   SSM_PARAMETER_REFRESH_MS
 );
