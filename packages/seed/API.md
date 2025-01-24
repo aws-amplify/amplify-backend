@@ -6,7 +6,7 @@
 
 // Warning: (ae-forgotten-export) The symbol "AuthClient" needs to be exported by the entry point index.d.ts
 //
-// @public (undocumented)
+// @public
 export const getAuthClient: (outputs: any) => AuthClient;
 
 // (No @packageDocumentation comment for this package)

@@ -1,8 +1,12 @@
 export type AuthUser = {
   username: string;
-  password: string;
+  preferredChal: string;
 };
 
 export type AuthClient = {
-  createUser: (username: string, password: string) => Promise<AuthUser>;
+  createUser: (
+    username: string,
+    password: string,
+    preferredChallenge: string
+  ) => Promise<AuthUser>;
 };
