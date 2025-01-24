@@ -1,5 +1,69 @@
 # @aws-amplify/backend
 
+## 1.14.0
+
+### Minor Changes
+
+- ff2f2ce: add sms configuration and custom sms sender to auth
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- 501ec56: remove the workaround for no-misused-promises as it broke lambdas execution
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [501ec56]
+  - @aws-amplify/backend-function@1.12.1
+  - @aws-amplify/backend-auth@1.5.0
+
+## 1.13.0
+
+### Minor Changes
+
+- 3f521c3: add custom provided function support to define function
+
+### Patch Changes
+
+- c5d54c2: Update getAmplifyDataClient to have strict env type and remove narrowing logic
+- Updated dependencies [c5d54c2]
+- Updated dependencies [3f521c3]
+- Updated dependencies [a712983]
+  - @aws-amplify/backend-function@1.12.0
+  - @aws-amplify/platform-core@1.5.1
+
+## 1.12.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+- a7506f9: adds support for architecture property on defineFunction
+
+### Patch Changes
+
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/client-config@1.5.5
+  - @aws-amplify/backend-function@1.11.0
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/backend-data@1.4.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.11.0
+
+### Minor Changes
+
+- fbf209e: Add GraphQL API ID and Amplify environment name to custom JS resolver stash
+
+### Patch Changes
+
+- 07fe7d4: Allow apiKeyAuthorizationMode to be undefined if defaultAuthorizationMode is apiKey
+- Updated dependencies [07fe7d4]
+- Updated dependencies [fbf209e]
+  - @aws-amplify/backend-data@1.3.0
+
 ## 1.10.0
 
 ### Minor Changes

@@ -47,10 +47,13 @@ export class LambdaFunctionLogStreamer {
         sandboxBackendId
       );
     } catch (error) {
-      // If stack does not exist, we do not want to go further to start streaming logs
+      // If stack does not exist or hasn't deployed successfully, we do not want to go further to start streaming logs
       if (
         BackendOutputClientError.isBackendOutputClientError(error) &&
-        error.code === BackendOutputClientErrorType.NO_STACK_FOUND
+        [
+          BackendOutputClientErrorType.NO_STACK_FOUND,
+          BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
+        ].some((code) => (error as BackendOutputClientError).code === code)
       ) {
         this.enabled = false;
         return;

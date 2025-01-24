@@ -9,6 +9,8 @@ import { AmplifyFunction } from '@aws-amplify/plugin-types';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { DerivedCombinedSchema } from '@aws-amplify/data-schema-types';
 import { DerivedModelSchema } from '@aws-amplify/data-schema-types';
+import { LogLevel } from '@aws-amplify/plugin-types';
+import { LogRetention } from '@aws-amplify/plugin-types';
 
 // @public
 export type ApiKeyAuthorizationModeProps = {
@@ -25,11 +27,25 @@ export type AuthorizationModes = {
 };
 
 // @public
+export type DataLogConfig = {
+    retention?: LogRetention;
+    excludeVerboseContent?: boolean;
+    fieldLogLevel?: DataLogLevel;
+};
+
+// @public
+export type DataLoggingOptions = true | DataLogConfig;
+
+// @public (undocumented)
+export type DataLogLevel = Extract<LogLevel, 'none' | 'all' | 'info' | 'debug' | 'error'>;
+
+// @public
 export type DataProps = {
     schema: DataSchemaInput;
     name?: string;
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
+    logging?: DataLoggingOptions;
 };
 
 // @public

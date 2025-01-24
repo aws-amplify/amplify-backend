@@ -8,6 +8,8 @@ import { AppId } from '@aws-amplify/plugin-types';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { DeepPartialAmplifyGeneratedConfigs } from '@aws-amplify/plugin-types';
+import { Dependency } from '@aws-amplify/plugin-types';
+import { FieldLogLevel } from 'aws-cdk-lib/aws-appsync';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -136,6 +138,8 @@ export type LocalConfigurationFileName = 'usage_data_preferences.json';
 // @public
 class LogLevelConverter {
     // (undocumented)
+    toCDKAppsyncFieldLogLevel: (logLevel: LogLevel | undefined) => FieldLogLevel | undefined;
+    // (undocumented)
     toCDKLambdaApplicationLogLevel: (logLevel: LogLevel | undefined) => ApplicationLogLevel | undefined;
 }
 
@@ -227,7 +231,7 @@ export type UsageDataEmitter = {
 
 // @public
 export class UsageDataEmitterFactory {
-    getInstance: (libraryVersion: string) => Promise<UsageDataEmitter>;
+    getInstance: (libraryVersion: string, dependencies?: Array<Dependency>) => Promise<UsageDataEmitter>;
 }
 
 // (No @packageDocumentation comment for this package)

@@ -1,5 +1,19 @@
 # @aws-amplify/ai-constructs
 
+## 1.2.1
+
+### Patch Changes
+
+- d46024e: Log streaming progress
+- Updated dependencies [a712983]
+  - @aws-amplify/platform-core@1.5.1
+
+## 1.2.0
+
+### Minor Changes
+
+- a66f5f2: Expose timeout property
+
 ## 1.1.0
 
 ### Minor Changes

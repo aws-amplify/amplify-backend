@@ -70,7 +70,8 @@ export const handleCreateUpdateEvent = async (
         throw new Error(
           `Failed to retrieve backend secret '${secretName}' for '${
             props.namespace
-          }/${props.name}'. Reason: ${JSON.stringify(err)}`
+          }/${props.name}'. Reason: ${JSON.stringify(err)}`,
+          { cause: secretErr }
         );
       }
     }
@@ -86,7 +87,8 @@ export const handleCreateUpdateEvent = async (
         throw new Error(
           `Failed to retrieve backend secret '${secretName}' for '${
             props.namespace
-          }'. Reason: ${JSON.stringify(err)}`
+          }'. Reason: ${JSON.stringify(err)}`,
+          { cause: err }
         );
       }
     }

@@ -1,5 +1,19 @@
 # @aws-amplify/cli-core
 
+## 1.2.3
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+
+## 1.2.2
+
+### Patch Changes
+
+- 2dab201: Report cdk versions
+- Updated dependencies [2dab201]
+  - @aws-amplify/platform-core@1.6.0
+
 ## 1.2.1
 
 ### Patch Changes

@@ -28,11 +28,12 @@ export const executeWithDebugLogger = (
     );
 
     return childProcess;
-  } catch {
+  } catch (err) {
     throw new Error(
       `\`${executable}${
         args ? ' ' + args.join(' ') : ''
-      }\` did not exit successfully. Rerun with --debug for more information.`
+      }\` did not exit successfully. Rerun with --debug for more information.`,
+      { cause: err }
     );
   }
 };

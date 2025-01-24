@@ -1,5 +1,11 @@
 # @aws-amplify/schema-generator
 
+## 1.2.7
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+
 ## 1.2.6
 
 ### Patch Changes

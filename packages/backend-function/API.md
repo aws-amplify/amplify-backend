@@ -6,8 +6,10 @@
 
 import { AmplifyResourceGroupName } from '@aws-amplify/plugin-types';
 import { BackendSecret } from '@aws-amplify/plugin-types';
+import { Construct } from 'constructs';
 import { ConstructFactory } from '@aws-amplify/plugin-types';
 import { FunctionResources } from '@aws-amplify/plugin-types';
+import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
 import { ResourceAccessAcceptorFactory } from '@aws-amplify/plugin-types';
@@ -20,9 +22,6 @@ declare namespace __export__runtime {
         getAmplifyDataClientConfig,
         DataClientConfig,
         DataClientEnv,
-        DataClientError,
-        DataClientReturn,
-        InvalidConfig,
         LibraryOptions,
         ResourceConfig
     }
@@ -53,16 +52,13 @@ type DataClientEnv = {
 } & Record<string, unknown>;
 
 // @public (undocumented)
-type DataClientError = {
-    resourceConfig: InvalidConfig;
-    libraryOptions: InvalidConfig;
-};
+export function defineFunction(props?: FunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
 
 // @public (undocumented)
-type DataClientReturn<T> = T extends DataClientEnv ? DataClientConfig : DataClientError;
+export function defineFunction(provider: (scope: Construct) => IFunction, providerProps?: ProvidedFunctionProps): ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & StackProvider>;
 
-// @public
-export const defineFunction: (props?: FunctionProps) => ConstructFactory<ResourceProvider<FunctionResources> & ResourceAccessAcceptorFactory & AddEnvironmentFactory & StackProvider>;
+// @public (undocumented)
+export type FunctionArchitecture = 'x86_64' | 'arm64';
 
 // @public (undocumented)
 export type FunctionBundlingOptions = {
@@ -80,7 +76,7 @@ export type FunctionLoggingOptions = ({
 };
 
 // @public (undocumented)
-export type FunctionLogLevel = LogLevel;
+export type FunctionLogLevel = Extract<LogLevel, 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace'>;
 
 // @public (undocumented)
 export type FunctionLogRetention = LogRetention;
@@ -94,6 +90,7 @@ export type FunctionProps = {
     ephemeralStorageSizeMB?: number;
     environment?: Record<string, string | BackendSecret>;
     runtime?: NodeVersion;
+    architecture?: FunctionArchitecture;
     schedule?: FunctionSchedule | FunctionSchedule[];
     layers?: Record<string, string>;
     bundling?: FunctionBundlingOptions;
@@ -105,12 +102,7 @@ export type FunctionProps = {
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
 // @public
-const getAmplifyDataClientConfig: <T>(env: T, s3Client?: S3Client) => Promise<DataClientReturn<T>>;
-
-// @public (undocumented)
-type InvalidConfig = unknown & {
-    invalidType: 'Some of the AWS environment variables needed to configure Amplify are missing.';
-};
+const getAmplifyDataClientConfig: (env: DataClientEnv, s3Client?: S3Client) => Promise<DataClientConfig>;
 
 // @public (undocumented)
 type LibraryOptions = {
@@ -130,6 +122,11 @@ type LibraryOptions = {
 
 // @public (undocumented)
 export type NodeVersion = 16 | 18 | 20 | 22;
+
+// @public (undocumented)
+export type ProvidedFunctionProps = {
+    resourceGroupName?: AmplifyResourceGroupName;
+};
 
 // @public (undocumented)
 type ResourceConfig = {

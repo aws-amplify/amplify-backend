@@ -16,6 +16,7 @@ import { customEntryHandler } from './test-assets/with-custom-entry/resource.js'
 import { Template } from 'aws-cdk-lib/assertions';
 import { defineConversationHandlerFunction } from './factory.js';
 import { ConversationHandlerFunction } from '@aws-amplify/ai-constructs/conversation';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -202,6 +203,55 @@ void describe('ConversationHandlerFactory', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
       MemorySize: 271,
     });
+  });
+
+  void it('maps invalid memory error', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [],
+      memoryMB: -1,
+    });
+    assert.throws(
+      () => factory.getInstance(getInstanceProps),
+      (error: Error) => {
+        assert.ok(AmplifyError.isAmplifyError(error));
+        assert.strictEqual(error.name, 'InvalidMemoryMBError');
+        return true;
+      }
+    );
+  });
+
+  void it('passes timeout setting to construct', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [],
+      timeoutSeconds: 124,
+    });
+    const lambda = factory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+    template.resourceCountIs('AWS::Lambda::Function', 1);
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Timeout: 124,
+    });
+  });
+
+  void it('maps invalid timeout error', () => {
+    const factory = defineConversationHandlerFunction({
+      entry: './test-assets/with-default-entry/handler.ts',
+      name: 'testHandlerName',
+      models: [],
+      timeoutSeconds: -1,
+    });
+    assert.throws(
+      () => factory.getInstance(getInstanceProps),
+      (error: Error) => {
+        assert.ok(AmplifyError.isAmplifyError(error));
+        assert.strictEqual(error.name, 'InvalidTimeoutError');
+        return true;
+      }
+    );
   });
 
   void it('passes log level to construct', () => {

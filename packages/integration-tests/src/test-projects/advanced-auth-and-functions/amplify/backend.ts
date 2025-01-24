@@ -24,7 +24,6 @@ if (scheduleFunctionLambdaRole) {
 backend.funcWithSchedule.addEnvironment('SQS_QUEUE_URL', queue.queueUrl);
 
 // Queue setup for customEmailSender
-
 const customEmailSenderLambda = backend.funcCustomEmailSender.resources.lambda;
 const customEmailSenderLambdaRole = customEmailSenderLambda.role;
 const customEmailSenderQueueStack = Stack.of(customEmailSenderLambda);
@@ -43,6 +42,29 @@ if (customEmailSenderLambdaRole) {
   );
 }
 backend.funcCustomEmailSender.addEnvironment(
-  'CUSTOM_EMAIL_SENDER_SQS_QUEUE_URL',
+  'CUSTOM_SENDER_SQS_QUEUE_URL',
   emailSenderQueue.queueUrl
+);
+
+// Queue setup for customSmsSender
+const customSmsSenderLambda = backend.funcCustomSmsSender.resources.lambda;
+const customSmsSenderLambdaRole = customSmsSenderLambda.role;
+const customSmsSenderQueueStack = Stack.of(customSmsSenderLambda);
+const smsSenderQueue = new Queue(
+  customSmsSenderQueueStack,
+  'amplify-customSmsSenderQueue'
+);
+
+if (customSmsSenderLambdaRole) {
+  smsSenderQueue.grantSendMessages(
+    Role.fromRoleArn(
+      customSmsSenderQueueStack,
+      'CustomSmsSenderLambdaExecutionRole',
+      customSmsSenderLambdaRole.roleArn
+    )
+  );
+}
+backend.funcCustomSmsSender.addEnvironment(
+  'CUSTOM_SENDER_SQS_QUEUE_URL',
+  smsSenderQueue.queueUrl
 );

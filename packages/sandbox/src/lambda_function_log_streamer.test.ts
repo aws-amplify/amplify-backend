@@ -168,6 +168,23 @@ void describe('LambdaFunctionLogStreamer', () => {
     assert.strictEqual(lambdaClientSendMock.mock.callCount(), 0);
   });
 
+  void it('return early if backend output client throws with outputs do not exist', async () => {
+    backendOutputClientMock.getOutput.mock.mockImplementationOnce(() => {
+      return Promise.reject(
+        new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
+          'Stack outputs are undefined'
+        )
+      );
+    });
+    await classUnderTest.startStreamingLogs(testSandboxBackendId, {
+      enabled: true,
+    });
+
+    // No lambda calls to retrieve tags
+    assert.strictEqual(lambdaClientSendMock.mock.callCount(), 0);
+  });
+
   void it('calls logs monitor with all the customer defined functions and conversation handlers if no function name filter is provided', async () => {
     await classUnderTest.startStreamingLogs(testSandboxBackendId, {
       enabled: true,

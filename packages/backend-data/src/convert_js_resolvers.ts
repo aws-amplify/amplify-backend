@@ -4,6 +4,7 @@ import { CfnFunctionConfiguration, CfnResolver } from 'aws-cdk-lib/aws-appsync';
 import { JsResolver } from '@aws-amplify/data-schema-types';
 import { resolve } from 'path';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'fs';
 import { Asset } from 'aws-cdk-lib/aws-s3-assets';
 import { resolveEntryPath } from './resolve_entry_path.js';
 
@@ -18,17 +19,25 @@ const JS_PIPELINE_RESOLVER_HANDLER = './assets/js_resolver_handler.js';
  * It's required for defining a pipeline resolver. The only purpose it serves is returning the output of the last function in the pipeline back to the client.
  *
  * Customer-provided handlers are added as a Functions list in `pipelineConfig.functions`
+ *
+ * Add Amplify API ID and environment name to the context stash for use in the customer-provided handlers.
  */
-const defaultJsResolverAsset = (scope: Construct): Asset => {
+export const defaultJsResolverCode = (
+  amplifyApiId: string,
+  amplifyApiEnvironmentName: string
+): string => {
   const resolvedTemplatePath = resolve(
     fileURLToPath(import.meta.url),
     '../../lib',
     JS_PIPELINE_RESOLVER_HANDLER
   );
 
-  return new Asset(scope, 'default_js_resolver_handler_asset', {
-    path: resolveEntryPath(resolvedTemplatePath),
-  });
+  return readFileSync(resolvedTemplatePath, 'utf-8')
+    .replace(new RegExp(/\$\{amplifyApiId\}/, 'g'), amplifyApiId)
+    .replace(
+      new RegExp(/\$\{amplifyApiEnvironmentName\}/, 'g'),
+      amplifyApiEnvironmentName
+    );
 };
 
 /**
@@ -43,8 +52,6 @@ export const convertJsResolverDefinition = (
   if (!jsResolvers || jsResolvers.length < 1) {
     return;
   }
-
-  const jsResolverTemplateAsset = defaultJsResolverAsset(scope);
 
   for (const resolver of jsResolvers) {
     const functions: string[] = resolver.handlers.map((handler, idx) => {
@@ -71,12 +78,15 @@ export const convertJsResolverDefinition = (
 
     const resolverName = `Resolver_${resolver.typeName}_${resolver.fieldName}`;
 
+    const amplifyApiEnvironmentName =
+      scope.node.tryGetContext('amplifyEnvironmentName') ?? 'NONE';
     new CfnResolver(scope, resolverName, {
       apiId: amplifyApi.apiId,
       fieldName: resolver.fieldName,
       typeName: resolver.typeName,
       kind: APPSYNC_PIPELINE_RESOLVER,
-      codeS3Location: jsResolverTemplateAsset.s3ObjectUrl,
+      // Uses synth-time inline code to avoid circular dependency when adding the API ID as an environment variable.
+      code: defaultJsResolverCode(amplifyApi.apiId, amplifyApiEnvironmentName),
       runtime: {
         name: APPSYNC_JS_RUNTIME_NAME,
         runtimeVersion: APPSYNC_JS_RUNTIME_VERSION,

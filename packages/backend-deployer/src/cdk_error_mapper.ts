@@ -471,6 +471,15 @@ export class CdkErrorMapper {
       errorName: 'CDKAssetPublishError',
       classification: 'ERROR',
     },
+    {
+      // We capture the parameter name to show relevant error message
+      errorRegex:
+        /destroy failed Error: Stack \[(?<stackArn>.*)\] cannot be deleted while in status /,
+      humanReadableErrorMessage: `Backend failed to be deleted since the previous deployment is still in progress.`,
+      resolutionMessage: `Wait for the previous deployment for stack {stackArn} to be completed before attempting to delete again.`,
+      errorName: 'DeleteFailedWhileDeploymentInProgressError',
+      classification: 'ERROR',
+    },
     // Generic error printed by CDK. Order matters so keep this towards the bottom of this list
     {
       // Error: .* is printed to stderr during cdk synth
@@ -554,6 +563,7 @@ export type CDKDeploymentError =
   | 'CloudFormationDeletionError'
   | 'CloudFormationDeploymentError'
   | 'CommonNPMError'
+  | 'DeleteFailedWhileDeploymentInProgressError'
   | 'FilePermissionsError'
   | 'MissingDefineBackendError'
   | 'MultipleSandboxInstancesError'

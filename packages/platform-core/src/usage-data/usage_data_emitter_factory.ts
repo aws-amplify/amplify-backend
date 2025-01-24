@@ -3,6 +3,7 @@ import { NoOpUsageDataEmitter } from './noop_usage_data_emitter.js';
 import { DefaultUsageDataEmitter } from './usage_data_emitter.js';
 import { USAGE_DATA_TRACKING_ENABLED } from './constants.js';
 import { AmplifyError } from '../index.js';
+import { Dependency } from '@aws-amplify/plugin-types';
 
 export type UsageDataEmitter = {
   emitSuccess: (
@@ -22,7 +23,10 @@ export class UsageDataEmitterFactory {
   /**
    * Creates UsageDataEmitter for a given library version, usage data tracking preferences
    */
-  getInstance = async (libraryVersion: string): Promise<UsageDataEmitter> => {
+  getInstance = async (
+    libraryVersion: string,
+    dependencies?: Array<Dependency>
+  ): Promise<UsageDataEmitter> => {
     const configController = configControllerFactory.getInstance(
       'usage_data_preferences.json'
     );
@@ -37,6 +41,6 @@ export class UsageDataEmitterFactory {
     ) {
       return new NoOpUsageDataEmitter();
     }
-    return new DefaultUsageDataEmitter(libraryVersion);
+    return new DefaultUsageDataEmitter(libraryVersion, dependencies);
   };
 }

@@ -152,6 +152,12 @@ export type DeepPartialAmplifyGeneratedConfigs<T> = {
     [P in keyof T]?: P extends 'auth' | 'data' | 'storage' ? T[P] extends object ? DeepPartialAmplifyGeneratedConfigs<T[P]> : Partial<T[P]> : T[P];
 };
 
+// @public (undocumented)
+export type Dependency = {
+    name: string;
+    version: string;
+};
+
 // @public
 export type DeploymentType = 'branch' | 'sandbox';
 
@@ -197,7 +203,7 @@ export type ImportPathVerifier = {
 };
 
 // @public (undocumented)
-export type LogLevel = 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace';
+export type LogLevel = 'all' | 'debug' | 'error' | 'fatal' | 'info' | 'none' | 'trace' | 'warn';
 
 // @public (undocumented)
 export type LogRetention = '1 day' | '3 days' | '5 days' | '1 week' | '2 weeks' | '1 month' | '2 months' | '3 months' | '4 months' | '5 months' | '6 months' | '1 year' | '13 months' | '18 months' | '2 years' | '3 years' | '5 years' | '6 years' | '7 years' | '8 years' | '9 years' | '10 years' | 'infinite';
@@ -220,6 +226,7 @@ export type PackageManagerController = {
     runWithPackageManager: (args: string[] | undefined, dir: string, options?: ExecaOptions) => ExecaChildProcess;
     getCommand: (args: string[]) => string;
     allowsSignalPropagation: () => boolean;
+    tryGetDependencies: () => Promise<Array<Dependency> | undefined>;
 };
 
 // @public (undocumented)

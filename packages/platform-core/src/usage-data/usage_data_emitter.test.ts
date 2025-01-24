@@ -19,6 +19,24 @@ void describe('UsageDataEmitter', () => {
   let usageDataEmitter: DefaultUsageDataEmitter;
 
   const testLibraryVersion = '1.2.3';
+  const testDependencies = [
+    {
+      name: 'aws-cdk',
+      version: '1.2.3',
+    },
+    {
+      name: 'aws-cdk-lib',
+      version: '12.13.14',
+    },
+    {
+      name: 'test-dep',
+      version: '1.2.4',
+    },
+    {
+      name: 'some_other_dep',
+      version: '12.12.14',
+    },
+  ];
   const testURL = url.parse('https://aws.amazon.com/amplify/');
   const onReqEndMock = mock.fn();
   const onReqWriteMock = mock.fn();
@@ -91,6 +109,19 @@ void describe('UsageDataEmitter', () => {
     assert.ok(validate(usageDataSent.installationUuid));
     assert.ok(usageDataSent.error == undefined);
     assert.ok(usageDataSent.downstreamException == undefined);
+    assert.deepStrictEqual(
+      usageDataSent.projectSetting.details,
+      JSON.stringify([
+        {
+          name: 'aws-cdk',
+          version: '1.2.3',
+        },
+        {
+          name: 'aws-cdk-lib',
+          version: '12.13.14',
+        },
+      ])
+    );
   });
 
   void test('happy case, emitFailure generates and send correct usage data', async () => {
@@ -155,6 +186,7 @@ void describe('UsageDataEmitter', () => {
 
     usageDataEmitter = new DefaultUsageDataEmitter(
       testLibraryVersion,
+      testDependencies,
       v4(),
       testURL,
       accountIdFetcherMock

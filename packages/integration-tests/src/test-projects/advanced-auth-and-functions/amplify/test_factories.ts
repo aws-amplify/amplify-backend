@@ -1,6 +1,8 @@
 import {
   funcCustomEmailSender,
+  funcCustomSmsSender,
   funcNoMinify,
+  funcProvided,
   funcWithAwsSdk,
   funcWithSchedule,
   funcWithSsm,
@@ -14,4 +16,6 @@ export const authAndFunctions = {
   funcWithSchedule,
   funcNoMinify,
   funcCustomEmailSender,
+  funcCustomSmsSender,
+  funcProvided,
 };
