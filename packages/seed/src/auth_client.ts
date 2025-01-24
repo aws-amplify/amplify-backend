@@ -10,7 +10,8 @@ import { randomUUID } from 'node:crypto';
 import { ClientConfigVersionTemplateType } from '@aws-amplify/client-config';
 import * as auth from 'aws-amplify/auth';
 //import assert from 'assert';
-import { AmplifyPrompter } from '@aws-amplify/cli-core';
+import { mfaSignUp } from './mfa_authentication.js';
+import { passwordlessSignUp } from './passwordless_authentication.js';
 
 // Took the skeleton of this from the initial Seed POC
 export class DefaultAuthClient implements AuthClient {
@@ -69,104 +70,14 @@ export class DefaultAuthClient implements AuthClient {
 
       // in case there's already signed user in the session.
       await auth.signOut();
-      /*
-      switch(preferredChal) {
-        case 'Passkey':
-          console.log('Passkey was selected');
-          const signInResult = await auth.signIn({
-            username: username,
-            options: {
-              authFlowType: 'USER_AUTH',
-              preferredChallenge: 'WEB_AUTHN',
-            },
-          });
-          console.log(signInResult.nextStep.signInStep);
 
-          if(signInResult.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_FIRST_FACTOR_SELECTION') {
-            const confirmSignIn = await auth.confirmSignIn({
-              challengeResponse: 'PASSWORD',
-            });
-
-            console.log(confirmSignIn.nextStep.signInStep);
-            
-            const pwSignIn = await auth.signIn({
-              username,
-              password: temporaryPassword
-            });
-
-            console.log(pwSignIn.nextStep.signInStep);
-            if(pwSignIn.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
-              const confirmPW = await auth.confirmSignIn({
-                challengeResponse: password
-              });
-              console.log(confirmPW.nextStep.signInStep);
-              console.log('associating web auth credential...');
-              await auth.associateWebAuthnCredential();
-              
-              const confirmSignIn = await auth.confirmSignIn({
-                challengeResponse: 'WEB_AUTHN',
-              });
-              console.log(confirmSignIn.nextStep.signInStep);
-            }
-          }
-          break;
-        case 'Email':
-          const signInNextStep = await auth.signIn({
-            username: username,
-            options: {
-              authFlowType: 'USER_AUTH',
-              preferredChallenge: 'EMAIL_OTP',
-            },
-          });
-    
-          if (
-            signInNextStep.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_EMAIL_CODE'
-          ) {
-            console.log('Attempting to confirm email');
-            const challengeResponse = await AmplifyPrompter.input({
-              message: `Input a challenge response for ${username}: `,
-            });
-    
-            const confirmSignIn = await auth.confirmSignIn({
-              challengeResponse: challengeResponse,
-            });
-    
-            if (confirmSignIn.nextStep.signInStep === 'DONE') {
-              console.log('Sign in successful');
-            }
-          }
-          break;
-      }*/
-      //MFA TOTP works, sms and email have simpler flows
-      const signInResult = await auth.signIn({
+      await passwordlessSignUp(
         username,
-        password: temporaryPassword,
-      });
-
-      if (
-        signInResult.nextStep.signInStep ===
-        'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
-      ) {
-        const result = await auth.confirmSignIn({
-          challengeResponse: password,
-        });
-        console.log(result.nextStep.signInStep);
-
-        if (result.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP') {
-          //TO DO: give the option to pass in app name so people can scan QR code instead of inputting secret
-          const secretCode = result.nextStep.totpSetupDetails.sharedSecret;
-          console.log(
-            `Connect your preferred Authenticator App: ${secretCode}`
-          );
-          const challengeResponse = await AmplifyPrompter.input({
-            message: `Input a challenge response for ${username}: `,
-          });
-          const totp = await auth.confirmSignIn({
-            challengeResponse: challengeResponse,
-          });
-          console.log(totp.nextStep.signInStep);
-        }
-      }
+        preferredChal,
+        temporaryPassword,
+        password
+      );
+      //await mfaSignUp(username, temporaryPassword, password);
 
       console.log('Sign in successful');
       return { username, preferredChal };
