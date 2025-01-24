@@ -40,7 +40,6 @@ import { EOL } from 'os';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const subscribeMock = mock.fn<
   (
     ...args: Parameters<typeof _subscribe>
