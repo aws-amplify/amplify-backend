@@ -1,5 +1,5 @@
 import debounce from 'debounce-promise';
-import parcelWatcher, { subscribe } from '@parcel/watcher';
+import { subscribe as _subscribe } from '@parcel/watcher';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
   BackendIdSandboxResolver,
@@ -67,7 +67,7 @@ export const getBootstrapUrl = (region: string) =>
  * Runs a file watcher and deploys
  */
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
-  private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
+  private watcherSubscription: Awaited<ReturnType<typeof _subscribe>>;
   private outputFilesExcludedFromWatch = ['.amplify'];
   private filesChangesTracker: FilesChangesTracker;
 
@@ -80,7 +80,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     private readonly ssmClient: SSMClient,
     private readonly functionsLogStreamer: LambdaFunctionLogStreamer,
     private readonly printer: Printer,
-    private readonly open = _open
+    private readonly open = _open,
+    private readonly subscribe = _subscribe
   ) {
     process.once('SIGINT', () => void this.stop());
     process.once('SIGTERM', () => void this.stop());
@@ -202,7 +203,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     });
 
     if (watchForChanges) {
-      this.watcherSubscription = await parcelWatcher.subscribe(
+      this.watcherSubscription = await this.subscribe(
         watchDir,
         async (_, events) => {
           // Log and track file changes.
