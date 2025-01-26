@@ -4,6 +4,7 @@ import { createSandboxCommand } from './commands/sandbox/sandbox_command_factory
 import { createPipelineDeployCommand } from './commands/pipeline-deploy/pipeline_deploy_command_factory.js';
 import { createConfigureCommand } from './commands/configure/configure_command_factory.js';
 import { createInfoCommand } from './commands/info/info_command_factory.js';
+import { createCheckCommand } from './commands/check/check_command_factory.js';
 import * as path from 'path';
 
 /**
@@ -28,6 +29,7 @@ export const createMainParser = (libraryVersion: string): Argv => {
     .command(createPipelineDeployCommand())
     .command(createConfigureCommand())
     .command(createInfoCommand())
+    .command(createCheckCommand())
     .help()
     .alias('h', 'help')
     .alias('v', 'version')
