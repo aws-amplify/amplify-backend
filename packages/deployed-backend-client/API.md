@@ -89,6 +89,7 @@ export class BackendOutputClientError extends Error {
     constructor(code: BackendOutputClientErrorType, message: string, options?: ErrorOptions);
     // (undocumented)
     code: BackendOutputClientErrorType;
+    static isBackendOutputClientError: (error: unknown) => error is BackendOutputClientError;
 }
 
 // @public (undocumented)

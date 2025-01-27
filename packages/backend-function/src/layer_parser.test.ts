@@ -10,12 +10,12 @@ import {
   ResourceNameValidator,
 } from '@aws-amplify/plugin-types';
 import { App, Stack } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
+import fsp from 'fs/promises';
 import assert from 'node:assert';
+import path from 'node:path';
 import { after, beforeEach, describe, it } from 'node:test';
 import { defineFunction } from './factory.js';
-import path from 'node:path';
-import fsp from 'fs/promises';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -56,6 +56,7 @@ void describe('AmplifyFunctionFactory - Layers', () => {
     await fsp.rm(path.join(process.cwd(), '.amplify'), {
       recursive: true,
       force: true,
+      maxRetries: 3,
     });
   });
 
@@ -115,7 +116,7 @@ void describe('AmplifyFunctionFactory - Layers', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          `Invalid ARN format for layer: ${invalidLayerArn}`
+          `Invalid format for layer: ${invalidLayerArn}`
         );
         assert.ok(error.resolution);
         return true;
@@ -182,6 +183,79 @@ void describe('AmplifyFunctionFactory - Layers', () => {
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
       Layers: [duplicateArn],
+    });
+  });
+
+  void it('accepts and converts name:version format to ARN', () => {
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'lambdaWithNameVersionLayer',
+      layers: {
+        myLayer: 'my-layer:1',
+      },
+    });
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'index.handler',
+      Layers: [
+        {
+          'Fn::Join': [
+            '',
+            [
+              'arn:aws:lambda:',
+              { Ref: 'AWS::Region' },
+              ':',
+              { Ref: 'AWS::AccountId' },
+              ':layer:my-layer:1',
+            ],
+          ],
+        },
+      ],
+    });
+  });
+
+  void it('throws an error for invalid name:version format', () => {
+    const invalidFormat = 'my-layer'; // missing version number
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'lambdaWithInvalidNameVersion',
+      layers: {
+        myLayer: invalidFormat,
+      },
+    });
+
+    assert.throws(
+      () => functionFactory.getInstance(getInstanceProps),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(
+          error.message,
+          `Invalid format for layer: ${invalidFormat}`
+        );
+        assert.ok(error.resolution);
+        return true;
+      }
+    );
+  });
+
+  void it('accepts mixed format of ARNs and name:version', () => {
+    const fullArn =
+      'arn:aws:lambda:us-east-1:123456789012:layer:full-arn-layer:1';
+    const functionFactory = defineFunction({
+      entry: './test-assets/default-lambda/handler.ts',
+      name: 'lambdaWithMixedLayerFormats',
+      layers: {
+        fullArnLayer: fullArn,
+        nameVersionLayer: 'name-version-layer:2',
+      },
+    });
+    const lambda = functionFactory.getInstance(getInstanceProps);
+    const template = Template.fromStack(Stack.of(lambda.resources.lambda));
+
+    template.hasResourceProperties('AWS::Lambda::Function', {
+      Handler: 'index.handler',
+      Layers: Match.arrayWith([fullArn]),
     });
   });
 });

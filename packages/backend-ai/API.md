@@ -48,7 +48,7 @@ type ConversationHandlerFunctionLoggingOptions = {
 };
 
 // @public (undocumented)
-type ConversationHandlerFunctionLogLevel = LogLevel;
+type ConversationHandlerFunctionLogLevel = Extract<LogLevel, 'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace'>;
 
 // @public (undocumented)
 type ConversationHandlerFunctionLogRetention = LogRetention;
@@ -71,6 +71,7 @@ type DefineConversationHandlerFunctionProps = {
         region?: string;
     }>;
     memoryMB?: number;
+    timeoutSeconds?: number;
     logging?: ConversationHandlerFunctionLoggingOptions;
 };
 

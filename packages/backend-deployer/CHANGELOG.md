@@ -1,5 +1,42 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.15
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+
+## 1.1.14
+
+### Patch Changes
+
+- 2dab201: Report cdk versions
+- Updated dependencies [2dab201]
+  - @aws-amplify/platform-core@1.6.0
+  - @aws-amplify/plugin-types@1.8.0
+
+## 1.1.13
+
+### Patch Changes
+
+- a7506f9: catch and wrap deployment in progress when deleting the backend
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.1.12
+
+### Patch Changes
+
+- dedcc27: add error mapping for role is invalid or cannot be assumed error'
+- 95942c5: expand wrapping of credentials related errors
+- 1eced2c: add mapping for circular dependency failures with resolution
+- Updated dependencies [95942c5]
+- Updated dependencies [f679cf6]
+- Updated dependencies [f193105]
+  - @aws-amplify/platform-core@1.4.0
+
 ## 1.1.11
 
 ### Patch Changes

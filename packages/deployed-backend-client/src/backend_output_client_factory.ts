@@ -32,6 +32,30 @@ export class BackendOutputClientError extends Error {
     super(message, options);
     this.code = code;
   }
+
+  /**
+   * This function is a type predicate for BackendOutputClientError.
+   * See https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates.
+   *
+   * Checks if error is an BackendOutputClientError by inspecting if required properties are set.
+   * This is recommended instead of instanceof operator.
+   * The instance of operator does not work as expected if BackendOutputClientError class is loaded
+   * from multiple sources, for example when package manager decides to not de-duplicate dependencies.
+   * See https://github.com/nodejs/node/issues/17943.
+   */
+  static isBackendOutputClientError = (
+    error: unknown
+  ): error is BackendOutputClientError => {
+    return (
+      error instanceof Error &&
+      'code' in error &&
+      typeof error.code === 'string' &&
+      (Object.values(BackendOutputClientErrorType) as unknown[]).includes(
+        error.code
+      ) &&
+      typeof error.message === 'string'
+    );
+  };
 }
 
 /**

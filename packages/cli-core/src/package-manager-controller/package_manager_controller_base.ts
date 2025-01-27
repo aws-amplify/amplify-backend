@@ -3,6 +3,7 @@ import _fsp from 'fs/promises';
 import { execa as _execa } from 'execa';
 import * as _path from 'path';
 import {
+  Dependency,
   ExecaChildProcess,
   ExecaOptions,
   type PackageManagerController,
@@ -11,6 +12,7 @@ import { LogLevel } from '../printer/printer.js';
 import { printer } from '../printer.js';
 import { executeWithDebugLogger as _executeWithDebugLogger } from './execute_with_debugger_logger.js';
 import { getPackageManagerRunnerName } from './get_package_manager_name.js';
+import { LockFileReader } from './lock-file-reader/types.js';
 
 /**
  * PackageManagerController is an abstraction around package manager commands that are needed to initialize a project and install dependencies
@@ -27,6 +29,7 @@ export abstract class PackageManagerControllerBase
     protected readonly executable: string,
     protected readonly initDefault: string[],
     protected readonly installCommand: string,
+    protected readonly lockFileReader: LockFileReader,
     protected readonly fsp = _fsp,
     protected readonly path = _path,
     protected readonly execa = _execa,
@@ -77,9 +80,10 @@ export abstract class PackageManagerControllerBase
         this.initDefault,
         this.execa
       );
-    } catch {
+    } catch (err) {
       throw new Error(
-        `\`${this.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`
+        `\`${this.executable} init\` did not exit successfully. Initialize a valid JavaScript package before continuing.`,
+        { cause: err }
       );
     }
 
@@ -144,6 +148,16 @@ export abstract class PackageManagerControllerBase
    * @deprecated
    */
   allowsSignalPropagation = () => true;
+
+  /**
+   * tryGetDependencies - Tries to retrieve dependency versions from the lock file in the project root
+   */
+  tryGetDependencies = async (): Promise<Array<Dependency> | undefined> => {
+    const lockFileContents =
+      await this.lockFileReader.getLockFileContentsFromCwd();
+
+    return lockFileContents?.dependencies;
+  };
 
   /**
    * Check if a package.json file exists in projectRoot

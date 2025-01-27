@@ -1,5 +1,44 @@
 # @aws-amplify/sandbox
 
+## 1.2.10
+
+### Patch Changes
+
+- ff2f2ce: updates bootstrap message
+- Updated dependencies [ff2f2ce]
+  - @aws-amplify/backend-deployer@1.1.15
+  - @aws-amplify/cli-core@1.2.3
+
+## 1.2.9
+
+### Patch Changes
+
+- a7506f9: wraps no outputs found error from backend output client
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/client-config@1.5.5
+  - @aws-amplify/backend-deployer@1.1.13
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.2.8
+
+### Patch Changes
+
+- 3cf0738: do not stream function logs if stack does not exist
+- Updated dependencies [dedcc27]
+- Updated dependencies [95942c5]
+- Updated dependencies [1eced2c]
+- Updated dependencies [3cf0738]
+- Updated dependencies [f679cf6]
+- Updated dependencies [f193105]
+  - @aws-amplify/backend-deployer@1.1.12
+  - @aws-amplify/platform-core@1.4.0
+  - @aws-amplify/deployed-backend-client@1.5.0
+  - @aws-amplify/client-config@1.5.4
+
 ## 1.2.7
 
 ### Patch Changes

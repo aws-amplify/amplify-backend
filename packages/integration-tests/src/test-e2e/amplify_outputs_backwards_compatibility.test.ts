@@ -109,7 +109,8 @@ void describe('client config backwards compatibility', () => {
       throw new Error(
         `outputs v1 failed to be generated for an app created with ${type} library version. Error: ${JSON.stringify(
           e
-        )}`
+        )}`,
+        { cause: e }
       );
     }
     try {
@@ -121,7 +122,8 @@ void describe('client config backwards compatibility', () => {
       throw new Error(
         `outputs v1.1 failed to be generated for an app created with ${type} library version. Error: ${JSON.stringify(
           e
-        )}`
+        )}`,
+        { cause: e }
       );
     }
   };

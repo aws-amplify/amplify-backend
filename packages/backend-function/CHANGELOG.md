@@ -1,5 +1,43 @@
 # @aws-amplify/backend-function
 
+## 1.12.1
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- ff2f2ce: catch errors during secret refreshes
+- 501ec56: remove the workaround for no-misused-promises as it broke lambdas execution
+
+## 1.12.0
+
+### Minor Changes
+
+- 3f521c3: add custom provided function support to define function
+
+### Patch Changes
+
+- c5d54c2: Update getAmplifyDataClient to have strict env type and remove narrowing logic
+
+## 1.11.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+- a7506f9: adds support for architecture property on defineFunction
+
+### Patch Changes
+
+- Updated dependencies [a7506f9]
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.10.0
+
+### Minor Changes
+
+- d32e4cd: Add ephemeralStorageSizeMB option to defineFunction
+- 560878f: updates layer to also use layername:version
+- f193105: Update getAmplifyDataClientConfig to work with named data backend
+
 ## 1.9.0
 
 ### Minor Changes

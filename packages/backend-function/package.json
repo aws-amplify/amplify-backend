@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-function",
-  "version": "1.9.0",
+  "version": "1.12.1",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -26,13 +26,13 @@
   "dependencies": {
     "@aws-amplify/backend-output-schemas": "^1.4.0",
     "@aws-amplify/backend-output-storage": "^1.1.4",
-    "@aws-amplify/plugin-types": "^1.6.0",
+    "@aws-amplify/plugin-types": "^1.7.0",
     "@aws-sdk/client-s3": "^3.624.0",
     "execa": "^9.5.1"
   },
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.7",
-    "@aws-amplify/platform-core": "^1.3.0",
+    "@aws-amplify/platform-core": "^1.5.1",
     "@aws-sdk/client-s3": "^3.624.0",
     "@aws-sdk/client-ssm": "^3.624.0",
     "aws-sdk": "^2.1550.0",

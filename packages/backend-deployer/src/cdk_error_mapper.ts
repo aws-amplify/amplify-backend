@@ -99,7 +99,7 @@ export class CdkErrorMapper {
   }> => [
     {
       errorRegex:
-        /ExpiredToken: .*|(Error|InvalidClientTokenId): The security token included in the request is (expired|invalid)/,
+        /ExpiredToken: .*|The security token included in the request is (expired|invalid)/,
       humanReadableErrorMessage:
         'The security token included in the request is invalid.',
       resolutionMessage:
@@ -162,6 +162,16 @@ export class CdkErrorMapper {
       resolutionMessage:
         "Ensure dependencies in your project are installed with your package manager. For example, by running 'yarn install' or 'npm install'",
       errorName: 'CDKNotFoundError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /ValidationError: Role (?<roleArn>.*) is invalid or cannot be assumed/,
+      humanReadableErrorMessage:
+        'Role {roleArn} is invalid or cannot be assumed',
+      resolutionMessage:
+        'Ensure the role exists and AWS credentials have an IAM policy that grants sts:AssumeRole for the role',
+      errorName: 'InvalidOrCannotAssumeRoleError',
       classification: 'ERROR',
     },
     {
@@ -461,6 +471,15 @@ export class CdkErrorMapper {
       errorName: 'CDKAssetPublishError',
       classification: 'ERROR',
     },
+    {
+      // We capture the parameter name to show relevant error message
+      errorRegex:
+        /destroy failed Error: Stack \[(?<stackArn>.*)\] cannot be deleted while in status /,
+      humanReadableErrorMessage: `Backend failed to be deleted since the previous deployment is still in progress.`,
+      resolutionMessage: `Wait for the previous deployment for stack {stackArn} to be completed before attempting to delete again.`,
+      errorName: 'DeleteFailedWhileDeploymentInProgressError',
+      classification: 'ERROR',
+    },
     // Generic error printed by CDK. Order matters so keep this towards the bottom of this list
     {
       // Error: .* is printed to stderr during cdk synth
@@ -474,6 +493,32 @@ export class CdkErrorMapper {
       resolutionMessage:
         'Check your backend definition in the `amplify` folder for syntax and type errors.',
       errorName: 'BackendSynthError',
+      classification: 'ERROR',
+    },
+    {
+      // This error pattern is observed when circular dependency is between stacks but not resources in a stack
+      errorRegex:
+        /ValidationError: Circular dependency between resources: \[(?<resources>.*)\]/,
+      humanReadableErrorMessage:
+        'The CloudFormation deployment failed due to circular dependency found between nested stacks [{resources}]',
+      resolutionMessage: `If you are using functions then you can assign them to existing nested stacks that are dependent on functions or functions depend on them, for example:
+1. If your function is defined as auth triggers, you should assign this function to auth stack.
+2. If your function is used as data resolver or calls data API, you should assign this function to data stack.
+To assign a function to a different stack, use the property 'resourceGroupName' in the defineFunction call and choose auth, data or any custom stack.
+
+If your circular dependency issue is not resolved with this workaround, please create an issue here https://github.com/aws-amplify/amplify-backend/issues/new/choose
+`,
+      errorName: 'CloudformationStackCircularDependencyError',
+      classification: 'ERROR',
+    },
+    {
+      // This error pattern is observed when circular dependency is between resources in a single stack, i.e. ValidationError is absent from the error message
+      errorRegex:
+        /(?<!ValidationError: )Circular dependency between resources: \[(?<resources>.*)\]/,
+      humanReadableErrorMessage:
+        'The CloudFormation deployment failed due to circular dependency found between resources [{resources}] in a single stack',
+      resolutionMessage: `If you are creating custom stacks or adding new CDK resources to amplify stacks, ensure that there are no cyclic dependencies. For more details see: https://aws.amazon.com/blogs/infrastructure-and-automation/handling-circular-dependency-errors-in-aws-cloudformation/`,
+      errorName: 'CloudformationResourceCircularDependencyError',
       classification: 'ERROR',
     },
     {
@@ -513,9 +558,12 @@ export type CDKDeploymentError =
   | 'CDKResolveAWSAccountError'
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
+  | 'CloudformationResourceCircularDependencyError'
+  | 'CloudformationStackCircularDependencyError'
   | 'CloudFormationDeletionError'
   | 'CloudFormationDeploymentError'
   | 'CommonNPMError'
+  | 'DeleteFailedWhileDeploymentInProgressError'
   | 'FilePermissionsError'
   | 'MissingDefineBackendError'
   | 'MultipleSandboxInstancesError'
@@ -523,6 +571,7 @@ export type CDKDeploymentError =
   | 'ExpiredTokenError'
   | 'FileConventionError'
   | 'ModuleNotFoundError'
+  | 'InvalidOrCannotAssumeRoleError'
   | 'InvalidPackageJsonError'
   | 'SecretNotSetError'
   | 'SyntaxError'

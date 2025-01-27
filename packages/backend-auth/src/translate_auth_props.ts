@@ -90,45 +90,53 @@ export const translateToAuthConstructLoginWith = (
  * @param getInstanceProps - Properties used to get an instance of the sender.
  * @returns The translated senders object in AuthProps format, or undefined if no valid sender is provided.
  * @description
- * This function handles the translation of the 'senders' property, specifically for email senders.
- * If no senders are provided or if there's no email sender, it returns undefined.
- * If the email sender has a 'getInstance' method, it retrieves the Lambda function and returns it.
- * Otherwise, it returns the email sender as is.
+ * This function handles the translation of the 'senders' property, specifically for email and sms senders.
+ * If no senders are provided, it returns undefined.
+ * If a sender has a 'getInstance' method, it retrieves the Lambda function and returns it.
+ * Otherwise, it returns the sender as is.
  */
 export const translateToAuthConstructSenders = (
   senders: AmplifyAuthProps['senders'] | undefined,
   getInstanceProps: ConstructFactoryGetInstanceProps
 ): AuthProps['senders'] | undefined => {
-  if (!senders || !senders.email) {
+  if (!senders || !(senders.email || senders.sms)) {
     return undefined;
   }
 
+  const authConstructSenders: AuthProps['senders'] = {};
+
   // Handle CustomEmailSender type
-  if ('handler' in senders.email) {
+  if (senders.email && 'handler' in senders.email) {
     const lambda: IFunction =
       'getInstance' in senders.email.handler
         ? senders.email.handler.getInstance(getInstanceProps).resources.lambda
         : senders.email.handler;
 
-    return {
-      email: {
-        handler: lambda,
-        kmsKeyArn: senders.email.kmsKeyArn,
-      },
+    authConstructSenders.email = {
+      handler: lambda,
+      kmsKeyArn: senders.email.kmsKeyArn,
     };
+  } else if (senders.email && 'fromEmail' in senders.email) {
+    // Handle SES configuration
+    authConstructSenders.email = { ...senders.email };
   }
 
-  // Handle SES configuration
-  if ('fromEmail' in senders.email) {
-    return {
-      email: senders.email,
-    };
-  }
+  // Handle CustomSmsSender type
+  if (senders.sms && 'handler' in senders.sms) {
+    const lambda: IFunction =
+      'getInstance' in senders.sms.handler
+        ? senders.sms.handler.getInstance(getInstanceProps).resources.lambda
+        : senders.sms.handler;
 
-  // If none of the above, return the email configuration as-is
-  return {
-    email: senders.email,
-  };
+    authConstructSenders.sms = {
+      handler: lambda,
+      kmsKeyArn: senders.sms.kmsKeyArn,
+    };
+  } else if (senders.sms) {
+    // Handle SNS configuration
+    authConstructSenders.sms = { ...senders.sms };
+  }
+  return authConstructSenders;
 };
 
 const translateAmazonProps = (

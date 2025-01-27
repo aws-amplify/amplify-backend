@@ -13,13 +13,18 @@ import {
 } from '@aws-amplify/backend-platform-test-stubs';
 import { defaultLambda } from './test-assets/default-lambda/resource.js';
 import { Template } from 'aws-cdk-lib/assertions';
-import { NodeVersion, defineFunction } from './factory.js';
+import {
+  FunctionArchitecture,
+  NodeVersion,
+  defineFunction,
+} from './factory.js';
 import { lambdaWithDependencies } from './test-assets/lambda-with-dependencies/resource.js';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Policy, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import fsp from 'fs/promises';
 import path from 'node:path';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 const createStackAndSetContext = (): Stack => {
   const app = new App();
@@ -60,6 +65,7 @@ void describe('AmplifyFunctionFactory', () => {
     await fsp.rm(path.join(process.cwd(), '.amplify'), {
       recursive: true,
       force: true,
+      maxRetries: 3,
     });
   });
 
@@ -453,6 +459,34 @@ void describe('AmplifyFunctionFactory', () => {
     });
   });
 
+  void describe('architecture property', () => {
+    void it('sets valid architecture', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        architecture: 'arm64',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Architectures: [Architecture.ARM_64.name],
+      });
+    });
+  });
+
+  void it('throws on invalid architecture', () => {
+    assert.throws(
+      () =>
+        defineFunction({
+          entry: './test-assets/default-lambda/handler.ts',
+          architecture: 'invalid' as FunctionArchitecture,
+        }).getInstance(getInstanceProps),
+      new AmplifyUserError('InvalidArchitectureError', {
+        message: `Invalid function architecture of invalid`,
+        resolution: 'architecture must be one of the following: arm64, x86_64',
+      })
+    );
+  });
+
   void describe('schedule property', () => {
     void it('sets valid schedule - rate', () => {
       const lambda = defineFunction({
@@ -681,5 +715,103 @@ void describe('AmplifyFunctionFactory', () => {
       JSON.parse(template.toJSON().Description).stackType,
       'function-Lambda'
     );
+  });
+
+  void describe('ephemeralStorageSizeMB property', () => {
+    void it('sets valid ephemeralStorageSize', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+        ephemeralStorageSizeMB: 1024,
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        EphemeralStorage: { Size: 1024 },
+      });
+    });
+
+    void it('sets default ephemeralStorageSizeMB', () => {
+      const lambda = defineFunction({
+        entry: './test-assets/default-lambda/handler.ts',
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        EphemeralStorage: { Size: 512 },
+      });
+    });
+
+    void it('throws on ephemeralStorageSizeMB below 512 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            ephemeralStorageSizeMB: 511,
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+          message: `Invalid function ephemeralStorageSizeMB of 511`,
+          resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
+        })
+      );
+    });
+
+    void it('throws on ephemeralStorageSizeMB above 10240 MB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            ephemeralStorageSizeMB: 10241,
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+          message: `Invalid function ephemeralStorageSizeMB of 10241`,
+          resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
+        })
+      );
+    });
+
+    void it('throws on fractional ephemeralStorageSizeMB', () => {
+      assert.throws(
+        () =>
+          defineFunction({
+            entry: './test-assets/default-lambda/handler.ts',
+            ephemeralStorageSizeMB: 512.5,
+          }).getInstance(getInstanceProps),
+        new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+          message: `Invalid function ephemeralStorageSizeMB of 512.5`,
+          resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
+        })
+      );
+    });
+  });
+
+  void describe('provided function runtime property', () => {
+    void it('sets valid runtime', () => {
+      const lambda = defineFunction((scope) => {
+        return new NodejsFunction(scope, 'nodejs-provided', {
+          entry:
+            './packages/backend-function/src/test-assets/default-lambda/handler.ts',
+          runtime: Runtime.NODEJS_22_X,
+        });
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: Runtime.NODEJS_22_X.name,
+      });
+    });
+
+    void it('provided function defaults to oldest runtime', () => {
+      const lambda = defineFunction((scope) => {
+        return new NodejsFunction(scope, 'nodejs-provided', {
+          entry:
+            './packages/backend-function/src/test-assets/default-lambda/handler.ts',
+        });
+      }).getInstance(getInstanceProps);
+      const template = Template.fromStack(lambda.stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        Runtime: Runtime.NODEJS_16_X.name,
+      });
+    });
   });
 });

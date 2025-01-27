@@ -51,8 +51,8 @@ export class RetryPredicates {
     const didProcessExitWithError = message.includes('exit code 1');
     const isKnownProcess =
       (message.includes('yarn add') && message.includes('aws-amplify')) ||
-      message.includes('npm create amplify') ||
-      message.includes('pnpm create amplify');
+      /npm create ['"]?amplify/.test(message) ||
+      /pnpm create ['"]?amplify/.test(message);
     return didProcessExitWithError && isKnownProcess;
   };
 }

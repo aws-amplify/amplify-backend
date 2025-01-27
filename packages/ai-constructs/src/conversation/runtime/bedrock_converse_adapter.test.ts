@@ -905,6 +905,71 @@ void describe('Bedrock converse adapter', () => {
     assert.deepStrictEqual(toolExecuteMock.mock.calls[1].arguments[0], {});
   });
 
+  void it('logs streaming progress sparsely', async () => {
+    const event: ConversationTurnEvent = {
+      ...commonEvent,
+    };
+
+    const bedrockClient = new BedrockRuntimeClient();
+    const bedrockResponseQueue: Array<
+      ConverseCommandOutput | ConverseStreamCommandOutput
+    > = [];
+    const numberOfBlocks = 512;
+    const content = Array.from({ length: numberOfBlocks }, (v, k) => {
+      return {
+        text: `block${k}`,
+      };
+    });
+    const bedrockResponse = mockBedrockResponse(content, true);
+    bedrockResponse.$metadata.requestId = 'testRequestId';
+    bedrockResponseQueue.push(bedrockResponse);
+
+    mock.method(bedrockClient, 'send', () =>
+      Promise.resolve(bedrockResponseQueue.shift())
+    );
+
+    const consoleInfoMock = mock.fn<(data: string) => void>();
+    const consoleErrorMock = mock.fn<(data: string) => void>();
+    const consoleLogMock = mock.fn<(data: string) => void>();
+    const consoleDebugMock = mock.fn<(data: string) => void>();
+    const consoleMock = {
+      info: consoleInfoMock,
+      error: consoleErrorMock,
+      log: consoleLogMock,
+      debug: consoleDebugMock,
+    } as unknown as Console;
+    const adapter = new BedrockConverseAdapter(
+      event,
+      [],
+      bedrockClient,
+      undefined,
+      messageHistoryRetriever,
+      undefined,
+      consoleMock
+    );
+
+    await askBedrockWithStreaming(adapter);
+
+    const progressCalls = consoleInfoMock.mock.calls.filter((call) =>
+      call.arguments[0].includes('chunks from Bedrock Converse Stream response')
+    );
+    assert.strictEqual(progressCalls.length, 3);
+    assert.strictEqual(
+      progressCalls[0].arguments[0],
+      'Processed 1000 chunks from Bedrock Converse Stream response, requestId=testRequestId'
+    );
+    assert.strictEqual(
+      progressCalls[1].arguments[0],
+      'Processed 2000 chunks from Bedrock Converse Stream response, requestId=testRequestId'
+    );
+    // each block is decomposed into 4 chunks + start and stop of whole message.
+    const expectedNumberOfAllChunks = numberOfBlocks * 4 + 2;
+    assert.strictEqual(
+      progressCalls[2].arguments[0],
+      `Completed processing ${expectedNumberOfAllChunks.toString()} chunks from Bedrock Converse Stream response, requestId=testRequestId`
+    );
+  });
+
   void it('throws if tool is duplicated', () => {
     assert.throws(
       () =>

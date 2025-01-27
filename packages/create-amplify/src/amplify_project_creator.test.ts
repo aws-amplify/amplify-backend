@@ -109,6 +109,7 @@ void describe('AmplifyProjectCreator', () => {
       runWithPackageManager: mock.fn(() => Promise.resolve() as never),
       getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
       allowsSignalPropagation: () => true,
+      tryGetDependencies: mock.fn(() => Promise.resolve([])),
     };
     const projectRootValidatorMock = { validate: mock.fn() };
     const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };

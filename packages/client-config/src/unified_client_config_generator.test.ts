@@ -692,6 +692,39 @@ void describe('UnifiedClientConfigGenerator', () => {
       );
     });
 
+    void it('throws user error if the stack outputs are undefined', async () => {
+      const outputRetrieval = mock.fn(() => {
+        throw new BackendOutputClientError(
+          BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
+          'stack outputs are undefined'
+        );
+      });
+      const modelSchemaAdapter = new ModelIntrospectionSchemaAdapter(
+        stubClientProvider
+      );
+
+      const configContributors = new ClientConfigContributorFactory(
+        modelSchemaAdapter
+      ).getContributors('1.3');
+
+      const clientConfigGenerator = new UnifiedClientConfigGenerator(
+        outputRetrieval,
+        configContributors
+      );
+
+      await assert.rejects(
+        () => clientConfigGenerator.generateClientConfig(),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(
+            error.message,
+            'Amplify outputs not found in stack metadata'
+          );
+          assert.ok(error.resolution);
+          return true;
+        }
+      );
+    });
+
     void it('throws user error if the stack is missing metadata', async () => {
       const outputRetrieval = mock.fn(() => {
         throw new BackendOutputClientError(

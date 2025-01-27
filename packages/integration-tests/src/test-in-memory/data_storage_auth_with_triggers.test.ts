@@ -65,5 +65,6 @@ void it('data storage auth with triggers', async () => {
   await fsp.rm(path.join(process.cwd(), '.amplify'), {
     recursive: true,
     force: true,
+    maxRetries: 3,
   });
 });

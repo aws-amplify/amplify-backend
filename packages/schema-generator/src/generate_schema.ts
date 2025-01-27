@@ -157,7 +157,8 @@ export const parseDatabaseUrl = (databaseUrl: string): SQLDataSourceConfig => {
       {
         message: `Unable to parse the database URL. ${error.message}`,
         resolution: 'Check if the database URL is correct and accessible.',
-      }
+      },
+      error
     );
   }
 };
