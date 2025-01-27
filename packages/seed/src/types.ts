@@ -1,12 +1,11 @@
 export type AuthUser = {
   username: string;
-  preferredChal: string;
+  // eslint-disable-next-line spellcheck/spell-checker
+  signUpOption: 'MFA' | 'Passwordless';
+  password?: string;
 };
 
 export type AuthClient = {
-  createUser: (
-    username: string,
-    password: string,
-    preferredChallenge: string
-  ) => Promise<AuthUser>;
+  createUser: (newUser: AuthUser) => Promise<AuthUser>;
+  signInUser: (userToSignIn: AuthUser) => Promise<void>;
 };
