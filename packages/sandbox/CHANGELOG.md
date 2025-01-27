@@ -1,5 +1,11 @@
 # @aws-amplify/sandbox
 
+## 1.2.11
+
+### Patch Changes
+
+- b359bc6: move from importing the default export from the commonjs distribution of parcle/watcher to named export
+
 ## 1.2.10
 
 ### Patch Changes
