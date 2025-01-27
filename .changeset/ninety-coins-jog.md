@@ -1,5 +1,7 @@
 ---
+'@aws-amplify/deployed-backend-client': patch
+'@aws-amplify/client-config': patch
 '@aws-amplify/backend-cli': patch
 ---
 
-Added error mapping for app name not available in the region
+Add error mapping for app name not available in the region

@@ -81,7 +81,7 @@ export class GenerateOutputsCommand
       );
     } catch (error) {
       if (
-        error instanceof BackendOutputClientError &&
+        BackendOutputClientError.isBackendOutputClientError(error) &&
         error.code === BackendOutputClientErrorType.NO_APP_FOUND_ERROR
       ) {
         throw new AmplifyUserError(

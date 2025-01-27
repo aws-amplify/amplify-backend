@@ -103,6 +103,15 @@ export class UnifiedClientConfigGenerator implements ClientConfigGenerator {
               },
               error
             );
+          case BackendOutputClientErrorType.NO_APP_FOUND_ERROR:
+            throw new AmplifyUserError(
+              'AmplifyAppNotFoundError',
+              {
+                message: error.message,
+                resolution: `Ensure that an Amplify app exists in the region.`,
+              },
+              error
+            );
         }
       }
       throw error;
