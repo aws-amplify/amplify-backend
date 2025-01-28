@@ -95,6 +95,7 @@ type ConversationTurnAppSyncResponseChunk = {
   contentBlockDoneAtIndex?: number;
   contentBlockToolUse?: string;
   stopReason?: string;
+  p?: string;
   errors?: Array<ConversationTurnError>;
 };
 
@@ -698,6 +699,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
                     errorType
                     message
                   }
+                  p
                   id
                   owner
                   stopReason
@@ -747,6 +749,10 @@ class ConversationHandlerTestProject extends TestProjectBase {
 
       const content = chunks.reduce((accumulated, current) => {
         if (current.contentBlockText) {
+          assert.ok(
+            current.p && current.p.length > 0,
+            'Text chunks must include padding'
+          );
           accumulated += current.contentBlockText;
         }
         if (current.contentBlockToolUse) {

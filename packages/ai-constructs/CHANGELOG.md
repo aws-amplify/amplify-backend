@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 1.2.2
+
+### Patch Changes
+
+- 3603cc7: Include padding from bedrock in AI chunked responses
+
 ## 1.2.1
 
 ### Patch Changes

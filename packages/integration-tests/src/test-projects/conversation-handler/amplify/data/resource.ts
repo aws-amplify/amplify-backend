@@ -108,6 +108,9 @@ const schema = a.schema({
       contentBlockIndex: a.integer(),
       accumulatedTurnContent: a.ref('MockContentBlock').array(),
 
+      // padding
+      p: a.string(),
+
       // these describe chunks or end of block
       contentBlockText: a.string(),
       contentBlockToolUse: a.string(),

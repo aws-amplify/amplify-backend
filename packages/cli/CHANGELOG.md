@@ -1,5 +1,17 @@
 # @aws-amplify/backend-cli
 
+## 1.4.8
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [ff2f2ce]
+  - @aws-amplify/backend-deployer@1.1.15
+  - @aws-amplify/schema-generator@1.2.7
+  - @aws-amplify/cli-core@1.2.3
+  - @aws-amplify/sandbox@1.2.10
+
 ## 1.4.7
 
 ### Patch Changes

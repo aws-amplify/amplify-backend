@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.6.2
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+
 ## 0.6.1
 
 ### Patch Changes
