@@ -28,9 +28,18 @@ export const mfaSignUp = async (
 
     if (result.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP') {
       //TO DO: give the option to pass in app name so people can scan QR code instead of inputting secret
-      const secretCode = result.nextStep.totpSetupDetails.sharedSecret;
+      //const secretCode = result.nextStep.totpSetupDetails.sharedSecret;
+
+      //this is somewhat more useful if your Authenticator app is on your laptop
+      const setupDetails = result.nextStep.totpSetupDetails;
+      //eslint-disable-next-line spellcheck/spell-checker
+      const appName = 'passwordless-testing';
+      const setupURi = setupDetails.getSetupUri(appName);
       //eslint-disable-next-line no-console
-      console.log(`Connect your preferred Authenticator App: ${secretCode}`);
+      console.log(setupURi.toString());
+
+      //eslint-disable-next-line no-console
+      //console.log(`Connect your preferred Authenticator App: ${secretCode}`);
       const challengeResponse = await AmplifyPrompter.input({
         message: `Input a challenge response for ${username}: `,
       });
