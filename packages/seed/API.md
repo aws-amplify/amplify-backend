@@ -4,10 +4,18 @@
 
 ```ts
 
-// Warning: (ae-forgotten-export) The symbol "AuthClient" needs to be exported by the entry point index.d.ts
-//
+// @public (undocumented)
+export type AuthClient = {
+    createUser: (newUser: AuthUser) => Promise<AuthUser>;
+    signInUser: (userToSignIn: AuthUser) => Promise<void>;
+};
+
 // @public
 export const getAuthClient: (outputs: any) => AuthClient;
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:9:3 - (ae-forgotten-export) The symbol "AuthUser" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
