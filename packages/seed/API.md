@@ -10,12 +10,15 @@ export type AuthClient = {
     signInUser: (userToSignIn: AuthUser) => Promise<void>;
 };
 
+// @public (undocumented)
+export type AuthUser = {
+    username: string;
+    signUpOption: 'MFA' | 'Passwordless';
+    password?: string;
+};
+
 // @public
 export const getAuthClient: (outputs: any) => AuthClient;
-
-// Warnings were encountered during analysis:
-//
-// src/types.ts:9:3 - (ae-forgotten-export) The symbol "AuthUser" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

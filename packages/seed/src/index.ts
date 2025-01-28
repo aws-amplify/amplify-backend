@@ -1,5 +1,5 @@
 import { DefaultAuthClient } from './auth_client.js';
-import { AuthClient } from './types.js';
+import { AuthClient, AuthUser } from './types.js';
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 
 /**
@@ -13,4 +13,4 @@ export const getAuthClient = (outputs: any): AuthClient => {
   );
 };
 
-export { AuthClient };
+export { AuthClient, AuthUser };
