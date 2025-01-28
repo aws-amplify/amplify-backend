@@ -74,7 +74,7 @@ const updatePromises = Object.values(repoPackagesInfoRecord).map(
         ...Object.keys(packageJson.dependencies || {}),
         ...Object.keys(packageJson.devDependencies || {}),
         ...Object.keys(packageJson.peerDependencies || {}),
-      ])
+      ]),
     );
 
     // collect any additional references to add for the package
@@ -90,7 +90,7 @@ const updatePromises = Object.values(repoPackagesInfoRecord).map(
             accumulator.concat({
               path: repoPackagesInfoRecord[dep].relativeReferencePath,
             }),
-          []
+          [],
         ),
       ...additionalRefsToAdd,
     ];
@@ -101,12 +101,12 @@ const updatePromises = Object.values(repoPackagesInfoRecord).map(
       throw new Error(`Prettier config not found for ${tsconfigPath}`);
     }
     prettierConfig.parser = 'json';
-    const formattedTsconfig = prettier.format(
+    const formattedTsconfig = await prettier.format(
       JSON.stringify(tsconfig),
-      prettierConfig
+      prettierConfig,
     );
     fs.writeFileSync(tsconfigPath, formattedTsconfig);
-  }
+  },
 );
 
 await Promise.all(updatePromises);
