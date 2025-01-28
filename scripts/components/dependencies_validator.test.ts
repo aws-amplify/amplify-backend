@@ -1,7 +1,7 @@
 import { before, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { DependenciesValidator } from './dependencies_validator.js';
-import { ExecaChildProcess } from 'execa';
+import { ExecaMethod } from 'execa';
 import fsp from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { glob } from 'glob';
@@ -10,7 +10,7 @@ void describe('Dependency validator', () => {
   const execaMock = mock.fn(() => {
     return {
       stdout: '',
-    } as unknown as ExecaChildProcess;
+    } as unknown as ReturnType<ExecaMethod>;
   });
 
   before(async () => {
@@ -23,7 +23,7 @@ void describe('Dependency validator', () => {
     execaMock.mock.mockImplementation(() => {
       return {
         stdout: testNpmOutput,
-      } as unknown as ExecaChildProcess;
+      } as unknown as ReturnType<ExecaMethod>;
     });
   });
 
@@ -259,7 +259,7 @@ void describe('Dependency validator', () => {
     const packagePaths = await glob(
       'scripts/components/test-resources/inter-repo-dependency-version-consistency-test-packages/*'
     );
-    const validator = await new DependenciesValidator(
+    const validator = new DependenciesValidator(
       packagePaths,
       {},
       [],
