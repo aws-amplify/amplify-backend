@@ -131,18 +131,6 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     private readonly outputStorageStrategy: BackendOutputStorageStrategy<GraphqlOutput>
   ) {
     this.name = props.name ?? defaultName;
-    const { importedModels, importedAmplifyDynamoDBTableMap } = props;
-    if (importedAmplifyDynamoDBTableMap && !importedModels) {
-      throw new Error(
-        'importedAmplifyDynamoDBTableMap is defined but importedModels is not defined.'
-      );
-    }
-    if (!importedAmplifyDynamoDBTableMap && importedModels) {
-      throw new Error(
-        'importedModels is defined but importedAmplifyDynamoDBTableMap is not defined.'
-      );
-    }
-    // TODO: add importedModels validation
   }
 
   generateContainerEntry = ({
@@ -163,6 +151,12 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         ? this.props.schema.schemas
         : [this.props.schema];
 
+      // get the branch name and use the imported table map for that key
+      // use the sandbox key when the branch name is not available (e.g. in the sandbox deployment)
+      const amplifyBranchName =
+        scope.node.tryGetContext('amplifyEnvironmentName') ?? 'sandbox';
+      const importedTableMap = (this.props.importedAmplifyDynamoDBTableMap ??
+        {})[amplifyBranchName];
       const splitSchemas: {
         schema: string | DerivedModelSchema;
         importedTableName?: string;
@@ -171,8 +165,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         if (!isDataSchema(schema)) {
           const { importedSchemas, nonImportedSchema } = extractImportedModels(
             schema,
-            this.props.importedModels,
-            this.props.importedAmplifyDynamoDBTableMap
+            importedTableMap
           );
           if (importedSchemas.length > 0) {
             return [

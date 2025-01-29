@@ -249,32 +249,18 @@ const customSqlStatementsFromStrategies = (
 /**
  * Extracts the imported models from non-imported models in a single string schema.
  * @param schema String GraphQL schema
- * @param importedModels Models that should be extracted.
  * @param importedAmplifyDynamoDBTableMap Table names for the models that should be extracted.
  * @returns a schema split into imported models and non-imported models
  */
 export const extractImportedModels = (
   schema: string,
-  importedModels: string[] | undefined,
   importedAmplifyDynamoDBTableMap: Record<string, string> | undefined
 ): {
   importedSchemas: { schema: string; importedTableName: string }[];
   nonImportedSchema: string | undefined;
 } => {
-  if (
-    importedAmplifyDynamoDBTableMap &&
-    Object.keys(importedAmplifyDynamoDBTableMap).length
-  ) {
-    Object.keys(importedAmplifyDynamoDBTableMap).forEach((modelName) => {
-      if (!importedModels?.includes(modelName)) {
-        throw new Error(
-          `Imported table defined in importedAmplifyDynamoDBTableMap not found in importedModels list: ${modelName}`
-        );
-      }
-    });
-  }
+  const importedModels = Object.keys(importedAmplifyDynamoDBTableMap ?? {});
   if (importedModels?.length) {
-    // TODO: maybe provide exported function from construct
     const parsedSchema = parse(schema);
     const [importedDefinitionNodes, nonImportedDefinitionNodes] = partition(
       parsedSchema.definitions,
