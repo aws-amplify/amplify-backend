@@ -7,7 +7,7 @@ import { ClientConfigFileBaseName, ClientConfigFormat } from '../index.js';
 
 const testPath = 'some/path';
 
-mock.method(fsp, 'mkdir', () => undefined);
+const mkdirMock = mock.method(fsp, 'mkdir', () => undefined);
 
 void describe('getClientConfigPath', () => {
   void it('returns path to legacy config file', async () => {
@@ -102,6 +102,19 @@ void describe('getClientConfigPath', () => {
         `${ClientConfigFileBaseName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
     );
+  });
+
+  void it('fails when path is invalid or cannot be created', async () => {
+    const nonExistingPath = '/invalidPath';
+    mkdirMock.mock.mockImplementationOnce(() => {
+      throw new Error(
+        "ENOENT: no such file or directory, mkdir '/invalidPath'"
+      );
+    });
+    await assert.rejects(() =>
+      getClientConfigPath(ClientConfigFileBaseName.DEFAULT, nonExistingPath)
+    );
+    ('Directory /invalidPath could not be created.');
   });
 
   void it('returns path to client config file with absolute path', async () => {

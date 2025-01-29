@@ -693,6 +693,22 @@ npm error enoent`,
     errorName: 'InsufficientMemorySpaceError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage:
+      "ENOENT: no such file or directory, open '/Users/myUser/nonExistingFile'",
+    expectedTopLevelErrorMessage:
+      "Failed to open '/Users/myUser/nonExistingFile'",
+    errorName: 'FileNotFoundError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      "ENOENT: no such file or directory, open '/Users/myUser/.amplify/artifacts/cdk.out/manifest.json'",
+    expectedTopLevelErrorMessage:
+      'The Amplify backend definition is missing `defineBackend` call.',
+    errorName: 'MissingDefineBackendError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
