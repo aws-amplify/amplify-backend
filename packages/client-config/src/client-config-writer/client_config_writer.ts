@@ -57,7 +57,7 @@ export class ClientConfigWriter {
           'PermissionsError',
           {
             message: `You do not have the permissions to write to this file: ${targetPath}`,
-            resolution: `Ensure that you have the right permissions to be able to edit ${targetPath}`,
+            resolution: `Ensure that you have the right permissions to write to ${targetPath}`,
           },
           error
         );

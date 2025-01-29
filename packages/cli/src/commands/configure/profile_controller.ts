@@ -87,7 +87,7 @@ export class ProfileController {
           'PermissionsError',
           {
             message: `You do not have the permissions to write to this file: ${filePath}`,
-            resolution: `Ensure that you have the right permissions to be able to edit ${filePath}.`,
+            resolution: `Ensure that you have the right permissions to write to ${filePath}.`,
           },
           error
         );
@@ -158,7 +158,7 @@ export class ProfileController {
           'PermissionsError',
           {
             message: `You do not have the permissions to read this file: ${filePath}.`,
-            resolution: `Ensure that you have the right permissions to be able to read from ${filePath}.`,
+            resolution: `Ensure that you have the right permissions to read from ${filePath}.`,
           },
           error
         );
