@@ -8,6 +8,7 @@ import {
   GenerateClientConfigToFileResult,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatter } from './client_config_formatter.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type ClientConfigPathResolver = (
   fileName: ClientConfigFileBaseName,
@@ -47,7 +48,23 @@ export class ClientConfigWriter {
       format
     );
     const fileContent = this.formatter.format(clientConfig, format);
-    await this.fsp.writeFile(targetPath, fileContent);
+    try {
+      await this.fsp.writeFile(targetPath, fileContent);
+    } catch (err) {
+      const error = err as Error;
+      if (error.message.includes('EACCES')) {
+        throw new AmplifyUserError(
+          'PermissionsError',
+          {
+            message: `You do not have the permissions to write to this file: ${targetPath}`,
+            resolution: `Ensure that you have the right permissions to be able to edit ${targetPath}`,
+          },
+          error
+        );
+      } else {
+        throw error;
+      }
+    }
 
     return {
       filesWritten: [path.relative(process.cwd(), targetPath)],
