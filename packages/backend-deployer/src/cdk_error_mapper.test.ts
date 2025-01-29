@@ -686,6 +686,13 @@ npm error enoent`,
     errorName: 'DeleteFailedWhileDeploymentInProgressError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: 'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)',
+    expectedTopLevelErrorMessage:
+      'Unable to connect to remote address 123.3.789.14 due to insufficient memory.',
+    errorName: 'InsufficientMemorySpaceError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {
