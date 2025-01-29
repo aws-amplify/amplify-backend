@@ -9,6 +9,10 @@ import { BackendIdentifierResolver } from '../../../backend-identifier/backend_i
 import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
 import { ArgumentsKebabCase } from '../../../kebab_case.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import {
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '@aws-amplify/deployed-backend-client';
 
 export type GenerateOutputsCommandOptions =
   ArgumentsKebabCase<GenerateOutputsCommandOptionsCamelCase>;
@@ -55,25 +59,43 @@ export class GenerateOutputsCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateOutputsCommandOptions>
   ): Promise<void> => {
-    const backendIdentifier =
-      await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
-        args
+    try {
+      const backendIdentifier =
+        await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
+          args
+        );
+
+      if (!backendIdentifier) {
+        throw new AmplifyUserError('BackendIdentifierResolverError', {
+          message: 'Could not resolve the backend identifier.',
+          resolution:
+            'Ensure stack name or Amplify App ID and branch specified are correct and exists, then re-run this command.',
+        });
+      }
+
+      await this.clientConfigGenerator.generateClientConfigToFile(
+        backendIdentifier,
+        args.outputsVersion as ClientConfigVersion,
+        args.outDir,
+        args.format
       );
-
-    if (!backendIdentifier) {
-      throw new AmplifyUserError('BackendIdentifierResolverError', {
-        message: 'Could not resolve the backend identifier.',
-        resolution:
-          'Ensure stack name or Amplify App ID and branch specified are correct and exists, then re-run this command.',
-      });
+    } catch (error) {
+      if (
+        BackendOutputClientError.isBackendOutputClientError(error) &&
+        error.code === BackendOutputClientErrorType.NO_APP_FOUND_ERROR
+      ) {
+        throw new AmplifyUserError(
+          'AmplifyAppNotFoundError',
+          {
+            message: error.message,
+            resolution: `Ensure that an Amplify app exists in the region.`,
+          },
+          error
+        );
+      }
+      // Re-throw any other errors
+      throw error;
     }
-
-    await this.clientConfigGenerator.generateClientConfigToFile(
-      backendIdentifier,
-      args.outputsVersion as ClientConfigVersion,
-      args.outDir,
-      args.format
-    );
   };
 
   /**
