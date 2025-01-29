@@ -388,6 +388,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /connect ENOMEM (?<remoteAddress>\d+\.\d+\.\d+\.\d+).*/,
+      humanReadableErrorMessage:
+        'Unable to connect to remote address {remoteAddress} due to insufficient memory.',
+      resolutionMessage:
+        'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
+      errorName: 'InsufficientMemorySpaceError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `npm error code EJSONPARSE${this.multiLineEolRegex}npm error path (?<filePath>.*/package\\.json)${this.multiLineEolRegex}(npm error (.*)${this.multiLineEolRegex})*`
       ),
@@ -571,6 +580,7 @@ export type CDKDeploymentError =
   | 'ExpiredTokenError'
   | 'FileConventionError'
   | 'ModuleNotFoundError'
+  | 'InsufficientMemorySpaceError'
   | 'InvalidOrCannotAssumeRoleError'
   | 'InvalidPackageJsonError'
   | 'SecretNotSetError'

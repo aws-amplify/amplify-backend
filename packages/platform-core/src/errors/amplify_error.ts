@@ -305,7 +305,11 @@ const isInsufficientDiskSpaceError = (err?: Error): boolean => {
 };
 
 const isOutOfMemoryError = (err?: Error): boolean => {
-  return !!err && err.message.includes('process out of memory');
+  return (
+    !!err &&
+    (err.message.includes('process out of memory') ||
+      err.message.includes('connect ENOMEM'))
+  );
 };
 
 /**

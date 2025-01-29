@@ -280,9 +280,20 @@ void describe('AmplifyError.fromError', async () => {
     assert.deepStrictEqual(error, actual);
     assert.strictEqual(actual.resolution, error.resolution);
   });
-  void it('wraps InsufficientMemorySpaceError in AmplifyUserError', () => {
+  void it('wraps InsufficientMemorySpaceError in AmplifyUserError when process runs out of memory', () => {
     const error = new Error(
       'FATAL ERROR: Zone Allocation failed - process out of memory.'
+    );
+    const actual = AmplifyError.fromError(error);
+    assert.ok(
+      AmplifyError.isAmplifyError(actual) &&
+        actual.name === 'InsufficientMemorySpaceError',
+      `Failed the test for error ${error.message}`
+    );
+  });
+  void it('wraps InsufficientMemorySpaceError in AmplifyUserError when connection cannot be established due to lack of memory', () => {
+    const error = new Error(
+      'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)'
     );
     const actual = AmplifyError.fromError(error);
     assert.ok(
