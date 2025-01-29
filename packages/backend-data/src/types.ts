@@ -153,12 +153,10 @@ export type DataProps = {
   /**
    * Mapping of model name to existing DynamoDB table that should be used as the data source.
    */
-  importedAmplifyDynamoDBTableMap?: Record<string, string>;
-
-  /**
-   * List of models that should be imported.
-   */
-  importedModels?: string[];
+  importedAmplifyDynamoDBTableMap?: Record<
+    string,
+    Record<string, string> | undefined
+  >;
 };
 
 export type AmplifyDataError =

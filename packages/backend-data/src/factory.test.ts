@@ -2,7 +2,7 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { DataFactory, defineData } from './factory.js';
 import { App, Stack } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import {
   AmplifyFunction,
   AuthResources,
@@ -56,6 +56,7 @@ const testSchema = /* GraphQL */ `
 
 const createStackAndSetContext = (settings: {
   isSandboxMode: boolean;
+  amplifyEnvironmentName?: string;
 }): Stack => {
   const app = new App();
   app.node.setContext('amplify-backend-name', 'testEnvName');
@@ -63,6 +64,10 @@ const createStackAndSetContext = (settings: {
   app.node.setContext(
     'amplify-backend-type',
     settings.isSandboxMode ? 'sandbox' : 'branch',
+  );
+  app.node.setContext(
+    'amplifyEnvironmentName',
+    settings.amplifyEnvironmentName
   );
   const stack = new Stack(app);
   return stack;
@@ -113,9 +118,11 @@ const createConstructContainerWithUserPoolAuthRegistered = (
 
 const createInstancePropsBySetupCDKApp = (settings: {
   isSandboxMode: boolean;
+  amplifyEnvironmentName?: string;
 }): ConstructFactoryGetInstanceProps => {
   const stack: Stack = createStackAndSetContext({
     isSandboxMode: settings.isSandboxMode,
+    amplifyEnvironmentName: settings.amplifyEnvironmentName,
   });
   const constructContainer: ConstructContainer =
     createConstructContainerWithUserPoolAuthRegistered(stack);
@@ -964,12 +971,14 @@ void describe('Table Import', () => {
     const dataFactory = defineData({
       schema,
       importedAmplifyDynamoDBTableMap: {
-        ImportedModel: 'ImportedModel-1234-dev',
+        dev: {
+          ImportedModel: 'ImportedModel-1234-dev',
+        },
       },
-      importedModels: ['ImportedModel'],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
-      isSandboxMode: true,
+      isSandboxMode: false,
+      amplifyEnvironmentName: 'dev',
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const blogStack = Template.fromStack(
@@ -994,12 +1003,14 @@ void describe('Table Import', () => {
     const dataFactory = defineData({
       schema,
       importedAmplifyDynamoDBTableMap: {
-        ImportedModel: 'ImportedModel-1234-dev',
+        dev: {
+          ImportedModel: 'ImportedModel-1234-dev',
+        },
       },
-      importedModels: ['ImportedModel'],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
-      isSandboxMode: true,
+      isSandboxMode: false,
+      amplifyEnvironmentName: 'dev',
     });
     const instance = dataFactory.getInstance(getInstanceProps);
     const importedModelStack = Template.fromStack(
@@ -1008,58 +1019,6 @@ void describe('Table Import', () => {
     importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
       isImported: true,
       tableName: 'ImportedModel-1234-dev',
-    });
-  });
-
-  void it('fails when importedModels is not supplied', () => {
-    const schema = /* GraphQL */ `
-      type Blog @model {
-        title: String
-        content: String
-        authors: [String]
-      }
-
-      type ImportedModel @model {
-        description: String
-      }
-    `;
-    const dataFactory = defineData({
-      schema,
-      importedAmplifyDynamoDBTableMap: {
-        ImportedModel: 'ImportedModel-1234-dev',
-      },
-    });
-    const getInstanceProps = createInstancePropsBySetupCDKApp({
-      isSandboxMode: true,
-    });
-    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
-      message:
-        'importedAmplifyDynamoDBTableMap is defined but importedModels is not defined.',
-    });
-  });
-
-  void it('fails when importedAmplifyDynamoDBTableMap is not supplied', () => {
-    const schema = /* GraphQL */ `
-      type Blog @model {
-        title: String
-        content: String
-        authors: [String]
-      }
-
-      type ImportedModel @model {
-        description: String
-      }
-    `;
-    const dataFactory = defineData({
-      schema,
-      importedModels: ['ImportedModel'],
-    });
-    const getInstanceProps = createInstancePropsBySetupCDKApp({
-      isSandboxMode: true,
-    });
-    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
-      message:
-        'importedModels is defined but importedAmplifyDynamoDBTableMap is not defined.',
     });
   });
 
@@ -1074,73 +1033,113 @@ void describe('Table Import', () => {
     const dataFactory = defineData({
       schema,
       importedAmplifyDynamoDBTableMap: {
-        ImportedModel: 'ImportedModel-1234-dev',
+        dev: {
+          ImportedModel: 'ImportedModel-1234-dev',
+        },
       },
-      importedModels: ['ImportedModel'],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
-      isSandboxMode: true,
+      isSandboxMode: false,
+      amplifyEnvironmentName: 'dev',
     });
     assert.throws(() => dataFactory.getInstance(getInstanceProps), {
       message: 'Imported model not found in schema: ImportedModel',
     });
   });
 
-  void it('throws when model missing in imported models list', () => {
+  void it('ignores other branches', () => {
     const schema = /* GraphQL */ `
-      type Blog @model {
-        title: String
-        content: String
-        authors: [String]
-      }
-
       type ImportedModel @model {
-        description: String
-      }
-
-      type Foo @model {
         description: String
       }
     `;
     const dataFactory = defineData({
       schema,
       importedAmplifyDynamoDBTableMap: {
-        ImportedModel: 'ImportedModel-1234-dev',
-        Foo: 'Foo-1234-dev',
+        dev: {
+          ImportedModel: 'ImportedModel-1234-dev',
+        },
+        prod: {
+          ImportedModel: 'ImportedModel-1234-prod',
+        },
       },
-      importedModels: ['Foo'],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
-      isSandboxMode: true,
+      isSandboxMode: false,
+      amplifyEnvironmentName: 'dev',
     });
-    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
-      message:
-        'Imported table defined in importedAmplifyDynamoDBTableMap not found in importedModels list: ImportedModel',
+    const instance = dataFactory.getInstance(getInstanceProps);
+    const importedModelStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['ImportedModel'])
+    );
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      isImported: true,
+      tableName: 'ImportedModel-1234-dev',
+    });
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      tableName: Match.not('ImportedModel-1234-prod'),
     });
   });
 
-  void it('throws when model missing in imported models map', () => {
+  void it('uses sandbox key for sandbox mode', () => {
     const schema = /* GraphQL */ `
-      type Blog @model {
-        title: String
-        content: String
-        authors: [String]
-      }
-
       type ImportedModel @model {
         description: String
       }
     `;
     const dataFactory = defineData({
       schema,
-      importedAmplifyDynamoDBTableMap: {},
-      importedModels: ['ImportedModel'],
+      importedAmplifyDynamoDBTableMap: {
+        dev: {
+          ImportedModel: 'ImportedModel-1234-dev',
+        },
+        sandbox: {
+          ImportedModel: 'ImportedModel-1234-sandbox',
+        },
+      },
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: true,
     });
-    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
-      message: 'No table found for imported model ImportedModel.',
+    const instance = dataFactory.getInstance(getInstanceProps);
+    const importedModelStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['ImportedModel'])
+    );
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      isImported: true,
+      tableName: 'ImportedModel-1234-sandbox',
+    });
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      tableName: Match.not('ImportedModel-1234-dev'),
+    });
+  });
+
+  void it('ignores undefined branches', () => {
+    const schema = /* GraphQL */ `
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      importedAmplifyDynamoDBTableMap: {
+        dev: {
+          ImportedModel: 'ImportedModel-1234-dev',
+        },
+        prod: undefined,
+      },
+    });
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+      amplifyEnvironmentName: 'dev',
+    });
+    const instance = dataFactory.getInstance(getInstanceProps);
+    const importedModelStack = Template.fromStack(
+      Stack.of(instance.resources.nestedStacks['ImportedModel'])
+    );
+    importedModelStack.hasResourceProperties(CUSTOM_IMPORTED_DDB_CFN_TYPE, {
+      isImported: true,
+      tableName: 'ImportedModel-1234-dev',
     });
   });
 });
