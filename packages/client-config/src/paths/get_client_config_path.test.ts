@@ -111,10 +111,13 @@ void describe('getClientConfigPath', () => {
         "ENOENT: no such file or directory, mkdir '/invalidPath'"
       );
     });
-    await assert.rejects(() =>
-      getClientConfigPath(ClientConfigFileBaseName.DEFAULT, nonExistingPath)
-    );
-    ('Directory /invalidPath could not be created.');
+    await assert.rejects(async () => {
+      await getClientConfigPath(
+        ClientConfigFileBaseName.DEFAULT,
+        nonExistingPath
+      );
+    }),
+      { message: 'Directory /invalidPath could not be created.' };
   });
 
   void it('returns path to client config file with absolute path', async () => {
