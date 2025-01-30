@@ -55,8 +55,6 @@ export class GenerateOutputsCommand
   handler = async (
     args: ArgumentsCamelCase<GenerateOutputsCommandOptions>
   ): Promise<void> => {
-    // eslint-disable-next-line no-console
-    console.log('running outputs command');
     const backendIdentifier =
       await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
         args

@@ -49,16 +49,14 @@ export class ClientConfigWriter {
     );
     const fileContent = this.formatter.format(clientConfig, format);
 
-    // eslint-disable-next-line no-console
-    console.log('opening file with 600');
     try {
-      await this.fsp.writeFile(targetPath, fileContent, { mode: 600 });
+      await this.fsp.writeFile(targetPath, fileContent);
     } catch (err) {
       throw new AmplifyUserError(
         'PermissionsError',
         {
           message: `You do not have the permissions to write to this file: ${targetPath}`,
-          resolution: `Ensure that you have the right permissions to write to ${targetPath}.`,
+          resolution: `You may need to run chmod 600 on this file to ensure that you have the right permissions to write to ${targetPath}.`,
         },
         err as Error
       );

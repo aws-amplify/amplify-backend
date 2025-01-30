@@ -63,12 +63,14 @@ export class ProfileController {
   ) => {
     const filePath =
       process.env.AWS_CONFIG_FILE ?? path.join(getHomeDir(), '.aws', 'config');
-
+    //eslint-disable-next-line no-console
+    console.log(filePath);
     const dirName = path.dirname(filePath);
     if (!existsSync(dirName)) {
       await fs.mkdir(dirName, { recursive: true });
     }
-
+    //eslint-disable-next-line no-console
+    console.log('Checking EOL');
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
     let configData = fileEndsWithEOL ? '' : EOL;
 
@@ -87,7 +89,7 @@ export class ProfileController {
           'PermissionsError',
           {
             message: `You do not have the permissions to write to this file: ${filePath}`,
-            resolution: `Ensure that you have the right permissions to write to ${filePath}.`,
+            resolution: `You may need to run chmod 600 on this file to ensure that you have the right permissions to write to ${filePath}.`,
           },
           error
         );
