@@ -87,7 +87,7 @@ export class ProfileController {
           'PermissionsError',
           {
             message: `You do not have the permissions to write to this file: ${filePath}`,
-            resolution: `You may need to run chmod 600 on this file to ensure that you have the right permissions to write to ${filePath}.`,
+            resolution: `Ensure that you have the right permissions to write to ${filePath}.`,
           },
           error
         );
