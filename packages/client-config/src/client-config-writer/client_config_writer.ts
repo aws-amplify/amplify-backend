@@ -8,6 +8,7 @@ import {
   GenerateClientConfigToFileResult,
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatter } from './client_config_formatter.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type ClientConfigPathResolver = (
   fileName: ClientConfigFileBaseName,
@@ -50,7 +51,18 @@ export class ClientConfigWriter {
 
     // eslint-disable-next-line no-console
     console.log('opening file with 600');
-    await this.fsp.writeFile(targetPath, fileContent, { mode: 600 });
+    try {
+      await this.fsp.writeFile(targetPath, fileContent, { mode: 600 });
+    } catch (err) {
+      throw new AmplifyUserError(
+        'PermissionsError',
+        {
+          message: `You do not have the permissions to write to this file: ${targetPath}`,
+          resolution: `Ensure that you have the right permissions to write to ${targetPath}.`,
+        },
+        err as Error
+      );
+    }
 
     return {
       filesWritten: [path.relative(process.cwd(), targetPath)],
