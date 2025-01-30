@@ -136,6 +136,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
     ssmEnvironmentEntriesGenerator,
     backendSecretResolver,
     stableBackendIdentifiers,
+    seedPolicy,
   }: GenerateContainerEntryProps) => {
     const amplifyGraphqlDefinitions: IAmplifyDataDefinition[] = [];
     const schemasJsFunctions: JsResolver[] = [];
@@ -300,6 +301,11 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         Source.data(modelIntrospectionSchemaKey, modelIntrospectionSchema),
       ],
     });
+
+    if (seedPolicy) {
+      amplifyApi.resources.graphqlApi.grantQuery(seedPolicy);
+      amplifyApi.resources.graphqlApi.grantMutation(seedPolicy);
+    }
 
     Tags.of(amplifyApi).add(TagName.FRIENDLY_NAME, this.name);
 

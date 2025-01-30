@@ -155,6 +155,7 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
     backendSecretResolver,
     ssmEnvironmentEntriesGenerator,
     stableBackendIdentifiers,
+    seedPolicy,
   }: GenerateContainerEntryProps) => {
     const authProps: AuthProps = {
       ...this.props,
@@ -184,6 +185,13 @@ class AmplifyAuthGenerator implements ConstructContainerEntryGenerator {
           resolution: 'See the underlying error message for more details.',
         },
         error as Error
+      );
+    }
+
+    if (seedPolicy) {
+      authConstruct.resources.userPool.grant(
+        seedPolicy,
+        'cognito-idp:AdminCreateUser'
       );
     }
 
