@@ -4,6 +4,7 @@ import * as path from 'path';
 import assert from 'node:assert';
 import { getClientConfigPath } from './get_client_config_path.js';
 import { ClientConfigFileBaseName, ClientConfigFormat } from '../index.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const testPath = 'some/path';
 
@@ -111,13 +112,18 @@ void describe('getClientConfigPath', () => {
         "ENOENT: no such file or directory, mkdir '/invalidPath'"
       );
     });
-    await assert.rejects(async () => {
-      await getClientConfigPath(
-        ClientConfigFileBaseName.DEFAULT,
-        nonExistingPath
-      );
-    }),
-      { message: 'Directory /invalidPath could not be created.' };
+    await assert.rejects(
+      () =>
+        getClientConfigPath(ClientConfigFileBaseName.DEFAULT, nonExistingPath),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(
+          error.message,
+          'Directory /invalidPath could not be created.'
+        );
+        assert.ok(error.resolution);
+        return true;
+      }
+    );
   });
 
   void it('returns path to client config file with absolute path', async () => {
