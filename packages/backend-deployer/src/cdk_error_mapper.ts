@@ -434,12 +434,21 @@ export class CdkErrorMapper {
       // During 'cdk synth' CDK CLI attempts to read CDK assembly after calling customer's app.
       // But no files are rendered causing it to fail.
       errorRegex:
-        /ENOENT: no such file or directory, open '\.amplify.artifacts.cdk\.out.manifest\.json'/,
+        /ENOENT: no such file or directory, open '.*\.amplify.artifacts.cdk\.out.manifest\.json'/,
       humanReadableErrorMessage:
         'The Amplify backend definition is missing `defineBackend` call.',
       resolutionMessage:
         'Check your backend definition in the `amplify` folder. Ensure that `amplify/backend.ts` contains `defineBackend` call.',
       errorName: 'MissingDefineBackendError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /^ENOENT: no such file or directory, (?<action_and_filepath>.*)$/,
+      humanReadableErrorMessage: 'Failed to {action_and_filepath}',
+      resolutionMessage:
+        'File or directory not found. Failed to {action_and_filepath}',
+      errorName: 'FileNotFoundError',
       classification: 'ERROR',
     },
     {
@@ -579,6 +588,7 @@ export type CDKDeploymentError =
   | 'ESBuildError'
   | 'ExpiredTokenError'
   | 'FileConventionError'
+  | 'FileNotFoundError'
   | 'ModuleNotFoundError'
   | 'InsufficientMemorySpaceError'
   | 'InvalidOrCannotAssumeRoleError'
