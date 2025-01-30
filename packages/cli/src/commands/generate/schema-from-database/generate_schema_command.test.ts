@@ -165,6 +165,14 @@ void describe('generate graphql-client-code command', () => {
     assert.match(output, /Arguments .* are mutually exclusive/);
   });
 
+  void it('fails if branch is present but not app id', async () => {
+    const output = await commandRunner.runCommand(
+      'schema-from-database --branch baz'
+    );
+    assert.match(output, /Missing dependent arguments:/);
+    assert.match(output, /branch -> app-id/);
+  });
+
   void it('shows available options in help output', async () => {
     const output = await commandRunner.runCommand(
       'schema-from-database --help'
