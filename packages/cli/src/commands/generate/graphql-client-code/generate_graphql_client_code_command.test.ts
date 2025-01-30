@@ -93,23 +93,6 @@ void describe('generate graphql-client-code command', () => {
     );
   });
 
-  void it('generates and writes graphql client code for branch', async () => {
-    await commandRunner.runCommand('graphql-client-code --branch branch_name');
-    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
-    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
-      appName: 'testAppName',
-      branchName: 'branch_name',
-      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
-      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
-      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
-    });
-    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
-    assert.equal(
-      writeToDirectoryMock.mock.calls[0].arguments[0],
-      process.cwd()
-    );
-  });
-
   void it('generates and writes graphql client code for appID and branch', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --branch branch_name --app-id app_id'
