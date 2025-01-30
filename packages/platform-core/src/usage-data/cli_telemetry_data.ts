@@ -1,26 +1,29 @@
+import { Dependency } from '@aws-amplify/plugin-types';
+
 // Core Identifiers
 export type CoreIdentifiersDetails = {
+  payloadVersion: string;
   sessionUuid: string;
   eventId: string;
   timestamp: string;
   localProjectId: string;
   accountId?: string;
-  payloadVersion: string;
   awsRegion?: string;
 };
 
-// Command Details
 export type EventDetails = {
-  success: boolean;
+  state: 'ABORTED' | 'FAILED' | 'SUCCEEDED';
   command: {
     path: string[];
     parameters: string[];
   };
 };
 
-// Environment Details
 export type EnvironmentDetails = {
-  osRelease: string;
+  os: {
+    platform: string;
+    release: string;
+  };
   shell: string;
   npmUserAgent: string;
   ci: boolean;
@@ -30,16 +33,14 @@ export type EnvironmentDetails = {
   };
 };
 
-// Latency (Optional)
 export type LatencyDetails = {
+  total: number;
   init?: number;
   synthesis?: number;
   deployment?: number;
   hotSwap?: number;
-  total: number;
 };
 
-// Error Details (Optional)
 export type ErrorDetails = {
   name: string;
   message: string;
@@ -47,9 +48,8 @@ export type ErrorDetails = {
   cause?: ErrorDetails;
 };
 
-// Project Details
 export type ProjectDetails = {
-  dependencies: Array<{ name: string; version: string }>;
+  dependencies?: Array<Dependency>;
 };
 
 // Main Telemetry Data Structure
