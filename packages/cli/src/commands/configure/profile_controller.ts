@@ -63,14 +63,12 @@ export class ProfileController {
   ) => {
     const filePath =
       process.env.AWS_CONFIG_FILE ?? path.join(getHomeDir(), '.aws', 'config');
-    //eslint-disable-next-line no-console
-    console.log(filePath);
+
     const dirName = path.dirname(filePath);
     if (!existsSync(dirName)) {
       await fs.mkdir(dirName, { recursive: true });
     }
-    //eslint-disable-next-line no-console
-    console.log('Checking EOL');
+
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
     let configData = fileEndsWithEOL ? '' : EOL;
 
