@@ -48,6 +48,8 @@ export class ClientConfigWriter {
     );
     const fileContent = this.formatter.format(clientConfig, format);
 
+    // eslint-disable-next-line no-console
+    console.log('opening file with 600');
     await this.fsp.writeFile(targetPath, fileContent, { mode: 600 });
 
     return {
