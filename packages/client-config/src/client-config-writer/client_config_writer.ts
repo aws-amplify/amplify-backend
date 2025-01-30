@@ -52,14 +52,19 @@ export class ClientConfigWriter {
     try {
       await this.fsp.writeFile(targetPath, fileContent);
     } catch (err) {
-      throw new AmplifyUserError(
-        'PermissionsError',
-        {
-          message: `You do not have the permissions to write to this file: ${targetPath}`,
-          resolution: `Ensure that you have the right permissions to write to ${targetPath}.`,
-        },
-        err as Error
-      );
+      const error = err as Error;
+      if (error.message.includes('EACCES')) {
+        throw new AmplifyUserError(
+          'PermissionsError',
+          {
+            message: `You do not have the permissions to write to this file: ${targetPath}`,
+            resolution: `Ensure that you have the right permissions to write to ${targetPath}.`,
+          },
+          error
+        );
+      } else {
+        throw error;
+      }
     }
 
     return {
