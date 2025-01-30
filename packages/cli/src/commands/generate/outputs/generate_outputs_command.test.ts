@@ -225,4 +225,10 @@ void describe('generate outputs command', () => {
     );
     assert.match(output, /Arguments .* mutually exclusive/);
   });
+
+  void it('fails if branch is present but not app id', async () => {
+    const output = await commandRunner.runCommand('outputs --branch baz');
+    assert.match(output, /Missing dependent arguments:/);
+    assert.match(output, /branch -> app-id/);
+  });
 });

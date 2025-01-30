@@ -331,6 +331,14 @@ void describe('generate graphql-client-code command', () => {
     );
   });
 
+  void it('fails if branch is present but not app id', async () => {
+    const output = await commandRunner.runCommand(
+      'graphql-client-code --branch baz'
+    );
+    assert.match(output, /Missing dependent arguments:/);
+    assert.match(output, /branch -> app-id/);
+  });
+
   // Note: after this test, future tests seem to be in a weird state, leaving this at the end
   void it('fails if both stack and branch are present', async () => {
     const output = await commandRunner.runCommand(

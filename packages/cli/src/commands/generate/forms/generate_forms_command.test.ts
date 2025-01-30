@@ -505,4 +505,77 @@ void describe('generate forms command', () => {
       }
     );
   });
+
+  void it('throws user error if both stack and branch are present', async () => {
+    const appNameResolver = {
+      resolve: () => Promise.resolve('testAppName'),
+    };
+
+    const defaultResolver = new AppBackendIdentifierResolver(appNameResolver);
+
+    const mockedSandboxIdResolver = new SandboxBackendIdResolver(
+      appNameResolver
+    );
+
+    const backendIdResolver = new BackendIdentifierResolverWithFallback(
+      defaultResolver,
+      mockedSandboxIdResolver
+    );
+    const formGenerationHandler = new FormGenerationHandler({
+      awsClientProvider,
+    });
+
+    const fakedBackendOutputClient =
+      BackendOutputClientFactory.getInstance(awsClientProvider);
+
+    const generateFormsCommand = new GenerateFormsCommand(
+      backendIdResolver,
+      () => fakedBackendOutputClient,
+      formGenerationHandler
+    );
+    const parser = yargs().command(
+      generateFormsCommand as unknown as CommandModule
+    );
+    const commandRunner = new TestCommandRunner(parser);
+    const output = await commandRunner.runCommand(
+      'forms --stack foo --branch baz'
+    );
+    assert.match(output, /Arguments .* are mutually exclusive/);
+  });
+
+  void it('throws user error if branch is present but not app id', async () => {
+    const appNameResolver = {
+      resolve: () => Promise.resolve('testAppName'),
+    };
+
+    const defaultResolver = new AppBackendIdentifierResolver(appNameResolver);
+
+    const mockedSandboxIdResolver = new SandboxBackendIdResolver(
+      appNameResolver
+    );
+
+    const backendIdResolver = new BackendIdentifierResolverWithFallback(
+      defaultResolver,
+      mockedSandboxIdResolver
+    );
+    const formGenerationHandler = new FormGenerationHandler({
+      awsClientProvider,
+    });
+
+    const fakedBackendOutputClient =
+      BackendOutputClientFactory.getInstance(awsClientProvider);
+
+    const generateFormsCommand = new GenerateFormsCommand(
+      backendIdResolver,
+      () => fakedBackendOutputClient,
+      formGenerationHandler
+    );
+    const parser = yargs().command(
+      generateFormsCommand as unknown as CommandModule
+    );
+    const commandRunner = new TestCommandRunner(parser);
+    const output = await commandRunner.runCommand('forms --branch baz');
+    assert.match(output, /Missing dependent arguments:/);
+    assert.match(output, /branch -> app-id/);
+  });
 });
