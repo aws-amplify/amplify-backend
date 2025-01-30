@@ -1,5 +1,47 @@
 # @aws-amplify/backend-ai
 
+## 1.3.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+
+### Patch Changes
+
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.2.0
+
+### Minor Changes
+
+- a66f5f2: Expose timeout property
+
+### Patch Changes
+
+- Updated dependencies [a66f5f2]
+  - @aws-amplify/ai-constructs@1.2.0
+
+## 1.1.0
+
+### Minor Changes
+
+- 65abf6a: Add options to control log settings
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [cfdc854]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [65abf6a]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/platform-core@1.3.0
+  - @aws-amplify/backend-output-storage@1.1.4
+  - @aws-amplify/ai-constructs@1.1.0
+  - @aws-amplify/plugin-types@1.6.0
+
 ## 1.0.1
 
 ### Patch Changes

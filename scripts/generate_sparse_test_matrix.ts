@@ -4,14 +4,16 @@ import { SparseTestMatrixGenerator } from './components/sparse_test_matrix_gener
 // Every test must run on each type of OS and each version of node.
 // However, we don't have to run every combination.
 
-if (process.argv.length < 3) {
+if (process.argv.length < 5) {
   console.log(
-    "Usage: npx tsx scripts/generate_sparse_test_matrix.ts '<test-glob-pattern>' <max-tests-per-job?>"
+    "Usage: npx tsx scripts/generate_sparse_test_matrix.ts '<test-glob-pattern>' '<node-versions-as-json-array>' '<os-as-json-array>' <max-tests-per-job?>"
   );
 }
 
 const testGlobPattern = process.argv[2];
-const maxTestsPerJob = process.argv[3] ? parseInt(process.argv[3]) : 2;
+const nodeVersions = JSON.parse(process.argv[3]) as Array<string>;
+let os = JSON.parse(process.argv[4]) as Array<string>;
+const maxTestsPerJob = process.argv[5] ? parseInt(process.argv[5]) : 2;
 
 if (!Number.isInteger(maxTestsPerJob)) {
   throw new Error(
@@ -19,12 +21,20 @@ if (!Number.isInteger(maxTestsPerJob)) {
   );
 }
 
+os = os.map((entry) => {
+  if (entry === 'macos-14') {
+    // replace with large.
+    return 'macos-14-xlarge';
+  }
+  return entry;
+});
+
 const matrix = await new SparseTestMatrixGenerator({
   testGlobPattern,
   maxTestsPerJob,
   dimensions: {
-    'node-version': ['18', '20'],
-    os: ['ubuntu-latest', 'macos-14-xlarge', 'windows-latest'],
+    'node-version': nodeVersions,
+    os,
   },
 }).generate();
 

@@ -93,23 +93,6 @@ void describe('generate graphql-client-code command', () => {
     );
   });
 
-  void it('generates and writes graphql client code for branch', async () => {
-    await commandRunner.runCommand('graphql-client-code --branch branch_name');
-    assert.equal(invokeGenerateApiCodeMock.mock.callCount(), 1);
-    assert.deepEqual(invokeGenerateApiCodeMock.mock.calls[0].arguments[0], {
-      appName: 'testAppName',
-      branchName: 'branch_name',
-      format: GenerateApiCodeFormat.GRAPHQL_CODEGEN,
-      statementTarget: GenerateApiCodeStatementTarget.TYPESCRIPT,
-      typeTarget: GenerateApiCodeTypeTarget.TYPESCRIPT,
-    });
-    assert.equal(writeToDirectoryMock.mock.callCount(), 1);
-    assert.equal(
-      writeToDirectoryMock.mock.calls[0].arguments[0],
-      process.cwd()
-    );
-  });
-
   void it('generates and writes graphql client code for appID and branch', async () => {
     await commandRunner.runCommand(
       'graphql-client-code --branch branch_name --app-id app_id'
@@ -346,6 +329,14 @@ void describe('generate graphql-client-code command', () => {
       writeToDirectoryMock.mock.calls[0].arguments[0],
       process.cwd()
     );
+  });
+
+  void it('fails if branch is present but not app id', async () => {
+    const output = await commandRunner.runCommand(
+      'graphql-client-code --branch baz'
+    );
+    assert.match(output, /Missing dependent arguments:/);
+    assert.match(output, /branch -> app-id/);
   });
 
   // Note: after this test, future tests seem to be in a weird state, leaving this at the end

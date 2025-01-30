@@ -94,6 +94,8 @@ npm run setup:test-project <name>
 
 This allows you to make local changes and immediately try them out in a test project. All projects that you create in this directory are gitignored.
 
+Make sure your credentials are using the `AmplifyBackendDeployFullAccess` managed policy. For instructions on setting up local credentials, check out [configure AWS for local development](https://docs.amplify.aws/react/start/account-setup/).
+
 Depending on the scope of the change you are making, integration tests and/or E2E tests may be necessary.
 
 Integration tests are located [here](./packages/integration-tests/src/test-in-memory/). These tests operate mostly like unit tests but they exercise many different components and packages together. However, these tests do NOT make service calls. Test assertions can be set up using the [CDK assertions library](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.assertions-readme.html).
@@ -145,6 +147,13 @@ At a minimum, each package needs:
 5. A `typedoc.json` file
 6. An `.npmignore` file
 7. A `README.md` file that gives a brief description of the intent of the package
+
+## Debugging
+
+For debugging purposes you can use the following knobs:
+
+1. Most of `npx ampx` commands take `--debug` parameter. It enables verbose console output.
+2. We are using `execa` for spawning child processes. You can set `export NODE_DEBUG=execa` to reveal exact command lines.
 
 ## Licensing
 

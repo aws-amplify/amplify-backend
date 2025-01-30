@@ -123,7 +123,7 @@ export class GenerateSchemaCommand
         type: 'string',
         array: false,
         group: 'Project identifier',
-        implies: 'appId',
+        implies: 'app-id',
       })
       .option('out', {
         describe: 'A path to directory where generated schema is written.',

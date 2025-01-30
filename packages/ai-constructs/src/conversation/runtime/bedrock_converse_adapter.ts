@@ -213,88 +213,109 @@ export class BedrockConverseAdapter {
         content: [],
       };
 
-      for await (const chunk of bedrockResponse.stream) {
-        this.logger.debug('Bedrock Converse Stream response chunk:', chunk);
-        if (chunk.messageStart) {
-          accumulatedAssistantMessage.role = chunk.messageStart.role;
-        } else if (chunk.contentBlockStart) {
-          blockDeltaIndex = 0;
-          lastBlockDeltaIndex = 0;
-          if (chunk.contentBlockStart.start?.toolUse) {
-            toolUseBlock = {
-              toolUse: {
-                ...chunk.contentBlockStart.start?.toolUse,
-                input: undefined,
-              },
-            };
-          }
-        } else if (chunk.contentBlockDelta) {
-          if (chunk.contentBlockDelta.delta?.toolUse) {
-            if (!chunk.contentBlockDelta.delta.toolUse.input) {
+      let processedBedrockChunks = 0;
+      try {
+        for await (const chunk of bedrockResponse.stream) {
+          this.logger.debug('Bedrock Converse Stream response chunk:', chunk);
+          if (chunk.messageStart) {
+            accumulatedAssistantMessage.role = chunk.messageStart.role;
+          } else if (chunk.contentBlockStart) {
+            blockDeltaIndex = 0;
+            lastBlockDeltaIndex = 0;
+            if (chunk.contentBlockStart.start?.toolUse) {
+              toolUseBlock = {
+                toolUse: {
+                  ...chunk.contentBlockStart.start?.toolUse,
+                  input: undefined,
+                },
+              };
+            }
+          } else if (chunk.contentBlockDelta) {
+            if (chunk.contentBlockDelta.delta?.toolUse) {
+              if (!chunk.contentBlockDelta.delta.toolUse.input) {
+                toolUseInput = '';
+              } else {
+                toolUseInput += chunk.contentBlockDelta.delta.toolUse.input;
+              }
+            } else if (chunk.contentBlockDelta.delta?.text) {
+              text += chunk.contentBlockDelta.delta.text;
+              const amplifyChunk: StreamingResponseChunk = {
+                accumulatedTurnContent: [...accumulatedTurnContent, { text }],
+                conversationId: this.event.conversationId,
+                associatedUserMessageId: this.event.currentMessageId,
+                contentBlockText: chunk.contentBlockDelta.delta.text,
+                contentBlockIndex: blockIndex,
+                contentBlockDeltaIndex: blockDeltaIndex,
+              };
+              // padding is sent from Bedrock but not included in the API.
+              if ('p' in chunk.contentBlockDelta) {
+                const bedrockPadding = chunk.contentBlockDelta.p;
+                if (typeof bedrockPadding === 'string') {
+                  amplifyChunk.p = bedrockPadding;
+                }
+              }
+              yield amplifyChunk;
+              lastBlockDeltaIndex = blockDeltaIndex;
+              blockDeltaIndex++;
+            }
+          } else if (chunk.contentBlockStop) {
+            if (toolUseBlock) {
+              if (toolUseInput) {
+                toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
+              } else {
+                // Bedrock API requires tool input to be non-null in message history.
+                // Therefore, falling back to empty object.
+                toolUseBlock.toolUse.input = {};
+              }
+              accumulatedAssistantMessage.content?.push(toolUseBlock);
+              if (
+                toolUseBlock.toolUse.name &&
+                this.clientToolByName.has(toolUseBlock.toolUse.name)
+              ) {
+                clientToolsRequested = true;
+                accumulatedTurnContent.push(toolUseBlock);
+                yield {
+                  accumulatedTurnContent: [...accumulatedTurnContent],
+                  conversationId: this.event.conversationId,
+                  associatedUserMessageId: this.event.currentMessageId,
+                  contentBlockIndex: blockIndex,
+                  contentBlockToolUse: JSON.stringify(toolUseBlock),
+                };
+                lastBlockIndex = blockIndex;
+                blockIndex++;
+              }
+              toolUseBlock = undefined;
               toolUseInput = '';
             } else {
-              toolUseInput += chunk.contentBlockDelta.delta.toolUse.input;
-            }
-          } else if (chunk.contentBlockDelta.delta?.text) {
-            text += chunk.contentBlockDelta.delta.text;
-            yield {
-              accumulatedTurnContent: [...accumulatedTurnContent, { text }],
-              conversationId: this.event.conversationId,
-              associatedUserMessageId: this.event.currentMessageId,
-              contentBlockText: chunk.contentBlockDelta.delta.text,
-              contentBlockIndex: blockIndex,
-              contentBlockDeltaIndex: blockDeltaIndex,
-            };
-            lastBlockDeltaIndex = blockDeltaIndex;
-            blockDeltaIndex++;
-          }
-        } else if (chunk.contentBlockStop) {
-          if (toolUseBlock) {
-            if (toolUseInput) {
-              toolUseBlock.toolUse.input = JSON.parse(toolUseInput);
-            } else {
-              // Bedrock API requires tool input to be non-null in message history.
-              // Therefore, falling back to empty object.
-              toolUseBlock.toolUse.input = {};
-            }
-            accumulatedAssistantMessage.content?.push(toolUseBlock);
-            if (
-              toolUseBlock.toolUse.name &&
-              this.clientToolByName.has(toolUseBlock.toolUse.name)
-            ) {
-              clientToolsRequested = true;
-              accumulatedTurnContent.push(toolUseBlock);
+              accumulatedAssistantMessage.content?.push({
+                text,
+              });
+              accumulatedTurnContent.push({ text });
               yield {
                 accumulatedTurnContent: [...accumulatedTurnContent],
                 conversationId: this.event.conversationId,
                 associatedUserMessageId: this.event.currentMessageId,
                 contentBlockIndex: blockIndex,
-                contentBlockToolUse: JSON.stringify(toolUseBlock),
+                contentBlockDoneAtIndex: lastBlockDeltaIndex,
               };
+              text = '';
               lastBlockIndex = blockIndex;
               blockIndex++;
             }
-            toolUseBlock = undefined;
-            toolUseInput = '';
-          } else {
-            accumulatedAssistantMessage.content?.push({
-              text,
-            });
-            accumulatedTurnContent.push({ text });
-            yield {
-              accumulatedTurnContent: [...accumulatedTurnContent],
-              conversationId: this.event.conversationId,
-              associatedUserMessageId: this.event.currentMessageId,
-              contentBlockIndex: blockIndex,
-              contentBlockDoneAtIndex: lastBlockDeltaIndex,
-            };
-            text = '';
-            lastBlockIndex = blockIndex;
-            blockIndex++;
+          } else if (chunk.messageStop) {
+            stopReason = chunk.messageStop.stopReason ?? '';
           }
-        } else if (chunk.messageStop) {
-          stopReason = chunk.messageStop.stopReason ?? '';
+          processedBedrockChunks++;
+          if (processedBedrockChunks % 1000 === 0) {
+            this.logger.info(
+              `Processed ${processedBedrockChunks} chunks from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
+            );
+          }
         }
+      } finally {
+        this.logger.info(
+          `Completed processing ${processedBedrockChunks} chunks from Bedrock Converse Stream response, requestId=${bedrockResponse.$metadata.requestId}`
+        );
       }
       this.logger.debug(
         'Accumulated Bedrock Converse Stream response:',

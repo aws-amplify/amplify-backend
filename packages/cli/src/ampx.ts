@@ -13,7 +13,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { verifyCommandName } from './verify_command_name.js';
 import { hideBin } from 'yargs/helpers';
-import { format } from '@aws-amplify/cli-core';
+import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
@@ -27,8 +27,13 @@ if (libraryVersion == undefined) {
   });
 }
 
+const dependencies = await new PackageManagerControllerFactory()
+  .getPackageManagerController()
+  .tryGetDependencies();
+
 const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
-  libraryVersion
+  libraryVersion,
+  dependencies
 );
 
 attachUnhandledExceptionListeners(usageDataEmitter);

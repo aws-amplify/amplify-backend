@@ -1,5 +1,37 @@
 # create-amplify
 
+## 1.0.9
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- Updated dependencies [ff2f2ce]
+  - @aws-amplify/cli-core@1.2.3
+
+## 1.0.8
+
+### Patch Changes
+
+- 2dab201: Report cdk versions
+- Updated dependencies [2dab201]
+  - @aws-amplify/cli-core@1.2.2
+  - @aws-amplify/platform-core@1.6.0
+  - @aws-amplify/plugin-types@1.8.0
+
+## 1.0.7
+
+### Patch Changes
+
+- f6ba240: Upgrade execa
+- Updated dependencies [cfdc854]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [65abf6a]
+- Updated dependencies [0cf5c26]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/platform-core@1.3.0
+  - @aws-amplify/plugin-types@1.6.0
+  - @aws-amplify/cli-core@1.2.1
+
 ## 1.0.6
 
 ### Patch Changes

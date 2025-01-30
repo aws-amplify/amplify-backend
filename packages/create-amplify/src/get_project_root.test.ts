@@ -87,7 +87,12 @@ void describe('getProjectRoot', () => {
       Promise.reject(expectedError)
     );
 
-    await assert.rejects(getProjectRoot, expectedError);
+    await assert.rejects(getProjectRoot, (error: AmplifyUserError) => {
+      assert.strictEqual(error.name, expectedError.name);
+      assert.strictEqual(error.message, expectedError.message);
+      assert.strictEqual(error.resolution, expectedError.resolution);
+      return true;
+    });
     assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
     assert.equal(
       fsMkDirSyncMock.mock.calls[0].arguments[0],

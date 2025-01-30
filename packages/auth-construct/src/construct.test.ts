@@ -10,6 +10,8 @@ import {
 import { CfnUserPoolClient, ProviderAttribute } from 'aws-cdk-lib/aws-cognito';
 import { authOutputKey } from '@aws-amplify/backend-output-schemas';
 import { DEFAULTS } from './defaults.js';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 const googleClientId = 'googleClientId';
 const googleClientSecret = 'googleClientSecret';
@@ -545,7 +547,7 @@ void describe('Auth construct', () => {
     );
   });
 
-  void it('configures Cognito to send emails with SES when senders field is populated', () => {
+  void it('configures Cognito to send emails with SES when email senders field is populated', () => {
     const app = new App();
     const stack = new Stack(app);
     const expectedNameAndEmail = 'Example.com <noreply@example.com>';
@@ -566,6 +568,318 @@ void describe('Auth construct', () => {
 
     const template = Template.fromStack(stack);
     template.allResourcesProperties('AWS::Cognito::UserPool', {
+      EmailConfiguration: {
+        From: expectedNameAndEmail,
+        ReplyToEmailAddress: expectedReply,
+      },
+    });
+  });
+
+  void it('configures Cognito to send sms with SNS when sms senders field is populated', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const snsSmsSettings = {
+      externalId: 'fake-external-id',
+      snsCallerArn: 'arn:aws:iam::123456789012:role/fake-role',
+      snsRegion: 'fake-region',
+    };
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      senders: {
+        sms: snsSmsSettings,
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.allResourcesProperties('AWS::Cognito::UserPool', {
+      SmsConfiguration: {
+        ExternalId: snsSmsSettings.externalId,
+        SnsCallerArn: snsSmsSettings.snsCallerArn,
+        SnsRegion: snsSmsSettings.snsRegion,
+      },
+    });
+  });
+
+  void it('configures Cognito to send sms with SNS and auto-generate IAM Role when customer does not provide snsCallerArn', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const snsSmsSettings = {
+      //externalId: 'fake-external-id',
+      //snsCallerArn: 'arn:aws:iam::123456789012:role/fake-role',
+      snsRegion: 'fake-region',
+    };
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      senders: {
+        sms: snsSmsSettings,
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.allResourcesProperties('AWS::Cognito::UserPool', {
+      SmsConfiguration: {
+        ExternalId: 'testUserPoolDB38E22C',
+        SnsCallerArn: {
+          // eslint-disable-next-line spellcheck/spell-checker
+          'Fn::GetAtt': ['testUserPoolsmsRole80ED7545', 'Arn'],
+        },
+        SnsRegion: snsSmsSettings.snsRegion,
+      },
+    });
+  });
+
+  void it('configures Cognito to send sms with SNS and auto-generate IAM Role when customer provides an empty sms configuration', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      senders: {
+        sms: {},
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.allResourcesProperties('AWS::Cognito::UserPool', {
+      SmsConfiguration: {
+        ExternalId: 'testUserPoolDB38E22C',
+        SnsCallerArn: {
+          // eslint-disable-next-line spellcheck/spell-checker
+          'Fn::GetAtt': ['testUserPoolsmsRole80ED7545', 'Arn'],
+        },
+      },
+    });
+  });
+
+  void it('throws error when customer configures sms configuration with only one of external Id and role arn', () => {
+    const app = new App();
+    const stack = new Stack(app);
+
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+          },
+          senders: {
+            sms: {
+              externalId: 'fake-external-id',
+            },
+          },
+        }),
+      {
+        message:
+          'Both externalId and snsCallerArn are required when providing a custom IAM role. Ensure that your IAM role trust policy have an sts:ExternalId condition and is equal to the externalId value',
+      }
+    );
+  });
+
+  void it('configures Cognito to send sms with custom sender with no kms key provided by customer', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customFunction = new NodejsFunction(
+      stack,
+      'customSenderNodeJsFunction',
+      {
+        entry: `${__dirname}/test-assets/lambda/handler.js`,
+        handler: 'handler',
+        runtime: Runtime.NODEJS_18_X,
+      }
+    );
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      senders: {
+        sms: {
+          handler: customFunction,
+        },
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        CustomSMSSender: {
+          LambdaArn: {
+            'Fn::GetAtt': ['customSenderNodeJsFunctionB7630500', 'Arn'],
+          },
+          LambdaVersion: 'V1_0',
+        },
+        KMSKeyID: { 'Fn::GetAtt': ['CustomSenderKey297023AD', 'Arn'] },
+      },
+    });
+  });
+
+  void it('configures Cognito to send sms with custom sender with kms key provided by customer', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customFunction = new NodejsFunction(
+      stack,
+      'customSenderNodeJsFunction',
+      {
+        entry: `${__dirname}/test-assets/lambda/handler.js`,
+        handler: 'handler',
+        runtime: Runtime.NODEJS_18_X,
+      }
+    );
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      senders: {
+        sms: {
+          handler: customFunction,
+          kmsKeyArn: 'arn:aws:kms:us-west-2:012345678912:key/key1',
+        },
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        CustomSMSSender: {
+          LambdaArn: {
+            'Fn::GetAtt': ['customSenderNodeJsFunctionB7630500', 'Arn'],
+          },
+          LambdaVersion: 'V1_0',
+        },
+        KMSKeyID: 'arn:aws:kms:us-west-2:012345678912:key/key1',
+      },
+    });
+  });
+
+  void it('throws if different KMS keys are used in sms and email senders', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customFunction = new NodejsFunction(
+      stack,
+      'customSenderNodeJsFunction',
+      {
+        entry: `${__dirname}/test-assets/lambda/handler.js`,
+        handler: 'handler',
+        runtime: Runtime.NODEJS_18_X,
+      }
+    );
+    assert.throws(
+      () =>
+        new AmplifyAuth(stack, 'test', {
+          loginWith: {
+            email: true,
+          },
+          senders: {
+            sms: {
+              handler: customFunction,
+              kmsKeyArn: 'arn:aws:kms:us-west-2:012345678912:key/key1',
+            },
+            email: {
+              handler: customFunction,
+              kmsKeyArn: 'arn:aws:kms:us-west-2:012345678912:key/key2',
+            },
+          },
+        }),
+      {
+        message: 'KMS key ARN must be the same for both email and sms senders',
+      }
+    );
+  });
+
+  void it('uses the KMS key provided in both the custom senders', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const customFunction = new NodejsFunction(
+      stack,
+      'customSenderNodeJsFunction',
+      {
+        entry: `${__dirname}/test-assets/lambda/handler.js`,
+        handler: 'handler',
+        runtime: Runtime.NODEJS_18_X,
+      }
+    );
+
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      senders: {
+        sms: {
+          handler: customFunction,
+          kmsKeyArn: 'arn:aws:kms:us-west-2:012345678912:key/key1',
+        },
+        email: {
+          handler: customFunction,
+          kmsKeyArn: 'arn:aws:kms:us-west-2:012345678912:key/key1',
+        },
+      },
+    });
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        CustomSMSSender: {
+          LambdaArn: {
+            'Fn::GetAtt': ['customSenderNodeJsFunctionB7630500', 'Arn'],
+          },
+          LambdaVersion: 'V1_0',
+        },
+        CustomEmailSender: {
+          LambdaArn: {
+            'Fn::GetAtt': ['customSenderNodeJsFunctionB7630500', 'Arn'],
+          },
+          LambdaVersion: 'V1_0',
+        },
+        KMSKeyID: 'arn:aws:kms:us-west-2:012345678912:key/key1',
+      },
+    });
+  });
+
+  void it('configures one custom sms sender and one regular email sender', () => {
+    const app = new App();
+    const stack = new Stack(app);
+    const expectedNameAndEmail = 'Example.com <noreply@example.com>';
+    const expectedReply = 'support@example.com';
+    const sesEmailSettings = {
+      fromEmail: 'noreply@example.com',
+      fromName: 'Example.com',
+      replyTo: 'support@example.com',
+    };
+    const customFunction = new NodejsFunction(
+      stack,
+      'customSenderNodeJsFunction',
+      {
+        entry: `${__dirname}/test-assets/lambda/handler.js`,
+        handler: 'handler',
+        runtime: Runtime.NODEJS_18_X,
+      }
+    );
+    new AmplifyAuth(stack, 'test', {
+      loginWith: {
+        email: true,
+      },
+      senders: {
+        sms: {
+          handler: customFunction,
+          kmsKeyArn: 'arn:aws:kms:us-west-2:012345678912:key/key1',
+        },
+        email: sesEmailSettings,
+      },
+    });
+
+    const template = Template.fromStack(stack);
+    template.hasResourceProperties('AWS::Cognito::UserPool', {
+      LambdaConfig: {
+        CustomSMSSender: {
+          LambdaArn: {
+            'Fn::GetAtt': ['customSenderNodeJsFunctionB7630500', 'Arn'],
+          },
+          LambdaVersion: 'V1_0',
+        },
+        KMSKeyID: 'arn:aws:kms:us-west-2:012345678912:key/key1',
+      },
       EmailConfiguration: {
         From: expectedNameAndEmail,
         ReplyToEmailAddress: expectedReply,

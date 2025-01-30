@@ -1,5 +1,27 @@
 # @aws-amplify/backend-auth
 
+## 1.5.0
+
+### Minor Changes
+
+- ff2f2ce: add sms configuration and custom sms sender to auth
+
+### Patch Changes
+
+- Updated dependencies [ff2f2ce]
+  - @aws-amplify/auth-construct@1.6.0
+
+## 1.4.2
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [72b2fe0]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/backend-output-storage@1.1.4
+  - @aws-amplify/auth-construct@1.5.1
+  - @aws-amplify/plugin-types@1.6.0
+
 ## 1.4.1
 
 ### Patch Changes

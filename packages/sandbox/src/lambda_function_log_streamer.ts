@@ -1,5 +1,9 @@
 import { LogLevel, Printer } from '@aws-amplify/cli-core';
-import { BackendOutputClient } from '@aws-amplify/deployed-backend-client';
+import {
+  BackendOutputClient,
+  BackendOutputClientError,
+  BackendOutputClientErrorType,
+} from '@aws-amplify/deployed-backend-client';
 import { TagName } from '@aws-amplify/platform-core';
 import { BackendIdentifier, BackendOutput } from '@aws-amplify/plugin-types';
 
@@ -37,8 +41,24 @@ export class LambdaFunctionLogStreamer {
       return;
     }
 
-    const backendOutput: BackendOutput =
-      await this.backendOutputClient.getOutput(sandboxBackendId);
+    let backendOutput: BackendOutput = {};
+    try {
+      backendOutput = await this.backendOutputClient.getOutput(
+        sandboxBackendId
+      );
+    } catch (error) {
+      // If stack does not exist or hasn't deployed successfully, we do not want to go further to start streaming logs
+      if (
+        BackendOutputClientError.isBackendOutputClientError(error) &&
+        [
+          BackendOutputClientErrorType.NO_STACK_FOUND,
+          BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
+        ].some((code) => (error as BackendOutputClientError).code === code)
+      ) {
+        this.enabled = false;
+        return;
+      }
+    }
 
     const definedFunctionsPayload =
       backendOutput['AWS::Amplify::Function']?.payload.definedFunctions;

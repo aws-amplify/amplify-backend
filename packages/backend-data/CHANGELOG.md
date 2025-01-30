@@ -1,5 +1,43 @@
 # @aws-amplify/backend-data
 
+## 1.4.0
+
+### Minor Changes
+
+- a7506f9: added data logging api to defineData
+
+### Patch Changes
+
+- Updated dependencies [a7506f9]
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.3.0
+
+### Minor Changes
+
+- fbf209e: Add GraphQL API ID and Amplify environment name to custom JS resolver stash
+
+### Patch Changes
+
+- 07fe7d4: Allow apiKeyAuthorizationMode to be undefined if defaultAuthorizationMode is apiKey
+
+## 1.2.3
+
+### Patch Changes
+
+- f193105: Update getAmplifyDataClientConfig to work with named data backend
+
+## 1.2.2
+
+### Patch Changes
+
+- 5cbe318: Add lambda data client
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+- Updated dependencies [72b2fe0]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/backend-output-storage@1.1.4
+  - @aws-amplify/plugin-types@1.6.0
+
 ## 1.2.1
 
 ### Patch Changes

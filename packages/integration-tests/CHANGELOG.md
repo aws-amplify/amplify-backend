@@ -1,5 +1,17 @@
 # @aws-amplify/integration-tests
 
+## 0.6.2
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+
+## 0.6.1
+
+### Patch Changes
+
+- 72b2fe0: update aws-cdk lib to ^2.168.0
+
 ## 0.6.0
 
 ### Minor Changes

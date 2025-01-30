@@ -119,6 +119,15 @@ export class PipelineDeployCommand
         type: 'string',
         array: false,
         choices: Object.values(ClientConfigFormat),
+      })
+      .check(async (argv) => {
+        if (argv['branch'].length === 0 || argv['app-id'].length === 0) {
+          throw new AmplifyUserError('InvalidCommandInputError', {
+            message: 'Invalid --branch or --app-id',
+            resolution: '--branch and --app-id must be at least 1 character',
+          });
+        }
+        return true;
       });
   };
 }

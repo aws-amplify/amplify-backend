@@ -28,7 +28,12 @@ jobs:
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # version 4.1.4
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/install_with_cache
+        with:
+          node-version: 18
+          cdk-version: FROM_PACKAGE_LOCK
   deprecate_release:
     needs:
       - install
@@ -47,6 +52,11 @@ jobs:
           # fetch full history so that we can properly lookup past releases
           fetch-depth: 0
       - uses: ./.github/actions/setup_node
+        with:
+          node-version: 18
       - uses: ./.github/actions/restore_install_cache
+        with:
+          node-version: 18
+          cdk-version: FROM_PACKAGE_LOCK
       - name: Deprecate release versions
         run: npx tsx scripts/deprecate_release.ts

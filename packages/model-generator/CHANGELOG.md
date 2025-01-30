@@ -1,5 +1,33 @@
 # @aws-amplify/model-generator
 
+## 1.0.12
+
+### Patch Changes
+
+- a7506f9: wraps no outputs found error from backend output client
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.0.11
+
+### Patch Changes
+
+- 107600b: Updated error handling with S3 Client
+
+## 1.0.10
+
+### Patch Changes
+
+- 3cf0738: update detection of BackendOutputClientErrors
+- Updated dependencies [95942c5]
+- Updated dependencies [3cf0738]
+- Updated dependencies [f679cf6]
+- Updated dependencies [f193105]
+  - @aws-amplify/platform-core@1.4.0
+  - @aws-amplify/deployed-backend-client@1.5.0
+
 ## 1.0.9
 
 ### Patch Changes

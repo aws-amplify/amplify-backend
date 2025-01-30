@@ -153,16 +153,22 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
         'AWS::Lambda::Function',
         (name) => name.includes('funcCustomEmailSender')
       );
-
+    const funcCustomSmsSender =
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('funcCustomSmsSender')
+      );
     assert.equal(funcWithSsm.length, 1);
     assert.equal(funcWithAwsSdk.length, 1);
     assert.equal(funcWithSchedule.length, 1);
     assert.equal(funcCustomEmailSender.length, 1);
+    assert.equal(funcCustomSmsSender.length, 1);
 
     await this.checkLambdaResponse(funcWithSsm[0], 'It is working');
 
     // Custom email sender assertion
-    await this.assertCustomEmailSenderWorks(backendId);
+    await this.assertCustomSenderWorks(backendId);
 
     await this.assertScheduleInvokesFunction(backendId);
 
@@ -254,28 +260,40 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
     }
   };
 
-  private assertCustomEmailSenderWorks = async (
-    backendId: BackendIdentifier
-  ) => {
+  private assertCustomSenderWorks = async (backendId: BackendIdentifier) => {
     const TIMEOUT_MS = 1000 * 60 * 2; // 2 minutes
     const startTime = Date.now();
-    const queue = await this.resourceFinder.findByBackendIdentifier(
+    const emailSenderQueue = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::SQS::Queue',
       (name) => name.includes('customEmailSenderQueue')
     );
+    const smsSenderQueue = await this.resourceFinder.findByBackendIdentifier(
+      backendId,
+      'AWS::SQS::Queue',
+      (name) => name.includes('customSmsSenderQueue')
+    );
 
-    assert.strictEqual(queue.length, 1, 'Custom email sender queue not found');
+    assert.strictEqual(
+      emailSenderQueue.length,
+      1,
+      'Custom email sender queue not found'
+    );
+    assert.strictEqual(
+      smsSenderQueue.length,
+      1,
+      'Custom sms sender queue not found'
+    );
 
     // Trigger an email sending operation
-    await this.triggerEmailSending(backendId);
+    await this.triggerEmailAndSmsSending(backendId, 'email');
 
-    // Wait for the SQS message
+    // Wait for the SQS message from email sender
     let messageReceived = false;
     while (Date.now() - startTime < TIMEOUT_MS && !messageReceived) {
       const response = await this.sqsClient.send(
         new ReceiveMessageCommand({
-          QueueUrl: queue[0],
+          QueueUrl: emailSenderQueue[0],
           WaitTimeSeconds: 20,
         })
       );
@@ -286,14 +304,14 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
         const messageBody = JSON.parse(response.Messages[0].Body || '{}');
         assert.strictEqual(
           messageBody.message,
-          'Custom Email Sender is working',
+          'Custom Sender is working',
           'Unexpected message content'
         );
 
         // Delete the message
         await this.sqsClient.send(
           new DeleteMessageCommand({
-            QueueUrl: queue[0],
+            QueueUrl: emailSenderQueue[0],
             ReceiptHandle: response.Messages[0].ReceiptHandle!,
           })
         );
@@ -305,9 +323,50 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
       true,
       'Custom email sender was not triggered within the timeout period'
     );
+
+    // Trigger an sms sending operation
+    await this.triggerEmailAndSmsSending(backendId, 'phone');
+    // Wait for the SQS message from sms sender
+    messageReceived = false;
+    while (Date.now() - startTime < TIMEOUT_MS && !messageReceived) {
+      const response = await this.sqsClient.send(
+        new ReceiveMessageCommand({
+          QueueUrl: smsSenderQueue[0],
+          WaitTimeSeconds: 20,
+        })
+      );
+
+      if (response.Messages && response.Messages.length > 0) {
+        messageReceived = true;
+        // Verify the message content
+        const messageBody = JSON.parse(response.Messages[0].Body || '{}');
+        assert.strictEqual(
+          messageBody.message,
+          'Custom Sender is working',
+          'Unexpected message content'
+        );
+
+        // Delete the message
+        await this.sqsClient.send(
+          new DeleteMessageCommand({
+            QueueUrl: smsSenderQueue[0],
+            ReceiptHandle: response.Messages[0].ReceiptHandle!,
+          })
+        );
+      }
+    }
+
+    assert.strictEqual(
+      messageReceived,
+      true,
+      'Custom sms sender was not triggered within the timeout period'
+    );
   };
 
-  private triggerEmailSending = async (backendId: BackendIdentifier) => {
+  private triggerEmailAndSmsSending = async (
+    backendId: BackendIdentifier,
+    userLoginType: 'email' | 'phone'
+  ) => {
     const userPoolId = await this.resourceFinder.findByBackendIdentifier(
       backendId,
       'AWS::Cognito::UserPool',
@@ -318,15 +377,16 @@ class AdvancedAuthAndFunctionsTestProject extends TestProjectBase {
 
     const username = `testuser_${Date.now()}@example.com`;
     const password = 'TestPassword123!';
-
+    const phoneNumber = '+10000000000';
     await this.cognitoClient.send(
       new AdminCreateUserCommand({
         UserPoolId: userPoolId[0],
         Username: username,
         TemporaryPassword: password,
         UserAttributes: [
-          { Name: 'email', Value: username },
-          { Name: 'email_verified', Value: 'true' },
+          userLoginType === 'email'
+            ? { Name: 'email', Value: username }
+            : { Name: 'phone_number', Value: phoneNumber },
         ],
       })
     );

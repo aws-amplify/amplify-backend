@@ -4,10 +4,11 @@ import * as path from 'path';
 import assert from 'node:assert';
 import { getClientConfigPath } from './get_client_config_path.js';
 import { ClientConfigFileBaseName, ClientConfigFormat } from '../index.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const testPath = 'some/path';
 
-mock.method(fsp, 'mkdir', () => undefined);
+const mkdirMock = mock.method(fsp, 'mkdir', () => undefined);
 
 void describe('getClientConfigPath', () => {
   void it('returns path to legacy config file', async () => {
@@ -101,6 +102,27 @@ void describe('getClientConfigPath', () => {
         nonExistingPath,
         `${ClientConfigFileBaseName.DEFAULT}.${ClientConfigFormat.JSON}`
       )
+    );
+  });
+
+  void it('fails when path is invalid or cannot be created', async () => {
+    const nonExistingPath = '/invalidPath';
+    mkdirMock.mock.mockImplementationOnce(() => {
+      throw new Error(
+        "ENOENT: no such file or directory, mkdir '/invalidPath'"
+      );
+    });
+    await assert.rejects(
+      () =>
+        getClientConfigPath(ClientConfigFileBaseName.DEFAULT, nonExistingPath),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(
+          error.message,
+          'Directory /invalidPath could not be created.'
+        );
+        assert.ok(error.resolution);
+        return true;
+      }
     );
   });
 

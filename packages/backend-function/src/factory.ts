@@ -1,8 +1,4 @@
-import {
-  FunctionOutput,
-  functionOutputKey,
-} from '@aws-amplify/backend-output-schemas';
-import { AttributionMetadataStorage } from '@aws-amplify/backend-output-storage';
+import { FunctionOutput } from '@aws-amplify/backend-output-schemas';
 import {
   AmplifyUserError,
   CallerDirectoryExtractor,
@@ -20,18 +16,19 @@ import {
   GenerateContainerEntryProps,
   LogLevel,
   LogRetention,
+  ResourceAccessAcceptor,
   ResourceAccessAcceptorFactory,
   ResourceNameValidator,
   ResourceProvider,
-  SsmEnvironmentEntry,
   StackProvider,
 } from '@aws-amplify/plugin-types';
-import { Duration, Stack, Tags } from 'aws-cdk-lib';
+import { Duration, Size, Stack, Tags } from 'aws-cdk-lib';
 import { Rule } from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
-import { Policy } from 'aws-cdk-lib/aws-iam';
 import {
+  Architecture,
   CfnFunction,
+  IFunction,
   ILayerVersion,
   LayerVersion,
   Runtime,
@@ -40,16 +37,19 @@ import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import { readFileSync } from 'fs';
 import { createRequire } from 'module';
-import { fileURLToPath } from 'node:url';
 import { EOL } from 'os';
 import * as path from 'path';
 import { FunctionEnvironmentTranslator } from './function_env_translator.js';
 import { FunctionEnvironmentTypeGenerator } from './function_env_type_generator.js';
 import { FunctionLayerArnParser } from './layer_parser.js';
-import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
 import { convertLoggingOptionsToCDK } from './logging_options_parser.js';
-
-const functionStackType = 'function-Lambda';
+import { convertFunctionSchedulesToRuleSchedules } from './schedule_parser.js';
+import {
+  ProvidedFunctionFactory,
+  ProvidedFunctionProps,
+} from './provided_function_factory.js';
+import { AmplifyFunctionBase } from './function_construct_base.js';
+import { FunctionResourceAccessAcceptor } from './resource_access_acceptor.js';
 
 export type AddEnvironmentFactory = {
   addEnvironment: (key: string, value: string | BackendSecret) => void;
@@ -67,20 +67,44 @@ export type TimeInterval =
   | `every year`;
 export type FunctionSchedule = TimeInterval | CronSchedule;
 
-export type FunctionLogLevel = LogLevel;
+export type FunctionLogLevel = Extract<
+  LogLevel,
+  'info' | 'debug' | 'warn' | 'error' | 'fatal' | 'trace'
+>;
 export type FunctionLogRetention = LogRetention;
 
-/**
- * Entry point for defining a function in the Amplify ecosystem
- */
-export const defineFunction = (
-  props: FunctionProps = {}
+export function defineFunction(
+  props?: FunctionProps
 ): ConstructFactory<
   ResourceProvider<FunctionResources> &
     ResourceAccessAcceptorFactory &
     AddEnvironmentFactory &
     StackProvider
-> => new FunctionFactory(props, new Error().stack);
+>;
+export function defineFunction(
+  provider: (scope: Construct) => IFunction,
+  providerProps?: ProvidedFunctionProps
+): ConstructFactory<
+  ResourceProvider<FunctionResources> &
+    ResourceAccessAcceptorFactory &
+    StackProvider
+>;
+/**
+ * Entry point for defining a function in the Amplify ecosystem
+ */
+// This is the "implementation overload", it's not visible in public api.
+// We have to use function notation instead of arrow notation.
+// Arrow notation does not support overloads.
+// eslint-disable-next-line no-restricted-syntax
+export function defineFunction(
+  propsOrProvider: FunctionProps | ((scope: Construct) => IFunction) = {},
+  providerProps?: ProvidedFunctionProps
+): unknown {
+  if (propsOrProvider && typeof propsOrProvider === 'function') {
+    return new ProvidedFunctionFactory(propsOrProvider, providerProps);
+  }
+  return new FunctionFactory(propsOrProvider, new Error().stack);
+}
 
 export type FunctionProps = {
   /**
@@ -116,6 +140,13 @@ export type FunctionProps = {
   memoryMB?: number;
 
   /**
+   * The size of the function's /tmp directory in MB.
+   * Must be a whole number.
+   * @default 512
+   */
+  ephemeralStorageSizeMB?: number;
+
+  /**
    * Environment variables that will be available during function execution
    */
   environment?: Record<string, string | BackendSecret>;
@@ -126,6 +157,12 @@ export type FunctionProps = {
    * Defaults to the oldest NodeJS LTS version. See https://nodejs.org/en/about/previous-releases
    */
   runtime?: NodeVersion;
+
+  /**
+   * The architecture of the target platform for the lambda environment.
+   * Defaults to X86_64.
+   */
+  architecture?: FunctionArchitecture;
 
   /**
    * A time interval string to periodically run the function.
@@ -147,6 +184,11 @@ export type FunctionProps = {
    * @example
    * layers: {
    *    "@aws-lambda-powertools/logger": "arn:aws:lambda:<current-region>:094274105915:layer:AWSLambdaPowertoolsTypeScriptV2:11"
+   * },
+   * or
+   * @example
+   * layers: {
+   *    "Sharp": "SharpLayer:1"
    * },
    * @see [Amplify documentation for Lambda layers](https://docs.amplify.aws/react/build-a-backend/functions/add-lambda-layers)
    * @see [AWS documentation for Lambda layers](https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html)
@@ -225,18 +267,19 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
   ): HydratedFunctionProps => {
     const name = this.resolveName();
     resourceNameValidator?.validate(name);
-    const parser = new FunctionLayerArnParser();
-    const layers = parser.parseLayers(this.props.layers ?? {}, name);
+
     return {
       name,
       entry: this.resolveEntry(),
       timeoutSeconds: this.resolveTimeout(),
       memoryMB: this.resolveMemory(),
+      ephemeralStorageSizeMB: this.resolveEphemeralStorageSize(),
       environment: this.resolveEnvironment(),
       runtime: this.resolveRuntime(),
+      architecture: this.resolveArchitecture(),
       schedule: this.resolveSchedule(),
       bundling: this.resolveBundling(),
-      layers,
+      layers: this.props.layers ?? {},
       resourceGroupName: this.props.resourceGroupName ?? 'function',
       logging: this.props.logging ?? {},
     };
@@ -320,6 +363,28 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     return this.props.memoryMB;
   };
 
+  private resolveEphemeralStorageSize = () => {
+    const ephemeralStorageSizeMin = 512;
+    const ephemeralStorageSizeMax = 10240;
+    const ephemeralStorageSizeDefault = 512;
+    if (this.props.ephemeralStorageSizeMB === undefined) {
+      return ephemeralStorageSizeDefault;
+    }
+    if (
+      !isWholeNumberBetweenInclusive(
+        this.props.ephemeralStorageSizeMB,
+        ephemeralStorageSizeMin,
+        ephemeralStorageSizeMax
+      )
+    ) {
+      throw new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
+        message: `Invalid function ephemeralStorageSizeMB of ${this.props.ephemeralStorageSizeMB}`,
+        resolution: `ephemeralStorageSizeMB must be a whole number between ${ephemeralStorageSizeMin} and ${ephemeralStorageSizeMax} inclusive`,
+      });
+    }
+    return this.props.ephemeralStorageSizeMB;
+  };
+
   private resolveEnvironment = () => {
     if (this.props.environment === undefined) {
       return {};
@@ -365,6 +430,25 @@ class FunctionFactory implements ConstructFactory<AmplifyFunction> {
     }
 
     return this.props.runtime;
+  };
+
+  private resolveArchitecture = () => {
+    const architectureDefault = 'x86_64';
+
+    if (!this.props.architecture) {
+      return architectureDefault;
+    }
+
+    if (!(this.props.architecture in architectureMap)) {
+      throw new AmplifyUserError('InvalidArchitectureError', {
+        message: `Invalid function architecture of ${this.props.architecture}`,
+        resolution: `architecture must be one of the following: ${Object.keys(
+          architectureMap
+        ).join(', ')}`,
+      });
+    }
+
+    return this.props.architecture;
   };
 
   private resolveSchedule = () => {
@@ -413,8 +497,18 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
     scope,
     backendSecretResolver,
   }: GenerateContainerEntryProps) => {
-    // resolve layers to LayerVersion objects for the NodejsFunction constructor using the scope.
-    const resolvedLayers = Object.entries(this.props.layers).map(([key, arn]) =>
+    // Move layer resolution here where we have access to scope
+    const parser = new FunctionLayerArnParser(
+      Stack.of(scope).region,
+      Stack.of(scope).account
+    );
+    const resolvedLayerArns = parser.parseLayers(
+      this.props.layers ?? {},
+      this.props.name
+    );
+
+    // resolve layers to LayerVersion objects for the NodejsFunction constructor
+    const resolvedLayers = Object.entries(resolvedLayerArns).map(([key, arn]) =>
       LayerVersion.fromLayerVersionArn(
         scope,
         `${this.props.name}-${key}-layer`,
@@ -433,14 +527,10 @@ class FunctionGenerator implements ConstructContainerEntryGenerator {
 }
 
 class AmplifyFunction
-  extends Construct
-  implements
-    ResourceProvider<FunctionResources>,
-    ResourceAccessAcceptorFactory,
-    AddEnvironmentFactory
+  extends AmplifyFunctionBase
+  implements AddEnvironmentFactory
 {
   readonly resources: FunctionResources;
-  readonly stack: Stack;
   private readonly functionEnvironmentTranslator: FunctionEnvironmentTranslator;
   constructor(
     scope: Construct,
@@ -449,9 +539,7 @@ class AmplifyFunction
     backendSecretResolver: BackendSecretResolver,
     outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
   ) {
-    super(scope, id);
-
-    this.stack = Stack.of(scope);
+    super(scope, id, outputStorageStrategy);
 
     const runtime = nodeVersionMap[props.runtime];
 
@@ -495,6 +583,8 @@ class AmplifyFunction
         entry: props.entry,
         timeout: Duration.seconds(props.timeoutSeconds),
         memorySize: props.memoryMB,
+        architecture: architectureMap[props.architecture],
+        ephemeralStorageSize: Size.mebibytes(props.ephemeralStorageSizeMB),
         runtime: nodeVersionMap[props.runtime],
         layers: props.resolvedLayers,
         bundling: {
@@ -571,52 +661,18 @@ class AmplifyFunction
       },
     };
 
-    this.storeOutput(outputStorageStrategy);
-
-    new AttributionMetadataStorage().storeAttributionMetadata(
-      Stack.of(this),
-      functionStackType,
-      fileURLToPath(new URL('../package.json', import.meta.url))
-    );
+    this.storeOutput();
   }
 
   addEnvironment = (key: string, value: string | BackendSecret) => {
     this.functionEnvironmentTranslator.addEnvironmentEntry(key, value);
   };
 
-  getResourceAccessAcceptor = () => ({
-    identifier: `${this.node.id}LambdaResourceAccessAcceptor`,
-    acceptResourceAccess: (
-      policy: Policy,
-      ssmEnvironmentEntries: SsmEnvironmentEntry[]
-    ) => {
-      const role = this.resources.lambda.role;
-      if (!role) {
-        // This should never happen since we are using the Function L2 construct
-        throw new Error(
-          'No execution role found to attach lambda permissions to'
-        );
-      }
-      policy.attachToRole(role);
-      ssmEnvironmentEntries.forEach(({ name, path }) => {
-        this.functionEnvironmentTranslator.addSsmEnvironmentEntry(name, path);
-      });
-    },
-  });
-
-  /**
-   * Store storage outputs using provided strategy
-   */
-  private storeOutput = (
-    outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
-  ): void => {
-    outputStorageStrategy.appendToBackendOutputList(functionOutputKey, {
-      version: '1',
-      payload: {
-        definedFunctions: this.resources.lambda.functionName,
-      },
-    });
-  };
+  getResourceAccessAcceptor = (): ResourceAccessAcceptor =>
+    new FunctionResourceAccessAcceptor(
+      this,
+      this.functionEnvironmentTranslator
+    );
 }
 
 const isWholeNumberBetweenInclusive = (
@@ -632,4 +688,11 @@ const nodeVersionMap: Record<NodeVersion, Runtime> = {
   18: Runtime.NODEJS_18_X,
   20: Runtime.NODEJS_20_X,
   22: Runtime.NODEJS_22_X,
+};
+
+export type FunctionArchitecture = 'x86_64' | 'arm64';
+
+const architectureMap: Record<FunctionArchitecture, Architecture> = {
+  arm64: Architecture.ARM_64,
+  x86_64: Architecture.X86_64,
 };

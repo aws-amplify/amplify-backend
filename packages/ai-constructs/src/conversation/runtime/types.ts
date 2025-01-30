@@ -106,6 +106,11 @@ export type StreamingResponseChunk = {
   associatedUserMessageId: string;
   contentBlockIndex: number;
   accumulatedTurnContent: Array<bedrock.ContentBlock>;
+
+  // optional padding
+  // it is a random string included in text chunks,
+  // the value does not matter, but we need to pass it through to AppSync
+  p?: string;
 } & (
   | {
       // text chunk

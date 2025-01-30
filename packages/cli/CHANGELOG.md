@@ -1,5 +1,101 @@
 # @aws-amplify/backend-cli
 
+## 1.4.8
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [ff2f2ce]
+  - @aws-amplify/backend-deployer@1.1.15
+  - @aws-amplify/schema-generator@1.2.7
+  - @aws-amplify/cli-core@1.2.3
+  - @aws-amplify/sandbox@1.2.10
+
+## 1.4.7
+
+### Patch Changes
+
+- 2dab201: Report cdk versions
+- Updated dependencies [2dab201]
+  - @aws-amplify/backend-deployer@1.1.14
+  - @aws-amplify/cli-core@1.2.2
+  - @aws-amplify/platform-core@1.6.0
+  - @aws-amplify/plugin-types@1.8.0
+
+## 1.4.6
+
+### Patch Changes
+
+- a7506f9: wraps no outputs found error from backend output client
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+- Updated dependencies [a7506f9]
+  - @aws-amplify/model-generator@1.0.12
+  - @aws-amplify/client-config@1.5.5
+  - @aws-amplify/sandbox@1.2.9
+  - @aws-amplify/backend-deployer@1.1.13
+  - @aws-amplify/platform-core@1.5.0
+  - @aws-amplify/plugin-types@1.7.0
+
+## 1.4.5
+
+### Patch Changes
+
+- 0ef53e2: add validation for sandbox set command secret-name
+- Updated dependencies [107600b]
+  - @aws-amplify/model-generator@1.0.11
+
+## 1.4.4
+
+### Patch Changes
+
+- 3cf0738: update detection of BackendOutputClientErrors
+- Updated dependencies [dedcc27]
+- Updated dependencies [95942c5]
+- Updated dependencies [1eced2c]
+- Updated dependencies [3cf0738]
+- Updated dependencies [3cf0738]
+- Updated dependencies [f679cf6]
+- Updated dependencies [f193105]
+  - @aws-amplify/backend-deployer@1.1.12
+  - @aws-amplify/platform-core@1.4.0
+  - @aws-amplify/deployed-backend-client@1.5.0
+  - @aws-amplify/model-generator@1.0.10
+  - @aws-amplify/client-config@1.5.4
+  - @aws-amplify/sandbox@1.2.8
+
+## 1.4.3
+
+### Patch Changes
+
+- 7c5abe2: validate branch and app id inputs for pipeline-deploy command
+- 7c5abe2: update logic for falling back to sandbox resolver for backend id
+- 0cf5c26: add a required input prompt for use in region input
+- fc7e4d4: validate input stack name for generate commands
+- f6ba240: Upgrade execa
+- Updated dependencies [1593ce8]
+- Updated dependencies [a406263]
+- Updated dependencies [37d8564]
+- Updated dependencies [cfdc854]
+- Updated dependencies [d66ab17]
+- Updated dependencies [5a47d21]
+- Updated dependencies [72b2fe0]
+- Updated dependencies [65abf6a]
+- Updated dependencies [0a360fb]
+- Updated dependencies [6015595]
+- Updated dependencies [daaedb6]
+- Updated dependencies [0cf5c26]
+- Updated dependencies [f6ba240]
+  - @aws-amplify/backend-deployer@1.1.11
+  - @aws-amplify/platform-core@1.3.0
+  - @aws-amplify/schema-generator@1.2.6
+  - @aws-amplify/client-config@1.5.3
+  - @aws-amplify/plugin-types@1.6.0
+  - @aws-amplify/sandbox@1.2.7
+  - @aws-amplify/cli-core@1.2.1
+
 ## 1.4.2
 
 ### Patch Changes
