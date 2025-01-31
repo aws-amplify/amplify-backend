@@ -70,7 +70,7 @@ export class BackendFactory<
     );
 
     // TO DO: should have some logic as to whether we should activate this
-    const seedPolicy = new ManagedPolicy(stack, 'seedPolicy', {
+    const seedPolicy = new ManagedPolicy(stack, 'amplifySeedPolicy', {
       statements: [],
     });
 
