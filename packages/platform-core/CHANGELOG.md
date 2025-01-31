@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.6.1
+
+### Patch Changes
+
+- ec7826d: Handle connect ENOMEM error
+
 ## 1.6.0
 
 ### Minor Changes

@@ -1,5 +1,14 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.16
+
+### Patch Changes
+
+- a7ae994: wrap more instances of ENOENT type errors
+- ec7826d: Handle connect ENOMEM error
+- Updated dependencies [ec7826d]
+  - @aws-amplify/platform-core@1.6.1
+
 ## 1.1.15
 
 ### Patch Changes

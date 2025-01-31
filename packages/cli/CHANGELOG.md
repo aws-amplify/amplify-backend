@@ -1,5 +1,17 @@
 # @aws-amplify/backend-cli
 
+## 1.4.9
+
+### Patch Changes
+
+- 99bb9a4: enforce branch option implying app id for generate commands
+- Updated dependencies [a7ae994]
+- Updated dependencies [ec7826d]
+  - @aws-amplify/backend-deployer@1.1.16
+  - @aws-amplify/client-config@1.5.6
+  - @aws-amplify/backend-secret@1.1.6
+  - @aws-amplify/platform-core@1.6.1
+
 ## 1.4.8
 
 ### Patch Changes
