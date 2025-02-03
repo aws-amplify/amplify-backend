@@ -190,7 +190,7 @@ export class GenerateFormsCommand
         type: 'string',
         array: false,
         group: 'Project identifier',
-        implies: 'appId',
+        implies: 'app-id',
       })
       .option('out-dir', {
         describe: 'A path to directory where generated forms are written.',

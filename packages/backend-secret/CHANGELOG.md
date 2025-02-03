@@ -1,5 +1,13 @@
 # @aws-amplify/backend-secret
 
+## 1.1.6
+
+### Patch Changes
+
+- ec7826d: Handle connect ENOMEM error
+- Updated dependencies [ec7826d]
+  - @aws-amplify/platform-core@1.6.1
+
 ## 1.1.5
 
 ### Patch Changes
