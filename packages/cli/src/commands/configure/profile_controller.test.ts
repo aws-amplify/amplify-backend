@@ -221,6 +221,11 @@ void describe('profile controller', () => {
     });
 
     void it('throws error if config file already exists and is missing read permissions', async () => {
+      if (process.platform.startsWith('win')) {
+        // Windows does not have the same behavior when files are missing permissions
+        return;
+      }
+
       const expectedErr = new AmplifyUserError('PermissionsError', {
         message: `You do not have the permissions to read this file: ${configFilePath}.`,
         resolution: `Ensure that you have the right permissions to read from ${configFilePath}.`,
@@ -247,6 +252,11 @@ void describe('profile controller', () => {
     });
 
     void it('throws error if config file already exists and is missing write permissions', async () => {
+      if (process.platform.startsWith('win')) {
+        // Windows does not have the same behavior when files are missing permissions
+        return;
+      }
+
       const expectedErr = new AmplifyUserError('PermissionsError', {
         message: `You do not have the permissions to write to this file: ${configFilePath}`,
         resolution: `Ensure that you have the right permissions to write to ${configFilePath}.`,
