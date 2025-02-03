@@ -82,7 +82,7 @@ export class ProfileController {
       await fs.appendFile(filePath, configData, { mode: '600' });
     } catch (err) {
       const error = err as Error;
-      if (error.message.includes('EACCES')) {
+      if (error.message.includes('EACCES') || error.message.includes('EPERM')) {
         throw new AmplifyUserError(
           'PermissionsError',
           {
@@ -153,7 +153,7 @@ export class ProfileController {
         return true;
       }
 
-      if (error.message.includes('EACCES')) {
+      if (error.message.includes('EACCES') || error.message.includes('EPERM')) {
         throw new AmplifyUserError(
           'PermissionsError',
           {

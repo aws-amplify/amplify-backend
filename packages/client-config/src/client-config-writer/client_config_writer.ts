@@ -53,7 +53,7 @@ export class ClientConfigWriter {
       await this.fsp.writeFile(targetPath, fileContent);
     } catch (err) {
       const error = err as Error;
-      if (error.message.includes('EACCES')) {
+      if (error.message.includes('EACCES') || error.message.includes('EPERM')) {
         throw new AmplifyUserError(
           'PermissionsError',
           {
