@@ -8,16 +8,19 @@
  */
 
 import {
-  LogLevel,
   PackageManagerControllerFactory,
+  attachUnhandledExceptionListeners,
   format,
-  printer,
+  generateCommandFailureHandler,
 } from '@aws-amplify/cli-core';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { getProjectRoot } from './get_project_root.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+
+attachUnhandledExceptionListeners();
+const errorHandler = generateCommandFailureHandler();
 
 const projectRoot = await getProjectRoot();
 
@@ -39,6 +42,7 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
 try {
   await amplifyProjectCreator.create();
 } catch (err) {
-  printer.log(format.error(err), LogLevel.ERROR);
-  process.exitCode = 1;
+  if (err instanceof Error) {
+    await errorHandler(format.error(err), err);
+  }
 }

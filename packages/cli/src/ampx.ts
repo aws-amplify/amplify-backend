@@ -1,11 +1,6 @@
 #!/usr/bin/env node
 import { createMainParser } from './main_parser_factory.js';
 import {
-  attachUnhandledExceptionListeners,
-  generateCommandFailureHandler,
-} from './error_handler.js';
-import { extractSubCommands } from './extract_sub_commands.js';
-import {
   AmplifyFault,
   PackageJsonReader,
   UsageDataEmitterFactory,
@@ -13,7 +8,13 @@ import {
 import { fileURLToPath } from 'node:url';
 import { verifyCommandName } from './verify_command_name.js';
 import { hideBin } from 'yargs/helpers';
-import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
+import {
+  PackageManagerControllerFactory,
+  attachUnhandledExceptionListeners,
+  extractSubCommands,
+  format,
+  generateCommandFailureHandler,
+} from '@aws-amplify/cli-core';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
