@@ -149,6 +149,14 @@ export type DataProps = {
    * Logging configuration for the API.
    */
   logging?: DataLoggingOptions;
+
+  /**
+   * Mapping of model name to existing DynamoDB table that should be used as the data source.
+   */
+  importedAmplifyDynamoDBTableMap?: Record<
+    string,
+    Record<string, string> | undefined
+  >;
 };
 
 export type AmplifyDataError =

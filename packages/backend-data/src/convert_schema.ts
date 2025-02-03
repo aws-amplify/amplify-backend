@@ -18,6 +18,7 @@ import type {
 } from '@aws-amplify/plugin-types';
 import { resolveEntryPath } from './resolve_entry_path.js';
 import { readFileSync } from 'fs';
+import { ObjectTypeDefinitionNode, parse, print } from 'graphql';
 
 /**
  * Determine if the input schema is a derived typed schema object (data-schema), and perform type narrowing.
@@ -58,6 +59,13 @@ const DYNAMO_DATA_SOURCE_STRATEGY = {
   provisionStrategy: 'AMPLIFY_TABLE',
 } as const;
 
+// DO NOT EDIT THE FOLLOWING VALUES, UPDATES TO DB TYPE OR STRATEGY WILL RESULT IN DB REPROVISIONING
+// Conforms to this interface: https://github.com/aws-amplify/amplify-category-api/blob/274d1176d96e265d02817a975848c767d6d43c31/packages/amplify-graphql-api-construct/src/model-datasource-strategy-types.ts#L35-L41
+const IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY = {
+  dbType: 'DYNAMODB',
+  provisionStrategy: 'IMPORTED_AMPLIFY_TABLE',
+} as const;
+
 // Translate the external engine types to the config values
 // Reference: https://github.com/aws-amplify/amplify-category-api/blob/fd7f6fbc17c199331c4b04debaff69ea0424cd74/packages/amplify-graphql-api-construct/src/model-datasource-strategy-types.ts#L25
 const SQL_DB_TYPES = {
@@ -70,12 +78,14 @@ const SQL_DB_TYPES = {
  * @param schema TS schema builder definition or string GraphQL schema
  * @param backendSecretResolver secret resolver
  * @param stableBackendIdentifiers backend identifiers
+ * @param importedTableName table name to use for imported models. If not defined the model is not imported.
  * @returns the cdk graphql definition interface
  */
 export const convertSchemaToCDK = (
   schema: DataSchema,
   backendSecretResolver: BackendSecretResolver,
-  stableBackendIdentifiers: StableBackendIdentifiers
+  stableBackendIdentifiers: StableBackendIdentifiers,
+  importedTableName?: string
 ): IAmplifyDataDefinition => {
   if (isDataSchema(schema)) {
     /**
@@ -98,7 +108,8 @@ export const convertSchemaToCDK = (
       schema.data.configuration.database,
       customSqlDataSourceStrategies,
       backendSecretResolver,
-      provisionStrategyName
+      provisionStrategyName,
+      importedTableName
     );
 
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
@@ -128,6 +139,12 @@ export const convertSchemaToCDK = (
     };
   }
 
+  if (importedTableName) {
+    return AmplifyDataDefinition.fromString(schema, {
+      ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
+      tableName: importedTableName,
+    });
+  }
   return AmplifyDataDefinition.fromString(schema, DYNAMO_DATA_SOURCE_STRATEGY);
 };
 
@@ -151,9 +168,16 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
   configuration: DataSourceConfiguration,
   customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[] = [],
   backendSecretResolver: BackendSecretResolver,
-  provisionStrategyName: string
+  provisionStrategyName: string,
+  importedTableName?: string
 ): ModelDataSourceStrategy => {
   if (configuration.engine === 'dynamodb') {
+    if (importedTableName) {
+      return {
+        ...IMPORTED_DYNAMO_DATA_SOURCE_STRATEGY,
+        tableName: importedTableName,
+      };
+    }
     return DYNAMO_DATA_SOURCE_STRATEGY;
   }
 
@@ -220,4 +244,92 @@ const customSqlStatementsFromStrategies = (
     }, {} as Record<string, string>);
 
   return customSqlStatements;
+};
+
+/**
+ * Extracts the imported models from non-imported models in a single string schema.
+ * @param schema String GraphQL schema
+ * @param importedAmplifyDynamoDBTableMap Table names for the models that should be extracted.
+ * @returns a schema split into imported models and non-imported models
+ */
+export const extractImportedModels = (
+  schema: string,
+  importedAmplifyDynamoDBTableMap: Record<string, string> | undefined
+): {
+  importedSchemas: { schema: string; importedTableName: string }[];
+  nonImportedSchema: string | undefined;
+} => {
+  const importedModels = Object.keys(importedAmplifyDynamoDBTableMap ?? {});
+  if (importedModels?.length) {
+    const parsedSchema = parse(schema);
+    const [importedDefinitionNodes, nonImportedDefinitionNodes] = partition(
+      parsedSchema.definitions,
+      (definitionNode) => {
+        return (
+          definitionNode.kind === 'ObjectTypeDefinition' &&
+          importedModels.includes(definitionNode.name.value)
+        );
+      }
+    );
+    // ok to cast as ObjectTypeDefinitionNode because the type was checked in the partition function
+    const importedObjectTypeDefinitionNodes =
+      importedDefinitionNodes as ObjectTypeDefinitionNode[];
+
+    importedModels.forEach((modelName) => {
+      if (
+        !importedObjectTypeDefinitionNodes.some(
+          (definitionNode) => definitionNode.name.value === modelName
+        )
+      ) {
+        throw new Error(`Imported model not found in schema: ${modelName}`);
+      }
+    });
+
+    const importedSchemas = importedObjectTypeDefinitionNodes.map(
+      (definitionNode) => {
+        const importedTableName = (importedAmplifyDynamoDBTableMap ?? {})[
+          definitionNode.name.value
+        ];
+        if (!importedTableName) {
+          throw new Error(
+            `No table found for imported model ${definitionNode.name.value}.`
+          );
+        }
+        return {
+          schema: print({
+            definitions: [definitionNode],
+            kind: 'Document' as const,
+          }),
+          importedTableName,
+        };
+      }
+    );
+
+    const nonImportedSchema = nonImportedDefinitionNodes.length
+      ? print({
+          definitions: nonImportedDefinitionNodes,
+          kind: 'Document' as const,
+        })
+      : undefined;
+    return {
+      importedSchemas,
+      nonImportedSchema,
+    };
+  }
+  return {
+    importedSchemas: [],
+    nonImportedSchema: schema,
+  };
+};
+
+const partition = <I>(
+  array: readonly I[],
+  isLeft: (item: I) => boolean
+): [I[], I[]] => {
+  return array.reduce(
+    ([left, right], item) => {
+      return isLeft(item) ? [[...left, item], right] : [left, [...right, item]];
+    },
+    [[], []] as [I[], I[]]
+  );
 };
