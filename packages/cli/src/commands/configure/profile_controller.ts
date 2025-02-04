@@ -8,6 +8,7 @@ import { EOL } from 'os';
 import fs from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Options for the profile configuration.
@@ -77,7 +78,23 @@ export class ProfileController {
         : `[profile ${options.profile}]${EOL}`;
     configData += `region = ${options.region}${EOL}`;
 
-    await fs.appendFile(filePath, configData, { mode: '600' });
+    try {
+      await fs.appendFile(filePath, configData, { mode: '600' });
+    } catch (err) {
+      const error = err as Error;
+      if (error.message.includes('EACCES')) {
+        throw new AmplifyUserError(
+          'PermissionsError',
+          {
+            message: `You do not have the permissions to write to this file: ${filePath}`,
+            resolution: `Ensure that you have the right permissions to write to ${filePath}.`,
+          },
+          error
+        );
+      } else {
+        throw error;
+      }
+    }
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
     const profileData = await loadSharedConfigFiles({
@@ -135,7 +152,18 @@ export class ProfileController {
         // file doesn't exists
         return true;
       }
-      throw err;
+      if (error.message.includes('EACCES')) {
+        throw new AmplifyUserError(
+          'PermissionsError',
+          {
+            message: `You do not have the permissions to read this file: ${filePath}.`,
+            resolution: `Ensure that you have the right permissions to read from ${filePath}.`,
+          },
+          error
+        );
+      } else {
+        throw err;
+      }
     }
   };
 }

@@ -5,6 +5,8 @@ import { ProfileController } from './profile_controller.js';
 import assert from 'node:assert';
 import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
 import { EOL } from 'node:os';
+import { chmodSync } from 'node:fs';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const testAccessKeyId = 'testAccessKeyId';
 const testSecretAccessKey = 'testSecretAccessKey';
@@ -215,6 +217,64 @@ void describe('profile controller', () => {
       assert.equal(
         credentialText,
         `${expectedCredentialText}${expectedCredentialText2}${expectedCredentialText3}`
+      );
+    });
+
+    void it('throws error if config file already exists and is missing read permissions', async () => {
+      if (process.platform.startsWith('win')) {
+        // Windows does not have the same behavior when files are missing permissions
+        return;
+      }
+
+      const expectedErr = new AmplifyUserError('PermissionsError', {
+        message: `You do not have the permissions to read this file: ${configFilePath}.`,
+        resolution: `Ensure that you have the right permissions to read from ${configFilePath}.`,
+      });
+      chmodSync(configFilePath, 0o000);
+      await assert.rejects(
+        async () =>
+          await profileController.createOrAppendAWSFiles({
+            profile: testProfile2,
+            region: testRegion2,
+            accessKeyId: testAccessKeyId2,
+            secretAccessKey: testSecretAccessKey2,
+          }),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(error.name, expectedErr.name);
+          assert.strictEqual(error.message, expectedErr.message);
+          assert.strictEqual(error.resolution, expectedErr.resolution);
+          return true;
+        }
+      );
+    });
+
+    void it('throws error if config file already exists and is missing write permissions', async () => {
+      if (process.platform.startsWith('win')) {
+        // Windows does not have the same behavior when files are missing permissions
+        return;
+      }
+
+      const expectedErr = new AmplifyUserError('PermissionsError', {
+        message: `You do not have the permissions to write to this file: ${configFilePath}`,
+        resolution: `Ensure that you have the right permissions to write to ${configFilePath}.`,
+      });
+
+      chmodSync(configFilePath, 0o444);
+
+      await assert.rejects(
+        async () =>
+          await profileController.createOrAppendAWSFiles({
+            profile: testProfile2,
+            region: testRegion2,
+            accessKeyId: testAccessKeyId2,
+            secretAccessKey: testSecretAccessKey2,
+          }),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(error.name, expectedErr.name);
+          assert.strictEqual(error.message, expectedErr.message);
+          assert.strictEqual(error.resolution, expectedErr.resolution);
+          return true;
+        }
       );
     });
 
