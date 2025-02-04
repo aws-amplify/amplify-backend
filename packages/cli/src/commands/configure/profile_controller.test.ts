@@ -5,7 +5,7 @@ import { ProfileController } from './profile_controller.js';
 import assert from 'node:assert';
 import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
 import { EOL } from 'node:os';
-import { chmod } from 'node:fs';
+import { chmodSync } from 'node:fs';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const testAccessKeyId = 'testAccessKeyId';
@@ -230,10 +230,7 @@ void describe('profile controller', () => {
         message: `You do not have the permissions to read this file: ${configFilePath}.`,
         resolution: `Ensure that you have the right permissions to read from ${configFilePath}.`,
       });
-      chmod(configFilePath, 0o000, () => {
-        //do nothing
-        return;
-      });
+      chmodSync(configFilePath, 0o000);
       await assert.rejects(
         async () =>
           await profileController.createOrAppendAWSFiles({
@@ -262,10 +259,7 @@ void describe('profile controller', () => {
         resolution: `Ensure that you have the right permissions to write to ${configFilePath}.`,
       });
 
-      chmod(configFilePath, 0o444, () => {
-        //do nothing
-        return;
-      });
+      chmodSync(configFilePath, 0o444);
 
       await assert.rejects(
         async () =>
