@@ -1,5 +1,11 @@
 # @aws-amplify/backend-function
 
+## 1.12.2
+
+### Patch Changes
+
+- 44c3769: paginate getParameter call when there are more than 10 parameters
+
 ## 1.12.1
 
 ### Patch Changes
