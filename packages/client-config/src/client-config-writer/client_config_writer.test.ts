@@ -14,6 +14,7 @@ import {
 } from '../client-config-types/client_config.js';
 import { ClientConfigFormatterLegacy } from './client_config_formatter_legacy.js';
 import { randomUUID } from 'crypto';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 void describe('client config writer', () => {
   const sampleRegion = 'test_region';
@@ -178,6 +179,40 @@ void describe('client config writer', () => {
     assert.strictEqual(
       formatMock.mock.calls[0].arguments[1],
       ClientConfigFormat.JSON
+    );
+  });
+
+  void it('throws an error when targetFile exists and is missing write permissions', async () => {
+    const outDir = '/foo/bar';
+    const targetFile = '/foo/bar/baz';
+    const format = ClientConfigFormat.MJS;
+    const expectedErr = new AmplifyUserError('PermissionsError', {
+      message: `You do not have the permissions to write to this file: ${targetFile}`,
+      resolution: `Ensure that you have the right permissions to write to ${targetFile}.`,
+    });
+
+    fspMock.writeFile.mock.mockImplementationOnce(() =>
+      Promise.reject(new Error('EACCES: Permission denied'))
+    );
+    pathResolverMock.mock.mockImplementation(() => Promise.resolve(targetFile));
+    nameResolverMock.mock.mockImplementation(
+      () => ClientConfigFileBaseName.DEFAULT
+    );
+
+    await assert.rejects(
+      async () =>
+        await clientConfigWriter.writeClientConfig(
+          clientConfig,
+          DEFAULT_CLIENT_CONFIG_VERSION,
+          outDir,
+          format
+        ),
+      (error: AmplifyUserError) => {
+        assert.strictEqual(error.name, expectedErr.name);
+        assert.strictEqual(error.message, expectedErr.message);
+        assert.strictEqual(error.resolution, expectedErr.resolution);
+        return true;
+      }
     );
   });
 });
