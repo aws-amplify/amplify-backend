@@ -1,5 +1,11 @@
 # @aws-amplify/backend-cli
 
+## 1.4.10
+
+### Patch Changes
+
+- 6faa636: Add data and ai packages to ampx info output
+
 ## 1.4.9
 
 ### Patch Changes
