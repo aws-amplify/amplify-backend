@@ -1,3 +1,3 @@
-import { getSecret } from './seed_secret.js';
+import { getSecret, setSecret } from './seed_secret.js';
 
-export { getSecret };
+export { getSecret, setSecret };

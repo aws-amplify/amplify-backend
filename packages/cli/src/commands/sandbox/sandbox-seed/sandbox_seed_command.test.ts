@@ -19,8 +19,4 @@ void describe('sandbox seed command', () => {
   void it('throws error if seed script is not found', async () => {});
 
   void it('runs seed if seed file is found', async () => {});
-
-  void it('throws error if seed role does not exist', async () => {});
-
-  void it('throws error if seed role does not have enough permissions', async () => {});
 });
