@@ -25,6 +25,7 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { SandboxSeedGeneratePolicyCommand } from './sandbox-seed/sandbox_seed_policy_command.js';
 
 /**
  * Creates wired sandbox command.
@@ -80,6 +81,7 @@ export const createSandboxCommand = (): CommandModule<
       new SandboxDeleteCommand(sandboxFactory),
       createSandboxSecretCommand(),
       new SandboxSeedCommand(),
+      new SandboxSeedGeneratePolicyCommand(),
     ],
     clientConfigGeneratorAdapter,
     commandMiddleWare,
