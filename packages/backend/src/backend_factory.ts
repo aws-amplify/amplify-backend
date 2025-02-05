@@ -27,7 +27,6 @@ import {
 import { CustomOutputsAccumulator } from './engine/custom_outputs_accumulator.js';
 import { ObjectAccumulator } from '@aws-amplify/platform-core';
 import { DefaultResourceNameValidator } from './engine/validations/default_resource_name_validator.js';
-import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 
 // Be very careful editing this value. It is the value used in the BI metrics to attribute stacks as Amplify root stacks
 const rootStackTypeIdentifier = 'root';
@@ -69,14 +68,8 @@ export class BackendFactory<
       new AttributionMetadataStorage()
     );
 
-    // TO DO: should have some logic as to whether we should activate this
-    const seedPolicy = new ManagedPolicy(stack, 'amplifySeedPolicy', {
-      statements: [],
-    });
-
     const constructContainer = new SingletonConstructContainer(
-      this.stackResolver,
-      seedPolicy
+      this.stackResolver
     );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(

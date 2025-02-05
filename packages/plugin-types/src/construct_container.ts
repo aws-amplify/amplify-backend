@@ -4,7 +4,7 @@ import { BackendSecretResolver } from './backend_secret_resolver.js';
 import { ResourceProvider } from './resource_provider.js';
 import { SsmEnvironmentEntriesGenerator } from './ssm_environment_entries_generator.js';
 import { StableBackendIdentifiers } from './stable_backend_identifiers.js';
-import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
+
 /**
  * Initializes a CDK Construct in a given scope
  */
@@ -28,7 +28,6 @@ export type GenerateContainerEntryProps = {
   backendSecretResolver: BackendSecretResolver;
   ssmEnvironmentEntriesGenerator: SsmEnvironmentEntriesGenerator;
   stableBackendIdentifiers: StableBackendIdentifiers;
-  seedPolicy?: ManagedPolicy;
 };
 
 /**

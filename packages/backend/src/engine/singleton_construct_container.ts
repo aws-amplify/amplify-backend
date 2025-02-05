@@ -9,7 +9,6 @@ import { getBackendIdentifier } from '../backend_identifier.js';
 import { DefaultBackendSecretResolver } from './backend-secret/backend_secret_resolver.js';
 import { BackendIdScopedSsmEnvironmentEntriesGenerator } from './backend_id_scoped_ssm_environment_entries_generator.js';
 import { BackendIdScopedStableBackendIdentifiers } from '../backend_id_scoped_stable_backend_identifiers.js';
-import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 
 /**
  * Serves as a DI container and shared state store for initializing Amplify constructs
@@ -27,10 +26,7 @@ export class SingletonConstructContainer implements ConstructContainer {
   /**
    * Initialize the BackendBuildState with a root stack
    */
-  constructor(
-    private readonly stackResolver: StackResolver,
-    private readonly seedPolicy?: ManagedPolicy
-  ) {}
+  constructor(private readonly stackResolver: StackResolver) {}
 
   /**
    * If generator has been seen before, the cached Construct instance is returned
@@ -57,7 +53,6 @@ export class SingletonConstructContainer implements ConstructContainer {
           backendSecretResolver,
           ssmEnvironmentEntriesGenerator,
           stableBackendIdentifiers,
-          seedPolicy: this.seedPolicy,
         })
       );
     }

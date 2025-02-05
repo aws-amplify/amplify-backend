@@ -32,17 +32,11 @@ export class StorageContainerEntryGenerator
   generateContainerEntry = ({
     scope,
     ssmEnvironmentEntriesGenerator,
-    seedPolicy,
   }: GenerateContainerEntryProps) => {
     const amplifyStorage = new AmplifyStorage(scope, this.props.name, {
       ...this.props,
       outputStorageStrategy: this.getInstanceProps.outputStorageStrategy,
     });
-
-    if (seedPolicy) {
-      amplifyStorage.resources.bucket.grantPut(seedPolicy);
-      amplifyStorage.resources.bucket.grantReadWrite(seedPolicy);
-    }
 
     Tags.of(amplifyStorage).add(TagName.FRIENDLY_NAME, this.props.name);
 
