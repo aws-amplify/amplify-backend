@@ -23,6 +23,14 @@ declare namespace __export__cdk {
 }
 export { __export__cdk }
 
+declare namespace __export__notices {
+    export {
+        noticeSchema,
+        Notice
+    }
+}
+export { __export__notices }
+
 // @public
 export abstract class AmplifyError<T extends string = string> extends Error {
     constructor(name: T, classification: AmplifyErrorClassification, options: AmplifyErrorOptions, cause?: Error | undefined);
@@ -153,6 +161,27 @@ class LogRetentionConverter {
 export class NamingConverter {
     toScreamingSnakeCase(input: string): string;
 }
+
+// @public (undocumented)
+type Notice = z.infer<typeof noticeSchema>;
+
+// @public (undocumented)
+const noticeSchema: z.ZodObject<{
+    id: z.ZodString;
+    title: z.ZodString;
+    details: z.ZodString;
+    link: z.ZodString;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    title: string;
+    details: string;
+    link: string;
+}, {
+    id: string;
+    title: string;
+    details: string;
+    link: string;
+}>;
 
 // @public
 export class ObjectAccumulator<T> {
