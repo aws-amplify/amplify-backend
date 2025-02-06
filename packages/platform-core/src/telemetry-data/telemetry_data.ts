@@ -7,12 +7,18 @@ export type CoreIdentifiersDetails = {
   eventId: string;
   timestamp: string;
   localProjectId: string;
-  accountId?: string;
+  // accountId?: string;
   awsRegion?: string;
 };
 
+export enum TelemetryEventState {
+  ABORTED = 'ABORTED',
+  FAILED = 'FAILED',
+  SUCCEEDED = 'SUCCEEDED',
+};
+
 export type EventDetails = {
-  state: 'ABORTED' | 'FAILED' | 'SUCCEEDED';
+  state: TelemetryEventState;
   command: {
     path: string[];
     parameters: string[];
@@ -52,8 +58,7 @@ export type ProjectDetails = {
   dependencies?: Array<Dependency>;
 };
 
-// Main Telemetry Data Structure
-export type AmplifyCliTelemetryData = {
+export type TelemetryData = {
   identifiers: CoreIdentifiersDetails;
   event: EventDetails;
   environment: EnvironmentDetails;
