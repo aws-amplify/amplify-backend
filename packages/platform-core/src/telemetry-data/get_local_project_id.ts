@@ -1,13 +1,27 @@
 import { v5 as uuidV5 } from 'uuid';
-import { hostname } from 'os';
+import { homedir } from 'os';
+import { configControllerFactory } from '../index.internal';
+import path from 'path';
 
 // eslint-disable-next-line spellcheck/spell-checker
 const AMPLIFY_CLI_UUID_NAMESPACE = 'e6831f35-ca7a-4889-a7bf-541c81d58d40'; // A random v4 UUID
 /**
- * Generates a consistent installation Uuid from the library installation path + machine's host name
+ * Generates a consistent project Uuid
  */
-export const getLocalProjectUuid = (
+export const getLocalProjectId = async (
   namespace: string = AMPLIFY_CLI_UUID_NAMESPACE
 ) => {
-  return uuidV5(__dirname + hostname(), namespace);
+  const localProjectIdPath = process.cwd().replace(homedir() + path.sep, '').replaceAll(/\\|\//g, '_') + '.projectId';
+  const configController = configControllerFactory.getInstance('usage_data_preferences.json');
+
+  const cachedProjectId = await configController.get<string>(localProjectIdPath);
+
+  if (cachedProjectId) {
+    return cachedProjectId;
+  }
+
+  const projectId = uuidV5(Date.now().toString(), namespace);
+  await configController.set(localProjectIdPath, projectId);
+
+  return projectId;
 };

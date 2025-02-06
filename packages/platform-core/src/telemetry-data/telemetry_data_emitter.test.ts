@@ -11,6 +11,8 @@
 // import isCI from 'is-ci';
 // import { AmplifyError, AmplifyUserError } from '..';
 // import { RegionFetcher } from './region_fetcher';
+// import { AccountIdFetcher } from './account_id_fetcher';
+// import { configControllerFactory, ConfigurationController } from '../config/local_configuration_controller_factory';
 
 // const originalNpmUserAgent = process.env.npm_config_user_agent;
 // const testNpmUserAgent = 'testNpmUserAgent';
@@ -53,11 +55,22 @@
 //     end: onReqEndMock,
 //   } as unknown as http.ClientRequest;
 
-//   // For getlocalProjectUuid which retrieves it from PackageJsonReader
-//   mock.method(fs, 'existsSync', () => true);
-//   mock.method(fs, 'readFile', () =>
-//     Promise.resolve(JSON.stringify({ name: 'testAppName' }))
-//   );
+//   // For getlocalProjectId
+//   const projectId = v4();
+//   const mockedConfigController: ConfigurationController = {
+//       get: mock.fn(() => projectId),
+//     } as unknown as ConfigurationController;
+//     mock.method(
+//       configControllerFactory,
+//       'getInstance',
+//       () => mockedConfigController
+//     );
+
+//   // For AccountIdFetcher
+//   const accountId = v4();
+//   const accoundIdFetcherMock = {
+//     fetch: async () => accountId,
+//   } as AccountIdFetcher;
 
 //   // For RegionFetcher
 //   const regionFetcherMock = {
@@ -94,6 +107,7 @@
 //     assert.strictEqual(telemetryDataSent.identifiers.payloadVersion, '1.0.0');
 //     assert.ok(validate(telemetryDataSent.identifiers.sessionUuid));
 //     assert.ok(validate(telemetryDataSent.identifiers.localProjectId));
+//     assert.ok(telemetryDataSent.identifiers.accountId ? validate(telemetryDataSent.identifiers.accountId) : true);
 //     assert.strictEqual(telemetryDataSent.identifiers.awsRegion, 'us-east-1');
 //     assert.strictEqual(telemetryDataSent.event.state, 'SUCCEEDED');
 //     assert.deepStrictEqual(telemetryDataSent.event.command, {
@@ -150,6 +164,7 @@
 //     assert.strictEqual(telemetryDataSent.identifiers.payloadVersion, '1.0.0');
 //     assert.ok(validate(telemetryDataSent.identifiers.sessionUuid));
 //     assert.ok(validate(telemetryDataSent.identifiers.localProjectId));
+//     assert.ok(telemetryDataSent.identifiers.accountId ? validate(telemetryDataSent.identifiers.accountId) : true);
 //     assert.strictEqual(telemetryDataSent.identifiers.awsRegion, 'us-east-1');
 //     assert.strictEqual(telemetryDataSent.event.state, 'FAILED');
 //     assert.deepStrictEqual(telemetryDataSent.event.command, {
@@ -216,6 +231,7 @@
 //     telemetryDataEmitter = new DefaultTelemetryDataEmitter(
 //       testDependencies,
 //       v4(),
+//       accoundIdFetcherMock,
 //       regionFetcherMock,
 //     );
 

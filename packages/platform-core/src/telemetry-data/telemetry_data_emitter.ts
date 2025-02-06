@@ -6,10 +6,11 @@ import { Dependency } from "@aws-amplify/plugin-types";
 import { TelemetryDataEmitter } from "./telemetry_data_emitter_factory";
 import { ErrorDetails, LatencyDetails, TelemetryData, TelemetryEventState } from './telemetry_data';
 import { AmplifyError } from '../errors';
-import { getLocalProjectUuid } from './get_local_project_id';
+import { getLocalProjectId } from './get_local_project_id';
 import { latestPayloadVersion } from './constants';
 import { RegionFetcher } from './region_fetcher';
 import { SerializableError } from './serializable_error';
+import { AccountIdFetcher } from './account_id_fetcher';
 
 /**
  *
@@ -23,6 +24,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
   constructor(
     private readonly dependencies?: Array<Dependency>,
     private readonly sessionUuid = uuid(),
+    private readonly accountIdFetcher = new AccountIdFetcher(),
     private readonly regionFetcher = new RegionFetcher(),
   ) {
     const targetDependencies = [
@@ -123,7 +125,8 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         sessionUuid: this.sessionUuid,
         eventId: uuid(),
         timestamp: new Date().toISOString(),
-        localProjectId: getLocalProjectUuid(),
+        localProjectId: await getLocalProjectId(),
+        accountId: await this.accountIdFetcher.fetch(),
         awsRegion: await this.regionFetcher.fetch(),
       },
       event: {

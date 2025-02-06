@@ -7,7 +7,7 @@ export type CoreIdentifiersDetails = {
   eventId: string;
   timestamp: string;
   localProjectId: string;
-  // accountId?: string;
+  accountId?: string;
   awsRegion?: string;
 };
 
