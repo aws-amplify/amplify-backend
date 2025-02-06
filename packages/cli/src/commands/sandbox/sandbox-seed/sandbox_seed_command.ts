@@ -11,7 +11,7 @@ import { LocalNamespaceResolver } from '../../../backend-identifier/local_namesp
 import { SandboxCommandGlobalOptions } from '../option_types.js';
 
 /**
- *
+ * Command that runs seed in sandbox environment
  */
 export class SandboxSeedCommand implements CommandModule<object> {
   /**

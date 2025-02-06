@@ -38,7 +38,7 @@ export const generateSeedPolicyTemplate = async (
 
   const cognitoGrant = new PolicyStatement({
     effect: Effect.ALLOW,
-    actions: ['cognito-idp:AdminCreateUser'],
+    actions: ['cognito-idp:AdminCreateUser', 'cognito-idp:AdminAddUserToGroup'],
     resources: [userpoolArn],
   });
 

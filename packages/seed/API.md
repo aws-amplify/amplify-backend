@@ -5,7 +5,52 @@
 ```ts
 
 // @public (undocumented)
+export const addToUserGroup: (user: AuthUser, group: string) => Promise<AuthOutputs>;
+
+// @public (undocumented)
+export type AuthOutputs = {
+    signInFlow: 'Password' | 'MFA';
+    username: string;
+};
+
+// @public (undocumented)
+export type AuthSignUp = {
+    signInAfterCreation: boolean;
+    preferredSignInFlow: 'Password' | 'MFA';
+    username: string;
+    password?: string;
+    email?: string;
+    phoneNumber?: string;
+    mfaPreference?: 'TOTP' | 'email' | 'SMS';
+    signUpChallenge?: () => Promise<ChallengeResponse>;
+};
+
+// @public (undocumented)
+export type AuthUser = {
+    signInFlow: 'Password' | 'MFA';
+    username: string;
+    password?: string;
+    email?: string;
+    phoneNumber?: string;
+    signInChallenge?: () => Promise<ChallengeResponse>;
+};
+
+// @public (undocumented)
+export type ChallengeResponse = {
+    challResponse: string;
+};
+
+// @public (undocumented)
+export const createAndSignUpUser: (newUser: AuthSignUp) => Promise<AuthOutputs>;
+
+// @public
 export const getSecret: (secretName: string) => Promise<string>;
+
+// @public
+export const setSecret: (secretName: string, secretValue: string) => Promise<string>;
+
+// @public (undocumented)
+export const signInUser: (user: AuthUser) => Promise<boolean>;
 
 // (No @packageDocumentation comment for this package)
 

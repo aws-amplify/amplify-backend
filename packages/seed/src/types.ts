@@ -6,7 +6,7 @@ export type AuthSignUp = {
   email?: string;
   phoneNumber?: string;
   mfaPreference?: 'TOTP' | 'email' | 'SMS';
-  signUpChallenge?: () => Promise<void>;
+  signUpChallenge?: () => Promise<ChallengeResponse>;
 };
 
 export type AuthUser = {
@@ -15,9 +15,14 @@ export type AuthUser = {
   password?: string;
   email?: string;
   phoneNumber?: string;
+  signInChallenge?: () => Promise<ChallengeResponse>;
 };
 
 export type AuthOutputs = {
   signInFlow: 'Password' | 'MFA';
   username: string;
+};
+
+export type ChallengeResponse = {
+  challengeResponse: string;
 };

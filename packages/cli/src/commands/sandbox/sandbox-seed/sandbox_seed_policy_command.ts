@@ -6,7 +6,7 @@ import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { generateSeedPolicyTemplate } from '../../../seed-policy-generation/generate_seed_policy_template.js';
 
 /**
- *
+ * Command that generates policy template with permissions to be able to run seed in sandbox environment
  */
 export class SandboxSeedGeneratePolicyCommand implements CommandModule<object> {
   /**
