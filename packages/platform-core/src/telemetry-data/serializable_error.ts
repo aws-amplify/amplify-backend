@@ -9,7 +9,8 @@ export class SerializableError {
   message: string;
   stack: string;
 
-  private filePathRegex = /(file:\/\/)?([a-zA-Z]:\\|\/)?(?:[\w.-]+[\\/])+(?:[\w.-]+)/g;
+  private filePathRegex =
+    /(file:\/\/)?([a-zA-Z]:\\|\/)?(?:[\w.-]+[\\/])+(?:[\w.-]+)/g;
   private arnRegex =
     /arn:[a-z0-9][-.a-z0-9]{0,62}:[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}/g;
 
@@ -26,7 +27,7 @@ export class SerializableError {
   }
 
   private anonymizePaths = (str: string): string => {
-    const matches = [...str.matchAll(this.filePathRegex)];
+    const matches = str.matchAll(this.filePathRegex);
     let result = str;
 
     for (const match of matches) {
@@ -37,20 +38,20 @@ export class SerializableError {
 
     return result;
   };
-  
-    private processPaths = (paths: string[]): string[] => {
-      return paths.map((tracePath) => {
-        let result = tracePath;
-        if (this.isURLFilePath(result)) {
-          result = fileURLToPath(result);
-        }
-        if (path.isAbsolute(result)) {
-          return path.relative(process.cwd(), result);
-        }
-        
-        return result;
-      });
-    };
+
+  private processPaths = (paths: string[]): string[] => {
+    return paths.map((tracePath) => {
+      let result = tracePath;
+      if (this.isURLFilePath(result)) {
+        result = fileURLToPath(result);
+      }
+      if (path.isAbsolute(result)) {
+        return path.relative(process.cwd(), result);
+      }
+
+      return result;
+    });
+  };
 
   private removeARN = (str?: string): string => {
     return str?.replace(this.arnRegex, '<escaped ARN>') ?? '';
@@ -67,5 +68,5 @@ export class SerializableError {
     } catch {
       return false;
     }
-  }
+  };
 }
