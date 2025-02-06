@@ -13,7 +13,7 @@ export class SerializableError {
   // (file:\/\/)? -> matches optional 'file://'
   // ([a-zA-Z]:\\|\/)? -> matches Windows drive or unix root
   // (?:[\w.-]+?[\\/]?)+ -> matches nested directories and file name
-  private filePathRegex = /(file:\/\/)?([a-zA-Z]:\\|\/)?(?:[\w.-]+?[\\/]?)+/g;
+  private filePathRegex = /(?:(file:\/\/)?[a-zA-Z]:\\|\/)+(?:[\w.-]+?[\\/]?)+/g;
   private arnRegex =
     /arn:[a-z0-9][-.a-z0-9]{0,62}:[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}/g;
 
@@ -30,7 +30,7 @@ export class SerializableError {
   }
 
   private anonymizePaths = (str: string): string => {
-    const matches = str.matchAll(this.filePathRegex);
+    const matches = [...str.matchAll(this.filePathRegex)];
     let result = str;
 
     for (const match of matches) {
@@ -67,7 +67,7 @@ export class SerializableError {
   private isURLFilePath = (path: string): boolean => {
     try {
       new URL(path);
-      return true;
+      return path.startsWith('file:');
     } catch {
       return false;
     }

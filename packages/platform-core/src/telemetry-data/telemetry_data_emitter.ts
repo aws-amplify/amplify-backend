@@ -198,6 +198,8 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
       }
     }
 
+    console.log('path', path);
+    console.log('parameters', parameters);
     return { path: path.split(' '), parameters: parameters.split(' ') };
   };
 
