@@ -9,8 +9,11 @@ export class SerializableError {
   message: string;
   stack: string;
 
-  private filePathRegex =
-    /(file:\/\/)?([a-zA-Z]:\\|\/)?(?:[\w.-]+[\\/])+(?:[\w.-]+)/g;
+  // breakdown of filePathRegex:
+  // (file:\/\/)? -> matches optional 'file://'
+  // ([a-zA-Z]:\\|\/)? -> matches Windows drive or unix root
+  // (?:[\w.-]+?[\\/]?)+ -> matches nested directories and file name
+  private filePathRegex = /(file:\/\/)?([a-zA-Z]:\\|\/)?(?:[\w.-]+?[\\/]?)+/g;
   private arnRegex =
     /arn:[a-z0-9][-.a-z0-9]{0,62}:[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}/g;
 
