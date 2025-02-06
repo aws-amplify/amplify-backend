@@ -24,8 +24,11 @@ export class AccountIdFetcher {
         new GetCallerIdentityCommand({})
       );
       if (stsResponse && stsResponse.Account) {
-        const accountIdBucket = Number(stsResponse.Account) / 1000;
-        this.accountId = uuidV5(accountIdBucket.toString(), AMPLIFY_CLI_UUID_NAMESPACE);
+        const accountIdBucket = Number(stsResponse.Account) / 100;
+        this.accountId = uuidV5(
+          accountIdBucket.toString(),
+          AMPLIFY_CLI_UUID_NAMESPACE
+        );
         return this.accountId;
       }
       // We failed to get the account Id. Most likely the user doesn't have credentials
