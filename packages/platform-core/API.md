@@ -169,17 +169,14 @@ type Notice = z.infer<typeof noticeSchema>;
 
 // @public (undocumented)
 const noticeSchema: z.ZodObject<{
-    id: z.ZodString;
     title: z.ZodString;
     details: z.ZodString;
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    id: string;
     title: string;
     details: string;
     link: string;
 }, {
-    id: string;
     title: string;
     details: string;
     link: string;
@@ -191,31 +188,26 @@ type NoticesManifest = z.infer<typeof noticesManifestSchema>;
 // @public (undocumented)
 const noticesManifestSchema: z.ZodObject<{
     currentNotices: z.ZodArray<z.ZodObject<{
-        id: z.ZodString;
         title: z.ZodString;
         details: z.ZodString;
         link: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        id: string;
         title: string;
         details: string;
         link: string;
     }, {
-        id: string;
         title: string;
         details: string;
         link: string;
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
     currentNotices: {
-        id: string;
         title: string;
         details: string;
         link: string;
     }[];
 }, {
     currentNotices: {
-        id: string;
         title: string;
         details: string;
         link: string;
