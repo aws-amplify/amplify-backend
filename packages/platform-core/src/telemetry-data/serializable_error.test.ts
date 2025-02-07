@@ -15,14 +15,6 @@ void describe('serializable error', () => {
     }
   }
 
-  void test('that regular stack does not contain user homedir', () => {
-    const error = new Error('test error');
-    const serializableError = new SerializableError(error);
-    assert.ok(serializableError.stack);
-    const matches = [...serializableError.stack.matchAll(new RegExp(os.homedir(), 'g'))];
-    assert.ok(matches.length === 0, `${os.homedir()} is included in ${serializableError.stack}`);
-  });
-
   void test('that if code is available it is used as the error name', () => {
     const error = new ErrorWithDetailsAndCode(
       'some error message',
@@ -49,16 +41,28 @@ void describe('serializable error', () => {
     const error = new Error(`${process.cwd()} test error`);
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.message);
-    const matches = [...serializableError.message.matchAll(new RegExp(os.homedir(), 'g'))];
-    assert.ok(matches.length === 0, `${os.homedir()} is included in ${serializableError.message}`);
+    const matches = [
+      ...serializableError.message.matchAll(new RegExp(os.homedir(), 'g')),
+    ];
+    assert.ok(
+      matches.length === 0,
+      `${os.homedir()} is included in ${serializableError.message}`
+    );
   });
 
   void test('that error message does not contain file url path with user homedir', () => {
-    const error = new Error(`${pathToFileURL(process.cwd()).toString()} test error`);
+    const error = new Error(
+      `${pathToFileURL(process.cwd()).toString()} test error`
+    );
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.message);
-    const matches = [...serializableError.message.matchAll(new RegExp(os.homedir(), 'g'))];
-    assert.ok(matches.length === 0, `${os.homedir()} is included in ${serializableError.message}`);
+    const matches = [
+      ...serializableError.message.matchAll(new RegExp(os.homedir(), 'g')),
+    ];
+    assert.ok(
+      matches.length === 0,
+      `${os.homedir()} is included in ${serializableError.message}`
+    );
   });
 
   void test('that error stack does not contain user homedir', () => {
@@ -66,16 +70,30 @@ void describe('serializable error', () => {
     error.stack = `${error.stack}  at methodName (${process.cwd()}:12:34)\n`;
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.stack);
-    const matches = [...serializableError.stack.matchAll(new RegExp(os.homedir(), 'g'))];
-    assert.ok(matches.length === 0, `${os.homedir()} is included in ${serializableError.stack}`);
+    const matches = [
+      ...serializableError.stack.matchAll(new RegExp(os.homedir(), 'g')),
+    ];
+    assert.ok(
+      matches.length === 0,
+      `${os.homedir()} is included in ${serializableError.stack}`
+    );
   });
 
   void test('that error stack does not contain file url path with user homedir', () => {
-    const error = new Error(`${pathToFileURL(process.cwd()).toString()} test error`);
-    error.stack = `${error.stack}  at methodName (${pathToFileURL(process.cwd()).toString()}:12:34)\n`;
+    const error = new Error(
+      `${pathToFileURL(process.cwd()).toString()} test error`
+    );
+    error.stack = `${error.stack}  at methodName (${pathToFileURL(
+      process.cwd()
+    ).toString()}:12:34)\n`;
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.stack);
-    const matches = [...serializableError.stack.matchAll(new RegExp(os.homedir(), 'g'))];
-    assert.ok(matches.length === 0, `${os.homedir()} is included in ${serializableError.stack}`);
+    const matches = [
+      ...serializableError.stack.matchAll(new RegExp(os.homedir(), 'g')),
+    ];
+    assert.ok(
+      matches.length === 0,
+      `${os.homedir()} is included in ${serializableError.stack}`
+    );
   });
 });
