@@ -1,9 +1,9 @@
-import { getSecret, setSecret } from './seed_secret.js';
+import { getSecret, setSecret } from './secrets-seed/seed_secret.js';
 import {
   addToUserGroup,
   createAndSignUpUser,
   signInUser,
-} from './auth_client.js';
+} from './auth-seed/auth_api_factory.js';
 import {
   AuthOutputs,
   AuthSignUp,

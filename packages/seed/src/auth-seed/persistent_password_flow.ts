@@ -1,6 +1,6 @@
 import * as auth from 'aws-amplify/auth';
 import assert from 'assert';
-import { AuthSignUp } from './types.js';
+import { AuthSignUp } from '../types.js';
 
 export type PersistentPasswordSignUpProps = Pick<
   AuthSignUp,

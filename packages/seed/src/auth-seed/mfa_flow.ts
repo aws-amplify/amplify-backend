@@ -1,7 +1,7 @@
 import * as auth from 'aws-amplify/auth';
 import assert from 'assert';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
-import { AuthSignUp, AuthUser } from './types.js';
+import { AuthSignUp, AuthUser } from '../types.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 export type MfaSignUpProps = Pick<
