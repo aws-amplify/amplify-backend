@@ -8,7 +8,7 @@ import * as auth from 'aws-amplify/auth';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { persistentPasswordSignUp } from './persistent_password_flow.js';
 import { mfaSignIn, mfaSignUp } from './mfa_flow.js';
-import { AuthOutputsReader } from './auth_outputs_reader.js';
+import { ConfigReader } from './auth_outputs_reader.js';
 import { randomUUID } from 'node:crypto';
 
 /**
@@ -21,10 +21,10 @@ export class AuthClient {
   /**
    * Set up for auth APIs
    */
-  constructor() {
+  constructor(configOutputs: ConfigReader) {
     this.cognitoIdentityProviderClient = new CognitoIdentityProviderClient();
 
-    this.authOutputs = AuthOutputsReader.getAuthConfig();
+    this.authOutputs = configOutputs.getAuthConfig();
   }
 
   createAndSignUpUser = async (newUser: AuthSignUp): Promise<AuthOutputs> => {

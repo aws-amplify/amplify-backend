@@ -11,8 +11,8 @@ export type AuthConfiguration = {
 /**
  * Handles generating and reading from ClientConfig
  */
-export class AuthOutputsReader {
-  static getAuthConfig = async () => {
+export class ConfigReader {
+  getAuthConfig = async () => {
     if (!process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
       throw new AmplifyUserError('SandboxIdentifierNotFoundError', {
         message: 'Sandbox Identifier is undefined',

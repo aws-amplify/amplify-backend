@@ -1,7 +1,8 @@
 import { AuthClient } from './auth_client.js';
 import { AuthOutputs, AuthSignUp, AuthUser } from '../types.js';
+import { ConfigReader } from './auth_outputs_reader.js';
 
-const authClient = new AuthClient();
+const authClient = new AuthClient(new ConfigReader());
 
 /**
  * Creates and signs up a new user
