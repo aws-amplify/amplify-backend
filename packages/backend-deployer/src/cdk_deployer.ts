@@ -117,6 +117,8 @@ export class CDKDeployer implements BackendDeployer {
         synthesisTime: synthTimeSeconds,
         totalTime:
           synthTimeSeconds + (deployResult?.deploymentTimes?.totalTime || 0),
+        deploymentTime: deployResult?.deploymentTimes?.deploymentTime,
+        hotSwapTime: deployResult?.deploymentTimes?.hotSwapTime,
       },
     };
   };
@@ -341,6 +343,9 @@ export class CDKDeployer implements BackendDeployer {
   ) => {
     const regexTotalTime = /✨ {2}Total time: (\d*\.*\d*)s.*/;
     const regexSynthTime = /✨ {2}Synthesis time: (\d*\.*\d*)s/;
+    const regexDeploymentTime = /✨ {2}Deployment time: (\d*\.*\d*)s/;
+    const regexHotSwappingResources = /✨ {1}hotswapping resources:/;
+    let isHotSwapping = false;
     const reader = readline.createInterface(stdout);
     for await (const line of reader) {
       if (line.includes('✨')) {
@@ -352,6 +357,15 @@ export class CDKDeployer implements BackendDeployer {
         const synthTime = line.match(regexSynthTime);
         if (synthTime && synthTime.length > 1 && !isNaN(+synthTime[1])) {
           output.deploymentTimes.synthesisTime = +synthTime[1];
+        }
+        const deploymentTime = line.match(regexDeploymentTime);
+        isHotSwapping = isHotSwapping ? isHotSwapping : line.match(regexHotSwappingResources) !== null;
+        if (deploymentTime && deploymentTime.length > 1 && !isNaN(+deploymentTime[1])) {
+          if (isHotSwapping) {
+            output.deploymentTimes.hotSwapTime = +deploymentTime[1];
+          } else {
+            output.deploymentTimes.deploymentTime = +deploymentTime[1];
+          }
         }
       }
     }

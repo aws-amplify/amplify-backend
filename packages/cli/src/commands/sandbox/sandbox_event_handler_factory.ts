@@ -1,6 +1,6 @@
 import { SandboxEventHandlerCreator } from './sandbox_command.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
-import { AmplifyError, UsageDataEmitter } from '@aws-amplify/platform-core';
+import { AmplifyError, TelemetryDataEmitter, UsageDataEmitter } from '@aws-amplify/platform-core';
 import { DeployResult } from '@aws-amplify/backend-deployer';
 import { format, printer } from '@aws-amplify/cli-core';
 
@@ -15,7 +15,8 @@ export class SandboxEventHandlerFactory {
     private readonly getBackendIdentifier: (
       sandboxIdentifier?: string
     ) => Promise<BackendIdentifier>,
-    private readonly getUsageDataEmitter: () => Promise<UsageDataEmitter>
+    private readonly getUsageDataEmitter: () => Promise<UsageDataEmitter>,
+    private readonly getTelemetryDataEmitter: () => Promise<TelemetryDataEmitter>,
   ) {}
 
   getSandboxEventHandlers: SandboxEventHandlerCreator = ({
@@ -29,6 +30,7 @@ export class SandboxEventHandlerFactory {
             sandboxIdentifier
           );
           const usageDataEmitter = await this.getUsageDataEmitter();
+          const telemetryDataEmitter = await this.getTelemetryDataEmitter();
           try {
             await clientConfigLifecycleHandler.generateClientConfigFile(
               backendIdentifier
@@ -39,6 +41,10 @@ export class SandboxEventHandlerFactory {
                 await usageDataEmitter.emitSuccess(
                   deployResult.deploymentTimes,
                   { command: 'Sandbox' }
+                );
+                await telemetryDataEmitter.emitSuccess(
+                  deployResult.deploymentTimes,
+                  { subCommands: 'SandboxEvent'}
                 );
               }
             }
@@ -60,6 +66,7 @@ export class SandboxEventHandlerFactory {
       failedDeployment: [
         async (...args: unknown[]) => {
           const usageDataEmitter = await this.getUsageDataEmitter();
+          const telemetryDataEmitter = await this.getTelemetryDataEmitter();
           if (args.length == 0 || !args[0]) {
             return;
           }
@@ -68,12 +75,22 @@ export class SandboxEventHandlerFactory {
             await usageDataEmitter.emitFailure(deployError, {
               command: 'Sandbox',
             });
+            await telemetryDataEmitter.emitFailure(
+              deployError,
+              undefined,
+              { subCommands: 'SandboxEvent'}
+            );
           } else {
             await usageDataEmitter.emitFailure(
               AmplifyError.fromError(deployError),
               {
                 command: 'Sandbox',
               }
+            );
+            await telemetryDataEmitter.emitFailure(
+              AmplifyError.fromError(deployError),
+              undefined,
+              { subCommands: 'SandboxEvent'}
             );
           }
         },

@@ -2,6 +2,7 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import {
   AmplifyFault,
   AmplifyUserError,
+  TelemetryDataEmitter,
   UsageDataEmitter,
 } from '@aws-amplify/platform-core';
 import assert from 'node:assert';
@@ -36,6 +37,14 @@ void describe('sandbox_event_handler_factory', () => {
     emitFailure: emitFailureMock,
   } as unknown as UsageDataEmitter;
 
+  // Telemetry data emitter mocks
+  const emitTelemetrySuccessMock = mock.fn();
+  const emitTelemetryFailureMock = mock.fn();
+  const telemetryDataEmitterMock = {
+    emitSuccess: emitTelemetrySuccessMock,
+    emitFailure: emitTelemetryFailureMock,
+  } as unknown as TelemetryDataEmitter;
+
   const printMock = mock.method(printer, 'print');
 
   // Class under test
@@ -45,7 +54,8 @@ void describe('sandbox_event_handler_factory', () => {
       name: 'name',
       type: 'sandbox',
     }),
-    async () => usageDataEmitterMock
+    async () => usageDataEmitterMock,
+    async () => telemetryDataEmitterMock,
   );
 
   afterEach(() => {

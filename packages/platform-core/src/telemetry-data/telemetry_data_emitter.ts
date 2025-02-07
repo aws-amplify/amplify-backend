@@ -142,14 +142,16 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         npmUserAgent: process.env.npm_config_user_agent ?? '',
         ci: isCI,
         memory: {
+          /* eslint-disable spellcheck/spell-checker */
           total: os.totalmem(),
           free: os.freemem(),
+          /* eslint-enable spellcheck/spell-checker */
         },
       },
       project: {
         dependencies: this.dependenciesToReport,
       },
-      latency: this.translateMetricsToLatencyData(options.metrics),
+      latency: this.translateMetricsToLatencyData(options.metrics, options.dimensions),
       error: this.translateAmplifyErrorToErrorData(options.error),
     };
   };
@@ -240,8 +242,10 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
   };
 
   private translateMetricsToLatencyData = (
-    metrics?: Record<string, number>
+    metrics?: Record<string, number>,
+    dimensions?: Record<string, string>,
   ): LatencyDetails => {
+    const isSandboxEvent = dimensions ? dimensions.subCommands.includes('SandboxEvent') : false;
     let total = 0;
     let init;
     let synthesis;
@@ -249,21 +253,22 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
     let hotSwap;
 
     if (metrics) {
+      // go through metrics, convert from seconds to milliseconds if from sandbox event and truncate decimals
       for (const [name, data] of Object.entries(metrics)) {
         if (name === 'totalTime') {
-          total = data;
+          total = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
         if (name === 'initTime') {
-          init = data;
+          init = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
         if (name === 'synthesisTime') {
-          synthesis = data;
+          synthesis = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
         if (name === 'deploymentTime') {
-          deployment = data;
+          deployment = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
         if (name === 'hotSwapTime') {
-          hotSwap = data;
+          hotSwap = isSandboxEvent && !isNaN(data) ? Math.trunc(data * 1000) : data;
         }
       }
     }

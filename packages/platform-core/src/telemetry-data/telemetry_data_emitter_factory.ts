@@ -25,6 +25,7 @@ export type TelemetryDataEmitter = {
  * Creates TelemetryDataEmitter
  */
 export class TelemetryDataEmitterFactory {
+  private static instance: TelemetryDataEmitter | undefined;
   /**
    * Creates TelemetryDataEmitter for a given usage data tracking preferences
    */
@@ -38,7 +39,10 @@ export class TelemetryDataEmitterFactory {
     // if (process.env.AMPLIFY_DISABLE_TELEMETRY || telemetryDataTrackingDisabledLocalFile) {
     //   return new NoOpTelemetryDataEmitter();
     // }
+    if (!TelemetryDataEmitterFactory.instance) {
+      TelemetryDataEmitterFactory.instance = new DefaultTelemetryDataEmitter(dependencies);
+    }
 
-    return new DefaultTelemetryDataEmitter(dependencies);
+    return TelemetryDataEmitterFactory.instance;
   }
 }
