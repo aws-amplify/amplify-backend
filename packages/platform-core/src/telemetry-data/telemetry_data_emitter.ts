@@ -209,7 +209,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
     if (!error) {
       return undefined;
     }
-
+    console.log('error', error);
     let currentError: Error | undefined = error;
     let errorDetails: ErrorDetails | undefined;
 

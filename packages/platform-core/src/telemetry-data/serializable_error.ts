@@ -10,10 +10,11 @@ export class SerializableError {
   stack: string;
 
   // breakdown of filePathRegex:
-  // (file:\/\/)? -> matches optional 'file://'
-  // ([a-zA-Z]:\\|\/)? -> matches Windows drive or unix root
-  // (?:[\w.-]+?[\\/]?)+ -> matches nested directories and file name
-  private filePathRegex = /((file:\/\/)?[a-zA-Z]:\\|\/)+(?:[\w.-]+?[\\/]?)+/g;
+  // (file:\/+)? -> matches optional file url prefix
+  // (?:[a-zA-Z]:[\\/]|\/{2,3})?|[a-zA-Z]:\\|\/) -> matches Windows drive or unix prefix
+  // (?:[\w.-]+[\\/])*[\w.-]+ -> matches nested directories and file name
+  private filePathRegex =
+    /(file:\/+(?:[a-zA-Z]:[\\/]|\/{2,3})?|[a-zA-Z]:\\|\/)(?:[\w.-]+[\\/])*[\w.-]+/g;
   private arnRegex =
     /arn:[a-z0-9][-.a-z0-9]{0,62}:[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}/g;
 
@@ -30,16 +31,10 @@ export class SerializableError {
   }
 
   private anonymizePaths = (str: string): string => {
-    const matches = str.matchAll(this.filePathRegex);
-    let result = str;
-
-    for (const match of matches) {
-      if (match.index !== undefined) {
-        result = result.replace(match[0], this.processPaths([match[0]])[0]);
-      }
-    }
-
-    return result;
+    return str.replace(
+      this.filePathRegex,
+      (match) => this.processPaths([match])[0]
+    );
   };
 
   private processPaths = (paths: string[]): string[] => {
