@@ -39,7 +39,7 @@ export class YarnClassicLockFileReader implements LockFileReader {
 
         dependencies.push({ name: dependencyName, version: dependencyVersion });
       }
-    } catch (error) {
+    } catch {
       printer.log(
         `Failed to get lock file contents because ${yarnLockPath} does not exist or is not parse-able`,
         LogLevel.DEBUG

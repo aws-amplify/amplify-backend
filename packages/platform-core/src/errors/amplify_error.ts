@@ -78,7 +78,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
       return classification === 'ERROR'
         ? new AmplifyUserError(name, options, serializedCause)
         : new AmplifyFault(name, options, serializedCause);
-    } catch (error) {
+    } catch {
       // cannot deserialize
       return undefined;
     }

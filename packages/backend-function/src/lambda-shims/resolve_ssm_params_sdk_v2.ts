@@ -17,7 +17,7 @@ import type { SSM } from 'aws-sdk';
 import type { SsmEnvVars } from '../function_env_translator.js';
 
 // aws-sdk v2 does not play nice with normal ESM imports so we have to use require here
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const aws = require('aws-sdk');
 
 /**

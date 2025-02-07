@@ -24,7 +24,7 @@ export class AccountIdFetcher {
       }
       // We failed to get the account Id. Most likely the user doesn't have credentials
       return NO_ACCOUNT_ID;
-    } catch (error) {
+    } catch {
       // We failed to get the account Id. Most likely the user doesn't have credentials
       return NO_ACCOUNT_ID;
     }
