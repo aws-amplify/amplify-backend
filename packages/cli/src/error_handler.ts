@@ -1,6 +1,10 @@
 import { LogLevel, format, printer } from '@aws-amplify/cli-core';
 import { Argv } from 'yargs';
-import { AmplifyError, TelemetryDataEmitter, UsageDataEmitter } from '@aws-amplify/platform-core';
+import {
+  AmplifyError,
+  TelemetryDataEmitter,
+  UsageDataEmitter,
+} from '@aws-amplify/platform-core';
 import { extractSubCommands } from './extract_sub_commands.js';
 import { extractCommandInfo } from './extract_command_info.js';
 
@@ -12,7 +16,7 @@ type HandleErrorProps = {
   message?: string;
   usageDataEmitter?: UsageDataEmitter;
   telemetryDataEmitter?: TelemetryDataEmitter;
-  commandInfo?: { subCommands: string, options: string };
+  commandInfo?: { subCommands: string; options: string };
   metrics?: Record<string, number>;
   command?: string;
 };
@@ -22,7 +26,7 @@ type HandleErrorProps = {
  */
 export const attachUnhandledExceptionListeners = (
   usageDataEmitter: UsageDataEmitter,
-  telemetryDataEmitter: TelemetryDataEmitter,
+  telemetryDataEmitter: TelemetryDataEmitter
 ): void => {
   if (hasAttachUnhandledExceptionListenersBeenCalled) {
     return;
@@ -30,9 +34,17 @@ export const attachUnhandledExceptionListeners = (
   process.on('unhandledRejection', (reason) => {
     process.exitCode = 1;
     if (reason instanceof Error) {
-      void handleErrorSafe({ error: reason, usageDataEmitter, telemetryDataEmitter });
+      void handleErrorSafe({
+        error: reason,
+        usageDataEmitter,
+        telemetryDataEmitter,
+      });
     } else if (typeof reason === 'string') {
-      void handleErrorSafe({ error: new Error(reason), usageDataEmitter, telemetryDataEmitter });
+      void handleErrorSafe({
+        error: new Error(reason),
+        usageDataEmitter,
+        telemetryDataEmitter,
+      });
     } else {
       void handleErrorSafe({
         error: new Error(`Unhandled rejection of type [${typeof reason}]`, {
@@ -63,7 +75,7 @@ export const generateCommandFailureHandler = (
   parser: Argv,
   usageDataEmitter?: UsageDataEmitter,
   telemetryDataEmitter?: TelemetryDataEmitter,
-  metrics?: Record<string, number>,
+  metrics?: Record<string, number>
 ): ((message: string, error: Error) => Promise<void>) => {
   /**
    * Format error output when a command fails
@@ -120,7 +132,6 @@ const handleError = async ({
 }: HandleErrorProps) => {
   // If yargs threw an error because the customer force-closed a prompt (ie Ctrl+C during a prompt) then the intent to exit the process is clear
   if (isUserForceClosePromptError(error)) {
-    await telemetryDataEmitter?.emitAbortion(metrics, commandInfo);
     return;
   }
 
@@ -165,10 +176,14 @@ const handleError = async ({
       { command: command ?? 'UnknownCommand' }
     ),
     telemetryDataEmitter?.emitFailure(
-      AmplifyError.isAmplifyError(error) ? error : AmplifyError.fromError(error && error instanceof Error ? error : new Error(message)),
+      AmplifyError.isAmplifyError(error)
+        ? error
+        : AmplifyError.fromError(
+            error && error instanceof Error ? error : new Error(message)
+          ),
       metrics,
-      commandInfo,
-    )
+      commandInfo
+    ),
   ]);
 };
 

@@ -40,7 +40,8 @@ const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
   dependencies
 );
 
-const telemetryDataEmitter = await new TelemetryDataEmitterFactory().getInstance(dependencies);
+const telemetryDataEmitter =
+  await new TelemetryDataEmitterFactory().getInstance(dependencies);
 
 attachUnhandledExceptionListeners(usageDataEmitter, telemetryDataEmitter);
 
@@ -49,6 +50,26 @@ verifyCommandName();
 const parser = createMainParser(libraryVersion);
 
 const initTime = Date.now() - startTime;
+
+// Below is a workaround in order to send data to telemetry when user force closes a prompt (ie with Ctrl+C)
+// without the counter we would send both success and abort data.
+// Trying to do await telemetryDataEmitter.emitAbortion in errorHandler ends up with:
+// Warning: Detected unsettled top-level await
+let telemetryEmitCount = 0;
+process.on('beforeExit', (code) => {
+  if (telemetryEmitCount !== 0) {
+    process.exit(code);
+  }
+  const totalTime = Date.now() - startTime;
+  // Has to be done this way, does not work with await or void
+  /* eslint-disable promise/prefer-await-to-then */
+  telemetryDataEmitter
+    .emitAbortion({ totalTime, initTime }, extractCommandInfo(parser))
+    .then(() => process.exit(code))
+    .catch(() => process.exit(code));
+  /* eslint-enable promise/prefer-await-to-then */
+});
+
 try {
   await parser.parseAsync(hideBin(process.argv));
   const totalTime = Date.now() - startTime;
@@ -60,11 +81,20 @@ try {
   }
 
   await usageDataEmitter.emitSuccess({}, metricDimension);
-  await telemetryDataEmitter.emitSuccess({ totalTime, initTime }, extractCommandInfo(parser));
+  await telemetryDataEmitter.emitSuccess(
+    { totalTime, initTime },
+    extractCommandInfo(parser)
+  );
+  telemetryEmitCount++;
 } catch (e) {
   if (e instanceof Error) {
     const totalTime = Date.now() - startTime;
-    const errorHandler = generateCommandFailureHandler(parser, usageDataEmitter, telemetryDataEmitter, { totalTime, initTime });
+    const errorHandler = generateCommandFailureHandler(
+      parser,
+      usageDataEmitter,
+      telemetryDataEmitter,
+      { totalTime, initTime }
+    );
     await errorHandler(format.error(e), e);
   }
 }
