@@ -26,7 +26,9 @@ export { __export__cdk }
 declare namespace __export__notices {
     export {
         noticeSchema,
-        Notice
+        Notice,
+        noticesManifestSchema,
+        NoticesManifest
     }
 }
 export { __export__notices }
@@ -181,6 +183,43 @@ const noticeSchema: z.ZodObject<{
     title: string;
     details: string;
     link: string;
+}>;
+
+// @public (undocumented)
+type NoticesManifest = z.infer<typeof noticesManifestSchema>;
+
+// @public (undocumented)
+const noticesManifestSchema: z.ZodObject<{
+    currentNotices: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        title: z.ZodString;
+        details: z.ZodString;
+        link: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+        title: string;
+        details: string;
+        link: string;
+    }, {
+        id: string;
+        title: string;
+        details: string;
+        link: string;
+    }>, "many">;
+}, "strip", z.ZodTypeAny, {
+    currentNotices: {
+        id: string;
+        title: string;
+        details: string;
+        link: string;
+    }[];
+}, {
+    currentNotices: {
+        id: string;
+        title: string;
+        details: string;
+        link: string;
+    }[];
 }>;
 
 // @public
