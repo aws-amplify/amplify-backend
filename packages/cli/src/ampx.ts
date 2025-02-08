@@ -61,7 +61,7 @@ process.on('beforeExit', (code) => {
     process.exit(code);
   }
   const totalTime = Date.now() - startTime;
-  // Has to be done this way, does not work with await or void
+  // does not work with await or void
   /* eslint-disable promise/prefer-await-to-then */
   telemetryDataEmitter
     .emitAbortion({ totalTime, initTime }, extractCommandInfo(parser))
