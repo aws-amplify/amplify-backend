@@ -56,18 +56,17 @@ const initTime = Date.now() - startTime;
 // Trying to do await telemetryDataEmitter.emitAbortion in errorHandler ends up with:
 // Warning: Detected unsettled top-level await
 let telemetryEmitCount = 0;
-process.on('beforeExit', (code) => {
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
+process.on('beforeExit', async (code) => {
   if (telemetryEmitCount !== 0) {
     process.exit(code);
   }
   const totalTime = Date.now() - startTime;
-  // does not work with await or void
-  /* eslint-disable promise/prefer-await-to-then */
-  telemetryDataEmitter
-    .emitAbortion({ totalTime, initTime }, extractCommandInfo(parser))
-    .then(() => process.exit(code))
-    .catch(() => process.exit(code));
-  /* eslint-enable promise/prefer-await-to-then */
+  await telemetryDataEmitter.emitAbortion(
+    { totalTime, initTime },
+    extractCommandInfo(parser)
+  );
+  process.exit(code);
 });
 
 try {
