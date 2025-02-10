@@ -1,6 +1,7 @@
 import {
   DerivedCombinedSchema,
   DerivedModelSchema,
+  SchemaConfiguration,
 } from '@aws-amplify/data-schema-types';
 import {
   AmplifyFunction,
@@ -129,6 +130,11 @@ export type DataProps = {
    * Graphql Schema as a string to be passed into the CDK construct.
    */
   schema: DataSchemaInput;
+
+  /**
+   * Schema configuration for non-DynamoDB data sources.
+   */
+  schemaConfiguration?: SchemaConfiguration;
 
   /**
    * Optional name for the generated Api.
