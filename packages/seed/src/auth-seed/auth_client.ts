@@ -43,36 +43,20 @@ export class AuthClient {
         })
       );
 
-      switch (newUser.preferredSignInFlow) {
+      switch (newUser.signInFlow) {
         case 'Password': {
-          if (!newUser.password) {
-            throw new AmplifyUserError('MissingPasswordError', {
-              message: `${newUser.username} is missing a password. Persistent password sign up flow requires a password`,
-              resolution: `Ensure that ${newUser.username} has a password included in its properties`,
-            });
-          }
-          await persistentPasswordSignUp({
-            username: newUser.username,
-            tempPassword: tempPassword,
-            password: newUser.password,
-          });
+          await persistentPasswordSignUp(newUser, tempPassword);
           break;
         }
         case 'MFA': {
           if (
             !authConfig.mfaConfig ||
-            (authConfig.mfaConfig && authConfig.mfaConfig === 'NONE')
+            (authConfig.mfaConfig && authConfig.mfaConfig === 'NONE') ||
+            !authConfig.mfaConfig
           ) {
             throw new AmplifyUserError('MFANotConfiguredError', {
               message: `MFA is not configured for this userpool, you cannot create ${newUser.username} with MFA.`,
               resolution: `Enable MFA for this userpool or create ${newUser.username} with a different sign up flow.`,
-            });
-          }
-
-          if (!newUser.password) {
-            throw new AmplifyUserError('MissingPasswordError', {
-              message: `${newUser.username} is missing a password. MFA sign up flow requires a password`,
-              resolution: `Ensure that ${newUser.username} has a password included in its properties`,
             });
           }
 
@@ -87,27 +71,16 @@ export class AuthClient {
                 message: `If multiple forms of MFA are enabled for a userpool, you must specify which form you intend to use for ${newUser.username}`,
                 resolution: `Specify a form of MFA for the user, ${newUser.username}, to use with the mfaPreference property`,
               });
-            } else {
-              throw new AmplifyUserError('NoMFAMethodsError', {
-                message: 'There are no forms of MFA enabled for this userpool.',
-                resolution: `Either enable at least one from of MFA or create this user with a different sign up flow.`,
-              });
             }
           }
 
-          await mfaSignUp({
-            username: newUser.username,
-            tempPassword: tempPassword,
-            password: newUser.password,
-            mfaPreference: newUser.mfaPreference,
-            signUpChallenge: newUser.signUpChallenge,
-          });
+          await mfaSignUp(newUser, tempPassword);
           break;
         }
       }
 
       return {
-        signInFlow: newUser.preferredSignInFlow,
+        signInFlow: newUser.signInFlow,
         username: newUser.username,
       };
     } finally {
@@ -151,18 +124,7 @@ export class AuthClient {
         return signInResult.nextStep.signInStep === 'DONE';
       }
       case 'MFA': {
-        if (!user.password) {
-          throw new AmplifyUserError('MissingPasswordError', {
-            message: `${user.username} is missing a password. MFA sign in flow requires a password`,
-            resolution: `Ensure that ${user.username} has a password included in its properties`,
-          });
-        }
-
-        const result = await mfaSignIn({
-          username: user.username,
-          password: user.password,
-          signInChallenge: user.signInChallenge,
-        });
+        const result = await mfaSignIn(user);
         return result;
       }
     }

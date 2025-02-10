@@ -4,7 +4,9 @@
 
 ```ts
 
-// @public (undocumented)
+import * as auth from 'aws-amplify/auth';
+
+// @public
 export const addToUserGroup: (user: AuthUser, group: string) => Promise<AuthOutputs>;
 
 // @public (undocumented)
@@ -16,40 +18,62 @@ export type AuthOutputs = {
 // @public (undocumented)
 export type AuthSignUp = {
     signInAfterCreation: boolean;
-    preferredSignInFlow: 'Password' | 'MFA';
     username: string;
-    password?: string;
-    email?: string;
-    phoneNumber?: string;
-    mfaPreference?: 'TOTP' | 'email' | 'SMS';
-    signUpChallenge?: () => Promise<ChallengeResponse>;
-};
+} & (PasswordSignInFlow | MfaSignUpFlow | MfaWithTotpSignUpFlow);
 
 // @public (undocumented)
 export type AuthUser = {
-    signInFlow: 'Password' | 'MFA';
     username: string;
-    password?: string;
+} & (PasswordSignInFlow | MfaSignInFlow);
+
+// @public (undocumented)
+export type ChallengeResponse = {
+    challengeResponse: string;
+};
+
+// @public
+export const createAndSignUpUser: (newUser: AuthSignUp) => Promise<AuthOutputs>;
+
+// @public
+export const getSecret: (secretName: string) => Promise<string>;
+
+// @public (undocumented)
+export type MfaSignInFlow = {
+    signInFlow: 'MFA';
+    password: string;
     email?: string;
     phoneNumber?: string;
     signInChallenge?: () => Promise<ChallengeResponse>;
 };
 
 // @public (undocumented)
-export type ChallengeResponse = {
-    challResponse: string;
+export type MfaSignUpFlow = {
+    signInFlow: 'MFA';
+    password: string;
+    email?: string;
+    phoneNumber?: string;
+    mfaPreference?: 'email' | 'SMS';
+    signUpChallenge?: () => Promise<ChallengeResponse>;
 };
 
 // @public (undocumented)
-export const createAndSignUpUser: (newUser: AuthSignUp) => Promise<AuthOutputs>;
+export type MfaWithTotpSignUpFlow = {
+    signInFlow: 'MFA';
+    password: string;
+    mfaPreference?: 'TOTP';
+    signUpChallenge: (totpSetup: auth.SetUpTOTPOutput) => Promise<ChallengeResponse>;
+};
 
-// @public
-export const getSecret: (secretName: string) => Promise<string>;
+// @public (undocumented)
+export type PasswordSignInFlow = {
+    signInFlow: 'Password';
+    password: string;
+};
 
 // @public
 export const setSecret: (secretName: string, secretValue: string) => Promise<string>;
 
-// @public (undocumented)
+// @public
 export const signInUser: (user: AuthUser) => Promise<boolean>;
 
 // (No @packageDocumentation comment for this package)

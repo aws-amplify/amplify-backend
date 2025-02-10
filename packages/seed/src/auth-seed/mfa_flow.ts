@@ -2,29 +2,18 @@ import * as auth from 'aws-amplify/auth';
 import assert from 'assert';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { AuthSignUp, AuthUser } from '../types.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
-
-export type MfaSignUpProps = Pick<
-  AuthSignUp,
-  'username' | 'password' | 'mfaPreference' | 'signUpChallenge'
-> & {
-  tempPassword: string;
-};
-
-export type MfaSignInProps = Pick<
-  AuthUser,
-  'username' | 'password' | 'signInChallenge'
->;
 
 /**
  * Signs up user with MFA sign up flow
- * @param signUpProps - properties to sign up user with MFA
+ * @param user - properties to sign up user with MFA
+ * @param tempPassword - temporary password that was generated for sign up
  * @returns - true if user is successfully signed up, false otherwise
  */
-export const mfaSignUp = async (signUpProps: MfaSignUpProps) => {
+export const mfaSignUp = async (user: AuthSignUp, tempPassword: string) => {
+  assert.strictEqual(user.signInFlow, 'MFA');
   const signInResult = await auth.signIn({
-    username: signUpProps.username,
-    password: signUpProps.tempPassword,
+    username: user.username,
+    password: tempPassword,
   });
 
   assert.strictEqual(
@@ -32,26 +21,17 @@ export const mfaSignUp = async (signUpProps: MfaSignUpProps) => {
     'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
   );
   const passwordSignIn = await auth.confirmSignIn({
-    challengeResponse: signUpProps.password!,
+    challengeResponse: user.password!,
   });
 
   if (
     passwordSignIn.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP'
   ) {
-    //we either use callback or we make them input with CLI
-    let challengeResponse: string;
-    if (!signUpProps.signUpChallenge) {
-      throw new AmplifyUserError('MissingChallengeCallbackError', {
-        message:
-          'Users created with the TOTP sign up flow must have a challenge callback',
-        resolution: `Specify a challenge callback using the signUpChallenge property for ${signUpProps.username}`,
-      });
-    } else {
-      const challengeOutput = await signUpProps.signUpChallenge(
-        passwordSignIn.nextStep.totpSetupDetails
-      );
-      challengeResponse = challengeOutput.challengeResponse;
-    }
+    assert.strictEqual(user.mfaPreference, 'TOTP');
+    const challengeOutput = await user.signUpChallenge(
+      passwordSignIn.nextStep.totpSetupDetails
+    );
+    const challengeResponse = challengeOutput.challengeResponse;
     const totpSignIn = await auth.confirmSignIn({
       challengeResponse: challengeResponse,
     });
@@ -63,12 +43,13 @@ export const mfaSignUp = async (signUpProps: MfaSignUpProps) => {
   ) {
     // need to test this somehow
     let challengeResponse: string;
-    if (!signUpProps.signUpChallenge) {
+    if (!user.signUpChallenge) {
       challengeResponse = await AmplifyPrompter.input({
-        message: `Please input the SMS one-time password for ${signUpProps.username}:`,
+        message: `Please input the SMS one-time password for ${user.username}:`,
       });
     } else {
-      const challengeOutput = await signUpProps.signUpChallenge();
+      assert.strictEqual(user.mfaPreference, 'SMS');
+      const challengeOutput = await user.signUpChallenge();
       challengeResponse = challengeOutput.challengeResponse;
     }
     const smsSignIn = await auth.confirmSignIn({
@@ -84,23 +65,24 @@ export const mfaSignUp = async (signUpProps: MfaSignUpProps) => {
 
 /**
  * Signs in user with MFA
- * @param signInProps - properties to sign in user with MFA
+ * @param user - properties to sign in user with MFA
  * @returns - true if user is successfully signed in, false otherwise
  */
-export const mfaSignIn = async (signInProps: MfaSignInProps) => {
+export const mfaSignIn = async (user: AuthUser) => {
+  assert.strictEqual(user.signInFlow, 'MFA');
   const signInResult = await auth.signIn({
-    username: signInProps.username,
-    password: signInProps.password,
+    username: user.username,
+    password: user.password,
   });
 
   if (signInResult.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_TOTP_CODE') {
     let challengeResponse: string;
-    if (!signInProps.signInChallenge) {
+    if (!user.signInChallenge) {
       challengeResponse = await AmplifyPrompter.input({
-        message: `Please input the one-time password from your TOTP App for ${signInProps.username}:`,
+        message: `Please input the one-time password from your TOTP App for ${user.username}:`,
       });
     } else {
-      const challengeOutput = await signInProps.signInChallenge();
+      const challengeOutput = await user.signInChallenge();
       challengeResponse = challengeOutput.challengeResponse;
     }
     const totpSignIn = await auth.confirmSignIn({
@@ -111,12 +93,12 @@ export const mfaSignIn = async (signInProps: MfaSignInProps) => {
     signInResult.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_SMS_CODE'
   ) {
     let challengeResponse: string;
-    if (!signInProps.signInChallenge) {
+    if (!user.signInChallenge) {
       challengeResponse = await AmplifyPrompter.input({
-        message: `Please input the SMS one-time password for ${signInProps.username}:`,
+        message: `Please input the SMS one-time password for ${user.username}:`,
       });
     } else {
-      const challengeOutput = await signInProps.signInChallenge();
+      const challengeOutput = await user.signInChallenge();
       challengeResponse = challengeOutput.challengeResponse;
     }
     const smsSignIn = await auth.confirmSignIn({
@@ -125,5 +107,5 @@ export const mfaSignIn = async (signInProps: MfaSignInProps) => {
     return smsSignIn.nextStep.signInStep === 'DONE';
   }
   //currently email is not supported
-  return true; // should actually return signInResult
+  return true; // should return signInResult
 };

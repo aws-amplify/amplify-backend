@@ -9,6 +9,10 @@ import {
   AuthSignUp,
   AuthUser,
   ChallengeResponse,
+  MfaSignInFlow,
+  MfaSignUpFlow,
+  MfaWithTotpSignUpFlow,
+  PasswordSignInFlow,
 } from './types.js';
 
 export {
@@ -21,4 +25,8 @@ export {
   AuthSignUp,
   AuthUser,
   ChallengeResponse,
+  PasswordSignInFlow,
+  MfaSignInFlow,
+  MfaSignUpFlow,
+  MfaWithTotpSignUpFlow,
 };

@@ -54,8 +54,8 @@ export class SecretClient {
 
 /**
  * Allows for programmatic getting of secrets in Parameter store
- * @param secretName identifier for secret
- * @returns specified secret from AWS Systems Manager Parameter Store
+ * @param secretName - identifier for secret
+ * @returns - specified secret from AWS Systems Manager Parameter Store
  */
 export const getSecret = async (secretName: string): Promise<string> => {
   return await new SecretClient().getSecret(secretName);
@@ -63,9 +63,9 @@ export const getSecret = async (secretName: string): Promise<string> => {
 
 /**
  * Allows for programmatic setting of secrets in Parameter store
- * @param secretName identifier for secret
- * @param secretValue value secret is set to
- * @returns name of the secret that has been added to AWS Systems Manager Parameter Store
+ * @param secretName - identifier for secret
+ * @param secretValue - value secret is set to
+ * @returns - name of the secret that has been added to AWS Systems Manager Parameter Store
  */
 export const setSecret = async (
   secretName: string,

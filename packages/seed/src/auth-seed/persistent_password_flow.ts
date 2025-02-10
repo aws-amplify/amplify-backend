@@ -2,24 +2,19 @@ import * as auth from 'aws-amplify/auth';
 import assert from 'assert';
 import { AuthSignUp } from '../types.js';
 
-export type PersistentPasswordSignUpProps = Pick<
-  AuthSignUp,
-  'username' | 'password'
-> & {
-  tempPassword: string;
-};
-
 /**
  * Signs up user with persistent password sign up flow
- * @param signUpProps - properties for signing up a user with persistent password flow
+ * @param user - properties for signing up a user with persistent password flow
+ * @param tempPassword - temporary password used generated for sign up
  * @returns - true if user makes it through the sign up flow, false otherwise
  */
 export const persistentPasswordSignUp = async (
-  signUpProps: PersistentPasswordSignUpProps
+  user: AuthSignUp,
+  tempPassword: string
 ) => {
   const signInResult = await auth.signIn({
-    username: signUpProps.username,
-    password: signUpProps.tempPassword,
+    username: user.username,
+    password: tempPassword,
   });
 
   assert.strictEqual(
@@ -28,7 +23,7 @@ export const persistentPasswordSignUp = async (
   );
 
   const confirmResult = await auth.confirmSignIn({
-    challengeResponse: signUpProps.password!,
+    challengeResponse: user.password,
   });
 
   return confirmResult.nextStep.signInStep === 'DONE';
