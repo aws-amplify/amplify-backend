@@ -27,7 +27,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
   /**
    * Seeds sandbox environment.
    */
-  constructor() {
+  constructor(private readonly seedSubCommands: CommandModule[]) {
     this.command = 'seed';
     this.describe = 'Seeds sandbox environment';
   }
@@ -53,7 +53,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv<SandboxCommandGlobalOptions> => {
-    return yargs.check(() => {
+    return yargs.command(this.seedSubCommands).check(() => {
       const seedPath = path.join(process.cwd(), 'amplify', 'seed', 'seed.ts');
       if (!existsSync(seedPath)) {
         throw new AmplifyUserError('SeedScriptNotFoundError', {

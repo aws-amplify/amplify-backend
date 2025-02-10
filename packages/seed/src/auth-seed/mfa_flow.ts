@@ -47,7 +47,9 @@ export const mfaSignUp = async (signUpProps: MfaSignUpProps) => {
         resolution: `Specify a challenge callback using the signUpChallenge property for ${signUpProps.username}`,
       });
     } else {
-      const challengeOutput = await signUpProps.signUpChallenge();
+      const challengeOutput = await signUpProps.signUpChallenge(
+        passwordSignIn.nextStep.totpSetupDetails
+      );
       challengeResponse = challengeOutput.challengeResponse;
     }
     const totpSignIn = await auth.confirmSignIn({

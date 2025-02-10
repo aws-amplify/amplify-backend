@@ -8,8 +8,8 @@ import * as auth from 'aws-amplify/auth';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { persistentPasswordSignUp } from './persistent_password_flow.js';
 import { mfaSignIn, mfaSignUp } from './mfa_flow.js';
-import { ConfigReader } from './auth_outputs_reader.js';
 import { randomUUID } from 'node:crypto';
+import { ConfigReader } from './config_reader.js';
 
 /**
  *
@@ -29,10 +29,10 @@ export class AuthClient {
 
   createAndSignUpUser = async (newUser: AuthSignUp): Promise<AuthOutputs> => {
     try {
+      const authConfig = await this.authOutputs;
       await auth.signOut();
 
-      const tempPassword = `Test_Temp+${randomUUID.toString()}`;
-      const authConfig = await this.authOutputs;
+      const tempPassword = `Test1@Temp${randomUUID().toString()}`;
       // in the future will need to check that the preferredSignInFlow is not passwordless
       await this.cognitoIdentityProviderClient.send(
         new AdminCreateUserCommand({

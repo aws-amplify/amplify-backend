@@ -80,8 +80,7 @@ export const createSandboxCommand = (): CommandModule<
     [
       new SandboxDeleteCommand(sandboxFactory),
       createSandboxSecretCommand(),
-      new SandboxSeedCommand(),
-      new SandboxSeedGeneratePolicyCommand(),
+      new SandboxSeedCommand([new SandboxSeedGeneratePolicyCommand()]),
     ],
     clientConfigGeneratorAdapter,
     commandMiddleWare,

@@ -20,10 +20,10 @@ export class SandboxSeedGeneratePolicyCommand implements CommandModule<object> {
   readonly describe: string;
 
   /**
-   * Seeds sandbox environment.
+   * Generates policy to run seed, is a subcommand of seed
    */
   constructor() {
-    this.command = 'seed generate-policy';
+    this.command = 'generate-policy';
     this.describe = 'Generates policy for seeding based on outputs';
   }
 

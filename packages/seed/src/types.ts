@@ -1,3 +1,5 @@
+import * as auth from 'aws-amplify/auth';
+
 export type AuthSignUp = {
   signInAfterCreation: boolean;
   preferredSignInFlow: 'Password' | 'MFA';
@@ -6,7 +8,9 @@ export type AuthSignUp = {
   email?: string;
   phoneNumber?: string;
   mfaPreference?: 'TOTP' | 'email' | 'SMS';
-  signUpChallenge?: () => Promise<ChallengeResponse>;
+  signUpChallenge?: (
+    totpSetup?: auth.SetUpTOTPOutput
+  ) => Promise<ChallengeResponse>;
 };
 
 export type AuthUser = {
