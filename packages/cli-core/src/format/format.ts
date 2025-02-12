@@ -84,6 +84,7 @@ const colors: Record<ColorName, Colorize> = {
   Blue: blue,
   Magenta: magenta,
   Cyan: cyan,
+  Red: red,
 };
 
 export const colorNames = [
@@ -92,6 +93,7 @@ export const colorNames = [
   'Blue',
   'Magenta',
   'Cyan',
+  'Red',
 ] as const;
 
 export type ColorName = (typeof colorNames)[number];

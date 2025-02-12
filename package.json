@@ -10,7 +10,7 @@
     "check:package-lock": "tsx scripts/check_package_lock.ts",
     "check:package-versions": "tsx scripts/check_package_versions.ts",
     "check:tsconfig-refs": "npm run update:tsconfig-refs && tsx scripts/check_no_git_diff.ts",
-    "clean": "npm run clean:build && npm run clean:npm-proxy && rimraf --glob node_modules coverage .eslintcache packages/*/temp packages/*/node_modules",
+    "clean": "npm run clean:build && rimraf --glob node_modules coverage .eslintcache packages/*/temp packages/*/node_modules",
     "clean:build": "rimraf --glob packages/*/lib packages/*/tsconfig.tsbuildinfo",
     "clean:npm-proxy": "npm run stop:npm-proxy && rimraf verdaccio-cache verdaccio-logs.txt",
     "diff:check": "tsx scripts/check_pr_size.ts",

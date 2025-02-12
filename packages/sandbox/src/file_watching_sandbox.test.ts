@@ -37,6 +37,7 @@ import {
   SSMServiceException,
 } from '@aws-sdk/client-ssm';
 import { EOL } from 'os';
+import type { IIoHost } from '@aws-cdk/toolkit';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -54,10 +55,15 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
 };
+const mockIoHost: IIoHost = {
+  notify: mock.fn(),
+  requestResponse: mock.fn(),
+};
 
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
-  formatterStub
+  formatterStub,
+  mockIoHost
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 

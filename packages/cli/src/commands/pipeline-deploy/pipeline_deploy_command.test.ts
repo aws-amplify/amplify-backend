@@ -27,6 +27,7 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
+import { IIoHost } from '@aws-cdk/toolkit';
 
 void describe('deploy command', () => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter({
@@ -39,6 +40,10 @@ void describe('deploy command', () => {
     'generateClientConfigToFile',
     () => Promise.resolve()
   );
+  const mockIoHost: IIoHost = {
+    notify: mock.fn(),
+    requestResponse: mock.fn(),
+  };
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
     process.cwd(),
     new Printer(LogLevel.DEBUG)
@@ -49,7 +54,8 @@ void describe('deploy command', () => {
   const getCommandRunner = (isCI = false) => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub
+      formatterStub,
+      mockIoHost
     );
     const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
@@ -104,7 +110,8 @@ void describe('deploy command', () => {
   void it('executes backend deployer in CI environments', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub
+      formatterStub,
+      mockIoHost
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -131,7 +138,8 @@ void describe('deploy command', () => {
   void it('allows --outputs-out-dir argument', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub
+      formatterStub,
+      mockIoHost
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -168,7 +176,8 @@ void describe('deploy command', () => {
   void it('allows --outputs-version argument to generate legacy config', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub
+      formatterStub,
+      mockIoHost
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -205,7 +214,8 @@ void describe('deploy command', () => {
   void it('allows --outputs-format argument', async () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
-      formatterStub
+      formatterStub,
+      mockIoHost
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),

@@ -21,12 +21,15 @@
   "dependencies": {
     "@aws-amplify/platform-core": "^1.6.1",
     "@aws-amplify/plugin-types": "^1.8.0",
+    "@aws-amplify/cli-core": "^1.2.2",
     "execa": "^9.5.1",
     "tsx": "^4.6.1",
-    "strip-ansi": "^6.0.1"
+    "strip-ansi": "^6.0.1",
+    "@aws-cdk/toolkit": "file:../../dist/aws-cdk-toolkit-0.0.0.tgz"
   },
   "peerDependencies": {
     "aws-cdk": "^2.168.0",
+    "aws-cdk-lib": "^2.177.0",
     "typescript": "^5.0.0"
   }
 }

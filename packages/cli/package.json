@@ -51,6 +51,7 @@
     "@aws-sdk/region-config-resolver": "^3.614.0",
     "@smithy/node-config-provider": "^2.1.3",
     "@smithy/shared-ini-file-loader": "^2.2.5",
+    "@aws-cdk/toolkit": "file:../../dist/aws-cdk-toolkit-0.0.0.tgz",
     "envinfo": "^7.11.0",
     "execa": "^9.5.1",
     "is-ci": "^3.0.1",

@@ -1,4 +1,6 @@
 import {
+  CDKEventLogger,
+  CDKEventsBridgeIoHost,
   Format,
   PackageManagerControllerFactory,
   Printer,
@@ -36,9 +38,14 @@ export class SandboxSingletonFactory {
     if (!this.instance) {
       const packageManagerControllerFactory =
         new PackageManagerControllerFactory(process.cwd(), this.printer);
+      const cdkEventLogger = new CDKEventLogger();
+      const cdkEventsBridgeIoHost = new CDKEventsBridgeIoHost(
+        cdkEventLogger.getCDKEventLoggers()
+      );
       const backendDeployerFactory = new BackendDeployerFactory(
         packageManagerControllerFactory.getPackageManagerController(),
-        this.format
+        this.format,
+        cdkEventsBridgeIoHost
       );
       this.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
