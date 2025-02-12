@@ -92,7 +92,7 @@ export class PredicatedActionBuilder {
       actionType: ActionType.ASSERT_ON_PROCESS_OUTPUT,
       action: (strWithDeploymentTime: string) => {
         // the time can be in fractional or whole seconds. 24.3, 24, 24.22 etc.
-        const regex = /^✨ {2}Total time: (\d*\.*\d*)s.*$/;
+        const regex = /^Deployment completed in (\d*\.*\d*) seconds.*$/;
         strWithDeploymentTime = stripANSI(strWithDeploymentTime);
         const deploymentTime = strWithDeploymentTime.match(regex);
         if (
