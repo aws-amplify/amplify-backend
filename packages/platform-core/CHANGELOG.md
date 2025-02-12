@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.6.2
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+
 ## 1.6.1
 
 ### Patch Changes

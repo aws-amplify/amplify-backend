@@ -1,5 +1,17 @@
 # @aws-amplify/backend
 
+## 1.14.1
+
+### Patch Changes
+
+- 44c3769: paginate getParameter call when there are more than 10 parameters
+- Updated dependencies [de90deb]
+- Updated dependencies [44c3769]
+- Updated dependencies [bc07307]
+  - @aws-amplify/client-config@1.5.7
+  - @aws-amplify/backend-function@1.12.2
+  - @aws-amplify/platform-core@1.6.2
+
 ## 1.14.0
 
 ### Minor Changes

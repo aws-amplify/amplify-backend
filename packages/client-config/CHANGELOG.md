@@ -1,5 +1,13 @@
 # @aws-amplify/client-config
 
+## 1.5.7
+
+### Patch Changes
+
+- de90deb: Added catch blocks for EACCES Errors
+- Updated dependencies [bc07307]
+  - @aws-amplify/platform-core@1.6.2
+
 ## 1.5.6
 
 ### Patch Changes
