@@ -6,6 +6,9 @@
 
 /// <reference types="node" />
 
+import { IIoHost } from '@aws-cdk/toolkit';
+import { IoMessage } from '@aws-cdk/toolkit';
+import { IoRequest } from '@aws-cdk/toolkit';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
 
@@ -27,11 +30,36 @@ export class AmplifyPrompter {
     }) => Promise<boolean>;
 }
 
+// @public
+export class CDKEventLogger {
+    constructor();
+    cfnDeploymentProgress: <T>(msg: IoMessage<T>) => Promise<void>;
+    debug: <T>(msg: IoMessage<T>) => Promise<void>;
+    // (undocumented)
+    getCDKEventLoggers: () => {
+        notify: (<T>(msg: IoMessage<T>) => Promise<void>)[];
+    };
+    // (undocumented)
+    isCfnSdkCallEvent: <T>(data: T) => boolean;
+    // (undocumented)
+    isSdkCallEvent: <T>(data: T) => boolean;
+}
+
+// @public
+export class CDKEventsBridgeIoHost implements IIoHost {
+    constructor(eventHandlers: {
+        notify?: (<T>(msg: IoMessage<T>) => Promise<void>)[];
+        requestResponse?: (<T, U>(msg: IoRequest<T, U>) => Promise<U>)[];
+    });
+    notify<T>(msg: IoMessage<T>): Promise<void>;
+    requestResponse<T, U>(msg: IoRequest<T, U>): Promise<U>;
+}
+
 // @public (undocumented)
 export type ColorName = (typeof colorNames)[number];
 
 // @public (undocumented)
-export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan"];
+export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan", "Red"];
 
 // @public
 export class Format {
@@ -78,6 +106,9 @@ export enum LogLevel {
     // (undocumented)
     INFO = 1
 }
+
+// @public (undocumented)
+export const minimumLogLevel: LogLevel;
 
 // @public
 export class PackageManagerControllerFactory {

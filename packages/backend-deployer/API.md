@@ -5,6 +5,7 @@
 ```ts
 
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { IIoHost } from '@aws-cdk/toolkit';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 
 // @public
@@ -15,7 +16,7 @@ export type BackendDeployer = {
 
 // @public
 export class BackendDeployerFactory {
-    constructor(packageManagerController: PackageManagerController, formatter: BackendDeployerOutputFormatter);
+    constructor(packageManagerController: PackageManagerController, formatter: BackendDeployerOutputFormatter, backendDeployerIOHost: IIoHost);
     getInstance(): BackendDeployer;
 }
 
