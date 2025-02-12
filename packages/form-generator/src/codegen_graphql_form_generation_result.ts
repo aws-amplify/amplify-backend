@@ -20,7 +20,7 @@ export class CodegenGraphqlFormGeneratorResult
 
     try {
       await fs.stat(directoryPath);
-    } catch (e) {
+    } catch {
       await fs.mkdir(directoryPath);
     }
     for (const [fileName, content] of Object.entries(

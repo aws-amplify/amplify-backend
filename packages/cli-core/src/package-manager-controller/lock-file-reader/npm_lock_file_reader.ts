@@ -24,7 +24,7 @@ export class NpmLockFileReader implements LockFileReader {
       const jsonLockParsedValue = JSON.parse(jsonLockContents);
       // This will strip fields that are not part of the package lock schema
       packageLockJson = packageLockJsonSchema.parse(jsonLockParsedValue);
-    } catch (error) {
+    } catch {
       printer.log(
         `Failed to get lock file contents because ${packageLockJsonPath} does not exist or is not parse-able`,
         LogLevel.DEBUG

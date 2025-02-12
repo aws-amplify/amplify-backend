@@ -238,7 +238,7 @@ export class CDKDeployer implements BackendDeployer {
         ],
         { redirectStdoutToStderr: true } // TSC prints errors to stdout by default
       );
-    } catch (error) {
+    } catch {
       // If we cannot load ts config, turn off type checking
       return;
     }
