@@ -21,6 +21,7 @@ import {
   StackSelectionStrategy,
   Toolkit,
 } from '@aws-cdk/toolkit';
+import path from 'node:path';
 
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
@@ -116,7 +117,7 @@ void describe('invokeCDKCommand', () => {
         'amplify-backend-name': 'testBranch',
         'amplify-backend-type': 'branch',
       },
-      outdir: `${process.cwd()}/.amplify/artifacts/cdk.out`,
+      outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
     } as CdkAppSourceProps);
   });
 
@@ -138,7 +139,7 @@ void describe('invokeCDKCommand', () => {
         'amplify-backend-type': 'sandbox',
         secretLastUpdated: 12345678,
       },
-      outdir: `${process.cwd()}/.amplify/artifacts/cdk.out`,
+      outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
     } as CdkAppSourceProps);
   });
 
@@ -165,7 +166,7 @@ void describe('invokeCDKCommand', () => {
     } as DeployOptions);
     assert.deepStrictEqual(
       fromAssemblyDirectoryMock.mock.calls[0].arguments[0],
-      `${process.cwd()}/.amplify/artifacts/cdk.out`
+      path.resolve(process.cwd(), '.amplify/artifacts/cdk.out')
     );
   });
 
