@@ -1,6 +1,6 @@
 {
   "name": "@aws-amplify/backend-function",
-  "version": "1.12.1",
+  "version": "1.12.2",
   "type": "module",
   "publishConfig": {
     "access": "public"
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@aws-amplify/backend-platform-test-stubs": "^0.3.7",
-    "@aws-amplify/platform-core": "^1.5.1",
+    "@aws-amplify/platform-core": "^1.6.2",
     "@aws-sdk/client-s3": "^3.624.0",
     "@aws-sdk/client-ssm": "^3.624.0",
     "aws-sdk": "^2.1550.0",
