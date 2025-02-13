@@ -155,8 +155,9 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       // use the sandbox key when the branch name is not available (e.g. in the sandbox deployment)
       const amplifyBranchName =
         scope.node.tryGetContext('amplifyEnvironmentName') ?? 'sandbox';
-      const importedTableMap = (this.props
-        .migratedAmplifyGen1DynamoDbTableMap ?? {})[amplifyBranchName];
+      const tableMapForCurrentBranch = (
+        this.props.migratedAmplifyGen1DynamoDbTableMap ?? []
+      ).find((tableMap) => tableMap.branchName === amplifyBranchName);
       const splitSchemas: {
         schema: string | DerivedModelSchema;
         importedTableName?: string;
@@ -165,7 +166,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
         if (!isDataSchema(schema)) {
           const { importedSchemas, nonImportedSchema } = extractImportedModels(
             schema,
-            importedTableMap
+            tableMapForCurrentBranch?.modelTableNameMap
           );
           if (importedSchemas.length > 0) {
             return [
