@@ -152,11 +152,9 @@ export type DataProps = {
 
   /**
    * Mapping of model name to existing DynamoDB table that should be used as the data source.
+   * Each element in the array represents a mapping for a specific branch.
    */
-  migratedAmplifyGen1DynamoDbTableMap?: Record<
-    string,
-    Record<string, string> | undefined
-  >;
+  migratedAmplifyGen1DynamoDbTableMap?: AmplifyGen1DynamoDbTableMap[];
 };
 
 export type AmplifyDataError =
@@ -245,3 +243,17 @@ export type DataLogLevel = Extract<
   LogLevel,
   'none' | 'all' | 'info' | 'debug' | 'error'
 >;
+
+/**
+ * Mapping of model name to existing DynamoDB table that should be used as the data source.
+ * The mapping will only apply to the branch specified.
+ */
+export type AmplifyGen1DynamoDbTableMap = {
+  branchName: string;
+  modelTableNameMap?: ModelTableNameMap;
+};
+
+/**
+ * Mapping of model name to dynamodb table name.
+ */
+export type ModelTableNameMap = Record<string, string>;

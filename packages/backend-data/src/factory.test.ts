@@ -970,11 +970,14 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: {
-        dev: {
-          ImportedModel: 'ImportedModel-1234-dev',
+      migratedAmplifyGen1DynamoDbTableMap: [
+        {
+          branchName: 'dev',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
         },
-      },
+      ],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
@@ -1002,11 +1005,14 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: {
-        dev: {
-          ImportedModel: 'ImportedModel-1234-dev',
+      migratedAmplifyGen1DynamoDbTableMap: [
+        {
+          branchName: 'dev',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
         },
-      },
+      ],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
@@ -1032,11 +1038,14 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: {
-        dev: {
-          ImportedModel: 'ImportedModel-1234-dev',
+      migratedAmplifyGen1DynamoDbTableMap: [
+        {
+          branchName: 'dev',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
         },
-      },
+      ],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
@@ -1055,14 +1064,20 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: {
-        dev: {
-          ImportedModel: 'ImportedModel-1234-dev',
+      migratedAmplifyGen1DynamoDbTableMap: [
+        {
+          branchName: 'dev',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
         },
-        prod: {
-          ImportedModel: 'ImportedModel-1234-prod',
+        {
+          branchName: 'prod',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-prod',
+          },
         },
-      },
+      ],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
@@ -1089,14 +1104,20 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: {
-        dev: {
-          ImportedModel: 'ImportedModel-1234-dev',
+      migratedAmplifyGen1DynamoDbTableMap: [
+        {
+          branchName: 'dev',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
         },
-        sandbox: {
-          ImportedModel: 'ImportedModel-1234-sandbox',
+        {
+          branchName: 'sandbox',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-sandbox',
+          },
         },
-      },
+      ],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: true,
@@ -1122,12 +1143,18 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: {
-        dev: {
-          ImportedModel: 'ImportedModel-1234-dev',
+      migratedAmplifyGen1DynamoDbTableMap: [
+        {
+          branchName: 'dev',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-dev',
+          },
         },
-        prod: undefined,
-      },
+        {
+          branchName: 'prop',
+          modelTableNameMap: undefined,
+        },
+      ],
     });
     const getInstanceProps = createInstancePropsBySetupCDKApp({
       isSandboxMode: false,
