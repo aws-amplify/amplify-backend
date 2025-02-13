@@ -247,6 +247,7 @@ export type DataLogLevel = Extract<
 /**
  * Mapping of model name to existing DynamoDB table that should be used as the data source.
  * The mapping will only apply to the branch specified.
+ * If the mapping is undefined or empty, no tables will be imported for that branch.
  */
 export type AmplifyGen1DynamoDbTableMap = {
   branchName: string;
