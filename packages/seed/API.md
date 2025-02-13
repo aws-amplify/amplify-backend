@@ -52,7 +52,7 @@ export type MfaSignUpFlow = {
     password: string;
     email?: string;
     phoneNumber?: string;
-    mfaPreference?: 'email' | 'SMS';
+    mfaPreference?: 'EMAIL' | 'SMS';
     signUpChallenge?: () => Promise<ChallengeResponse>;
 };
 

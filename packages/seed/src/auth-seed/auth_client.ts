@@ -34,14 +34,30 @@ export class AuthClient {
 
       const tempPassword = `Test1@Temp${randomUUID().toString()}`;
       // in the future will need to check that the preferredSignInFlow is not passwordless
-      await this.cognitoIdentityProviderClient.send(
-        new AdminCreateUserCommand({
-          Username: newUser.username,
-          TemporaryPassword: tempPassword,
-          UserPoolId: authConfig.userPoolId,
-          MessageAction: 'SUPPRESS',
-        })
-      );
+      try {
+        await this.cognitoIdentityProviderClient.send(
+          new AdminCreateUserCommand({
+            Username: newUser.username,
+            TemporaryPassword: tempPassword,
+            UserPoolId: authConfig.userPoolId,
+            MessageAction: 'SUPPRESS',
+          })
+        );
+      } catch (err) {
+        const error = err as Error;
+        if (error.name === 'UsernameExistsException') {
+          throw new AmplifyUserError(
+            'UsernameExistsError',
+            {
+              message: `A user called ${newUser.username} already exists.`,
+              resolution: 'Give this user a different name',
+            },
+            error
+          );
+        } else {
+          throw err;
+        }
+      }
 
       switch (newUser.signInFlow) {
         case 'Password': {
@@ -91,18 +107,34 @@ export class AuthClient {
   };
 
   addToUserGroup = async (
-    user: AuthUser,
+    user: AuthOutputs,
     group: string
   ): Promise<AuthOutputs> => {
     const authConfig = await this.authOutputs;
     if (authConfig.groups?.includes) {
-      await this.cognitoIdentityProviderClient.send(
-        new AdminAddUserToGroupCommand({
-          UserPoolId: authConfig.userPoolId,
-          Username: user.username,
-          GroupName: group,
-        })
-      );
+      try {
+        await this.cognitoIdentityProviderClient.send(
+          new AdminAddUserToGroupCommand({
+            UserPoolId: authConfig.userPoolId,
+            Username: user.username,
+            GroupName: group,
+          })
+        );
+      } catch (err) {
+        const error = err as Error;
+        if (error.name === 'UserNotFoundException') {
+          throw new AmplifyUserError(
+            'UserNotFoundError',
+            {
+              message: `The user, ${user.username}, does not exist`,
+              resolution: `Create a user called ${user.username} or try again with a different user`,
+            },
+            error
+          );
+        } else {
+          throw error;
+        }
+      }
     } else {
       throw new AmplifyUserError('NoGroupError', {
         message: `There is no group called ${group} in this userpool.`,

@@ -1,58 +1,141 @@
-import { afterEach, beforeEach, describe, it /*, mock*/ } from 'node:test';
-import fs from 'fs/promises';
-//import { format, printer } from '@aws-amplify/cli-core';
+import { after, before, describe, it, mock } from 'node:test';
+import fsp from 'fs/promises';
+import fs from 'fs';
 import * as path from 'path';
-//import { TestCommandRunner } from '../../../test-utils/command_runner.js';
-//import { CommandMiddleware } from '../../../command_middleware.js';
-//import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
-//import yargs, { CommandModule } from 'yargs';
-//import { SandboxSeedCommand } from './sandbox_seed_command.js';
-//import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
+import { SandboxSeedCommand } from './sandbox_seed_command.js';
+import yargs, { CommandModule } from 'yargs';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../../test-utils/command_runner.js';
+import { createSandboxSecretCommand } from '../sandbox-secret/sandbox_secret_command_factory.js';
+import { EventHandler, SandboxCommand } from '../sandbox_command.js';
+import { SandboxSingletonFactory } from '@aws-amplify/sandbox';
+import { SandboxDeleteCommand } from '../sandbox-delete/sandbox_delete_command.js';
+import { ClientConfigGeneratorAdapter } from '../../../client-config/client_config_generator_adapter.js';
+import { format, printer } from '@aws-amplify/cli-core';
+import { CommandMiddleware } from '../../../command_middleware.js';
+import { SandboxSeedGeneratePolicyCommand } from './sandbox_seed_policy_command.js';
+import assert from 'node:assert';
+import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 
-//const seedFileContents = "console.log('seed has been run :D');";
-//const testBackendId = 'testBackendId';
-//const testSandboxName = 'testSandboxName';
+const seedFileContents = 'console.log(`seed has been run`);';
+
+const testBackendNameSpace = 'testSandboxId';
+const testSandboxName = 'testSandboxName';
+
+const testBackendId: BackendIdentifier = {
+  namespace: testBackendNameSpace,
+  name: testSandboxName,
+  type: 'sandbox',
+};
+
+//const testBackendIdStr = 'testBackendId';
 
 void describe('sandbox seed command', () => {
-  //let sandboxSeedMock = mock.fn();
-  //I have no idea what I am doing...
-  /*const sandboxIdResolver: SandboxBackendIdResolver = {
-      resolve: (identifier?: string) =>
-        Promise.resolve({
-          namespace: testBackendId,
-          name: identifier || testSandboxName,
-          type: 'sandbox',
-        }),
-    } as SandboxBackendIdResolver;*/
+  let commandRunner: TestCommandRunner;
 
-  //const sandboxSeedCmd = new SandboxSeedCommand();
-  /*const parser = yargs().command(
-    sandboxSeedCmd as CommandModule
-  );*/
-  //const commandRunner = new TestCommandRunner(parser);
+  const clientConfigGenerationMock = mock.fn<EventHandler>();
+  const clientConfigDeletionMock = mock.fn<EventHandler>();
 
-  let testDir: string;
-  let amplifyDir: string;
+  const clientConfigGeneratorAdapterMock = {
+    generateClientConfigToFile: clientConfigGenerationMock,
+  } as unknown as ClientConfigGeneratorAdapter;
 
-  beforeEach(async () => {
-    testDir = await fs.mkdtemp('testDir');
-    amplifyDir = path.join(process.cwd(), testDir, 'amplify');
+  const commandMiddleware = new CommandMiddleware(printer);
+  let amplifySeedDir: string;
+  let fullPath: string;
 
-    //sandboxSeedMock.mock.resetCalls();
+  const sandboxIdResolver: SandboxBackendIdResolver = {
+    resolve: () => Promise.resolve(testBackendId),
+  } as SandboxBackendIdResolver;
+
+  before(async () => {
+    const sandboxFactory = new SandboxSingletonFactory(
+      () => Promise.resolve(testBackendId),
+      printer,
+      format
+    );
+
+    const sandboxSeedCommand = new SandboxSeedCommand(sandboxIdResolver, [
+      new SandboxSeedGeneratePolicyCommand(sandboxIdResolver),
+    ]);
+
+    const sandboxCommand = new SandboxCommand(
+      sandboxFactory,
+      [
+        new SandboxDeleteCommand(sandboxFactory),
+        createSandboxSecretCommand(),
+        sandboxSeedCommand,
+      ],
+      clientConfigGeneratorAdapterMock,
+      commandMiddleware,
+      () => ({
+        successfulDeployment: [clientConfigGenerationMock],
+        successfulDeletion: [clientConfigDeletionMock],
+        failedDeployment: [],
+      })
+    );
+    const parser = yargs().command(sandboxCommand as unknown as CommandModule);
+    commandRunner = new TestCommandRunner(parser);
   });
 
-  afterEach(async () => {
-    await fs.rm(testDir, { recursive: true, force: true });
-    if (process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
-      delete process.env.AMPLIFY_SANDBOX_IDENTIFIER;
-    }
+  void describe('seed script exists', () => {
+    before(async () => {
+      await fsp.mkdir(path.join(process.cwd(), 'amplify', 'seed'), {
+        recursive: true,
+      });
+      amplifySeedDir = path.join(process.cwd(), 'amplify');
+      fullPath = path.join(process.cwd(), 'amplify', 'seed', 'seed.ts');
+      await fsp.writeFile(fullPath, seedFileContents, 'utf8');
+    });
+
+    after(async () => {
+      await fsp.rm(amplifySeedDir, { recursive: true, force: true });
+      if (process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
+        delete process.env.AMPLIFY_SANDBOX_IDENTIFIER;
+      }
+    });
+
+    void it('runs seed if seed script is found', async () => {
+      const fsOpenSyncMock = mock.method(fs, 'openSync');
+      await commandRunner.runCommand('sandbox seed');
+
+      assert.equal(fsOpenSyncMock.mock.callCount(), 1);
+      mock.restoreAll();
+    });
   });
 
-  void it('throws error if seed script is not found', async () => {
-    //how to mock seed command
-  });
+  void describe('seed script does not exist', () => {
+    before(async () => {
+      await fsp.mkdir(path.join(process.cwd(), 'amplify', 'seed'), {
+        recursive: true,
+      });
+      amplifySeedDir = path.join(process.cwd(), 'amplify');
+    });
 
-  void it('runs seed if seed file is found', async () => {
-    path.join(process.cwd(), amplifyDir, 'seed', 'seed.ts');
+    after(async () => {
+      await fsp.rm(amplifySeedDir, { recursive: true, force: true });
+      if (process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
+        delete process.env.AMPLIFY_SANDBOX_IDENTIFIER;
+      }
+    });
+
+    void it('throws error if seed script does not exist', async () => {
+      await assert.rejects(
+        () => commandRunner.runCommand('sandbox seed'),
+        (err: TestCommandError) => {
+          // file differences between Unix and Windows makes it tricky to add the path
+          assert.match(err.output, /SeedScriptNotFoundError/);
+          assert.match(err.output, /There is no file that corresponds to/);
+          assert.match(
+            err.output,
+            /Please make a file that corresponds to (.*) and put your seed logic in it/
+          );
+          return true;
+        }
+      );
+    });
   });
 });

@@ -3,11 +3,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { execa } from 'execa';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
-import {
-  AmplifyUserError,
-  PackageJsonReader,
-} from '@aws-amplify/platform-core';
-import { LocalNamespaceResolver } from '../../../backend-identifier/local_namespace_resolver.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { SandboxCommandGlobalOptions } from '../option_types.js';
 
 /**
@@ -27,7 +23,10 @@ export class SandboxSeedCommand implements CommandModule<object> {
   /**
    * Seeds sandbox environment.
    */
-  constructor(private readonly seedSubCommands: CommandModule[]) {
+  constructor(
+    private readonly backendIDResolver: SandboxBackendIdResolver,
+    private readonly seedSubCommands: CommandModule[]
+  ) {
     this.command = 'seed';
     this.describe = 'Seeds sandbox environment';
   }
@@ -36,9 +35,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
    * @inheritDoc
    */
   handler = async (): Promise<void> => {
-    const backendID = await new SandboxBackendIdResolver(
-      new LocalNamespaceResolver(new PackageJsonReader())
-    ).resolve();
+    const backendID = await this.backendIDResolver.resolve();
     const seedPath = path.join('amplify', 'seed', 'seed.ts');
     await execa('tsx', [seedPath], {
       cwd: process.cwd(),
@@ -56,6 +53,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
     return yargs.command(this.seedSubCommands).check(() => {
       const seedPath = path.join(process.cwd(), 'amplify', 'seed', 'seed.ts');
       if (!existsSync(seedPath)) {
+        // this only gets sent to outputs
         throw new AmplifyUserError('SeedScriptNotFoundError', {
           message: `There is no file that corresponds to ${seedPath}`,
           resolution: `Please make a file that corresponds to ${seedPath} and put your seed logic in it`,

@@ -28,16 +28,17 @@ export type MfaSignUpFlow = {
   password: string;
   email?: string;
   phoneNumber?: string;
-  mfaPreference?: 'email' | 'SMS';
-  signUpChallenge?: () => Promise<ChallengeResponse>;
+  mfaPreference?: 'EMAIL' | 'SMS';
+  signUpChallenge?: () => Promise<ChallengeResponse>; // make this required
 };
 
 export type MfaWithTotpSignUpFlow = {
+  // merge this with MFA signup flow
   signInFlow: 'MFA';
   password: string;
   mfaPreference?: 'TOTP';
   signUpChallenge: (
-    totpSetup: auth.SetUpTOTPOutput
+    totpSetup: auth.SetUpTOTPOutput // make this optional parameter
   ) => Promise<ChallengeResponse>;
 };
 

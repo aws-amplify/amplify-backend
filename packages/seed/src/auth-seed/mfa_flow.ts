@@ -20,9 +20,17 @@ export const mfaSignUp = async (user: AuthSignUp, tempPassword: string) => {
     signInResult.nextStep.signInStep,
     'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
   );
+
   const passwordSignIn = await auth.confirmSignIn({
-    challengeResponse: user.password!,
+    challengeResponse: user.password,
   });
+
+  // are you lying to me cognito?
+  /*if(passwordSignIn.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_MFA_SELECTION') {
+    const mfaSelection = await auth.confirmSignIn({
+      challengeResponse: 'TOTP'
+    });
+  }*/
 
   if (
     passwordSignIn.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP'
@@ -58,6 +66,25 @@ export const mfaSignUp = async (user: AuthSignUp, tempPassword: string) => {
 
     await auth.updateMFAPreference({ sms: 'PREFERRED' });
     return smsSignIn.nextStep.signInStep === 'DONE';
+  } else if (
+    passwordSignIn.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_EMAIL_CODE'
+  ) {
+    let challengeResponse: string;
+    if (!user.signUpChallenge) {
+      challengeResponse = await AmplifyPrompter.input({
+        message: `Please input one-time password from EMAIL for ${user.username}:`,
+      });
+    } else {
+      assert.strictEqual(user.mfaPreference, 'EMAIL');
+      const challengeOutput = await user.signUpChallenge();
+      challengeResponse = challengeOutput.challengeResponse;
+    }
+    const emailSignIn = await auth.confirmSignIn({
+      challengeResponse: challengeResponse,
+    });
+
+    await auth.updateMFAPreference({ email: 'PREFERRED' });
+    return emailSignIn.nextStep.signInStep === 'DONE';
   }
   // unsure what to do with this
   return true;
@@ -95,7 +122,7 @@ export const mfaSignIn = async (user: AuthUser) => {
     let challengeResponse: string;
     if (!user.signInChallenge) {
       challengeResponse = await AmplifyPrompter.input({
-        message: `Please input the SMS one-time password for ${user.username}:`,
+        message: `Please input one-time password from SMS for ${user.username}:`,
       });
     } else {
       const challengeOutput = await user.signInChallenge();
@@ -105,7 +132,27 @@ export const mfaSignIn = async (user: AuthUser) => {
       challengeResponse: challengeResponse,
     });
     return smsSignIn.nextStep.signInStep === 'DONE';
-  }
-  //currently email is not supported
-  return true; // should return signInResult
+  } else if (
+    signInResult.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_EMAIL_CODE'
+  ) {
+    let challengeResponse: string;
+    if (!user.signInChallenge) {
+      challengeResponse = await AmplifyPrompter.input({
+        message: `Please input one-time password from EMAIL for ${user.username}:`,
+      });
+    } else {
+      const challengeOutput = await user.signInChallenge();
+      challengeResponse = challengeOutput.challengeResponse;
+    }
+    const emailSignIn = await auth.confirmSignIn({
+      challengeResponse: challengeResponse,
+    });
+    return emailSignIn.nextStep.signInStep === 'DONE';
+  } /*else {
+    throw new AmplifyUserError('CannotSignInWithMFAError', {
+      message: `${user.username} cannot be signed in with MFA`,
+      resolution: `Ensure that ${user.username} exists and has been created with the MFA flow.`,
+    });
+  }*/
+  return false;
 };

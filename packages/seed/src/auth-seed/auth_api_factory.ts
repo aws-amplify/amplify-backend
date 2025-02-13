@@ -22,7 +22,7 @@ export const createAndSignUpUser = async (
  * @returns - Username and Sign up flow used by this user
  */
 export const addToUserGroup = async (
-  user: AuthUser,
+  user: AuthOutputs,
   group: string
 ): Promise<AuthOutputs> => {
   return await authClient.addToUserGroup(user, group);
