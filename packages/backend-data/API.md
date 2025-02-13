@@ -46,7 +46,7 @@ export type DataProps = {
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
     logging?: DataLoggingOptions;
-    importedAmplifyDynamoDBTableMap?: Record<string, Record<string, string> | undefined>;
+    migratedAmplifyGen1DynamoDbTableMap?: Record<string, Record<string, string> | undefined>;
 };
 
 // @public
