@@ -970,7 +970,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      importedAmplifyDynamoDBTableMap: {
+      migratedAmplifyGen1DynamoDbTableMap: {
         dev: {
           ImportedModel: 'ImportedModel-1234-dev',
         },
@@ -1002,7 +1002,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      importedAmplifyDynamoDBTableMap: {
+      migratedAmplifyGen1DynamoDbTableMap: {
         dev: {
           ImportedModel: 'ImportedModel-1234-dev',
         },
@@ -1032,7 +1032,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      importedAmplifyDynamoDBTableMap: {
+      migratedAmplifyGen1DynamoDbTableMap: {
         dev: {
           ImportedModel: 'ImportedModel-1234-dev',
         },
@@ -1055,7 +1055,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      importedAmplifyDynamoDBTableMap: {
+      migratedAmplifyGen1DynamoDbTableMap: {
         dev: {
           ImportedModel: 'ImportedModel-1234-dev',
         },
@@ -1089,7 +1089,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      importedAmplifyDynamoDBTableMap: {
+      migratedAmplifyGen1DynamoDbTableMap: {
         dev: {
           ImportedModel: 'ImportedModel-1234-dev',
         },
@@ -1122,7 +1122,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      importedAmplifyDynamoDBTableMap: {
+      migratedAmplifyGen1DynamoDbTableMap: {
         dev: {
           ImportedModel: 'ImportedModel-1234-dev',
         },
