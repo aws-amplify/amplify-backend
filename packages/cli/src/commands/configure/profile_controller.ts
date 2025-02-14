@@ -5,7 +5,7 @@ import {
 } from '@smithy/shared-ini-file-loader';
 import { fromIni } from '@aws-sdk/credential-providers';
 import { EOL } from 'os';
-import fs from 'fs/promises';
+import _fs from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
@@ -37,6 +37,10 @@ export type ProfileOptions = ConfigProfileOptions & CredentialProfileOptions;
  */
 export class ProfileController {
   /**
+   * constructor
+   */
+  constructor(private readonly fs = _fs) {}
+  /**
    * Return true if the provided profile exists in the aws config and/or credential file.
    */
   profileExists = async (profile: string): Promise<boolean> => {
@@ -66,7 +70,7 @@ export class ProfileController {
 
     const dirName = path.dirname(filePath);
     if (!existsSync(dirName)) {
-      await fs.mkdir(dirName, { recursive: true });
+      await this.fs.mkdir(dirName, { recursive: true });
     }
 
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
@@ -79,7 +83,7 @@ export class ProfileController {
     configData += `region = ${options.region}${EOL}`;
 
     try {
-      await fs.appendFile(filePath, configData, { mode: '600' });
+      await this.fs.appendFile(filePath, configData, { mode: '600' });
     } catch (err) {
       const error = err as Error;
       if (error.message.includes('EACCES')) {
@@ -115,7 +119,7 @@ export class ProfileController {
 
     const dirName = path.dirname(filePath);
     if (!existsSync(dirName)) {
-      await fs.mkdir(dirName, { recursive: true });
+      await this.fs.mkdir(dirName, { recursive: true });
     }
 
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
@@ -125,7 +129,7 @@ export class ProfileController {
     credentialData += `aws_access_key_id = ${options.accessKeyId}${EOL}`;
     credentialData += `aws_secret_access_key = ${options.secretAccessKey}${EOL}`;
 
-    await fs.appendFile(filePath, credentialData, { mode: '600' });
+    await this.fs.appendFile(filePath, credentialData, { mode: '600' });
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
     const provider = fromIni({
@@ -144,7 +148,7 @@ export class ProfileController {
 
   private isFileEndsWithEOL = async (filePath: string): Promise<boolean> => {
     try {
-      const data = await fs.readFile(filePath, 'utf-8');
+      const data = await this.fs.readFile(filePath, 'utf-8');
       return data.length > 0 && data.slice(-EOL.length) === EOL;
     } catch (err) {
       const error = err as Error;
