@@ -24,6 +24,28 @@ export const persistentPasswordSignUp = async (
 
   const confirmResult = await auth.confirmSignIn({
     challengeResponse: user.password,
+    options: {
+      userAttributes: {
+        name: user.userAttributes?.name,
+        family_name: user.userAttributes?.familyName,
+        given_name: user.userAttributes?.givenName,
+        middle_name: user.userAttributes?.middleName,
+        nickname: user.userAttributes?.nickname,
+        preferred_username: user.userAttributes?.preferredUsername,
+        profile: user.userAttributes?.profile,
+        picture: user.userAttributes?.picture,
+        website: user.userAttributes?.website,
+        gender: user.userAttributes?.gender,
+        birthdate: user.userAttributes?.birthdate,
+        zoneinfo: user.userAttributes?.zoneinfo,
+        locale: user.userAttributes?.locale,
+        updated_at: user.userAttributes?.updatedAt,
+        address: user.userAttributes?.address,
+        email: user.userAttributes?.email,
+        phone_number: user.userAttributes?.phoneNumber,
+        sub: user.userAttributes?.sub,
+      },
+    },
   });
 
   return confirmResult.nextStep.signInStep === 'DONE';

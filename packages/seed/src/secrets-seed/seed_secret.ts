@@ -1,11 +1,21 @@
-import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
+import {
+  SecretClient,
+  getSecretClientWithAmplifyErrorHandling,
+} from '@aws-amplify/backend-secret';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  *
  */
-export class SecretClient {
+export class SeedSecretClient {
+  /**
+   * constructor
+   */
+  constructor(
+    private readonly getSecretClient: SecretClient = getSecretClientWithAmplifyErrorHandling()
+  ) {}
+
   getSecret = async (secretName: string): Promise<string> => {
     if (!process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
       throw new AmplifyUserError('SandboxIdentifierNotFoundError', {
@@ -19,7 +29,7 @@ export class SecretClient {
       process.env.AMPLIFY_SANDBOX_IDENTIFIER
     );
 
-    const secretClient = getSecretClientWithAmplifyErrorHandling();
+    const secretClient = this.getSecretClient;
     const secret = await secretClient.getSecret(backendId, {
       name: secretName,
     });
@@ -42,7 +52,7 @@ export class SecretClient {
       process.env.AMPLIFY_SANDBOX_IDENTIFIER
     );
 
-    const secretClient = getSecretClientWithAmplifyErrorHandling();
+    const secretClient = this.getSecretClient;
     const secret = await secretClient.setSecret(
       backendId,
       secretName,
@@ -58,7 +68,7 @@ export class SecretClient {
  * @returns - specified secret from AWS Systems Manager Parameter Store
  */
 export const getSecret = async (secretName: string): Promise<string> => {
-  return await new SecretClient().getSecret(secretName);
+  return await new SeedSecretClient().getSecret(secretName);
 };
 
 /**
@@ -71,5 +81,5 @@ export const setSecret = async (
   secretName: string,
   secretValue: string
 ): Promise<string> => {
-  return await new SecretClient().setSecret(secretName, secretValue);
+  return await new SeedSecretClient().setSecret(secretName, secretValue);
 };

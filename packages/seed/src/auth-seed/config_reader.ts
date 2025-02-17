@@ -31,7 +31,7 @@ export class ConfigReader {
           'Create an Auth resource for your Amplify App or run ampx sandbox if you have generated your sandbox',
       });
     }
-    const userGroups: string[] = [];
+    const userGroups: string[] | undefined = [];
 
     for (const group in authConfig.groups) {
       userGroups.push(group);

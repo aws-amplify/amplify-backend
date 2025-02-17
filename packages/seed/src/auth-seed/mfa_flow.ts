@@ -2,6 +2,7 @@ import * as auth from 'aws-amplify/auth';
 import assert from 'assert';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { AuthSignUp, AuthUser } from '../types.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Signs up user with MFA sign up flow
@@ -21,21 +22,50 @@ export const mfaSignUp = async (user: AuthSignUp, tempPassword: string) => {
     'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
   );
 
-  const passwordSignIn = await auth.confirmSignIn({
+  let passwordSignIn = await auth.confirmSignIn({
     challengeResponse: user.password,
+    options: {
+      userAttributes: {
+        name: user.userAttributes?.name,
+        family_name: user.userAttributes?.familyName,
+        given_name: user.userAttributes?.givenName,
+        middle_name: user.userAttributes?.middleName,
+        nickname: user.userAttributes?.nickname,
+        preferred_username: user.userAttributes?.preferredUsername,
+        profile: user.userAttributes?.profile,
+        picture: user.userAttributes?.picture,
+        website: user.userAttributes?.website,
+        gender: user.userAttributes?.gender,
+        birthdate: user.userAttributes?.birthdate,
+        zoneinfo: user.userAttributes?.zoneinfo,
+        locale: user.userAttributes?.locale,
+        updated_at: user.userAttributes?.updatedAt,
+        address: user.userAttributes?.address,
+        email: user.userAttributes?.email,
+        phone_number: user.userAttributes?.phoneNumber,
+        sub: user.userAttributes?.sub,
+      },
+    },
   });
 
-  // are you lying to me cognito?
-  /*if(passwordSignIn.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_MFA_SELECTION') {
-    const mfaSelection = await auth.confirmSignIn({
-      challengeResponse: 'TOTP'
+  if (
+    passwordSignIn.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_MFA_SELECTION'
+  ) {
+    if (!user.mfaPreference) {
+      throw new AmplifyUserError('NoMFAPreferenceSpecifiedError', {
+        message: `If multiple forms of MFA are enabled for a userpool, you must specify which form you intend to use for ${user.username}`,
+        resolution: `Specify a form of MFA for the user, ${user.username}, to use with the mfaPreference property`,
+      });
+    }
+    passwordSignIn = await auth.confirmSignIn({
+      challengeResponse: user.mfaPreference,
     });
-  }*/
+  }
 
   if (
     passwordSignIn.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP'
   ) {
-    assert.strictEqual(user.mfaPreference, 'TOTP');
+    assert.strictEqual(user.signUpChallenge, true);
     const challengeOutput = await user.signUpChallenge(
       passwordSignIn.nextStep.totpSetupDetails
     );
@@ -49,7 +79,6 @@ export const mfaSignUp = async (user: AuthSignUp, tempPassword: string) => {
   } else if (
     passwordSignIn.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_SMS_CODE'
   ) {
-    // need to test this somehow
     let challengeResponse: string;
     if (!user.signUpChallenge) {
       challengeResponse = await AmplifyPrompter.input({

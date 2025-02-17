@@ -16,14 +16,15 @@ import { ConfigReader } from './config_reader.js';
  */
 export class AuthClient {
   private readonly authOutputs;
-  private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient;
+  //private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient;
 
   /**
    * Set up for auth APIs
    */
-  constructor(configOutputs: ConfigReader) {
-    this.cognitoIdentityProviderClient = new CognitoIdentityProviderClient();
-
+  constructor(
+    configOutputs: ConfigReader,
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient()
+  ) {
     this.authOutputs = configOutputs.getAuthConfig();
   }
 
@@ -76,20 +77,6 @@ export class AuthClient {
             });
           }
 
-          if (!newUser.mfaPreference) {
-            if (authConfig.mfaMethods && authConfig.mfaMethods.length === 1) {
-              newUser.mfaPreference = authConfig.mfaMethods[0];
-            } else if (
-              authConfig.mfaMethods &&
-              authConfig.mfaMethods.length > 1
-            ) {
-              throw new AmplifyUserError('NoMFAPreferenceSpecifiedError', {
-                message: `If multiple forms of MFA are enabled for a userpool, you must specify which form you intend to use for ${newUser.username}`,
-                resolution: `Specify a form of MFA for the user, ${newUser.username}, to use with the mfaPreference property`,
-              });
-            }
-          }
-
           await mfaSignUp(newUser, tempPassword);
           break;
         }
@@ -111,35 +98,42 @@ export class AuthClient {
     group: string
   ): Promise<AuthOutputs> => {
     const authConfig = await this.authOutputs;
-    if (authConfig.groups?.includes) {
-      try {
-        await this.cognitoIdentityProviderClient.send(
-          new AdminAddUserToGroupCommand({
-            UserPoolId: authConfig.userPoolId,
-            Username: user.username,
-            GroupName: group,
-          })
-        );
-      } catch (err) {
-        const error = err as Error;
-        if (error.name === 'UserNotFoundException') {
-          throw new AmplifyUserError(
-            'UserNotFoundError',
-            {
-              message: `The user, ${user.username}, does not exist`,
-              resolution: `Create a user called ${user.username} or try again with a different user`,
-            },
-            error
-          );
-        } else {
-          throw error;
-        }
-      }
-    } else {
-      throw new AmplifyUserError('NoGroupError', {
-        message: `There is no group called ${group} in this userpool.`,
-        resolution: `Either create a group called ${group} or assign this user to a group that exists on this userpool.`,
+    if (!authConfig.groups) {
+      throw new AmplifyUserError('NoGroupsError', {
+        message: `There are no groups in this userpool.`,
+        resolution: `Create a group called ${group}.`,
       });
+    } else {
+      if (authConfig.groups?.includes(group)) {
+        try {
+          await this.cognitoIdentityProviderClient.send(
+            new AdminAddUserToGroupCommand({
+              UserPoolId: authConfig.userPoolId,
+              Username: user.username,
+              GroupName: group,
+            })
+          );
+        } catch (err) {
+          const error = err as Error;
+          if (error.name === 'UserNotFoundException') {
+            throw new AmplifyUserError(
+              'UserNotFoundError',
+              {
+                message: `The user, ${user.username}, does not exist`,
+                resolution: `Create a user called ${user.username} or try again with a different user`,
+              },
+              error
+            );
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        throw new AmplifyUserError('NoGroupError', {
+          message: `There is no group called ${group} in this userpool.`,
+          resolution: `Either create a group called ${group} or assign this user to a group that exists on this userpool.`,
+        });
+      }
     }
     return { signInFlow: user.signInFlow, username: user.username };
   };

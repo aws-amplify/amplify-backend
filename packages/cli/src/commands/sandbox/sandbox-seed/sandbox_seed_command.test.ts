@@ -105,6 +105,8 @@ void describe('sandbox seed command', () => {
       assert.equal(fsOpenSyncMock.mock.callCount(), 1);
       mock.restoreAll();
     });
+
+    // TO DO: should have a test to see if backendID is set, that will need to happen while seed command is running
   });
 
   void describe('seed script does not exist', () => {
