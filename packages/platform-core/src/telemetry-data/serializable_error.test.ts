@@ -32,7 +32,7 @@ void describe('serializable error', () => {
   });
 
   void test('that error message is sanitized by removing invalid characters', () => {
-    const error = new ErrorWithDetailsAndCode('some" er❌ror ""m"es❌sage❌');
+    const error = new Error('some" er❌ror ""m"es❌sage❌');
     const serializableError = new SerializableError(error);
     assert.deepStrictEqual(serializableError.message, 'some error message');
   });
@@ -62,6 +62,28 @@ void describe('serializable error', () => {
     assert.ok(
       matches.length === 0,
       `${os.homedir()} is included in ${serializableError.message}`
+    );
+  });
+
+  void test('that error message does not contain arns', () => {
+    const error = new Error(
+      'User: arn:aws:iam::123456789012:user/test is not authorized to perform: test-action'
+    );
+    const serializableError = new SerializableError(error);
+    assert.deepStrictEqual(
+      serializableError.message,
+      'User: <escaped ARN> is not authorized to perform: test-action'
+    );
+  });
+
+  void test('that error message does not contain stacks', () => {
+    const error = new Error(
+      'Stack with id amplify-test-stack-sandbox-12345abcde does not exist'
+    );
+    const serializableError = new SerializableError(error);
+    assert.deepStrictEqual(
+      serializableError.message,
+      'Stack with id <escaped stack> does not exist'
     );
   });
 
@@ -95,7 +117,11 @@ void describe('serializable error', () => {
       matches.length === 0,
       `${os.homedir()} is included in ${serializableError.stack}`
     );
-    const expectedFilePath = 'node_modules/@aws-amplify/test-package/lib/test.js';
-    assert.ok(serializableError.stack.includes(expectedFilePath), `${expectedFilePath} is not found in ${serializableError.stack}`);
+    const expectedFilePath =
+      'node_modules/@aws-amplify/test-package/lib/test.js';
+    assert.ok(
+      serializableError.stack.includes(expectedFilePath),
+      `${expectedFilePath} is not found in ${serializableError.stack}`
+    );
   });
 });
