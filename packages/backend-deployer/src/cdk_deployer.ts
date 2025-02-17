@@ -147,18 +147,22 @@ export class CDKDeployer implements BackendDeployer {
 
     // 5. Perform actual deployment. CFN or hotswap
     const deployStartTime = Date.now();
-    await this.cdkToolkit.deploy(synthAssembly!, {
-      stacks: {
-        strategy: StackSelectionStrategy.ALL_STACKS,
-      },
-      hotswap:
-        backendId.type === 'sandbox'
-          ? HotswapMode.FALL_BACK
-          : HotswapMode.FULL_DEPLOYMENT,
-      ci: backendId.type !== 'sandbox',
-      requireApproval:
-        backendId.type !== 'sandbox' ? RequireApproval.NEVER : undefined,
-    });
+    try {
+      await this.cdkToolkit.deploy(synthAssembly!, {
+        stacks: {
+          strategy: StackSelectionStrategy.ALL_STACKS,
+        },
+        hotswap:
+          backendId.type === 'sandbox'
+            ? HotswapMode.FALL_BACK
+            : HotswapMode.FULL_DEPLOYMENT,
+        ci: backendId.type !== 'sandbox',
+        requireApproval:
+          backendId.type !== 'sandbox' ? RequireApproval.NEVER : undefined,
+      });
+    } catch (error) {
+      throw this.cdkErrorMapper.getAmplifyError(error as Error);
+    }
     const deployTimeSeconds =
       Math.floor((Date.now() - deployStartTime) / 10) / 100;
     printer.print(

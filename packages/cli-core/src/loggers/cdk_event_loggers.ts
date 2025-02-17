@@ -4,6 +4,7 @@ import { LogLevel } from '../printer/printer.js';
 import { minimumLogLevel, printer } from '../printer.js';
 import { format } from '../format/format.js';
 import { CurrentActivityPrinter } from './cfn-deployment-progress/cfn_deployment_logger.js';
+import { StackEvent } from '@aws-sdk/client-cloudformation';
 
 /**
  * CDK event logger class
@@ -11,18 +12,14 @@ import { CurrentActivityPrinter } from './cfn-deployment-progress/cfn_deployment
 export class CDKEventLogger {
   private printer = printer; // default stdout
   private enableColors = true; // show colors on console but not while writing to files
-  private cfnDeploymentActivityPrinter;
-  private cfnDeploymentActivityStarted: boolean = false;
+  private cfnDeploymentActivityPrinter: CurrentActivityPrinter | undefined;
+  private outputs = {};
+  private startTime: number;
 
   /**
    * a logger instance to be used for CDK events
    */
-  constructor() {
-    this.cfnDeploymentActivityPrinter = new CurrentActivityPrinter({
-      resourceTypeColumnWidth: 30, // TBD
-      stream: process.stdout,
-    });
-  }
+  constructor() {}
 
   getCDKEventLoggers = () => {
     return {
@@ -56,17 +53,19 @@ export class CDKEventLogger {
       }
     } else {
       if (this.enableColors) {
-        this.printer.log(
+        this.printer.print(
           `[${format.color(
             `${msg.action}: ${msg.code}`,
             msg.level === 'error'
-              ? 'Magenta'
+              ? 'Red'
               : msg.level === 'warn'
               ? 'Yellow'
               : 'Green'
           )}] ${format.note(
             msg.time.toLocaleTimeString()
-          )} ${msg.message.trim()}`
+          )} ${msg.message.trim()} ${
+            msg.data ? JSON.stringify(msg.data, null, 2) : ''
+          }`
         );
       } else {
         this.printer.log(
@@ -85,39 +84,63 @@ export class CDKEventLogger {
    * @param msg a CDK event
    */
   cfnDeploymentProgress = async <T>(msg: IoMessage<T>): Promise<void> => {
-    if (msg.message.includes('Deployment time')) {
-      if (this.cfnDeploymentActivityStarted) {
-        this.cfnDeploymentActivityStarted = false;
+    // TBD: This will be replaced with a proper marker event with a unique code later
+    if (
+      msg.message.includes('Deployment time') ||
+      msg.message.includes('Failed resources')
+    ) {
+      if (this.cfnDeploymentActivityPrinter) {
         await this.cfnDeploymentActivityPrinter.stop();
-        return Promise.resolve();
+        this.cfnDeploymentActivityPrinter = undefined;
       }
+      if (
+        this.outputs &&
+        'awsAppsyncApiEndpoint' in this.outputs &&
+        this.outputs.awsAppsyncApiEndpoint
+      ) {
+        this.printer.print(
+          `AppSync API endpoint = ${format.success(
+            this.outputs.awsAppsyncApiEndpoint as string
+          )}`
+        );
+      }
+      return Promise.resolve();
     }
 
+    // TBD: This will be replaced with a proper marker event with a unique code later
     if (
       msg.message.includes('deploying...') &&
-      !this.cfnDeploymentActivityStarted
+      !this.cfnDeploymentActivityPrinter
     ) {
       this.printer.print(format.note('Starting deployment...'));
-      this.cfnDeploymentActivityStarted = true;
+      this.cfnDeploymentActivityPrinter = new CurrentActivityPrinter({
+        resourceTypeColumnWidth: 30, // TBD
+        stream: process.stdout,
+      });
+      this.startTime = Date.now();
       this.cfnDeploymentActivityPrinter.start();
     }
 
     // Hot swap deployment
+    // TBD: This will be replaced with a proper marker event with a unique code later
     if (msg.message.includes('hotswapped')) {
       this.printer.print(msg.message);
     }
 
-    // Outputs we care about
-    if (msg.message.includes('awsAppsyncApiEndpoint = ')) {
-      const matches = msg.message.match(/awsAppsyncApiEndpoint = (?<URL>.*)/);
-      if (matches && matches.length > 1 && matches.groups) {
-        this.printer.print(
-          `AppSync API endpoint = ${format.success(matches.groups['URL'])}`
-        );
+    // Outputs we care about. CDK_TOOLKIT_I5900 code represents outputs message
+    if (msg.code === 'CDK_TOOLKIT_I5900') {
+      if (
+        msg.data &&
+        typeof msg.data === 'object' &&
+        'outputs' in msg.data &&
+        msg.data.outputs &&
+        typeof msg.data.outputs === 'object'
+      ) {
+        this.outputs = msg.data.outputs;
       }
     }
 
-    // For actual progress we need
+    // // For actual progress we need
     if (!this.isCfnSdkCallEvent(msg.data)) {
       return Promise.resolve();
     }
@@ -126,11 +149,13 @@ export class CDKEventLogger {
     const commandName = (msg?.data as any).content[0].commandName;
     if (commandName === 'DescribeStackEventsCommand') {
       const events = (msg.data as any).content[0].output.StackEvents as [];
-      events.reverse();
-      events.forEach((event) =>
-        this.cfnDeploymentActivityPrinter.addActivity(event)
-      );
-      await this.cfnDeploymentActivityPrinter.print({});
+      const reversedEvents = events.slice().reverse();
+      reversedEvents.forEach((event: StackEvent) => {
+        if (event.Timestamp && event.Timestamp.valueOf() >= this.startTime) {
+          this.cfnDeploymentActivityPrinter?.addActivity(event);
+        }
+      });
+      await this.cfnDeploymentActivityPrinter?.print({});
     } else if (commandName === 'GetTemplateCommand') {
       // TBD
     } else if (commandName === 'DescribeStacksCommand') {
