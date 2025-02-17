@@ -20,7 +20,7 @@ export class SerializableError {
   );
   private arnRegex =
     /arn:[a-z0-9][-.a-z0-9]{0,62}:[A-Za-z0-9][A-Za-z0-9_/.-]{0,62}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9_/.-]{0,63}:[A-Za-z0-9][A-Za-z0-9:_/+=,@.-]{0,1023}/g;
-  private stackRegex = /amplify-[a-zA-Z0-9-]+(branch|sandbox)-[a-zA-Z0-9]+/g;
+  private stackRegex = /amplify-[a-zA-Z0-9-]+((branch|sandbox)-[a-zA-Z0-9]+)/g;
   /**
    * constructor for SerializableError
    */
