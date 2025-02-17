@@ -67,7 +67,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         metrics,
         dimensions,
       });
-      console.log(data);
+      console.log(JSON.stringify(data, null, 2));
       // await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
@@ -87,7 +87,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         metrics,
         dimensions,
       });
-      console.log(data);
+      console.log(JSON.stringify(data, null, 2));
       // await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
@@ -105,7 +105,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         metrics,
         dimensions,
       });
-      console.log(data);
+      console.log(JSON.stringify(data, null, 2));
       // await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
@@ -200,8 +200,6 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
       }
     }
 
-    console.log('path', path);
-    console.log('parameters', parameters);
     return { path: path.split(' '), parameters: parameters.split(' ') };
   };
 

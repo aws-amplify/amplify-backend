@@ -85,7 +85,7 @@ void describe('serializable error', () => {
     );
     error.stack = `${error.stack}  at methodName (${pathToFileURL(
       process.cwd()
-    ).toString()}:12:34)\n`;
+    ).toString()}/node_modules/@aws-amplify/test-package/lib/test.js:12:34)\n`;
     const serializableError = new SerializableError(error);
     assert.ok(serializableError.stack);
     const matches = [
@@ -95,5 +95,7 @@ void describe('serializable error', () => {
       matches.length === 0,
       `${os.homedir()} is included in ${serializableError.stack}`
     );
+    const expectedFilePath = 'node_modules/@aws-amplify/test-package/lib/test.js';
+    assert.ok(serializableError.stack.includes(expectedFilePath), `${expectedFilePath} is not found in ${serializableError.stack}`);
   });
 });
