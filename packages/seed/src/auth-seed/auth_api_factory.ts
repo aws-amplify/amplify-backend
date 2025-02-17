@@ -1,5 +1,10 @@
 import { AuthClient } from './auth_client.js';
-import { AuthOutputs, AuthSignUp, AuthUser } from '../types.js';
+import {
+  AuthOutputs,
+  AuthSignUp,
+  AuthUser,
+  AuthUserGroupInput,
+} from '../types.js';
 import { ConfigReader } from './config_reader.js';
 
 const authClient = new AuthClient(new ConfigReader());
@@ -22,9 +27,9 @@ export const createAndSignUpUser = async (
  * @returns - Username and Sign up flow used by this user
  */
 export const addToUserGroup = async (
-  user: AuthOutputs,
+  user: AuthUserGroupInput,
   group: string
-): Promise<AuthOutputs> => {
+): Promise<void> => {
   return await authClient.addToUserGroup(user, group);
 };
 

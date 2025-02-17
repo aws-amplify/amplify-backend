@@ -10,6 +10,10 @@ export type AuthUser = {
   username: string;
 } & (PasswordSignInFlow | MfaSignInFlow);
 
+export type AuthUserGroupInput = {
+  username: string;
+};
+
 export type AuthOutputs = {
   signInFlow: 'Password' | 'MFA';
   username: string;
@@ -32,7 +36,6 @@ export type MfaSignUpFlow = {
 };
 
 export type MfaWithTotpSignUpFlow = {
-  // merge this with MFA signup flow
   signInFlow: 'MFA';
   password: string;
   mfaPreference?: 'TOTP';

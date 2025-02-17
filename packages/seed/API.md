@@ -7,7 +7,7 @@
 import * as auth from 'aws-amplify/auth';
 
 // @public
-export const addToUserGroup: (user: AuthUser, group: string) => Promise<AuthOutputs>;
+export const addToUserGroup: (user: AuthUserGroupInput, group: string) => Promise<void>;
 
 // @public (undocumented)
 export type AuthOutputs = {
@@ -19,12 +19,18 @@ export type AuthOutputs = {
 export type AuthSignUp = {
     signInAfterCreation: boolean;
     username: string;
+    userAttributes?: StandardUserAttributes;
 } & (PasswordSignInFlow | MfaSignUpFlow | MfaWithTotpSignUpFlow);
 
 // @public (undocumented)
 export type AuthUser = {
     username: string;
 } & (PasswordSignInFlow | MfaSignInFlow);
+
+// @public (undocumented)
+export type AuthUserGroupInput = {
+    username: string;
+};
 
 // @public (undocumented)
 export type ChallengeResponse = {
@@ -50,8 +56,6 @@ export type MfaSignInFlow = {
 export type MfaSignUpFlow = {
     signInFlow: 'MFA';
     password: string;
-    email?: string;
-    phoneNumber?: string;
     mfaPreference?: 'EMAIL' | 'SMS';
     signUpChallenge?: () => Promise<ChallengeResponse>;
 };
@@ -75,6 +79,10 @@ export const setSecret: (secretName: string, secretValue: string) => Promise<str
 
 // @public
 export const signInUser: (user: AuthUser) => Promise<boolean>;
+
+// Warnings were encountered during analysis:
+//
+// src/types.ts:6:3 - (ae-forgotten-export) The symbol "StandardUserAttributes" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

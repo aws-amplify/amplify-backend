@@ -7,11 +7,15 @@ import assert from 'assert';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import {
   AdminAddUserToGroupCommand,
+  //AdminCreateUserCommand,
+  //AdminCreateUserResponse,
   CognitoIdentityProviderClient,
+  //UsernameExistsException,
   UserNotFoundException,
 } from '@aws-sdk/client-cognito-identity-provider';
 
 const testUsername1 = 'testUser1@test.com';
+//const testPassword = 'T3st_Password*';
 const testGroup0 = 'TESTGROUP';
 const testGroup1 = 'OTHERGROUP';
 
@@ -47,7 +51,7 @@ void describe('seeding auth APIs', () => {
         await assert.rejects(
           async () =>
             await authClient.addToUserGroup(
-              { username: testUsername1, signInFlow: 'Password' },
+              { username: testUsername1 },
               testGroup0
             ),
           expectedErr
@@ -94,16 +98,19 @@ void describe('seeding auth APIs', () => {
         mockConfigReader.getAuthConfig.mock.resetCalls();
       });
 
-      //TO DO: ask about if there is a better way to test this
       void it('adds user to an existing user group', async () => {
         await authClient.addToUserGroup(
-          { username: testUsername1, signInFlow: 'Password' },
+          { username: testUsername1 },
           testGroup0
         );
 
         assert.strictEqual(
           mockCognitoIdProviderClient.send.mock.callCount(),
           1
+        );
+        assert.strictEqual(
+          mockCognitoIdProviderClient.send.mock.calls[0].error,
+          undefined
         );
       });
 
@@ -125,7 +132,7 @@ void describe('seeding auth APIs', () => {
         await assert.rejects(
           async () =>
             await authClient.addToUserGroup(
-              { username: testUsername1, signInFlow: 'Password' },
+              { username: testUsername1 },
               testGroup0
             ),
           (error: AmplifyUserError) => {
@@ -146,7 +153,7 @@ void describe('seeding auth APIs', () => {
         await assert.rejects(
           async () =>
             await authClient.addToUserGroup(
-              { username: testUsername1, signInFlow: 'MFA' },
+              { username: testUsername1 },
               testGroup1
             ),
           expectedErr
@@ -154,18 +161,75 @@ void describe('seeding auth APIs', () => {
       });
     });
   });
+  /*
   void describe('userpool configured with persistent password', () => {
-    //const app = new App();
-    //const stack = new Stack(app);
-    //new AmplifyAuth(stack, 'test', {loginWith: { }});
+    const app = new App();
+    const stack = new Stack(app);
+    new AmplifyAuth(stack, 'test', {loginWith: { email: true }});
+    // because of auth.signOut, userpool needs to be configured -- I could mock it?
+    const mockConfigReader = {
+      getAuthConfig: mock.fn<() => Promise<AuthConfiguration>>(async () =>
+        Promise.resolve({
+          userPoolId: testUserpoolId,
+        })
+      ),
+    };
 
-    void it('creates and signs up user', async () => {});
+    const mockCognitoIdProviderClient = {
+      send: mock.fn<(input: AdminCreateUserCommand) => Promise<AdminCreateUserResponse>>(
+        async () => Promise.resolve({
+          User: {
+            Username: testUsername1,
+          }
+        })
+      ),
+    };
 
-    void it('throws error if attempting to create user that already exists', async () => {});
+    const authClient = new AuthClient(
+      mockConfigReader as unknown as ConfigReader,
+      mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient
+    );
 
-    void it('signs in user', async () => {});
+    beforeEach(() => {
+      mockCognitoIdProviderClient.send.mock.resetCalls();
+      mockConfigReader.getAuthConfig.mock.resetCalls();
+    });
 
-    void it('throws error if attempting to sign in user that does not exist', async () => {});
+    void it('creates and signs up user', async () => {
+
+    });
+
+    void it('throws error if attempting to create user that already exists', async () => {
+      const expectedErr = new AmplifyUserError(
+        'UsernameExistsError',
+        {
+          message: `A user called ${testUsername1} already exists.`,
+          resolution: 'Give this user a different name',
+        });
+
+      mockCognitoIdProviderClient.send.mock.mockImplementationOnce(() => {
+        throw (new UsernameExistsException({$metadata: {}, message: 'Username already exists'}))
+      });
+
+      await assert.rejects(async () => authClient.createAndSignUpUser({
+        username: testUsername1, password: testPassword, signInAfterCreation: true, signInFlow: 'Password'}),
+        (err: AmplifyUserError) => {
+          assert.strictEqual(err, expectedErr.name);
+          assert.strictEqual(err.message, expectedErr.message);
+          assert.strictEqual(err.resolution, expectedErr.resolution);
+          return true;
+        }
+      );
+    });
+
+    void it('signs in user', async () => {
+
+    });
+
+    void it('throws error if attempting to sign in user that does not exist', async () => {
+
+    });
   });
+*/
   void describe('userpool configured with MFA', () => {});
 });

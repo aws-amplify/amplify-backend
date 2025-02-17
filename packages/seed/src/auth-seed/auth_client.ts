@@ -1,4 +1,9 @@
-import { AuthOutputs, AuthSignUp, AuthUser } from '../types.js';
+import {
+  AuthOutputs,
+  AuthSignUp,
+  AuthUser,
+  AuthUserGroupInput,
+} from '../types.js';
 import {
   AdminAddUserToGroupCommand,
   AdminCreateUserCommand,
@@ -94,9 +99,9 @@ export class AuthClient {
   };
 
   addToUserGroup = async (
-    user: AuthOutputs,
+    user: AuthUserGroupInput,
     group: string
-  ): Promise<AuthOutputs> => {
+  ): Promise<void> => {
     const authConfig = await this.authOutputs;
     if (!authConfig.groups) {
       throw new AmplifyUserError('NoGroupsError', {
@@ -135,7 +140,6 @@ export class AuthClient {
         });
       }
     }
-    return { signInFlow: user.signInFlow, username: user.username };
   };
 
   signInUser = async (user: AuthUser): Promise<boolean> => {
