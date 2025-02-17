@@ -99,6 +99,15 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
             'Make sure your AWS credentials are set up correctly, refreshed and have necessary permissions to call SSM service',
         });
       }
+      if (error.cause.message.includes('connect ENOMEM')) {
+        return new AmplifyUserError('InsufficientMemorySpaceError', {
+          message: `Failed to ${apiName.toLowerCase()} secrets. ${
+            error.cause.name
+          }: ${error.cause?.message}`,
+          resolution:
+            'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
+        });
+      }
       if (
         error.cause.name === 'ParameterNotFound' &&
         (apiName === 'Get' || apiName === 'Remove') &&

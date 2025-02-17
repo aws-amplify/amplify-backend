@@ -1,5 +1,32 @@
 # @aws-amplify/backend-cli
 
+## 1.4.10
+
+### Patch Changes
+
+- de90deb: Added catch blocks for EACCES Errors
+- 6faa636: Add data and ai packages to ampx info output
+- bc07307: Update code with Eslint@8 compliant
+- Updated dependencies [de90deb]
+- Updated dependencies [bc07307]
+  - @aws-amplify/client-config@1.5.7
+  - @aws-amplify/backend-deployer@1.1.17
+  - @aws-amplify/form-generator@1.0.4
+  - @aws-amplify/platform-core@1.6.2
+  - @aws-amplify/cli-core@1.2.4
+
+## 1.4.9
+
+### Patch Changes
+
+- 99bb9a4: enforce branch option implying app id for generate commands
+- Updated dependencies [a7ae994]
+- Updated dependencies [ec7826d]
+  - @aws-amplify/backend-deployer@1.1.16
+  - @aws-amplify/client-config@1.5.6
+  - @aws-amplify/backend-secret@1.1.6
+  - @aws-amplify/platform-core@1.6.1
+
 ## 1.4.8
 
 ### Patch Changes

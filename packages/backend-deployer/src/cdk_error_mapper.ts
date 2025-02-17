@@ -388,6 +388,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /connect ENOMEM (?<remoteAddress>\d+\.\d+\.\d+\.\d+).*/,
+      humanReadableErrorMessage:
+        'Unable to connect to remote address {remoteAddress} due to insufficient memory.',
+      resolutionMessage:
+        'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
+      errorName: 'InsufficientMemorySpaceError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `npm error code EJSONPARSE${this.multiLineEolRegex}npm error path (?<filePath>.*/package\\.json)${this.multiLineEolRegex}(npm error (.*)${this.multiLineEolRegex})*`
       ),
@@ -425,12 +434,21 @@ export class CdkErrorMapper {
       // During 'cdk synth' CDK CLI attempts to read CDK assembly after calling customer's app.
       // But no files are rendered causing it to fail.
       errorRegex:
-        /ENOENT: no such file or directory, open '\.amplify.artifacts.cdk\.out.manifest\.json'/,
+        /ENOENT: no such file or directory, open '.*\.amplify.artifacts.cdk\.out.manifest\.json'/,
       humanReadableErrorMessage:
         'The Amplify backend definition is missing `defineBackend` call.',
       resolutionMessage:
         'Check your backend definition in the `amplify` folder. Ensure that `amplify/backend.ts` contains `defineBackend` call.',
       errorName: 'MissingDefineBackendError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /^ENOENT: no such file or directory, (?<action_and_filepath>.*)$/,
+      humanReadableErrorMessage: 'Failed to {action_and_filepath}',
+      resolutionMessage:
+        'File or directory not found. Failed to {action_and_filepath}',
+      errorName: 'FileNotFoundError',
       classification: 'ERROR',
     },
     {
@@ -570,7 +588,9 @@ export type CDKDeploymentError =
   | 'ESBuildError'
   | 'ExpiredTokenError'
   | 'FileConventionError'
+  | 'FileNotFoundError'
   | 'ModuleNotFoundError'
+  | 'InsufficientMemorySpaceError'
   | 'InvalidOrCannotAssumeRoleError'
   | 'InvalidPackageJsonError'
   | 'SecretNotSetError'

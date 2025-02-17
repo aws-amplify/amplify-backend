@@ -17,7 +17,7 @@ export const runVersion = async (
       stdio: 'inherit',
       cwd,
     });
-  } catch (err) {
+  } catch {
     console.log(
       'git fetch --unshallow failed. This likely means we already have an un-shallow repo'
     );

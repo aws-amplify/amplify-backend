@@ -686,6 +686,29 @@ npm error enoent`,
     errorName: 'DeleteFailedWhileDeploymentInProgressError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage: 'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)',
+    expectedTopLevelErrorMessage:
+      'Unable to connect to remote address 123.3.789.14 due to insufficient memory.',
+    errorName: 'InsufficientMemorySpaceError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      "ENOENT: no such file or directory, open '/Users/myUser/nonExistingFile'",
+    expectedTopLevelErrorMessage:
+      "Failed to open '/Users/myUser/nonExistingFile'",
+    errorName: 'FileNotFoundError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      "ENOENT: no such file or directory, open '/Users/myUser/.amplify/artifacts/cdk.out/manifest.json'",
+    expectedTopLevelErrorMessage:
+      'The Amplify backend definition is missing `defineBackend` call.',
+    errorName: 'MissingDefineBackendError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {

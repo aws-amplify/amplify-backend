@@ -10,7 +10,7 @@ import { ConversationTurnEvent } from './types';
 // 4. Hardcoding version in the code, as opposed to reading package.json file isn't great option either.
 //
 // Therefore, using require as least problematic solution here.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const packageVersion = require('../../../package.json').version;
 // Compliant with https://www.rfc-editor.org/rfc/rfc5234.
 const packageName = 'amplify-ai-constructs';

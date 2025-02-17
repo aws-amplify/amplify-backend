@@ -2,7 +2,7 @@
  * This code loads environment values from SSM and places them in their corresponding environment variables.
  * If there are no SSM environment values for this function, this is a noop.
  */
-import type { SSM } from '@aws-sdk/client-ssm';
+import type { GetParametersCommandOutput, SSM } from '@aws-sdk/client-ssm';
 import type { SsmEnvVars } from '../function_env_translator.js';
 
 /**
@@ -27,11 +27,36 @@ export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
     actualSsmClient = new ssmSdk.SSM();
   }
 
+  const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
+  };
+
   const resolveSecrets = async (paths: string[]) => {
-    const response = await actualSsmClient.getParameters({
-      Names: paths,
-      WithDecryption: true,
-    });
+    const response = (
+      await Promise.all(
+        chunkArray(paths, 10).map(
+          async (chunkedPaths) =>
+            await actualSsmClient.getParameters({
+              Names: chunkedPaths,
+              WithDecryption: true,
+            })
+        )
+      )
+    ).reduce(
+      (accumulator, res: GetParametersCommandOutput) => {
+        accumulator.Parameters?.push(...(res.Parameters ?? []));
+        accumulator.InvalidParameters?.push(...(res.InvalidParameters ?? []));
+        return accumulator;
+      },
+      {
+        Parameters: [],
+        InvalidParameters: [],
+      } as Partial<GetParametersCommandOutput>
+    );
 
     if (response.Parameters && response.Parameters.length > 0) {
       for (const parameter of response.Parameters) {

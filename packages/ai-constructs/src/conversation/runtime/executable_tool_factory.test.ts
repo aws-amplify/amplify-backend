@@ -26,7 +26,7 @@ const compileInMemory = (rootDir: string, text: string) => {
   ) => {
     // This is intentional, we don't care about function signature, we just
     // want to intercept it.
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     const originalMethod: Function = host[methodName];
     mock.method(host, methodName, (...args: unknown[]) => {
       // resolve the path because typescript will normalize it

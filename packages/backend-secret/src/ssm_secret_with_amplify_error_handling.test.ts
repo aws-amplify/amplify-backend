@@ -62,6 +62,30 @@ void describe('getSecretClientWithAmplifyErrorHandling', () => {
     );
   });
 
+  void it('throws AmplifyUserError if listSecrets fails due to insufficient memory error', async (context) => {
+    const credentialsError = new Error(
+      'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)'
+    );
+    const secretsError = SecretError.createInstance(credentialsError);
+    context.mock.method(rawSecretClient, 'listSecrets', () => {
+      throw secretsError;
+    });
+    await assert.rejects(
+      () =>
+        classUnderTest.listSecrets({
+          namespace: 'testSandboxId',
+          name: 'testSandboxName',
+          type: 'sandbox',
+        }),
+      new AmplifyUserError('InsufficientMemorySpaceError', {
+        message:
+          'Failed to list secrets. Error: connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)',
+        resolution:
+          'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
+      })
+    );
+  });
+
   void it('throws AmplifyUserError if getSecret fails due to ParameterNotFound error', async (context) => {
     const notFoundError = new Error('Parameter not found error');
     notFoundError.name = 'ParameterNotFound';

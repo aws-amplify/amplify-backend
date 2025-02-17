@@ -78,7 +78,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
       return classification === 'ERROR'
         ? new AmplifyUserError(name, options, serializedCause)
         : new AmplifyFault(name, options, serializedCause);
-    } catch (error) {
+    } catch {
       // cannot deserialize
       return undefined;
     }
@@ -305,7 +305,11 @@ const isInsufficientDiskSpaceError = (err?: Error): boolean => {
 };
 
 const isOutOfMemoryError = (err?: Error): boolean => {
-  return !!err && err.message.includes('process out of memory');
+  return (
+    !!err &&
+    (err.message.includes('process out of memory') ||
+      err.message.includes('connect ENOMEM'))
+  );
 };
 
 /**

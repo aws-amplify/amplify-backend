@@ -1,6 +1,7 @@
 import fsp from 'fs/promises';
 import path from 'path';
 import { ClientConfigFileBaseName, ClientConfigFormat } from '../index.js';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Get path to config file
@@ -32,7 +33,21 @@ export const getClientConfigPath = async (
     } catch (error) {
       // outDir does not exist, so create dir
       if (error instanceof Error && error.message.includes('ENOENT')) {
-        await fsp.mkdir(outDir, { recursive: true });
+        try {
+          await fsp.mkdir(outDir, { recursive: true });
+        } catch (error) {
+          if (error instanceof Error && error.message.includes('ENOENT')) {
+            throw new AmplifyUserError(
+              'InvalidPathError',
+              {
+                message: `Directory ${outDir} could not be created.`,
+                resolution:
+                  'Ensure that you have access for creating this file path and that the path is correct',
+              },
+              error
+            );
+          }
+        }
       } else {
         throw error;
       }

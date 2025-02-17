@@ -609,6 +609,10 @@ jobs:
           node-version: 18
           cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
       - run: npm run lint
+        env:
+          # increase v8's old memory section max size to ~15.5 GB
+          # see https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
+          NODE_OPTIONS: '--max-old-space-size=14782'
   check_dependencies:
     runs-on: ubuntu-latest
     needs:

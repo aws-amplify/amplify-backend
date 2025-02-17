@@ -27,7 +27,7 @@ try {
     );
     pid = Number.parseInt(lsofResult.stdout.toString());
   }
-} catch (err) {
+} catch {
   console.warn(
     'Could not determine npm proxy process id. Most likely the process has already been stopped.'
   );

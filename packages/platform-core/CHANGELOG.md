@@ -1,5 +1,17 @@
 # @aws-amplify/platform-core
 
+## 1.6.2
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+
+## 1.6.1
+
+### Patch Changes
+
+- ec7826d: Handle connect ENOMEM error
+
 ## 1.6.0
 
 ### Minor Changes

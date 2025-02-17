@@ -17,7 +17,7 @@ import type { SSM } from 'aws-sdk';
 import type { SsmEnvVars } from '../function_env_translator.js';
 
 // aws-sdk v2 does not play nice with normal ESM imports so we have to use require here
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const aws = require('aws-sdk');
 
 /**
@@ -36,13 +36,40 @@ export const internalAmplifyFunctionResolveSsmParams = async (
     return;
   }
 
+  const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
+  };
+
   const resolveSecrets = async (paths: string[]) => {
-    const response = await client
-      .getParameters({
-        Names: paths,
-        WithDecryption: true,
-      })
-      .promise();
+    const response = (
+      await Promise.all(
+        chunkArray(paths, 10).map(
+          async (chunkedPaths) =>
+            await client
+              .getParameters({
+                Names: chunkedPaths,
+                WithDecryption: true,
+              })
+              .promise()
+        )
+      )
+    ).reduce(
+      (accumulator, response) => {
+        accumulator.Parameters?.push(...(response.Parameters ?? []));
+        accumulator.InvalidParameters?.push(
+          ...(response.InvalidParameters ?? [])
+        );
+        return accumulator;
+      },
+      {
+        Parameters: [],
+        InvalidParameters: [],
+      } as SSM.GetParametersResult
+    );
 
     if (response.Parameters && response.Parameters.length > 0) {
       for (const parameter of response.Parameters) {
