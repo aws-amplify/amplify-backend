@@ -92,14 +92,14 @@ export class SerializableError {
     return str?.replace(this.arnRegex, '<escaped ARN>') ?? '';
   };
 
-  private removeStack = (str?: string): string => {
+  private removeStackIdentifier = (str?: string): string => {
     return str?.replace(this.stackRegex, '<escaped stack>') ?? '';
   };
 
   private sanitize = (str: string) => {
     let result = str;
     result = this.removeARN(result);
-    result = this.removeStack(result);
+    result = this.removeStackIdentifier(result);
     return result.replaceAll(/["❌]/g, '');
   };
 

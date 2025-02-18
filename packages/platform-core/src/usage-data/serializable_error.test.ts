@@ -85,6 +85,7 @@ void describe('serializable error', () => {
   void test('that stacks are escaped when error details has two AWS stacks', () => {
     const error = new ErrorWithDetailsAndCode(
       'some error message',
+      // eslint-disable-next-line spellcheck/spell-checker
       'some error details with stack: amplify-testapp-test-sandbox-1234abcd and stack: amplify-testapp-test-branch-1234abcd and something else'
     );
     const serializableError = new SerializableError(error);
@@ -102,6 +103,7 @@ void describe('serializable error', () => {
 
   void test('that error message does not contain AWS ARNs or stacks', () => {
     const error = new ErrorWithDetailsAndCode(
+      // eslint-disable-next-line spellcheck/spell-checker
       'test error with stack: amplify-testapp-test-branch-1234abcd and arn: arn:aws-iso:service:region::res'
     );
     const serializableError = new SerializableError(error);
