@@ -124,4 +124,17 @@ void describe('serializable error', () => {
       `${expectedFilePath} is not found in ${serializableError.stack}`
     );
   });
+
+  void test('that error stack does not contain stacks', () => {
+    const error = new Error('test error');
+    error.stack =
+      'Stack with id amplify-test-stack-sandbox-12345abcde does not exist';
+    const serializableError = new SerializableError(error);
+    assert.ok(
+      serializableError.stack.includes(
+        'Stack with id <escaped stack> does not exist'
+      ),
+      `Stack is not removed in ${serializableError.stack}`
+    );
+  });
 });

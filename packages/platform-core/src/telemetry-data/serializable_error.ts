@@ -30,7 +30,9 @@ export class SerializableError {
         ? this.sanitize(error.code as string)
         : error.name;
     this.message = this.anonymizePaths(this.sanitize(error.message));
-    this.stack = this.anonymizePaths(error.stack ?? '');
+    this.stack = error.stack
+      ? this.anonymizePaths(this.sanitize(error.stack))
+      : '';
   }
 
   private anonymizePaths = (str: string): string => {
