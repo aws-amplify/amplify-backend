@@ -13,6 +13,7 @@ export class NoticesManifestValidator {
    * Creates notices manifest validator.
    */
   constructor(private readonly props?: NoticesManifestValidatorProps) {}
+
   validate = async (noticesManifest: NoticesManifest): Promise<void> => {
     const links = new Set<string>();
     for (const notice of noticesManifest.currentNotices) {
