@@ -129,11 +129,11 @@ void describe(
 
           assert.strictEqual(
             packageJsonObject.devDependencies['aws-cdk'],
-            baselineCdkVersion
+            baselineCdkCliVersion
           );
           assert.strictEqual(
             packageJsonObject.devDependencies['aws-cdk-lib'],
-            baselineCdkVersion
+            baselineCdkLibVersion
           );
 
           assert.deepStrictEqual(
