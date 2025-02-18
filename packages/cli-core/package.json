@@ -28,8 +28,5 @@
     "zod": "^3.22.2",
     "@aws-sdk/client-cloudformation": "^3.624.0",
     "@aws-cdk/toolkit": "file:../../dist/aws-cdk-toolkit-0.0.0.tgz"
-  },
-  "devDependencies": {
-    "node-pty": "1.0.0"
   }
 }
