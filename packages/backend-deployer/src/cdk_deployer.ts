@@ -10,6 +10,7 @@ import {
 } from './cdk_deployer_singleton_factory.js';
 import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
 import {
+  AmplifyIOHost,
   BackendIdentifier,
   type PackageManagerController,
 } from '@aws-amplify/plugin-types';
@@ -26,7 +27,6 @@ import {
   StackSelectionStrategy,
   Toolkit,
 } from '@aws-cdk/toolkit';
-import { format, printer } from '@aws-amplify/cli-core';
 import { tsImport } from 'tsx/esm/api';
 import { CloudAssembly } from 'aws-cdk-lib/cx-api';
 import { pathToFileURL } from 'url';
@@ -46,7 +46,8 @@ export class CDKDeployer implements BackendDeployer {
     private readonly cdkErrorMapper: CdkErrorMapper,
     private readonly backendLocator: BackendLocator,
     private readonly packageManagerController: PackageManagerController,
-    private readonly cdkToolkit: Toolkit
+    private readonly cdkToolkit: Toolkit,
+    private readonly ioHost: AmplifyIOHost
   ) {}
   /**
    * Invokes cdk deploy command
@@ -93,44 +94,62 @@ export class CDKDeployer implements BackendDeployer {
     const synthStartTime = Date.now();
     let synthAssembly,
       synthError: Error | undefined = undefined;
-    await printer.indicateProgress('Synthesizing backend', async () => {
-      try {
-        synthAssembly = await this.cdkToolkit.synth(cx, {
-          stacks: {
-            strategy: StackSelectionStrategy.ALL_STACKS,
-          },
-        });
-      } catch (error) {
-        synthError = error as Error;
-      }
+    await this.ioHost.notify({
+      message: `Backend synthesis started`,
+      code: 'SYNTH_STARTED',
+      action: 'amplify',
+      time: new Date(),
+      level: 'info',
     });
+
+    try {
+      synthAssembly = await this.cdkToolkit.synth(cx, {
+        stacks: {
+          strategy: StackSelectionStrategy.ALL_STACKS,
+        },
+      });
+    } catch (error) {
+      synthError = error as Error;
+    }
+
     const synthTimeSeconds =
       Math.floor((Date.now() - synthStartTime) / 10) / 100;
-    printer.print(
-      format.success(`✔ Backend synthesized in ${synthTimeSeconds} seconds`)
-    );
+
+    await this.ioHost.notify({
+      message: `✔ Backend synthesized in ${synthTimeSeconds} seconds`,
+      code: 'SYNTH_FINISHED',
+      action: 'amplify',
+      time: new Date(),
+      level: 'result',
+    });
 
     // 4. Typescript compilation. For type related errors we prefer errors from here.
     const typeCheckStartTime = Date.now();
-    await printer.indicateProgress('Running type checks', async () => {
-      try {
-        await this.invokeTsc(deployProps);
-      } catch (typeError) {
-        if (
-          synthError &&
-          AmplifyError.isAmplifyError(typeError) &&
-          typeError.cause?.message.match(
-            /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/
-          )
-        ) {
-          // synth has failed and we don't have auto generated function environment definition files. This
-          // resulted in the exception caught here, which is not very useful for the customers.
-          // We instead throw the synth error for customers to fix what caused the synth to fail.
-          throw synthError;
-        }
-        throw typeError;
-      }
+    await this.ioHost.notify({
+      message: `Backend type checks started`,
+      code: 'TS_STARTED',
+      action: 'amplify',
+      time: new Date(),
+      level: 'info',
     });
+
+    try {
+      await this.invokeTsc(deployProps);
+    } catch (typeError) {
+      if (
+        synthError &&
+        AmplifyError.isAmplifyError(typeError) &&
+        typeError.cause?.message.match(
+          /Cannot find module '\$amplify\/env\/.*' or its corresponding type declarations/
+        )
+      ) {
+        // synth has failed and we don't have auto generated function environment definition files. This
+        // resulted in the exception caught here, which is not very useful for the customers.
+        // We instead throw the synth error for customers to fix what caused the synth to fail.
+        throw synthError;
+      }
+      throw typeError;
+    }
 
     if (synthError) {
       throw this.cdkErrorMapper.getAmplifyError(synthError);
@@ -138,11 +157,13 @@ export class CDKDeployer implements BackendDeployer {
     const typeCheckTimeSeconds =
       Math.floor((Date.now() - typeCheckStartTime) / 10) / 100;
     if (backendId.type === 'sandbox') {
-      printer.print(
-        format.success(
-          `✔ Type checks completed in ${typeCheckTimeSeconds} seconds`
-        )
-      );
+      await this.ioHost.notify({
+        message: `✔ Type checks completed in ${typeCheckTimeSeconds} seconds`,
+        code: 'TS_FINISHED',
+        action: 'amplify',
+        time: new Date(),
+        level: 'result',
+      });
     }
 
     // 5. Perform actual deployment. CFN or hotswap
@@ -165,9 +186,22 @@ export class CDKDeployer implements BackendDeployer {
     }
     const deployTimeSeconds =
       Math.floor((Date.now() - deployStartTime) / 10) / 100;
-    printer.print(
-      format.success(`✔ Deployment completed in ${deployTimeSeconds} seconds`)
-    );
+
+    await this.ioHost.notify({
+      message: `✔ Deployment completed in ${deployTimeSeconds} seconds`,
+      code: 'DEPLOY_FINISHED',
+      action: 'amplify',
+      time: new Date(),
+      level: 'result',
+    });
+
+    await this.ioHost.notify({
+      message: '-'.repeat(process.stdout.columns),
+      code: 'LINE_BREAK',
+      action: 'amplify',
+      time: new Date(),
+      level: 'info',
+    });
 
     // if (deployProps?.profile) {
     //   cdkCommandArgs.push('--profile', deployProps.profile);

@@ -9,6 +9,7 @@ import {
 import { DeployProps } from './cdk_deployer_singleton_factory.js';
 import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
 import {
+  AmplifyIOHost,
   BackendIdentifier,
   PackageManagerController,
 } from '@aws-amplify/plugin-types';
@@ -74,7 +75,8 @@ void describe('invokeCDKCommand', () => {
     new CdkErrorMapper(formatterStub),
     backendLocator,
     packageManagerControllerMock as never,
-    cdkToolkit
+    cdkToolkit,
+    mock.fn() as unknown as AmplifyIOHost // TBD
   );
   const executeCommandMock = mock.method(
     invoker,

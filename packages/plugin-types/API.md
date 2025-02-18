@@ -15,6 +15,8 @@ import { CfnUserPoolGroup } from 'aws-cdk-lib/aws-cognito';
 import { Client } from '@aws-sdk/types';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { IoMessage } from '@aws-cdk/toolkit';
+import { IoRequest } from '@aws-cdk/toolkit';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
@@ -23,9 +25,30 @@ import { Policy } from 'aws-cdk-lib/aws-iam';
 import { Readable } from 'node:stream';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
+import { ToolkitAction } from '@aws-cdk/toolkit';
+
+// @public (undocumented)
+export interface AmplifyEventMessage {
+    // (undocumented)
+    action: ToolkitAction | 'amplify';
+    // (undocumented)
+    code: string;
+}
 
 // @public (undocumented)
 export type AmplifyFunction = ResourceProvider<FunctionResources>;
+
+// @public (undocumented)
+export type AmplifyIOHost = {
+    requestResponse: <T, U>(msg: IoRequest<T, U>) => Promise<U>;
+    notify: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+};
+
+// Warning: (ae-forgotten-export) The symbol "SimpleSpread" needs to be exported by the entry point index.d.ts
+//
+// @public (undocumented)
+export interface AmplifyIoHostEventMessage<T> extends SimpleSpread<IoMessage<T>, AmplifyEventMessage> {
+}
 
 // @public
 export type AmplifyResourceGroupName = 'auth' | 'data' | 'storage' | (string & {

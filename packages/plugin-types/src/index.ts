@@ -1,3 +1,4 @@
+export * from './amplify_io_host';
 export * from './backend_stack_creator.js';
 export * from './backend_stack_resolver.js';
 export * from './construct_container.js';

@@ -8,10 +8,6 @@ export class RewritableBlock {
   private lastHeight = 0;
   private trailingEmptyLines = 0;
   private printer: Printer;
-  private resolveForWaitingForTheNextDisplay: (value: unknown) => void;
-  private progressIndicatorForWaitingForDisplayUpdate:
-    | Promise<void>
-    | undefined;
   /**
    * TBD
    */
@@ -39,63 +35,48 @@ export class RewritableBlock {
    * TBD
    */
   async displayLines(lines: string[]) {
-    if (this.progressIndicatorForWaitingForDisplayUpdate) {
-      // Stop the previous spinner
-      this.resolveForWaitingForTheNextDisplay(true);
-      await this.progressIndicatorForWaitingForDisplayUpdate;
-    } else {
-      // first time displaying the spinner. Hold on to the resolve promise to stop
-      // spinner on the next display or at the end.
-    }
     lines = terminalWrap(this.width, expandNewlines(lines));
     lines = lines.slice(
       0,
       getMaxBlockHeight(this.height, this.lastHeight, lines)
     );
 
-    this.stream.write(cursorUp(this.lastHeight));
+    const progressUpdate: string[] = [];
     for (const line of lines) {
-      this.stream.write(cll() + line + '\n');
+      progressUpdate.push(cll() + line + '\n');
     }
 
     this.trailingEmptyLines = Math.max(0, this.lastHeight - lines.length);
 
     // Clear remainder of unwritten lines
     for (let i = 0; i < this.trailingEmptyLines; i++) {
-      this.stream.write(cll() + '\n');
+      progressUpdate.push(cll() + '\n');
     }
 
-    this.progressIndicatorForWaitingForDisplayUpdate =
-      this.printer.indicateProgress('Deployment in progress...', async () => {
-        await new Promise((resolve) => {
-          this.resolveForWaitingForTheNextDisplay = resolve;
-        });
-      });
     // The block can only ever get bigger
+    this.printer.updateSpinner('Deployment in progress...', {
+      prefixText: progressUpdate.join(''),
+    });
+
     this.lastHeight = Math.max(this.lastHeight, lines.length);
   }
 
   /**
    * TBD
    */
-  async removeEmptyLines() {
-    if (this.progressIndicatorForWaitingForDisplayUpdate) {
-      this.resolveForWaitingForTheNextDisplay(true);
-      await this.progressIndicatorForWaitingForDisplayUpdate;
-    }
-    this.stream.write(cursorUp(this.trailingEmptyLines));
+  stop() {
+    this.printer.stopSpinner('Deployment in progress...');
+  }
+
+  /**
+   * TBD
+   */
+  start() {
+    this.printer.startSpinner('Deployment in progress...');
   }
 }
 
 const ESC = '\u001b';
-
-/*
- * Move cursor up `n` lines. Default is 1
- */
-const cursorUp = (n: number) => {
-  n = typeof n === 'number' ? n : 1;
-  return n > 0 ? ESC + '[' + n + 'A' : '';
-};
 
 /**
  * Clear to end of line

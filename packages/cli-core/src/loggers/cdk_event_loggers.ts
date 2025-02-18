@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IoMessage } from '@aws-cdk/toolkit';
 import { LogLevel } from '../printer/printer.js';
 import { minimumLogLevel, printer } from '../printer.js';
 import { format } from '../format/format.js';
 import { CurrentActivityPrinter } from './cfn-deployment-progress/cfn_deployment_logger.js';
 import { StackEvent } from '@aws-sdk/client-cloudformation';
+import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
 
 /**
  * CDK event logger class
@@ -26,14 +26,14 @@ export class CDKEventLogger {
       notify:
         minimumLogLevel === LogLevel.DEBUG
           ? [this.debug]
-          : [this.cfnDeploymentProgress],
+          : [this.cfnDeploymentProgress, this.amplifyNotifications],
     };
   };
 
   /**
    * Log debug messages
    */
-  debug = <T>(msg: IoMessage<T>): Promise<void> => {
+  debug = <T>(msg: AmplifyIoHostEventMessage<T>): Promise<void> => {
     if (msg.level === 'trace' || msg.level === 'debug') {
       if (
         msg.data &&
@@ -79,16 +79,60 @@ export class CDKEventLogger {
     return Promise.resolve();
   };
 
+  amplifyNotifications = async <T>(
+    msg: AmplifyIoHostEventMessage<T>
+  ): Promise<void> => {
+    if (msg.action !== 'amplify') {
+      return;
+    }
+    switch (msg.code) {
+      case 'TS_STARTED':
+        this.printer.startSpinner('Running type checks...');
+        return;
+      case 'TS_FINISHED':
+        this.printer.stopSpinner('Running type checks...');
+        break;
+      case 'SYNTH_STARTED':
+        this.printer.startSpinner('Synthesizing backend...');
+        return;
+      case 'SYNTH_FINISHED':
+        this.printer.stopSpinner('Synthesizing backend...');
+        break;
+    }
+    const formatFn =
+      msg.level === 'error'
+        ? format.error
+        : msg.level === 'result'
+        ? format.success
+        : undefined;
+    this.printer.print(formatFn ? formatFn(msg.message) : msg.message);
+  };
+
   /**
    * Displays pretty print of cfn deployment progress. Disabled if debug logging is turned on
    * @param msg a CDK event
    */
-  cfnDeploymentProgress = async <T>(msg: IoMessage<T>): Promise<void> => {
+  cfnDeploymentProgress = async <T>(
+    msg: AmplifyIoHostEventMessage<T>
+  ): Promise<void> => {
     // TBD: This will be replaced with a proper marker event with a unique code later
+    // Asset publishing
+    if (msg.message.includes('Checking for previously published assets')) {
+      this.printer.startSpinner('Building and publishing assets...');
+      return Promise.resolve();
+    } else if (
+      msg.message.includes('success: Published') ||
+      msg.message.includes('0 still need to be published')
+    ) {
+      this.printer.stopSpinner('Building and publishing assets...');
+      this.printer.print(format.success('✔ Built and published assets'));
+      return Promise.resolve();
+    }
     if (
       msg.message.includes('Deployment time') ||
       msg.message.includes('Failed resources')
     ) {
+      // TBD: This will be replaced with a proper marker event with a unique code later
       if (this.cfnDeploymentActivityPrinter) {
         await this.cfnDeploymentActivityPrinter.stop();
         this.cfnDeploymentActivityPrinter = undefined;
@@ -112,7 +156,6 @@ export class CDKEventLogger {
       msg.message.includes('deploying...') &&
       !this.cfnDeploymentActivityPrinter
     ) {
-      this.printer.print(format.note('Starting deployment...'));
       this.cfnDeploymentActivityPrinter = new CurrentActivityPrinter({
         resourceTypeColumnWidth: 30, // TBD
         stream: process.stdout,

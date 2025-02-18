@@ -6,8 +6,8 @@
 
 /// <reference types="node" />
 
-import { IIoHost } from '@aws-cdk/toolkit';
-import { IoMessage } from '@aws-cdk/toolkit';
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
+import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
 import { IoRequest } from '@aws-cdk/toolkit';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
@@ -33,11 +33,13 @@ export class AmplifyPrompter {
 // @public
 export class CDKEventLogger {
     constructor();
-    cfnDeploymentProgress: <T>(msg: IoMessage<T>) => Promise<void>;
-    debug: <T>(msg: IoMessage<T>) => Promise<void>;
+    // (undocumented)
+    amplifyNotifications: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    cfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    debug: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
     // (undocumented)
     getCDKEventLoggers: () => {
-        notify: (<T>(msg: IoMessage<T>) => Promise<void>)[];
+        notify: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
     };
     // (undocumented)
     isCfnSdkCallEvent: <T>(data: T) => boolean;
@@ -46,12 +48,12 @@ export class CDKEventLogger {
 }
 
 // @public
-export class CDKEventsBridgeIoHost implements IIoHost {
+export class CDKEventsBridgeIoHost implements AmplifyIOHost {
     constructor(eventHandlers: {
-        notify?: (<T>(msg: IoMessage<T>) => Promise<void>)[];
+        notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
         requestResponse?: (<T, U>(msg: IoRequest<T, U>) => Promise<U>)[];
     });
-    notify<T>(msg: IoMessage<T>): Promise<void>;
+    notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void>;
     requestResponse<T, U>(msg: IoRequest<T, U>): Promise<U>;
 }
 
@@ -123,6 +125,11 @@ export class Printer {
     log(message: string, level?: LogLevel): void;
     print: (message: string) => void;
     printNewLine: () => void;
+    startSpinner(message: string): void;
+    stopSpinner(message: string): void;
+    updateSpinner(message: string, options: {
+        prefixText: string;
+    }): void;
 }
 
 // @public (undocumented)

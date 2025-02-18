@@ -28,7 +28,7 @@ import {
   format,
 } from '@aws-amplify/cli-core';
 import { URL, fileURLToPath } from 'url';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { AmplifyIOHost, BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import {
@@ -37,7 +37,6 @@ import {
   SSMServiceException,
 } from '@aws-sdk/client-ssm';
 import { EOL } from 'os';
-import type { IIoHost } from '@aws-cdk/toolkit';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
@@ -55,7 +54,7 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
 };
-const mockIoHost: IIoHost = {
+const mockIoHost: AmplifyIOHost = {
   notify: mock.fn(),
   requestResponse: mock.fn(),
 };

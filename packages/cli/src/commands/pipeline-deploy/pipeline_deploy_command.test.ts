@@ -27,7 +27,7 @@ import {
 import { S3Client } from '@aws-sdk/client-s3';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { CloudFormationClient } from '@aws-sdk/client-cloudformation';
-import { IIoHost } from '@aws-cdk/toolkit';
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 
 void describe('deploy command', () => {
   const clientConfigGenerator = new ClientConfigGeneratorAdapter({
@@ -40,7 +40,7 @@ void describe('deploy command', () => {
     'generateClientConfigToFile',
     () => Promise.resolve()
   );
-  const mockIoHost: IIoHost = {
+  const mockIoHost: AmplifyIOHost = {
     notify: mock.fn(),
     requestResponse: mock.fn(),
   };

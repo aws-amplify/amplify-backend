@@ -723,10 +723,7 @@ export class CurrentActivityPrinter extends ActivityPrinterBase {
    * TBD
    */
   public start() {
-    // Need to prevent the waiter from printing 'stack not stable' every 5 seconds, it messes
-    // with the output calculations.
-    // this.oldLogLevel = logLevel;
-    // setLogLevel(LogLevel.DEFAULT);
+    this.block.start();
   }
 
   /**
@@ -766,7 +763,7 @@ export class CurrentActivityPrinter extends ActivityPrinterBase {
 
     // Display in the same block space, otherwise we're going to have silly empty lines.
     await this.block.displayLines(lines);
-    await this.block.removeEmptyLines();
+    await this.block.stop();
   }
 
   /**
