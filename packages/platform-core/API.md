@@ -28,7 +28,9 @@ declare namespace __export__notices {
         noticeSchema,
         Notice,
         noticesManifestSchema,
-        NoticesManifest
+        NoticesManifest,
+        NoticesManifestValidatorProps,
+        NoticesManifestValidator
     }
 }
 export { __export__notices }
@@ -213,6 +215,18 @@ const noticesManifestSchema: z.ZodObject<{
         link: string;
     }[];
 }>;
+
+// @public
+class NoticesManifestValidator {
+    constructor(props?: NoticesManifestValidatorProps | undefined);
+    // (undocumented)
+    validate: (noticesManifest: NoticesManifest) => Promise<void>;
+}
+
+// @public (undocumented)
+type NoticesManifestValidatorProps = {
+    checkLinksWithGitHubApi?: boolean;
+};
 
 // @public
 export class ObjectAccumulator<T> {
