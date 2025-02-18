@@ -34,7 +34,9 @@ export class SerializableError {
         : error.name;
     this.message = this.anonymizePaths(this.sanitize(error.message));
     this.details =
-      'details' in error ? this.sanitize(error.details as string) : undefined;
+      'details' in error
+        ? this.anonymizePaths(this.sanitize(error.details as string))
+        : undefined;
     this.trace = this.extractStackTrace(error);
   }
 

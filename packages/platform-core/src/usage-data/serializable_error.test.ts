@@ -138,4 +138,56 @@ void describe('serializable error', () => {
       `${os.homedir()} is included in ${serializableError.message}`
     );
   });
+
+  void test('that error details do not contain user homedir', () => {
+    const error = new ErrorWithDetailsAndCode(
+      'test error',
+      `${process.cwd()} test details`
+    );
+    const serializableError = new SerializableError(error);
+    const matches = serializableError.details
+      ? [...serializableError.details.matchAll(new RegExp(os.homedir(), 'g'))]
+      : [];
+    assert.ok(
+      serializableError.details && matches.length === 0,
+      `${os.homedir()} is included in ${serializableError.details}`
+    );
+  });
+
+  void test('that error details do not contain file url path with user homedir', () => {
+    const error = new ErrorWithDetailsAndCode(
+      'test error',
+      `${pathToFileURL(process.cwd()).toString()} test details`
+    );
+    const serializableError = new SerializableError(error);
+    const matches = serializableError.details
+      ? [...serializableError.details.matchAll(new RegExp(os.homedir(), 'g'))]
+      : [];
+    assert.ok(
+      serializableError.details && matches.length === 0,
+      `${os.homedir()} is included in ${serializableError.details}`
+    );
+  });
+
+  void test('that error details do not contain AWS ARNs or stacks', () => {
+    const error = new ErrorWithDetailsAndCode(
+      'test error',
+      // eslint-disable-next-line spellcheck/spell-checker
+      'test error with stack: amplify-testapp-test-branch-1234abcd and arn: arn:aws-iso:service:region::res'
+    );
+    const serializableError = new SerializableError(error);
+    assert.deepStrictEqual(
+      serializableError.details,
+      'test error with stack: <escaped stack> and arn: <escaped ARN>'
+    );
+  });
+
+  void test('that error details is sanitized by removing invalid characters', () => {
+    const error = new ErrorWithDetailsAndCode(
+      'test error',
+      'some" er❌ror ""m"es❌sage❌'
+    );
+    const serializableError = new SerializableError(error);
+    assert.deepStrictEqual(serializableError.details, 'some error message');
+  });
 });
