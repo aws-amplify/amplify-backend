@@ -58,6 +58,11 @@ void describe('invokeCDKCommand', () => {
     tryGetDependencies: mock.fn(() => Promise.resolve([])),
   };
 
+  const mockIoHost: AmplifyIOHost = {
+    notify: mock.fn(),
+    requestResponse: mock.fn(),
+  };
+
   const synthMock = mock.fn();
   const deployMock = mock.fn();
   const destroyMock = mock.fn();
@@ -76,7 +81,7 @@ void describe('invokeCDKCommand', () => {
     backendLocator,
     packageManagerControllerMock as never,
     cdkToolkit,
-    mock.fn() as unknown as AmplifyIOHost // TBD
+    mockIoHost
   );
   const executeCommandMock = mock.method(
     invoker,

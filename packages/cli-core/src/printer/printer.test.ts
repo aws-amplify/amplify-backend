@@ -1,6 +1,7 @@
 import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { LogLevel, Printer } from './printer.js';
+import tty from 'node:tty';
 
 void describe('Printer', () => {
   const mockedWrite = mock.method(process.stdout, 'write');
@@ -51,26 +52,30 @@ void describe('Printer', () => {
   });
 
   void it('start animating spinner with message and stops animation in TTY terminal', async () => {
-    process.stdout.isTTY = true;
-
     const message = 'Message 1';
 
-    await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    });
+    const ttyStream = new tty.WriteStream(1);
+
+    const mockedWrite = mock.method(ttyStream, 'write');
+
+    await new Printer(LogLevel.INFO, ttyStream).indicateProgress(
+      message,
+      async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    );
 
     const logMessages = mockedWrite.mock.calls
       .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
+    assert.ok(logMessages.length > 0);
     logMessages.forEach((message) => {
       assert.match(message, /Message(.*)/);
     });
   });
 
   void it('animating spinner is a noop in non-TTY terminal and instead logs a message at INFO level', async () => {
-    process.stdout.isTTY = false;
-
     const message = 'Message 1';
 
     await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
@@ -81,22 +86,26 @@ void describe('Printer', () => {
       .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
-    assert.strictEqual(logMessages.length, 1);
-    assert.strictEqual(logMessages[0], 'Message 1');
+    // Once to print the message and second that prints the success
+    assert.strictEqual(logMessages.length, 2);
+    assert.match(logMessages[0], /Message(.*)/);
+    assert.match(logMessages[1], /✔.*Message(.*)/);
   });
 
   void it('indicateProgress stops spinner and propagates error when action fails', async () => {
-    process.stdout.isTTY = true;
-
     const errorMessage = 'Error message';
     const message = 'Message 1';
     let errorCaught = false;
+    const ttyStream = new tty.WriteStream(1);
 
     try {
-      await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        throw new Error(errorMessage);
-      });
+      await new Printer(LogLevel.INFO, ttyStream).indicateProgress(
+        message,
+        async () => {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          throw new Error(errorMessage);
+        }
+      );
     } catch (error) {
       assert.strictEqual((error as Error).message, errorMessage);
       errorCaught = true;

@@ -66,12 +66,19 @@ export class Printer {
    * Logs a message with animated spinner
    * If stdout is not a TTY, the message is logged at the info level without a spinner
    */
-  async indicateProgress(message: string, callback: () => Promise<void>) {
+  async indicateProgress(
+    message: string,
+    callback: () => Promise<void>,
+    successMessage?: string
+  ) {
     await oraPromise(callback, {
       text: message,
       stream: this.stdout,
       discardStdin: false,
       hideCursor: false,
+      interval: this.refreshRate,
+      spinner: 'dots',
+      successText: successMessage,
     });
   }
 

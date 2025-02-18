@@ -167,7 +167,6 @@ export class CDKDeployer implements BackendDeployer {
     }
 
     // 5. Perform actual deployment. CFN or hotswap
-    const deployStartTime = Date.now();
     try {
       await this.cdkToolkit.deploy(synthAssembly!, {
         stacks: {
@@ -184,24 +183,6 @@ export class CDKDeployer implements BackendDeployer {
     } catch (error) {
       throw this.cdkErrorMapper.getAmplifyError(error as Error);
     }
-    const deployTimeSeconds =
-      Math.floor((Date.now() - deployStartTime) / 10) / 100;
-
-    await this.ioHost.notify({
-      message: `✔ Deployment completed in ${deployTimeSeconds} seconds`,
-      code: 'DEPLOY_FINISHED',
-      action: 'amplify',
-      time: new Date(),
-      level: 'result',
-    });
-
-    await this.ioHost.notify({
-      message: '-'.repeat(process.stdout.columns),
-      code: 'LINE_BREAK',
-      action: 'amplify',
-      time: new Date(),
-      level: 'info',
-    });
 
     // if (deployProps?.profile) {
     //   cdkCommandArgs.push('--profile', deployProps.profile);

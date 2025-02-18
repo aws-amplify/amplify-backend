@@ -128,14 +128,29 @@ export class CDKEventLogger {
       this.printer.print(format.success('✔ Built and published assets'));
       return Promise.resolve();
     }
+
+    // CDK_TOOLKIT_I5000 code represents deployment time
     if (
-      msg.message.includes('Deployment time') ||
+      msg.code === 'CDK_TOOLKIT_I5000' ||
       msg.message.includes('Failed resources')
     ) {
       // TBD: This will be replaced with a proper marker event with a unique code later
       if (this.cfnDeploymentActivityPrinter) {
         await this.cfnDeploymentActivityPrinter.stop();
         this.cfnDeploymentActivityPrinter = undefined;
+      }
+      if (
+        msg.data &&
+        typeof msg.data === 'object' &&
+        'duration' in msg.data &&
+        msg.data.duration &&
+        typeof msg.data.duration === 'number'
+      ) {
+        this.printer.print(
+          format.success(
+            `✔ Deployment completed in ${msg.data.duration / 1000} seconds`
+          )
+        );
       }
       if (
         this.outputs &&
