@@ -44,8 +44,6 @@ export type AmplifyIOHost = {
     notify: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "SimpleSpread" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
 export interface AmplifyIoHostEventMessage<T> extends SimpleSpread<IoMessage<T>, AmplifyEventMessage> {
 }
@@ -298,6 +296,9 @@ export type ResourceProvider<T extends object = object> = {
 
 // @public (undocumented)
 export type SandboxName = string;
+
+// @public (undocumented)
+export type SimpleSpread<L, R> = R & Pick<L, Exclude<keyof L, keyof R>>;
 
 // @public (undocumented)
 export type SsmEnvironmentEntriesGenerator = {
