@@ -48,4 +48,27 @@ void describe('AccountIdFetcher', async () => {
     assert.strictEqual(mockSend.mock.callCount(), 1);
     mockSend.mock.resetCalls();
   });
+
+  void test('returns different account UUID based on account buckets', async () => {
+    const mockSend = mock.method(STSClient.prototype, 'send', () =>
+      Promise.resolve({
+        Account: '123456789012',
+      } as GetCallerIdentityCommandOutput)
+    );
+
+    // different accountIdFetcher to avoid returning cached account UUID
+    const accountIdFetcher1 = new AccountIdFetcher(new STSClient({}));
+    const accountIdFetcher2 = new AccountIdFetcher(new STSClient({}));
+
+    const accountId1 = await accountIdFetcher1.fetch();
+    mock.method(STSClient.prototype, 'send', () =>
+      Promise.resolve({
+        Account: '123456789901', // should fall in different account id bucket
+      } as GetCallerIdentityCommandOutput)
+    );
+    const accountId2 = await accountIdFetcher2.fetch();
+
+    assert.notStrictEqual(accountId1, accountId2);
+    mockSend.mock.resetCalls();
+  });
 });
