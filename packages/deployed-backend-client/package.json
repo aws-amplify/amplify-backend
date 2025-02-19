@@ -25,9 +25,9 @@
     "zod": "^3.22.2"
   },
   "peerDependencies": {
-    "@aws-sdk/client-amplify": "^3.624.0",
-    "@aws-sdk/client-cloudformation": "^3.624.0",
-    "@aws-sdk/client-s3": "^3.624.0",
+    "@aws-sdk/client-amplify": "^3.750.0",
+    "@aws-sdk/client-cloudformation": "^3.750.0",
+    "@aws-sdk/client-s3": "^3.750.0",
     "@aws-sdk/types": "^3.609.0"
   }
 }

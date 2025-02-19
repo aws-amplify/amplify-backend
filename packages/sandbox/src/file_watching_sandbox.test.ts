@@ -28,7 +28,7 @@ import {
   format,
 } from '@aws-amplify/cli-core';
 import { URL, fileURLToPath } from 'url';
-import { BackendIdentifier } from '@aws-amplify/plugin-types';
+import { AmplifyIOHost, BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
 import {
@@ -54,10 +54,15 @@ const packageManagerControllerFactory = new PackageManagerControllerFactory(
 const formatterStub: BackendDeployerOutputFormatter = {
   normalizeAmpxCommand: () => 'test command',
 };
+const mockIoHost: AmplifyIOHost = {
+  notify: mock.fn(),
+  requestResponse: mock.fn(),
+};
 
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
-  formatterStub
+  formatterStub,
+  mockIoHost
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 

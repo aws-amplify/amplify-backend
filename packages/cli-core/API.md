@@ -6,6 +6,9 @@
 
 /// <reference types="node" />
 
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
+import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
+import { AmplifyIoHostEventRequestMessageIoRequest } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
 
@@ -27,11 +30,38 @@ export class AmplifyPrompter {
     }) => Promise<boolean>;
 }
 
+// @public
+export class CDKEventLogger {
+    constructor();
+    // (undocumented)
+    amplifyNotifications: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    cfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    debug: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    // (undocumented)
+    getCDKEventLoggers: () => {
+        notify: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
+    };
+    // (undocumented)
+    isCfnSdkCallEvent: <T>(data: T) => boolean;
+    // (undocumented)
+    isSdkCallEvent: <T>(data: T) => boolean;
+}
+
+// @public
+export class CDKEventsBridgeIoHost implements AmplifyIOHost {
+    constructor(eventHandlers: {
+        notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
+        requestResponse?: (<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>) => Promise<U>)[];
+    });
+    notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void>;
+    requestResponse<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>): Promise<U>;
+}
+
 // @public (undocumented)
 export type ColorName = (typeof colorNames)[number];
 
 // @public (undocumented)
-export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan"];
+export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan", "Red"];
 
 // @public
 export class Format {
@@ -79,6 +109,9 @@ export enum LogLevel {
     INFO = 1
 }
 
+// @public (undocumented)
+export const minimumLogLevel: LogLevel;
+
 // @public
 export class PackageManagerControllerFactory {
     constructor(cwd?: string, printer?: Printer, platform?: NodeJS.Platform);
@@ -88,10 +121,15 @@ export class PackageManagerControllerFactory {
 // @public
 export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number);
-    indicateProgress(message: string, callback: () => Promise<void>): Promise<void>;
+    indicateProgress(message: string, callback: () => Promise<void>, successMessage?: string): Promise<void>;
     log(message: string, level?: LogLevel): void;
     print: (message: string) => void;
     printNewLine: () => void;
+    startSpinner(message: string): void;
+    stopSpinner(message: string): void;
+    updateSpinner(message: string, options: {
+        prefixText: string;
+    }): void;
 }
 
 // @public (undocumented)
