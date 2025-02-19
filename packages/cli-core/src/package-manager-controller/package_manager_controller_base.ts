@@ -104,7 +104,8 @@ export abstract class PackageManagerControllerBase
     const tsConfigTemplate = {
       compilerOptions: {
         target: 'es2022',
-        module: 'es2022',
+        module: 'preserve',
+        moduleDetection: 'force',
         moduleResolution: 'bundler',
         resolveJsonModule: true,
         esModuleInterop: true,

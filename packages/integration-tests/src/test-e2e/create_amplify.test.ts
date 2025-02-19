@@ -162,11 +162,12 @@ void describe(
           ).replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '');
           const tsConfigObject = JSON.parse(tsConfigContent);
 
-          assert.equal(tsConfigObject.compilerOptions.module, 'es2022');
+          assert.equal(tsConfigObject.compilerOptions.module, 'preserve');
           assert.equal(
             tsConfigObject.compilerOptions.moduleResolution,
             'bundler'
           );
+          assert.equal(tsConfigObject.compilerOptions.moduleDetection, 'force');
           assert.equal(tsConfigObject.compilerOptions.resolveJsonModule, true);
           assert.deepStrictEqual(tsConfigObject.compilerOptions.paths, {
             // The path here is coupled with backend-function's generated typedef file path
@@ -184,7 +185,6 @@ void describe(
             path.join('auth', 'resource.ts'),
             'backend.ts',
             path.join('data', 'resource.ts'),
-            'package.json',
             'tsconfig.json',
           ];
 
