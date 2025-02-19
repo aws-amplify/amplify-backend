@@ -54,7 +54,7 @@ void describe('Printer', () => {
   void it('start animating spinner with message and stops animation in TTY terminal', async () => {
     const message = 'Message 1';
 
-    const ttyStream = new tty.WriteStream(1);
+    const ttyStream = new tty.WriteStream(process.stdout.fd);
 
     const mockedWrite = mock.method(ttyStream, 'write');
 
@@ -96,7 +96,7 @@ void describe('Printer', () => {
     const errorMessage = 'Error message';
     const message = 'Message 1';
     let errorCaught = false;
-    const ttyStream = new tty.WriteStream(1);
+    const ttyStream = new tty.WriteStream(process.stdout.fd);
 
     try {
       await new Printer(LogLevel.INFO, ttyStream).indicateProgress(
