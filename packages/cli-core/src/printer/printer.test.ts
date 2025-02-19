@@ -53,10 +53,13 @@ void describe('Printer', () => {
 
   void it('start animating spinner with message and stops animation in TTY terminal', async () => {
     const message = 'Message 1';
+    const mockedTTYWrite = mock.fn();
 
-    const ttyStream = new tty.WriteStream(process.stdout.fd);
-
-    const mockedWrite = mock.method(ttyStream, 'write');
+    const ttyStream: tty.WriteStream = {
+      cursorTo: mock.fn(),
+      _write: mock.fn(),
+      write: mockedTTYWrite,
+    } as unknown as tty.WriteStream;
 
     await new Printer(LogLevel.INFO, ttyStream).indicateProgress(
       message,
@@ -65,7 +68,7 @@ void describe('Printer', () => {
       }
     );
 
-    const logMessages = mockedWrite.mock.calls
+    const logMessages = mockedTTYWrite.mock.calls
       .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
@@ -96,8 +99,11 @@ void describe('Printer', () => {
     const errorMessage = 'Error message';
     const message = 'Message 1';
     let errorCaught = false;
-    const ttyStream = new tty.WriteStream(process.stdout.fd);
-
+    const ttyStream: tty.WriteStream = {
+      cursorTo: mock.fn(),
+      _write: mock.fn(),
+      write: mock.fn(),
+    } as unknown as tty.WriteStream;
     try {
       await new Printer(LogLevel.INFO, ttyStream).indicateProgress(
         message,
