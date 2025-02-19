@@ -25,10 +25,7 @@ export class AccountIdFetcher {
       );
       if (stsResponse && stsResponse.Account) {
         const accountIdBucket = stsResponse.Account.slice(0, -2);
-        this.accountId = uuidV5(
-          accountIdBucket.toString(),
-          AMPLIFY_CLI_UUID_NAMESPACE
-        );
+        this.accountId = uuidV5(accountIdBucket, AMPLIFY_CLI_UUID_NAMESPACE);
         return this.accountId;
       }
       // We failed to get the account Id. Most likely the user doesn't have credentials
