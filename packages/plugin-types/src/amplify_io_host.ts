@@ -18,7 +18,11 @@ export interface AmplifyEventMessage {
 export interface AmplifyIoHostEventMessage<T>
   extends SimpleSpread<IoMessage<T>, AmplifyEventMessage> {}
 
+export type AmplifyIoHostEventRequestMessageIoRequest<T, U> = IoRequest<T, U>;
+
 export type AmplifyIOHost = {
-  requestResponse: <T, U>(msg: IoRequest<T, U>) => Promise<U>;
+  requestResponse: <T, U>(
+    msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>
+  ) => Promise<U>;
   notify: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
 };

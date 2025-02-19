@@ -27,7 +27,7 @@
     "@aws-cdk/toolkit": "file:../../dist/aws-cdk-toolkit-0.0.0.tgz"
   },
   "peerDependencies": {
-    "aws-cdk": "^2.168.0",
+    "aws-cdk": "^2.178.2",
     "aws-cdk-lib": "^2.177.0",
     "typescript": "^5.0.0"
   }

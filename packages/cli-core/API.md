@@ -8,7 +8,7 @@
 
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
-import { IoRequest } from '@aws-cdk/toolkit';
+import { AmplifyIoHostEventRequestMessageIoRequest } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
 
@@ -51,10 +51,10 @@ export class CDKEventLogger {
 export class CDKEventsBridgeIoHost implements AmplifyIOHost {
     constructor(eventHandlers: {
         notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
-        requestResponse?: (<T, U>(msg: IoRequest<T, U>) => Promise<U>)[];
+        requestResponse?: (<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>) => Promise<U>)[];
     });
     notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void>;
-    requestResponse<T, U>(msg: IoRequest<T, U>): Promise<U>;
+    requestResponse<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>): Promise<U>;
 }
 
 // @public (undocumented)

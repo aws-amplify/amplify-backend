@@ -40,13 +40,16 @@ export type AmplifyFunction = ResourceProvider<FunctionResources>;
 
 // @public (undocumented)
 export type AmplifyIOHost = {
-    requestResponse: <T, U>(msg: IoRequest<T, U>) => Promise<U>;
+    requestResponse: <T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>) => Promise<U>;
     notify: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
 };
 
 // @public (undocumented)
 export interface AmplifyIoHostEventMessage<T> extends SimpleSpread<IoMessage<T>, AmplifyEventMessage> {
 }
+
+// @public (undocumented)
+export type AmplifyIoHostEventRequestMessageIoRequest<T, U> = IoRequest<T, U>;
 
 // @public
 export type AmplifyResourceGroupName = 'auth' | 'data' | 'storage' | (string & {

@@ -1,8 +1,8 @@
 import {
   AmplifyIOHost,
   AmplifyIoHostEventMessage,
+  AmplifyIoHostEventRequestMessageIoRequest,
 } from '@aws-amplify/plugin-types';
-import { IoRequest } from '@aws-cdk/toolkit';
 
 /**
  * Implements IIoHost interface of CDK Toolkit
@@ -14,7 +14,9 @@ export class CDKEventsBridgeIoHost implements AmplifyIOHost {
   constructor(
     private readonly eventHandlers: {
       notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
-      requestResponse?: (<T, U>(msg: IoRequest<T, U>) => Promise<U>)[];
+      requestResponse?: (<T, U>(
+        msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>
+      ) => Promise<U>)[];
     }
   ) {}
 
@@ -34,7 +36,9 @@ export class CDKEventsBridgeIoHost implements AmplifyIOHost {
   /**
    * Receive cdk events and fan out
    */
-  requestResponse<T, U>(msg: IoRequest<T, U>): Promise<U> {
+  requestResponse<T, U>(
+    msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>
+  ): Promise<U> {
     if (!this.eventHandlers.requestResponse) {
       return Promise.resolve(msg.defaultResponse);
     }
