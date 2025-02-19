@@ -37,8 +37,8 @@
     "aws-sdk-client-mock": "^3.0.0"
   },
   "peerDependencies": {
-    "@aws-sdk/client-amplify": "^3.624.0",
-    "@aws-sdk/client-cloudformation": "^3.624.0",
+    "@aws-sdk/client-amplify": "^3.750.0",
+    "@aws-sdk/client-cloudformation": "^3.750.0",
     "@aws-sdk/client-s3": "^3.624.0"
   }
 }

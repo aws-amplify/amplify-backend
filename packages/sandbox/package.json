@@ -26,10 +26,10 @@
     "@aws-amplify/deployed-backend-client": "^1.5.0",
     "@aws-amplify/platform-core": "^1.5.0",
     "@aws-amplify/plugin-types": "^1.7.0",
-    "@aws-sdk/client-cloudwatch-logs": "^3.624.0",
-    "@aws-sdk/client-lambda": "^3.624.0",
-    "@aws-sdk/client-ssm": "^3.624.0",
-    "@aws-sdk/credential-providers": "^3.624.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.750.0",
+    "@aws-sdk/client-lambda": "^3.750.0",
+    "@aws-sdk/client-ssm": "^3.750.0",
+    "@aws-sdk/credential-providers": "^3.750.0",
     "@aws-sdk/types": "^3.609.0",
     "@parcel/watcher": "^2.4.1",
     "debounce-promise": "^3.1.2",
@@ -42,6 +42,6 @@
     "@types/parse-gitignore": "^1.0.0"
   },
   "peerDependencies": {
-    "aws-cdk": "^2.178.2"
+    "aws-cdk": "^2.1000.2"
   }
 }

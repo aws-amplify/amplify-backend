@@ -25,14 +25,14 @@
     "@aws-amplify/graphql-types-generator": "^3.6.0",
     "@aws-amplify/platform-core": "^1.5.0",
     "@aws-amplify/plugin-types": "^1.7.0",
-    "@aws-sdk/client-appsync": "^3.624.0",
-    "@aws-sdk/client-s3": "^3.624.0",
-    "@aws-sdk/credential-providers": "^3.624.0",
+    "@aws-sdk/client-appsync": "^3.750.0",
+    "@aws-sdk/client-s3": "^3.750.0",
+    "@aws-sdk/credential-providers": "^3.750.0",
     "@aws-sdk/types": "^3.609.0",
     "graphql": "^15.8.0"
   },
   "peerDependencies": {
-    "@aws-sdk/client-amplify": "^3.624.0",
+    "@aws-sdk/client-amplify": "^3.750.0",
     "@aws-sdk/client-cloudformation": "^3.624.0"
   }
 }
