@@ -24,7 +24,7 @@ export class AccountIdFetcher {
         new GetCallerIdentityCommand({})
       );
       if (stsResponse && stsResponse.Account) {
-        const accountIdBucket = Number(stsResponse.Account) / 100;
+        const accountIdBucket = stsResponse.Account.slice(0, -2);
         this.accountId = uuidV5(
           accountIdBucket.toString(),
           AMPLIFY_CLI_UUID_NAMESPACE
