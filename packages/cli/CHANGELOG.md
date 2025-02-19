@@ -1,5 +1,14 @@
 # @aws-amplify/backend-cli
 
+## 1.4.11
+
+### Patch Changes
+
+- cceadef: updated tests and constructor for profileController
+- Updated dependencies [b5f785f]
+- Updated dependencies [ce8e4fc]
+  - @aws-amplify/platform-core@1.6.3
+
 ## 1.4.10
 
 ### Patch Changes
