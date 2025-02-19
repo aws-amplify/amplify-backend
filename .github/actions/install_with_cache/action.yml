@@ -46,7 +46,7 @@ runs:
           npm install --no-save aws-cdk-lib@${{ inputs.cdk-lib-version }}
         fi
         if [[ ${{ inputs.cdk-cli-version }} != 'FROM_PACKAGE_LOCK' ]]; then
-          echo "Installing CDK Lib version ${{ inputs.cdk-cli-version }}"
+          echo "Installing CDK CLI version ${{ inputs.cdk-cli-version }}"
           npm install --no-save aws-cdk@${{ inputs.cdk-cli-version }}
           npx cdk --version
         fi
