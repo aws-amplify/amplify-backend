@@ -709,6 +709,14 @@ npm error enoent`,
     errorName: 'MissingDefineBackendError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage:
+      'Error: some-stack failed: ResourceConflictException: The operation cannot be performed at this time. An update is in progress for resource: test:resource:arn',
+    expectedTopLevelErrorMessage:
+      'Deployment failed because an update is in progress for test:resource:arn.',
+    errorName: 'CloudformationResourceUpdateInProgressError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {

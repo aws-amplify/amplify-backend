@@ -490,6 +490,14 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /ResourceConflictException: (.*) An update is in progress for resource: (?<resourceArn>.*)/,
+      humanReadableErrorMessage: `Deployment failed because an update is in progress for {resourceArn}.`,
+      resolutionMessage: `Wait for the update for {resourceArn} to be completed before attempting to deploy again.`,
+      errorName: 'CloudformationResourceUpdateInProgressError',
+      classification: 'ERROR',
+    },
+    {
       // We capture the parameter name to show relevant error message
       errorRegex:
         /destroy failed Error: Stack \[(?<stackArn>.*)\] cannot be deleted while in status /,
@@ -577,6 +585,7 @@ export type CDKDeploymentError =
   | 'CDKVersionMismatchError'
   | 'CFNUpdateNotSupportedError'
   | 'CloudformationResourceCircularDependencyError'
+  | 'CloudformationResourceUpdateInProgressError'
   | 'CloudformationStackCircularDependencyError'
   | 'CloudFormationDeletionError'
   | 'CloudFormationDeploymentError'
