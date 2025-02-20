@@ -4,7 +4,8 @@ import {
   generateCommandFailureHandler,
 } from './error_handler.js';
 import { Argv } from 'yargs';
-import { LogLevel, printer } from '@aws-amplify/cli-core';
+import { LogLevel } from './printer/printer.js';
+import { printer } from './printer.js';
 import assert from 'node:assert';
 import { AmplifyUserError, UsageDataEmitter } from '@aws-amplify/platform-core';
 
