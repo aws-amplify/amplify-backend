@@ -58,25 +58,32 @@ export class AmplifyProjectCreator {
     printer.log(format.list(this.defaultProdPackages));
     printer.printNewLine();
 
-    await printer.indicateProgress('Installing devDependencies', () =>
-      this.packageManagerController.installDependencies(
-        this.defaultDevPackages,
-        'dev'
-      )
+    await printer.indicateProgress(
+      'Installing devDependencies',
+      () =>
+        this.packageManagerController.installDependencies(
+          this.defaultDevPackages,
+          'dev'
+        ),
+      'DevDependencies installed'
     );
-    printer.log(`✔ DevDependencies installed`);
-    await printer.indicateProgress('Installing dependencies', () =>
-      this.packageManagerController.installDependencies(
-        this.defaultProdPackages,
-        'prod'
-      )
+    await printer.indicateProgress(
+      'Installing dependencies',
+      () =>
+        this.packageManagerController.installDependencies(
+          this.defaultProdPackages,
+          'prod'
+        ),
+      'Dependencies installed'
     );
-    printer.log(`✔ Dependencies installed`);
-    await printer.indicateProgress('Creating template files', async () => {
-      await this.gitIgnoreInitializer.ensureInitialized();
-      await this.initialProjectFileGenerator.generateInitialProjectFiles();
-    });
-    printer.log(`✔ Template files created`);
+    await printer.indicateProgress(
+      'Creating template files',
+      async () => {
+        await this.gitIgnoreInitializer.ensureInitialized();
+        await this.initialProjectFileGenerator.generateInitialProjectFiles();
+      },
+      'Template files created'
+    );
 
     printer.log(format.success('Successfully created a new project!'));
     printer.printNewLine();

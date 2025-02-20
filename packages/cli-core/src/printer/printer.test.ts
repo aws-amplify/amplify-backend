@@ -1,6 +1,7 @@
 import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { LogLevel, Printer } from './printer.js';
+import tty from 'node:tty';
 
 void describe('Printer', () => {
   const mockedWrite = mock.method(process.stdout, 'write');
@@ -50,27 +51,106 @@ void describe('Printer', () => {
     assert.strictEqual(mockedWrite.mock.callCount(), 0);
   });
 
-  void it('start animating spinner with message and stops animation in TTY terminal', async () => {
-    process.stdout.isTTY = true;
-
+  void it('indicateProgress start animating spinner with message and stops animation in TTY terminal', async () => {
     const message = 'Message 1';
+    const mockedTTYWrite = mock.fn();
 
-    await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    const ttyStream: tty.WriteStream = {
+      cursorTo: mock.fn(),
+      _write: mock.fn(),
+      write: mockedTTYWrite,
+      isTTY: true,
+      clearLine: mock.fn(),
+    } as unknown as tty.WriteStream;
+
+    await new Printer(
+      LogLevel.INFO,
+      ttyStream,
+      process.stderr,
+      50
+    ).indicateProgress(message, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 90));
     });
 
-    const logMessages = mockedWrite.mock.calls
+    const logMessages = mockedTTYWrite.mock.calls
       .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
+    assert.deepStrictEqual(logMessages.length, 3); // 2 for progress and 1 for final result
     logMessages.forEach((message) => {
       assert.match(message, /Message(.*)/);
     });
   });
 
-  void it('animating spinner is a noop in non-TTY terminal and instead logs a message at INFO level', async () => {
-    process.stdout.isTTY = false;
+  void it('startSpinner start animating spinner with message until stopSpinner is called in TTY terminal', async () => {
+    const message = 'Message 1';
+    const mockedTTYWrite = mock.fn();
+    const mockedTTYPrivateWrite = mock.fn();
+    const ttyStream: tty.WriteStream = {
+      cursorTo: mock.fn(),
+      _write: mockedTTYPrivateWrite,
+      write: mockedTTYWrite,
+      isTTY: true,
+      clearLine: mock.fn(),
+    } as unknown as tty.WriteStream;
 
+    // Refresh rate of 50 ms
+    const printer = new Printer(LogLevel.INFO, ttyStream, process.stderr, 50);
+    printer.startSpinner(message);
+
+    // Wait for 190 ms
+    await new Promise((resolve) => setTimeout(resolve, 190));
+
+    // Stop spinner
+    printer.stopSpinner(message);
+
+    const logMessages = mockedTTYWrite.mock.calls
+      .filter((message) => message.arguments.toString().match(/Message/))
+      .map((call) => call.arguments.toString());
+
+    // In 200 ms, the mockedTTYWrite should have been called 4 times (refreshed)
+    assert.deepStrictEqual(logMessages.length, 4);
+    logMessages.forEach((message) => {
+      assert.match(message, /Message(.*)/);
+    });
+  });
+
+  void it('updateSpinner updates the animating spinner with a prefixText in TTY terminal', async () => {
+    const message = 'Message 1';
+    const mockedTTYWrite = mock.fn();
+    const mockedTTYPrivateWrite = mock.fn();
+    const ttyStream: tty.WriteStream = {
+      cursorTo: mock.fn(),
+      _write: mockedTTYPrivateWrite,
+      write: mockedTTYWrite,
+      isTTY: true,
+      clearLine: mock.fn(),
+    } as unknown as tty.WriteStream;
+
+    // Refresh rate of 50 ms
+    const printer = new Printer(LogLevel.INFO, ttyStream, process.stderr, 50);
+    printer.startSpinner(message);
+    printer.updateSpinner(message, { prefixText: 'this is some prefix text' });
+
+    // wait for 50 secs for spinner to get a chance to update the prefix text
+    await new Promise((resolve) => setTimeout(resolve, 55));
+    // Stop spinner
+    printer.stopSpinner(message);
+
+    const logMessages = mockedTTYWrite.mock.calls
+      .filter((message) => message.arguments.toString().match(/Message/))
+      .map((call) => call.arguments.toString());
+
+    assert.deepStrictEqual(logMessages.length, 2);
+    // Both logs should have the `message` value
+    logMessages.forEach((message) => {
+      assert.match(message, /Message(.*)/);
+    });
+    // second log should have prefix as well
+    assert.match(logMessages[1], /this is some prefix text/);
+  });
+
+  void it('indicateProgress animating spinner is a noop in non-TTY terminal and instead logs a message at INFO level', async () => {
     const message = 'Message 1';
 
     await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
@@ -81,22 +161,29 @@ void describe('Printer', () => {
       .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
-    assert.strictEqual(logMessages.length, 1);
-    assert.strictEqual(logMessages[0], 'Message 1');
+    // Once to print the message and second that prints the success
+    assert.strictEqual(logMessages.length, 2);
+    assert.match(logMessages[0], /Message(.*)/);
+    assert.match(logMessages[1], /✔.*Message(.*)/);
   });
 
   void it('indicateProgress stops spinner and propagates error when action fails', async () => {
-    process.stdout.isTTY = true;
-
     const errorMessage = 'Error message';
     const message = 'Message 1';
     let errorCaught = false;
-
+    const ttyStream: tty.WriteStream = {
+      cursorTo: mock.fn(),
+      _write: mock.fn(),
+      write: mock.fn(),
+    } as unknown as tty.WriteStream;
     try {
-      await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        throw new Error(errorMessage);
-      });
+      await new Printer(LogLevel.INFO, ttyStream).indicateProgress(
+        message,
+        async () => {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          throw new Error(errorMessage);
+        }
+      );
     } catch (error) {
       assert.strictEqual((error as Error).message, errorMessage);
       errorCaught = true;

@@ -1,19 +1,14 @@
 import { WriteStream } from 'node:tty';
 import { EOL } from 'os';
+import ora, { Ora, oraPromise } from 'ora';
+
 export type RecordValue = string | number | string[] | Date;
 
 /**
  * The class that pretty prints to the output stream.
  */
 export class Printer {
-  // Properties for ellipsis animation
-  private timer: ReturnType<typeof setTimeout>;
-  private timerSet: boolean;
-  /**
-   * Spinner frames
-   */
-  private spinnerFrames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-
+  private currentSpinners: { [message: string]: Ora } = {};
   /**
    * Sets default configs
    */
@@ -71,73 +66,50 @@ export class Printer {
    * Logs a message with animated spinner
    * If stdout is not a TTY, the message is logged at the info level without a spinner
    */
-  async indicateProgress(message: string, callback: () => Promise<void>) {
-    try {
-      this.startAnimatingSpinner(message);
-      await callback();
-    } finally {
-      this.stopAnimatingSpinner();
-    }
+  async indicateProgress(
+    message: string,
+    callback: () => Promise<void>,
+    successMessage?: string
+  ) {
+    await oraPromise(callback, {
+      text: message,
+      stream: this.stdout,
+      discardStdin: false,
+      hideCursor: false,
+      interval: this.refreshRate,
+      spinner: 'dots',
+      successText: successMessage,
+    });
   }
 
   /**
-   * Writes escape sequence to stdout
+   * Start a spinner for the given message.
+   * If stdout is not a TTY, the message is logged at the info level without a spinner
    */
-  private writeEscapeSequence(action: EscapeSequence) {
-    if (!this.isTTY()) {
-      return;
-    }
-
-    this.stdout.write(action);
+  startSpinner(message: string) {
+    this.currentSpinners[message] = ora({
+      text: message,
+      stream: this.stdout,
+      spinner: 'dots',
+      interval: this.refreshRate,
+      discardStdin: false,
+      hideCursor: false,
+    }).start();
   }
 
   /**
-   * Checks if the environment is TTY
+   * Stop a spinner for the given message.
    */
-  private isTTY() {
-    return this.stdout instanceof WriteStream && this.stdout.isTTY;
+  stopSpinner(message: string) {
+    this.currentSpinners[message].stop();
+    delete this.currentSpinners[message];
   }
 
   /**
-   * Starts animating spinner with a message.
+   * Update the spinner options, e.g. prefixText
    */
-  private startAnimatingSpinner(message: string) {
-    if (this.timerSet) {
-      throw new Error(
-        'Timer is already set to animate spinner, stop the current running timer before starting a new one.'
-      );
-    }
-
-    if (!this.isTTY()) {
-      this.log(message, LogLevel.INFO);
-      return;
-    }
-
-    let frameIndex = 0;
-    this.timerSet = true;
-    this.writeEscapeSequence(EscapeSequence.HIDE_CURSOR);
-    this.timer = setInterval(() => {
-      this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
-      this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-      const frame = this.spinnerFrames[frameIndex];
-      this.stdout.write(`${frame} ${message}`);
-      frameIndex = (frameIndex + 1) % this.spinnerFrames.length;
-    }, this.refreshRate);
-  }
-
-  /**
-   * Stops animating spinner.
-   */
-  private stopAnimatingSpinner() {
-    if (!this.isTTY()) {
-      return;
-    }
-
-    clearInterval(this.timer);
-    this.timerSet = false;
-    this.writeEscapeSequence(EscapeSequence.CLEAR_LINE);
-    this.writeEscapeSequence(EscapeSequence.MOVE_CURSOR_TO_START);
-    this.writeEscapeSequence(EscapeSequence.SHOW_CURSOR);
+  updateSpinner(message: string, options: { prefixText: string }) {
+    this.currentSpinners[message].prefixText = options.prefixText;
   }
 }
 
@@ -145,11 +117,4 @@ export enum LogLevel {
   ERROR = 0,
   INFO = 1,
   DEBUG = 2,
-}
-
-enum EscapeSequence {
-  CLEAR_LINE = '\x1b[2K',
-  MOVE_CURSOR_TO_START = '\x1b[0G',
-  SHOW_CURSOR = '\x1b[?25h',
-  HIDE_CURSOR = '\x1b[?25l',
 }
