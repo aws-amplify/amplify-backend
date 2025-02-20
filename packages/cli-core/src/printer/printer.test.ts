@@ -169,6 +169,40 @@ void describe('Printer', () => {
     });
   });
 
+  void it('startSpinner only logs once when called in non-TTY terminal', async () => {
+    const message = 'Message 1';
+
+    // Refresh rate of 50 ms
+    const printer = new Printer(
+      LogLevel.INFO,
+      process.stdout,
+      process.stderr,
+      50,
+      false // simulate non-tty
+    );
+    const spinnerId = printer.startSpinner(message);
+
+    // Wait for 190 ms such that tty would have caused multiple prints
+    await new Promise((resolve) => setTimeout(resolve, 190));
+
+    // Stop spinner
+    printer.stopSpinner(spinnerId);
+
+    // Instead of 4 times on tty, there should be only 1 log printed
+    const logMessages = mockedWrite.mock.calls
+      .filter((message) => message.arguments.toString().match(/Message/))
+      .map((call) => call.arguments.toString());
+
+    assert.deepStrictEqual(
+      logMessages.length,
+      1,
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+    );
+    logMessages.forEach((message) => {
+      assert.match(message, /Message(.*)/);
+    });
+  });
+
   void it('startSpinner times out if the stop is never called within timeout', async () => {
     const message = 'Message 1';
 
