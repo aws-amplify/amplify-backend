@@ -76,7 +76,11 @@ void describe('Printer', () => {
       .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
-    assert.deepStrictEqual(logMessages.length, 3); // 2 for progress and 1 for final result
+    assert.deepStrictEqual(
+      logMessages.length,
+      3,
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+    ); // 2 for progress and 1 for final result
     logMessages.forEach((message) => {
       assert.match(message, /Message(.*)/);
     });
@@ -109,7 +113,11 @@ void describe('Printer', () => {
       .map((call) => call.arguments.toString());
 
     // In 200 ms, the mockedTTYWrite should have been called 4 times (refreshed)
-    assert.deepStrictEqual(logMessages.length, 4);
+    assert.deepStrictEqual(
+      logMessages.length,
+      4,
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+    );
     logMessages.forEach((message) => {
       assert.match(message, /Message(.*)/);
     });
@@ -141,7 +149,11 @@ void describe('Printer', () => {
       .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
-    assert.deepStrictEqual(logMessages.length, 2);
+    assert.deepStrictEqual(
+      logMessages.length,
+      2,
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+    );
     // Both logs should have the `message` value
     logMessages.forEach((message) => {
       assert.match(message, /Message(.*)/);
@@ -162,7 +174,11 @@ void describe('Printer', () => {
       .map((call) => call.arguments.toString());
 
     // Once to print the message and second that prints the success
-    assert.strictEqual(logMessages.length, 2);
+    assert.strictEqual(
+      logMessages.length,
+      2,
+      `logs were: ${JSON.stringify(logMessages, null, 2)}`
+    );
     assert.match(logMessages[0], /Message(.*)/);
     assert.match(logMessages[1], /✔.*Message(.*)/);
   });
