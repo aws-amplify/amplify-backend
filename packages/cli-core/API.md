@@ -88,15 +88,20 @@ export class PackageManagerControllerFactory {
 // @public
 export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, enableTTY?: boolean);
-    indicateProgress(message: string, callback: () => Promise<void>, successMessage?: string): Promise<void>;
-    log(message: string, level?: LogLevel): void;
+    indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
+    // (undocumented)
+    isSpinnerRunning: (id: string) => boolean;
+    log: (message: string, level?: LogLevel) => void;
     print: (message: string) => void;
     printNewLine: () => void;
-    startSpinner(message: string): void;
-    stopSpinner(message: string): void;
-    updateSpinner(message: string, options: {
-        prefixText: string;
-    }): void;
+    startSpinner: (message: string, options?: {
+        timeoutSeconds: number;
+    }) => string;
+    stopSpinner: (id: string) => void;
+    updateSpinner: (id: string, options: {
+        message?: string;
+        prefixText?: string;
+    }) => void;
 }
 
 // @public (undocumented)
