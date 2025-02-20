@@ -1,11 +1,15 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
-import { TestCommandRunner } from '../../../test-utils/command_runner.js';
+import {
+  TestCommandError,
+  TestCommandRunner,
+} from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
 import { printer } from '@aws-amplify/cli-core';
+import { AmplifyError } from '@aws-amplify/platform-core';
 
 const testSecretName = 'testSecretName';
 const testBackendId = 'testBackendId';
@@ -17,6 +21,9 @@ void describe('sandbox secret remove command', () => {
     secretClient,
     'removeSecret',
     (): Promise<void> => Promise.resolve()
+  );
+  const listSecretsMock = mock.method(secretClient, 'listSecrets', () =>
+    Promise.resolve([{ name: testSecretName }])
   );
   const printMock = mock.method(printer, 'print');
 
@@ -77,13 +84,56 @@ void describe('sandbox secret remove command', () => {
     ]);
   });
 
+  void it('remove all secrets', async () => {
+    await commandRunner.runCommand('remove --all');
+    assert.equal(listSecretsMock.mock.callCount(), 1);
+    assert.deepStrictEqual(listSecretsMock.mock.calls[0].arguments, [
+      {
+        type: 'sandbox',
+        namespace: testBackendId,
+        name: testSandboxName,
+      },
+    ]);
+
+    assert.equal(secretRemoveMock.mock.callCount(), 1);
+    assert.deepStrictEqual(secretRemoveMock.mock.calls[0].arguments, [
+      {
+        type: 'sandbox',
+        namespace: testBackendId,
+        name: testSandboxName,
+      },
+      testSecretName,
+    ]);
+    assert.equal(
+      printMock.mock.calls[0].arguments,
+      'Successfully removed all secrets'
+    );
+  });
+
   void it('show --help', async () => {
     const output = await commandRunner.runCommand('remove --help');
     assert.match(output, /Remove a sandbox secret/);
   });
 
-  void it('throws error if no secret name argument', async () => {
-    const output = await commandRunner.runCommand('remove');
-    assert.match(output, /Not enough non-option arguments/);
+  void it('throws error if no secret name argument and all flag', async () => {
+    await assert.rejects(
+      () => commandRunner.runCommand('remove'),
+      (err: TestCommandError) => {
+        assert.ok(AmplifyError.isAmplifyError(err.error));
+        assert.strictEqual(
+          err.error.message,
+          'Either secret-name or all flag must be provided'
+        );
+        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
+        return true;
+      }
+    );
+  });
+
+  void it('throws error if both --all flag and secret-name argument', async () => {
+    assert.match(
+      await commandRunner.runCommand(`remove ${testSecretName} --all`),
+      /Arguments all and secret-name are mutually exclusive/
+    );
   });
 });
