@@ -12,10 +12,7 @@ export const getLocalProjectId = async (
   namespace: string = AMPLIFY_CLI_UUID_NAMESPACE
 ) => {
   const localProjectIdPath =
-    process
-      .cwd()
-      .replace(homedir() + path.sep, '')
-      .replaceAll(/\\|\//g, '_') + '.projectId';
+    process.cwd().replace(homedir() + path.sep, '') + '.projectId';
   const configController = configControllerFactory.getInstance(
     'usage_data_preferences.json'
   );
