@@ -6,6 +6,10 @@ import { GitClient } from './git_client.js';
 import { GithubClient } from './github_client.js';
 import { readPackageJson } from './package-json/package_json.js';
 import path from 'path';
+import {
+  Dependency,
+  createAmplifyDepUpdater,
+} from './create_amplify_dep_updater.js';
 
 /**
  * Handles the follow up processes of Dependabot opening a version update PR
@@ -80,7 +84,9 @@ export class DependabotVersionUpdateHandler {
       this._rootDir,
       `.changeset/dependabot-${this._ghContext.payload.pull_request.head.sha}.md`
     );
-    const versionUpdates = await this.getVersionUpdates();
+    const { updates: versionUpdates, dependencies } =
+      await this.getVersionUpdates();
+    await createAmplifyDepUpdater(dependencies);
     await this.createChangesetFile(fileName, versionUpdates, packageNames);
     await this.gitClient.status();
     await this.gitClient.commitAllChanges('add changeset');
@@ -117,19 +123,31 @@ export class DependabotVersionUpdateHandler {
 
   private getVersionUpdates = async () => {
     const updates: string[] = [];
-    const prBody = this._ghContext.payload.pull_request?.body;
+    const dependencies: Dependency[] = [];
+    const prBody = this._ghContext.payload.pull_request?.body ?? '';
 
     // Match lines in PR body that are one of the following:
     // Updates `<dependency>` from <old-version> to <new-version>
     // Bumps [<dependency>](<dependency-link>) from <old-version> to <new-version>.
-    const matches = prBody?.match(
-      /(Updates|Bumps) (.*) from [0-9.]+ to [0-9.]+/g
-    );
+    const matches = [
+      ...prBody.matchAll(
+        /(Updates|Bumps) (`|\[)?(?<name>[a-zA-Z@/-]+)(`|\])?(.*) from [0-9.]+ to (?<version>[0-9]+\.[0-9]+\.[0-9]+)/g
+      ),
+    ];
 
-    for (const match of matches ?? []) {
-      updates.push(match);
+    for (const match of matches) {
+      updates.push(match[0]);
+      if (match.groups && this.isDependency(match.groups)) {
+        dependencies.push(match.groups);
+      }
     }
 
-    return updates;
+    return { updates, dependencies };
+  };
+
+  private isDependency = (obj: unknown): obj is Dependency => {
+    return (
+      !!obj && typeof obj === 'object' && 'name' in obj && 'version' in obj
+    );
   };
 }
