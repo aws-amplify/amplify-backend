@@ -77,6 +77,7 @@ export class Printer {
   ) => {
     await oraPromise(callback, {
       text: message,
+      color: 'white',
       stream: this.stdout,
       discardStdin: false,
       hideCursor: false,
@@ -100,6 +101,7 @@ export class Printer {
     this.currentSpinners[id] = {
       instance: ora({
         text: message,
+        color: 'white',
         stream: this.stdout,
         spinner: 'dots',
         interval: this.refreshRate,
