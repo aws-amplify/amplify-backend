@@ -71,6 +71,10 @@ export class Printer {
     callback: () => Promise<void>,
     successMessage?: string
   ) {
+    // eslint-disable-next-line no-console
+    console.dir(this.stdout);
+    // eslint-disable-next-line no-console
+    console.log('isTTY' in this.stdout ? this.stdout.isTTY : 'no tty');
     await oraPromise(callback, {
       text: message,
       stream: this.stdout,
