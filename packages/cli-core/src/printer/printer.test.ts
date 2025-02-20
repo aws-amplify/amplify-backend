@@ -67,7 +67,8 @@ void describe('Printer', () => {
       LogLevel.INFO,
       ttyStream,
       process.stderr,
-      50
+      50,
+      false
     ).indicateProgress(message, async () => {
       await new Promise((resolve) => setTimeout(resolve, 90));
     });
@@ -99,7 +100,13 @@ void describe('Printer', () => {
     } as unknown as tty.WriteStream;
 
     // Refresh rate of 50 ms
-    const printer = new Printer(LogLevel.INFO, ttyStream, process.stderr, 50);
+    const printer = new Printer(
+      LogLevel.INFO,
+      ttyStream,
+      process.stderr,
+      50,
+      false
+    );
     printer.startSpinner(message);
 
     // Wait for 190 ms
@@ -136,7 +143,13 @@ void describe('Printer', () => {
     } as unknown as tty.WriteStream;
 
     // Refresh rate of 50 ms
-    const printer = new Printer(LogLevel.INFO, ttyStream, process.stderr, 50);
+    const printer = new Printer(
+      LogLevel.INFO,
+      ttyStream,
+      process.stderr,
+      50,
+      false
+    );
     printer.startSpinner(message);
     printer.updateSpinner(message, { prefixText: 'this is some prefix text' });
 

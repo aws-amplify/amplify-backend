@@ -20,7 +20,8 @@ export class Printer {
     private readonly stderr:
       | WriteStream
       | NodeJS.WritableStream = process.stderr,
-    private readonly refreshRate: number = 500
+    private readonly refreshRate: number = 500,
+    private readonly ci = process.env.CI ? true : false
   ) {}
 
   /**
@@ -71,10 +72,6 @@ export class Printer {
     callback: () => Promise<void>,
     successMessage?: string
   ) {
-    // eslint-disable-next-line no-console
-    console.dir(this.stdout);
-    // eslint-disable-next-line no-console
-    console.log('isTTY' in this.stdout ? this.stdout.isTTY : 'no tty');
     await oraPromise(callback, {
       text: message,
       stream: this.stdout,
@@ -83,6 +80,7 @@ export class Printer {
       interval: this.refreshRate,
       spinner: 'dots',
       successText: successMessage,
+      isEnabled: !this.ci,
     });
   }
 
@@ -98,6 +96,7 @@ export class Printer {
       interval: this.refreshRate,
       discardStdin: false,
       hideCursor: false,
+      isEnabled: !this.ci,
     }).start();
   }
 
