@@ -220,6 +220,18 @@ export enum TagName {
     FRIENDLY_NAME = "amplify:friendly-name"
 }
 
+// @public (undocumented)
+export type TelemetryDataEmitter = {
+    emitSuccess: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitFailure: (error: AmplifyError, metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+    emitAbortion: (metrics?: Record<string, number>, dimensions?: Record<string, string>) => Promise<void>;
+};
+
+// @public
+export class TelemetryDataEmitterFactory {
+    getInstance: (dependencies?: Array<Dependency>) => Promise<TelemetryDataEmitter>;
+}
+
 // @public
 export const USAGE_DATA_TRACKING_ENABLED = "telemetry.enabled";
 
