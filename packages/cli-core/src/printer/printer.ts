@@ -21,7 +21,7 @@ export class Printer {
       | WriteStream
       | NodeJS.WritableStream = process.stderr,
     private readonly refreshRate: number = 500,
-    private readonly ci = process.env.CI ? true : false
+    private readonly enableTTY = process.env.CI ? false : true
   ) {}
 
   /**
@@ -80,7 +80,7 @@ export class Printer {
       interval: this.refreshRate,
       spinner: 'dots',
       successText: successMessage,
-      isEnabled: !this.ci,
+      isEnabled: this.enableTTY,
     });
   }
 
@@ -96,7 +96,7 @@ export class Printer {
       interval: this.refreshRate,
       discardStdin: false,
       hideCursor: false,
-      isEnabled: !this.ci,
+      isEnabled: this.enableTTY,
     }).start();
   }
 

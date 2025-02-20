@@ -68,7 +68,7 @@ void describe('Printer', () => {
       ttyStream,
       process.stderr,
       50,
-      false
+      true
     ).indicateProgress(message, async () => {
       await new Promise((resolve) => setTimeout(resolve, 90));
     });
@@ -105,7 +105,7 @@ void describe('Printer', () => {
       ttyStream,
       process.stderr,
       50,
-      false
+      true
     );
     printer.startSpinner(message);
 
@@ -148,7 +148,7 @@ void describe('Printer', () => {
       ttyStream,
       process.stderr,
       50,
-      false
+      true
     );
     printer.startSpinner(message);
     printer.updateSpinner(message, { prefixText: 'this is some prefix text' });
@@ -178,8 +178,14 @@ void describe('Printer', () => {
   void it('indicateProgress animating spinner is a noop in non-TTY terminal and instead logs a message at INFO level', async () => {
     const message = 'Message 1';
 
-    await new Printer(LogLevel.INFO).indicateProgress(message, async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Printer(
+      LogLevel.INFO,
+      process.stdout,
+      process.stderr,
+      50,
+      false // explicitly disable tty
+    ).indicateProgress(message, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
     });
 
     const logMessages = mockedWrite.mock.calls
