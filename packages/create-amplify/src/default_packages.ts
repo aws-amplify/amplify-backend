@@ -1,8 +1,8 @@
 export const defaultDevPackages = [
   '@aws-amplify/backend',
   '@aws-amplify/backend-cli',
-  'aws-cdk@2.1000.2',
-  'aws-cdk-lib@2.180.0',
+  'aws-cdk@2.179.0',
+  'aws-cdk-lib@2.178.2',
   'constructs@^10.0.0',
   'typescript@^5.0.0',
   'tsx',
