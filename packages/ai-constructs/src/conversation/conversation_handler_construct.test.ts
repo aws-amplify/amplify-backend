@@ -61,11 +61,18 @@ void describe('Conversation Handler Function construct', () => {
       const keysToLowerCase = (target: Record<string, unknown>) =>
         transform(
           target,
-          (result: { [x: string]: unknown }, val: unknown, key: string) => {
+          (
+            result: { [x: string | number]: unknown },
+            val: unknown,
+            key: string | number
+          ) => {
             if (typeof val === 'object') {
               val = keysToLowerCase(val as Record<string, unknown>);
             }
-            result[key.toLowerCase()] = val;
+            if (typeof key === 'string') {
+              key = key.toLowerCase();
+            }
+            result[key] = val;
           }
         );
       expectedDataProtectionPolicy = keysToLowerCase(
