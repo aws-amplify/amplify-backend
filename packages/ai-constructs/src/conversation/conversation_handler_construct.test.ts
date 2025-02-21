@@ -21,34 +21,34 @@ void describe('Conversation Handler Function construct', () => {
     const logGroupLogicalId = Object.keys(logGroups)[0];
     const logGroup = Object.values(logGroups)[0];
     assert.deepStrictEqual(logGroup.Properties.DataProtectionPolicy, {
-      name: 'data-protection-policy-cdk',
-      description: 'cdk generated data protection policy',
-      version: '2021-06-01',
-      configuration: {
-        customDataIdentifier: [
+      Name: 'data-protection-policy-cdk',
+      Description: 'cdk generated data protection policy',
+      Version: '2021-06-01',
+      Configuration: {
+        CustomDataIdentifier: [
           {
-            name: 'JWTToken',
-            regex: 'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*',
+            Name: 'JWTToken',
+            Regex: 'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*',
           },
         ],
       },
-      statement: [
+      Statement: [
         {
-          sid: 'audit-statement-cdk',
-          dataIdentifier: ['JWTToken'],
-          operation: {
-            audit: {
-              findingsDestination: {},
+          Sid: 'audit-statement-cdk',
+          DataIdentifier: ['JWTToken'],
+          Operation: {
+            Audit: {
+              FindingsDestination: {},
             },
           },
         },
         {
-          sid: 'redact-statement-cdk',
-          dataIdentifier: ['JWTToken'],
-          operation: {
+          Sid: 'redact-statement-cdk',
+          DataIdentifier: ['JWTToken'],
+          Operation: {
             // eslint-disable-next-line spellcheck/spell-checker
-            deidentify: {
-              maskConfig: {},
+            Deidentify: {
+              MaskConfig: {},
             },
           },
         },
