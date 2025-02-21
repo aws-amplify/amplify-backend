@@ -1,4 +1,5 @@
 {
+  "ignorePatterns": ["*.js"],
   "rules": {
     "no-console": "off"
   }

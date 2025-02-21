@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.17
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+- Updated dependencies [bc07307]
+  - @aws-amplify/platform-core@1.6.2
+
 ## 1.1.16
 
 ### Patch Changes

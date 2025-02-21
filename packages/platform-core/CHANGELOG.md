@@ -1,5 +1,18 @@
 # @aws-amplify/platform-core
 
+## 1.6.3
+
+### Patch Changes
+
+- b5f785f: anonymize account id and file paths/stacks in error details for telemetry
+- ce8e4fc: improve anonymization for accountId
+
+## 1.6.2
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+
 ## 1.6.1
 
 ### Patch Changes

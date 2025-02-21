@@ -1,6 +1,7 @@
 import { WriteStream } from 'node:tty';
 import { EOL } from 'os';
 import ora, { Ora, oraPromise } from 'ora';
+import { randomUUID } from 'node:crypto';
 
 export type RecordValue = string | number | string[] | Date;
 
@@ -8,7 +9,9 @@ export type RecordValue = string | number | string[] | Date;
  * The class that pretty prints to the output stream.
  */
 export class Printer {
-  private currentSpinners: { [message: string]: Ora } = {};
+  private currentSpinners: {
+    [id: string]: { instance: Ora; timeout: NodeJS.Timeout };
+  } = {};
   /**
    * Sets default configs
    */
@@ -20,7 +23,8 @@ export class Printer {
     private readonly stderr:
       | WriteStream
       | NodeJS.WritableStream = process.stderr,
-    private readonly refreshRate: number = 500
+    private readonly refreshRate: number = 500,
+    private readonly enableTTY = process.env.CI ? false : true
   ) {}
 
   /**
@@ -41,7 +45,7 @@ export class Printer {
   /**
    * Logs a message to the output stream at the given log level followed by a newline
    */
-  log(message: string, level: LogLevel = LogLevel.INFO) {
+  log = (message: string, level: LogLevel = LogLevel.INFO) => {
     const doLogMessage = level <= this.minimumLogLevel;
 
     if (!doLogMessage) {
@@ -60,64 +64,101 @@ export class Printer {
     }
 
     this.printNewLine();
-  }
+  };
 
   /**
    * Logs a message with animated spinner
    * If stdout is not a TTY, the message is logged at the info level without a spinner
    */
-  async indicateProgress(
+  indicateProgress = async (
     message: string,
     callback: () => Promise<void>,
     successMessage?: string
-  ) {
+  ) => {
     await oraPromise(callback, {
       text: message,
+      color: 'white',
       stream: this.stdout,
       discardStdin: false,
       hideCursor: false,
       interval: this.refreshRate,
       spinner: 'dots',
       successText: successMessage,
+      isEnabled: this.enableTTY,
     });
-  }
+  };
 
   /**
    * Start a spinner for the given message.
    * If stdout is not a TTY, the message is logged at the info level without a spinner
+   * @returns the id of the spinner
    */
-  startSpinner(message: string) {
-    this.currentSpinners[message] = ora({
-      text: message,
-      stream: this.stdout,
-      spinner: 'dots',
-      interval: this.refreshRate,
-      discardStdin: false,
-      hideCursor: false,
-    }).start();
-  }
+  startSpinner = (
+    message: string,
+    options: { timeoutSeconds: number } = { timeoutSeconds: 60 }
+  ): string => {
+    const id = randomUUID();
+    this.currentSpinners[id] = {
+      instance: ora({
+        text: message,
+        color: 'white',
+        stream: this.stdout,
+        spinner: 'dots',
+        interval: this.refreshRate,
+        discardStdin: false,
+        hideCursor: false,
+        isEnabled: this.enableTTY,
+      }).start(),
+      timeout: setTimeout(() => {
+        this.stopSpinner(id);
+      }, options.timeoutSeconds * 1000),
+    };
+    return id;
+  };
+
+  isSpinnerRunning = (id: string): boolean => {
+    return this.currentSpinners[id] !== undefined;
+  };
 
   /**
-   * Stop a spinner for the given message.
+   * Stop a spinner for the given id.
    */
-  stopSpinner(message: string) {
-    this.currentSpinners[message].stop();
-    delete this.currentSpinners[message];
-  }
+  stopSpinner = (id: string): void => {
+    if (this.currentSpinners[id] === undefined) return;
+    this.currentSpinners[id].instance.stop();
+    clearTimeout(this.currentSpinners[id].timeout);
+    delete this.currentSpinners[id];
+  };
 
   /**
-   * Update the spinner prefix text
+   * Update the spinner options for a given id, e.g. message or prefixText
    */
-  updateSpinner(message: string, options: { prefixText: string }) {
-    this.currentSpinners[message].prefixText = options.prefixText;
-  }
+  updateSpinner = (
+    id: string,
+    options: { message?: string; prefixText?: string }
+  ): void => {
+    if (this.currentSpinners[id] === undefined) {
+      this.log(
+        `Spinner with id ${id} not found or already stopped`,
+        LogLevel.ERROR
+      );
+      return;
+    }
+    if (options.prefixText) {
+      this.currentSpinners[id].instance.prefixText = options.prefixText;
+    } else if (options.message) {
+      this.currentSpinners[id].instance.text = options.message;
+    }
+    // Refresh the timer
+    this.currentSpinners[id].timeout.refresh();
+  };
 
   /**
    * Clears the console
    */
-  clearConsole() {
+  clearConsole = () => {
     this.stdout.write('\n'.repeat(process.stdout.rows));
-  }
+  };
 }
 
 export enum LogLevel {

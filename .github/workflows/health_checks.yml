@@ -19,8 +19,12 @@ on:
     - cron: '0 0,6,12,18 * * *'
   workflow_dispatch:
     inputs:
-      desired-cdk-version:
-        description: 'AWS CDK version (exact or tag). Defaults to package-locked version.'
+      desired-cdk-lib-version:
+        description: 'AWS CDK Lib version (exact or tag). Defaults to package-locked version.'
+        required: false
+        type: string
+      desired-cdk-cli-version:
+        description: 'AWS CDK CLI version (exact or tag). Defaults to package-locked version.'
         required: false
         type: string
       include-package-manager-e2e-tests:
@@ -50,8 +54,12 @@ on:
         default: '["18", "20", "22"]'
   workflow_call:
     inputs:
-      desired-cdk-version:
-        description: 'AWS CDK version (exact or tag). Defaults to package-locked version.'
+      desired-cdk-lib-version:
+        description: 'AWS CDK Lib version (exact or tag). Defaults to package-locked version.'
+        required: false
+        type: string
+      desired-cdk-cli-version:
+        description: 'AWS CDK CLI version (exact or tag). Defaults to package-locked version.'
         required: false
         type: string
       include-package-manager-e2e-tests:
@@ -91,7 +99,8 @@ jobs:
   resolve_inputs:
     runs-on: ubuntu-latest
     outputs:
-      cdk_version: ${{ steps.resolve_inputs.outputs.cdk_version }}
+      cdk_lib_version: ${{ steps.resolve_inputs.outputs.cdk_lib_version }}
+      cdk_cli_version: ${{ steps.resolve_inputs.outputs.cdk_cli_version }}
       os: ${{ steps.resolve_inputs.outputs.os }}
       os_for_e2e: ${{ steps.resolve_inputs.outputs.os_for_e2e }}
       node: ${{ steps.resolve_inputs.outputs.node }}
@@ -100,10 +109,15 @@ jobs:
         id: resolve_inputs
         # This is intentionally in pure bash to make this job independent of repo checkout and fast.
         run: |
-          if [ -z "${{ inputs.desired-cdk-version }}" ]; then
-            echo "cdk_version=FROM_PACKAGE_LOCK" >> "$GITHUB_OUTPUT"
+          if [ -z "${{ inputs.desired-cdk-lib-version }}" ]; then
+            echo "cdk_lib_version=FROM_PACKAGE_LOCK" >> "$GITHUB_OUTPUT"
           else
-            echo "cdk_version=$(npm view aws-cdk@${{ inputs.desired-cdk-version }} version)" >> "$GITHUB_OUTPUT"
+            echo "cdk_lib_version=$(npm view aws-cdk-lib@${{ inputs.desired-cdk-lib-version }} version)" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -z "${{ inputs.desired-cdk-cli-version }}" ]; then
+            echo "cdk_cli_version=FROM_PACKAGE_LOCK" >> "$GITHUB_OUTPUT"
+          else
+            echo "cdk_cli_version=$(npm view aws-cdk@${{ inputs.desired-cdk-cli-version }} version)" >> "$GITHUB_OUTPUT"
           fi
           # Build JSON array in readable way in bash...
           os='["ubuntu-latest"'
@@ -125,7 +139,8 @@ jobs:
           else
             echo 'node=${{ inputs.node }}' >> "$GITHUB_OUTPUT"
           fi
-      - run: echo cdk_version set to ${{ steps.resolve_inputs.outputs.cdk_version }}
+      - run: echo cdk_lib_version set to ${{ steps.resolve_inputs.outputs.cdk_lib_version }}
+      - run: echo cdk_cli_version set to ${{ steps.resolve_inputs.outputs.cdk_cli_version }}
       - run: echo os set to ${{ steps.resolve_inputs.outputs.os }}
       - run: echo os_for_e2e set to ${{ steps.resolve_inputs.outputs.os_for_e2e }}
       - run: echo node set to ${{ steps.resolve_inputs.outputs.node }}
@@ -154,7 +169,8 @@ jobs:
       - uses: ./.github/actions/install_with_cache
         with:
           node-version: ${{ matrix.node }}
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
   build:
     strategy:
       matrix:
@@ -174,7 +190,8 @@ jobs:
       - uses: ./.github/actions/build_with_cache
         with:
           node-version: ${{ matrix.node }}
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
   test_with_coverage:
     needs:
       - build
@@ -192,7 +209,8 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ matrix.node }}
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: npm run set-script-shell
       - run: npm run test:coverage:threshold
   test_scripts:
@@ -208,7 +226,8 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: |
           npm run set-script-shell
           npm run test:scripts
@@ -225,7 +244,8 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - name: Pin some dependencies to nearest patch and rebuild
         run: |
           npx tsx scripts/set_baseline_dependency_versions.ts
@@ -253,7 +273,8 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - name: Publish packages locally
         timeout-minutes: 2
         run: |
@@ -289,7 +310,8 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - name: Handle Dependabot version update pull request
         run: npx tsx scripts/dependabot_handle_version_update.ts "$BASE_SHA"
         env:
@@ -319,7 +341,8 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - name: Check if any E2E tests should run
         id: check
         run: echo "run_e2e=$(npx tsx scripts/do_include_e2e.ts)" >> "$GITHUB_OUTPUT"
@@ -371,7 +394,8 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/iam_access_drift.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -404,7 +428,8 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
           run: npm run test:dir packages/integration-tests/lib/test-e2e/amplify_outputs_backwards_compatibility.test.js
         env:
           BASELINE_DIR: ${{ steps.setup_baseline_version.outputs.baseline_dir }}
@@ -423,7 +448,8 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - id: generateMatrix
         run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/deployment/*.deployment.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
@@ -452,7 +478,8 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
           link_cli: true
           run: |
             npm run test:dir ${{ matrix.testPaths }}
@@ -471,7 +498,8 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: echo "$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')"
       - id: generateMatrix
         run: echo "matrix=$(npx tsx scripts/generate_sparse_test_matrix.ts 'packages/integration-tests/lib/test-e2e/sandbox/*.sandbox.test.js' '${{ needs.resolve_inputs.outputs.node }}' '${{ needs.resolve_inputs.outputs.os_for_e2e }}')" >> "$GITHUB_OUTPUT"
@@ -500,7 +528,8 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
           link_cli: true
           run: npm run test:dir ${{ matrix.testPaths }}
   e2e_backend_output:
@@ -522,7 +551,8 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
           link_cli: true
           run: npm run test:dir packages/integration-tests/lib/test-e2e/backend_output.test.js
   e2e_create_amplify:
@@ -557,7 +587,8 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: ${{ matrix.node-version }}
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: cd packages/cli && npm link
       - name: Run e2e create-amplify tests
         run: npm run test:dir packages/integration-tests/lib/test-e2e/create_amplify.test.js
@@ -590,7 +621,8 @@ jobs:
         with:
           e2e_test_accounts: ${{ vars.E2E_TEST_ACCOUNTS }}
           node_version: ${{ matrix.node-version }}
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
           shell: bash
           run: |
             PACKAGE_MANAGER=${{matrix.pkg-manager}} npm run test:dir packages/integration-tests/src/package_manager_sanity_checks.test.ts
@@ -607,8 +639,13 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: npm run lint
+        env:
+          # increase v8's old memory section max size to ~15.5 GB
+          # see https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
+          NODE_OPTIONS: '--max-old-space-size=14782'
   check_dependencies:
     runs-on: ubuntu-latest
     needs:
@@ -622,7 +659,8 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: npm run check:dependencies
   check_tsconfig_refs:
     runs-on: ubuntu-latest
@@ -637,7 +675,8 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: npm run check:tsconfig-refs
   check_api_extract:
     runs-on: ubuntu-latest
@@ -652,7 +691,8 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: npm run check:api
   docs_build_and_publish:
     runs-on: ubuntu-latest
@@ -667,7 +707,8 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: npm run docs
       - if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
         uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # version 4.0.0
@@ -689,7 +730,8 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: git fetch origin
       - run: npm run diff:check "$BASE_SHA"
         env:
@@ -711,7 +753,8 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - name: Validate that PR has changeset
         run: npx changeset status --since origin/"$BASE_REF"
         env:
@@ -740,7 +783,8 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - run: npx changeset version
       - run: npm run check:package-versions
 
@@ -758,7 +802,8 @@ jobs:
       - uses: ./.github/actions/restore_install_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
       - name: Create or update Version Packages PR
@@ -791,7 +836,8 @@ jobs:
       - uses: ./.github/actions/restore_build_cache
         with:
           node-version: 18
-          cdk-version: ${{ needs.resolve_inputs.outputs.cdk_version }}
+          cdk-lib-version: ${{ needs.resolve_inputs.outputs.cdk_lib_version }}
+          cdk-cli-version: ${{ needs.resolve_inputs.outputs.cdk_cli_version }}
       - id: is_version_packages_commit
         run: echo "is_version_packages_commit=$(npx tsx scripts/is_version_packages_commit.ts)" >> "$GITHUB_OUTPUT"
       - name: Publish packages

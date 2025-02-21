@@ -87,6 +87,7 @@ const listSecretMock = mock.method(secretClient, 'listSecrets', () =>
 const printer = {
   log: mock.fn(),
   print: mock.fn(),
+  clearConsole: mock.fn(),
 };
 
 const sandboxExecutor = new AmplifySandboxExecutor(
