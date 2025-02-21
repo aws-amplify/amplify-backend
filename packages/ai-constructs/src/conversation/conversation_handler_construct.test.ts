@@ -58,7 +58,7 @@ void describe('Conversation Handler Function construct', () => {
     if ('name' in logGroup.Properties.DataProtectionPolicy) {
       // we may run some tests with older CDK version.
       // in that case the expected keys are all lower case, see https://github.com/aws/aws-cdk/pull/33462
-      const keysToLowerCase = (target: Record<string, unknown>) =>
+      const keysToCamelCase = (target: Record<string, unknown>) =>
         transform(
           target,
           (
@@ -67,15 +67,15 @@ void describe('Conversation Handler Function construct', () => {
             key: string | number
           ) => {
             if (typeof val === 'object') {
-              val = keysToLowerCase(val as Record<string, unknown>);
+              val = keysToCamelCase(val as Record<string, unknown>);
             }
             if (typeof key === 'string') {
-              key = key.toLowerCase();
+              key = `${key.slice(0, 1).toLowerCase()}${key.slice(1)}`;
             }
             result[key] = val;
           }
         );
-      expectedDataProtectionPolicy = keysToLowerCase(
+      expectedDataProtectionPolicy = keysToCamelCase(
         expectedDataProtectionPolicy
       );
     }
