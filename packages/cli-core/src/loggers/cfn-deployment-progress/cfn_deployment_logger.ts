@@ -174,7 +174,7 @@ export class StackActivityMonitor {
     try {
       await this.hydrateResourceNameCache(stackToPollForEvents);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
-    } catch (e) {
+    } catch {
       // Ignore, we'll just print the LogicalResourceId as it is
       // console.log('failed hydration', e);
     }
@@ -383,7 +383,7 @@ export class StackActivityMonitor {
           }
         }
       }
-    } catch (e) {
+    } catch {
       // ignore, we can't read metadata
       return;
     }
@@ -445,9 +445,9 @@ export type IActivityPrinter = {
   readonly updateSleep: number;
 
   addActivity: (activity: StackEvent) => void;
-  print: (resourceNameCache: { [logicalId: string]: string }) => void;
+  print: (resourceNameCache: { [logicalId: string]: string }) => Promise<void>;
   start: () => void;
-  stop: () => void;
+  stop: () => Promise<void>;
 };
 
 abstract class ActivityPrinterBase implements IActivityPrinter {
@@ -602,13 +602,13 @@ abstract class ActivityPrinterBase implements IActivityPrinter {
     // Empty on purpose
   }
 
-  public stop() {
+  public async stop() {
     // Empty on purpose
   }
 
   public abstract print(resourceNameCache: {
     [logicalId: string]: string;
-  }): void;
+  }): Promise<void>;
 }
 
 /**

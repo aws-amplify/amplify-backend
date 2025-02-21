@@ -14,9 +14,10 @@ export interface AmplifyEventMessage {
   action: ToolkitAction | 'amplify';
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export interface AmplifyIoHostEventMessage<T>
-  extends SimpleSpread<IoMessage<T>, AmplifyEventMessage> {}
+export type AmplifyIoHostEventMessage<T> = {} & SimpleSpread<
+  IoMessage<T>,
+  AmplifyEventMessage
+>;
 
 export type AmplifyIoHostEventRequestMessageIoRequest<T, U> = IoRequest<T, U>;
 
