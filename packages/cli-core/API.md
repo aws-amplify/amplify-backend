@@ -128,7 +128,7 @@ export class Printer {
     log: (message: string, level?: LogLevel) => void;
     print: (message: string) => void;
     printNewLine: () => void;
-    startSpinner: (message: string, options?: {
+    startSpinner: (id: string, message: string, options?: {
         timeoutSeconds: number;
     }) => string;
     stopSpinner: (id: string) => void;

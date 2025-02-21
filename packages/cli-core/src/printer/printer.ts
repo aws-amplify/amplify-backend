@@ -1,7 +1,6 @@
 import { WriteStream } from 'node:tty';
 import { EOL } from 'os';
 import ora, { Ora, oraPromise } from 'ora';
-import { randomUUID } from 'node:crypto';
 
 export type RecordValue = string | number | string[] | Date;
 
@@ -94,10 +93,10 @@ export class Printer {
    * @returns the id of the spinner
    */
   startSpinner = (
+    id: string,
     message: string,
     options: { timeoutSeconds: number } = { timeoutSeconds: 60 }
   ): string => {
-    const id = randomUUID();
     this.currentSpinners[id] = {
       instance: ora({
         text: message,

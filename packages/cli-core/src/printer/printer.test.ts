@@ -2,11 +2,12 @@ import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { LogLevel, Printer } from './printer.js';
 import tty from 'node:tty';
+import { randomUUID } from 'node:crypto';
 
 void describe('Printer', () => {
   const mockedWrite = mock.method(process.stdout, 'write');
   let originalWrite: typeof process.stdout.write;
-
+  let spinnerId = '';
   const mockedTTYWrite = mock.fn();
   const ttyStream: tty.WriteStream = {
     cursorTo: mock.fn(),
@@ -27,6 +28,7 @@ void describe('Printer', () => {
   });
 
   beforeEach(() => {
+    spinnerId = randomUUID();
     mockedTTYWrite.mock.resetCalls();
     mockedWrite.mock.resetCalls();
   });
@@ -150,7 +152,7 @@ void describe('Printer', () => {
       50,
       true
     );
-    const spinnerId = printer.startSpinner(message);
+    printer.startSpinner(spinnerId, message);
 
     // Wait for 190 ms
     await new Promise((resolve) => setTimeout(resolve, 190));
@@ -184,7 +186,7 @@ void describe('Printer', () => {
       50,
       false // simulate non-tty
     );
-    const spinnerId = printer.startSpinner(message);
+    printer.startSpinner(spinnerId, message);
 
     // Wait for 190 ms such that tty would have caused multiple prints
     await new Promise((resolve) => setTimeout(resolve, 190));
@@ -218,7 +220,9 @@ void describe('Printer', () => {
       50,
       true
     );
-    const spinnerId = printer.startSpinner(message, { timeoutSeconds: 0.1 });
+    printer.startSpinner(spinnerId, message, {
+      timeoutSeconds: 0.1,
+    });
     assert.ok(printer.isSpinnerRunning(spinnerId));
     // Wait for 110 ms for the spinner to timeout
     await new Promise((resolve) => setTimeout(resolve, 110));
@@ -236,7 +240,9 @@ void describe('Printer', () => {
       50,
       true
     );
-    const spinnerId = printer.startSpinner(message, { timeoutSeconds: 0.1 });
+    printer.startSpinner(spinnerId, message, {
+      timeoutSeconds: 0.1,
+    });
     assert.ok(printer.isSpinnerRunning(spinnerId));
     // Wait for 70 ms so the spinner doesn't timeout
     await new Promise((resolve) => setTimeout(resolve, 70));
@@ -275,7 +281,7 @@ void describe('Printer', () => {
       50,
       true
     );
-    const spinnerId = printer.startSpinner(message);
+    printer.startSpinner(spinnerId, message);
     printer.updateSpinner(spinnerId, {
       prefixText: 'this is some prefix text',
     });
