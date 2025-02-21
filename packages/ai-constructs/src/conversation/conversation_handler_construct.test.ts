@@ -7,6 +7,7 @@ import path from 'path';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import transform from 'lodash.transform';
 
 void describe('Conversation Handler Function construct', () => {
   void it('creates handler with log group with JWT token redacting policy', () => {
@@ -20,7 +21,7 @@ void describe('Conversation Handler Function construct', () => {
     assert.strictEqual(Object.values(logGroups).length, 1);
     const logGroupLogicalId = Object.keys(logGroups)[0];
     const logGroup = Object.values(logGroups)[0];
-    assert.deepStrictEqual(logGroup.Properties.DataProtectionPolicy, {
+    let expectedDataProtectionPolicy: Record<string, unknown> = {
       Name: 'data-protection-policy-cdk',
       Description: 'cdk generated data protection policy',
       Version: '2021-06-01',
@@ -53,7 +54,21 @@ void describe('Conversation Handler Function construct', () => {
           },
         },
       ],
-    });
+    };
+    if ('name' in logGroup.Properties.DataProtectionPolicy) {
+      // we may run some tests with older CDK version.
+      // in that case the expected keys are all lower case, see https://github.com/aws/aws-cdk/pull/33462
+      expectedDataProtectionPolicy = transform(
+        expectedDataProtectionPolicy,
+        (result: { [x: string]: unknown }, val: unknown, key: string) => {
+          result[key.toLowerCase()] = val;
+        }
+      );
+    }
+    assert.deepStrictEqual(
+      logGroup.Properties.DataProtectionPolicy,
+      expectedDataProtectionPolicy
+    );
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
       LoggingConfig: {

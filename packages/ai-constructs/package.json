@@ -35,6 +35,8 @@
   },
   "devDependencies": {
     "@aws-amplify/backend-output-storage": "^1.1.4",
+    "@types/lodash.transform": "^4.6.9",
+    "lodash.transform": "^4.6.0",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
