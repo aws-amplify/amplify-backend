@@ -58,11 +58,18 @@ void describe('Conversation Handler Function construct', () => {
     if ('name' in logGroup.Properties.DataProtectionPolicy) {
       // we may run some tests with older CDK version.
       // in that case the expected keys are all lower case, see https://github.com/aws/aws-cdk/pull/33462
-      expectedDataProtectionPolicy = transform(
-        expectedDataProtectionPolicy,
-        (result: { [x: string]: unknown }, val: unknown, key: string) => {
-          result[key.toLowerCase()] = val;
-        }
+      const keysToLowerCase = (target: Record<string, unknown>) =>
+        transform(
+          target,
+          (result: { [x: string]: unknown }, val: unknown, key: string) => {
+            if (typeof val === 'object') {
+              val = keysToLowerCase(val as Record<string, unknown>);
+            }
+            result[key.toLowerCase()] = val;
+          }
+        );
+      expectedDataProtectionPolicy = keysToLowerCase(
+        expectedDataProtectionPolicy
       );
     }
     assert.deepStrictEqual(
