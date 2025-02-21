@@ -111,6 +111,13 @@ export class Printer {
   updateSpinner(message: string, options: { prefixText: string }) {
     this.currentSpinners[message].prefixText = options.prefixText;
   }
+
+  /**
+   * Clears the console
+   */
+  clearConsole() {
+    this.stdout.write('\n'.repeat(process.stdout.rows));
+  }
 }
 
 export enum LogLevel {

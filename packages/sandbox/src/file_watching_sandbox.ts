@@ -314,6 +314,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * Just a shorthand console log to indicate whenever watcher is going idle
    */
   private emitWatching = () => {
+    this.printer.clearConsole();
     this.printer.log(`[Sandbox] Watching for file changes...`);
   };
 
