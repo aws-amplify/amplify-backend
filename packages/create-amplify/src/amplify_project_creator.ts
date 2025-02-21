@@ -4,6 +4,7 @@ import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import { defaultDevPackages, defaultProdPackages } from './default_packages.js';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
   'https://docs.amplify.aws/react/reference/telemetry';
@@ -12,19 +13,6 @@ const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
  * Orchestration class that sets up a new Amplify project
  */
 export class AmplifyProjectCreator {
-  private readonly defaultDevPackages = [
-    '@aws-amplify/backend',
-    '@aws-amplify/backend-cli',
-    'aws-cdk@^2',
-    'aws-cdk-lib@^2',
-    'constructs@^10.0.0',
-    'typescript@^5.0.0',
-    'tsx',
-    'esbuild',
-  ];
-
-  private readonly defaultProdPackages = ['aws-amplify'];
-
   /**
    * Orchestrator for the create-amplify workflow.
    * Delegates out to other classes that handle parts of the getting started experience
@@ -51,23 +39,23 @@ export class AmplifyProjectCreator {
 
     printer.printNewLine();
     printer.log(format.sectionHeader(`Installing devDependencies:`));
-    printer.log(format.list(this.defaultDevPackages));
+    printer.log(format.list(defaultDevPackages));
 
     printer.printNewLine();
     printer.log(format.sectionHeader(`Installing dependencies:`));
-    printer.log(format.list(this.defaultProdPackages));
+    printer.log(format.list(defaultProdPackages));
     printer.printNewLine();
 
     await printer.indicateProgress('Installing devDependencies', () =>
       this.packageManagerController.installDependencies(
-        this.defaultDevPackages,
+        defaultDevPackages,
         'dev'
       )
     );
     printer.log(`✔ DevDependencies installed`);
     await printer.indicateProgress('Installing dependencies', () =>
       this.packageManagerController.installDependencies(
-        this.defaultProdPackages,
+        defaultProdPackages,
         'prod'
       )
     );
