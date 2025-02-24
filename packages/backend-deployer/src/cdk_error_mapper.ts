@@ -304,8 +304,7 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
-      errorRegex:
-        /_ToolkitError: Found (?<number>.*) problem\(s\) with the schema:/,
+      errorRegex: /Found (?<number>.*) problem\(s\) with the schema:/,
       humanReadableErrorMessage:
         '{number} problem(s) have been found with your schema',
       resolutionMessage:
