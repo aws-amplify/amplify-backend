@@ -91,7 +91,7 @@ void describe('format.error', async () => {
 
   void it('should format error message when input is Error', () => {
     const input = new Error('something went wrong');
-    const expectedOutput = red('Error: something went wrong');
+    const expectedOutput = red(bold('[Error]')) + ' something went wrong';
     const actualOutput = format.error(input);
     assert.strictEqual(actualOutput, expectedOutput);
   });
@@ -112,7 +112,8 @@ void describe('format.error', async () => {
     const expectedOutput =
       red('Unknown error') +
       os.EOL +
-      red('TypeError: Do not know how to serialize a BigInt');
+      red(bold('[TypeError]')) +
+      ' Do not know how to serialize a BigInt';
     const actualOutput = format.error(input);
     assert.strictEqual(actualOutput, expectedOutput);
   });
@@ -121,7 +122,11 @@ void describe('format.error', async () => {
     const nestedError = new Error('nested error');
     const input = new Error('something went wrong', { cause: nestedError });
     const expectedOutput =
-      red('Error: something went wrong') + os.EOL + red('Error: nested error');
+      red(bold('[Error]')) +
+      ' something went wrong' +
+      format.indent(
+        os.EOL + 'Caused by: ' + red(bold('[Error]')) + ' nested error'
+      );
     const actualOutput = format.error(input);
     assert.strictEqual(actualOutput, expectedOutput);
   });

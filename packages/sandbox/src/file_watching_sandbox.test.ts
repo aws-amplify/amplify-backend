@@ -359,14 +359,14 @@ void describe('Sandbox using local project name resolver', () => {
       undefined,
       false
     ));
-    assert.strictEqual(printer.log.mock.callCount(), 7);
+    assert.strictEqual(printer.print.mock.callCount(), 4);
 
     assert.strictEqual(
-      printer.log.mock.calls[1].arguments[0],
+      printer.print.mock.calls[1].arguments[0],
       format.indent(`${format.bold('Identifier:')} \ttestSandboxName`)
     );
     assert.strictEqual(
-      printer.log.mock.calls[3].arguments[0],
+      printer.print.mock.calls[3].arguments[0],
       `${format.indent(
         format.dim('\nTo specify a different sandbox identifier, use ')
       )}${format.bold('--identifier')}`
