@@ -187,6 +187,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         // TypeScript doesn't realize latch can change between 'awaits' ¯\_(ツ)_/¯,
         // and thinks the above 'while' condition is always 'false' without the cast
         latch = 'deploying';
+        this.printer.clearConsole();
         this.printer.log(
           "[Sandbox] Detected file changes while previous deployment was in progress. Invoking 'sandbox' again"
         );
@@ -208,10 +209,14 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
         async (_, events) => {
           // Log and track file changes.
           await Promise.all(
-            events.map(({ type: eventName, path }) => {
-              this.filesChangesTracker.trackFileChange(path);
+            events.map(({ type: eventName, path: filePath }) => {
+              this.filesChangesTracker.trackFileChange(filePath);
+              latch === 'open' && this.printer.clearConsole();
               this.printer.log(
-                `[Sandbox] Triggered due to a file ${eventName} event: ${path}`
+                `[Sandbox] Triggered due to a file ${eventName} event: ${path.relative(
+                  process.cwd(),
+                  filePath
+                )}`
               );
             })
           );
@@ -289,7 +294,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       this.emit('successfulDeployment', deployResult);
     } catch (error) {
       // Print a meaningful message
-      this.printer.print(format.error(this.getErrorMessage(error)));
+      this.printer.log(format.error(error), LogLevel.ERROR);
       this.emit('failedDeployment', error);
 
       // If the error is because of a non-allowed destructive change such as
@@ -314,7 +319,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
    * Just a shorthand console log to indicate whenever watcher is going idle
    */
   private emitWatching = () => {
-    this.printer.clearConsole();
     this.printer.log(`[Sandbox] Watching for file changes...`);
   };
 
@@ -443,15 +447,17 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     );
     const stackName =
       BackendIdentifierConversions.toStackName(sandboxBackendId);
-    this.printer.log(
+    this.printer.print(
       format.indent(format.highlight(format.bold('\nAmplify Sandbox\n')))
     );
-    this.printer.log(
+    this.printer.print(
       format.indent(`${format.bold('Identifier:')} \t${sandboxBackendId.name}`)
     );
-    this.printer.log(format.indent(`${format.bold('Stack:')} \t${stackName}`));
+    this.printer.print(
+      format.indent(`${format.bold('Stack:')} \t${stackName}`)
+    );
     if (!sandboxIdentifier) {
-      this.printer.log(
+      this.printer.print(
         `${format.indent(
           format.dim('\nTo specify a different sandbox identifier, use ')
         )}${format.bold('--identifier')}`

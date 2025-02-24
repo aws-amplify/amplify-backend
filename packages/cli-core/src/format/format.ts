@@ -12,7 +12,7 @@ import {
   underline,
   yellow,
 } from 'kleur/colors';
-import { AmplifyFault } from '@aws-amplify/platform-core';
+import { AmplifyError, AmplifyFault } from '@aws-amplify/platform-core';
 import { getPackageManagerRunnerName } from '../package-manager-controller/get_package_manager_name.js';
 
 /**
@@ -35,11 +35,21 @@ export class Format {
   };
   error = (error: string | Error | unknown): string => {
     if (error instanceof Error) {
-      const message = red(`${error.name}: ${error.message}`);
+      let message = `${red(bold(`[${error.name}]`))} ${error.message}`;
 
       if (error.cause) {
-        return message + os.EOL + this.error(error.cause);
+        message =
+          message +
+          format.indent(os.EOL + `Caused by: ${this.error(error.cause)}`);
       }
+
+      if (AmplifyError.isAmplifyError(error) && error.resolution) {
+        message =
+          message +
+          os.EOL +
+          `${format.success('Resolution')}: ${error.resolution}`;
+      }
+
       return message;
     } else if (typeof error === 'string') {
       return red(error);

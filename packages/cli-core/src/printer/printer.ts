@@ -1,6 +1,7 @@
 import { WriteStream } from 'node:tty';
 import { EOL } from 'os';
 import ora, { Ora, oraPromise } from 'ora';
+import { ColorName, format } from '../format/format.js';
 
 export type RecordValue = string | number | string[] | Date;
 
@@ -30,6 +31,7 @@ export class Printer {
    * Prints a given message to output stream followed by a newline.
    */
   print = (message: string) => {
+    message = this.stringify(message);
     this.stdout.write(message);
     this.printNewLine();
   };
@@ -45,24 +47,35 @@ export class Printer {
    * Logs a message to the output stream at the given log level followed by a newline
    */
   log = (message: string, level: LogLevel = LogLevel.INFO) => {
+    message = this.stringify(message);
     const doLogMessage = level <= this.minimumLogLevel;
 
     if (!doLogMessage) {
       return;
     }
 
-    const logMessage =
-      this.minimumLogLevel === LogLevel.DEBUG
-        ? `[${LogLevel[level]}] ${new Date().toISOString()}: ${message}`
-        : message;
-
-    if (level === LogLevel.ERROR) {
-      this.stderr.write(logMessage);
-    } else {
-      this.stdout.write(logMessage);
+    let logPrefixFormatFn = format.dim;
+    if (level <= LogLevel.WARN) {
+      logPrefixFormatFn = (prefix: string) => {
+        const prefixColor: ColorName =
+          level === LogLevel.ERROR ? 'Red' : 'Yellow';
+        return format.bold(
+          format.color(`${prefix} [${LogLevel[level]}]`, prefixColor)
+        );
+      };
     }
 
-    this.printNewLine();
+    message.split(EOL).forEach((line) => {
+      const logMessage = `${logPrefixFormatFn(
+        new Date().toLocaleTimeString()
+      )} ${line}`;
+      if (level === LogLevel.ERROR) {
+        this.stderr.write(logMessage);
+      } else {
+        this.stdout.write(logMessage);
+      }
+      this.printNewLine();
+    });
   };
 
   /**
@@ -74,6 +87,7 @@ export class Printer {
     callback: () => Promise<void>,
     successMessage?: string
   ) => {
+    const timePrefix = format.dim(new Date().toLocaleTimeString());
     await oraPromise(callback, {
       text: message,
       color: 'white',
@@ -82,7 +96,7 @@ export class Printer {
       hideCursor: false,
       interval: this.refreshRate,
       spinner: 'dots',
-      successText: successMessage,
+      successText: `${timePrefix} ${successMessage ?? message}`,
       isEnabled: this.enableTTY,
     });
   };
@@ -158,10 +172,24 @@ export class Printer {
   clearConsole = () => {
     this.stdout.write('\n'.repeat(process.stdout.rows));
   };
+
+  stringify = (msg: unknown): string => {
+    if (typeof msg === 'string') {
+      return msg;
+    } else if (msg instanceof Error) {
+      return msg.message;
+    }
+    try {
+      return JSON.stringify(msg, null, 2);
+    } catch {
+      return String(msg);
+    }
+  };
 }
 
 export enum LogLevel {
   ERROR = 0,
-  INFO = 1,
-  DEBUG = 2,
+  WARN = 1,
+  INFO = 2,
+  DEBUG = 3,
 }

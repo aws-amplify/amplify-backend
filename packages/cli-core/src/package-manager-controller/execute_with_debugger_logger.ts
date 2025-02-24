@@ -20,11 +20,17 @@ export const executeWithDebugLogger = (
       ...options,
     });
 
-    childProcess?.stdout?.on('data', (data: string) =>
-      printer.log(data, LogLevel.DEBUG)
+    childProcess?.stdout?.on('data', (data: unknown) =>
+      printer.log(
+        data instanceof Buffer ? data.toString() : JSON.stringify(data),
+        LogLevel.DEBUG
+      )
     );
-    childProcess?.stderr?.on('data', (data: string) =>
-      printer.log(data, LogLevel.DEBUG)
+    childProcess?.stderr?.on('data', (data: unknown) =>
+      printer.log(
+        data instanceof Buffer ? data.toString() : JSON.stringify(data),
+        LogLevel.DEBUG
+      )
     );
 
     return childProcess;

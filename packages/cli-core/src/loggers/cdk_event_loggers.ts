@@ -87,25 +87,25 @@ export class CDKEventLogger {
     }
     switch (msg.code) {
       case 'TS_STARTED':
-        this.printer.startSpinner('Running type checks...');
+        this.printer.startSpinner('TS_CHECK', 'Running type checks...');
         return;
       case 'TS_FINISHED':
-        this.printer.stopSpinner('Running type checks...');
+        this.printer.stopSpinner('TS_CHECK');
         break;
       case 'SYNTH_STARTED':
-        this.printer.startSpinner('Synthesizing backend...');
+        this.printer.startSpinner('SYNTH_CHECK', 'Synthesizing backend...');
         return;
       case 'SYNTH_FINISHED':
-        this.printer.stopSpinner('Synthesizing backend...');
+        this.printer.stopSpinner('SYNTH_CHECK');
         break;
     }
-    const formatFn =
-      msg.level === 'error'
-        ? format.error
-        : msg.level === 'result'
-        ? format.success
-        : undefined;
-    this.printer.print(formatFn ? formatFn(msg.message) : msg.message);
+    this.printer.log(
+      msg.level === 'result'
+        ? `${format.success('✔')} ${msg.message}`
+        : msg.level === 'error'
+        ? format.error(msg.message)
+        : msg.message
+    );
   };
 
   /**
@@ -118,14 +118,19 @@ export class CDKEventLogger {
     // TBD: This will be replaced with a proper marker event with a unique code later
     // Asset publishing
     if (msg.message.includes('Checking for previously published assets')) {
-      this.printer.startSpinner('Building and publishing assets...');
+      this.printer.startSpinner(
+        'PUBLISH_ASSETS',
+        'Building and publishing assets...'
+      );
       return Promise.resolve();
     } else if (
       msg.message.includes('success: Published') ||
       msg.message.includes('0 still need to be published')
     ) {
-      this.printer.stopSpinner('Building and publishing assets...');
-      this.printer.print(format.success('✔ Built and published assets'));
+      if (this.printer.isSpinnerRunning('PUBLISH_ASSETS')) {
+        this.printer.stopSpinner('PUBLISH_ASSETS');
+        this.printer.log(`${format.success('✔')} Built and published assets`);
+      }
       return Promise.resolve();
     }
 
@@ -146,10 +151,10 @@ export class CDKEventLogger {
         msg.data.duration &&
         typeof msg.data.duration === 'number'
       ) {
-        this.printer.print(
-          format.success(
-            `✔ Deployment completed in ${msg.data.duration / 1000} seconds`
-          )
+        this.printer.log(
+          `${format.success('✔')} Deployment completed in ${
+            msg.data.duration / 1000
+          } seconds`
         );
       }
       if (
@@ -157,8 +162,8 @@ export class CDKEventLogger {
         'awsAppsyncApiEndpoint' in this.outputs &&
         this.outputs.awsAppsyncApiEndpoint
       ) {
-        this.printer.print(
-          `AppSync API endpoint = ${format.success(
+        this.printer.log(
+          `AppSync API endpoint = ${format.link(
             this.outputs.awsAppsyncApiEndpoint as string
           )}`
         );
@@ -182,7 +187,7 @@ export class CDKEventLogger {
     // Hot swap deployment
     // TBD: This will be replaced with a proper marker event with a unique code later
     if (msg.message.includes('hotswapped')) {
-      this.printer.print(msg.message);
+      this.printer.log(msg.message);
     }
 
     // Outputs we care about. CDK_TOOLKIT_I5900 code represents outputs message

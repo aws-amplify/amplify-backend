@@ -116,7 +116,7 @@ export class CDKDeployer implements BackendDeployer {
       Math.floor((Date.now() - synthStartTime) / 10) / 100;
 
     await this.ioHost.notify({
-      message: `✔ Backend synthesized in ${synthTimeSeconds} seconds`,
+      message: `Backend synthesized in ${synthTimeSeconds} seconds`,
       code: 'SYNTH_FINISHED',
       action: 'amplify',
       time: new Date(),
@@ -149,21 +149,22 @@ export class CDKDeployer implements BackendDeployer {
         throw synthError;
       }
       throw typeError;
+    } finally {
+      const typeCheckTimeSeconds =
+        Math.floor((Date.now() - typeCheckStartTime) / 10) / 100;
+      if (backendId.type === 'sandbox') {
+        await this.ioHost.notify({
+          message: `Type checks completed in ${typeCheckTimeSeconds} seconds`,
+          code: 'TS_FINISHED',
+          action: 'amplify',
+          time: new Date(),
+          level: 'result',
+        });
+      }
     }
 
     if (synthError) {
       throw this.cdkErrorMapper.getAmplifyError(synthError);
-    }
-    const typeCheckTimeSeconds =
-      Math.floor((Date.now() - typeCheckStartTime) / 10) / 100;
-    if (backendId.type === 'sandbox') {
-      await this.ioHost.notify({
-        message: `✔ Type checks completed in ${typeCheckTimeSeconds} seconds`,
-        code: 'TS_FINISHED',
-        action: 'amplify',
-        time: new Date(),
-        level: 'result',
-      });
     }
 
     // 5. Perform actual deployment. CFN or hotswap
