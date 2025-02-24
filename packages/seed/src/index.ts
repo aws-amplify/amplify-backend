@@ -14,6 +14,7 @@ import {
   MfaSignUpFlow,
   MfaWithTotpSignUpFlow,
   PasswordSignInFlow,
+  StandardUserAttributes,
 } from './types.js';
 
 export {
@@ -31,4 +32,5 @@ export {
   MfaSignInFlow,
   MfaSignUpFlow,
   MfaWithTotpSignUpFlow,
+  StandardUserAttributes,
 };

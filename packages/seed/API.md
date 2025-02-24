@@ -80,9 +80,27 @@ export const setSecret: (secretName: string, secretValue: string) => Promise<str
 // @public
 export const signInUser: (user: AuthUser) => Promise<boolean>;
 
-// Warnings were encountered during analysis:
-//
-// src/types.ts:6:3 - (ae-forgotten-export) The symbol "StandardUserAttributes" needs to be exported by the entry point index.d.ts
+// @public (undocumented)
+export type StandardUserAttributes = {
+    name?: string;
+    familyName?: string;
+    givenName?: string;
+    middleName?: string;
+    nickname?: string;
+    preferredUsername?: string;
+    profile?: string;
+    picture?: string;
+    website?: string;
+    gender?: string;
+    birthdate?: string;
+    zoneinfo?: string;
+    locale?: string;
+    updatedAt?: string;
+    address?: string;
+    email?: string;
+    phoneNumber?: string;
+    sub?: string;
+};
 
 // (No @packageDocumentation comment for this package)
 
