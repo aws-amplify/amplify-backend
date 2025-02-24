@@ -35,6 +35,7 @@ export type DeployProps = {
     secretLastUpdated?: Date;
     validateAppSources?: boolean;
     profile?: string;
+    dryRun?: boolean;
 };
 
 // @public (undocumented)
