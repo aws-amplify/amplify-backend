@@ -102,11 +102,13 @@ export const format: Format;
 // @public (undocumented)
 export enum LogLevel {
     // (undocumented)
-    DEBUG = 2,
+    DEBUG = 3,
     // (undocumented)
     ERROR = 0,
     // (undocumented)
-    INFO = 1
+    INFO = 2,
+    // (undocumented)
+    WARN = 1
 }
 
 // @public (undocumented)
@@ -132,6 +134,8 @@ export class Printer {
         timeoutSeconds: number;
     }) => string;
     stopSpinner: (id: string) => void;
+    // (undocumented)
+    stringify: (msg: unknown) => string;
     updateSpinner: (id: string, options: {
         message?: string;
         prefixText?: string;

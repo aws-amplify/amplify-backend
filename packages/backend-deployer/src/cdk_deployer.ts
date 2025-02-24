@@ -26,7 +26,7 @@ import {
   RequireApproval,
   StackSelectionStrategy,
   Toolkit,
-} from '@aws-cdk/toolkit';
+} from '@aws-cdk/toolkit-lib';
 import { tsImport } from 'tsx/esm/api';
 import { CloudAssembly } from 'aws-cdk-lib/cx-api';
 import { pathToFileURL } from 'url';

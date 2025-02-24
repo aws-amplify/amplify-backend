@@ -16,12 +16,12 @@ import {
 import { BackendDeployerOutputFormatter } from './types.js';
 import { EOL } from 'os';
 import {
-  CdkAppSourceProps,
+  AssemblySourceProps,
   DeployOptions,
   HotswapMode,
   StackSelectionStrategy,
   Toolkit,
-} from '@aws-cdk/toolkit';
+} from '@aws-cdk/toolkit-lib';
 import path from 'node:path';
 
 const formatterStub: BackendDeployerOutputFormatter = {
@@ -125,7 +125,7 @@ void describe('invokeCDKCommand', () => {
         'amplify-backend-type': 'branch',
       },
       outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
-    } as CdkAppSourceProps);
+    } as AssemblySourceProps);
   });
 
   void it('handles deployProps for sandbox', async () => {
@@ -147,7 +147,7 @@ void describe('invokeCDKCommand', () => {
         secretLastUpdated: 12345678,
       },
       outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
-    } as CdkAppSourceProps);
+    } as AssemblySourceProps);
   });
 
   void it.skip('deploy handles profile', async () => {

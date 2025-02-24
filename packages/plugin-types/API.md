@@ -15,8 +15,8 @@ import { CfnUserPoolGroup } from 'aws-cdk-lib/aws-cognito';
 import { Client } from '@aws-sdk/types';
 import { Construct } from 'constructs';
 import { IFunction } from 'aws-cdk-lib/aws-lambda';
-import { IoMessage } from '@aws-cdk/toolkit';
-import { IoRequest } from '@aws-cdk/toolkit';
+import { IoMessage } from '@aws-cdk/toolkit-lib';
+import { IoRequest } from '@aws-cdk/toolkit-lib';
 import { IRole } from 'aws-cdk-lib/aws-iam';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
@@ -25,7 +25,7 @@ import { Policy } from 'aws-cdk-lib/aws-iam';
 import { Readable } from 'node:stream';
 import { SecretValue } from 'aws-cdk-lib';
 import { Stack } from 'aws-cdk-lib';
-import { ToolkitAction } from '@aws-cdk/toolkit';
+import { ToolkitAction } from '@aws-cdk/toolkit-lib';
 
 // @public (undocumented)
 export interface AmplifyEventMessage {
@@ -45,8 +45,7 @@ export type AmplifyIOHost = {
 };
 
 // @public (undocumented)
-export interface AmplifyIoHostEventMessage<T> extends SimpleSpread<IoMessage<T>, AmplifyEventMessage> {
-}
+export type AmplifyIoHostEventMessage<T> = {} & SimpleSpread<IoMessage<T>, AmplifyEventMessage>;
 
 // @public (undocumented)
 export type AmplifyIoHostEventRequestMessageIoRequest<T, U> = IoRequest<T, U>;

@@ -16,12 +16,7 @@
     "@aws-sdk/types": "^3.609.0"
   },
   "dependencies": {
-    "@aws-cdk/toolkit": "file:../../dist/aws-cdk-toolkit-0.0.0.tgz"
-  },
-  "overrides": {
-    "@aws-cdk/toolkit": {
-      "cdk-assets": "3.0.0-rc.127"
-    }
+    "@aws-cdk/toolkit-lib": "0.1.0"
   },
   "imports": {
     "#package.json": "./package.json"

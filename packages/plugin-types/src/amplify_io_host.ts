@@ -1,4 +1,4 @@
-import { IoMessage, IoRequest, ToolkitAction } from '@aws-cdk/toolkit';
+import { IoMessage, IoRequest, ToolkitAction } from '@aws-cdk/toolkit-lib';
 
 // SimpleSpread<L, R> is a simplified version of what happens when you
 // do an object spread like {...left, ...right} where left is of type L and
