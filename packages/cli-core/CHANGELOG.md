@@ -1,5 +1,16 @@
 # @aws-amplify/cli-core
 
+## 1.3.0
+
+### Minor Changes
+
+- 7348f29: Refactor printer to use ora and add two new APIs
+
+### Patch Changes
+
+- cdb5156: Bumps [@inquirer/prompts](https://github.com/SBoudrias/Inquirer.js) from 3.3.2 to 7.3.2.
+- f6171a2: update start spinner api to accept the id instead of generating a new
+
 ## 1.2.4
 
 ### Patch Changes
