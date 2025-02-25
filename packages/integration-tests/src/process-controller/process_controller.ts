@@ -9,6 +9,7 @@ import {
 } from '../setup_package_manager.js';
 import { PassThrough } from 'stream';
 import { EOL } from 'os';
+import { pipeline } from 'stream/promises';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
@@ -71,9 +72,10 @@ export class ProcessController {
       throw new Error('Child process does not have stdout stream');
     }
 
-    let pass = new PassThrough();
-    pass = execaProcess.stdout.pipe(pass, { end: false });
-    pass = execaProcess.stderr.pipe(pass, { end: true });
+    const pass = new PassThrough();
+
+    void pipeline(execaProcess.stdout, pass, { end: false });
+    void pipeline(execaProcess.stderr, pass, { end: true });
 
     const reader = readline.createInterface(pass);
 
@@ -111,7 +113,6 @@ export class ProcessController {
       // advance the queue
       interactionQueue.shift();
     }
-
     const result = await execaProcess;
 
     if (errorThrownFromActions) {

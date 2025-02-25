@@ -29,9 +29,13 @@ export const defineDeploymentTest = (
     { concurrency: testConcurrencyLevel },
     () => {
       before(async () => {
+        console.log(
+          `[E2E] before: deployment tests ${testProjectCreator.name}`
+        );
         await createTestDirectory(rootTestDir);
       });
       after(async () => {
+        console.log(`[E2E] after: deployment tests ${testProjectCreator.name}`);
         await deleteTestDirectory(rootTestDir);
       });
 
