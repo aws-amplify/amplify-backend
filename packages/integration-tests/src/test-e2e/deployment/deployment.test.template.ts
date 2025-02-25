@@ -36,11 +36,17 @@ export const defineDeploymentTest = (
       });
 
       void describe(`branch deploys ${testProjectCreator.name}`, () => {
+        console.log(
+          `[E2E] describe: branch deploys ${testProjectCreator.name}`
+        );
         let branchBackendIdentifier: BackendIdentifier;
         let testBranch: TestBranch;
         let testProject: TestProjectBase;
 
         beforeEach(async () => {
+          console.log(
+            `[E2E] beforeEach: branch deploys ${testProjectCreator.name}`
+          );
           testProject = await testProjectCreator.createProject(rootTestDir);
           testBranch = await amplifyAppPool.createTestBranch();
           branchBackendIdentifier = {
@@ -51,10 +57,14 @@ export const defineDeploymentTest = (
         });
 
         afterEach(async () => {
+          console.log(
+            `[E2E] afterEach: branch deploys ${testProjectCreator.name}`
+          );
           await testProject.tearDown(branchBackendIdentifier);
         });
 
         void it(`[${testProjectCreator.name}] deploys fully`, async () => {
+          console.log(`[E2E] it: [${testProjectCreator.name}] deploys fully`);
           await testProject.deploy(branchBackendIdentifier);
           await testProject.assertPostDeployment(branchBackendIdentifier);
           const testBranchDetails = await amplifyAppPool.fetchTestBranchDetails(
@@ -103,9 +113,11 @@ export const defineDeploymentTest = (
       });
 
       void describe('fails on compilation error', async () => {
+        console.log('[E2E] describe: fails on compilation error');
         let testProject: TestProjectBase;
         before(async () => {
           // any project is fine
+          console.log('[E2E] before: fails on compilation error');
           testProject = await testProjectCreator.createProject(rootTestDir);
           await fs.cp(
             testProject.sourceProjectAmplifyDirURL,
@@ -123,7 +135,9 @@ export const defineDeploymentTest = (
         });
 
         void describe('in sequence', { concurrency: false }, () => {
+          console.log('[E2E] describe: in sequence');
           void it('in sandbox deploy', async () => {
+            console.log('[E2E] it: in sandbox deploy');
             const predicatedActionBuilder = new PredicatedActionBuilder();
             await ampxCli(
               ['sandbox', '--dirToWatch', 'amplify'],
@@ -140,6 +154,7 @@ export const defineDeploymentTest = (
           });
 
           void it('in pipeline deploy', async () => {
+            console.log('[E2E] it: in pipeline deploy');
             await assert.rejects(() =>
               ampxCli(
                 [
