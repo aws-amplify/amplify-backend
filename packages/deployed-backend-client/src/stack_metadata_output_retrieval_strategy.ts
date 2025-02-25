@@ -9,7 +9,10 @@ import {
   BackendOutputRetrievalStrategy,
   MainStackNameResolver,
 } from '@aws-amplify/plugin-types';
-import { backendOutputStackMetadataSchema } from '@aws-amplify/backend-output-schemas';
+import {
+  BackendOutputEntryStackMetadata,
+  backendOutputStackMetadataSchema,
+} from '@aws-amplify/backend-output-schemas';
 import {
   BackendOutputClientError,
   BackendOutputClientErrorType,
@@ -87,9 +90,13 @@ export class StackMetadataBackendOutputRetrievalStrategy
       throw error;
     }
 
+    const filteredMetadataObject =
+      this.filterBackendOutputEntryStackMetadata(metadataObject);
+
     // parse and validate the metadata object
-    const backendOutputMetadata =
-      backendOutputStackMetadataSchema.parse(metadataObject);
+    const backendOutputMetadata = backendOutputStackMetadataSchema.parse(
+      filteredMetadataObject
+    );
 
     // DescribeStacks includes the template output
     const stackDescription = await this.cfnClient.send(
@@ -152,4 +159,32 @@ export class StackMetadataBackendOutputRetrievalStrategy
     });
     return result;
   };
+
+  /**
+   * Filter out stack metadata entries that do not pertain to backend outputs
+   */
+  private filterBackendOutputEntryStackMetadata<
+    T extends Record<string, unknown>
+  >(metadata: T) {
+    return Object.fromEntries(
+      Object.entries(metadata).filter(([, value]) =>
+        this.isBackendOutputEntryStackMetadata(value)
+      )
+    );
+  }
+
+  /**
+   * Type predicate to determine if stack metadata entry is like a backend output entry.
+   * Zod parsing validation will handle stricter type checking
+   */
+  private isBackendOutputEntryStackMetadata(
+    obj: unknown
+  ): obj is BackendOutputEntryStackMetadata {
+    return (
+      !!obj &&
+      typeof obj === 'object' &&
+      'version' in obj &&
+      'stackOutputs' in obj
+    );
+  }
 }

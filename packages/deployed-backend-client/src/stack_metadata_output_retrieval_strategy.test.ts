@@ -532,5 +532,85 @@ void describe('StackMetadataBackendOutputRetrievalStrategy', () => {
         },
       });
     });
+
+    void it('returns expected BackendOutput without other stack metadata entries', async () => {
+      const cfnClientMock = {
+        send: mock.fn((command) => {
+          if (command instanceof GetTemplateSummaryCommand) {
+            return {
+              Metadata: JSON.stringify({
+                [authOutputKey]: {
+                  version: '1',
+                  stackOutputs: ['testName1', 'testName2'],
+                },
+                [graphqlOutputKey]: {
+                  version: '2',
+                  stackOutputs: ['thing1', 'thing2'],
+                },
+                test: 'test',
+                testArray: ['element0', 'element1'],
+                testObj: {
+                  testA: 'testA',
+                  testB: 'testB',
+                },
+              }),
+            };
+          } else if (command instanceof DescribeStacksCommand) {
+            return {
+              Stacks: [
+                {
+                  Outputs: [
+                    {
+                      OutputKey: 'testName1',
+                      OutputValue: 'testValue1',
+                    },
+                    {
+                      OutputKey: 'testName2',
+                      OutputValue: 'testValue2',
+                    },
+                    {
+                      OutputKey: 'thing1',
+                      OutputValue: 'The cat',
+                    },
+                    {
+                      OutputKey: 'thing2',
+                      OutputValue: 'in the hat',
+                    },
+                  ],
+                },
+              ],
+            };
+          }
+          assert.fail(`Unknown command ${typeof command}`);
+        }),
+      } as unknown as CloudFormationClient;
+
+      const stackNameResolverMock: MainStackNameResolver = {
+        resolveMainStackName: mock.fn(async () => 'testMainStack'),
+      };
+
+      const retrievalStrategy = new StackMetadataBackendOutputRetrievalStrategy(
+        cfnClientMock,
+        stackNameResolverMock
+      );
+
+      const output = await retrievalStrategy.fetchBackendOutput();
+      assert.deepStrictEqual(output, {
+        [authOutputKey]: {
+          version: '1',
+          payload: {
+            testName1: 'testValue1',
+            testName2: 'testValue2',
+          },
+        },
+        [graphqlOutputKey]: {
+          version: '2',
+          payload: {
+            thing1: 'The cat',
+            thing2: 'in the hat',
+          },
+        },
+      });
+    });
   });
 });
