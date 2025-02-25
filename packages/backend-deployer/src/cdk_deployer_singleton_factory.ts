@@ -1,4 +1,5 @@
 import {
+  AmplifyIOHost,
   BackendIdentifier,
   type PackageManagerController,
 } from '@aws-amplify/plugin-types';
@@ -6,6 +7,7 @@ import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
 import { BackendLocator } from '@aws-amplify/platform-core';
 import { BackendDeployerOutputFormatter } from './types.js';
+import { Toolkit } from '@aws-cdk/toolkit-lib';
 
 export type DeployProps = {
   secretLastUpdated?: Date;
@@ -55,18 +57,26 @@ export class BackendDeployerFactory {
    */
   constructor(
     private readonly packageManagerController: PackageManagerController,
-    private readonly formatter: BackendDeployerOutputFormatter
+    private readonly formatter: BackendDeployerOutputFormatter,
+    private readonly backendDeployerIOHost: AmplifyIOHost
   ) {}
 
   /**
    * Returns a single instance of BackendDeployer
    */
   getInstance(): BackendDeployer {
+    // console.log(process.env.AWS_PROFILE);
     if (!BackendDeployerFactory.instance) {
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(this.formatter),
         new BackendLocator(),
-        this.packageManagerController
+        this.packageManagerController,
+        new Toolkit({
+          ioHost: this.backendDeployerIOHost,
+          emojis: false,
+          color: false,
+        }),
+        this.backendDeployerIOHost
       );
     }
     return BackendDeployerFactory.instance;
