@@ -8,6 +8,7 @@ import {
   type PackageManagerExecutable,
 } from '../setup_package_manager.js';
 import { PassThrough } from 'stream';
+import { EOL } from 'os';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
@@ -116,7 +117,9 @@ export class ProcessController {
     if (errorThrownFromActions) {
       throw errorThrownFromActions;
     } else if (result.failed && !expectKilled) {
-      throw new Error(result.stdout);
+      throw new Error(
+        `stdout:${EOL}${result.stdout}${EOL}${EOL}stderr:${EOL}${result.stderr}`
+      );
     }
   };
 }
