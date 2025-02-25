@@ -7,6 +7,7 @@ import {
   type PackageManager,
   type PackageManagerExecutable,
 } from '../setup_package_manager.js';
+import { PassThrough } from 'stream';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
@@ -68,7 +69,12 @@ export class ProcessController {
     if (!execaProcess.stdout) {
       throw new Error('Child process does not have stdout stream');
     }
-    const reader = readline.createInterface(execaProcess.stdout);
+
+    let pass = new PassThrough();
+    pass = execaProcess.stdout.pipe(pass, { end: false });
+    pass = execaProcess.stderr.pipe(pass, { end: true });
+
+    const reader = readline.createInterface(pass);
 
     for await (const line of reader) {
       const currentInteraction = interactionQueue[0];
