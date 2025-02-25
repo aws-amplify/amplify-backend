@@ -4,15 +4,26 @@ import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import { defaultDevPackages, defaultProdPackages } from './default_packages.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fsp from 'fs/promises';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
   'https://docs.amplify.aws/react/reference/telemetry';
 
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const defaultPackagesContent = await fsp.readFile(
+  path.normalize(path.join(dirname, 'default_packages.json')),
+  'utf-8'
+);
+const parsedDefaultPackagesFile = JSON.parse(defaultPackagesContent);
 /**
  * Orchestration class that sets up a new Amplify project
  */
 export class AmplifyProjectCreator {
+  private readonly defaultDevPackages: string[];
+  private readonly defaultProdPackages: string[];
   /**
    * Orchestrator for the create-amplify workflow.
    * Delegates out to other classes that handle parts of the getting started experience
@@ -23,7 +34,10 @@ export class AmplifyProjectCreator {
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator
-  ) {}
+  ) {
+    this.defaultDevPackages = parsedDefaultPackagesFile.defaultDevPackages;
+    this.defaultProdPackages = parsedDefaultPackagesFile.defaultProdPackages;
+  }
 
   /**
    * Executes the create-amplify workflow
@@ -39,18 +53,18 @@ export class AmplifyProjectCreator {
 
     printer.printNewLine();
     printer.log(format.sectionHeader(`Installing devDependencies:`));
-    printer.log(format.list(defaultDevPackages));
+    printer.log(format.list(this.defaultDevPackages));
 
     printer.printNewLine();
     printer.log(format.sectionHeader(`Installing dependencies:`));
-    printer.log(format.list(defaultProdPackages));
+    printer.log(format.list(this.defaultProdPackages));
     printer.printNewLine();
 
     await printer.indicateProgress(
       'Installing devDependencies',
       () =>
         this.packageManagerController.installDependencies(
-          defaultDevPackages,
+          this.defaultDevPackages,
           'dev'
         ),
       'DevDependencies installed'
@@ -59,7 +73,7 @@ export class AmplifyProjectCreator {
       'Installing dependencies',
       () =>
         this.packageManagerController.installDependencies(
-          defaultProdPackages,
+          this.defaultProdPackages,
           'prod'
         ),
       'Dependencies installed'

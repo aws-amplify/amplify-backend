@@ -4,40 +4,53 @@ import { Dependency } from './get_dependencies_from_package_lock.js';
 
 /**
  * Modifies target dependencies used for create amplify
- * @returns boolean indicating if create amplify dependencies are updated
  */
 export const createAmplifyDepUpdater = async (dependencies: Dependency[]) => {
-  const targetDependencies = ['aws-cdk', 'aws-cdk-lib'];
-  const dependenciesToUpdate: Dependency[] = [];
+  const createAmplifyDepsToFilter = ['aws-cdk', 'aws-cdk-lib'];
+  const targetDependencies: Dependency[] = dependencies.filter((dependency) =>
+    createAmplifyDepsToFilter.includes(dependency.name)
+  );
 
-  for (const dep of dependencies) {
-    if (targetDependencies.includes(dep.name)) {
-      dependenciesToUpdate.push(dep);
-    }
-  }
-
-  if (dependenciesToUpdate.length === 0) {
-    return false;
+  if (targetDependencies.length === 0) {
+    return;
   }
 
   const defaultPackagesPath = path.join(
     process.cwd(),
-    'packages/create-amplify/src/default_packages.ts'
+    'packages/create-amplify/src/default_packages.json'
   );
 
-  let defaultPackagesContent = await fsp.readFile(defaultPackagesPath, 'utf-8');
+  const dependenciesToUpdate = new Map(
+    targetDependencies.map((dep) => [dep.name, dep.version])
+  );
+  const defaultPackagesContent = JSON.parse(
+    await fsp.readFile(defaultPackagesPath, 'utf-8')
+  );
+  const defaultDevPackages: string[] =
+    defaultPackagesContent.defaultDevPackages;
+  const defaultProdPackages: string[] =
+    defaultPackagesContent.defaultProdPackages;
+  let update = false; // keeps track if any create amplify dep was updated
 
-  dependenciesToUpdate.forEach((dep) => {
-    // taken from lodash escapeRegExp and used to sanitize dep.name before using it in RegExp
-    // can be replaced by RegExp.escape once it is available
-    const safeDepName = dep.name.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
-    const depRegex = new RegExp(`'${safeDepName}.*'`);
-    defaultPackagesContent = defaultPackagesContent.replace(
-      depRegex,
-      `'${dep.name}@${dep.version}'`
-    );
+  const newDevPackages = defaultDevPackages.map((depString) => {
+    if (!depString.includes('@')) {
+      return depString;
+    }
+
+    const [depName] = depString.split('@');
+    const expectedDepString = `${depName}@${dependenciesToUpdate.get(depName)}`;
+    const hasDepName = dependenciesToUpdate.has(depName);
+    update = update || (hasDepName && depString !== expectedDepString);
+    return dependenciesToUpdate.has(depName) ? expectedDepString : depString;
   });
 
-  await fsp.writeFile(defaultPackagesPath, defaultPackagesContent);
-  return true;
+  if (update) {
+    await fsp.writeFile(
+      defaultPackagesPath,
+      JSON.stringify({
+        defaultDevPackages: newDevPackages,
+        defaultProdPackages,
+      })
+    );
+  }
 };
