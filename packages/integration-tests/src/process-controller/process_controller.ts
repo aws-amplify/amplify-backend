@@ -7,9 +7,7 @@ import {
   type PackageManager,
   type PackageManagerExecutable,
 } from '../setup_package_manager.js';
-import { PassThrough } from 'stream';
 import { EOL } from 'os';
-import { pipeline } from 'stream/promises';
 
 /**
  * Provides an abstractions for sending and receiving data on stdin/out of a child process
@@ -52,6 +50,7 @@ export class ProcessController {
     const interactionQueue = this.interactions.getPredicatedActionQueue();
     const execaProcess = execa(this.command, this.args, {
       reject: false,
+      all: true,
       ...this.options,
     });
     let errorThrownFromActions = undefined;
@@ -72,12 +71,7 @@ export class ProcessController {
       throw new Error('Child process does not have stdout stream');
     }
 
-    const pass = new PassThrough();
-
-    void pipeline(execaProcess.stdout, pass, { end: false });
-    void pipeline(execaProcess.stderr, pass, { end: true });
-
-    const reader = readline.createInterface(pass);
+    const reader = readline.createInterface(execaProcess.all);
 
     for await (const line of reader) {
       const currentInteraction = interactionQueue[0];
@@ -113,6 +107,7 @@ export class ProcessController {
       // advance the queue
       interactionQueue.shift();
     }
+
     const result = await execaProcess;
 
     if (errorThrownFromActions) {
