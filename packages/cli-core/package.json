@@ -26,6 +26,6 @@
     "ora": "8.2.0",
     "wrap-ansi": "^9.0.0",
     "zod": "^3.22.2",
-    "@aws-sdk/client-cloudformation": "^3.624.0"
+    "@aws-sdk/client-cloudformation": "^3.750.0"
   }
 }
