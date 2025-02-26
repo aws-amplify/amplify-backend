@@ -16,7 +16,7 @@ void describe('createAmplifyDepUpdater', () => {
         'tsx',
         'esbuild',
       ],
-      defaultProdPackages: ['aws-amplify'],
+      defaultProdPackages: ['aws-amplify', 'test-prod-package@1.0.0'],
     })
   );
   const mockedFsWriteFile = mock.method(fsp, 'writeFile', mock.fn());
@@ -26,7 +26,7 @@ void describe('createAmplifyDepUpdater', () => {
     mockedFsWriteFile.mock.resetCalls();
   });
 
-  void it('successfully pins new version', async () => {
+  void it('successfully pins new dev version', async () => {
     await createAmplifyDepUpdater([{ name: 'aws-cdk', version: '2.1.0' }]);
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 1);
@@ -44,7 +44,39 @@ void describe('createAmplifyDepUpdater', () => {
             'tsx',
             'esbuild',
           ],
-          defaultProdPackages: ['aws-amplify'],
+          defaultProdPackages: ['aws-amplify', 'test-prod-package@1.0.0'],
+        },
+        null,
+        2
+      )
+    );
+  });
+
+  void it('successfully pins new prod version', async () => {
+    await createAmplifyDepUpdater(
+      [{ name: 'test-prod-package', version: '1.1.0' }],
+      ['test-prod-package']
+    );
+    assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
+    assert.strictEqual(mockedFsWriteFile.mock.callCount(), 1);
+    assert.deepStrictEqual(
+      mockedFsWriteFile.mock.calls[0].arguments[1],
+      JSON.stringify(
+        {
+          defaultDevPackages: [
+            '@aws-amplify/backend',
+            '@aws-amplify/backend-cli',
+            'aws-cdk@2.0.0',
+            'aws-cdk-lib@2.0.0',
+            'constructs@^10.0.0',
+            'typescript@^5.0.0',
+            'tsx',
+            'esbuild',
+          ],
+          defaultProdPackages: [
+            'aws-amplify',
+            'test-prod-package@1.1.0', // updated
+          ],
         },
         null,
         2
@@ -53,10 +85,13 @@ void describe('createAmplifyDepUpdater', () => {
   });
 
   void it('successfully pins multiple new versions', async () => {
-    await createAmplifyDepUpdater([
-      { name: 'aws-cdk', version: '2.1.0' },
-      { name: 'aws-cdk-lib', version: '2.2.0' },
-    ]);
+    await createAmplifyDepUpdater(
+      [
+        { name: 'aws-cdk', version: '2.1.0' },
+        { name: 'test-prod-package', version: '1.1.0' },
+      ],
+      ['aws-cdk', 'aws-cdk-lib', 'test-prod-package']
+    );
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 1);
     assert.deepStrictEqual(
@@ -67,13 +102,16 @@ void describe('createAmplifyDepUpdater', () => {
             '@aws-amplify/backend',
             '@aws-amplify/backend-cli',
             'aws-cdk@2.1.0', // updated
-            'aws-cdk-lib@2.2.0', // updated
+            'aws-cdk-lib@2.0.0',
             'constructs@^10.0.0',
             'typescript@^5.0.0',
             'tsx',
             'esbuild',
           ],
-          defaultProdPackages: ['aws-amplify'],
+          defaultProdPackages: [
+            'aws-amplify',
+            'test-prod-package@1.1.0', // updated
+          ],
         },
         null,
         2
@@ -94,10 +132,13 @@ void describe('createAmplifyDepUpdater', () => {
   });
 
   void it('does not update if provided dependency versions already match create amplify dependencies', async () => {
-    await createAmplifyDepUpdater([
-      { name: 'aws-cdk', version: '2.0.0' },
-      { name: 'aws-cdk-lib', version: '2.0.0' },
-    ]);
+    await createAmplifyDepUpdater(
+      [
+        { name: 'aws-cdk', version: '2.0.0' },
+        { name: 'aws-cdk-lib', version: '2.0.0' },
+      ],
+      ['aws-cdk', 'aws-cdk-lib', 'test-prod-package']
+    );
     assert.strictEqual(mockedFsReadFile.mock.callCount(), 1);
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 0);
   });
