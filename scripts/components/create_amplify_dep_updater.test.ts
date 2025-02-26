@@ -32,19 +32,23 @@ void describe('createAmplifyDepUpdater', () => {
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 1);
     assert.deepStrictEqual(
       mockedFsWriteFile.mock.calls[0].arguments[1],
-      JSON.stringify({
-        defaultDevPackages: [
-          '@aws-amplify/backend',
-          '@aws-amplify/backend-cli',
-          'aws-cdk@2.1.0', // updated
-          'aws-cdk-lib@2.0.0',
-          'constructs@^10.0.0',
-          'typescript@^5.0.0',
-          'tsx',
-          'esbuild',
-        ],
-        defaultProdPackages: ['aws-amplify'],
-      })
+      JSON.stringify(
+        {
+          defaultDevPackages: [
+            '@aws-amplify/backend',
+            '@aws-amplify/backend-cli',
+            'aws-cdk@2.1.0', // updated
+            'aws-cdk-lib@2.0.0',
+            'constructs@^10.0.0',
+            'typescript@^5.0.0',
+            'tsx',
+            'esbuild',
+          ],
+          defaultProdPackages: ['aws-amplify'],
+        },
+        null,
+        2
+      )
     );
   });
 
@@ -57,19 +61,23 @@ void describe('createAmplifyDepUpdater', () => {
     assert.strictEqual(mockedFsWriteFile.mock.callCount(), 1);
     assert.deepStrictEqual(
       mockedFsWriteFile.mock.calls[0].arguments[1],
-      JSON.stringify({
-        defaultDevPackages: [
-          '@aws-amplify/backend',
-          '@aws-amplify/backend-cli',
-          'aws-cdk@2.1.0', // updated
-          'aws-cdk-lib@2.2.0', // updated
-          'constructs@^10.0.0',
-          'typescript@^5.0.0',
-          'tsx',
-          'esbuild',
-        ],
-        defaultProdPackages: ['aws-amplify'],
-      })
+      JSON.stringify(
+        {
+          defaultDevPackages: [
+            '@aws-amplify/backend',
+            '@aws-amplify/backend-cli',
+            'aws-cdk@2.1.0', // updated
+            'aws-cdk-lib@2.2.0', // updated
+            'constructs@^10.0.0',
+            'typescript@^5.0.0',
+            'tsx',
+            'esbuild',
+          ],
+          defaultProdPackages: ['aws-amplify'],
+        },
+        null,
+        2
+      )
     );
   });
 

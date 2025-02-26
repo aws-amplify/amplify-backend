@@ -47,10 +47,14 @@ export const createAmplifyDepUpdater = async (dependencies: Dependency[]) => {
   if (update) {
     await fsp.writeFile(
       defaultPackagesPath,
-      JSON.stringify({
-        defaultDevPackages: newDevPackages,
-        defaultProdPackages,
-      })
+      JSON.stringify(
+        {
+          defaultDevPackages: newDevPackages,
+          defaultProdPackages,
+        },
+        null,
+        2
+      )
     );
   }
 };
