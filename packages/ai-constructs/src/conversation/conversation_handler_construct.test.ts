@@ -414,4 +414,145 @@ void describe('Conversation Handler Function construct', () => {
       });
     });
   });
+
+  void describe('cross-region models', () => {
+    void it('creates handler with access to eu cross-region models and inference profiles', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'eu-west-1' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'eu.anthropic.claude-3-sonnet',
+          },
+        ],
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource: [
+                {
+                  'Fn::Join': [
+                    '',
+                    [
+                      'arn:aws:bedrock:eu-west-1:',
+                      {
+                        Ref: 'AWS::AccountId',
+                      },
+                      ':inference-profile/eu.anthropic.claude-3-sonnet',
+                    ],
+                  ],
+                },
+                'arn:aws:bedrock:eu-west-1::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:eu-west-3::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:eu-central-1::foundation-model/anthropic.claude-3-sonnet',
+              ],
+            },
+          ],
+        },
+      });
+    });
+
+    void it('creates handler with access to us cross-region models and inference profiles', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'us-east-1' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'us.anthropic.claude-3-sonnet',
+          },
+        ],
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource: [
+                {
+                  'Fn::Join': [
+                    '',
+                    [
+                      'arn:aws:bedrock:us-east-1:',
+                      {
+                        Ref: 'AWS::AccountId',
+                      },
+                      ':inference-profile/us.anthropic.claude-3-sonnet',
+                    ],
+                  ],
+                },
+                'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-sonnet',
+              ],
+            },
+          ],
+        },
+      });
+    });
+
+    void it('creates handler with access to apac cross-region models and inference profiles', () => {
+      const app = new App();
+      const stack = new Stack(app, 'TestStack', {
+        env: { region: 'ap-northeast-1' },
+      });
+      new ConversationHandlerFunction(stack, 'conversationHandler', {
+        models: [
+          {
+            modelId: 'apac.anthropic.claude-3-sonnet',
+          },
+        ],
+      });
+
+      const template = Template.fromStack(stack);
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: {
+          Statement: [
+            {
+              Action: [
+                'bedrock:InvokeModel',
+                'bedrock:InvokeModelWithResponseStream',
+              ],
+              Effect: 'Allow',
+              Resource: [
+                {
+                  'Fn::Join': [
+                    '',
+                    [
+                      'arn:aws:bedrock:ap-northeast-1:',
+                      {
+                        Ref: 'AWS::AccountId',
+                      },
+                      ':inference-profile/apac.anthropic.claude-3-sonnet',
+                    ],
+                  ],
+                },
+                'arn:aws:bedrock:ap-northeast-1::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:ap-northeast-2::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:ap-southeast-1::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-3-sonnet',
+              ],
+            },
+          ],
+        },
+      });
+    });
+  });
 });
