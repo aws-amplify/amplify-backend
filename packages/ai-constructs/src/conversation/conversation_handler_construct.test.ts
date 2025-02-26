@@ -424,7 +424,7 @@ void describe('Conversation Handler Function construct', () => {
       new ConversationHandlerFunction(stack, 'conversationHandler', {
         models: [
           {
-            modelId: 'eu.anthropic.claude-3-sonnet',
+            modelId: 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0',
           },
         ],
       });
@@ -448,13 +448,13 @@ void describe('Conversation Handler Function construct', () => {
                       {
                         Ref: 'AWS::AccountId',
                       },
-                      ':inference-profile/eu.anthropic.claude-3-sonnet',
+                      ':inference-profile/eu.anthropic.claude-3-5-sonnet-20240620-v1:0',
                     ],
                   ],
                 },
-                'arn:aws:bedrock:eu-west-1::foundation-model/anthropic.claude-3-sonnet',
-                'arn:aws:bedrock:eu-west-3::foundation-model/anthropic.claude-3-sonnet',
-                'arn:aws:bedrock:eu-central-1::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:eu-west-1::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0',
+                'arn:aws:bedrock:eu-west-3::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0',
+                'arn:aws:bedrock:eu-central-1::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0',
               ],
             },
           ],
@@ -470,7 +470,7 @@ void describe('Conversation Handler Function construct', () => {
       new ConversationHandlerFunction(stack, 'conversationHandler', {
         models: [
           {
-            modelId: 'us.anthropic.claude-3-sonnet',
+            modelId: 'us.anthropic.claude-3-7-sonnet-20250219-v1:0',
           },
         ],
       });
@@ -494,13 +494,13 @@ void describe('Conversation Handler Function construct', () => {
                       {
                         Ref: 'AWS::AccountId',
                       },
-                      ':inference-profile/us.anthropic.claude-3-sonnet',
+                      ':inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0',
                     ],
                   ],
                 },
-                'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-sonnet',
-                'arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-3-sonnet',
-                'arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-7-sonnet-20250219-v1:0',
+                'arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-3-7-sonnet-20250219-v1:0',
+                'arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-7-sonnet-20250219-v1:0',
               ],
             },
           ],
@@ -516,7 +516,7 @@ void describe('Conversation Handler Function construct', () => {
       new ConversationHandlerFunction(stack, 'conversationHandler', {
         models: [
           {
-            modelId: 'apac.anthropic.claude-3-sonnet',
+            modelId: 'apac.anthropic.claude-3-haiku-20240307-v1:0',
           },
         ],
       });
@@ -540,14 +540,14 @@ void describe('Conversation Handler Function construct', () => {
                       {
                         Ref: 'AWS::AccountId',
                       },
-                      ':inference-profile/apac.anthropic.claude-3-sonnet',
+                      ':inference-profile/apac.anthropic.claude-3-haiku-20240307-v1:0',
                     ],
                   ],
                 },
-                'arn:aws:bedrock:ap-northeast-1::foundation-model/anthropic.claude-3-sonnet',
-                'arn:aws:bedrock:ap-northeast-2::foundation-model/anthropic.claude-3-sonnet',
-                'arn:aws:bedrock:ap-southeast-1::foundation-model/anthropic.claude-3-sonnet',
-                'arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-3-sonnet',
+                'arn:aws:bedrock:ap-northeast-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0',
+                'arn:aws:bedrock:ap-northeast-2::foundation-model/anthropic.claude-3-haiku-20240307-v1:0',
+                'arn:aws:bedrock:ap-southeast-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0',
+                'arn:aws:bedrock:ap-southeast-2::foundation-model/anthropic.claude-3-haiku-20240307-v1:0',
               ],
             },
           ],
