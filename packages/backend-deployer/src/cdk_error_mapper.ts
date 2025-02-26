@@ -304,6 +304,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /Found (?<number>.*) problem\(s\) with the schema:/,
+      humanReadableErrorMessage:
+        '{number} problem(s) have been found with your schema',
+      resolutionMessage:
+        'See the underlying error message for details about what the problems are and resolve them before attempting this action again',
+      errorName: 'SchemaError',
+      classification: 'ERROR',
+    },
+    {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
@@ -593,6 +602,7 @@ export type CDKDeploymentError =
   | 'InsufficientMemorySpaceError'
   | 'InvalidOrCannotAssumeRoleError'
   | 'InvalidPackageJsonError'
+  | 'SchemaError'
   | 'SecretNotSetError'
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError'
