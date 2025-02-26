@@ -69,11 +69,7 @@ export class Printer {
       const logMessage = `${logPrefixFormatFn(
         new Date().toLocaleTimeString()
       )} ${line}`;
-      if (level === LogLevel.ERROR) {
-        this.stdout.write(logMessage);
-      } else {
-        this.stdout.write(logMessage);
-      }
+      this.stdout.write(logMessage);
       this.printNewLine();
     });
   };
