@@ -427,6 +427,13 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: undefined,
   },
   {
+    errorMessage: `amplify-some-stack [22m failed: _ToolkitError: Found 2 problem(s) with the schema: The input value type 'string' is not present when resolving type 'TaskInput' [@78:1] The field type 'TaskInstanceStatus' is not present when resolving type 'Task' [@25:1]`,
+    expectedTopLevelErrorMessage:
+      '2 problem(s) have been found with your schema',
+    errorName: 'SchemaError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     // eslint-disable-next-line spellcheck/spell-checker
     errorMessage: `Error: npm error code EJSONPARSE
 npm error path /home/some-path/package.json
