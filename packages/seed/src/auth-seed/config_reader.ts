@@ -12,6 +12,13 @@ export type AuthConfiguration = {
  * Handles generating and reading from ClientConfig
  */
 export class ConfigReader {
+  /**
+   * Constructor
+   */
+  constructor(
+    private readonly generateClientConfiguration = generateClientConfig
+  ) {}
+
   getAuthConfig = async () => {
     if (!process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
       throw new AmplifyUserError('SandboxIdentifierNotFoundError', {
@@ -22,7 +29,9 @@ export class ConfigReader {
 
     const backendId = JSON.parse(process.env.AMPLIFY_SANDBOX_IDENTIFIER);
 
-    const authConfig = (await generateClientConfig(backendId, '1.3')).auth;
+    const authConfig = (
+      await this.generateClientConfiguration(backendId, '1.3')
+    ).auth;
     if (!authConfig) {
       throw new AmplifyUserError('MissingAuthError', {
         message:
@@ -31,10 +40,16 @@ export class ConfigReader {
           'Create an Auth resource for your Amplify App or run ampx sandbox if you have generated your sandbox',
       });
     }
-    const userGroups: string[] | undefined = [];
+    let userGroups: string[] | undefined = [];
 
-    for (const group in authConfig.groups) {
-      userGroups.push(group);
+    if (authConfig.groups) {
+      for (const group of authConfig.groups.values()) {
+        for (const k in group) {
+          userGroups.push(k);
+        }
+      }
+    } else {
+      userGroups = undefined;
     }
 
     const configuration: AuthConfiguration = {

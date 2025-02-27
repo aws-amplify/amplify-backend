@@ -12,7 +12,7 @@ import {
 import * as auth from 'aws-amplify/auth';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { persistentPasswordSignUp } from './persistent_password_flow.js';
-import { mfaSignIn, mfaSignUp } from './mfa_flow.js';
+import { MfaFlow } from './mfa_flow.js';
 import { randomUUID } from 'node:crypto';
 import { ConfigReader } from './config_reader.js';
 
@@ -21,14 +21,15 @@ import { ConfigReader } from './config_reader.js';
  */
 export class AuthClient {
   private readonly authOutputs;
-  //private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient;
 
   /**
    * Set up for auth APIs
    */
   constructor(
     configOutputs: ConfigReader,
-    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient()
+    private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(),
+    private readonly authApi = auth,
+    private readonly mfaFlow = new MfaFlow()
   ) {
     this.authOutputs = configOutputs.getAuthConfig();
   }
@@ -36,7 +37,7 @@ export class AuthClient {
   createAndSignUpUser = async (newUser: AuthSignUp): Promise<AuthOutputs> => {
     try {
       const authConfig = await this.authOutputs;
-      await auth.signOut();
+      await this.authApi.signOut();
 
       const tempPassword = `Test1@Temp${randomUUID().toString()}`;
       // in the future will need to check that the preferredSignInFlow is not passwordless
@@ -60,6 +61,16 @@ export class AuthClient {
             },
             error
           );
+        } else if (error.name === 'NotAuthorizedException') {
+          throw new AmplifyUserError(
+            'NotAuthorizedError',
+            {
+              message: 'You are not authorized to create a user',
+              resolution:
+                'Run npx ampx sandbox seed generate-policy and attach the outputted policy to yourself',
+            },
+            error
+          );
         } else {
           throw err;
         }
@@ -67,7 +78,7 @@ export class AuthClient {
 
       switch (newUser.signInFlow) {
         case 'Password': {
-          await persistentPasswordSignUp(newUser, tempPassword);
+          await persistentPasswordSignUp(newUser, tempPassword, this.authApi);
           break;
         }
         case 'MFA': {
@@ -82,7 +93,7 @@ export class AuthClient {
             });
           }
 
-          await mfaSignUp(newUser, tempPassword);
+          await this.mfaFlow.mfaSignUp(newUser, tempPassword);
           break;
         }
       }
@@ -93,7 +104,7 @@ export class AuthClient {
       };
     } finally {
       if (!newUser.signInAfterCreation) {
-        await auth.signOut();
+        await this.authApi.signOut();
       }
     }
   };
@@ -143,18 +154,35 @@ export class AuthClient {
   };
 
   signInUser = async (user: AuthUser): Promise<boolean> => {
-    await auth.signOut();
+    await this.authApi.signOut();
     switch (user.signInFlow) {
       case 'Password': {
-        const signInResult = await auth.signIn({
-          username: user.username,
-          password: user.password,
-        });
+        let signInResult: auth.SignInOutput;
+        try {
+          signInResult = await this.authApi.signIn({
+            username: user.username,
+            password: user.password,
+          });
+        } catch (err) {
+          const error = err as Error;
+          if (error.name === 'UserNotFoundException') {
+            throw new AmplifyUserError(
+              'UserExistsError',
+              {
+                message: `${user.username} does not exist`,
+                resolution: `Create a user called ${user.username}`,
+              },
+              error
+            );
+          } else {
+            throw err;
+          }
+        }
 
         return signInResult.nextStep.signInStep === 'DONE';
       }
       case 'MFA': {
-        const result = await mfaSignIn(user);
+        const result = await this.mfaFlow.mfaSignIn(user);
         return result;
       }
     }

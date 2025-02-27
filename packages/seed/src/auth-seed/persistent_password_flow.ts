@@ -10,9 +10,10 @@ import { AuthSignUp } from '../types.js';
  */
 export const persistentPasswordSignUp = async (
   user: AuthSignUp,
-  tempPassword: string
+  tempPassword: string,
+  authApi: typeof auth
 ) => {
-  const signInResult = await auth.signIn({
+  const signInResult = await authApi.signIn({
     username: user.username,
     password: tempPassword,
   });
@@ -22,7 +23,7 @@ export const persistentPasswordSignUp = async (
     'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
   );
 
-  const confirmResult = await auth.confirmSignIn({
+  const confirmResult = await authApi.confirmSignIn({
     challengeResponse: user.password,
     options: {
       userAttributes: {

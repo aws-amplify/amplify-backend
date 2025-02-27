@@ -9,6 +9,7 @@ import {
   AmplifyUserError,
   ParameterPathConversions,
 } from '@aws-amplify/platform-core';
+import assert from 'assert';
 
 /**
  * Generates policy template which allows seed to be run
@@ -16,26 +17,28 @@ import {
  * @returns - policy template as a string
  */
 export const generateSeedPolicyTemplate = async (
-  backendId: BackendIdentifier
-): Promise<string> => {
+  backendId: BackendIdentifier,
+  generateClientConfiguration = generateClientConfig,
+  cognitoIdProvider = new CognitoIdentityProviderClient()
+): Promise<PolicyDocument> => {
   const seedPolicy = new PolicyDocument();
-  const clientConfig = await generateClientConfig(backendId, '1.3');
+  const clientConfig = await generateClientConfiguration(backendId, '1.3');
 
+  if (!clientConfig.auth) {
+    throw new AmplifyUserError('MissingAuthError', {
+      message: 'There is no auth resource in this sandbox',
+      resolution:
+        'Please add an auth resource to your sandbox and rerun this command',
+    });
+  }
   const userPoolId = clientConfig.auth?.user_pool_id;
-  const cognitoIdProviderClient = new CognitoIdentityProviderClient();
-  const userpoolOutput = await cognitoIdProviderClient.send(
+
+  const userpoolOutput = await cognitoIdProvider.send(
     new DescribeUserPoolCommand({ UserPoolId: userPoolId })
   );
   const userpoolArn = userpoolOutput.UserPool?.Arn;
-
-  if (!userpoolArn) {
-    throw new AmplifyUserError('MissingUserPoolError', {
-      message: `Userpool with ID: ${userPoolId} does not exist`,
-      resolution:
-        'Try rerunning ampx sandbox or regenerating your backend outputs with ampx generate outputs',
-    });
-  }
-
+  // so long as there is an auth resource we should always be able to get an Arn for the userpool
+  assert.ok(userpoolArn);
   const cognitoGrant = new PolicyStatement({
     effect: Effect.ALLOW,
     actions: ['cognito-idp:AdminCreateUser', 'cognito-idp:AdminAddUserToGroup'],
@@ -59,5 +62,5 @@ export const generateSeedPolicyTemplate = async (
 
   seedPolicy.addStatements(cognitoGrant, secretsGrant);
 
-  return JSON.stringify(seedPolicy.toJSON(), null, 1);
+  return seedPolicy;
 };
