@@ -12,6 +12,8 @@ const getExpectedMajorVersion = (packageName: string) => {
   switch (packageName) {
     case 'ampx':
       return '0.';
+    case '@aws-amplify/seed':
+      return '0.';
     default:
       return '1.';
   }
