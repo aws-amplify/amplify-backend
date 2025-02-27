@@ -31,8 +31,6 @@ const testBackendId: BackendIdentifier = {
   type: 'sandbox',
 };
 
-//const testBackendIdStr = 'testBackendId';
-
 void describe('sandbox seed command', () => {
   let commandRunner: TestCommandRunner;
 
@@ -44,6 +42,12 @@ void describe('sandbox seed command', () => {
   } as unknown as ClientConfigGeneratorAdapter;
 
   const commandMiddleware = new CommandMiddleware(printer);
+  const mockHandleProfile = mock.method(
+    commandMiddleware,
+    'ensureAwsCredentialAndRegion',
+    () => null
+  );
+
   let amplifySeedDir: string;
   let fullPath: string;
 
@@ -79,6 +83,7 @@ void describe('sandbox seed command', () => {
     );
     const parser = yargs().command(sandboxCommand as unknown as CommandModule);
     commandRunner = new TestCommandRunner(parser);
+    mockHandleProfile.mock.resetCalls();
   });
 
   void describe('seed script exists', () => {
@@ -102,11 +107,10 @@ void describe('sandbox seed command', () => {
       const fsOpenSyncMock = mock.method(fs, 'openSync');
       await commandRunner.runCommand('sandbox seed');
 
-      assert.equal(fsOpenSyncMock.mock.callCount(), 1);
-      mock.restoreAll();
+      assert.strictEqual(fsOpenSyncMock.mock.callCount(), 1);
+      assert.strictEqual(mockHandleProfile.mock.callCount(), 1);
+      fsOpenSyncMock.mock.resetCalls();
     });
-
-    // TO DO: should have a test to see if backendID is set, that will need to happen while seed command is running
   });
 
   void describe('seed script does not exist', () => {

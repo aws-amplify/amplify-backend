@@ -47,8 +47,6 @@ export const getSecret: (secretName: string) => Promise<string>;
 export type MfaSignInFlow = {
     signInFlow: 'MFA';
     password: string;
-    email?: string;
-    phoneNumber?: string;
     signInChallenge?: () => Promise<ChallengeResponse>;
 };
 
