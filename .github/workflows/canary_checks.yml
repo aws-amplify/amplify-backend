@@ -51,7 +51,8 @@ jobs:
           node_version: 18
           # Use version from package lock. Tests projects are created outside of repository root
           # and are using latest CDK version.
-          cdk-version: FROM_PACKAGE_LOCK
+          cdk-lib-version: FROM_PACKAGE_LOCK
+          cdk-cli-version: FROM_PACKAGE_LOCK
           aws_region: ${{ matrix.region }}
           fresh_build: true
           shell: bash

@@ -22,7 +22,9 @@ inputs:
   fresh_build:
     description: Whether should build from scratch
     default: false
-  cdk-version:
+  cdk-lib-version:
+    required: true
+  cdk-cli-version:
     required: true
 runs:
   using: composite
@@ -35,13 +37,15 @@ runs:
       if: inputs.fresh_build != 'true'
       uses: ./.github/actions/restore_build_cache
       with:
-        cdk-version: ${{ inputs.cdk-version }}
+        cdk-lib-version: ${{ inputs.cdk-lib-version }}
+        cdk-cli-version: ${{ inputs.cdk-cli-version }}
         node-version: ${{ inputs.node_version }}
     - name: Build With Cache
       if: inputs.fresh_build == 'true'
       uses: ./.github/actions/build_with_cache
       with:
-        cdk-version: ${{ inputs.cdk-version }}
+        cdk-lib-version: ${{ inputs.cdk-lib-version }}
+        cdk-cli-version: ${{ inputs.cdk-cli-version }}
         node-version: ${{ inputs.node_version }}
     - name: Link CLI
       if: inputs.link_cli == 'true'

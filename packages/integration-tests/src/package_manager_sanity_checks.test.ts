@@ -93,7 +93,7 @@ void describe('getting started happy path', async () => {
       } else {
         await runPackageManager(
           packageManager,
-          ['create', amplifyAtTag, '--yes'],
+          ['create', amplifyAtTag, '--yes', '--', '--debug'],
           tempDir
         ).run();
       }
