@@ -36,8 +36,8 @@ void describe('mfa flow tests', () => {
   };
 
   const mockPrompter = {
-    input: mock.fn<(options: { message: string }) => Promise<string>>(
-      async () => Promise.resolve(challengeResponse)
+    secretValue: mock.fn<(message: string) => Promise<string>>(async () =>
+      Promise.resolve(challengeResponse)
     ),
   };
 
@@ -49,7 +49,7 @@ void describe('mfa flow tests', () => {
   beforeEach(() => {
     mockAuthAPIs.confirmSignIn.mock.resetCalls();
     mockAuthAPIs.signIn.mock.resetCalls();
-    mockPrompter.input.mock.resetCalls();
+    mockPrompter.secretValue.mock.resetCalls();
   });
 
   void describe('sign up user with mfa', () => {
@@ -83,7 +83,7 @@ void describe('mfa flow tests', () => {
         testTempPassword
       );
 
-      assert.strictEqual(mockPrompter.input.mock.callCount(), 1);
+      assert.strictEqual(mockPrompter.secretValue.mock.callCount(), 1);
       assert.strictEqual(mockAuthAPIs.signIn.mock.callCount(), 1);
       assert.strictEqual(mockAuthAPIs.confirmSignIn.mock.callCount(), 2);
     });
@@ -121,7 +121,7 @@ void describe('mfa flow tests', () => {
         testTempPassword
       );
 
-      assert.strictEqual(mockPrompter.input.mock.callCount(), 0);
+      assert.strictEqual(mockPrompter.secretValue.mock.callCount(), 0);
       assert.strictEqual(mockAuthAPIs.signIn.mock.callCount(), 1);
       assert.strictEqual(mockAuthAPIs.confirmSignIn.mock.callCount(), 2);
     });
@@ -159,7 +159,7 @@ void describe('mfa flow tests', () => {
         testTempPassword
       );
 
-      assert.strictEqual(mockPrompter.input.mock.callCount(), 0);
+      assert.strictEqual(mockPrompter.secretValue.mock.callCount(), 0);
       assert.strictEqual(mockAuthAPIs.signIn.mock.callCount(), 1);
       assert.strictEqual(mockAuthAPIs.confirmSignIn.mock.callCount(), 2);
     });
@@ -262,7 +262,7 @@ void describe('mfa flow tests', () => {
         signInFlow: 'MFA',
       });
 
-      assert.strictEqual(mockPrompter.input.mock.callCount(), 1);
+      assert.strictEqual(mockPrompter.secretValue.mock.callCount(), 1);
       assert.strictEqual(mockAuthAPIs.signIn.mock.callCount(), 1);
       assert.strictEqual(mockAuthAPIs.confirmSignIn.mock.callCount(), 1);
     });
@@ -285,7 +285,7 @@ void describe('mfa flow tests', () => {
         signInFlow: 'MFA',
       });
 
-      assert.strictEqual(mockPrompter.input.mock.callCount(), 0);
+      assert.strictEqual(mockPrompter.secretValue.mock.callCount(), 0);
       assert.strictEqual(mockAuthAPIs.signIn.mock.callCount(), 1);
       assert.strictEqual(mockAuthAPIs.confirmSignIn.mock.callCount(), 1);
     });

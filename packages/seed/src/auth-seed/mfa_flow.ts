@@ -104,9 +104,9 @@ export class MfaFlow {
     ) {
       let challengeResponse: string;
       if (!user.signUpChallenge) {
-        challengeResponse = await this.prompter.input({
-          message: `Please input the SMS one-time password for ${user.username}:`,
-        });
+        challengeResponse = await this.prompter.secretValue(
+          `Please input the SMS one-time password for ${user.username}:`
+        );
       } else {
         assert.strictEqual(user.mfaPreference, 'SMS');
         const challengeOutput = await user.signUpChallenge();
@@ -123,9 +123,9 @@ export class MfaFlow {
     ) {
       let challengeResponse: string;
       if (!user.signUpChallenge) {
-        challengeResponse = await this.prompter.input({
-          message: `Please input one-time password from EMAIL for ${user.username}:`,
-        });
+        challengeResponse = await this.prompter.secretValue(
+          `Please input one-time password from EMAIL for ${user.username}:`
+        );
       } else {
         assert.strictEqual(user.mfaPreference, 'EMAIL');
         const challengeOutput = await user.signUpChallenge();
@@ -173,9 +173,9 @@ export class MfaFlow {
     if (signInResult.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_TOTP_CODE') {
       let challengeResponse: string;
       if (!user.signInChallenge) {
-        challengeResponse = await this.prompter.input({
-          message: `Please input the one-time password from your TOTP App for ${user.username}:`,
-        });
+        challengeResponse = await this.prompter.secretValue(
+          `Please input the one-time password from your TOTP App for ${user.username}:`
+        );
       } else {
         const challengeOutput = await user.signInChallenge();
         challengeResponse = challengeOutput.challengeResponse;
@@ -189,9 +189,9 @@ export class MfaFlow {
     ) {
       let challengeResponse: string;
       if (!user.signInChallenge) {
-        challengeResponse = await this.prompter.input({
-          message: `Please input one-time password from SMS for ${user.username}:`,
-        });
+        challengeResponse = await this.prompter.secretValue(
+          `Please input one-time password from SMS for ${user.username}:`
+        );
       } else {
         const challengeOutput = await user.signInChallenge();
         challengeResponse = challengeOutput.challengeResponse;
@@ -205,9 +205,9 @@ export class MfaFlow {
     ) {
       let challengeResponse: string;
       if (!user.signInChallenge) {
-        challengeResponse = await this.prompter.input({
-          message: `Please input one-time password from EMAIL for ${user.username}:`,
-        });
+        challengeResponse = await this.prompter.secretValue(
+          `Please input one-time password from EMAIL for ${user.username}:`
+        );
       } else {
         const challengeOutput = await user.signInChallenge();
         challengeResponse = challengeOutput.challengeResponse;
