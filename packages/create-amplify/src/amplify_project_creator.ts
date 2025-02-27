@@ -4,10 +4,17 @@ import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
-import defaultPackages from './default_packages.json';
+import fsp from 'fs/promises';
+import { fileURLToPath } from 'url';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
   'https://docs.amplify.aws/react/reference/telemetry';
+
+const defaultPackagesContent = await fsp.readFile(
+  fileURLToPath(new URL('./default_packages.json', import.meta.url)),
+  'utf-8'
+);
+const parsedDefaultPackagesFile = JSON.parse(defaultPackagesContent);
 
 /**
  * Orchestration class that sets up a new Amplify project
@@ -26,8 +33,8 @@ export class AmplifyProjectCreator {
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator
   ) {
-    this.defaultDevPackages = defaultPackages.defaultDevPackages;
-    this.defaultProdPackages = defaultPackages.defaultProdPackages;
+    this.defaultDevPackages = parsedDefaultPackagesFile.defaultDevPackages;
+    this.defaultProdPackages = parsedDefaultPackagesFile.defaultProdPackages;
   }
 
   /**
