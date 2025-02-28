@@ -3,7 +3,7 @@ import {
   addToUserGroup,
   createAndSignUpUser,
   signInUser,
-} from './auth-seed/auth_api_factory.js';
+} from './auth-seed/auth_api.js';
 import {
   AuthOutputs,
   AuthSignUp,

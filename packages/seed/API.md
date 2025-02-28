@@ -55,16 +55,16 @@ export type MfaSignUpFlow = {
     signInFlow: 'MFA';
     password: string;
     mfaPreference?: 'EMAIL' | 'SMS';
-    signUpChallenge?: () => Promise<ChallengeResponse>;
+    emailSignUpChallenge?: () => Promise<ChallengeResponse>;
+    smsSignUpChallenge?: () => Promise<ChallengeResponse>;
+    totpSignUpChallenge?: (totpSetup: auth.SetUpTOTPOutput) => Promise<ChallengeResponse>;
 };
 
 // @public (undocumented)
 export type MfaWithTotpSignUpFlow = {
-    signInFlow: 'MFA';
-    password: string;
     mfaPreference?: 'TOTP';
-    signUpChallenge: (totpSetup: auth.SetUpTOTPOutput) => Promise<ChallengeResponse>;
-};
+    totpSignUpChallenge: (totpSetup: auth.SetUpTOTPOutput) => Promise<ChallengeResponse>;
+} & MfaSignUpFlow;
 
 // @public (undocumented)
 export type PasswordSignInFlow = {

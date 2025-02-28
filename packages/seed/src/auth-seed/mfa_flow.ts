@@ -2,7 +2,7 @@ import * as auth from 'aws-amplify/auth';
 import assert from 'assert';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { AuthSignUp, AuthUser } from '../types.js';
-import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Handles users who enter the MFA flow
@@ -88,8 +88,14 @@ export class MfaFlow {
     if (
       passwordSignIn.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP'
     ) {
-      assert.ok(user.signUpChallenge);
-      const challengeOutput = await user.signUpChallenge(
+      if (!user.totpSignUpChallenge) {
+        throw new AmplifyFault('MissingTOTPChallengeFault', {
+          message:
+            'MFA sign up flow with TOTP cannot be used without a totpSignUpChallenge',
+          resolution: `Add a totpSignupChallenge when signing up ${user.username}`,
+        });
+      }
+      const challengeOutput = await user.totpSignUpChallenge(
         passwordSignIn.nextStep.totpSetupDetails
       );
       const challengeResponse = challengeOutput.challengeResponse;
@@ -103,13 +109,12 @@ export class MfaFlow {
       passwordSignIn.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_SMS_CODE'
     ) {
       let challengeResponse: string;
-      if (!user.signUpChallenge) {
+      if (!user.smsSignUpChallenge) {
         challengeResponse = await this.prompter.secretValue(
           `Please input the SMS one-time password for ${user.username}:`
         );
       } else {
-        assert.strictEqual(user.mfaPreference, 'SMS');
-        const challengeOutput = await user.signUpChallenge();
+        const challengeOutput = await user.smsSignUpChallenge();
         challengeResponse = challengeOutput.challengeResponse;
       }
       const smsSignIn = await this.authApi.confirmSignIn({
@@ -122,13 +127,12 @@ export class MfaFlow {
       passwordSignIn.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_EMAIL_CODE'
     ) {
       let challengeResponse: string;
-      if (!user.signUpChallenge) {
+      if (!user.emailSignUpChallenge) {
         challengeResponse = await this.prompter.secretValue(
           `Please input one-time password from EMAIL for ${user.username}:`
         );
       } else {
-        assert.strictEqual(user.mfaPreference, 'EMAIL');
-        const challengeOutput = await user.signUpChallenge();
+        const challengeOutput = await user.emailSignUpChallenge();
         challengeResponse = challengeOutput.challengeResponse;
       }
       const emailSignIn = await this.authApi.confirmSignIn({

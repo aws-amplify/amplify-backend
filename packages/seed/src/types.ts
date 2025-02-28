@@ -32,17 +32,19 @@ export type MfaSignUpFlow = {
   signInFlow: 'MFA';
   password: string;
   mfaPreference?: 'EMAIL' | 'SMS';
-  signUpChallenge?: () => Promise<ChallengeResponse>;
-};
-
-export type MfaWithTotpSignUpFlow = {
-  signInFlow: 'MFA';
-  password: string;
-  mfaPreference?: 'TOTP';
-  signUpChallenge: (
+  emailSignUpChallenge?: () => Promise<ChallengeResponse>;
+  smsSignUpChallenge?: () => Promise<ChallengeResponse>;
+  totpSignUpChallenge?: (
     totpSetup: auth.SetUpTOTPOutput
   ) => Promise<ChallengeResponse>;
 };
+
+export type MfaWithTotpSignUpFlow = {
+  mfaPreference?: 'TOTP';
+  totpSignUpChallenge: (
+    totpSetup: auth.SetUpTOTPOutput
+  ) => Promise<ChallengeResponse>;
+} & MfaSignUpFlow;
 
 export type MfaSignInFlow = {
   signInFlow: 'MFA';

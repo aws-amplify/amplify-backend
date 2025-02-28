@@ -22,7 +22,7 @@ export class SandboxSeedGeneratePolicyCommand implements CommandModule<object> {
    */
   constructor(private readonly backendIdResolver: SandboxBackendIdResolver) {
     this.command = 'generate-policy';
-    this.describe = 'Generates policy for seeding based on outputs';
+    this.describe = 'Generates policy for seeding';
   }
 
   /**

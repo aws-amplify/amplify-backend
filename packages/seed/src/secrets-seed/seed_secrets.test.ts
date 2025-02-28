@@ -86,13 +86,13 @@ void describe('secrets APIs for seed', () => {
     beforeEach(() => {
       secretClientMock.getSecret.mock.resetCalls();
       secretClientMock.setSecret.mock.resetCalls();
-      process.env.AMPLIFY_SANDBOX_IDENTIFIER = JSON.stringify(
+      process.env.AMPLIFY_BACKEND_IDENTIFIER = JSON.stringify(
         testBackendIdentifier
       );
     });
 
     afterEach(() => {
-      delete process.env.AMPLIFY_SANDBOX_IDENTIFIER;
+      delete process.env.AMPLIFY_BACKEND_IDENTIFIER;
     });
 
     void it('getSecret properly calls getSecret from secretClientWithAmplifyErrorHandling', async () => {

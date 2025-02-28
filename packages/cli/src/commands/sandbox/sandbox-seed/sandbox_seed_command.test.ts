@@ -97,8 +97,8 @@ void describe('sandbox seed command', () => {
 
     after(async () => {
       await fsp.rm(amplifySeedDir, { recursive: true, force: true });
-      if (process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
-        delete process.env.AMPLIFY_SANDBOX_IDENTIFIER;
+      if (process.env.AMPLIFY_BACKEND_IDENTIFIER) {
+        delete process.env.AMPLIFY_BACKEND_IDENTIFIER;
       }
     });
 
@@ -121,8 +121,8 @@ void describe('sandbox seed command', () => {
 
     after(async () => {
       await fsp.rm(amplifySeedDir, { recursive: true, force: true });
-      if (process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
-        delete process.env.AMPLIFY_SANDBOX_IDENTIFIER;
+      if (process.env.AMPLIFY_BACKEND_IDENTIFIER) {
+        delete process.env.AMPLIFY_BACKEND_IDENTIFIER;
       }
     });
 

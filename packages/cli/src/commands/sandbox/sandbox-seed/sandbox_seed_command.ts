@@ -41,7 +41,7 @@ export class SandboxSeedCommand implements CommandModule<object> {
       cwd: process.cwd(),
       stdio: 'inherit',
       env: {
-        AMPLIFY_SANDBOX_IDENTIFIER: JSON.stringify(backendID),
+        AMPLIFY_BACKEND_IDENTIFIER: JSON.stringify(backendID),
       },
     });
   };

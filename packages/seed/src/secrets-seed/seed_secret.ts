@@ -17,7 +17,7 @@ export class SeedSecretClient {
   ) {}
 
   getSecret = async (secretName: string): Promise<string> => {
-    if (!process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
+    if (!process.env.AMPLIFY_BACKEND_IDENTIFIER) {
       throw new AmplifyUserError('SandboxIdentifierNotFoundError', {
         message: 'Sandbox Identifier is undefined',
         resolution:
@@ -26,7 +26,7 @@ export class SeedSecretClient {
     }
 
     const backendId: BackendIdentifier = JSON.parse(
-      process.env.AMPLIFY_SANDBOX_IDENTIFIER
+      process.env.AMPLIFY_BACKEND_IDENTIFIER
     );
 
     const secretClient = this.getSecretClient;
@@ -40,7 +40,7 @@ export class SeedSecretClient {
     secretName: string,
     secretValue: string
   ): Promise<string> => {
-    if (!process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
+    if (!process.env.AMPLIFY_BACKEND_IDENTIFIER) {
       throw new AmplifyUserError('SandboxIdentifierNotFoundError', {
         message: 'Sandbox Identifier is undefined',
         resolution:
@@ -49,7 +49,7 @@ export class SeedSecretClient {
     }
 
     const backendId: BackendIdentifier = JSON.parse(
-      process.env.AMPLIFY_SANDBOX_IDENTIFIER
+      process.env.AMPLIFY_BACKEND_IDENTIFIER
     );
 
     const secretClient = this.getSecretClient;

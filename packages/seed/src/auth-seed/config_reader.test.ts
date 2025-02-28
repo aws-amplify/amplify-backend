@@ -39,14 +39,14 @@ void describe('reading client configuration', () => {
     );
 
     beforeEach(() => {
-      process.env.AMPLIFY_SANDBOX_IDENTIFIER = JSON.stringify(
+      process.env.AMPLIFY_BACKEND_IDENTIFIER = JSON.stringify(
         testBackendIdentifier
       );
       mockConfigGenerator.mock.resetCalls();
     });
 
     afterEach(() => {
-      delete process.env.AMPLIFY_SANDBOX_IDENTIFIER;
+      delete process.env.AMPLIFY_BACKEND_IDENTIFIER;
     });
 
     void it('successfully reads client config if auth exists', async () => {

@@ -20,14 +20,14 @@ export class ConfigReader {
   ) {}
 
   getAuthConfig = async () => {
-    if (!process.env.AMPLIFY_SANDBOX_IDENTIFIER) {
+    if (!process.env.AMPLIFY_BACKEND_IDENTIFIER) {
       throw new AmplifyUserError('SandboxIdentifierNotFoundError', {
         message: 'Sandbox Identifier is undefined',
         resolution: 'Run ampx sandbox before re-running ampx sandbox seed',
       });
     }
 
-    const backendId = JSON.parse(process.env.AMPLIFY_SANDBOX_IDENTIFIER);
+    const backendId = JSON.parse(process.env.AMPLIFY_BACKEND_IDENTIFIER);
 
     const authConfig = (
       await this.generateClientConfiguration(backendId, '1.3')

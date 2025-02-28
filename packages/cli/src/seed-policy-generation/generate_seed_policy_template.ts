@@ -6,10 +6,10 @@ import {
   DescribeUserPoolCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
+  AmplifyFault,
   AmplifyUserError,
   ParameterPathConversions,
 } from '@aws-amplify/platform-core';
-import assert from 'assert';
 
 /**
  * Generates policy template which allows seed to be run
@@ -38,7 +38,13 @@ export const generateSeedPolicyTemplate = async (
   );
   const userpoolArn = userpoolOutput.UserPool?.Arn;
   // so long as there is an auth resource we should always be able to get an Arn for the userpool
-  assert.ok(userpoolArn);
+  if (!userpoolArn) {
+    throw new AmplifyFault('MissingUserpoolArnFault', {
+      message:
+        'Either the userpool is missing or the userpool exists but it is missing an arn',
+      resolution: 'Ensure your userpool exists and has an arn',
+    });
+  }
   const cognitoGrant = new PolicyStatement({
     effect: Effect.ALLOW,
     actions: ['cognito-idp:AdminCreateUser', 'cognito-idp:AdminAddUserToGroup'],

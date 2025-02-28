@@ -115,7 +115,7 @@ void describe('mfa flow tests', () => {
           signInAfterCreation: true,
           signInFlow: 'MFA',
           mfaPreference: 'SMS',
-          signUpChallenge: async () =>
+          smsSignUpChallenge: async () =>
             Promise.resolve({ challengeResponse: challengeResponse }),
         },
         testTempPassword
@@ -152,8 +152,7 @@ void describe('mfa flow tests', () => {
           password: testPassword,
           signInAfterCreation: true,
           signInFlow: 'MFA',
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          signUpChallenge: async (totpSetupDetails) =>
+          totpSignUpChallenge: async () =>
             Promise.resolve({ challengeResponse: challengeResponse }),
         },
         testTempPassword

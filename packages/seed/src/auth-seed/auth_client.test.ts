@@ -1,8 +1,6 @@
 import { beforeEach, describe, it, mock } from 'node:test';
-import { App, Stack } from 'aws-cdk-lib';
 import { AuthClient } from './auth_client.js';
 import { AuthConfiguration, ConfigReader } from './config_reader.js';
-import { AmplifyAuth } from '@aws-amplify/auth-construct';
 import assert from 'assert';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import {
@@ -28,16 +26,10 @@ const testUserpoolId = 'us-east-1_userpoolTest';
 void describe('seeding auth APIs', () => {
   void describe('adding to user group', () => {
     void describe('no groups exist on userpool', () => {
-      const app = new App();
-      const stack = new Stack(app);
-
-      const authConstruct = new AmplifyAuth(stack, 'test3', {
-        loginWith: { email: true },
-      });
       const mockConfigReader = {
         getAuthConfig: mock.fn<() => Promise<AuthConfiguration>>(async () =>
           Promise.resolve({
-            userPoolId: authConstruct.resources.userPool.userPoolId,
+            userPoolId: testUserpoolId,
           })
         ),
       };
