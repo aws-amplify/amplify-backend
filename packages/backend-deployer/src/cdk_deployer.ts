@@ -152,15 +152,13 @@ export class CDKDeployer implements BackendDeployer {
     } finally {
       const typeCheckTimeSeconds =
         Math.floor((Date.now() - typeCheckStartTime) / 10) / 100;
-      if (backendId.type === 'sandbox') {
-        await this.ioHost.notify({
-          message: `Type checks completed in ${typeCheckTimeSeconds} seconds`,
-          code: 'TS_FINISHED',
-          action: 'amplify',
-          time: new Date(),
-          level: 'result',
-        });
-      }
+      await this.ioHost.notify({
+        message: `Type checks completed in ${typeCheckTimeSeconds} seconds`,
+        code: 'TS_FINISHED',
+        action: 'amplify',
+        time: new Date(),
+        level: 'result',
+      });
     }
 
     if (synthError) {

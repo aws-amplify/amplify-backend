@@ -3,6 +3,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable spellcheck/spell-checker */
 import * as util from 'util';
+
 import {
   CloudFormationClient,
   CloudFormationServiceException,

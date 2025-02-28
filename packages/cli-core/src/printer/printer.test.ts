@@ -2,12 +2,10 @@ import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { LogLevel, Printer } from './printer.js';
 import tty from 'node:tty';
-import { randomUUID } from 'node:crypto';
 
 void describe('Printer', () => {
   const mockedWrite = mock.method(process.stdout, 'write');
   let originalWrite: typeof process.stdout.write;
-  let spinnerId = '';
   const mockedTTYWrite = mock.fn();
   const ttyStream: tty.WriteStream = {
     cursorTo: mock.fn(),
@@ -28,7 +26,6 @@ void describe('Printer', () => {
   });
 
   beforeEach(() => {
-    spinnerId = randomUUID();
     mockedTTYWrite.mock.resetCalls();
     mockedWrite.mock.resetCalls();
   });
@@ -82,9 +79,9 @@ void describe('Printer', () => {
 
     assert.deepStrictEqual(
       logMessages.length,
-      3,
+      2,
       `logs were: ${JSON.stringify(logMessages, null, 2)}`
-    ); // 2 for progress and 1 for final result
+    );
     logMessages.forEach((message) => {
       assert.match(message, /Message(.*)/);
     });
@@ -107,14 +104,12 @@ void describe('Printer', () => {
       .filter((message) => message.arguments.toString().match(/Message/))
       .map((call) => call.arguments.toString());
 
-    // Once to print the message and second that prints the success
     assert.strictEqual(
       logMessages.length,
-      2,
+      1,
       `logs were: ${JSON.stringify(logMessages, null, 2)}`
     );
     assert.match(logMessages[0], /Message(.*)/);
-    assert.match(logMessages[1], /✔.*Message(.*)/);
   });
 
   void it('indicateProgress stops spinner and propagates error when action fails', async () => {
@@ -152,13 +147,13 @@ void describe('Printer', () => {
       50,
       true
     );
-    printer.startSpinner(spinnerId, message);
+    printer.startSpinner(message);
 
     // Wait for 190 ms
     await new Promise((resolve) => setTimeout(resolve, 190));
 
     // Stop spinner
-    printer.stopSpinner(spinnerId);
+    printer.stopSpinner();
 
     const logMessages = mockedTTYWrite.mock.calls
       .filter((message) => message.arguments.toString().match(/Message/))
@@ -186,13 +181,13 @@ void describe('Printer', () => {
       50,
       false // simulate non-tty
     );
-    printer.startSpinner(spinnerId, message);
+    printer.startSpinner(message);
 
     // Wait for 190 ms such that tty would have caused multiple prints
     await new Promise((resolve) => setTimeout(resolve, 190));
 
     // Stop spinner
-    printer.stopSpinner(spinnerId);
+    printer.stopSpinner();
 
     // Instead of 4 times on tty, there should be only 1 log printed
     const logMessages = mockedWrite.mock.calls
@@ -220,13 +215,13 @@ void describe('Printer', () => {
       50,
       true
     );
-    printer.startSpinner(spinnerId, message, {
+    printer.startSpinner(message, {
       timeoutSeconds: 0.1,
     });
-    assert.ok(printer.isSpinnerRunning(spinnerId));
+    assert.ok(printer.isSpinnerRunning());
     // Wait for 110 ms for the spinner to timeout
     await new Promise((resolve) => setTimeout(resolve, 110));
-    assert.ok(!printer.isSpinnerRunning(spinnerId));
+    assert.ok(!printer.isSpinnerRunning());
   });
 
   void it('updateSpinner refreshes the times out', async () => {
@@ -240,32 +235,32 @@ void describe('Printer', () => {
       50,
       true
     );
-    printer.startSpinner(spinnerId, message, {
+    printer.startSpinner(message, {
       timeoutSeconds: 0.1,
     });
-    assert.ok(printer.isSpinnerRunning(spinnerId));
+    assert.ok(printer.isSpinnerRunning());
     // Wait for 70 ms so the spinner doesn't timeout
     await new Promise((resolve) => setTimeout(resolve, 70));
-    printer.updateSpinner(spinnerId, { prefixText: 'some test' });
+    printer.updateSpinner({ prefixText: 'some test' });
     // Wait for another 70 ms and test that spinner is still alive
     await new Promise((resolve) => setTimeout(resolve, 70));
-    assert.ok(printer.isSpinnerRunning(spinnerId));
+    assert.ok(printer.isSpinnerRunning());
 
     // 30 ms later the spinner should timeout
     await new Promise((resolve) => setTimeout(resolve, 40));
-    assert.ok(!printer.isSpinnerRunning(spinnerId));
+    assert.ok(!printer.isSpinnerRunning());
   });
 
   void it('invalid spinner ids do not wreak havoc', async () => {
     // Refresh rate of 50 ms
     const printer = new Printer(LogLevel.INFO, ttyStream, ttyStream);
     const invalidSpinnerId = 'some-invalid-id';
-    assert.ok(!printer.isSpinnerRunning(invalidSpinnerId));
+    assert.ok(!printer.isSpinnerRunning());
 
-    printer.updateSpinner(invalidSpinnerId, { prefixText: 'some test' });
+    printer.updateSpinner({ prefixText: 'some test' });
     assert.match(
       mockedTTYWrite.mock.calls[0].arguments[0].toString(),
-      /Spinner with id some-invalid-id not found or already stopped/
+      /No running spinner found./
     );
     printer.stopSpinner(invalidSpinnerId);
   });
@@ -281,15 +276,15 @@ void describe('Printer', () => {
       50,
       true
     );
-    printer.startSpinner(spinnerId, message);
-    printer.updateSpinner(spinnerId, {
+    printer.startSpinner(message);
+    printer.updateSpinner({
       prefixText: 'this is some prefix text',
     });
 
     // wait for 50 secs for spinner to get a chance to update the prefix text
     await new Promise((resolve) => setTimeout(resolve, 55));
     // Stop spinner
-    printer.stopSpinner(spinnerId);
+    printer.stopSpinner();
 
     const logMessages = mockedTTYWrite.mock.calls
       .filter((message) => message.arguments.toString().match(/Message/))

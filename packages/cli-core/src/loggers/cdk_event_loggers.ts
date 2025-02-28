@@ -11,7 +11,11 @@ import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
  */
 export class CDKEventLogger {
   private printer = printer; // default stdout
-  private enableColors = true; // show colors on console but not while writing to files
+  private fancyOutput = process.env.CI
+    ? false
+    : process.stdout.isTTY
+    ? true
+    : false; // show colors on tty but not while writing to files/ci cd
   private cfnDeploymentActivityPrinter: CurrentActivityPrinter | undefined;
   private outputs = {};
   private startTime: number;
@@ -22,11 +26,19 @@ export class CDKEventLogger {
   constructor() {}
 
   getCDKEventLoggers = () => {
+    if (minimumLogLevel === LogLevel.DEBUG) {
+      return {
+        notify: [this.debug],
+      };
+    }
+    const loggers = [this.amplifyNotifications, this.cdkDeploymentProgress];
+    if (this.fancyOutput) {
+      loggers.push(this.fancyCfnDeploymentProgress);
+    } else {
+      loggers.push(this.nonTtyCfnDeploymentProgress);
+    }
     return {
-      notify:
-        minimumLogLevel === LogLevel.DEBUG
-          ? [this.debug]
-          : [this.cfnDeploymentProgress, this.amplifyNotifications],
+      notify: loggers,
     };
   };
 
@@ -44,7 +56,8 @@ export class CDKEventLogger {
         (msg?.data as any).content.forEach(
           (trace: { clientName: any; commandName: any }) => {
             this.printer.log(
-              `SDK Call ${trace.clientName}: ${trace.commandName}`
+              `AWS SDK Call ${trace.clientName}: ${trace.commandName}`,
+              LogLevel.DEBUG
             );
           }
         );
@@ -52,8 +65,8 @@ export class CDKEventLogger {
         this.printer.log(msg.message, LogLevel.DEBUG);
       }
     } else {
-      if (this.enableColors) {
-        this.printer.print(
+      if (this.fancyOutput) {
+        this.printer.log(
           `[${format.color(
             `${msg.action}: ${msg.code}`,
             msg.level === 'error'
@@ -65,16 +78,17 @@ export class CDKEventLogger {
             msg.time.toLocaleTimeString()
           )} ${msg.message.trim()} ${
             msg.data ? JSON.stringify(msg.data, null, 2) : ''
-          }`
+          }`,
+          LogLevel.DEBUG
         );
       } else {
         this.printer.log(
           `[${msg.action}: ${
             msg.code
-          }] ${msg.time.toLocaleTimeString()} ${msg.message.trim()}`
+          }] ${msg.time.toLocaleTimeString()} ${msg.message.trim()}`,
+          LogLevel.DEBUG
         );
       }
-      // console.log(msg);
     }
     return Promise.resolve();
   };
@@ -87,16 +101,16 @@ export class CDKEventLogger {
     }
     switch (msg.code) {
       case 'TS_STARTED':
-        this.printer.startSpinner('TS_CHECK', 'Running type checks...');
+        this.printer.startSpinner('Running type checks...');
         return;
       case 'TS_FINISHED':
-        this.printer.stopSpinner('TS_CHECK');
+        this.printer.stopSpinner();
         break;
       case 'SYNTH_STARTED':
-        this.printer.startSpinner('SYNTH_CHECK', 'Synthesizing backend...');
+        this.printer.startSpinner('Synthesizing backend...');
         return;
       case 'SYNTH_FINISHED':
-        this.printer.stopSpinner('SYNTH_CHECK');
+        this.printer.stopSpinner();
         break;
     }
     this.printer.log(
@@ -108,33 +122,52 @@ export class CDKEventLogger {
     );
   };
 
-  /**
-   * Displays pretty print of cfn deployment progress. Disabled if debug logging is turned on
-   * @param msg a CDK event
-   */
-  cfnDeploymentProgress = async <T>(
+  cdkDeploymentProgress = async <T>(
     msg: AmplifyIoHostEventMessage<T>
   ): Promise<void> => {
     // TBD: This will be replaced with a proper marker event with a unique code later
     // Asset publishing
     if (msg.message.includes('Checking for previously published assets')) {
-      this.printer.startSpinner(
-        'PUBLISH_ASSETS',
-        'Building and publishing assets...'
-      );
+      this.printer.startSpinner('Building and publishing assets...');
       return Promise.resolve();
     } else if (
       msg.message.includes('success: Published') ||
       msg.message.includes('0 still need to be published')
     ) {
-      if (this.printer.isSpinnerRunning('PUBLISH_ASSETS')) {
-        this.printer.stopSpinner('PUBLISH_ASSETS');
-        this.printer.log(`${format.success('✔')} Built and published assets`);
-      }
+      this.printer.stopSpinner();
+      this.printer.log(`${format.success('✔')} Built and published assets`);
       return Promise.resolve();
     }
 
-    // CDK_TOOLKIT_I5000 code represents deployment time
+    // Hot swap deployment
+    // TBD: This will be replaced with a proper marker event with a unique code later
+    if (msg.message.includes('hotswapped')) {
+      this.printer.log(msg.message);
+    }
+  };
+
+  /**
+   * Displays pretty print of cfn deployment progress. Disabled if debug logging is turned on
+   * @param msg a CDK event
+   */
+  fancyCfnDeploymentProgress = async <T>(
+    msg: AmplifyIoHostEventMessage<T>
+  ): Promise<void> => {
+    // Start deployment progress display
+    // TBD: This will be replaced with a proper marker event with a unique code later
+    if (
+      msg.message.includes('deploying...') &&
+      !this.cfnDeploymentActivityPrinter
+    ) {
+      this.cfnDeploymentActivityPrinter = new CurrentActivityPrinter({
+        resourceTypeColumnWidth: 30, // TBD
+        stream: process.stdout,
+      });
+      this.startTime = Date.now();
+      this.cfnDeploymentActivityPrinter.start();
+    }
+
+    // Stop deployment progress display
     if (
       msg.code === 'CDK_TOOLKIT_I5000' ||
       msg.message.includes('Failed resources')
@@ -168,29 +201,9 @@ export class CDKEventLogger {
           )}`
         );
       }
-      return Promise.resolve();
     }
 
-    // TBD: This will be replaced with a proper marker event with a unique code later
-    if (
-      msg.message.includes('deploying...') &&
-      !this.cfnDeploymentActivityPrinter
-    ) {
-      this.cfnDeploymentActivityPrinter = new CurrentActivityPrinter({
-        resourceTypeColumnWidth: 30, // TBD
-        stream: process.stdout,
-      });
-      this.startTime = Date.now();
-      this.cfnDeploymentActivityPrinter.start();
-    }
-
-    // Hot swap deployment
-    // TBD: This will be replaced with a proper marker event with a unique code later
-    if (msg.message.includes('hotswapped')) {
-      this.printer.log(msg.message);
-    }
-
-    // Outputs we care about. CDK_TOOLKIT_I5900 code represents outputs message
+    // CFN Outputs we care about. CDK_TOOLKIT_I5900 code represents outputs message
     if (msg.code === 'CDK_TOOLKIT_I5900') {
       if (
         msg.data &&
@@ -203,7 +216,7 @@ export class CDKEventLogger {
       }
     }
 
-    // // For actual progress we need
+    // For actual progress we need sdk call outputs, so for now, re are relying on cdk calls to sdk
     if (!this.isCfnSdkCallEvent(msg.data)) {
       return Promise.resolve();
     }
@@ -225,6 +238,20 @@ export class CDKEventLogger {
       // TBD
     }
     return Promise.resolve();
+  };
+
+  /**
+   * Non fancy cfn deployment progress for ci/cd or files
+   */
+  nonTtyCfnDeploymentProgress = async <T>(
+    msg: AmplifyIoHostEventMessage<T>
+  ): Promise<void> => {
+    if (msg.code === 'CDK_TOOLKIT_I0000') {
+      if (msg.message.split('|').length - 1 == 5) {
+        // CDKs formatted cfn deployment progress
+        this.printer.log(msg.message);
+      }
+    }
   };
 
   isCfnSdkCallEvent = <T>(data: T) => {

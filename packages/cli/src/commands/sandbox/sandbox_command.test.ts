@@ -354,7 +354,7 @@ void describe('sandbox command', () => {
   void it('fails if --logs-out-file is provided without enabling --stream-function-logs', async () => {
     assert.match(
       await commandRunner.runCommand('sandbox --logs-out-file someFile'),
-      /Missing dependent arguments:\n logs-out-file -> stream-function-logs/
+      /Missing dependent arguments.* logs-out-file -> stream-function-logs/s
     );
   });
 

@@ -101,7 +101,10 @@ void describe('format.error', async () => {
       message: 'something went wrong',
       code: 1,
     };
-    const expectedOutput = red(JSON.stringify(input, null, 2));
+    const expectedOutput = JSON.stringify(input, null, 2)
+      .split(os.EOL)
+      .map((line) => red(line))
+      .join(os.EOL);
     const actualOutput = format.error(input);
     assert.strictEqual(actualOutput, expectedOutput);
   });

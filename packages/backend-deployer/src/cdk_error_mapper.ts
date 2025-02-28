@@ -6,6 +6,7 @@ import {
 } from '@aws-amplify/platform-core';
 import stripANSI from 'strip-ansi';
 import { BackendDeployerOutputFormatter } from './types.js';
+import { ToolkitError } from '@aws-cdk/toolkit-lib';
 
 /**
  * Transforms CDK error messages to human readable ones
@@ -26,6 +27,17 @@ export class CdkErrorMapper {
     const amplifyError = AmplifyError.fromStderr(error.message);
     if (amplifyError) {
       return amplifyError;
+    }
+
+    // Check if this was an Amplify error than we return it as is
+    if (AmplifyError.isAmplifyError(error)) {
+      return error;
+    }
+
+    // If this was a structured cdk error, then wrap in Amplify Error and throw
+    const errorFromCDK = this.getCDKError(error);
+    if (errorFromCDK) {
+      return errorFromCDK;
     }
 
     const errorMessage = stripANSI(error.message);
@@ -88,6 +100,38 @@ export class CdkErrorMapper {
           );
     }
     return AmplifyError.fromError(error);
+  };
+
+  private getCDKError = (error: Error): AmplifyError | undefined => {
+    if (ToolkitError.isAuthenticationError(error)) {
+      return new AmplifyUserError(
+        'AuthenticationError',
+        {
+          message: 'Unable to deploy due to insufficient permissions',
+          resolution:
+            'Check the Caused by error and ensure you have the necessary permissions',
+        },
+        error
+      );
+    } else if (ToolkitError.isAssemblyError(error)) {
+      // It's a user error coming from their CDK App
+      return new AmplifyUserError(
+        'BackendBuildError',
+        {
+          message: 'Unable to deploy due to CDK Assembly Error',
+          resolution:
+            'Check the Caused by error and fix any issues in your backend code',
+        },
+        error
+      );
+    } else if (ToolkitError.isContextProviderError(error)) {
+      // Handle errors from context providers
+      // TBD
+    } else if (ToolkitError.isToolkitError(error)) {
+      // Handle all other Toolkit errors
+      // TBD
+    }
+    return undefined;
   };
 
   private getKnownErrors = (): Array<{
@@ -574,6 +618,7 @@ If your circular dependency issue is not resolved with this workaround, please c
 
 export type CDKDeploymentError =
   | 'AccessDeniedError'
+  | 'AuthenticationError'
   | 'AppSyncResolverSyntaxError'
   | 'BackendBuildError'
   | 'BackendSynthError'

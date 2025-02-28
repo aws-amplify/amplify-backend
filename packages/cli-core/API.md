@@ -35,8 +35,10 @@ export class CDKEventLogger {
     constructor();
     // (undocumented)
     amplifyNotifications: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    cfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    // (undocumented)
+    cdkDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
     debug: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    fancyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
     // (undocumented)
     getCDKEventLoggers: () => {
         notify: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
@@ -45,6 +47,7 @@ export class CDKEventLogger {
     isCfnSdkCallEvent: <T>(data: T) => boolean;
     // (undocumented)
     isSdkCallEvent: <T>(data: T) => boolean;
+    nonTtyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
 }
 
 // @public
@@ -126,17 +129,15 @@ export class Printer {
     clearConsole: () => void;
     indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
     // (undocumented)
-    isSpinnerRunning: (id: string) => boolean;
+    isSpinnerRunning: () => boolean;
     log: (message: string, level?: LogLevel) => void;
     print: (message: string) => void;
     printNewLine: () => void;
-    startSpinner: (id: string, message: string, options?: {
+    startSpinner: (message: string, options?: {
         timeoutSeconds: number;
-    }) => string;
-    stopSpinner: (id: string) => void;
-    // (undocumented)
-    stringify: (msg: unknown) => string;
-    updateSpinner: (id: string, options: {
+    }) => void;
+    stopSpinner: (successMessage?: string) => void;
+    updateSpinner: (options: {
         message?: string;
         prefixText?: string;
     }) => void;

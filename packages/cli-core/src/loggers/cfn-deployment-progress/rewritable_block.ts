@@ -54,7 +54,7 @@ export class RewritableBlock {
     }
 
     // The block can only ever get bigger
-    this.printer.updateSpinner('CFN_DEPLOYMENT_PROGRESS', {
+    this.printer.updateSpinner({
       prefixText: progressUpdate.join(''),
     });
 
@@ -65,17 +65,14 @@ export class RewritableBlock {
    * TBD
    */
   stop() {
-    this.printer.stopSpinner('CFN_DEPLOYMENT_PROGRESS');
+    this.printer.stopSpinner();
   }
 
   /**
    * TBD
    */
   start() {
-    this.printer.startSpinner(
-      'CFN_DEPLOYMENT_PROGRESS',
-      'Deployment in progress...'
-    );
+    this.printer.startSpinner('Deployment in progress...');
   }
 }
 

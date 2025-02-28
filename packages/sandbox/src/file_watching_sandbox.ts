@@ -400,26 +400,6 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     }
   };
 
-  /**
-   * Generates a printable error message from the thrown error
-   */
-  private getErrorMessage = (error: unknown) => {
-    let message;
-    if (error instanceof Error) {
-      message = error.message;
-
-      // Add the downstream exception
-      if (error.cause && error.cause instanceof Error && error.cause.message) {
-        message = `${message}\nCaused By: ${error.cause.message}\n`;
-      }
-
-      if (AmplifyError.isAmplifyError(error) && error.resolution) {
-        message = `${message}\nResolution: ${error.resolution}\n`;
-      }
-    } else message = String(error);
-    return message;
-  };
-
   private handleUnsupportedDestructiveChanges = async (
     options: SandboxOptions
   ) => {

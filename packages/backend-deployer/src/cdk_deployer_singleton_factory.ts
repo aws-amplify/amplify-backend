@@ -65,8 +65,16 @@ export class BackendDeployerFactory {
    * Returns a single instance of BackendDeployer
    */
   getInstance(): BackendDeployer {
-    // console.log(process.env.AWS_PROFILE);
     if (!BackendDeployerFactory.instance) {
+      let profile = undefined;
+      if (process && process.argv) {
+        for (let i = 2; i < process.argv.length; i++) {
+          if (process.argv[i] == '--profile') {
+            profile = process.argv[i + 1];
+          }
+        }
+      }
+
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(this.formatter),
         new BackendLocator(),
@@ -75,6 +83,9 @@ export class BackendDeployerFactory {
           ioHost: this.backendDeployerIOHost,
           emojis: false,
           color: false,
+          sdkConfig: {
+            profile,
+          },
         }),
         this.backendDeployerIOHost
       );
