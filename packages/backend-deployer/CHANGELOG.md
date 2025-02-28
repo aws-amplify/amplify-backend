@@ -1,5 +1,13 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.19
+
+### Patch Changes
+
+- aec5e08: Handle signature mismatch error
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+
 ## 1.1.18
 
 ### Patch Changes
