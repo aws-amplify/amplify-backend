@@ -245,6 +245,7 @@ void describe('AmplifyError.fromError', async () => {
       'CredentialsProviderError',
       'InvalidClientTokenId',
       'CredentialsError',
+      'SignatureDoesNotMatch',
     ].forEach((name) => {
       error.name = name;
       const actual = AmplifyError.fromError(error);

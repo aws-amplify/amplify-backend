@@ -716,6 +716,14 @@ npm error enoent`,
     errorName: 'MissingDefineBackendError',
     expectedDownstreamErrorMessage: undefined,
   },
+  {
+    errorMessage:
+      'Error: <escaped stack>: The request signature we calculated does not match the signature you provided. Check your AWS Secret Access Key and signing method. Consult the service documentation for details.',
+    expectedTopLevelErrorMessage:
+      'The request signature we calculated does not match the signature you provided.',
+    errorName: 'SignatureDoesNotMatchError',
+    expectedDownstreamErrorMessage: undefined,
+  },
 ];
 
 void describe('invokeCDKCommand', { concurrency: 1 }, () => {

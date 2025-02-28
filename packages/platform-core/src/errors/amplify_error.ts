@@ -264,6 +264,7 @@ const isCredentialsError = (err?: Error): boolean => {
       'CredentialsProviderError',
       'InvalidClientTokenId',
       'CredentialsError',
+      'SignatureDoesNotMatch',
     ].includes(err.name)
   );
 };
