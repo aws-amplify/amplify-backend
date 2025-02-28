@@ -92,7 +92,8 @@ void describe('reading client configuration', () => {
         'SandboxIdentifierNotFoundError',
         {
           message: 'Sandbox Identifier is undefined',
-          resolution: 'Run ampx sandbox before re-running ampx sandbox seed',
+          resolution:
+            'Run ampx sandbox before re-running ampx sandbox seed. If you are running the seed script directly through tsx seed.ts, try running it with ampx sandbox seed instead',
         }
       );
       const configReader = new ConfigReader();
