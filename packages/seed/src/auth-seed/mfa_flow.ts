@@ -2,7 +2,7 @@ import * as auth from 'aws-amplify/auth';
 import assert from 'assert';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { AuthSignUp, AuthUser } from '../types.js';
-import { AmplifyFault, AmplifyUserError } from '@aws-amplify/platform-core';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Handles users who enter the MFA flow
@@ -89,7 +89,7 @@ export class MfaFlow {
       passwordSignIn.nextStep.signInStep === 'CONTINUE_SIGN_IN_WITH_TOTP_SETUP'
     ) {
       if (!user.totpSignUpChallenge) {
-        throw new AmplifyFault('MissingTOTPChallengeFault', {
+        throw new AmplifyUserError('MissingTOTPChallengeError', {
           message:
             'MFA sign up flow with TOTP cannot be used without a totpSignUpChallenge',
           resolution: `Add a totpSignupChallenge when signing up ${user.username}`,

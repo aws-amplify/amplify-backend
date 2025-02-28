@@ -11,7 +11,7 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 import * as auth from 'aws-amplify/auth';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
-import { persistentPasswordSignUp } from './persistent_password_flow.js';
+import { PersistentPasswordFlow } from './persistent_password_flow.js';
 import { MfaFlow } from './mfa_flow.js';
 import { randomUUID } from 'node:crypto';
 import { ConfigReader } from './config_reader.js';
@@ -29,6 +29,7 @@ export class AuthClient {
     configOutputs: ConfigReader,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(),
     private readonly authApi = auth,
+    private readonly persistentPasswordFlow = new PersistentPasswordFlow(),
     private readonly mfaFlow = new MfaFlow()
   ) {
     this.authOutputs = configOutputs.getAuthConfig();
@@ -78,14 +79,16 @@ export class AuthClient {
 
       switch (newUser.signInFlow) {
         case 'Password': {
-          await persistentPasswordSignUp(newUser, tempPassword, this.authApi);
+          await this.persistentPasswordFlow.persistentPasswordSignUp(
+            newUser,
+            tempPassword
+          );
           break;
         }
         case 'MFA': {
           if (
             !authConfig.mfaConfig ||
-            (authConfig.mfaConfig && authConfig.mfaConfig === 'NONE') ||
-            !authConfig.mfaConfig
+            (authConfig.mfaConfig && authConfig.mfaConfig === 'NONE')
           ) {
             throw new AmplifyUserError('MFANotConfiguredError', {
               message: `MFA is not configured for this userpool, you cannot create ${newUser.username} with MFA.`,
@@ -157,29 +160,9 @@ export class AuthClient {
     await this.authApi.signOut();
     switch (user.signInFlow) {
       case 'Password': {
-        let signInResult: auth.SignInOutput;
-        try {
-          signInResult = await this.authApi.signIn({
-            username: user.username,
-            password: user.password,
-          });
-        } catch (err) {
-          const error = err as Error;
-          if (error.name === 'UserNotFoundException') {
-            throw new AmplifyUserError(
-              'UserExistsError',
-              {
-                message: `${user.username} does not exist`,
-                resolution: `Create a user called ${user.username}`,
-              },
-              error
-            );
-          } else {
-            throw err;
-          }
-        }
-
-        return signInResult.nextStep.signInStep === 'DONE';
+        const result =
+          this.persistentPasswordFlow.persistentPasswordSignIn(user);
+        return result;
       }
       case 'MFA': {
         const result = await this.mfaFlow.mfaSignIn(user);

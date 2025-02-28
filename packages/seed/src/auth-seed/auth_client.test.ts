@@ -15,6 +15,7 @@ import {
 import * as auth from 'aws-amplify/auth';
 import { AuthSignUp, AuthUser } from '../types.js';
 import { MfaFlow } from './mfa_flow.js';
+import { PersistentPasswordFlow } from './persistent_password_flow.js';
 
 const testUsername = 'testUser1@test.com';
 const testPassword = 'T3st_Password*';
@@ -166,47 +167,33 @@ void describe('seeding auth APIs', () => {
 
     const mockAuthAPIs = {
       signOut: mock.fn<() => Promise<void>>(async () => Promise.resolve()),
-      signIn: mock.fn<(input: auth.SignInInput) => Promise<auth.SignInOutput>>(
-        async () =>
-          Promise.resolve({
-            isSignedIn: true,
-            nextStep: { signInStep: 'DONE' },
-          } as auth.SignInOutput)
-      ),
-      confirmSignIn: mock.fn<
-        (input: auth.ConfirmSignInInput) => Promise<auth.ConfirmSignInOutput>
-      >(async () =>
-        Promise.resolve({
-          isSignedIn: true,
-          nextStep: { signInStep: 'DONE' },
-        } as auth.SignInOutput)
+    };
+
+    const mockPasswordFlow = {
+      persistentPasswordSignUp: mock.fn<
+        (input: AuthSignUp) => Promise<boolean>
+      >(async () => Promise.resolve(true)),
+      persistentPasswordSignIn: mock.fn<(input: AuthUser) => Promise<boolean>>(
+        async () => Promise.resolve(true)
       ),
     };
 
     const authClient = new AuthClient(
       mockConfigReader as unknown as ConfigReader,
       mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient,
-      mockAuthAPIs as unknown as typeof auth
+      mockAuthAPIs as unknown as typeof auth,
+      mockPasswordFlow as unknown as PersistentPasswordFlow
     );
 
     beforeEach(() => {
       mockCognitoIdProviderClient.send.mock.resetCalls();
       mockConfigReader.getAuthConfig.mock.resetCalls();
-      mockAuthAPIs.signIn.mock.resetCalls();
       mockAuthAPIs.signOut.mock.resetCalls();
-      mockAuthAPIs.confirmSignIn.mock.resetCalls();
+      mockPasswordFlow.persistentPasswordSignIn.mock.resetCalls();
+      mockPasswordFlow.persistentPasswordSignUp.mock.resetCalls();
     });
 
     void it('creates and signs up user', async () => {
-      mockAuthAPIs.signIn.mock.mockImplementationOnce(async () =>
-        Promise.resolve({
-          isSignedIn: true,
-          nextStep: {
-            signInStep: 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED',
-          },
-        } as auth.SignInOutput)
-      );
-
       await authClient.createAndSignUpUser({
         username: testUsername,
         password: testPassword,
@@ -214,9 +201,11 @@ void describe('seeding auth APIs', () => {
         signInFlow: 'Password',
       });
 
+      assert.strictEqual(
+        mockPasswordFlow.persistentPasswordSignUp.mock.callCount(),
+        1
+      );
       assert.strictEqual(mockCognitoIdProviderClient.send.mock.callCount(), 1);
-      assert.strictEqual(mockAuthAPIs.signIn.mock.callCount(), 1);
-      assert.strictEqual(mockAuthAPIs.confirmSignIn.mock.callCount(), 1);
     });
 
     void it('throws error if attempting to create user that already exists', async () => {
@@ -310,39 +299,11 @@ void describe('seeding auth APIs', () => {
         signInFlow: 'Password',
       });
 
-      assert.strictEqual(mockAuthAPIs.signIn.mock.callCount(), 1);
+      assert.strictEqual(
+        mockPasswordFlow.persistentPasswordSignIn.mock.callCount(),
+        1
+      );
       assert.strictEqual(output, true);
-    });
-
-    void it('throws error if attempting to sign in user that does not exist', async () => {
-      const expectedErr = new AmplifyUserError('UserExistsError', {
-        message: `${testUsername} does not exist`,
-        resolution: `Create a user called ${testUsername}`,
-      });
-
-      mockAuthAPIs.signIn.mock.mockImplementationOnce(() =>
-        Promise.reject(
-          new UserNotFoundException({
-            $metadata: {},
-            message: `${testUsername} does not exist`,
-          })
-        )
-      );
-
-      await assert.rejects(
-        async () =>
-          authClient.signInUser({
-            username: testUsername,
-            password: testPassword,
-            signInFlow: 'Password',
-          }),
-        (err: AmplifyUserError) => {
-          assert.strictEqual(err.name, expectedErr.name);
-          assert.strictEqual(err.message, expectedErr.message);
-          assert.strictEqual(err.resolution, expectedErr.resolution);
-          return true;
-        }
-      );
     });
   });
 
@@ -388,6 +349,7 @@ void describe('seeding auth APIs', () => {
       mockConfigReader as unknown as ConfigReader,
       mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient,
       mockAuthAPIs as unknown as typeof auth,
+      undefined,
       mockMfaFlow as unknown as MfaFlow
     );
 

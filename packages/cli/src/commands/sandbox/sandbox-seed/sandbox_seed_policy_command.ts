@@ -31,7 +31,7 @@ export class SandboxSeedGeneratePolicyCommand implements CommandModule<object> {
   handler = async (): Promise<void> => {
     const backendId = await this.backendIdResolver.resolve();
     const policyDocument = await generateSeedPolicyTemplate(backendId);
-    printer.print(JSON.stringify(policyDocument.toJSON(), null, 1));
+    printer.print(JSON.stringify(policyDocument.toJSON(), null, 2));
   };
 
   /**
