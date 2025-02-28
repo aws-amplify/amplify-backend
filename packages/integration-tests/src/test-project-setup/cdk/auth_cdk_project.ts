@@ -60,7 +60,7 @@ class AuthTestCdkProject extends TestCdkProjectBase {
   }
   assertPostDeployment = async (): Promise<void> => {
     // assert has some of expected resources
-    const userPools = await this.resourceFinder.findPhysicalNamesByStackName(
+    const userPools = await this.resourceFinder.findNamesByStackName(
       this.stackName,
       'AWS::Cognito::UserPool'
     );
