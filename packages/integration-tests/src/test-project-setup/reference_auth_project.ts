@@ -354,21 +354,11 @@ class ReferenceAuthTestProject extends TestProjectBase {
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::IAM::Policy',
+        undefined,
         (name) => name.startsWith(`${sanitizedStackName}storageAccess`)
       );
-    const allStorageAccessPolicies =
-      await this.resourceFinder.findByBackendIdentifier(
-        backendId,
-        'AWS::IAM::Policy',
-        (name) => name.includes('storageAccess')
-      );
 
-    assert.ok(
-      storageAccessPolicy.length,
-      `Could not find storage access policies that start with stack from ${JSON.stringify(
-        allStorageAccessPolicies
-      )}`
-    );
+    assert.ok(storageAccessPolicy.length);
   }
 
   /**

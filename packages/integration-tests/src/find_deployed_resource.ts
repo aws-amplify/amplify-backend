@@ -23,18 +23,27 @@ export class DeployedResourcesFinder {
 
   /**
    * Find resources of type "resourceType" within the stack defined by "backendId"
-   * Optionally, filter physical names by a predicate
+   * Optionally, filter physical or logical names by a predicate
    * @param backendId Used to determine which CFN stack to look in
    * @param resourceType The CFN resource type to look for. Eg "AWS::Lambda::Function" or "AWS::IAM::Role"
    * @param physicalNamePredicate Optional predicate to filter physical names of resources matching resourceType
+   * @param logicalNamePredicate Optional predicate to filter logical names of resources matching resourceType
    */
   findByBackendIdentifier = async (
     backendId: BackendIdentifier,
     resourceType: string,
-    physicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
+    physicalNamePredicate: StringPredicate = () => true, // match all resources of "resourceType" by default
+    logicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
   ): Promise<string[]> => {
     const stackName = BackendIdentifierConversions.toStackName(backendId);
-    return await this.findByStackName(
+    if (logicalNamePredicate !== undefined) {
+      return await this.findLogicalNamesByStackName(
+        stackName,
+        resourceType,
+        logicalNamePredicate
+      );
+    }
+    return await this.findPhysicalNamesByStackName(
       stackName,
       resourceType,
       physicalNamePredicate
@@ -48,7 +57,7 @@ export class DeployedResourcesFinder {
    * @param resourceType The CFN resource type to look for. Eg "AWS::Lambda::Function" or "AWS::IAM::Role"
    * @param physicalNamePredicate Optional predicate to filter physical names of resources matching resourceType
    */
-  findByStackName = async (
+  findPhysicalNamesByStackName = async (
     stackName: string,
     resourceType: string,
     physicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
@@ -80,5 +89,46 @@ export class DeployedResourcesFinder {
     }
 
     return resourcePhysicalIds;
+  };
+
+  /**
+   * Find resources of type "resourceType" within the stack defined by "backendId"
+   * Optionally, filter logical names by a predicate
+   * @param stackName The CFN stack name
+   * @param resourceType The CFN resource type to look for. Eg "AWS::Lambda::Function" or "AWS::IAM::Role"
+   * @param logicalNamePredicate Optional predicate to filter logical names of resources matching resourceType
+   */
+  findLogicalNamesByStackName = async (
+    stackName: string,
+    resourceType: string,
+    logicalNamePredicate: StringPredicate = () => true // match all resources of "resourceType" by default
+  ): Promise<string[]> => {
+    const queue = [stackName];
+
+    const resourceLogicalIds: string[] = [];
+
+    while (queue.length > 0) {
+      const currentStack = queue.pop();
+      const response = await this.cfnClient.send(
+        new DescribeStackResourcesCommand({ StackName: currentStack })
+      );
+
+      for (const resource of response.StackResources || []) {
+        if (
+          resource.ResourceType === 'AWS::CloudFormation::Stack' &&
+          resource.PhysicalResourceId
+        ) {
+          queue.unshift(resource.PhysicalResourceId);
+        } else if (
+          resource.ResourceType === resourceType &&
+          resource.LogicalResourceId &&
+          logicalNamePredicate(resource.LogicalResourceId)
+        ) {
+          resourceLogicalIds.push(resource.LogicalResourceId);
+        }
+      }
+    }
+
+    return resourceLogicalIds;
   };
 }
