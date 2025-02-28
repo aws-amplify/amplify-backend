@@ -245,13 +245,26 @@ void describe('AmplifyError.fromError', async () => {
       'CredentialsProviderError',
       'InvalidClientTokenId',
       'CredentialsError',
-      'SignatureDoesNotMatch',
     ].forEach((name) => {
       error.name = name;
       const actual = AmplifyError.fromError(error);
       assert.ok(
         AmplifyError.isAmplifyError(actual) &&
           actual.name === 'CredentialsError',
+        `Failed the test while wrapping error ${name}`
+      );
+    });
+  });
+  void it('wraps request signature related errors in AmplifyUserError', () => {
+    const error = new Error(
+      'The request signature we calculated does not match the signature you provided.'
+    );
+    ['InvalidSignatureException', 'SignatureDoesNotMatch'].forEach((name) => {
+      error.name = name;
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        AmplifyError.isAmplifyError(actual) &&
+          actual.name === 'RequestSignatureError',
         `Failed the test while wrapping error ${name}`
       );
     });

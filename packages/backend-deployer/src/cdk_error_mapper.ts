@@ -113,8 +113,8 @@ export class CdkErrorMapper {
       humanReadableErrorMessage:
         'The request signature we calculated does not match the signature you provided.',
       resolutionMessage:
-        "Please update your AWS credentials. You can do this by running `aws configure` or by updating your AWS credentials file. If you're using temporary credentials, you may need to obtain new ones.",
-      errorName: 'SignatureDoesNotMatchError',
+        'You can retry your last request, check if your system time is synchronized (clock skew) or ensure your AWS credentials are correctly set and refreshed.',
+      errorName: 'RequestSignatureError',
       classification: 'ERROR',
     },
     {
@@ -618,4 +618,4 @@ export type CDKDeploymentError =
   | 'GetLambdaLayerVersionError'
   | 'LambdaEmptyZipFault'
   | 'LambdaMaxSizeExceededError'
-  | 'SignatureDoesNotMatchError';
+  | 'RequestSignatureError';

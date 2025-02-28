@@ -125,6 +125,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         error
       );
     }
+    if (error instanceof Error && isRequestSignatureError(error)) {
+      return new AmplifyUserError(
+        'RequestSignatureError',
+        {
+          message: errorMessage,
+          resolution:
+            'You can retry your last request, check if your system time is synchronized (clock skew) or ensure your AWS credentials are correctly set and refreshed.',
+        },
+        error
+      );
+    }
     if (error instanceof Error && isYargsValidationError(error)) {
       return new AmplifyUserError(
         'InvalidCommandInputError',
@@ -264,8 +275,14 @@ const isCredentialsError = (err?: Error): boolean => {
       'CredentialsProviderError',
       'InvalidClientTokenId',
       'CredentialsError',
-      'SignatureDoesNotMatch',
     ].includes(err.name)
+  );
+};
+
+const isRequestSignatureError = (err?: Error): boolean => {
+  return (
+    !!err &&
+    ['InvalidSignatureException', 'SignatureDoesNotMatch'].includes(err.name)
   );
 };
 
