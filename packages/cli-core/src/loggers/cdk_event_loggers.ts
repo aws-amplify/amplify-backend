@@ -11,11 +11,7 @@ import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
  */
 export class CDKEventLogger {
   private printer = printer; // default stdout
-  private fancyOutput = process.env.CI
-    ? false
-    : process.stdout.isTTY
-    ? true
-    : false; // show colors on tty but not while writing to files/ci cd
+  private fancyOutput = true;
   private cfnDeploymentActivityPrinter: CurrentActivityPrinter | undefined;
   private outputs = {};
   private startTime: number;
@@ -246,6 +242,68 @@ export class CDKEventLogger {
   nonTtyCfnDeploymentProgress = async <T>(
     msg: AmplifyIoHostEventMessage<T>
   ): Promise<void> => {
+    // TBD, remove this code duplication
+    if (
+      msg.message.includes('deploying...') &&
+      !this.cfnDeploymentActivityPrinter
+    ) {
+      this.cfnDeploymentActivityPrinter = new CurrentActivityPrinter({
+        resourceTypeColumnWidth: 30, // TBD
+        stream: process.stdout,
+      });
+      this.startTime = Date.now();
+      this.cfnDeploymentActivityPrinter.start();
+    }
+
+    // Stop deployment progress display
+    if (
+      msg.code === 'CDK_TOOLKIT_I5000' ||
+      msg.message.includes('Failed resources')
+    ) {
+      // TBD: This will be replaced with a proper marker event with a unique code later
+      if (this.cfnDeploymentActivityPrinter) {
+        await this.cfnDeploymentActivityPrinter.stop();
+        this.cfnDeploymentActivityPrinter = undefined;
+      }
+      if (
+        msg.data &&
+        typeof msg.data === 'object' &&
+        'duration' in msg.data &&
+        msg.data.duration &&
+        typeof msg.data.duration === 'number'
+      ) {
+        this.printer.log(
+          `${format.success('✔')} Deployment completed in ${
+            msg.data.duration / 1000
+          } seconds`
+        );
+      }
+      if (
+        this.outputs &&
+        'awsAppsyncApiEndpoint' in this.outputs &&
+        this.outputs.awsAppsyncApiEndpoint
+      ) {
+        this.printer.log(
+          `AppSync API endpoint = ${format.link(
+            this.outputs.awsAppsyncApiEndpoint as string
+          )}`
+        );
+      }
+    }
+
+    // CFN Outputs we care about. CDK_TOOLKIT_I5900 code represents outputs message
+    if (msg.code === 'CDK_TOOLKIT_I5900') {
+      if (
+        msg.data &&
+        typeof msg.data === 'object' &&
+        'outputs' in msg.data &&
+        msg.data.outputs &&
+        typeof msg.data.outputs === 'object'
+      ) {
+        this.outputs = msg.data.outputs;
+      }
+    }
+
     if (msg.code === 'CDK_TOOLKIT_I0000') {
       if (msg.message.split('|').length - 1 == 5) {
         // CDKs formatted cfn deployment progress
