@@ -10,6 +10,9 @@ import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { IAMClient } from '@aws-sdk/client-iam';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
+import { DeployedResourcesFinder } from '../find_deployed_resource.js';
+import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
+import assert from 'node:assert';
 
 /**
  * Creates a reference auth project
@@ -35,7 +38,8 @@ export class ReferenceAuthTestProjectCreator implements TestProjectCreator {
     ),
     private readonly iamClient: IAMClient = new IAMClient(
       e2eToolingClientConfig
-    )
+    ),
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -50,7 +54,8 @@ export class ReferenceAuthTestProjectCreator implements TestProjectCreator {
       this.amplifyClient,
       this.cognitoIdentityProviderClient,
       this.cognitoIdentityClient,
-      this.iamClient
+      this.iamClient,
+      this.resourceFinder
     );
 
     await fsp.cp(
@@ -121,7 +126,8 @@ class ReferenceAuthTestProject extends TestProjectBase {
     amplifyClient: AmplifyClient,
     cognitoIdentityProviderClient: CognitoIdentityProviderClient,
     private cognitoIdentityClient: CognitoIdentityClient,
-    iamClient: IAMClient
+    iamClient: IAMClient,
+    private readonly resourceFinder: DeployedResourcesFinder
   ) {
     super(
       name,
@@ -334,6 +340,26 @@ class ReferenceAuthTestProject extends TestProjectBase {
       throw e;
     }
   };
+
+  override async assertPostDeployment(
+    backendId: BackendIdentifier
+  ): Promise<void> {
+    await super.assertPostDeployment(backendId);
+
+    // find storage access policy by stack name
+    const sanitizedStackName = BackendIdentifierConversions.toStackName(
+      backendId
+    ).replaceAll('-', '');
+    const storageAccessPolicy =
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::IAM::Policy',
+        undefined,
+        (name) => name.startsWith(`${sanitizedStackName}storageAccess`)
+      );
+
+    assert.ok(storageAccessPolicy.length);
+  }
 
   /**
    * @inheritdoc

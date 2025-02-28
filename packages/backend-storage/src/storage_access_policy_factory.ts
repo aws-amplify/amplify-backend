@@ -62,7 +62,7 @@ export class StorageAccessPolicyFactory {
 
     return new Policy(
       this.stack,
-      `storageAccess${this.stack.node.children.length}`,
+      `${this.stack.node.path}Access${this.stack.node.children.length}`,
       {
         statements,
       }
