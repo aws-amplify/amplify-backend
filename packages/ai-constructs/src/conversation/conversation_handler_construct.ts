@@ -130,12 +130,7 @@ export class ConversationHandlerFunction
     );
 
     if (this.props.models && this.props.models.length > 0) {
-      const resources = this.props.models.map(
-        (model) =>
-          `arn:aws:bedrock:${
-            model.region ?? Stack.of(this).region
-          }::foundation-model/${model.modelId}`
-      );
+      const resources = this.generateIamPolicyResourceBlocks(this.props.models);
       conversationHandler.addToRolePolicy(
         new PolicyStatement({
           effect: Effect.ALLOW,
@@ -159,6 +154,53 @@ export class ConversationHandlerFunction
 
     this.storeOutput(this.props.outputStorageStrategy);
   }
+
+  private generateIamPolicyResourceBlocks = (
+    models: { modelId: string; region?: string }[]
+  ): string[] => {
+    const crossRegionInferenceProfileRegions: Record<string, string[]> = {
+      'eu.': ['eu-west-1', 'eu-west-3', 'eu-central-1'],
+      'us.': ['us-east-1', 'us-east-2', 'us-west-2'],
+      'apac.': [
+        'ap-northeast-1',
+        'ap-northeast-2',
+        'ap-southeast-1',
+        'ap-southeast-2',
+      ],
+    };
+    const resourceBlocks = models.map((model) => {
+      const region = model.region ?? Stack.of(this).region;
+      const modelPrefix = Object.keys(crossRegionInferenceProfileRegions).find(
+        (prefix) => model.modelId.startsWith(prefix)
+      );
+
+      if (modelPrefix) {
+        // For cross-region models, generate resource blocks for all supported regions
+        const foundationModelResourceBlocks =
+          crossRegionInferenceProfileRegions[modelPrefix].map(
+            (region) =>
+              `arn:aws:bedrock:${region}::foundation-model/${model.modelId.substring(
+                modelPrefix.length
+              )}`
+          );
+
+        // For cross-region models, also generate inference profile resource blocks
+        const inferenceProfileResourceBlock = `arn:aws:bedrock:${region}:${
+          Stack.of(this).account
+        }:inference-profile/${model.modelId}`;
+
+        return [
+          inferenceProfileResourceBlock,
+          ...foundationModelResourceBlocks,
+        ];
+      }
+
+      // For non-cross-region models, use the specified or stack region
+      return [`arn:aws:bedrock:${region}::foundation-model/${model.modelId}`];
+    });
+
+    return resourceBlocks.flat();
+  };
 
   /**
    * Append conversation handler to defined functions.
