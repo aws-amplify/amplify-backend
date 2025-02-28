@@ -4,27 +4,24 @@ import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { ProjectRootValidator } from './project_root_validator.js';
 import { GitIgnoreInitializer } from './gitignore_initializer.js';
 import { InitialProjectFileGenerator } from './initial_project_file_generator.js';
+import fsp from 'fs/promises';
+import { fileURLToPath } from 'url';
 
 const LEARN_MORE_USAGE_DATA_TRACKING_LINK =
   'https://docs.amplify.aws/react/reference/telemetry';
+
+const defaultPackagesContent = await fsp.readFile(
+  fileURLToPath(new URL('./default_packages.json', import.meta.url)),
+  'utf-8'
+);
+const parsedDefaultPackagesFile = JSON.parse(defaultPackagesContent);
 
 /**
  * Orchestration class that sets up a new Amplify project
  */
 export class AmplifyProjectCreator {
-  private readonly defaultDevPackages = [
-    '@aws-amplify/backend',
-    '@aws-amplify/backend-cli',
-    'aws-cdk@^2',
-    'aws-cdk-lib@^2',
-    'constructs@^10.0.0',
-    'typescript@^5.0.0',
-    'tsx',
-    'esbuild',
-  ];
-
-  private readonly defaultProdPackages = ['aws-amplify'];
-
+  private readonly defaultDevPackages: string[];
+  private readonly defaultProdPackages: string[];
   /**
    * Orchestrator for the create-amplify workflow.
    * Delegates out to other classes that handle parts of the getting started experience
@@ -35,7 +32,10 @@ export class AmplifyProjectCreator {
     private readonly projectRootValidator: ProjectRootValidator,
     private readonly gitIgnoreInitializer: GitIgnoreInitializer,
     private readonly initialProjectFileGenerator: InitialProjectFileGenerator
-  ) {}
+  ) {
+    this.defaultDevPackages = parsedDefaultPackagesFile.defaultDevPackages;
+    this.defaultProdPackages = parsedDefaultPackagesFile.defaultProdPackages;
+  }
 
   /**
    * Executes the create-amplify workflow
