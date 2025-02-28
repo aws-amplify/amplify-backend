@@ -21,7 +21,7 @@ export class Printer {
     private readonly stderr:
       | WriteStream
       | NodeJS.WritableStream = process.stderr,
-    private readonly refreshRate: number = 500,
+    private readonly refreshRate: number = 100,
     private readonly enableTTY = process.env.CI ? false : true
   ) {}
 
@@ -69,7 +69,7 @@ export class Printer {
     successMessage?: string
   ) => {
     try {
-      this.startSpinner(message);
+      this.startSpinner(message, { timeoutSeconds: 3600 });
       await callback();
     } finally {
       this.stopSpinner(successMessage);
@@ -120,7 +120,7 @@ export class Printer {
   stopSpinner = (successMessage?: string): void => {
     if (this.currentSpinner.instance === undefined) {
       if (!this.enableTTY && successMessage) {
-        this.print(successMessage);
+        this.print(`${format.success('✔')} ${successMessage}`);
       }
       return;
     }

@@ -253,8 +253,7 @@ void describe('Printer', () => {
 
   void it('invalid spinner ids do not wreak havoc', async () => {
     // Refresh rate of 50 ms
-    const printer = new Printer(LogLevel.INFO, ttyStream, ttyStream);
-    const invalidSpinnerId = 'some-invalid-id';
+    const printer = new Printer(LogLevel.INFO, ttyStream, ttyStream, 10, true);
     assert.ok(!printer.isSpinnerRunning());
 
     printer.updateSpinner({ prefixText: 'some test' });
@@ -262,7 +261,7 @@ void describe('Printer', () => {
       mockedTTYWrite.mock.calls[0].arguments[0].toString(),
       /No running spinner found./
     );
-    printer.stopSpinner(invalidSpinnerId);
+    printer.stopSpinner();
   });
 
   void it('updateSpinner updates the animating spinner with a prefixText in TTY terminal', async () => {
