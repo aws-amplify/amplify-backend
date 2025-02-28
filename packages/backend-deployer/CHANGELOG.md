@@ -1,5 +1,11 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.18
+
+### Patch Changes
+
+- 920f128: updated mapping with schema errors from toolkit
+
 ## 1.1.17
 
 ### Patch Changes

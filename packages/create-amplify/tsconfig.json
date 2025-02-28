@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "rootDir": "src", "outDir": "lib" },
+  "include": ["**/*", "src/**/*.json"],
   "exclude": ["templates", "lib"],
   "references": [
     { "path": "../cli-core" },

@@ -1,5 +1,11 @@
 # @aws-amplify/ai-constructs
 
+## 1.2.4
+
+### Patch Changes
+
+- 7d1415e: Adapt unit test to handle new cdk release
+
 ## 1.2.3
 
 ### Patch Changes

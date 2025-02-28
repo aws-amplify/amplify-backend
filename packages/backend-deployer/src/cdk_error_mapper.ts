@@ -152,6 +152,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /The request signature we calculated does not match the signature you provided/,
+      humanReadableErrorMessage:
+        'The request signature we calculated does not match the signature you provided.',
+      resolutionMessage:
+        'You can retry your last request, check if your system time is synchronized (clock skew) or ensure your AWS credentials are correctly set and refreshed.',
+      errorName: 'RequestSignatureError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: /Access Denied/,
       humanReadableErrorMessage:
         'The deployment role does not have sufficient permissions to perform this deployment.',
@@ -652,4 +662,5 @@ export type CDKDeploymentError =
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError'
   | 'LambdaEmptyZipFault'
-  | 'LambdaMaxSizeExceededError';
+  | 'LambdaMaxSizeExceededError'
+  | 'RequestSignatureError';
