@@ -20,6 +20,7 @@
 '@aws-amplify/model-generator': minor
 '@aws-amplify/platform-core': minor
 '@aws-amplify/backend-secret': minor
+'@aws-amplify/ai-constructs': minor
 ---
 
 integrate with aws cdk toolkit
