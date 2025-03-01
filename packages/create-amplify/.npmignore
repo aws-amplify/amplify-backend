@@ -16,3 +16,6 @@
 # In this package we also need to include the templates directory but exclude the expected-cdk-out test assets
 !templates/**
 templates/**/expected-cdk-out/**
+
+# In this package we need to include default_packages.json
+!lib/**/default_packages.json

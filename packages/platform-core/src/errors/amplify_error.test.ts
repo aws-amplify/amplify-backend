@@ -255,6 +255,20 @@ void describe('AmplifyError.fromError', async () => {
       );
     });
   });
+  void it('wraps request signature related errors in AmplifyUserError', () => {
+    const error = new Error(
+      'The request signature we calculated does not match the signature you provided.'
+    );
+    ['InvalidSignatureException', 'SignatureDoesNotMatch'].forEach((name) => {
+      error.name = name;
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        AmplifyError.isAmplifyError(actual) &&
+          actual.name === 'RequestSignatureError',
+        `Failed the test while wrapping error ${name}`
+      );
+    });
+  });
   void it('wraps InsufficientDiskSpaceError in AmplifyUserError', () => {
     const insufficientDiskSpaceErrors = [
       new Error(

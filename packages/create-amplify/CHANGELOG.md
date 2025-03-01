@@ -1,5 +1,16 @@
 # create-amplify
 
+## 1.0.10
+
+### Patch Changes
+
+- 7348f29: Refactor printer to use ora and add two new APIs
+- 858e418: add default_packages.json
+- Updated dependencies [cdb5156]
+- Updated dependencies [7348f29]
+- Updated dependencies [f6171a2]
+  - @aws-amplify/cli-core@1.3.0
+
 ## 1.0.9
 
 ### Patch Changes

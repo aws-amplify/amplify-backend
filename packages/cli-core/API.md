@@ -6,6 +6,9 @@
 
 /// <reference types="node" />
 
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
+import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
+import { AmplifyIoHostEventRequestMessageIoRequest } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
 
@@ -27,11 +30,41 @@ export class AmplifyPrompter {
     }) => Promise<boolean>;
 }
 
+// @public
+export class CDKEventLogger {
+    constructor();
+    // (undocumented)
+    amplifyNotifications: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    // (undocumented)
+    cdkDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    debug: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    fancyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    // (undocumented)
+    getCDKEventLoggers: () => {
+        notify: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
+    };
+    // (undocumented)
+    isCfnSdkCallEvent: <T>(data: T) => boolean;
+    // (undocumented)
+    isSdkCallEvent: <T>(data: T) => boolean;
+    nonTtyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+}
+
+// @public
+export class CDKEventsBridgeIoHost implements AmplifyIOHost {
+    constructor(eventHandlers: {
+        notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
+        requestResponse?: (<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>) => Promise<U>)[];
+    });
+    notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void>;
+    requestResponse<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>): Promise<U>;
+}
+
 // @public (undocumented)
 export type ColorName = (typeof colorNames)[number];
 
 // @public (undocumented)
-export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan"];
+export const colorNames: readonly ["Green", "Yellow", "Blue", "Magenta", "Cyan", "Red"];
 
 // @public
 export class Format {
@@ -72,12 +105,17 @@ export const format: Format;
 // @public (undocumented)
 export enum LogLevel {
     // (undocumented)
-    DEBUG = 2,
+    DEBUG = 3,
     // (undocumented)
     ERROR = 0,
     // (undocumented)
-    INFO = 1
+    INFO = 2,
+    // (undocumented)
+    WARN = 1
 }
+
+// @public (undocumented)
+export const minimumLogLevel: LogLevel;
 
 // @public
 export class PackageManagerControllerFactory {
@@ -88,17 +126,18 @@ export class PackageManagerControllerFactory {
 // @public
 export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, enableTTY?: boolean);
+    clearConsole: () => void;
     indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
     // (undocumented)
-    isSpinnerRunning: (id: string) => boolean;
+    isSpinnerRunning: () => boolean;
     log: (message: string, level?: LogLevel) => void;
     print: (message: string) => void;
     printNewLine: () => void;
-    startSpinner: (id: string, message: string, options?: {
+    startSpinner: (message: string, options?: {
         timeoutSeconds: number;
-    }) => string;
-    stopSpinner: (id: string) => void;
-    updateSpinner: (id: string, options: {
+    }) => void;
+    stopSpinner: (successMessage?: string) => void;
+    updateSpinner: (options: {
         message?: string;
         prefixText?: string;
     }) => void;

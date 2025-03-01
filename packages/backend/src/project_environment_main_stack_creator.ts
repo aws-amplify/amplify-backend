@@ -1,6 +1,6 @@
 import { BackendIdentifier, MainStackCreator } from '@aws-amplify/plugin-types';
 import { Construct } from 'constructs';
-import { Stack, Tags } from 'aws-cdk-lib';
+import { App, Stack, Tags } from 'aws-cdk-lib';
 import { AmplifyStack } from './engine/amplify_stack.js';
 
 /**
@@ -14,7 +14,13 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
   constructor(
     private readonly scope: Construct,
     private readonly backendId: BackendIdentifier
-  ) {}
+  ) {
+    process.on('message', (message) => {
+      if (message === 'amplifySynth') {
+        (scope as App).synth({ errorOnDuplicateSynth: false });
+      }
+    });
+  }
 
   /**
    * Get a stack for this environment in the provided CDK scope
