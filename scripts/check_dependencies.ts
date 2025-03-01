@@ -5,18 +5,19 @@ await new DependenciesValidator(
   await glob('packages/*'),
   {
     'aws-amplify': {
-      allowList: ['@aws-amplify/integration-tests'],
+      allowList: ['@aws-amplify/integration-tests', '@aws-amplify/seed'],
     },
     '@aws-amplify/datastore': {
-      allowList: ['@aws-amplify/integration-tests'],
+      allowList: ['@aws-amplify/integration-tests', '@aws-amplify/seed'],
     },
     '@aws-amplify/core': {
-      allowList: ['@aws-amplify/integration-tests'],
+      allowList: ['@aws-amplify/integration-tests', '@aws-amplify/seed'],
     },
     '@aws-amplify/cli-core': {
       allowList: [
         '@aws-amplify/backend-cli',
         '@aws-amplify/sandbox',
+        '@aws-amplify/seed',
         'create-amplify',
       ],
     },
