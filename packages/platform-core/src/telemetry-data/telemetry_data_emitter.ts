@@ -209,7 +209,6 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
     if (!error) {
       return undefined;
     }
-    console.log('error', error);
     let currentError: Error | undefined = error;
     let errorDetails: ErrorDetails | undefined;
 
@@ -231,7 +230,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         currentError = (currentError as any).cause;
       }
-    } catch (error) {
+    } catch {
       // Don't propogate errors related to not being able to translate to error data, return what was collected
       return errorDetails;
     }

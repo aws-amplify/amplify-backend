@@ -78,6 +78,7 @@ void describe('serializable error', () => {
 
   void test('that error message does not contain stacks', () => {
     const error = new Error(
+      // eslint-disable-next-line spellcheck/spell-checker
       'Stack with id amplify-test-stack-sandbox-12345abcde does not exist'
     );
     const serializableError = new SerializableError(error);
@@ -128,6 +129,7 @@ void describe('serializable error', () => {
   void test('that error stack does not contain stacks', () => {
     const error = new Error('test error');
     error.stack =
+      // eslint-disable-next-line spellcheck/spell-checker
       'Stack with id amplify-test-stack-sandbox-12345abcde does not exist';
     const serializableError = new SerializableError(error);
     assert.ok(

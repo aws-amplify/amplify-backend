@@ -3,7 +3,7 @@ import { v4, validate } from 'uuid';
 import fs from 'fs';
 import assert from 'node:assert';
 import { getLocalProjectId } from './get_local_project_id';
-import { configControllerFactory, ConfigurationController } from '../config/local_configuration_controller_factory';
+import { ConfigurationController, configControllerFactory } from '../config/local_configuration_controller_factory';
 
 void describe('getLocalProjectId', () => {
   const configControllerGet = mock.fn((value?: string) => value);

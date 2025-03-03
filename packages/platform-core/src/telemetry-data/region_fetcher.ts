@@ -18,7 +18,7 @@ export class RegionFetcher {
     try {
       this.region = await this.stsClient.config.region();
       return this.region;
-    } catch (error) {
+    } catch {
       return NO_REGION;
     }
   }
