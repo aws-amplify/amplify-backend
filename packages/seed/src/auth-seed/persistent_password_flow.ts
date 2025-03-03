@@ -55,7 +55,7 @@ export class PersistentPasswordFlow {
       },
     });
 
-    return confirmResult.nextStep.signInStep === 'DONE';
+    return confirmResult;
   };
 
   /**

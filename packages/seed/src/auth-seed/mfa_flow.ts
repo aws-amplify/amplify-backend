@@ -3,6 +3,7 @@ import assert from 'assert';
 import { AmplifyPrompter } from '@aws-amplify/cli-core';
 import { AuthSignUp, AuthUser } from '../types.js';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
+import { PersistentPasswordFlow } from './persistent_password_flow.js';
 
 /**
  * Handles users who enter the MFA flow
@@ -24,41 +25,11 @@ export class MfaFlow {
    */
   mfaSignUp = async (user: AuthSignUp, tempPassword: string) => {
     assert.strictEqual(user.signInFlow, 'MFA');
-    const signInResult = await this.authApi.signIn({
-      username: user.username,
-      password: tempPassword,
-    });
-
-    assert.strictEqual(
-      signInResult.nextStep.signInStep,
-      'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
+    const passwordFlow = new PersistentPasswordFlow(this.authApi);
+    let passwordSignIn = await passwordFlow.persistentPasswordSignUp(
+      user,
+      tempPassword
     );
-
-    let passwordSignIn = await this.authApi.confirmSignIn({
-      challengeResponse: user.password,
-      options: {
-        userAttributes: {
-          name: user.userAttributes?.name,
-          family_name: user.userAttributes?.familyName,
-          given_name: user.userAttributes?.givenName,
-          middle_name: user.userAttributes?.middleName,
-          nickname: user.userAttributes?.nickname,
-          preferred_username: user.userAttributes?.preferredUsername,
-          profile: user.userAttributes?.profile,
-          picture: user.userAttributes?.picture,
-          website: user.userAttributes?.website,
-          gender: user.userAttributes?.gender,
-          birthdate: user.userAttributes?.birthdate,
-          zoneinfo: user.userAttributes?.zoneinfo,
-          locale: user.userAttributes?.locale,
-          updated_at: user.userAttributes?.updatedAt,
-          address: user.userAttributes?.address,
-          email: user.userAttributes?.email,
-          phone_number: user.userAttributes?.phoneNumber,
-          sub: user.userAttributes?.sub,
-        },
-      },
-    });
 
     if (
       passwordSignIn.nextStep.signInStep ===
@@ -104,7 +75,7 @@ export class MfaFlow {
       });
 
       await this.authApi.updateMFAPreference({ totp: 'PREFERRED' });
-      return totpSignIn.nextStep.signInStep === 'DONE';
+      return totpSignIn;
     } else if (
       passwordSignIn.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_SMS_CODE'
     ) {
@@ -122,7 +93,7 @@ export class MfaFlow {
       });
 
       await this.authApi.updateMFAPreference({ sms: 'PREFERRED' });
-      return smsSignIn.nextStep.signInStep === 'DONE';
+      return smsSignIn;
     } else if (
       passwordSignIn.nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_EMAIL_CODE'
     ) {
@@ -140,9 +111,9 @@ export class MfaFlow {
       });
 
       await this.authApi.updateMFAPreference({ email: 'PREFERRED' });
-      return emailSignIn.nextStep.signInStep === 'DONE';
+      return emailSignIn;
     }
-    return false;
+    return passwordSignIn;
   };
 
   /**
