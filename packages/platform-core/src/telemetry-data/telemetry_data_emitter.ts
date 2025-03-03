@@ -11,6 +11,7 @@ import { latestPayloadVersion } from './constants';
 import { RegionFetcher } from './region_fetcher';
 import { SerializableError } from './serializable_error';
 import { AccountIdFetcher } from './account_id_fetcher';
+import { getUrl } from './get_telemetry_data_url';
 
 /**
  *
@@ -24,6 +25,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
   constructor(
     private readonly dependencies?: Array<Dependency>,
     private readonly sessionUuid = uuid(),
+    private readonly url = getUrl(),
     private readonly accountIdFetcher = new AccountIdFetcher(),
     private readonly regionFetcher = new RegionFetcher(),
   ) {
