@@ -3,7 +3,7 @@ import { latestApiVersion } from './constants.js';
 
 let cachedUrl: UrlWithStringQuery;
 
-const prodUrl = `https://api.cli.amplify.aws/${latestApiVersion}/metrics`;
+const prodUrl = ``;
 
 /**
  *  Telemetry data tracking service URL
