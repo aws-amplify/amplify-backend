@@ -1,5 +1,11 @@
 # @aws-amplify/deployed-backend-client
 
+## 1.5.1
+
+### Patch Changes
+
+- 5700572: correctly handle non backend outputs from stack metadata
+
 ## 1.5.0
 
 ### Minor Changes

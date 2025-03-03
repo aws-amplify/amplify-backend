@@ -5,9 +5,10 @@ import {
 } from '@smithy/shared-ini-file-loader';
 import { fromIni } from '@aws-sdk/credential-providers';
 import { EOL } from 'os';
-import fs from 'fs/promises';
+import _fs from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 /**
  * Options for the profile configuration.
@@ -35,6 +36,10 @@ export type ProfileOptions = ConfigProfileOptions & CredentialProfileOptions;
  * Manages AWS profiles.
  */
 export class ProfileController {
+  /**
+   * constructor
+   */
+  constructor(private readonly fs = _fs) {}
   /**
    * Return true if the provided profile exists in the aws config and/or credential file.
    */
@@ -65,7 +70,7 @@ export class ProfileController {
 
     const dirName = path.dirname(filePath);
     if (!existsSync(dirName)) {
-      await fs.mkdir(dirName, { recursive: true });
+      await this.fs.mkdir(dirName, { recursive: true });
     }
 
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
@@ -77,7 +82,23 @@ export class ProfileController {
         : `[profile ${options.profile}]${EOL}`;
     configData += `region = ${options.region}${EOL}`;
 
-    await fs.appendFile(filePath, configData, { mode: '600' });
+    try {
+      await this.fs.appendFile(filePath, configData, { mode: '600' });
+    } catch (err) {
+      const error = err as Error;
+      if (error.message.includes('EACCES')) {
+        throw new AmplifyUserError(
+          'PermissionsError',
+          {
+            message: `You do not have the permissions to write to this file: ${filePath}`,
+            resolution: `Ensure that you have the right permissions to write to ${filePath}.`,
+          },
+          error
+        );
+      } else {
+        throw error;
+      }
+    }
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
     const profileData = await loadSharedConfigFiles({
@@ -98,7 +119,7 @@ export class ProfileController {
 
     const dirName = path.dirname(filePath);
     if (!existsSync(dirName)) {
-      await fs.mkdir(dirName, { recursive: true });
+      await this.fs.mkdir(dirName, { recursive: true });
     }
 
     const fileEndsWithEOL = await this.isFileEndsWithEOL(filePath);
@@ -108,7 +129,7 @@ export class ProfileController {
     credentialData += `aws_access_key_id = ${options.accessKeyId}${EOL}`;
     credentialData += `aws_secret_access_key = ${options.secretAccessKey}${EOL}`;
 
-    await fs.appendFile(filePath, credentialData, { mode: '600' });
+    await this.fs.appendFile(filePath, credentialData, { mode: '600' });
 
     // validate after write. It is to ensure this function is compatible with the current AWS format.
     const provider = fromIni({
@@ -127,7 +148,7 @@ export class ProfileController {
 
   private isFileEndsWithEOL = async (filePath: string): Promise<boolean> => {
     try {
-      const data = await fs.readFile(filePath, 'utf-8');
+      const data = await this.fs.readFile(filePath, 'utf-8');
       return data.length > 0 && data.slice(-EOL.length) === EOL;
     } catch (err) {
       const error = err as Error;
@@ -135,7 +156,18 @@ export class ProfileController {
         // file doesn't exists
         return true;
       }
-      throw err;
+      if (error.message.includes('EACCES')) {
+        throw new AmplifyUserError(
+          'PermissionsError',
+          {
+            message: `You do not have the permissions to read this file: ${filePath}.`,
+            resolution: `Ensure that you have the right permissions to read from ${filePath}.`,
+          },
+          error
+        );
+      } else {
+        throw err;
+      }
     }
   };
 }

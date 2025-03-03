@@ -1,5 +1,11 @@
 # @aws-amplify/form-generator
 
+## 1.0.4
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+
 ## 1.0.3
 
 ### Patch Changes

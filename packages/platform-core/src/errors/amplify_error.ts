@@ -78,7 +78,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
       return classification === 'ERROR'
         ? new AmplifyUserError(name, options, serializedCause)
         : new AmplifyFault(name, options, serializedCause);
-    } catch (error) {
+    } catch {
       // cannot deserialize
       return undefined;
     }
@@ -121,6 +121,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           message: errorMessage,
           resolution:
             'Ensure your AWS credentials are correctly set and refreshed.',
+        },
+        error
+      );
+    }
+    if (error instanceof Error && isRequestSignatureError(error)) {
+      return new AmplifyUserError(
+        'RequestSignatureError',
+        {
+          message: errorMessage,
+          resolution:
+            'You can retry your last request, check if your system time is synchronized (clock skew) or ensure your AWS credentials are correctly set and refreshed.',
         },
         error
       );
@@ -265,6 +276,13 @@ const isCredentialsError = (err?: Error): boolean => {
       'InvalidClientTokenId',
       'CredentialsError',
     ].includes(err.name)
+  );
+};
+
+const isRequestSignatureError = (err?: Error): boolean => {
+  return (
+    !!err &&
+    ['InvalidSignatureException', 'SignatureDoesNotMatch'].includes(err.name)
   );
 };
 

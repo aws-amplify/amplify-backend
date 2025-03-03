@@ -292,7 +292,7 @@ void describe('Dependency validator', () => {
         await new DependenciesValidator(
           packagePaths,
           {},
-          [['aws-cdk', 'aws-cdk-lib']],
+          [['dep-1', 'dep-2']],
           [],
           execaMock as never
         ).validate();
@@ -301,8 +301,8 @@ void describe('Dependency validator', () => {
         assert.ok(
           err.message.includes('should be declared using same version')
         );
-        assert.ok(err.message.includes('aws-cdk'));
-        assert.ok(err.message.includes('aws-cdk-lib'));
+        assert.ok(err.message.includes('dep-1'));
+        assert.ok(err.message.includes('dep-2'));
         return true;
       }
     );

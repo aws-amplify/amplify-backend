@@ -17,7 +17,7 @@ const asyncLocalStorage = new AsyncLocalStorage<OutputInterceptor>();
 // Casting original write to Function to disable compiler safety intentionally.
 // The process.stdout.write has many overloads and it's impossible to get right types here.
 // We're passing unchanged argument list to original method, therefore this is safe.
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 const createInterceptedWrite = (originalWrite: Function) => {
   return (...args: never[]) => {
     const interceptor: OutputInterceptor | undefined =
