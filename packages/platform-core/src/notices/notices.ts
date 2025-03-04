@@ -13,9 +13,10 @@ const noticePredicateSchema = z.discriminatedUnion('type', [
 ]);
 
 export const noticeSchema = z.object({
+  id: z.string(),
   title: z.string(),
   details: z.string(),
-  link: z.string(),
+  link: z.string().optional(),
   predicates: z.array(noticePredicateSchema),
 });
 
