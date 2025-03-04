@@ -1,6 +1,7 @@
 // import https from 'https';
 import isCI from 'is-ci';
 import os from 'os';
+import http from 'http';
 import { v4 as uuid } from 'uuid';
 import { Dependency } from "@aws-amplify/plugin-types";
 import { TelemetryDataEmitter } from "./telemetry_data_emitter_factory";
@@ -70,7 +71,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         dimensions,
       });
       console.log(JSON.stringify(data, null, 2));
-      // await this.send(data);
+      await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
       // Don't propagate errors related to not being able to send telemetry
@@ -90,7 +91,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         dimensions,
       });
       console.log(JSON.stringify(data, null, 2));
-      // await this.send(data);
+      await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
       // Don't propagate errors related to not being able to send telemetry
@@ -108,7 +109,7 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
         dimensions,
       });
       console.log(JSON.stringify(data, null, 2));
-      // await this.send(data);
+      await this.send(data);
       // eslint-disable-next-line amplify-backend-rules/no-empty-catch
     } catch {
       // Don't propagate errors related to not being able to send telemetry
@@ -158,33 +159,33 @@ export class DefaultTelemetryDataEmitter implements TelemetryDataEmitter {
     };
   };
 
-  // private send = (data: TelemetryData) => {
-  //     return new Promise<void>((resolve) => {
-  //       const payload: string = JSON.stringify(data);
-  //       const req = https.request({
-  //         hostname: this.url.hostname,
-  //         port: this.url.port,
-  //         path: this.url.path,
-  //         method: 'POST',
-  //         headers: {
-  //           'content-type': 'application/json',
-  //           'content-length': payload.length,
-  //         },
-  //       });
-  //       req.on('error', () => {
-  //         /* noop */
-  //       });
-  //       req.setTimeout(2000, () => {
-  //         // 2 seconds
-  //         resolve();
-  //       });
+  private send = (data: TelemetryData) => {
+      return new Promise<void>((resolve) => {
+        const payload: string = JSON.stringify(data);
+        const req = http.request({ // rotp TODO: change this back to https
+          hostname: this.url.hostname,
+          port: this.url.port,
+          path: this.url.path,
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'content-length': payload.length,
+          },
+        });
+        req.on('error', () => {
+          /* noop */
+        });
+        req.setTimeout(2000, () => {
+          // 2 seconds
+          resolve();
+        });
   
-  //       req.write(payload);
-  //       req.end(() => {
-  //         resolve();
-  //       });
-  //     });
-  //   };
+        req.write(payload);
+        req.end(() => {
+          resolve();
+        });
+      });
+    };
 
   private translateDimensionsToCommandData = (
     dimensions?: Record<string, string>

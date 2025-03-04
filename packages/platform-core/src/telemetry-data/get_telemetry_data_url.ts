@@ -1,9 +1,9 @@
 import url, { UrlWithStringQuery } from 'node:url';
-import { latestApiVersion } from './constants.js';
+// import { latestApiVersion } from './constants.js';
 
 let cachedUrl: UrlWithStringQuery;
 
-const prodUrl = ``;
+const prodUrl = `https://localhost:8080/`;
 
 /**
  *  Telemetry data tracking service URL
