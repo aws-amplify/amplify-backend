@@ -11,7 +11,10 @@ import isCI from 'is-ci';
 import { AmplifyError, AmplifyUserError } from '..';
 import { RegionFetcher } from './region_fetcher';
 import { AccountIdFetcher } from './account_id_fetcher';
-import { configControllerFactory, ConfigurationController } from '../config/local_configuration_controller_factory';
+import {
+  ConfigurationController,
+  configControllerFactory,
+} from '../config/local_configuration_controller_factory';
 
 const originalNpmUserAgent = process.env.npm_config_user_agent;
 const testNpmUserAgent = 'testNpmUserAgent';
@@ -58,13 +61,13 @@ void describe('TelemetryDataEmitter', () => {
   // For getLocalProjectId
   const projectId = v4();
   const mockedConfigController: ConfigurationController = {
-      get: mock.fn(() => projectId),
-    } as unknown as ConfigurationController;
-    mock.method(
-      configControllerFactory,
-      'getInstance',
-      () => mockedConfigController
-    );
+    get: mock.fn(() => projectId),
+  } as unknown as ConfigurationController;
+  mock.method(
+    configControllerFactory,
+    'getInstance',
+    () => mockedConfigController
+  );
 
   // For AccountIdFetcher
   const accountId = v4();
@@ -107,7 +110,11 @@ void describe('TelemetryDataEmitter', () => {
     assert.strictEqual(telemetryDataSent.identifiers.payloadVersion, '1.0.0');
     assert.ok(validate(telemetryDataSent.identifiers.sessionUuid));
     assert.ok(validate(telemetryDataSent.identifiers.localProjectId));
-    assert.ok(telemetryDataSent.identifiers.accountId ? validate(telemetryDataSent.identifiers.accountId) : true);
+    assert.ok(
+      telemetryDataSent.identifiers.accountId
+        ? validate(telemetryDataSent.identifiers.accountId)
+        : true
+    );
     assert.strictEqual(telemetryDataSent.identifiers.awsRegion, 'us-east-1');
     assert.strictEqual(telemetryDataSent.event.state, 'SUCCEEDED');
     assert.deepStrictEqual(telemetryDataSent.event.command, {
@@ -118,8 +125,14 @@ void describe('TelemetryDataEmitter', () => {
       platform: os.platform(),
       release: os.release(),
     });
-    assert.strictEqual(telemetryDataSent.environment.shell, os.userInfo().shell);
-    assert.strictEqual(telemetryDataSent.environment.npmUserAgent, testNpmUserAgent);
+    assert.strictEqual(
+      telemetryDataSent.environment.shell,
+      os.userInfo().shell
+    );
+    assert.strictEqual(
+      telemetryDataSent.environment.npmUserAgent,
+      testNpmUserAgent
+    );
     assert.strictEqual(telemetryDataSent.environment.ci, isCI);
     assert.deepStrictEqual(telemetryDataSent.project.dependencies, [
       {
@@ -141,8 +154,8 @@ void describe('TelemetryDataEmitter', () => {
     ]);
     assert.deepStrictEqual(telemetryDataSent.latency, {
       total: 20,
-      synthesis: 5
-    })
+      synthesis: 5,
+    });
     assert.strictEqual(telemetryDataSent.error, undefined);
   });
 
@@ -155,7 +168,17 @@ void describe('TelemetryDataEmitter', () => {
       },
       new Error('some downstream exception')
     );
-    await setupAndInvokeUsageEmitter({ state: TelemetryEventState.FAILED, error, metrics: { synthesisTime: 5, totalTime: 20, initTime: 2, deploymentTime: 13, hotSwapTime: 0 } });
+    await setupAndInvokeUsageEmitter({
+      state: TelemetryEventState.FAILED,
+      error,
+      metrics: {
+        synthesisTime: 5,
+        totalTime: 20,
+        initTime: 2,
+        deploymentTime: 13,
+        hotSwapTime: 0,
+      },
+    });
 
     const telemetryDataSent: TelemetryData = JSON.parse(
       onReqWriteMock.mock.calls[0].arguments[0]
@@ -164,7 +187,11 @@ void describe('TelemetryDataEmitter', () => {
     assert.strictEqual(telemetryDataSent.identifiers.payloadVersion, '1.0.0');
     assert.ok(validate(telemetryDataSent.identifiers.sessionUuid));
     assert.ok(validate(telemetryDataSent.identifiers.localProjectId));
-    assert.ok(telemetryDataSent.identifiers.accountId ? validate(telemetryDataSent.identifiers.accountId) : true);
+    assert.ok(
+      telemetryDataSent.identifiers.accountId
+        ? validate(telemetryDataSent.identifiers.accountId)
+        : true
+    );
     assert.strictEqual(telemetryDataSent.identifiers.awsRegion, 'us-east-1');
     assert.strictEqual(telemetryDataSent.event.state, 'FAILED');
     assert.deepStrictEqual(telemetryDataSent.event.command, {
@@ -175,8 +202,14 @@ void describe('TelemetryDataEmitter', () => {
       platform: os.platform(),
       release: os.release(),
     });
-    assert.strictEqual(telemetryDataSent.environment.shell, os.userInfo().shell);
-    assert.strictEqual(telemetryDataSent.environment.npmUserAgent, testNpmUserAgent);
+    assert.strictEqual(
+      telemetryDataSent.environment.shell,
+      os.userInfo().shell
+    );
+    assert.strictEqual(
+      telemetryDataSent.environment.npmUserAgent,
+      testNpmUserAgent
+    );
     assert.strictEqual(telemetryDataSent.environment.ci, isCI);
     assert.deepStrictEqual(telemetryDataSent.project.dependencies, [
       {
@@ -204,7 +237,10 @@ void describe('TelemetryDataEmitter', () => {
       hotSwap: 0,
     });
     assert.strictEqual(telemetryDataSent.error?.message, 'some error message');
-    assert.strictEqual(telemetryDataSent.error.cause?.message, 'some downstream exception');
+    assert.strictEqual(
+      telemetryDataSent.error.cause?.message,
+      'some downstream exception'
+    );
   });
 
   /**
@@ -233,22 +269,27 @@ void describe('TelemetryDataEmitter', () => {
       v4(),
       testURL,
       accountIdFetcherMock,
-      regionFetcherMock,
+      regionFetcherMock
     );
 
     let telemetryDataEmitterPromise;
     if (testData.state === TelemetryEventState.SUCCEEDED) {
-      telemetryDataEmitterPromise = telemetryDataEmitter.emitSuccess(testData.metrics, {
-        subCommands: 'testCommandName',
-        options: 'testOption1 testOption2'
-      });
-    } else if (testData.error) {
-      telemetryDataEmitterPromise = telemetryDataEmitter.emitFailure(testData.error,
+      telemetryDataEmitterPromise = telemetryDataEmitter.emitSuccess(
         testData.metrics,
         {
-        subCommands: 'testCommandName',
-        options: 'testOption1 testOption2'
-      });
+          subCommands: 'testCommandName',
+          options: 'testOption1 testOption2',
+        }
+      );
+    } else if (testData.error) {
+      telemetryDataEmitterPromise = telemetryDataEmitter.emitFailure(
+        testData.error,
+        testData.metrics,
+        {
+          subCommands: 'testCommandName',
+          options: 'testOption1 testOption2',
+        }
+      );
     }
 
     await reqEndHandlerAttached;
