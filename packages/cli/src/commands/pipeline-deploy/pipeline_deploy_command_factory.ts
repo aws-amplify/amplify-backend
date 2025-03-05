@@ -1,6 +1,10 @@
 import { CommandModule } from 'yargs';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
-import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
+import {
+  PackageManagerControllerFactory,
+  amplifyIOEventsBridgeFactory,
+  format,
+} from '@aws-amplify/cli-core';
 
 import {
   PipelineDeployCommand,
@@ -31,9 +35,12 @@ export const createPipelineDeployCommand = (): CommandModule<
     awsClientProvider
   );
   const packageManagerControllerFactory = new PackageManagerControllerFactory();
+  const cdkEventsBridgeIoHost = amplifyIOEventsBridgeFactory.getInstance();
+
   const backendDeployerFactory = new BackendDeployerFactory(
     packageManagerControllerFactory.getPackageManagerController(),
-    format
+    format,
+    cdkEventsBridgeIoHost
   );
   const backendDeployer = backendDeployerFactory.getInstance();
   return new PipelineDeployCommand(clientConfigGenerator, backendDeployer);

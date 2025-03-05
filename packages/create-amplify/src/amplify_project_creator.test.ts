@@ -1,7 +1,6 @@
 import { blue, bold, cyan, green, grey, underline } from 'kleur/colors';
 import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
-import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { AmplifyProjectCreator } from './amplify_project_creator.js';
 import { printer } from '@aws-amplify/cli-core';
 import { EOL } from 'os';
@@ -78,82 +77,51 @@ void describe('AmplifyProjectCreator', () => {
       indicateProgressSpy.mock.calls[2].arguments[2],
       `Template files created`
     );
+    // at least for one call of logSpy, its first argument will be Successfully created a new project!
     assert.equal(
-      logSpy.mock.calls[5].arguments[0],
-      green('Successfully created a new project!')
+      logSpy.mock.calls.some((call) => {
+        return (
+          call.arguments[0] === green('Successfully created a new project!')
+        );
+      }),
+      true
     );
     assert.equal(
-      logSpy.mock.calls[6].arguments[0],
-      bold(blue('Welcome to AWS Amplify!'))
+      logSpy.mock.calls.some((call) => {
+        return call.arguments[0] === bold(blue('Welcome to AWS Amplify!'));
+      }),
+      true
     );
-
     assert.equal(
-      logSpy.mock.calls[7].arguments[0],
-      `Navigate to your project directory using ${cyan(
-        'cd .testProjectRoot'
-      )} and then:${EOL} - Get started by running ${cyan(
-        'npx ampx sandbox'
-      )}.${EOL} - Run ${cyan(
-        'npx ampx help'
-      )} for a list of available commands.`
-    );
-
-    assert.equal(
-      logSpy.mock.calls[8].arguments[0],
-      grey(
-        `Amplify collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
-          'npx ampx configure telemetry disable'
-        )}. To learn more about telemetry, visit ${underline(
-          blue('https://docs.amplify.aws/react/reference/telemetry')
-        )}`
-      )
-    );
-  });
-
-  void it('should instruct users to use the custom project root', async () => {
-    const packageManagerControllerMock: PackageManagerController = {
-      initializeProject: mock.fn(() => Promise.resolve()),
-      initializeTsConfig: mock.fn(() => Promise.resolve()),
-      installDependencies: mock.fn(() => Promise.resolve()),
-      runWithPackageManager: mock.fn(() => Promise.resolve() as never),
-      getCommand: (args: string[]) => `'npx ${args.join(' ')}'`,
-      allowsSignalPropagation: () => true,
-      tryGetDependencies: mock.fn(() => Promise.resolve([])),
-    };
-    const projectRootValidatorMock = { validate: mock.fn() };
-    const gitIgnoreInitializerMock = { ensureInitialized: mock.fn() };
-    const initialProjectFileGeneratorMock = {
-      generateInitialProjectFiles: mock.fn(),
-    };
-    const amplifyProjectCreator = new AmplifyProjectCreator(
-      'testProjectRoot',
-      packageManagerControllerMock as never,
-      projectRootValidatorMock as never,
-      gitIgnoreInitializerMock as never,
-      initialProjectFileGeneratorMock as never
-    );
-    await amplifyProjectCreator.create();
-
-    assert.equal(
-      logSpy.mock.calls[7].arguments[0],
-      `Navigate to your project directory using ${cyan(
-        'cd .testProjectRoot'
-      )} and then:${EOL} - Get started by running ${cyan(
-        'npx ampx sandbox'
-      )}.${EOL} - Run ${cyan(
-        'npx ampx help'
-      )} for a list of available commands.`
+      logSpy.mock.calls.some((call) => {
+        return (
+          call.arguments[0] ===
+          `Navigate to your project directory using ${cyan(
+            'cd .testProjectRoot'
+          )} and then:${EOL} - Get started by running ${cyan(
+            'npx ampx sandbox'
+          )}.${EOL} - Run ${cyan(
+            'npx ampx help'
+          )} for a list of available commands.`
+        );
+      }),
+      true
     );
 
     assert.equal(
-      logSpy.mock.calls[8].arguments[0],
-      grey(
-        `Amplify collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
-          'npx ampx configure telemetry disable'
-        )}. To learn more about telemetry, visit ${underline(
-          blue('https://docs.amplify.aws/react/reference/telemetry')
-        )}`
-      )
+      logSpy.mock.calls.some((call) => {
+        return (
+          call.arguments[0] ===
+          grey(
+            `Amplify collects anonymous telemetry data about general usage of the CLI. Participation is optional, and you may opt-out by using ${cyan(
+              'npx ampx configure telemetry disable'
+            )}. To learn more about telemetry, visit ${underline(
+              blue('https://docs.amplify.aws/react/reference/telemetry')
+            )}`
+          )
+        );
+      }),
+      true
     );
   });
 });

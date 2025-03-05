@@ -2,6 +2,7 @@ import {
   Format,
   PackageManagerControllerFactory,
   Printer,
+  amplifyIOEventsBridgeFactory,
 } from '@aws-amplify/cli-core';
 import { FileWatchingSandbox } from './file_watching_sandbox.js';
 import { BackendIdSandboxResolver, Sandbox } from './sandbox.js';
@@ -36,9 +37,11 @@ export class SandboxSingletonFactory {
     if (!this.instance) {
       const packageManagerControllerFactory =
         new PackageManagerControllerFactory(process.cwd(), this.printer);
+      const cdkEventsBridgeIoHost = amplifyIOEventsBridgeFactory.getInstance();
       const backendDeployerFactory = new BackendDeployerFactory(
         packageManagerControllerFactory.getPackageManagerController(),
-        this.format
+        this.format,
+        cdkEventsBridgeIoHost
       );
       this.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
