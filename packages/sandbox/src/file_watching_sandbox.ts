@@ -442,6 +442,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     );
     const stackName =
       BackendIdentifierConversions.toStackName(sandboxBackendId);
+    const region = await this.ssmClient.config.region();
     this.printer.log(
       format.indent(format.highlight(format.bold('\nAmplify Sandbox\n')))
     );
@@ -449,6 +450,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
       format.indent(`${format.bold('Identifier:')} \t${sandboxBackendId.name}`)
     );
     this.printer.log(format.indent(`${format.bold('Stack:')} \t${stackName}`));
+    this.printer.log(format.indent(`${format.bold('Region:')} \t${region}`));
     if (!sandboxIdentifier) {
       this.printer.log(
         `${format.indent(
