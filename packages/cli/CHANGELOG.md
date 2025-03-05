@@ -1,5 +1,15 @@
 # @aws-amplify/backend-cli
 
+## 1.4.12
+
+### Patch Changes
+
+- dafb530: Bumps [is-ci](https://github.com/watson/is-ci) from 3.0.1 to 4.1.0.
+- Updated dependencies [dafb530]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+  - @aws-amplify/backend-deployer@1.1.19
+
 ## 1.4.11
 
 ### Patch Changes

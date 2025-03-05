@@ -1,5 +1,12 @@
 # @aws-amplify/platform-core
 
+## 1.6.4
+
+### Patch Changes
+
+- dafb530: Bumps [is-ci](https://github.com/watson/is-ci) from 3.0.1 to 4.1.0.
+- aec5e08: Handle signature mismatch error
+
 ## 1.6.3
 
 ### Patch Changes
