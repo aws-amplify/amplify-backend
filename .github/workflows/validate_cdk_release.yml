@@ -7,8 +7,12 @@ on:
     - cron: '0 16,18 * * *'
   workflow_dispatch:
     inputs:
-      desired-cdk-version:
-        description: 'AWS CDK version (exact or tag). Defaults to latest version.'
+      desired-cdk-lib-version:
+        description: 'AWS CDK Lib version (exact or tag). Defaults to latest version.'
+        required: false
+        type: string
+      desired-cdk-cli-version:
+        description: 'AWS CDK CLI version (exact or tag). Defaults to latest version.'
         required: false
         type: string
 
@@ -18,7 +22,8 @@ jobs:
     secrets: inherit
     with:
       # This runs all deployment and sandbox tests.
-      desired-cdk-version: ${{ inputs.desired-cdk-version || 'latest' }}
+      desired-cdk-lib-version: ${{ inputs.desired-cdk-lib-version || 'latest' }}
+      desired-cdk-cli-version: ${{ inputs.desired-cdk-cli-version || 'latest' }}
       # Exclude additional runtimes.
       # They don't bring much value, but may bring instability and extra latency.
       include-macos: false

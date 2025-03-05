@@ -21,6 +21,6 @@ await new DependenciesValidator(
       ],
     },
   },
-  [['aws-cdk', 'aws-cdk-lib']],
+  [], // Add a list of dependencies here that should be versioned together
   []
 ).validate();

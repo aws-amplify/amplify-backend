@@ -7,6 +7,7 @@ import path from 'path';
 import { StackMetadataBackendOutputStorageStrategy } from '@aws-amplify/backend-output-storage';
 import { ApplicationLogLevel } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import transform from 'lodash.transform';
 
 void describe('Conversation Handler Function construct', () => {
   void it('creates handler with log group with JWT token redacting policy', () => {
@@ -20,40 +21,68 @@ void describe('Conversation Handler Function construct', () => {
     assert.strictEqual(Object.values(logGroups).length, 1);
     const logGroupLogicalId = Object.keys(logGroups)[0];
     const logGroup = Object.values(logGroups)[0];
-    assert.deepStrictEqual(logGroup.Properties.DataProtectionPolicy, {
-      name: 'data-protection-policy-cdk',
-      description: 'cdk generated data protection policy',
-      version: '2021-06-01',
-      configuration: {
-        customDataIdentifier: [
+    let expectedDataProtectionPolicy: Record<string, unknown> = {
+      Name: 'data-protection-policy-cdk',
+      Description: 'cdk generated data protection policy',
+      Version: '2021-06-01',
+      Configuration: {
+        CustomDataIdentifier: [
           {
-            name: 'JWTToken',
-            regex: 'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*',
+            Name: 'JWTToken',
+            Regex: 'ey[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*',
           },
         ],
       },
-      statement: [
+      Statement: [
         {
-          sid: 'audit-statement-cdk',
-          dataIdentifier: ['JWTToken'],
-          operation: {
-            audit: {
-              findingsDestination: {},
+          Sid: 'audit-statement-cdk',
+          DataIdentifier: ['JWTToken'],
+          Operation: {
+            Audit: {
+              FindingsDestination: {},
             },
           },
         },
         {
-          sid: 'redact-statement-cdk',
-          dataIdentifier: ['JWTToken'],
-          operation: {
+          Sid: 'redact-statement-cdk',
+          DataIdentifier: ['JWTToken'],
+          Operation: {
             // eslint-disable-next-line spellcheck/spell-checker
-            deidentify: {
-              maskConfig: {},
+            Deidentify: {
+              MaskConfig: {},
             },
           },
         },
       ],
-    });
+    };
+    if ('name' in logGroup.Properties.DataProtectionPolicy) {
+      // we may run some tests with older CDK version.
+      // in that case the expected keys are all lower case, see https://github.com/aws/aws-cdk/pull/33462
+      const keysToCamelCase = (target: Record<string, unknown>) =>
+        transform(
+          target,
+          (
+            result: { [x: string | number]: unknown },
+            val: unknown,
+            key: string | number
+          ) => {
+            if (typeof val === 'object') {
+              val = keysToCamelCase(val as Record<string, unknown>);
+            }
+            if (typeof key === 'string') {
+              key = `${key.slice(0, 1).toLowerCase()}${key.slice(1)}`;
+            }
+            result[key] = val;
+          }
+        );
+      expectedDataProtectionPolicy = keysToCamelCase(
+        expectedDataProtectionPolicy
+      );
+    }
+    assert.deepStrictEqual(
+      logGroup.Properties.DataProtectionPolicy,
+      expectedDataProtectionPolicy
+    );
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
       LoggingConfig: {

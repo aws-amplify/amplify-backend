@@ -427,6 +427,13 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: undefined,
   },
   {
+    errorMessage: `amplify-some-stack [22m failed: _ToolkitError: Found 2 problem(s) with the schema: The input value type 'string' is not present when resolving type 'TaskInput' [@78:1] The field type 'TaskInstanceStatus' is not present when resolving type 'Task' [@25:1]`,
+    expectedTopLevelErrorMessage:
+      '2 problem(s) have been found with your schema',
+    errorName: 'SchemaError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
     // eslint-disable-next-line spellcheck/spell-checker
     errorMessage: `Error: npm error code EJSONPARSE
 npm error path /home/some-path/package.json
@@ -707,6 +714,14 @@ npm error enoent`,
     expectedTopLevelErrorMessage:
       'The Amplify backend definition is missing `defineBackend` call.',
     errorName: 'MissingDefineBackendError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      'Error: <escaped stack>: The request signature we calculated does not match the signature you provided. Check your AWS Secret Access Key and signing method. Consult the service documentation for details.',
+    expectedTopLevelErrorMessage:
+      'The request signature we calculated does not match the signature you provided.',
+    errorName: 'RequestSignatureError',
     expectedDownstreamErrorMessage: undefined,
   },
 ];

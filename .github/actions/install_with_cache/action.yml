@@ -3,7 +3,9 @@ description: installs node_modules if cache miss and stores in the cache
 inputs:
   node-version:
     required: true
-  cdk-version:
+  cdk-lib-version:
+    required: true
+  cdk-cli-version:
     required: true
 runs:
   using: composite
@@ -14,8 +16,12 @@ runs:
     - name: Validate input
       shell: bash
       run: |
-        if [ -z "${{ inputs.cdk-version }}" ]; then
-          echo "CDK version must be provided"
+        if [ -z "${{ inputs.cdk-lib-version }}" ]; then
+          echo "CDK Lib version must be provided"
+          exit 1;
+        fi
+        if [ -z "${{ inputs.cdk-cli-version }}" ]; then
+          echo "CDK CLI version must be provided"
           exit 1;
         fi
         if [ -z "${{ inputs.node-version }}" ]; then
@@ -29,14 +35,18 @@ runs:
         path: |
           node_modules
           packages/**/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-cdk${{ inputs.cdk-version }}
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}-cdkcli${{ inputs.cdk-cli-version }}
     # only install if cache miss
     - if: steps.npm-cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         npm ci
-        if [[ ${{ inputs.cdk-version }} != 'FROM_PACKAGE_LOCK' ]]; then
-          echo "Installing CDK version ${{ inputs.cdk-version }}"
-          npm install --no-save aws-cdk@${{ inputs.cdk-version }} aws-cdk-lib@${{ inputs.cdk-version }}
+        if [[ ${{ inputs.cdk-lib-version }} != 'FROM_PACKAGE_LOCK' ]]; then
+          echo "Installing CDK Lib version ${{ inputs.cdk-lib-version }}"
+          npm install --no-save aws-cdk-lib@${{ inputs.cdk-lib-version }}
+        fi
+        if [[ ${{ inputs.cdk-cli-version }} != 'FROM_PACKAGE_LOCK' ]]; then
+          echo "Installing CDK CLI version ${{ inputs.cdk-cli-version }}"
+          npm install --no-save aws-cdk@${{ inputs.cdk-cli-version }}
           npx cdk --version
         fi

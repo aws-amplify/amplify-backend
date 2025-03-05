@@ -18,7 +18,7 @@ setInterval(
         // Attempt to log error
         console.debug(error);
         // eslint-disable-next-line amplify-backend-rules/no-empty-catch
-      } catch (error) {
+      } catch {
         // Do nothing if logging fails
       }
     }

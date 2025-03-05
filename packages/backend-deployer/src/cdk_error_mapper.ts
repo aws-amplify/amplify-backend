@@ -108,6 +108,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /The request signature we calculated does not match the signature you provided/,
+      humanReadableErrorMessage:
+        'The request signature we calculated does not match the signature you provided.',
+      resolutionMessage:
+        'You can retry your last request, check if your system time is synchronized (clock skew) or ensure your AWS credentials are correctly set and refreshed.',
+      errorName: 'RequestSignatureError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: /Access Denied/,
       humanReadableErrorMessage:
         'The deployment role does not have sufficient permissions to perform this deployment.',
@@ -301,6 +311,15 @@ export class CdkErrorMapper {
       resolutionMessage:
         'Ensure you have permissions to call {action} for {resource}',
       errorName: 'AccessDeniedError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex: /Found (?<number>.*) problem\(s\) with the schema:/,
+      humanReadableErrorMessage:
+        '{number} problem(s) have been found with your schema',
+      resolutionMessage:
+        'See the underlying error message for details about what the problems are and resolve them before attempting this action again',
+      errorName: 'SchemaError',
       classification: 'ERROR',
     },
     {
@@ -593,8 +612,10 @@ export type CDKDeploymentError =
   | 'InsufficientMemorySpaceError'
   | 'InvalidOrCannotAssumeRoleError'
   | 'InvalidPackageJsonError'
+  | 'SchemaError'
   | 'SecretNotSetError'
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError'
   | 'LambdaEmptyZipFault'
-  | 'LambdaMaxSizeExceededError';
+  | 'LambdaMaxSizeExceededError'
+  | 'RequestSignatureError';
