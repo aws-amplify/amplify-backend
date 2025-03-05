@@ -1,4 +1,4 @@
-import { Notice } from '@aws-amplify/platform-core/notices';
+import { Notice } from '@aws-amplify/cli-core';
 import { NoticesManifestFetcher } from './notices_manifest_fetcher.js';
 
 /**

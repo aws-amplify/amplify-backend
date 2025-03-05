@@ -1,4 +1,4 @@
-import { Notice, NoticesManifest } from './notices';
+import { Notice, NoticesManifest } from './notices.js';
 import assert from 'node:assert';
 import semver from 'semver';
 

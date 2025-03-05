@@ -23,18 +23,6 @@ declare namespace __export__cdk {
 }
 export { __export__cdk }
 
-declare namespace __export__notices {
-    export {
-        noticeSchema,
-        Notice,
-        noticesManifestSchema,
-        NoticesManifest,
-        NoticesManifestValidatorProps,
-        NoticesManifestValidator
-    }
-}
-export { __export__notices }
-
 // @public
 export abstract class AmplifyError<T extends string = string> extends Error {
     constructor(name: T, classification: AmplifyErrorClassification, options: AmplifyErrorOptions, cause?: Error | undefined);
@@ -165,68 +153,6 @@ class LogRetentionConverter {
 export class NamingConverter {
     toScreamingSnakeCase(input: string): string;
 }
-
-// @public (undocumented)
-type Notice = z.infer<typeof noticeSchema>;
-
-// @public (undocumented)
-const noticeSchema: z.ZodObject<{
-    title: z.ZodString;
-    details: z.ZodString;
-    link: z.ZodString;
-}, "strip", z.ZodTypeAny, {
-    title: string;
-    details: string;
-    link: string;
-}, {
-    title: string;
-    details: string;
-    link: string;
-}>;
-
-// @public (undocumented)
-type NoticesManifest = z.infer<typeof noticesManifestSchema>;
-
-// @public (undocumented)
-const noticesManifestSchema: z.ZodObject<{
-    currentNotices: z.ZodArray<z.ZodObject<{
-        title: z.ZodString;
-        details: z.ZodString;
-        link: z.ZodString;
-    }, "strip", z.ZodTypeAny, {
-        title: string;
-        details: string;
-        link: string;
-    }, {
-        title: string;
-        details: string;
-        link: string;
-    }>, "many">;
-}, "strip", z.ZodTypeAny, {
-    currentNotices: {
-        title: string;
-        details: string;
-        link: string;
-    }[];
-}, {
-    currentNotices: {
-        title: string;
-        details: string;
-        link: string;
-    }[];
-}>;
-
-// @public
-class NoticesManifestValidator {
-    constructor(props?: NoticesManifestValidatorProps | undefined);
-    // (undocumented)
-    validate: (noticesManifest: NoticesManifest) => Promise<void>;
-}
-
-// @public (undocumented)
-type NoticesManifestValidatorProps = {
-    checkLinksWithGitHubApi?: boolean;
-};
 
 // @public
 export class ObjectAccumulator<T> {

@@ -15,11 +15,6 @@
       "types": "./lib/cdk/index.d.ts",
       "import": "./lib/cdk/index.js",
       "require": "./lib/cdk/index.js"
-    },
-    "./notices": {
-      "types": "./lib/notices/index.d.ts",
-      "import": "./lib/notices/index.js",
-      "require": "./lib/notices/index.js"
     }
   },
   "main": "lib/index.js",
