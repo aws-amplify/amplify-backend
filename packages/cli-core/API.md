@@ -13,6 +13,43 @@ import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
 
 // @public
+export class AmplifyEventLogger {
+    constructor();
+    // (undocumented)
+    amplifyNotifications: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    // (undocumented)
+    cdkDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    debug: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    fancyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    // (undocumented)
+    getEventLoggers: () => {
+        notify: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
+    };
+    nonTtyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+    // (undocumented)
+    testing: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
+}
+
+// @public
+export class AmplifyIOEventsBridge implements AmplifyIOHost {
+    constructor(eventHandlers: {
+        notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
+        requestResponse?: (<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>) => Promise<U>)[];
+    });
+    notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void>;
+    requestResponse<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>): Promise<U>;
+}
+
+// @public (undocumented)
+export const amplifyIOEventsBridgeFactory: AmplifyIOEventsBridgeSingletonFactory;
+
+// @public
+export class AmplifyIOEventsBridgeSingletonFactory {
+    constructor();
+    getInstance: () => AmplifyIOEventsBridge;
+}
+
+// @public
 export class AmplifyPrompter {
     static input: (options: {
         message: string;
@@ -28,36 +65,6 @@ export class AmplifyPrompter {
         message: string;
         defaultValue?: boolean;
     }) => Promise<boolean>;
-}
-
-// @public
-export class CDKEventLogger {
-    constructor();
-    // (undocumented)
-    amplifyNotifications: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    // (undocumented)
-    cdkDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    debug: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    fancyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    // (undocumented)
-    getCDKEventLoggers: () => {
-        notify: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
-    };
-    // (undocumented)
-    isCfnSdkCallEvent: <T>(data: T) => boolean;
-    // (undocumented)
-    isSdkCallEvent: <T>(data: T) => boolean;
-    nonTtyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-}
-
-// @public
-export class CDKEventsBridgeIoHost implements AmplifyIOHost {
-    constructor(eventHandlers: {
-        notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
-        requestResponse?: (<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>) => Promise<U>)[];
-    });
-    notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void>;
-    requestResponse<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>): Promise<U>;
 }
 
 // @public (undocumented)
@@ -136,6 +143,10 @@ export class Printer {
     startSpinner: (message: string, options?: {
         timeoutSeconds: number;
     }) => void;
+    // (undocumented)
+    readonly stderr: WriteStream | NodeJS.WritableStream;
+    // (undocumented)
+    readonly stdout: WriteStream | NodeJS.WritableStream;
     stopSpinner: (successMessage?: string) => void;
     updateSpinner: (options: {
         message?: string;

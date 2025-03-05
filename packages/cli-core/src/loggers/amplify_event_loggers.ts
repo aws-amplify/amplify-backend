@@ -2,29 +2,37 @@
 import { LogLevel } from '../printer/printer.js';
 import { minimumLogLevel, printer } from '../printer.js';
 import { format } from '../format/format.js';
-import { CurrentActivityPrinter } from './cfn-deployment-progress/cfn_deployment_logger.js';
-import { StackEvent } from '@aws-sdk/client-cloudformation';
+import {
+  CfnDeploymentStackEvent,
+  CurrentActivityPrinter,
+} from './cfn-deployment-progress/cfn_deployment_logger.js';
 import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
+import { WriteStream } from 'tty';
 
 /**
- * CDK event logger class
+ * Amplify events logger class. Implements several loggers that connect
+ * to the amplify_io_event_bridge for showing relevant information to customers
  */
-export class CDKEventLogger {
+export class AmplifyEventLogger {
   private printer = printer; // default stdout
-  private fancyOutput = true;
+  private fancyOutput = process.env.CI
+    ? false
+    : this.printer.stdout instanceof WriteStream
+    ? this.printer.stdout.isTTY
+    : false; // show fancy output on tty but not while writing to files/or ci/cd;
   private cfnDeploymentActivityPrinter: CurrentActivityPrinter | undefined;
   private outputs = {};
-  private startTime: number;
+  private testingData: any[] = [];
 
   /**
    * a logger instance to be used for CDK events
    */
   constructor() {}
 
-  getCDKEventLoggers = () => {
+  getEventLoggers = () => {
     if (minimumLogLevel === LogLevel.DEBUG) {
       return {
-        notify: [this.debug],
+        notify: [this.testing],
       };
     }
     const loggers = [this.amplifyNotifications, this.cdkDeploymentProgress];
@@ -36,6 +44,32 @@ export class CDKEventLogger {
     return {
       notify: loggers,
     };
+  };
+
+  // eslint-disable-next-line @shopify/prefer-early-return
+  testing = <T>(msg: AmplifyIoHostEventMessage<T>): Promise<void> => {
+    if (
+      msg.code === 'CDK_TOOLKIT_I5502' &&
+      msg.data &&
+      typeof msg.data === 'object' &&
+      'event' in msg.data
+    ) {
+      const event = msg.data as CfnDeploymentStackEvent;
+      this.testingData.push({ eventId: 'CDK_TOOLKIT_I5502', event });
+    }
+    if (msg.code === 'CDK_TOOLKIT_I5501' || msg.code === 'CDK_TOOLKIT_I5503') {
+      this.testingData.push({ eventId: msg.code });
+    }
+    if (msg.code === 'CDK_TOOLKIT_I5503') {
+      console.log(JSON.stringify(this.testingData, null, 2));
+    }
+    if (
+      msg.code === 'CDK_TOOLKIT_I0000' &&
+      msg.message.includes('has an ongoing operation in progress')
+    ) {
+      this.testingData.push({ eventId: msg.code });
+    }
+    return Promise.resolve();
   };
 
   /**
@@ -58,33 +92,27 @@ export class CDKEventLogger {
           }
         );
       } else {
-        this.printer.log(msg.message, LogLevel.DEBUG);
+        this.printer.log(
+          `[${msg.action}: ${msg.code}] ${msg.message}`,
+          LogLevel.DEBUG
+        );
       }
     } else {
-      if (this.fancyOutput) {
-        this.printer.log(
-          `[${format.color(
-            `${msg.action}: ${msg.code}`,
-            msg.level === 'error'
-              ? 'Red'
-              : msg.level === 'warn'
-              ? 'Yellow'
-              : 'Green'
-          )}] ${format.note(
-            msg.time.toLocaleTimeString()
-          )} ${msg.message.trim()} ${
-            msg.data ? JSON.stringify(msg.data, null, 2) : ''
-          }`,
-          LogLevel.DEBUG
-        );
-      } else {
-        this.printer.log(
-          `[${msg.action}: ${
-            msg.code
-          }] ${msg.time.toLocaleTimeString()} ${msg.message.trim()}`,
-          LogLevel.DEBUG
-        );
-      }
+      this.printer.log(
+        `[${format.color(
+          `${msg.action}: ${msg.code}`,
+          msg.level === 'error'
+            ? 'Red'
+            : msg.level === 'warn'
+            ? 'Yellow'
+            : 'Green'
+        )}] ${format.note(
+          msg.time.toLocaleTimeString()
+        )} ${msg.message.trim()} ${
+          msg.data ? JSON.stringify(msg.data, null, 2) : ''
+        }`,
+        LogLevel.DEBUG
+      );
     }
     return Promise.resolve();
   };
@@ -108,6 +136,12 @@ export class CDKEventLogger {
       case 'SYNTH_FINISHED':
         this.printer.stopSpinner();
         break;
+      case 'AMPLIFY_CFN_PROGRESS_UPDATE':
+        if (!this.printer.isSpinnerRunning()) {
+          this.printer.startSpinner('Deployment in progress...');
+        }
+        this.printer.updateSpinner({ prefixText: msg.message });
+        return;
     }
     this.printer.log(
       msg.level === 'result'
@@ -138,7 +172,13 @@ export class CDKEventLogger {
     // Hot swap deployment
     // TBD: This will be replaced with a proper marker event with a unique code later
     if (msg.message.includes('hotswapped')) {
-      this.printer.log(msg.message);
+      if (this.printer.isSpinnerRunning()) {
+        this.printer.stopSpinner();
+        this.printer.log(msg.message);
+        this.printer.startSpinner('Deployment in progress...');
+      } else {
+        this.printer.log(msg.message);
+      }
     }
   };
 
@@ -157,10 +197,18 @@ export class CDKEventLogger {
     ) {
       this.cfnDeploymentActivityPrinter = new CurrentActivityPrinter({
         resourceTypeColumnWidth: 30, // TBD
-        stream: process.stdout,
+        getBlockWidth: () =>
+          this.printer.stdout instanceof WriteStream
+            ? this.printer.stdout.columns
+            : 600,
+        getBlockHeight: () =>
+          this.printer.stdout instanceof WriteStream
+            ? this.printer.stdout.rows
+            : 100,
       });
-      this.startTime = Date.now();
-      this.cfnDeploymentActivityPrinter.start();
+      this.printer.startSpinner('Deployment in progress...', {
+        timeoutSeconds: 300,
+      });
     }
 
     // Stop deployment progress display
@@ -171,6 +219,7 @@ export class CDKEventLogger {
       // TBD: This will be replaced with a proper marker event with a unique code later
       if (this.cfnDeploymentActivityPrinter) {
         await this.cfnDeploymentActivityPrinter.stop();
+        this.printer.stopSpinner();
         this.cfnDeploymentActivityPrinter = undefined;
       }
       if (
@@ -212,26 +261,21 @@ export class CDKEventLogger {
       }
     }
 
-    // For actual progress we need sdk call outputs, so for now, re are relying on cdk calls to sdk
-    if (!this.isCfnSdkCallEvent(msg.data)) {
-      return Promise.resolve();
+    if (
+      msg.code === 'CDK_TOOLKIT_I5502' &&
+      msg.data &&
+      typeof msg.data === 'object' &&
+      'event' in msg.data
+    ) {
+      const event = msg.data as CfnDeploymentStackEvent;
+      this.cfnDeploymentActivityPrinter?.addActivity(event);
     }
 
-    // CFN Deployment progress
-    const commandName = (msg?.data as any).content[0].commandName;
-    if (commandName === 'DescribeStackEventsCommand') {
-      const events = (msg.data as any).content[0].output.StackEvents as [];
-      const reversedEvents = events.slice().reverse();
-      reversedEvents.forEach((event: StackEvent) => {
-        if (event.Timestamp && event.Timestamp.valueOf() >= this.startTime) {
-          this.cfnDeploymentActivityPrinter?.addActivity(event);
-        }
-      });
-      await this.cfnDeploymentActivityPrinter?.print({});
-    } else if (commandName === 'GetTemplateCommand') {
-      // TBD
-    } else if (commandName === 'DescribeStacksCommand') {
-      // TBD
+    if (
+      msg.code === 'CDK_TOOLKIT_I0000' &&
+      msg.message.includes('has an ongoing operation in progress')
+    ) {
+      await this.cfnDeploymentActivityPrinter?.print();
     }
     return Promise.resolve();
   };
@@ -243,28 +287,12 @@ export class CDKEventLogger {
     msg: AmplifyIoHostEventMessage<T>
   ): Promise<void> => {
     // TBD, remove this code duplication
-    if (
-      msg.message.includes('deploying...') &&
-      !this.cfnDeploymentActivityPrinter
-    ) {
-      this.cfnDeploymentActivityPrinter = new CurrentActivityPrinter({
-        resourceTypeColumnWidth: 30, // TBD
-        stream: process.stdout,
-      });
-      this.startTime = Date.now();
-      this.cfnDeploymentActivityPrinter.start();
-    }
 
     // Stop deployment progress display
     if (
       msg.code === 'CDK_TOOLKIT_I5000' ||
       msg.message.includes('Failed resources')
     ) {
-      // TBD: This will be replaced with a proper marker event with a unique code later
-      if (this.cfnDeploymentActivityPrinter) {
-        await this.cfnDeploymentActivityPrinter.stop();
-        this.cfnDeploymentActivityPrinter = undefined;
-      }
       if (
         msg.data &&
         typeof msg.data === 'object' &&
@@ -304,31 +332,9 @@ export class CDKEventLogger {
       }
     }
 
-    if (msg.code === 'CDK_TOOLKIT_I0000') {
-      if (msg.message.split('|').length - 1 == 5) {
-        // CDKs formatted cfn deployment progress
-        this.printer.log(msg.message);
-      }
+    if (msg.code === 'CDK_TOOLKIT_I5502') {
+      // CDKs formatted cfn deployment progress
+      this.printer.log(msg.message);
     }
-  };
-
-  isCfnSdkCallEvent = <T>(data: T) => {
-    return (
-      this.isSdkCallEvent(data) &&
-      (data as any).content[0].clientName === 'CloudFormationClient'
-    );
-  };
-
-  isSdkCallEvent = <T>(data: T) => {
-    return (
-      data &&
-      typeof data === 'object' &&
-      'sdkLevel' in data &&
-      data.sdkLevel === 'info' &&
-      'content' in data &&
-      Array.isArray(data.content) &&
-      data.content.length > 0 &&
-      'clientName' in data.content[0]
-    );
   };
 }

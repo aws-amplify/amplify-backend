@@ -1,9 +1,8 @@
 import { CommandModule } from 'yargs';
 import { BackendDeployerFactory } from '@aws-amplify/backend-deployer';
 import {
-  CDKEventLogger,
-  CDKEventsBridgeIoHost,
   PackageManagerControllerFactory,
+  amplifyIOEventsBridgeFactory,
   format,
 } from '@aws-amplify/cli-core';
 
@@ -36,10 +35,7 @@ export const createPipelineDeployCommand = (): CommandModule<
     awsClientProvider
   );
   const packageManagerControllerFactory = new PackageManagerControllerFactory();
-  const cdkEventLogger = new CDKEventLogger();
-  const cdkEventsBridgeIoHost = new CDKEventsBridgeIoHost(
-    cdkEventLogger.getCDKEventLoggers()
-  );
+  const cdkEventsBridgeIoHost = amplifyIOEventsBridgeFactory.getInstance();
 
   const backendDeployerFactory = new BackendDeployerFactory(
     packageManagerControllerFactory.getPackageManagerController(),

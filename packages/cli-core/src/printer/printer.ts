@@ -15,12 +15,8 @@ export class Printer {
    */
   constructor(
     private readonly minimumLogLevel: LogLevel,
-    private readonly stdout:
-      | WriteStream
-      | NodeJS.WritableStream = process.stdout,
-    private readonly stderr:
-      | WriteStream
-      | NodeJS.WritableStream = process.stderr,
+    readonly stdout: WriteStream | NodeJS.WritableStream = process.stdout,
+    readonly stderr: WriteStream | NodeJS.WritableStream = process.stderr,
     private readonly refreshRate: number = 100,
     private readonly enableTTY = process.env.CI ? false : true
   ) {}

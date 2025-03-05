@@ -5,9 +5,9 @@ import {
 } from '@aws-amplify/plugin-types';
 
 /**
- * Implements IIoHost interface of CDK Toolkit
+ * Implements IIoHost interface of AmplifyIOHost
  */
-export class CDKEventsBridgeIoHost implements AmplifyIOHost {
+export class AmplifyIOEventsBridge implements AmplifyIOHost {
   /**
    * a
    */
