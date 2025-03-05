@@ -128,6 +128,12 @@ class SeedTestProject extends TestProjectBase {
         env: environment,
       }
     );
+
+    const startingInd = seedPolicyProcess.stdout.indexOf('{');
+    const cleanedPolicyString = seedPolicyProcess.stdout.slice(startingInd);
+    console.log('cleaned:');
+    console.log(cleanedPolicyString);
+    console.log('original:');
     console.log(seedPolicyProcess.stdout);
 
     const clientConfig = await generateClientConfig(backendIdentifier, '1.3');
@@ -140,7 +146,7 @@ class SeedTestProject extends TestProjectBase {
       new AssumeRoleCommand({
         RoleArn: seedRoleArn,
         RoleSessionName: `seedSession`,
-        Policy: JSON.stringify(JSON.parse(seedPolicyProcess.stdout)),
+        Policy: JSON.stringify(JSON.parse(cleanedPolicyString)),
         PolicyArns: [
           {
             arn: 'arn:aws:iam::aws:policy/service-role/AmplifyBackendDeployFullAccess',
