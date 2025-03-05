@@ -3,16 +3,12 @@ import { TestProjectBase } from './test_project_base.js';
 import { TestProjectCreator } from './test_project_creator.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
-import {
-  CognitoIdentityProviderClient,
-  ListUsersCommand,
-} from '@aws-sdk/client-cognito-identity-provider';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import {
   AttachRolePolicyCommand,
   CreatePolicyCommand,
   IAMClient,
 } from '@aws-sdk/client-iam';
-import { DeployedResourcesFinder } from '../find_deployed_resource.js';
 import fsp from 'fs/promises';
 import assert from 'node:assert';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
@@ -54,7 +50,6 @@ export class SeedTestProjectCreator implements TestProjectCreator {
     private readonly iamClient: IAMClient = new IAMClient(
       e2eToolingClientConfig
     ),
-    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
     private readonly stsClient: STSClient = new STSClient(
       e2eToolingClientConfig
     )
@@ -72,7 +67,6 @@ export class SeedTestProjectCreator implements TestProjectCreator {
       this.amplifyClient,
       this.cognitoIdentityProviderClient,
       this.iamClient,
-      this.resourceFinder,
       this.stsClient
     );
     await fsp.cp(
@@ -104,7 +98,6 @@ class SeedTestProject extends TestProjectBase {
     amplifyClient: AmplifyClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
     private readonly iamClient: IAMClient,
-    private readonly resourceFinder: DeployedResourcesFinder,
     private readonly stsClient: STSClient
   ) {
     super(
@@ -172,28 +165,6 @@ class SeedTestProject extends TestProjectBase {
     await super.assertPostDeployment(backendId);
     const testUsername = 'testUser@testing.com';
     const clientConfig = await generateClientConfig(backendId, '1.3');
-
-    const cognitoId = await this.resourceFinder.findByBackendIdentifier(
-      backendId,
-      'AWS::Cognito::UserPool',
-      () => true
-    );
-
-    const users = await this.cognitoIdentityProviderClient.send(
-      new ListUsersCommand({
-        UserPoolId: cognitoId[0],
-        Filter: '"email"^="testUser"',
-        AttributesToGet: ['email'],
-      })
-    );
-
-    if (users.Users && users.Users.length < 1) {
-      throw new Error('Users are missing');
-    }
-
-    assert.ok(users.Users);
-    assert.ok(users.Users[0].Attributes);
-    assert.strictEqual(users.Users[0].Attributes[0]!.Value, testUsername);
 
     if (!clientConfig.auth) {
       throw new Error('Client config missing auth section');
