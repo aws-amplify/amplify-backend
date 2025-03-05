@@ -1,7 +1,7 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource.js';
 import { data } from './data/resource.js';
-import { AccountPrincipal, Role } from 'aws-cdk-lib/aws-iam';
+import { AccountPrincipal, ManagedPolicy, Role } from 'aws-cdk-lib/aws-iam';
 import { RemovalPolicy } from 'aws-cdk-lib';
 
 /**
@@ -14,10 +14,13 @@ const backend = defineBackend({
 
 const seedRoleStack = backend.createStack('seed-policy');
 
-// need AmplifyBackendDeployFullAccess to be able to generate configs, would rather not add these permissions directly to the seed policy
+// this role has AdminAccess because the policies this role can assume are subset of the policies it initially has - it never directly uses AdminAccess
 const seedRole = new Role(seedRoleStack, 'SeedRole', {
   assumedBy: new AccountPrincipal(seedRoleStack.account),
   path: '/',
+  managedPolicies: [
+    ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'),
+  ],
 });
 seedRole.applyRemovalPolicy(RemovalPolicy.DESTROY);
 

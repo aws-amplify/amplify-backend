@@ -4,11 +4,6 @@ import { TestProjectCreator } from './test_project_creator.js';
 import { AmplifyClient } from '@aws-sdk/client-amplify';
 import { e2eToolingClientConfig } from '../e2e_tooling_client_config.js';
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
-import {
-  AttachRolePolicyCommand,
-  CreatePolicyCommand,
-  IAMClient,
-} from '@aws-sdk/client-iam';
 import fsp from 'fs/promises';
 import assert from 'node:assert';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
@@ -26,8 +21,6 @@ import { AUTH_TYPE, createAuthLink } from 'aws-appsync-auth-link';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
 import { execa, execaSync } from 'execa';
 import { AssumeRoleCommand, STSClient } from '@aws-sdk/client-sts';
-import { shortUuid } from '../short_uuid.js';
-import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { SemVer } from 'semver';
 
 // TODO: this is a work around - in theory this should be fixed
@@ -60,9 +53,6 @@ export class SeedTestProjectCreator implements TestProjectCreator {
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
       e2eToolingClientConfig
     ),
-    private readonly iamClient: IAMClient = new IAMClient(
-      e2eToolingClientConfig
-    ),
     private readonly stsClient: STSClient = new STSClient(
       e2eToolingClientConfig
     )
@@ -79,7 +69,6 @@ export class SeedTestProjectCreator implements TestProjectCreator {
       this.cfnClient,
       this.amplifyClient,
       this.cognitoIdentityProviderClient,
-      this.iamClient,
       this.stsClient
     );
     await fsp.cp(
@@ -110,7 +99,6 @@ class SeedTestProject extends TestProjectBase {
     cfnClient: CloudFormationClient,
     amplifyClient: AmplifyClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    private readonly iamClient: IAMClient,
     private readonly stsClient: STSClient
   ) {
     super(
@@ -128,7 +116,6 @@ class SeedTestProject extends TestProjectBase {
   ) {
     await super.deploy(backendIdentifier, environment);
 
-    console.log('Executing seed policy command');
     const command = execaSync('npx', ['which', 'ampx'], {
       cwd: this.projectDirPath,
     }).stdout.trim();
@@ -140,9 +127,7 @@ class SeedTestProject extends TestProjectBase {
         env: environment,
       }
     );
-    //await this.attachToRole(seedPolicyProcess.stdout, backendIdentifier);
 
-    console.log(seedPolicyProcess.stdout);
     const clientConfig = await generateClientConfig(backendIdentifier, '1.3');
     if (!clientConfig.custom) {
       throw new Error('Client config missing custom section');
@@ -156,9 +141,7 @@ class SeedTestProject extends TestProjectBase {
         Policy: seedPolicyProcess.stdout,
         PolicyArns: [
           {
-            arn: ManagedPolicy.fromAwsManagedPolicyName(
-              'service-role/AmplifyBackendDeployFullAccess'
-            ).managedPolicyArn,
+            arn: 'arn:aws:iam::aws:policy/service-role/AmplifyBackendDeployFullAccess',
           },
         ],
       })
@@ -169,7 +152,6 @@ class SeedTestProject extends TestProjectBase {
     assert.ok(seedCredentials.Credentials.SessionToken);
     assert.ok(seedCredentials.Credentials.SecretAccessKey);
 
-    console.log('executing seed command');
     await ampxCli(['sandbox', 'seed'], this.projectDirPath, {
       env: {
         AWS_ACCESS_KEY_ID: seedCredentials.Credentials!.AccessKeyId,
@@ -235,27 +217,6 @@ class SeedTestProject extends TestProjectBase {
     assert.strictEqual(
       content.data.listTodos.items[0].content,
       `Todo list item for ${testUsername}`
-    );
-  }
-
-  async attachToRole(policyString: string, backendId: BackendIdentifier) {
-    const policy = await this.iamClient.send(
-      new CreatePolicyCommand({
-        PolicyName: `seedPolicy_${shortUuid()}`,
-        PolicyDocument: policyString,
-      })
-    );
-
-    const clientConfig = await generateClientConfig(backendId, '1.3');
-    if (!clientConfig.custom) {
-      throw new Error('Client config missing custom section');
-    }
-
-    await this.iamClient.send(
-      new AttachRolePolicyCommand({
-        RoleName: clientConfig.custom.seedRoleName as string,
-        PolicyArn: policy.Policy?.Arn,
-      })
     );
   }
 }

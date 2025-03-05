@@ -27,22 +27,10 @@ export const generateSeedPolicyTemplate = async (
         'Please add an auth resource to your sandbox and rerun this command',
     });
   }
-  // /const userPoolId = clientConfig.auth?.user_pool_id;
 
   const stsResponse = await stsClient.send(new GetCallerIdentityCommand({}));
   const arn = `arn:aws:cognito-idp:${clientConfig.auth.aws_region}:${stsResponse.Account}:userpool/${clientConfig.auth.user_pool_id}`;
-  /*const userpoolOutput = await cognitoIdProvider.send(
-    new DescribeUserPoolCommand({ UserPoolId: userPoolId })
-  );
-  const userpoolArn = userpoolOutput.UserPool?.Arn;
-  // so long as there is an auth resource we should always be able to get an Arn for the userpool
-  if (!userpoolArn) {
-    throw new AmplifyFault('MissingUserpoolArnFault', {
-      message:
-        'Either the userpool is missing or the userpool exists but it is missing an arn',
-      resolution: 'Ensure your userpool exists and has an arn',
-    });
-  }*/
+
   const cognitoGrant = new PolicyStatement({
     effect: Effect.ALLOW,
     actions: ['cognito-idp:AdminCreateUser', 'cognito-idp:AdminAddUserToGroup'],
