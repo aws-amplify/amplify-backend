@@ -11,6 +11,7 @@
     { "path": "../deployed-backend-client" },
     { "path": "../platform-core" },
     { "path": "../plugin-types" },
+    { "path": "../seed" },
     { "path": "./src/test-projects/data-storage-auth-with-triggers-ts" }
   ],
   "exclude": ["**/node_modules", "**/lib", "src/e2e-tests"]
