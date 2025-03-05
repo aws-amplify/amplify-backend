@@ -22,6 +22,7 @@ import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_facto
 import { execa, execaSync } from 'execa';
 import { AssumeRoleCommand, STSClient } from '@aws-sdk/client-sts';
 import { SemVer } from 'semver';
+import crypto from 'node:crypto';
 
 // TODO: this is a work around - in theory this should be fixed
 // it seems like as of amplify v6 , some of the code only runs in the browser ...
