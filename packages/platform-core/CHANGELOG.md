@@ -1,5 +1,11 @@
 # @aws-amplify/platform-core
 
+## 1.6.4
+
+### Patch Changes
+
+- aec5e08: Handle signature mismatch error
+
 ## 1.6.3
 
 ### Patch Changes

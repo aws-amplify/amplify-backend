@@ -1,5 +1,14 @@
 # create-amplify
 
+## 1.0.11
+
+### Patch Changes
+
+- 80f0253: switch to using default_packages.json
+- d4e2f0e: unignore default_packages.json
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+
 ## 1.0.10
 
 ### Patch Changes
