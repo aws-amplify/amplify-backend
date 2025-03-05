@@ -340,7 +340,7 @@ export const noticesManifestSchema: z.ZodObject<{
 
 // @public
 export class NoticesManifestValidator {
-    constructor(props?: NoticesManifestValidatorProps | undefined);
+    constructor(props?: NoticesManifestValidatorProps | undefined, _fetch?: typeof fetch);
     // (undocumented)
     validate: (noticesManifest: NoticesManifest) => Promise<void>;
 }
