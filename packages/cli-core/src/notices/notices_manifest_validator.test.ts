@@ -1,5 +1,5 @@
 import * as assert from 'node:assert';
-import { after, before, beforeEach, describe, it, mock } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import { NoticesManifest } from './notices.js';
 import { NoticesManifestValidator } from './notices_manifest_validator.js';
 
@@ -150,11 +150,13 @@ void describe('Notices manifest validator', () => {
           id: '1',
           title: 'test notice',
           details: 'test details',
-          predicates: [{
-            type: 'packageVersion',
-            packageName: 'aws-cdk',
-            versionRange: 'invalid'
-          }],
+          predicates: [
+            {
+              type: 'packageVersion',
+              packageName: 'aws-cdk',
+              versionRange: 'invalid',
+            },
+          ],
         },
       ],
     };
