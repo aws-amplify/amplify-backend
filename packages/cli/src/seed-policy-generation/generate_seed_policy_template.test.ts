@@ -2,18 +2,17 @@ import { beforeEach, describe, it, mock } from 'node:test';
 import assert from 'assert';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import { AWSAmplifyBackendOutputs } from '../../../client-config/src/client-config-schema/client_config_v1.3.js';
-import {
-  CognitoIdentityProviderClient,
-  DescribeUserPoolClientCommandInput,
-  DescribeUserPoolClientCommandOutput,
-  UserPoolType,
-} from '@aws-sdk/client-cognito-identity-provider';
 import { generateSeedPolicyTemplate } from './generate_seed_policy_template.js';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { AmplifyUserError } from '@aws-amplify/platform-core';
 import { App, Stack } from 'aws-cdk-lib';
 import { AccountPrincipal, Policy, Role } from 'aws-cdk-lib/aws-iam';
 import { Template } from 'aws-cdk-lib/assertions';
+import {
+  GetCallerIdentityCommandInput,
+  GetCallerIdentityCommandOutput,
+  STSClient,
+} from '@aws-sdk/client-sts';
 
 const testBackendId = 'testBackendId';
 const testSandboxName = 'testSandboxName';
@@ -42,19 +41,18 @@ void describe('generate inline policy for seed', () => {
       },
     } as AWSAmplifyBackendOutputs)
   );
-  const mockCognitoIdProviderClient = {
+
+  const mockStsClient = {
     send: mock.fn<
       (
-        input: DescribeUserPoolClientCommandInput
-      ) => Promise<DescribeUserPoolClientCommandOutput>
+        input: GetCallerIdentityCommandInput
+      ) => Promise<GetCallerIdentityCommandOutput>
     >(async () =>
       Promise.resolve({
-        $metadata: {},
-        UserPool: {
-          UserPoolId: testUserpoolId,
-          Arn: testArn,
-        } as UserPoolType,
-      })
+        Account: '123456789012',
+        Arn: '',
+        UserId: '',
+      } as GetCallerIdentityCommandOutput)
     ),
   };
 
@@ -62,15 +60,15 @@ void describe('generate inline policy for seed', () => {
   const stack = new Stack(app);
 
   beforeEach(() => {
-    mockCognitoIdProviderClient.send.mock.resetCalls();
     mockConfigGenerator.mock.resetCalls();
+    mockStsClient.send.mock.resetCalls();
   });
 
   void it('returns a policy with expected seed permissions', async () => {
     const policyDoc = await generateSeedPolicyTemplate(
       testBackendIdentifier,
       mockConfigGenerator as unknown as typeof generateClientConfig,
-      mockCognitoIdProviderClient as unknown as CognitoIdentityProviderClient
+      mockStsClient as unknown as STSClient
     );
 
     const policy = new Policy(stack, 'testSeedPolicy', { document: policyDoc });

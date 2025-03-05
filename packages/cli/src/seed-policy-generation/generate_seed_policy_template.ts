@@ -2,14 +2,10 @@ import { Effect, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { generateClientConfig } from '@aws-amplify/client-config';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
 import {
-  CognitoIdentityProviderClient,
-  DescribeUserPoolCommand,
-} from '@aws-sdk/client-cognito-identity-provider';
-import {
-  AmplifyFault,
   AmplifyUserError,
   ParameterPathConversions,
 } from '@aws-amplify/platform-core';
+import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts';
 
 /**
  * Generates policy template which allows seed to be run
@@ -19,7 +15,7 @@ import {
 export const generateSeedPolicyTemplate = async (
   backendId: BackendIdentifier,
   generateClientConfiguration = generateClientConfig,
-  cognitoIdProvider = new CognitoIdentityProviderClient()
+  stsClient = new STSClient()
 ): Promise<PolicyDocument> => {
   const seedPolicy = new PolicyDocument();
   const clientConfig = await generateClientConfiguration(backendId, '1.3');
@@ -31,9 +27,11 @@ export const generateSeedPolicyTemplate = async (
         'Please add an auth resource to your sandbox and rerun this command',
     });
   }
-  const userPoolId = clientConfig.auth?.user_pool_id;
+  // /const userPoolId = clientConfig.auth?.user_pool_id;
 
-  const userpoolOutput = await cognitoIdProvider.send(
+  const stsResponse = await stsClient.send(new GetCallerIdentityCommand({}));
+  const arn = `arn:aws:cognito-idp:${clientConfig.auth.aws_region}:${stsResponse.Account}:userpool/${clientConfig.auth.user_pool_id}`;
+  /*const userpoolOutput = await cognitoIdProvider.send(
     new DescribeUserPoolCommand({ UserPoolId: userPoolId })
   );
   const userpoolArn = userpoolOutput.UserPool?.Arn;
@@ -44,11 +42,11 @@ export const generateSeedPolicyTemplate = async (
         'Either the userpool is missing or the userpool exists but it is missing an arn',
       resolution: 'Ensure your userpool exists and has an arn',
     });
-  }
+  }*/
   const cognitoGrant = new PolicyStatement({
     effect: Effect.ALLOW,
     actions: ['cognito-idp:AdminCreateUser', 'cognito-idp:AdminAddUserToGroup'],
-    resources: [userpoolArn],
+    resources: [arn],
   });
 
   const backendParamPrefix =
