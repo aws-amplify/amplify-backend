@@ -21,7 +21,7 @@ const testUserpoolId = 'us-east-1_userpoolTest';
 const testUserpoolClient = 'userPoolClientId';
 const testRegion = 'us-east-1';
 const testArn =
-  'arn:aws:cognito-idp:us-east-1:123456789012:userpool/us-east-1_1234567489';
+  'arn:aws:cognito-idp:us-east-1:123456789012:userpool/us-east-1_userpoolTest';
 
 const testBackendIdentifier: BackendIdentifier = {
   namespace: testBackendId,
