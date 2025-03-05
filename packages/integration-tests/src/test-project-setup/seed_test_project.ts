@@ -7,9 +7,13 @@ import {
   CognitoIdentityProviderClient,
   ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
-import { /*GetRoleCommand,*/ IAMClient } from '@aws-sdk/client-iam';
+import {
+  AttachRolePolicyCommand,
+  CreatePolicyCommand,
+  IAMClient,
+} from '@aws-sdk/client-iam';
 import { DeployedResourcesFinder } from '../find_deployed_resource.js';
-import fs from 'fs/promises';
+import fsp from 'fs/promises';
 import assert from 'node:assert';
 import { createEmptyAmplifyProject } from './create_empty_amplify_project.js';
 import { BackendIdentifier } from '@aws-amplify/plugin-types';
@@ -21,9 +25,12 @@ import {
   HttpLink,
   InMemoryCache,
   gql,
-} from '@apollo/client';
+} from '@apollo/client/core';
 import { AUTH_TYPE, createAuthLink } from 'aws-appsync-auth-link';
 import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_factory.js';
+import { execa, execaSync } from 'execa';
+import { AssumeRoleCommand, STSClient } from '@aws-sdk/client-sts';
+import { shortUuid } from '../short_uuid.js';
 
 /**
  * Creates test project for seed
@@ -47,7 +54,10 @@ export class SeedTestProjectCreator implements TestProjectCreator {
     private readonly iamClient: IAMClient = new IAMClient(
       e2eToolingClientConfig
     ),
-    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
+    private readonly stsClient: STSClient = new STSClient(
+      e2eToolingClientConfig
+    )
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -62,9 +72,10 @@ export class SeedTestProjectCreator implements TestProjectCreator {
       this.amplifyClient,
       this.cognitoIdentityProviderClient,
       this.iamClient,
-      this.resourceFinder
+      this.resourceFinder,
+      this.stsClient
     );
-    await fs.cp(
+    await fsp.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
@@ -76,7 +87,7 @@ export class SeedTestProjectCreator implements TestProjectCreator {
 }
 
 class SeedTestProject extends TestProjectBase {
-  readonly sourceProjectDirPath = '../../src/test-projects/seed';
+  readonly sourceProjectDirPath = '../../src/test-projects/seed-test-project';
 
   readonly sourceProjectAmplifyDirSuffix = `${this.sourceProjectDirPath}/amplify`;
 
@@ -93,7 +104,8 @@ class SeedTestProject extends TestProjectBase {
     amplifyClient: AmplifyClient,
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
     private readonly iamClient: IAMClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly resourceFinder: DeployedResourcesFinder,
+    private readonly stsClient: STSClient
   ) {
     super(
       name,
@@ -109,12 +121,48 @@ class SeedTestProject extends TestProjectBase {
     environment?: Record<string, string>
   ) {
     await super.deploy(backendIdentifier, environment);
-    await ampxCli(['sandbox', 'seed', 'generate-policy'], this.projectDirPath, {
-      env: environment,
-    }).run();
-    //await this.attachToRole(backendIdentifier);
+
+    console.log('Executing seed policy command');
+    const command = execaSync('npx', ['which', 'ampx'], {
+      cwd: this.projectDirPath,
+    }).stdout.trim();
+    const seedPolicyProcess = await execa(
+      command,
+      ['sandbox', 'seed', 'generate-policy'],
+      {
+        cwd: this.projectDirPath,
+        env: environment,
+      }
+    );
+    await this.attachToRole(seedPolicyProcess.stdout, backendIdentifier);
+
+    console.log(seedPolicyProcess.stdout);
+    const clientConfig = await generateClientConfig(backendIdentifier, '1.3');
+    if (!clientConfig.custom) {
+      throw new Error('Client config missing custom section');
+    }
+    const seedRoleArn = clientConfig.custom.seedRoleArn as string;
+
+    const seedCredentials = await this.stsClient.send(
+      new AssumeRoleCommand({
+        RoleArn: seedRoleArn,
+        RoleSessionName: `seedSession`,
+      })
+    );
+
+    assert.ok(seedCredentials.Credentials);
+    assert.ok(seedCredentials.Credentials.AccessKeyId);
+    assert.ok(seedCredentials.Credentials.SessionToken);
+    assert.ok(seedCredentials.Credentials.SecretAccessKey);
+
+    console.log('executing seed command');
     await ampxCli(['sandbox', 'seed'], this.projectDirPath, {
-      env: environment,
+      env: {
+        AWS_ACCESS_KEY_ID: seedCredentials.Credentials!.AccessKeyId,
+        AWS_SECRET_ACCESS_KEY: seedCredentials.Credentials!.SecretAccessKey,
+        AWS_SESSION_TOKEN: seedCredentials.Credentials!.SessionToken,
+        ...environment,
+      },
     }).run();
   }
 
@@ -122,6 +170,7 @@ class SeedTestProject extends TestProjectBase {
     backendId: BackendIdentifier
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
+    const testUsername = 'testUser@testing.com';
     const clientConfig = await generateClientConfig(backendId, '1.3');
 
     const cognitoId = await this.resourceFinder.findByBackendIdentifier(
@@ -131,11 +180,20 @@ class SeedTestProject extends TestProjectBase {
     );
 
     const users = await this.cognitoIdentityProviderClient.send(
-      new ListUsersCommand({ UserPoolId: cognitoId[0] })
+      new ListUsersCommand({
+        UserPoolId: cognitoId[0],
+        Filter: '"email"^="testUser"',
+        AttributesToGet: ['email'],
+      })
     );
 
+    if (users.Users && users.Users.length < 1) {
+      throw new Error('Users are missing');
+    }
+
     assert.ok(users.Users);
-    assert.strictEqual(users.Users[0].Username, 'test@testing.com');
+    assert.ok(users.Users[0].Attributes);
+    assert.strictEqual(users.Users[0].Attributes[0]!.Value, testUsername);
 
     if (!clientConfig.auth) {
       throw new Error('Client config missing auth section');
@@ -183,13 +241,29 @@ class SeedTestProject extends TestProjectBase {
     });
 
     assert.strictEqual(
-      content.data.content,
-      'Todo list item for test@testing.com'
+      content.data.listTodos.items[0].content,
+      `Todo list item for ${testUsername}`
     );
   }
-  /*
-  async attachToRole(backendId: BackendIdentifier) {
-    // somehow need to get the deployment role to add the policy to it
-    const role = (await this.iamClient.send(new GetRoleCommand({ RoleName: 'SeedRole'})));
-  }*/
+
+  async attachToRole(policyString: string, backendId: BackendIdentifier) {
+    const policy = await this.iamClient.send(
+      new CreatePolicyCommand({
+        PolicyName: `seedPolicy_${shortUuid()}`,
+        PolicyDocument: policyString,
+      })
+    );
+
+    const clientConfig = await generateClientConfig(backendId, '1.3');
+    if (!clientConfig.custom) {
+      throw new Error('Client config missing custom section');
+    }
+
+    await this.iamClient.send(
+      new AttachRolePolicyCommand({
+        RoleName: clientConfig.custom.seedRoleName as string,
+        PolicyArn: policy.Policy?.Arn,
+      })
+    );
+  }
 }

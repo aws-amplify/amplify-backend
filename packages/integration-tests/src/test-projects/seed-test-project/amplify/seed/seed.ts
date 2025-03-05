@@ -10,7 +10,7 @@ Amplify.configure(outputs);
 
 const dataClient = generateClient<Schema>();
 
-const username1 = 'test@testing.com';
+const username1 = 'testUser@testing.com';
 const password1 = 'T3st_Passw0rd*';
 
 const user1 = await createAndSignUpUser({
