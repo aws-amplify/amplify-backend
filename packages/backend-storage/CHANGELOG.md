@@ -1,5 +1,11 @@
 # @aws-amplify/backend-storage
 
+## 1.2.5
+
+### Patch Changes
+
+- 3298c3a: update naming of storage access policies to also use stack
+
 ## 1.2.4
 
 ### Patch Changes

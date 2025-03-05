@@ -1,5 +1,15 @@
 # @aws-amplify/backend
 
+## 1.14.2
+
+### Patch Changes
+
+- 3298c3a: update naming of storage access policies to also use stack
+- Updated dependencies [3298c3a]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/backend-storage@1.2.5
+  - @aws-amplify/platform-core@1.6.4
+
 ## 1.14.1
 
 ### Patch Changes
