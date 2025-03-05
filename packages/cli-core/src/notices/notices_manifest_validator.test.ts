@@ -136,7 +136,8 @@ void describe('Notices manifest validator', () => {
       (error: Error) => {
         assert.ok(
           error.message.startsWith(
-          'Notice id must be equal to GitHub issue number if link is provided')
+            'Notice id must be equal to GitHub issue number if link is provided'
+          )
         );
         return true;
       }
