@@ -10,6 +10,18 @@ const noticePredicateSchema = z.discriminatedUnion('type', [
     type: z.literal('backendComponent'),
     backendComponent: z.enum(['data', 'auth', 'function', 'storage']),
   }),
+  z.object({
+    type: z.literal('command'),
+    command: z.enum(['sandbox', 'pipeline-deploy', 'generate', 'configure']),
+  }),
+  z.object({
+    type: z.literal('errorMessage'),
+    errorMessage: z.string(),
+  }),
+  z.object({
+    type: z.literal('frequency'),
+    frequency: z.enum(['command', 'deployment', 'once', 'daily']),
+  }),
 ]);
 
 export const noticeSchema = z.object({

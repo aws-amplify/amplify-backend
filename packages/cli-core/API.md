@@ -110,6 +110,33 @@ export const noticeSchema: z.ZodObject<{
     }, {
         type: "backendComponent";
         backendComponent: "function" | "data" | "auth" | "storage";
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"command">;
+        command: z.ZodEnum<["sandbox", "pipeline-deploy", "generate", "configure"]>;
+    }, "strip", z.ZodTypeAny, {
+        type: "command";
+        command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+    }, {
+        type: "command";
+        command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"errorMessage">;
+        errorMessage: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        type: "errorMessage";
+        errorMessage: string;
+    }, {
+        type: "errorMessage";
+        errorMessage: string;
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"frequency">;
+        frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
+    }, "strip", z.ZodTypeAny, {
+        type: "frequency";
+        frequency: "once" | "command" | "deployment" | "daily";
+    }, {
+        type: "frequency";
+        frequency: "once" | "command" | "deployment" | "daily";
     }>]>, "many">;
 }, "strip", z.ZodTypeAny, {
     details: string;
@@ -122,6 +149,15 @@ export const noticeSchema: z.ZodObject<{
     } | {
         type: "backendComponent";
         backendComponent: "function" | "data" | "auth" | "storage";
+    } | {
+        type: "command";
+        command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+    } | {
+        type: "errorMessage";
+        errorMessage: string;
+    } | {
+        type: "frequency";
+        frequency: "once" | "command" | "deployment" | "daily";
     })[];
     link?: string | undefined;
 }, {
@@ -135,6 +171,15 @@ export const noticeSchema: z.ZodObject<{
     } | {
         type: "backendComponent";
         backendComponent: "function" | "data" | "auth" | "storage";
+    } | {
+        type: "command";
+        command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+    } | {
+        type: "errorMessage";
+        errorMessage: string;
+    } | {
+        type: "frequency";
+        frequency: "once" | "command" | "deployment" | "daily";
     })[];
     link?: string | undefined;
 }>;
@@ -170,6 +215,33 @@ export const noticesManifestSchema: z.ZodObject<{
         }, {
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage";
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"command">;
+            command: z.ZodEnum<["sandbox", "pipeline-deploy", "generate", "configure"]>;
+        }, "strip", z.ZodTypeAny, {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        }, {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"errorMessage">;
+            errorMessage: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            type: "errorMessage";
+            errorMessage: string;
+        }, {
+            type: "errorMessage";
+            errorMessage: string;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"frequency">;
+            frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
+        }, "strip", z.ZodTypeAny, {
+            type: "frequency";
+            frequency: "once" | "command" | "deployment" | "daily";
+        }, {
+            type: "frequency";
+            frequency: "once" | "command" | "deployment" | "daily";
         }>]>, "many">;
     }, "strip", z.ZodTypeAny, {
         details: string;
@@ -182,6 +254,15 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage";
+        } | {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        } | {
+            type: "errorMessage";
+            errorMessage: string;
+        } | {
+            type: "frequency";
+            frequency: "once" | "command" | "deployment" | "daily";
         })[];
         link?: string | undefined;
     }, {
@@ -195,6 +276,15 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage";
+        } | {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        } | {
+            type: "errorMessage";
+            errorMessage: string;
+        } | {
+            type: "frequency";
+            frequency: "once" | "command" | "deployment" | "daily";
         })[];
         link?: string | undefined;
     }>, "many">;
@@ -210,6 +300,15 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage";
+        } | {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        } | {
+            type: "errorMessage";
+            errorMessage: string;
+        } | {
+            type: "frequency";
+            frequency: "once" | "command" | "deployment" | "daily";
         })[];
         link?: string | undefined;
     }[];
@@ -225,6 +324,15 @@ export const noticesManifestSchema: z.ZodObject<{
         } | {
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage";
+        } | {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        } | {
+            type: "errorMessage";
+            errorMessage: string;
+        } | {
+            type: "frequency";
+            frequency: "once" | "command" | "deployment" | "daily";
         })[];
         link?: string | undefined;
     }[];
