@@ -1,7 +1,7 @@
 import { defineBackend } from '@aws-amplify/backend';
 import { auth } from './auth/resource.js';
 import { data } from './data/resource.js';
-import { AccountPrincipal, ManagedPolicy, Role } from 'aws-cdk-lib/aws-iam';
+import { AccountPrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { RemovalPolicy } from 'aws-cdk-lib';
 
 /**
@@ -18,11 +18,6 @@ const seedRoleStack = backend.createStack('seed-policy');
 const seedRole = new Role(seedRoleStack, 'SeedRole', {
   assumedBy: new AccountPrincipal(seedRoleStack.account),
   path: '/',
-  managedPolicies: [
-    ManagedPolicy.fromAwsManagedPolicyName(
-      'service-role/AmplifyBackendDeployFullAccess'
-    ),
-  ],
 });
 seedRole.applyRemovalPolicy(RemovalPolicy.DESTROY);
 

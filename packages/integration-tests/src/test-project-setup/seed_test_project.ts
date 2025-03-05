@@ -27,6 +27,19 @@ import { AmplifyAuthCredentialsFactory } from '../amplify_auth_credentials_facto
 import { execa, execaSync } from 'execa';
 import { AssumeRoleCommand, STSClient } from '@aws-sdk/client-sts';
 import { shortUuid } from '../short_uuid.js';
+import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
+import { SemVer } from 'semver';
+
+// TODO: this is a work around - in theory this should be fixed
+// it seems like as of amplify v6 , some of the code only runs in the browser ...
+// see https://github.com/aws-amplify/amplify-js/issues/12751
+if (process.versions.node) {
+  // node >= 20 now exposes crypto by default. This workaround is not needed: https://github.com/nodejs/node/pull/42083
+  if (new SemVer(process.versions.node).major < 20) {
+    // @ts-expect-error altering typing for global to make compiler happy is not worth the effort assuming this is temporary workaround
+    globalThis.crypto = crypto;
+  }
+}
 
 /**
  * Creates test project for seed
@@ -127,7 +140,7 @@ class SeedTestProject extends TestProjectBase {
         env: environment,
       }
     );
-    await this.attachToRole(seedPolicyProcess.stdout, backendIdentifier);
+    //await this.attachToRole(seedPolicyProcess.stdout, backendIdentifier);
 
     console.log(seedPolicyProcess.stdout);
     const clientConfig = await generateClientConfig(backendIdentifier, '1.3');
@@ -140,6 +153,14 @@ class SeedTestProject extends TestProjectBase {
       new AssumeRoleCommand({
         RoleArn: seedRoleArn,
         RoleSessionName: `seedSession`,
+        Policy: seedPolicyProcess.stdout,
+        PolicyArns: [
+          {
+            arn: ManagedPolicy.fromAwsManagedPolicyName(
+              'service-role/AmplifyBackendDeployFullAccess'
+            ).managedPolicyArn,
+          },
+        ],
       })
     );
 
