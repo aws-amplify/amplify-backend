@@ -114,11 +114,11 @@ export const noticeSchema: z.ZodObject<{
         type: z.ZodLiteral<"command">;
         command: z.ZodEnum<["sandbox", "pipeline-deploy", "generate", "configure"]>;
     }, "strip", z.ZodTypeAny, {
-        type: "command";
         command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        type: "command";
     }, {
-        type: "command";
         command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        type: "command";
     }>, z.ZodObject<{
         type: z.ZodLiteral<"errorMessage">;
         errorMessage: z.ZodString;
@@ -150,8 +150,8 @@ export const noticeSchema: z.ZodObject<{
         type: "backendComponent";
         backendComponent: "function" | "data" | "auth" | "storage";
     } | {
-        type: "command";
         command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        type: "command";
     } | {
         type: "errorMessage";
         errorMessage: string;
@@ -172,8 +172,8 @@ export const noticeSchema: z.ZodObject<{
         type: "backendComponent";
         backendComponent: "function" | "data" | "auth" | "storage";
     } | {
-        type: "command";
         command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        type: "command";
     } | {
         type: "errorMessage";
         errorMessage: string;
@@ -219,11 +219,11 @@ export const noticesManifestSchema: z.ZodObject<{
             type: z.ZodLiteral<"command">;
             command: z.ZodEnum<["sandbox", "pipeline-deploy", "generate", "configure"]>;
         }, "strip", z.ZodTypeAny, {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         }, {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         }>, z.ZodObject<{
             type: z.ZodLiteral<"errorMessage">;
             errorMessage: z.ZodString;
@@ -255,8 +255,8 @@ export const noticesManifestSchema: z.ZodObject<{
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage";
         } | {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         } | {
             type: "errorMessage";
             errorMessage: string;
@@ -277,8 +277,8 @@ export const noticesManifestSchema: z.ZodObject<{
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage";
         } | {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         } | {
             type: "errorMessage";
             errorMessage: string;
@@ -301,8 +301,8 @@ export const noticesManifestSchema: z.ZodObject<{
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage";
         } | {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         } | {
             type: "errorMessage";
             errorMessage: string;
@@ -325,8 +325,8 @@ export const noticesManifestSchema: z.ZodObject<{
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage";
         } | {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         } | {
             type: "errorMessage";
             errorMessage: string;
