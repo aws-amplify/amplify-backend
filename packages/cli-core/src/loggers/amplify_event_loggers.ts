@@ -15,11 +15,6 @@ import { WriteStream } from 'tty';
  */
 export class AmplifyEventLogger {
   private printer = printer; // default stdout
-  private fancyOutput = process.env.CI
-    ? false
-    : this.printer.stdout instanceof WriteStream
-    ? this.printer.stdout.isTTY
-    : false; // show fancy output on tty but not while writing to files/or ci/cd;
   private cfnDeploymentProgressLogger: CfnDeploymentProgressLogger | undefined;
   private outputs = {};
   private testingData: any[] = [];
@@ -36,7 +31,7 @@ export class AmplifyEventLogger {
       };
     }
     const loggers = [this.amplifyNotifications, this.cdkDeploymentProgress];
-    if (this.fancyOutput) {
+    if (this.printer.enableTTY) {
       loggers.push(this.fancyCfnDeploymentProgress);
     } else {
       loggers.push(this.nonTtyCfnDeploymentProgress);

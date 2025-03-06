@@ -18,7 +18,11 @@ export class Printer {
     readonly stdout: WriteStream | NodeJS.WritableStream = process.stdout,
     readonly stderr: WriteStream | NodeJS.WritableStream = process.stderr,
     private readonly refreshRate: number = 100,
-    private readonly enableTTY = process.env.CI ? false : true
+    readonly enableTTY = process.env.CI
+      ? false
+      : stdout instanceof WriteStream
+      ? stdout.isTTY
+      : false
   ) {}
 
   /**
