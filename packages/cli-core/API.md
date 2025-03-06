@@ -134,6 +134,8 @@ export class PackageManagerControllerFactory {
 export class Printer {
     constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, enableTTY?: boolean);
     clearConsole: () => void;
+    // (undocumented)
+    readonly enableTTY: boolean;
     indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
     // (undocumented)
     isSpinnerRunning: () => boolean;
