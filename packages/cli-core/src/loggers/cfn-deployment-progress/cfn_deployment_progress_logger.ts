@@ -342,7 +342,7 @@ export class CfnDeploymentProgressLogger {
    */
   private normalizeConstructPath(constructPath: string): string {
     const nestedStackRegex =
-      /(?<nestedStack>\w+)\.NestedStack\/\1\.NestedStackResource$/;
+      /(?<nestedStack>[a-zA-Z0-9_]+)\.NestedStack\/\1\.NestedStackResource$/;
 
     return constructPath
       .trim()
