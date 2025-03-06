@@ -7,8 +7,16 @@ const noticePredicateSchema = z.discriminatedUnion('type', [
     versionRange: z.string(),
   }),
   z.object({
+    type: z.literal('nodeVersion'),
+    versionRange: z.string(),
+  }),
+  z.object({
+    type: z.literal('osFamily'),
+    osFamily: z.enum(['windows', 'macos', 'linux']),
+  }),
+  z.object({
     type: z.literal('backendComponent'),
-    backendComponent: z.enum(['data', 'auth', 'function', 'storage']),
+    backendComponent: z.enum(['data', 'auth', 'function', 'storage', 'ai']),
   }),
   z.object({
     type: z.literal('command'),
@@ -21,6 +29,11 @@ const noticePredicateSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('frequency'),
     frequency: z.enum(['command', 'deployment', 'once', 'daily']),
+  }),
+  z.object({
+    type: z.literal('validityPeriod'),
+    from: z.number().optional(),
+    to: z.number().optional(),
   }),
 ]);
 
@@ -35,7 +48,7 @@ export const noticeSchema = z.object({
 export type Notice = z.infer<typeof noticeSchema>;
 
 export const noticesManifestSchema = z.object({
-  currentNotices: z.array(noticeSchema),
+  notices: z.array(noticeSchema),
 });
 
 export type NoticesManifest = z.infer<typeof noticesManifestSchema>;
