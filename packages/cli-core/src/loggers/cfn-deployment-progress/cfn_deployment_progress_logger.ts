@@ -23,7 +23,7 @@ import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
  * Resources that failed deployment because they have been cancelled are
  * not included.
  */
-export class CurrentActivityPrinter {
+export class CfnDeploymentProgressLogger {
   public readonly updateSleep: number = 2_000;
   private resourceNameCache: {
     [logicalId: string]: string;
@@ -342,9 +342,10 @@ export class CurrentActivityPrinter {
    */
   private normalizeConstructPath(constructPath: string): string {
     const nestedStackRegex =
-      /(?<nestedStack>\w+)\.NestedStack\/\1\.NestedStackResource/;
+      /(?<nestedStack>\w+)\.NestedStack\/\1\.NestedStackResource$/;
 
     return constructPath
+      .trim()
       .replace(nestedStackRegex, '$<nestedStack>')
       .replace('/amplifyAuth/', '/')
       .replace('/amplifyData/', '/');

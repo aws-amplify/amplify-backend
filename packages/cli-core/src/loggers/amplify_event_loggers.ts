@@ -3,9 +3,9 @@ import { LogLevel } from '../printer/printer.js';
 import { minimumLogLevel, printer } from '../printer.js';
 import { format } from '../format/format.js';
 import {
+  CfnDeploymentProgressLogger,
   CfnDeploymentStackEvent,
-  CurrentActivityPrinter,
-} from './cfn-deployment-progress/cfn_deployment_logger.js';
+} from './cfn-deployment-progress/cfn_deployment_progress_logger.js';
 import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'tty';
 
@@ -20,7 +20,7 @@ export class AmplifyEventLogger {
     : this.printer.stdout instanceof WriteStream
     ? this.printer.stdout.isTTY
     : false; // show fancy output on tty but not while writing to files/or ci/cd;
-  private cfnDeploymentActivityPrinter: CurrentActivityPrinter | undefined;
+  private cfnDeploymentProgressLogger: CfnDeploymentProgressLogger | undefined;
   private outputs = {};
   private testingData: any[] = [];
 
@@ -49,26 +49,38 @@ export class AmplifyEventLogger {
   // eslint-disable-next-line @shopify/prefer-early-return
   testing = <T>(msg: AmplifyIoHostEventMessage<T>): Promise<void> => {
     if (
+      [
+        'CDK_TOOLKIT_I5501',
+        'CDK_TOOLKIT_I5503',
+        'CDK_TOOLKIT_I0000',
+        'CDK_TOOLKIT_I5900',
+        'CDK_TOOLKIT_I5000',
+      ].includes(msg.code) ||
+      msg.message.includes('deploying...')
+    ) {
+      this.testingData.push({ code: msg.code, message: msg.message });
+    }
+    if (
       msg.code === 'CDK_TOOLKIT_I5502' &&
       msg.data &&
       typeof msg.data === 'object' &&
       'event' in msg.data
     ) {
       const event = msg.data as CfnDeploymentStackEvent;
-      this.testingData.push({ eventId: 'CDK_TOOLKIT_I5502', event });
+      this.testingData.push({
+        code: msg.code,
+        message: msg.message,
+        data: event,
+      });
     }
-    if (msg.code === 'CDK_TOOLKIT_I5501' || msg.code === 'CDK_TOOLKIT_I5503') {
-      this.testingData.push({ eventId: msg.code });
-    }
-    if (msg.code === 'CDK_TOOLKIT_I5503') {
+
+    if (
+      msg.code === 'CDK_TOOLKIT_I5000' ||
+      msg.message.includes('Failed resources')
+    ) {
       console.log(JSON.stringify(this.testingData, null, 2));
     }
-    if (
-      msg.code === 'CDK_TOOLKIT_I0000' &&
-      msg.message.includes('has an ongoing operation in progress')
-    ) {
-      this.testingData.push({ eventId: msg.code });
-    }
+
     return Promise.resolve();
   };
 
@@ -193,9 +205,9 @@ export class AmplifyEventLogger {
     // TBD: This will be replaced with a proper marker event with a unique code later
     if (
       msg.message.includes('deploying...') &&
-      !this.cfnDeploymentActivityPrinter
+      !this.cfnDeploymentProgressLogger
     ) {
-      this.cfnDeploymentActivityPrinter = new CurrentActivityPrinter({
+      this.cfnDeploymentProgressLogger = new CfnDeploymentProgressLogger({
         resourceTypeColumnWidth: 30, // TBD
         getBlockWidth: () =>
           this.printer.stdout instanceof WriteStream
@@ -217,10 +229,10 @@ export class AmplifyEventLogger {
       msg.message.includes('Failed resources')
     ) {
       // TBD: This will be replaced with a proper marker event with a unique code later
-      if (this.cfnDeploymentActivityPrinter) {
-        await this.cfnDeploymentActivityPrinter.stop();
+      if (this.cfnDeploymentProgressLogger) {
+        await this.cfnDeploymentProgressLogger.stop();
         this.printer.stopSpinner();
-        this.cfnDeploymentActivityPrinter = undefined;
+        this.cfnDeploymentProgressLogger = undefined;
       }
       if (
         msg.data &&
@@ -268,14 +280,14 @@ export class AmplifyEventLogger {
       'event' in msg.data
     ) {
       const event = msg.data as CfnDeploymentStackEvent;
-      this.cfnDeploymentActivityPrinter?.addActivity(event);
+      this.cfnDeploymentProgressLogger?.addActivity(event);
     }
 
     if (
       msg.code === 'CDK_TOOLKIT_I0000' &&
       msg.message.includes('has an ongoing operation in progress')
     ) {
-      await this.cfnDeploymentActivityPrinter?.print();
+      await this.cfnDeploymentProgressLogger?.print();
     }
     return Promise.resolve();
   };

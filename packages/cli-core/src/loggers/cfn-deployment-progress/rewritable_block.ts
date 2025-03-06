@@ -8,8 +8,12 @@ import { amplifyIOEventsBridgeFactory } from '../amplify_io_events_bridge_single
 export class RewritableBlock {
   private lastHeight = 0;
   private trailingEmptyLines = 0;
+
   /**
-   * TBD
+   * Constructor for RewritableBlock
+   * @param getBlockWidth A function that returns the width of the block
+   * @param getBlockHeight A function that returns the height of the block
+   * @param ioHost An optional AmplifyIOHost instance
    */
   constructor(
     private readonly getBlockWidth: () => number,
@@ -18,7 +22,8 @@ export class RewritableBlock {
   ) {}
 
   /**
-   * TBD
+   * Display the given lines in this rewritable block. It expands to make room for more lines
+   * and keep the size of the block constant until finished.
    */
   async displayLines(lines: string[]) {
     lines = this.terminalWrap(this.getBlockWidth(), this.expandNewlines(lines));
@@ -51,12 +56,15 @@ export class RewritableBlock {
   }
 
   /**
-   * Clear to end of line
+   * Clear to the end of line
    */
   cll = () => {
     return '\u001b[K';
   };
 
+  /**
+   * Wrap extra long lines while still being in the rewritable block
+   */
   terminalWrap = (width: number | undefined, lines: string[]) => {
     if (width === undefined) {
       return lines;
@@ -72,7 +80,7 @@ export class RewritableBlock {
   };
 
   /**
-   * Make sure there are no hidden newlines in the gin strings
+   * Make sure there are no hidden newlines in the input strings
    */
   expandNewlines = (lines: string[]): string[] => {
     return lines.flatMap((line) => line.split('\n'));
