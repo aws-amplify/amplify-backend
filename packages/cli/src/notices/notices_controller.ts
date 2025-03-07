@@ -14,6 +14,6 @@ export class NoticesController {
   getApplicableNotices = async (): Promise<Array<Notice>> => {
     const noticesManifest =
       await this.noticesManifestFetcher.fetchNoticesManifest();
-    return noticesManifest.currentNotices;
+    return noticesManifest.notices;
   };
 }

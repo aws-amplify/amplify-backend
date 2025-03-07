@@ -1,6 +1,5 @@
 import { Argv, CommandModule } from 'yargs';
-import { printer } from '@aws-amplify/cli-core';
-import { NoticesController } from '../../notices/notices_controller.js';
+import { NoticesListCommand } from './notices_list_command.js';
 
 /**
  * Notices command.
@@ -19,23 +18,31 @@ export class NoticesCommand implements CommandModule<object> {
   /**
    * Creates notices command
    */
-  constructor(private readonly noticesController: NoticesController) {
+  constructor(private readonly noticesListCommand: NoticesListCommand) {
     this.command = 'notices';
-    this.describe = 'Displays a list of relevant notices';
+    this.describe = 'Notices';
   }
 
   /**
    * @inheritDoc
    */
   handler = async (): Promise<void> => {
-    const notices = await this.noticesController.getApplicableNotices();
-    printer.print(JSON.stringify(notices, null, 2));
+    // CommandModule requires handler implementation. But this is never called if top level command
+    // is configured to require subcommand.
+    // Help is printed by default in that case before ever attempting to call handler.
+    throw new Error('Top level generate handler should never be called');
   };
 
   /**
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv => {
-    return yargs.version(false).help();
+    return yargs.version(false)
+      // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
+      .command(this.noticesListCommand as unknown as CommandModule)
+      .demandCommand()
+      .strictCommands()
+      .recommendCommands()
+      .help();
   };
 }
