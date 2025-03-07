@@ -37,12 +37,15 @@ export class NoticesCommand implements CommandModule<object> {
    * @inheritDoc
    */
   builder = (yargs: Argv): Argv => {
-    return yargs.version(false)
-      // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
-      .command(this.noticesListCommand as unknown as CommandModule)
-      .demandCommand()
-      .strictCommands()
-      .recommendCommands()
-      .help();
+    return (
+      yargs
+        .version(false)
+        // Cast to erase options types used in internal sub command implementation. Otherwise, compiler fails here.
+        .command(this.noticesListCommand as unknown as CommandModule)
+        .demandCommand()
+        .strictCommands()
+        .recommendCommands()
+        .help()
+    );
   };
 }
