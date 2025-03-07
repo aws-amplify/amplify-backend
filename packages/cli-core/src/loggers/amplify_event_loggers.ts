@@ -27,7 +27,7 @@ export class AmplifyEventLogger {
   getEventLoggers = () => {
     if (minimumLogLevel === LogLevel.DEBUG) {
       return {
-        notify: [this.testing],
+        notify: [this.debug],
       };
     }
     const loggers = [this.amplifyNotifications, this.cdkDeploymentProgress];
@@ -199,7 +199,8 @@ export class AmplifyEventLogger {
     // Start deployment progress display
     // TBD: This will be replaced with a proper marker event with a unique code later
     if (
-      msg.message.includes('deploying...') &&
+      (msg.message.includes('deploying...') ||
+        msg.message.includes('destroying..')) &&
       !this.cfnDeploymentProgressLogger
     ) {
       this.cfnDeploymentProgressLogger = new CfnDeploymentProgressLogger({
@@ -220,12 +221,12 @@ export class AmplifyEventLogger {
 
     // Stop deployment progress display
     if (
-      msg.code === 'CDK_TOOLKIT_I5000' ||
+      msg.code === 'CDK_TOOLKIT_I5503' ||
       msg.message.includes('Failed resources')
     ) {
       // TBD: This will be replaced with a proper marker event with a unique code later
       if (this.cfnDeploymentProgressLogger) {
-        await this.cfnDeploymentProgressLogger.stop();
+        await this.cfnDeploymentProgressLogger.finalize();
         this.printer.stopSpinner();
         this.cfnDeploymentProgressLogger = undefined;
       }

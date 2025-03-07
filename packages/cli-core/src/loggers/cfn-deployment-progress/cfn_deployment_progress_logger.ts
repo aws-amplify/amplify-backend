@@ -1,9 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable spellcheck/spell-checker */
-import * as util from 'util';
-
 import { StackEvent } from '@aws-sdk/client-cloudformation';
 
 import { RewritableBlock } from './rewritable_block.js';
@@ -11,20 +5,22 @@ import { ColorName, format } from '../../format/format.js';
 import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 /**
- * Activity Printer which shows the resources currently being updated
+ * Collects events from CDK Toolkit about cfn deployment and structures them
+ * nicely for printing.
  *
- * It will continuously re-update the terminal and show only the resources
+ * It will continuously re-update the cfn deployment progress and show only the resources
  * that are currently being updated, in addition to a progress bar which
  * shows how far along the deployment is.
  *
  * Resources that have failed will always be shown, and will be recapitulated
  * along with their stack trace when the monitoring ends.
  *
- * Resources that failed deployment because they have been cancelled are
+ * Resources that failed deployment because they have been canceled are
  * not included.
  */
 export class CfnDeploymentProgressLogger {
-  public readonly updateSleep: number = 2_000;
+  // Keeps a cache/mapping of LogicalResourceId <-> Friendly resource name along with hierarchy
+  // Friendly name is formatted as a path e.g. NestedStackName/LambdaFunction/ServiceRole
   private resourceNameCache: {
     [logicalId: string]: string;
   };
@@ -49,10 +45,8 @@ export class CfnDeploymentProgressLogger {
   private resourcesDone: number = 0;
 
   /**
-   * How many digits we need to represent the total count (for lining up the status reporting)
+   * Total number of resources (inclusive of all nested stacks and their resources)
    */
-  private readonly resourceDigits: number = 0;
-
   private readonly resourcesTotal?: number;
 
   private rollingBack = false;
@@ -65,21 +59,17 @@ export class CfnDeploymentProgressLogger {
   private readonly getBlockHeight: () => number;
   private block;
   private rootStackDisplay = 'Root stack';
+  private timeStampWidth = 12;
+  private statusWidth = 20;
+  private resourceNameIndentation = 0;
 
   /**
-   * tbd
+   * Instantiate the CFN deployment progress builder
    */
   constructor(private readonly props: PrinterProps) {
     // +1 because the stack also emits a "COMPLETE" event at the end, and that wasn't
     // counted yet. This makes it line up with the amount of events we expect.
-    this.resourcesTotal = props.resourcesTotal
-      ? props.resourcesTotal + 1
-      : undefined;
-
-    // How many digits does this number take to represent?
-    this.resourceDigits = this.resourcesTotal
-      ? Math.ceil(Math.log10(this.resourcesTotal))
-      : 0;
+    this.resourcesTotal = props.resourcesTotal ? props.resourcesTotal + 1 : 152;
 
     this.getBlockWidth = props.getBlockWidth;
     this.getBlockHeight = props.getBlockHeight;
@@ -88,7 +78,7 @@ export class CfnDeploymentProgressLogger {
   }
 
   /**
-   * TBD
+   * Add a new CDK event corresponding to CFN deployment progress
    */
   public addActivity(cfnEvent: CfnDeploymentStackEvent) {
     const metadata = cfnEvent.metadata;
@@ -104,7 +94,7 @@ export class CfnDeploymentProgressLogger {
       return;
     }
 
-    // Hydrate friendly name cache
+    // Hydrate friendly name resource cache
     if (
       event.ResourceType === 'AWS::CloudFormation::Stack' &&
       BackendIdentifierConversions.fromStackName(event.LogicalResourceId)
@@ -117,7 +107,7 @@ export class CfnDeploymentProgressLogger {
           this.normalizeConstructPath(metadata.constructPath);
       }
     }
-    // Hydrate friendly name cache
+    // Hydrate friendly name resource cache
 
     if (
       status === 'ROLLBACK_IN_PROGRESS' ||
@@ -131,12 +121,13 @@ export class CfnDeploymentProgressLogger {
       this.resourcesInProgress[event.LogicalResourceId] = event;
     }
 
-    if (hasErrorMessage(status)) {
-      const isCancelled =
+    if (this.isFailureStatus(status)) {
+      const isCanceled =
+        // eslint-disable-next-line spellcheck/spell-checker
         (event.ResourceStatusReason ?? '').indexOf('cancelled') > -1;
 
-      // Cancelled is not an interesting failure reason
-      if (!isCancelled) {
+      // Canceled is not an interesting failure reason
+      if (!isCanceled) {
         this.failures.push(event);
       }
     }
@@ -188,26 +179,21 @@ export class CfnDeploymentProgressLogger {
   }
 
   /**
-   * TBD
+   * Formats the current progress and pass it to a rewritable block for display
    */
   public async print(): Promise<void> {
+    this.resourceNameIndentation = 0;
     const lines = [];
 
-    // Add a progress bar at the top
-    const progressWidth = Math.max(
-      Math.min(
-        this.getBlockHeight() - PROGRESSBAR_EXTRA_SPACE - 1,
-        MAX_PROGRESSBAR_WIDTH
-      ),
-      MIN_PROGRESSBAR_WIDTH
-    );
-    const prog = this.progressBar(progressWidth);
-    if (prog) {
-      lines.push('  ' + prog, '');
+    // Add a progress bar at the top if available
+    const progress = this.progressBar();
+
+    if (progress) {
+      lines.push('  ' + progress, '');
     }
 
     // Normally we'd only print "resources in progress", but it's also useful
-    // to keep an eye on the failures and know about the specific errors asquickly
+    // to keep an eye on the failures and know about the specific errors as quickly
     // as possible (while the stack is still rolling back), so add those in.
     const toPrint: StackEvent[] = [
       ...this.failures,
@@ -230,81 +216,36 @@ export class CfnDeploymentProgressLogger {
         ) {
           return -1;
         }
+        // Rest order them lexicographical so that we "group" all child resources together
         return this.resourceNameCache[a.LogicalResourceId].localeCompare(
           this.resourceNameCache[b.LogicalResourceId]
         );
       }
+      // If we don't have friendly names, just order them based on the time
       return a.Timestamp!.getTime() - b.Timestamp!.getTime();
     });
 
-    let padding = 0;
     lines.push(
       ...toPrint
         .filter(
-          // TBD Hide some of our resources but not all, e.g. custom customer's resources
+          // If we don't have LogicalResourceId we don't have anything
           (res) => res.LogicalResourceId
-          // && res.LogicalResourceId in this.resourceNameCache
         )
         .map((res) => {
-          const color = colorFromStatusActivity(res.ResourceStatus);
-          // We already filtered out everything else
-          const constructPath =
-            this.resourceNameCache[res.LogicalResourceId!] ??
-            res.LogicalResourceId;
+          const color = this.colorFromStatusActivity(res.ResourceStatus);
 
-          let displayName = '';
-          const paths = constructPath.split('/');
-          const resourceName = paths.pop();
-          if (resourceName === undefined || paths.length === 0) {
-            displayName = constructPath;
-            padding = 0;
-          } else {
-            padding = Math.min(paths.length - 1, padding);
-            displayName = '  '.repeat(padding++) + '∟ ' + resourceName;
-          }
-
-          const timeStamp = this.padLeft(
-            TIMESTAMP_WIDTH,
-            new Date(res.Timestamp!).toLocaleTimeString()
-          );
-          const status = color
-            ? format.color(
-                this.padRight(
-                  STATUS_WIDTH,
-                  (res.ResourceStatus || '').slice(0, STATUS_WIDTH)
-                ),
-                color
-              )
-            : this.padRight(
-                STATUS_WIDTH,
-                (res.ResourceStatus || '').slice(0, STATUS_WIDTH)
-              );
-
-          const resourceType = this.padRight(
-            this.props.resourceTypeColumnWidth,
-            shorten(30, res.ResourceType?.split('::').slice(1).join(':') || '')
-          );
-
-          const resourceNameToDisplay = color
-            ? format.color(format.bold(shorten(100, displayName)), color)
-            : format.bold(shorten(100, displayName));
-          return `${timeStamp} | ${status} | ${resourceType} | ${resourceNameToDisplay}${this.failureReasonOnNextLine(
-            res
-          )}`;
+          return this.getFormattedLine(res, color);
         })
     );
 
-    // console.log(lines);
     await this.block.displayLines(lines);
   }
 
   /**
-   * TBD
+   * If there are failures, we want them to be persisted and shown
+   * TBD: The formatting should be shared with the print method
    */
-  public async stop() {
-    // setLogLevel(this.oldLogLevel);
-
-    // Print failures at the end
+  public async finalize() {
     const lines = new Array<string>();
     for (const failure of this.failures) {
       // Root stack failures are not interesting
@@ -312,25 +253,7 @@ export class CfnDeploymentProgressLogger {
         continue;
       }
 
-      lines.push(
-        util.format(
-          format.color('%s | %s | %s | %s%s', 'Red') + '\n',
-          this.padLeft(
-            TIMESTAMP_WIDTH,
-            new Date(failure.Timestamp!).toLocaleTimeString()
-          ),
-          this.padRight(
-            STATUS_WIDTH,
-            (failure.ResourceStatus || '').slice(0, STATUS_WIDTH)
-          ),
-          this.padRight(
-            this.props.resourceTypeColumnWidth,
-            failure.ResourceType || ''
-          ),
-          shorten(40, failure.LogicalResourceId ?? ''),
-          this.failureReasonOnNextLine(failure)
-        )
-      );
+      lines.push(this.getFormattedLine(failure, 'Red'));
     }
 
     // Display in the same block space, otherwise we're going to have silly empty lines.
@@ -338,23 +261,24 @@ export class CfnDeploymentProgressLogger {
   }
 
   /**
-   * TBD
+   * Extract nested stack names
    */
-  private normalizeConstructPath(constructPath: string): string {
+  private normalizeConstructPath = (constructPath: string): string => {
+    // Don't run regex on long strings, they are most likely not valid and could cause DOS attach. See CodeQL's js/polynomial-redos
+    if (constructPath.length > 1000) return constructPath;
     const nestedStackRegex =
       /(?<nestedStack>[a-zA-Z0-9_]+)\.NestedStack\/\1\.NestedStackResource$/;
 
     return constructPath
-      .trim()
       .replace(nestedStackRegex, '$<nestedStack>')
       .replace('/amplifyAuth/', '/')
       .replace('/amplifyData/', '/');
-  }
+  };
 
   /**
-   * TBD
+   * Extract the failure reason from stack events
    */
-  private failureReason(event: StackEvent) {
+  private failureReason = (event: StackEvent) => {
     const resourceStatusReason = event.ResourceStatusReason ?? '';
     const logicalResourceId = event.LogicalResourceId ?? '';
     const hookFailureReasonMap = this.hookFailureMap.get(logicalResourceId);
@@ -369,12 +293,30 @@ export class CfnDeploymentProgressLogger {
       }
     }
     return resourceStatusReason;
-  }
+  };
 
   /**
-   * TBD
+   * If we have total number of resources, format the progress bar and return
    */
-  private progressBar(width: number) {
+  private progressBar = () => {
+    const FULL_BLOCK = '█';
+    const PARTIAL_BLOCK = ['', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
+    const MAX_PROGRESSBAR_WIDTH = 500;
+    const MIN_PROGRESSBAR_WIDTH = 10;
+    const PROGRESSBAR_EXTRA_SPACE =
+      2 /* leading spaces */ +
+      2 /* brackets */ +
+      4 /* progress number decoration */ +
+      6; /* 2 progress numbers up to 999 */
+
+    const width = Math.max(
+      Math.min(
+        this.getBlockWidth() - PROGRESSBAR_EXTRA_SPACE - 1,
+        MAX_PROGRESSBAR_WIDTH
+      ),
+      MIN_PROGRESSBAR_WIDTH
+    );
+
     if (!this.resourcesTotal) {
       return '';
     }
@@ -398,90 +340,131 @@ export class CfnDeploymentProgressLogger {
       filler +
       `] (${this.resourcesDone}/${this.resourcesTotal})`
     );
-  }
+  };
 
   /**
-   * TBD
+   * Format the failure reason to be on the next line
    */
-  private failureReasonOnNextLine(event: StackEvent) {
-    return hasErrorMessage(event.ResourceStatus ?? '')
-      ? `\n${' '.repeat(TIMESTAMP_WIDTH + STATUS_WIDTH + 6)}${format.color(
-          this.failureReason(event) ?? '',
-          'Red'
-        )}`
+  private failureReasonOnNextLine = (event: StackEvent) => {
+    return this.isFailureStatus(event.ResourceStatus ?? '')
+      ? `\n${' '.repeat(
+          this.timeStampWidth + this.statusWidth + 6
+        )}${format.color(this.failureReason(event) ?? '', 'Red')}`
       : '';
-  }
+  };
 
-  /**
-   * TBD
-   */
-  private padRight(n: number, x: string): string {
-    return x + ' '.repeat(Math.max(0, n - x.length));
-  }
+  private isFailureStatus = (status: string) => {
+    return (
+      status.endsWith('_FAILED') ||
+      status === 'ROLLBACK_IN_PROGRESS' ||
+      status === 'UPDATE_ROLLBACK_IN_PROGRESS'
+    );
+  };
 
-  /**
-   * Infamous padLeft()
-   */
-  private padLeft(n: number, x: string): string {
-    return ' '.repeat(Math.max(0, n - x.length)) + x;
-  }
-}
+  private getFormattedLine = (event: StackEvent, color?: ColorName) => {
+    const timeStamp = this.padLeft(
+      this.timeStampWidth,
+      new Date(event.Timestamp!).toLocaleTimeString()
+    );
+    const status = color
+      ? format.color(
+          this.padRight(
+            this.statusWidth,
+            (event.ResourceStatus || '').slice(0, this.statusWidth)
+          ),
+          color
+        )
+      : this.padRight(
+          this.statusWidth,
+          (event.ResourceStatus || '').slice(0, this.statusWidth)
+        );
 
-const FULL_BLOCK = '█';
-const PARTIAL_BLOCK = ['', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
-const MAX_PROGRESSBAR_WIDTH = 60;
-const MIN_PROGRESSBAR_WIDTH = 10;
-const PROGRESSBAR_EXTRA_SPACE =
-  2 /* leading spaces */ +
-  2 /* brackets */ +
-  4 /* progress number decoration */ +
-  6; /* 2 progress numbers up to 999 */
+    const resourceType = this.padRight(
+      this.props.resourceTypeColumnWidth,
+      this.shorten(30, event.ResourceType?.split('::').slice(1).join(':') || '')
+    );
 
-function hasErrorMessage(status: string) {
-  return (
-    status.endsWith('_FAILED') ||
-    status === 'ROLLBACK_IN_PROGRESS' ||
-    status === 'UPDATE_ROLLBACK_IN_PROGRESS'
-  );
-}
+    const formattedResourceName = this.getFormattedResourceDisplayName(
+      event.LogicalResourceId!
+    );
+    const resourceNameToDisplay = color
+      ? format.color(
+          format.bold(this.shorten(100, formattedResourceName)),
+          color
+        )
+      : format.bold(this.shorten(100, formattedResourceName));
+    return `${timeStamp} | ${status} | ${resourceType} | ${resourceNameToDisplay}${this.failureReasonOnNextLine(
+      event
+    )}`;
+  };
 
-const colorFromStatusActivity = (status?: string): ColorName | undefined => {
-  if (!status) {
+  private getFormattedResourceDisplayName = (logicalResourceId: string) => {
+    const constructPath =
+      this.resourceNameCache[logicalResourceId] ?? logicalResourceId;
+
+    let resourceNameDisplay = '';
+    const paths = constructPath.split('/');
+    const resourceName = paths.pop();
+    if (resourceName === undefined || paths.length === 0) {
+      // If there is no hierarchy we just display as-is with no padding
+      resourceNameDisplay = constructPath;
+      this.resourceNameIndentation = 0;
+    } else {
+      // Figure out the padding based on the hierarchy of this resource but
+      // make sure it's never more than 1 than the previous padding.
+      this.resourceNameIndentation = Math.min(
+        paths.length - 1,
+        this.resourceNameIndentation
+      );
+      resourceNameDisplay =
+        '  '.repeat(this.resourceNameIndentation++) + '∟ ' + resourceName;
+    }
+    return resourceNameDisplay;
+  };
+
+  private colorFromStatusActivity = (
+    status?: string
+  ): ColorName | undefined => {
+    if (!status) {
+      return;
+    }
+
+    if (status.endsWith('_FAILED')) {
+      return 'Red';
+    }
+
+    if (
+      status.startsWith('CREATE_') ||
+      status.startsWith('UPDATE_') ||
+      status.startsWith('IMPORT_')
+    ) {
+      return 'Green';
+    }
+    // For stacks, it may also be 'UPDDATE_ROLLBACK_IN_PROGRESS'
+    if (status.indexOf('ROLLBACK_') !== -1) {
+      return 'Yellow';
+    }
+    if (status.startsWith('DELETE_')) {
+      return 'Yellow';
+    }
+
     return;
-  }
+  };
 
-  if (status.endsWith('_FAILED')) {
-    return 'Red';
-  }
+  private shorten = (maxWidth: number, p: string) => {
+    if (p.length <= maxWidth) {
+      return p;
+    }
+    const half = Math.floor((maxWidth - 3) / 2);
+    return p.slice(0, half) + '...' + p.slice(-half);
+  };
 
-  if (
-    status.startsWith('CREATE_') ||
-    status.startsWith('UPDATE_') ||
-    status.startsWith('IMPORT_')
-  ) {
-    return 'Green';
-  }
-  // For stacks, it may also be 'UPDDATE_ROLLBACK_IN_PROGRESS'
-  if (status.indexOf('ROLLBACK_') !== -1) {
-    return 'Yellow';
-  }
-  if (status.startsWith('DELETE_')) {
-    return 'Yellow';
-  }
+  private padRight = (n: number, x: string): string =>
+    x + ' '.repeat(Math.max(0, n - x.length));
 
-  return;
-};
-
-function shorten(maxWidth: number, p: string) {
-  if (p.length <= maxWidth) {
-    return p;
-  }
-  const half = Math.floor((maxWidth - 3) / 2);
-  return p.slice(0, half) + '...' + p.slice(-half);
+  private padLeft = (n: number, x: string): string =>
+    ' '.repeat(Math.max(0, n - x.length)) + x;
 }
-
-const TIMESTAMP_WIDTH = 12;
-const STATUS_WIDTH = 20;
 
 export type CfnDeploymentStackEvent = {
   deployment?: string;
