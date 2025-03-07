@@ -16,7 +16,7 @@ void describe('Notices manifest validator', () => {
   );
   void it('does not throw when manifest is valid', async () => {
     const validManifest: NoticesManifest = {
-      currentNotices: [
+      notices: [
         {
           id: '1',
           link: 'https://github.com/aws-amplify/amplify-backend/issues/1',
@@ -57,6 +57,19 @@ void describe('Notices manifest validator', () => {
               type: 'errorMessage',
               errorMessage: 'Some error message',
             },
+            {
+              type: 'nodeVersion',
+              versionRange: '>=18.0.0',
+            },
+            {
+              type: 'osFamily',
+              osFamily: 'linux',
+            },
+            {
+              type: 'validityPeriod',
+              from: Date.now() - 10,
+              to: Date.now(),
+            },
           ],
         },
       ],
@@ -67,7 +80,7 @@ void describe('Notices manifest validator', () => {
 
   void it('throws on invalid link', async () => {
     const validManifest: NoticesManifest = {
-      currentNotices: [
+      notices: [
         {
           id: '1',
           link: 'https://invalid.com/1234',
@@ -89,7 +102,7 @@ void describe('Notices manifest validator', () => {
 
   void it('throws if link cannot be verified', async () => {
     const validManifest: NoticesManifest = {
-      currentNotices: [
+      notices: [
         {
           id: '123456789',
           link: 'https://github.com/aws-amplify/amplify-backend/issues/123456789',
@@ -120,7 +133,7 @@ void describe('Notices manifest validator', () => {
 
   void it('throws if id does not match link', async () => {
     const validManifest: NoticesManifest = {
-      currentNotices: [
+      notices: [
         {
           id: '1',
           link: 'https://github.com/aws-amplify/amplify-backend/issues/2',
@@ -144,9 +157,9 @@ void describe('Notices manifest validator', () => {
     );
   });
 
-  void it('throws if version predicate is invalid', async () => {
+  void it('throws if package version predicate is invalid', async () => {
     const validManifest: NoticesManifest = {
-      currentNotices: [
+      notices: [
         {
           id: '1',
           title: 'test notice',
@@ -168,6 +181,35 @@ void describe('Notices manifest validator', () => {
         assert.strictEqual(
           error.message,
           'Package version predicate must have a valid version range'
+        );
+        return true;
+      }
+    );
+  });
+
+  void it('throws if node version predicate is invalid', async () => {
+    const validManifest: NoticesManifest = {
+      notices: [
+        {
+          id: '1',
+          title: 'test notice',
+          details: 'test details',
+          predicates: [
+            {
+              type: 'nodeVersion',
+              versionRange: 'invalid',
+            },
+          ],
+        },
+      ],
+    };
+
+    await assert.rejects(
+      () => validator.validate(validManifest),
+      (error: Error) => {
+        assert.strictEqual(
+          error.message,
+          'Node version predicate must have a valid version range'
         );
         return true;
       }
