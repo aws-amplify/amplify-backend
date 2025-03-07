@@ -560,12 +560,22 @@ If your circular dependency issue is not resolved with this workaround, please c
     },
     {
       errorRegex:
-        /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
+        /(?<stackName>amplify[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
       humanReadableErrorMessage:
         'The CloudFormation deployment failed due to {stackName} being in {state} state.',
       resolutionMessage:
         'Find more information in the CloudFormation AWS Console for this stack.',
       errorName: 'CloudFormationDeploymentError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /failed: ValidationError: Stack \[(?<stackName>amplify[a-z0-9-]+)(.*)\] cannot be deleted while TerminationProtection is enabled/,
+      humanReadableErrorMessage:
+        '{stackName} cannot be deleted because it has termination deployment enabled.',
+      resolutionMessage:
+        'If you are sure you want to delete {stackName}, you will need to disable TerminationProtection.',
+      errorName: 'CloudFormationDeletionError',
       classification: 'ERROR',
     },
     {
