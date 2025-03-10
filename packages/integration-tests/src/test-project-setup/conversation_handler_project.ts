@@ -593,7 +593,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       defaultConversationHandlerFunction,
       apolloClient
     );
-    // The image contains a logo of AWS. Responses may vary, but they should always contain statements below.
+    // The document contains a hello world string. Responses may vary, but they should always contain statements below.
     assert.match(response.content, /document/);
     assert.match(response.content, /(H|h)ello (W|w)orld/);
   };
