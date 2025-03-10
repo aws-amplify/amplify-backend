@@ -41,7 +41,7 @@
     "@aws-amplify/client-config": "^1.5.7",
     "@aws-amplify/platform-core": "^1.6.4",
     "@aws-amplify/plugin-types": "^1.7.0",
-    "@aws-sdk/client-amplify": "^3.624.0"
+    "@aws-sdk/client-amplify": "^3.758.0"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.168.0",
