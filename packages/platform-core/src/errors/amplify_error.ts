@@ -194,6 +194,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
         error
       );
     }
+    if (error instanceof Error && isInotifyError(error)) {
+      return new AmplifyUserError(
+        'InsufficientInotifyWatchersError',
+        {
+          message: error.message,
+          resolution:
+            'There appears to be an insufficient number of inotify watchers. To increase the amount of inotify watchers, change the `fs.inotify.max_user_watches` setting in your system config files to a higher value.',
+        },
+        error
+      );
+    }
     return new AmplifyFault(
       'UnknownFault',
       {
@@ -328,6 +339,10 @@ const isOutOfMemoryError = (err?: Error): boolean => {
     (err.message.includes('process out of memory') ||
       err.message.includes('connect ENOMEM'))
   );
+};
+
+const isInotifyError = (err?: Error): boolean => {
+  return !!err && err.message.includes('inotify_add_watch');
 };
 
 /**

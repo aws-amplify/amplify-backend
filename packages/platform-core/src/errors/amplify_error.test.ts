@@ -316,4 +316,15 @@ void describe('AmplifyError.fromError', async () => {
       `Failed the test for error ${error.message}`
     );
   });
+  void it('wraps InsufficientInotifyWatchersError in AmplifyUserError when system has reached the limit of inotify watchers', () => {
+    const error = new Error(
+      `Error: inotify_add_watch on '/some/path' failed: No space left on device`
+    );
+    const actual = AmplifyError.fromError(error);
+    assert.ok(
+      AmplifyError.isAmplifyError(actual) &&
+        actual.name === 'InsufficientInotifyWatchersError',
+      `Failed the test for error ${error.message}`
+    );
+  });
 });
