@@ -53,8 +53,6 @@ export class CfnDeploymentProgressLogger {
 
   private readonly failures = new Array<StackEvent>();
 
-  private hookFailureMap = new Map<string, Map<string, string>>();
-
   private readonly getBlockWidth: () => number;
   private readonly getBlockHeight: () => number;
   private block;
@@ -84,8 +82,7 @@ export class CfnDeploymentProgressLogger {
     const metadata = cfnEvent.metadata;
     const event = cfnEvent.event;
     const status = event.ResourceStatus;
-    const hookStatus = event.HookStatus;
-    const hookType = event.HookType;
+
     if (
       !status ||
       !event.LogicalResourceId ||
@@ -121,7 +118,7 @@ export class CfnDeploymentProgressLogger {
       this.resourcesInProgress[event.LogicalResourceId] = event;
     }
 
-    if (this.isFailureStatus(status)) {
+    if (this.isFailureStatus(event)) {
       const isCanceled =
         // eslint-disable-next-line spellcheck/spell-checker
         (event.ResourceStatusReason ?? '').indexOf('cancelled') > -1;
@@ -154,27 +151,6 @@ export class CfnDeploymentProgressLogger {
         }
       }
       this.resourcesPrevCompleteState[event.LogicalResourceId] = status;
-    }
-
-    if (
-      hookStatus !== undefined &&
-      hookStatus.endsWith('_COMPLETE_FAILED') &&
-      event.LogicalResourceId !== undefined &&
-      hookType !== undefined
-    ) {
-      if (this.hookFailureMap.has(event.LogicalResourceId)) {
-        this.hookFailureMap
-          .get(event.LogicalResourceId)
-          ?.set(hookType, event.HookStatusReason ?? '');
-      } else {
-        this.hookFailureMap.set(
-          event.LogicalResourceId,
-          new Map<string, string>()
-        );
-        this.hookFailureMap
-          .get(event.LogicalResourceId)
-          ?.set(hookType, event.HookStatusReason ?? '');
-      }
     }
   }
 
@@ -279,20 +255,7 @@ export class CfnDeploymentProgressLogger {
    * Extract the failure reason from stack events
    */
   private failureReason = (event: StackEvent) => {
-    const resourceStatusReason = event.ResourceStatusReason ?? '';
-    const logicalResourceId = event.LogicalResourceId ?? '';
-    const hookFailureReasonMap = this.hookFailureMap.get(logicalResourceId);
-
-    if (hookFailureReasonMap !== undefined) {
-      for (const hookType of hookFailureReasonMap.keys()) {
-        if (resourceStatusReason.includes(hookType)) {
-          return (
-            resourceStatusReason + ' : ' + hookFailureReasonMap.get(hookType)
-          );
-        }
-      }
-    }
-    return resourceStatusReason;
+    return event.ResourceStatusReason ?? '';
   };
 
   /**
@@ -346,18 +309,28 @@ export class CfnDeploymentProgressLogger {
    * Format the failure reason to be on the next line
    */
   private failureReasonOnNextLine = (event: StackEvent) => {
-    return this.isFailureStatus(event.ResourceStatus ?? '')
+    return this.isFailureStatus(event)
       ? `\n${' '.repeat(
           this.timeStampWidth + this.statusWidth + 6
         )}${format.color(this.failureReason(event) ?? '', 'Red')}`
       : '';
   };
 
-  private isFailureStatus = (status: string) => {
+  private isFailureStatus = (event: StackEvent) => {
+    if (
+      (event.ResourceStatusReason?.includes(
+        'The following resource(s) failed'
+      ) ||
+        event.ResourceStatusReason === 'Initiated by parent stack') &&
+      event.ResourceType === 'AWS::CloudFormation::Stack'
+    ) {
+      // Useless nested stack failure messages
+      return false;
+    }
     return (
-      status.endsWith('_FAILED') ||
-      status === 'ROLLBACK_IN_PROGRESS' ||
-      status === 'UPDATE_ROLLBACK_IN_PROGRESS'
+      (event.ResourceStatus && event.ResourceStatus.endsWith('_FAILED')) ||
+      event.ResourceStatus === 'ROLLBACK_IN_PROGRESS' ||
+      event.ResourceStatus === 'UPDATE_ROLLBACK_IN_PROGRESS'
     );
   };
 
