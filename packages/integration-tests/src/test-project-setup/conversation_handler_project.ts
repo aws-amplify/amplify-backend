@@ -594,8 +594,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
       apolloClient
     );
     // The image contains a logo of AWS. Responses may vary, but they should always contain statements below.
-    assert.match(response.content, /logo/);
-    assert.match(response.content, /(aws)|(AWS)|(Amazon Web Services)/);
+    assert.match(response.content, /document/);
+    assert.match(response.content, /(H|h)ello (W|w)orld/);
   };
 
   private assertDefaultConversationHandlerCanExecuteTurnWithDataTool = async (
