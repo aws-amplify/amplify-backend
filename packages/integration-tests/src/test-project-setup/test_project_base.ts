@@ -107,7 +107,6 @@ export abstract class TestProjectBase {
     backendIdentifier: BackendIdentifier,
     waitForStackDeletion: boolean = false
   ) {
-    console.log(`[E2E] Tearing down project ${this.name}`);
     if (backendIdentifier.type === 'sandbox') {
       await ampxCli(['sandbox', 'delete'], this.projectDirPath)
         .do(confirmDeleteSandbox())

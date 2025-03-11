@@ -27,7 +27,6 @@
     "@aws-cdk/toolkit-lib": "0.1.4"
   },
   "peerDependencies": {
-    "aws-cdk": "^2.1000.2",
     "aws-cdk-lib": "^2.179.0",
     "typescript": "^5.0.0"
   }

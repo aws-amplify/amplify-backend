@@ -57,17 +57,13 @@ export class CDKDeployer implements BackendDeployer {
       [key: string]: unknown;
     } = {};
 
+    // 1. Prepare context params for the CDK app
     if (backendId.type === 'sandbox') {
       if (deployProps?.secretLastUpdated) {
         contextParams['secretLastUpdated'] =
           deployProps.secretLastUpdated.getTime();
       }
     }
-
-    // if (deployProps?.profile) {
-    //   cdkCommandArgs.push('--profile', deployProps.profile);
-    // }
-
     contextParams[CDKContextKey.BACKEND_NAMESPACE] = backendId.namespace;
     contextParams[CDKContextKey.BACKEND_NAME] = backendId.name;
     contextParams[CDKContextKey.DEPLOYMENT_TYPE] = backendId.type;
@@ -76,7 +72,7 @@ export class CDKDeployer implements BackendDeployer {
       2. Build cloud executable from dynamically importing the cdk ts file, i.e. backend.ts
       2.1 By not having a child process in this case, the `process.on('beforeExit')` does not execute
           on the CDK side resulting in the app not getting synthesized properly. So we send a signal/message
-          to the same process and catch it in backend package where App is initialized to perform explicit synth
+          to the same process and catch it in backend package where App is initialized to explicitly perform synth
      */
     const cx = await this.cdkToolkit.fromAssemblyBuilder(
       async () => {
@@ -90,7 +86,7 @@ export class CDKDeployer implements BackendDeployer {
       { context: contextParams, outdir: this.relativeCloudAssemblyLocation }
     );
 
-    // 3. Initiate synth for the cloud executable.
+    // 3. Initiate synth for the cloud executable and send a message for display.
     const synthStartTime = Date.now();
     let synthAssembly,
       synthError: Error | undefined = undefined;
@@ -123,7 +119,7 @@ export class CDKDeployer implements BackendDeployer {
       level: 'result',
     });
 
-    // 4. Typescript compilation. For type related errors we prefer errors from here.
+    // 4. Typescript compilation. For type related errors, we prefer to show errors from TS to customers rather than synth
     const typeCheckStartTime = Date.now();
     await this.ioHost.notify({
       message: `Backend type checks started`,
@@ -161,11 +157,13 @@ export class CDKDeployer implements BackendDeployer {
       });
     }
 
+    // 4.1 If typescript compilation was successful but synth had failed, we throw synth error
     if (synthError) {
       throw this.cdkErrorMapper.getAmplifyError(synthError);
     }
 
     // 5. Perform actual deployment. CFN or hotswap
+    const deployStartTime = Date.now();
     try {
       await this.cdkToolkit.deploy(synthAssembly!, {
         stacks: {
@@ -183,15 +181,12 @@ export class CDKDeployer implements BackendDeployer {
       throw this.cdkErrorMapper.getAmplifyError(error as Error);
     }
 
-    // if (deployProps?.profile) {
-    //   cdkCommandArgs.push('--profile', deployProps.profile);
-    // }
-
     return {
       deploymentTimes: {
         synthesisTime: synthTimeSeconds,
-        totalTime: 0,
-        //synthTimeSeconds + (deployResult?.deploymentTimes?.totalTime || 0),
+        totalTime:
+          synthTimeSeconds +
+          Math.floor((Date.now() - deployStartTime) / 10) / 100,
       },
     };
   };
@@ -205,9 +200,38 @@ export class CDKDeployer implements BackendDeployer {
   ) => {
     // eslint-disable-next-line no-console
     console.log(destroyProps?.profile);
-    const assembly = await this.cdkToolkit.fromAssemblyDirectory(
-      this.relativeCloudAssemblyLocation
-    );
+
+    let assembly;
+    try {
+      assembly = await this.cdkToolkit.fromAssemblyDirectory(
+        this.relativeCloudAssemblyLocation
+      );
+      // eslint-disable-next-line amplify-backend-rules/no-empty-catch
+    } catch {
+      // do nothing
+    }
+
+    if (!assembly) {
+      // Looks like the sandbox has not been deployed yet. Let's try to create a new one
+      const contextParams: {
+        [key: string]: unknown;
+      } = {};
+      contextParams[CDKContextKey.BACKEND_NAMESPACE] = backendId.namespace;
+      contextParams[CDKContextKey.BACKEND_NAME] = backendId.name;
+      contextParams[CDKContextKey.DEPLOYMENT_TYPE] = backendId.type;
+      assembly = await this.cdkToolkit.fromAssemblyBuilder(
+        async () => {
+          await tsImport(
+            pathToFileURL(this.backendLocator.locate()).toString(),
+            import.meta.url
+          );
+          return new CloudAssembly(this.relativeCloudAssemblyLocation);
+        },
+        { context: contextParams, outdir: this.relativeCloudAssemblyLocation }
+      );
+    }
+
+    const deploymentStartTime = Date.now();
     await this.cdkToolkit.destroy(assembly, {
       stacks: {
         strategy: StackSelectionStrategy.ALL_STACKS,
@@ -215,7 +239,7 @@ export class CDKDeployer implements BackendDeployer {
     });
     return {
       deploymentTimes: {
-        totalTime: 0,
+        totalTime: Math.floor((Date.now() - deploymentStartTime) / 10) / 100,
       },
     };
   };
