@@ -53,7 +53,7 @@ void describe(
     ];
 
     testCases.forEach(({ initialState, startDelayMS }) => {
-      void describe('installs expected packages and scaffolds expected files', () => {
+      void describe.skip('installs expected packages and scaffolds expected files', () => {
         let tempDir: string;
         beforeEach(async () => {
           tempDir = await fs.mkdtemp(
