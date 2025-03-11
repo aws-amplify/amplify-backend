@@ -1,6 +1,6 @@
 import { Argv, CommandModule } from 'yargs';
-import { printer } from '@aws-amplify/cli-core';
 import { NoticesController } from '../../notices/notices_controller.js';
+import { NoticesPrinter } from '../../notices/notices_printer.js';
 
 /**
  * Notices list command.
@@ -19,7 +19,10 @@ export class NoticesListCommand implements CommandModule<object> {
   /**
    * Creates notices list command
    */
-  constructor(private readonly noticesController: NoticesController) {
+  constructor(
+    private readonly noticesController: NoticesController,
+    private readonly noticesPrinter: NoticesPrinter
+  ) {
     this.command = 'list';
     this.describe = 'Displays a list of relevant notices';
   }
@@ -29,7 +32,7 @@ export class NoticesListCommand implements CommandModule<object> {
    */
   handler = async (): Promise<void> => {
     const notices = await this.noticesController.getApplicableNotices();
-    printer.print(JSON.stringify(notices, null, 2));
+    this.noticesPrinter.print(notices);
   };
 
   /**
