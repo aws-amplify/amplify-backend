@@ -155,6 +155,20 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       // use the sandbox key when the branch name is not available (e.g. in the sandbox deployment)
       const amplifyBranchName =
         scope.node.tryGetContext('amplifyEnvironmentName') ?? 'sandbox';
+      // ensure all branch names are unique
+      if (this.props.migratedAmplifyGen1DynamoDbTableMap) {
+        const branchNames = new Set<string>();
+        for (const tableMap of this.props.migratedAmplifyGen1DynamoDbTableMap) {
+          if (branchNames.has(tableMap.branchName)) {
+            throw new AmplifyUserError('DefineDataConfigurationError', {
+              message:
+                'Branch names must be unique in the migratedAmplifyGen1DynamoDbTableMap',
+              resolution: 'Ensure all branch names are unique',
+            });
+          }
+          branchNames.add(tableMap.branchName);
+        }
+      }
       const tableMapForCurrentBranch = (
         this.props.migratedAmplifyGen1DynamoDbTableMap ?? []
       ).find((tableMap) => tableMap.branchName === amplifyBranchName);

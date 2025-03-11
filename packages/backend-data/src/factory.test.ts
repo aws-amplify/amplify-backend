@@ -1169,6 +1169,40 @@ void describe('Table Import', () => {
       tableName: 'ImportedModel-1234-dev',
     });
   });
+
+  void it('does not allow duplicate branch names', () => {
+    const schema = /* GraphQL */ `
+      type ImportedModel @model {
+        description: String
+      }
+    `;
+    const dataFactory = defineData({
+      schema,
+      migratedAmplifyGen1DynamoDbTableMap: [
+        {
+          branchName: 'dev',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-dev1',
+          },
+        },
+        {
+          branchName: 'dev',
+          modelTableNameMap: {
+            ImportedModel: 'ImportedModel-1234-dev2',
+          },
+        },
+      ],
+    });
+
+    const getInstanceProps = createInstancePropsBySetupCDKApp({
+      isSandboxMode: false,
+      amplifyEnvironmentName: 'dev',
+    });
+    assert.throws(() => dataFactory.getInstance(getInstanceProps), {
+      message:
+        'Branch names must be unique in the migratedAmplifyGen1DynamoDbTableMap',
+    });
+  });
 });
 
 const resetFactoryCount = () => {
