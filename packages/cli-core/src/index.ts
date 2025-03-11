@@ -6,3 +6,5 @@ export * from './package-manager-controller/package_manager_controller_factory.j
 export * from './loggers/amplify_event_loggers.js';
 export * from './loggers/amplify_io_events_bridge.js';
 export * from './loggers/amplify_io_events_bridge_singleton_factory.js';
+export * from './notices/notices.js';
+export * from './notices/notices_manifest_validator.js';

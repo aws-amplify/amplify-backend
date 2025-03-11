@@ -61,6 +61,20 @@ type ConversationMessage = {
 type ConversationMessageContentBlock =
   | bedrock.ContentBlock
   | {
+      image?: never;
+      // These are needed so that union with other content block types works.
+      // See https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-bedrock-runtime/TypeAlias/ContentBlock/.
+      text?: never;
+      document: Omit<bedrock.DocumentBlock, 'source'> & {
+        // Upstream (Appsync) may send images in a form of Base64 encoded strings
+        source: { bytes: string };
+      };
+      toolUse?: never;
+      toolResult?: never;
+      guardContent?: never;
+      $unknown?: never;
+    }
+  | {
       image: Omit<bedrock.ImageBlock, 'source'> & {
         // Upstream (Appsync) may send images in a form of Base64 encoded strings
         source: { bytes: string };
@@ -352,6 +366,26 @@ class ConversationHandlerTestProject extends TestProjectBase {
       )
     );
 
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithDocument(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        false
+      )
+    );
+
+    await this.executeWithRetry(() =>
+      this.assertDefaultConversationHandlerCanExecuteTurnWithDocument(
+        backendId,
+        authenticatedUserCredentials.accessToken,
+        dataUrl,
+        apolloClient,
+        true
+      )
+    );
+
     await this.executeWithRetry((attempt) =>
       this.assertDefaultConversationHandlerCanPropagateError(
         backendId,
@@ -498,6 +532,74 @@ class ConversationHandlerTestProject extends TestProjectBase {
     // The image contains a logo of AWS. Responses may vary, but they should always contain statements below.
     assert.match(response.content, /logo/);
     assert.match(response.content, /(aws)|(AWS)|(Amazon Web Services)/);
+  };
+
+  private assertDefaultConversationHandlerCanExecuteTurnWithDocument = async (
+    backendId: BackendIdentifier,
+    accessToken: string,
+    graphqlApiEndpoint: string,
+    apolloClient: ApolloClient<NormalizedCacheObject>,
+    streamResponse: boolean
+  ): Promise<void> => {
+    const defaultConversationHandlerFunction = (
+      await this.resourceFinder.findByBackendIdentifier(
+        backendId,
+        'AWS::Lambda::Function',
+        (name) => name.includes('default')
+      )
+    )[0];
+
+    const documentPath = resolve(
+      fileURLToPath(import.meta.url),
+      '..',
+      '..',
+      '..',
+      'src',
+      'test-projects',
+      'conversation-handler',
+      'resources',
+      'sample-document.docx'
+    );
+
+    const documentSource = await fs.readFile(documentPath, 'base64');
+
+    const message: CreateConversationMessageChatInput = {
+      id: randomUUID().toString(),
+      conversationId: randomUUID().toString(),
+      role: 'user',
+      content: [
+        {
+          text: 'What is in the attached document?',
+        },
+        {
+          document: {
+            format: 'docx',
+            name: 'sample-document',
+            source: { bytes: documentSource },
+          },
+        },
+      ],
+    };
+
+    // send event
+    const event: ConversationTurnEvent = {
+      conversationId: message.conversationId,
+      currentMessageId: message.id,
+      graphqlApiEndpoint: graphqlApiEndpoint,
+      request: {
+        headers: { authorization: accessToken },
+      },
+      ...this.getCommonEventProperties(streamResponse),
+    };
+    await this.insertMessage(apolloClient, message);
+    const response = await this.executeConversationTurn(
+      event,
+      defaultConversationHandlerFunction,
+      apolloClient
+    );
+    // The document contains a hello world string. Responses may vary, but they should always contain statements below.
+    assert.match(response.content, /document/);
+    assert.match(response.content, /(H|h)ello (W|w)orld/);
   };
 
   private assertDefaultConversationHandlerCanExecuteTurnWithDataTool = async (

@@ -1,5 +1,17 @@
 # @aws-amplify/cli-core
 
+## 1.4.0
+
+### Minor Changes
+
+- af90a9b: Add notices schema
+
+### Patch Changes
+
+- Updated dependencies [dafb530]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+
 ## 1.3.0
 
 ### Minor Changes

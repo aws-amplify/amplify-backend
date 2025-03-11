@@ -1,5 +1,11 @@
 # @aws-amplify/integration-tests
 
+## 0.6.3
+
+### Patch Changes
+
+- 3298c3a: update naming of storage access policies to also use stack
+
 ## 0.6.2
 
 ### Patch Changes

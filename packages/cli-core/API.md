@@ -11,6 +11,7 @@ import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
 import { AmplifyIoHostEventRequestMessageIoRequest } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
+import z from 'zod';
 
 // @public
 export class AmplifyEventLogger {
@@ -121,6 +122,396 @@ export enum LogLevel {
 
 // @public (undocumented)
 export const minimumLogLevel: LogLevel;
+
+// @public (undocumented)
+export type Notice = z.infer<typeof noticeSchema>;
+
+// @public (undocumented)
+export const noticeSchema: z.ZodObject<{
+    id: z.ZodString;
+    title: z.ZodString;
+    details: z.ZodString;
+    link: z.ZodOptional<z.ZodString>;
+    predicates: z.ZodArray<z.ZodDiscriminatedUnion<"type", [z.ZodObject<{
+        type: z.ZodLiteral<"packageVersion">;
+        packageName: z.ZodString;
+        versionRange: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        type: "packageVersion";
+        packageName: string;
+        versionRange: string;
+    }, {
+        type: "packageVersion";
+        packageName: string;
+        versionRange: string;
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"nodeVersion">;
+        versionRange: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        type: "nodeVersion";
+        versionRange: string;
+    }, {
+        type: "nodeVersion";
+        versionRange: string;
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"osFamily">;
+        osFamily: z.ZodEnum<["windows", "macos", "linux"]>;
+    }, "strip", z.ZodTypeAny, {
+        type: "osFamily";
+        osFamily: "windows" | "macos" | "linux";
+    }, {
+        type: "osFamily";
+        osFamily: "windows" | "macos" | "linux";
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"backendComponent">;
+        backendComponent: z.ZodEnum<["data", "auth", "function", "storage", "ai"]>;
+    }, "strip", z.ZodTypeAny, {
+        type: "backendComponent";
+        backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+    }, {
+        type: "backendComponent";
+        backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"command">;
+        command: z.ZodEnum<["sandbox", "pipeline-deploy", "generate", "configure"]>;
+    }, "strip", z.ZodTypeAny, {
+        type: "command";
+        command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+    }, {
+        type: "command";
+        command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"errorMessage">;
+        errorMessage: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        type: "errorMessage";
+        errorMessage: string;
+    }, {
+        type: "errorMessage";
+        errorMessage: string;
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"frequency">;
+        frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
+    }, "strip", z.ZodTypeAny, {
+        type: "frequency";
+        frequency: "command" | "deployment" | "once" | "daily";
+    }, {
+        type: "frequency";
+        frequency: "command" | "deployment" | "once" | "daily";
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"validityPeriod">;
+        from: z.ZodOptional<z.ZodNumber>;
+        to: z.ZodOptional<z.ZodNumber>;
+    }, "strip", z.ZodTypeAny, {
+        type: "validityPeriod";
+        from?: number | undefined;
+        to?: number | undefined;
+    }, {
+        type: "validityPeriod";
+        from?: number | undefined;
+        to?: number | undefined;
+    }>]>, "many">;
+}, "strip", z.ZodTypeAny, {
+    id: string;
+    title: string;
+    details: string;
+    predicates: ({
+        type: "packageVersion";
+        packageName: string;
+        versionRange: string;
+    } | {
+        type: "nodeVersion";
+        versionRange: string;
+    } | {
+        type: "osFamily";
+        osFamily: "windows" | "macos" | "linux";
+    } | {
+        type: "backendComponent";
+        backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+    } | {
+        type: "command";
+        command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+    } | {
+        type: "errorMessage";
+        errorMessage: string;
+    } | {
+        type: "frequency";
+        frequency: "command" | "deployment" | "once" | "daily";
+    } | {
+        type: "validityPeriod";
+        from?: number | undefined;
+        to?: number | undefined;
+    })[];
+    link?: string | undefined;
+}, {
+    id: string;
+    title: string;
+    details: string;
+    predicates: ({
+        type: "packageVersion";
+        packageName: string;
+        versionRange: string;
+    } | {
+        type: "nodeVersion";
+        versionRange: string;
+    } | {
+        type: "osFamily";
+        osFamily: "windows" | "macos" | "linux";
+    } | {
+        type: "backendComponent";
+        backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+    } | {
+        type: "command";
+        command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+    } | {
+        type: "errorMessage";
+        errorMessage: string;
+    } | {
+        type: "frequency";
+        frequency: "command" | "deployment" | "once" | "daily";
+    } | {
+        type: "validityPeriod";
+        from?: number | undefined;
+        to?: number | undefined;
+    })[];
+    link?: string | undefined;
+}>;
+
+// @public (undocumented)
+export type NoticesManifest = z.infer<typeof noticesManifestSchema>;
+
+// @public (undocumented)
+export const noticesManifestSchema: z.ZodObject<{
+    notices: z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        title: z.ZodString;
+        details: z.ZodString;
+        link: z.ZodOptional<z.ZodString>;
+        predicates: z.ZodArray<z.ZodDiscriminatedUnion<"type", [z.ZodObject<{
+            type: z.ZodLiteral<"packageVersion">;
+            packageName: z.ZodString;
+            versionRange: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            type: "packageVersion";
+            packageName: string;
+            versionRange: string;
+        }, {
+            type: "packageVersion";
+            packageName: string;
+            versionRange: string;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"nodeVersion">;
+            versionRange: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            type: "nodeVersion";
+            versionRange: string;
+        }, {
+            type: "nodeVersion";
+            versionRange: string;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"osFamily">;
+            osFamily: z.ZodEnum<["windows", "macos", "linux"]>;
+        }, "strip", z.ZodTypeAny, {
+            type: "osFamily";
+            osFamily: "windows" | "macos" | "linux";
+        }, {
+            type: "osFamily";
+            osFamily: "windows" | "macos" | "linux";
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"backendComponent">;
+            backendComponent: z.ZodEnum<["data", "auth", "function", "storage", "ai"]>;
+        }, "strip", z.ZodTypeAny, {
+            type: "backendComponent";
+            backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+        }, {
+            type: "backendComponent";
+            backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"command">;
+            command: z.ZodEnum<["sandbox", "pipeline-deploy", "generate", "configure"]>;
+        }, "strip", z.ZodTypeAny, {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        }, {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"errorMessage">;
+            errorMessage: z.ZodString;
+        }, "strip", z.ZodTypeAny, {
+            type: "errorMessage";
+            errorMessage: string;
+        }, {
+            type: "errorMessage";
+            errorMessage: string;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"frequency">;
+            frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
+        }, "strip", z.ZodTypeAny, {
+            type: "frequency";
+            frequency: "command" | "deployment" | "once" | "daily";
+        }, {
+            type: "frequency";
+            frequency: "command" | "deployment" | "once" | "daily";
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"validityPeriod">;
+            from: z.ZodOptional<z.ZodNumber>;
+            to: z.ZodOptional<z.ZodNumber>;
+        }, "strip", z.ZodTypeAny, {
+            type: "validityPeriod";
+            from?: number | undefined;
+            to?: number | undefined;
+        }, {
+            type: "validityPeriod";
+            from?: number | undefined;
+            to?: number | undefined;
+        }>]>, "many">;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+        title: string;
+        details: string;
+        predicates: ({
+            type: "packageVersion";
+            packageName: string;
+            versionRange: string;
+        } | {
+            type: "nodeVersion";
+            versionRange: string;
+        } | {
+            type: "osFamily";
+            osFamily: "windows" | "macos" | "linux";
+        } | {
+            type: "backendComponent";
+            backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+        } | {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        } | {
+            type: "errorMessage";
+            errorMessage: string;
+        } | {
+            type: "frequency";
+            frequency: "command" | "deployment" | "once" | "daily";
+        } | {
+            type: "validityPeriod";
+            from?: number | undefined;
+            to?: number | undefined;
+        })[];
+        link?: string | undefined;
+    }, {
+        id: string;
+        title: string;
+        details: string;
+        predicates: ({
+            type: "packageVersion";
+            packageName: string;
+            versionRange: string;
+        } | {
+            type: "nodeVersion";
+            versionRange: string;
+        } | {
+            type: "osFamily";
+            osFamily: "windows" | "macos" | "linux";
+        } | {
+            type: "backendComponent";
+            backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+        } | {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        } | {
+            type: "errorMessage";
+            errorMessage: string;
+        } | {
+            type: "frequency";
+            frequency: "command" | "deployment" | "once" | "daily";
+        } | {
+            type: "validityPeriod";
+            from?: number | undefined;
+            to?: number | undefined;
+        })[];
+        link?: string | undefined;
+    }>, "many">;
+}, "strip", z.ZodTypeAny, {
+    notices: {
+        id: string;
+        title: string;
+        details: string;
+        predicates: ({
+            type: "packageVersion";
+            packageName: string;
+            versionRange: string;
+        } | {
+            type: "nodeVersion";
+            versionRange: string;
+        } | {
+            type: "osFamily";
+            osFamily: "windows" | "macos" | "linux";
+        } | {
+            type: "backendComponent";
+            backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+        } | {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        } | {
+            type: "errorMessage";
+            errorMessage: string;
+        } | {
+            type: "frequency";
+            frequency: "command" | "deployment" | "once" | "daily";
+        } | {
+            type: "validityPeriod";
+            from?: number | undefined;
+            to?: number | undefined;
+        })[];
+        link?: string | undefined;
+    }[];
+}, {
+    notices: {
+        id: string;
+        title: string;
+        details: string;
+        predicates: ({
+            type: "packageVersion";
+            packageName: string;
+            versionRange: string;
+        } | {
+            type: "nodeVersion";
+            versionRange: string;
+        } | {
+            type: "osFamily";
+            osFamily: "windows" | "macos" | "linux";
+        } | {
+            type: "backendComponent";
+            backendComponent: "function" | "data" | "auth" | "storage" | "ai";
+        } | {
+            type: "command";
+            command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        } | {
+            type: "errorMessage";
+            errorMessage: string;
+        } | {
+            type: "frequency";
+            frequency: "command" | "deployment" | "once" | "daily";
+        } | {
+            type: "validityPeriod";
+            from?: number | undefined;
+            to?: number | undefined;
+        })[];
+        link?: string | undefined;
+    }[];
+}>;
+
+// @public
+export class NoticesManifestValidator {
+    constructor(props?: NoticesManifestValidatorProps | undefined, _fetch?: typeof fetch);
+    // (undocumented)
+    validate: (noticesManifest: NoticesManifest) => Promise<void>;
+}
+
+// @public (undocumented)
+export type NoticesManifestValidatorProps = {
+    checkLinksWithGitHubApi?: boolean;
+};
 
 // @public
 export class PackageManagerControllerFactory {

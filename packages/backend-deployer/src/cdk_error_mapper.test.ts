@@ -400,10 +400,28 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: `error Command cdk not found. Did you mean cdl?`,
   },
   {
-    errorMessage: `[31m  amplify-some-stack failed: ValidationError: Stack:stack-arn is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
+    errorMessage: `[31mamplify-some-stack [34m failed: ValidationError: Stack:<stack-arn> is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
     expectedTopLevelErrorMessage:
       'The CloudFormation deployment failed due to amplify-some-stack being in UPDATE_ROLLBACK_FAILED state.',
     errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `[31mamplifysomestack [34m failed: ValidationError: Stack:<stack-arn> is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      'The CloudFormation deployment failed due to amplifysomestack being in UPDATE_ROLLBACK_FAILED state.',
+    errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `[1mamplifysomebranch [22m failed: ValidationError: Stack [amplifysomebranch] cannot be deleted while TerminationProtection is enabled`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      'amplifysomebranch cannot be deleted because it has termination deployment enabled.',
+    errorName: 'CloudFormationDeletionError',
     expectedDownstreamErrorMessage: undefined,
   },
   {
