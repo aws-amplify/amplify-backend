@@ -30,3 +30,4 @@ allow-licenses:
   - X11
   - zlib-acknowledgement
   - Zlib
+show-openssf-scorecard: false # Temporary workaround for https://github.com/aws-amplify/amplify-backend/pull/2574
