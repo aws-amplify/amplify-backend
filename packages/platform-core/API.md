@@ -133,7 +133,7 @@ export class FilePathExtractor {
 }
 
 // @public (undocumented)
-export type LocalConfigurationFileName = 'usage_data_preferences.json';
+export type LocalConfigurationFileName = 'usage_data_preferences.json' | 'notices.json';
 
 // @public
 class LogLevelConverter {
