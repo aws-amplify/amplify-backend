@@ -26,8 +26,6 @@ export class AmplifyEventLogger {
         notify: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
     };
     nonTtyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    // (undocumented)
-    testing: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
 }
 
 // @public
