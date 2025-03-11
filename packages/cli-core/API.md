@@ -44,7 +44,6 @@ export const amplifyIOEventsBridgeFactory: AmplifyIOEventsBridgeSingletonFactory
 
 // @public
 export class AmplifyIOEventsBridgeSingletonFactory {
-    constructor();
     getInstance: () => AmplifyIOEventsBridge;
 }
 
