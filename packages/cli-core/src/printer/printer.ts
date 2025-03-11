@@ -2,6 +2,7 @@ import { WriteStream } from 'node:tty';
 import { EOL } from 'os';
 import ora, { Ora } from 'ora';
 import { ColorName, format } from '../format/format.js';
+import stripANSI from 'strip-ansi';
 
 export type RecordValue = string | number | string[] | Date;
 
@@ -33,6 +34,9 @@ export class Printer {
     message = this.stringify(message);
     if (this.isSpinnerRunning()) {
       this.printNewLine();
+    }
+    if (!this.enableTTY) {
+      message = stripANSI(message);
     }
     this.stdout.write(message);
     this.printNewLine();

@@ -2,7 +2,6 @@ import { StackEvent } from '@aws-sdk/client-cloudformation';
 
 import { RewritableBlock } from './rewritable_block.js';
 import { ColorName, format } from '../../format/format.js';
-import { BackendIdentifierConversions } from '@aws-amplify/platform-core';
 
 /**
  * Collects events from CDK Toolkit about cfn deployment and structures them
@@ -29,6 +28,8 @@ export class CfnDeploymentProgressLogger {
    * A list of resource IDs which are currently being processed
    */
   private resourcesInProgress: Record<string, StackEvent> = {};
+
+  private resourceTypeColumnWidth = 25;
 
   /**
    * Previous completion state observed by logical ID
@@ -67,7 +68,9 @@ export class CfnDeploymentProgressLogger {
   constructor(private readonly props: PrinterProps) {
     // +1 because the stack also emits a "COMPLETE" event at the end, and that wasn't
     // counted yet. This makes it line up with the amount of events we expect.
-    this.resourcesTotal = props.resourcesTotal ? props.resourcesTotal + 1 : 152;
+    this.resourcesTotal = props.resourcesTotal
+      ? props.resourcesTotal + 1
+      : undefined;
 
     this.getBlockWidth = props.getBlockWidth;
     this.getBlockHeight = props.getBlockHeight;
@@ -92,11 +95,13 @@ export class CfnDeploymentProgressLogger {
     }
 
     // Hydrate friendly name resource cache
-    if (
-      event.ResourceType === 'AWS::CloudFormation::Stack' &&
-      BackendIdentifierConversions.fromStackName(event.LogicalResourceId)
-    ) {
-      this.resourceNameCache[event.LogicalResourceId] = this.rootStackDisplay;
+    if (event.ResourceType === 'AWS::CloudFormation::Stack') {
+      const nestedStackName = this.getFriendlyNameFromNestedStackName(
+        event.LogicalResourceId
+      );
+      if (nestedStackName) {
+        this.resourceNameCache[event.LogicalResourceId] = nestedStackName;
+      }
     }
     if (metadata && metadata.constructPath) {
       if (!(event.LogicalResourceId in this.resourceNameCache)) {
@@ -184,11 +189,22 @@ export class CfnDeploymentProgressLogger {
       ) {
         // Always display the root stack first
         if (
-          this.resourceNameCache[b.LogicalResourceId] === this.rootStackDisplay
+          this.resourceNameCache[b.LogicalResourceId].startsWith(
+            this.rootStackDisplay
+          ) &&
+          !this.resourceNameCache[a.LogicalResourceId].startsWith(
+            this.rootStackDisplay
+          )
         ) {
           return 1;
-        } else if (
-          this.resourceNameCache[a.LogicalResourceId] === this.rootStackDisplay
+        }
+        if (
+          this.resourceNameCache[a.LogicalResourceId].startsWith(
+            this.rootStackDisplay
+          ) &&
+          !this.resourceNameCache[b.LogicalResourceId].startsWith(
+            this.rootStackDisplay
+          )
         ) {
           return -1;
         }
@@ -214,25 +230,6 @@ export class CfnDeploymentProgressLogger {
         })
     );
 
-    await this.block.displayLines(lines);
-  }
-
-  /**
-   * If there are failures, we want them to be persisted and shown
-   * TBD: The formatting should be shared with the print method
-   */
-  public async finalize() {
-    const lines = new Array<string>();
-    for (const failure of this.failures) {
-      // Root stack failures are not interesting
-      if (failure.StackName === failure.LogicalResourceId) {
-        continue;
-      }
-
-      lines.push(this.getFormattedLine(failure, 'Red'));
-    }
-
-    // Display in the same block space, otherwise we're going to have silly empty lines.
     await this.block.displayLines(lines);
   }
 
@@ -353,8 +350,11 @@ export class CfnDeploymentProgressLogger {
         );
 
     const resourceType = this.padRight(
-      this.props.resourceTypeColumnWidth,
-      this.shorten(30, event.ResourceType?.split('::').slice(1).join(':') || '')
+      this.resourceTypeColumnWidth,
+      this.shorten(
+        this.resourceTypeColumnWidth,
+        event.ResourceType?.split('::').slice(1).join(':') || ''
+      )
     );
 
     const formattedResourceName = this.getFormattedResourceDisplayName(
@@ -393,6 +393,35 @@ export class CfnDeploymentProgressLogger {
         '  '.repeat(this.resourceNameIndentation++) + '∟ ' + resourceName;
     }
     return resourceNameDisplay;
+  };
+
+  /**
+   * For a typical nested stack, CFN generate events as follows
+   *
+   * When querying for Root Stack
+   * RootStack events (*)
+   * ∟ NestedStack events
+   *
+   * When querying for Nested Stack
+   * NestedStack events (*)
+   * ∟ Resource events
+   *
+   * For the * marked resources, cdk doesn't include metadata, so we don't have
+   * a way to show friendly names. This method tries to identify these stacks
+   * and make them show up in Root stack hierarchy
+   */
+  private getFriendlyNameFromNestedStackName = (
+    stackName: string
+  ): string | undefined => {
+    const parts = stackName.split('-');
+    if (parts && parts.length === 7 && parts[3] === 'sandbox') {
+      return this.rootStackDisplay + '/' + parts[5].slice(0, -8) + ' stack';
+    } else if (parts && parts.length === 5) {
+      if (parts[3] === 'sandbox') {
+        return this.rootStackDisplay;
+      }
+    }
+    return undefined;
   };
 
   private colorFromStatusActivity = (
@@ -458,11 +487,6 @@ type PrinterProps = {
    * Total resources to deploy
    */
   readonly resourcesTotal?: number;
-
-  /**
-   * The with of the "resource type" column.
-   */
-  readonly resourceTypeColumnWidth: number;
 
   /**
    * width of the block in which to render the CFN progress

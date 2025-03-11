@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { LogLevel } from '../printer/printer.js';
 import { minimumLogLevel, printer } from '../printer.js';
 import { format } from '../format/format.js';
@@ -17,7 +16,6 @@ export class AmplifyEventLogger {
   private printer = printer; // default stdout
   private cfnDeploymentProgressLogger: CfnDeploymentProgressLogger | undefined;
   private outputs = {};
-  private testingData: any[] = [];
 
   /**
    * a logger instance to be used for CDK events
@@ -41,44 +39,6 @@ export class AmplifyEventLogger {
     };
   };
 
-  // eslint-disable-next-line @shopify/prefer-early-return
-  testing = <T>(msg: AmplifyIoHostEventMessage<T>): Promise<void> => {
-    if (
-      [
-        'CDK_TOOLKIT_I5501',
-        'CDK_TOOLKIT_I5503',
-        'CDK_TOOLKIT_I0000',
-        'CDK_TOOLKIT_I5900',
-        'CDK_TOOLKIT_I5000',
-      ].includes(msg.code) ||
-      msg.message.includes('deploying...')
-    ) {
-      this.testingData.push({ code: msg.code, message: msg.message });
-    }
-    if (
-      msg.code === 'CDK_TOOLKIT_I5502' &&
-      msg.data &&
-      typeof msg.data === 'object' &&
-      'event' in msg.data
-    ) {
-      const event = msg.data as CfnDeploymentStackEvent;
-      this.testingData.push({
-        code: msg.code,
-        message: msg.message,
-        data: event,
-      });
-    }
-
-    if (
-      msg.code === 'CDK_TOOLKIT_I5000' ||
-      msg.message.includes('Failed resources')
-    ) {
-      console.log(JSON.stringify(this.testingData, null, 2));
-    }
-
-    return Promise.resolve();
-  };
-
   /**
    * Log debug messages
    */
@@ -88,10 +48,11 @@ export class AmplifyEventLogger {
         msg.data &&
         typeof msg.data === 'object' &&
         'sdkLevel' in msg.data &&
-        msg.data.sdkLevel === 'info'
+        'content' in msg.data &&
+        Array.isArray(msg.data.content)
       ) {
-        (msg?.data as any).content.forEach(
-          (trace: { clientName: any; commandName: any }) => {
+        msg.data.content.forEach(
+          (trace: { clientName: string; commandName: string }) => {
             this.printer.log(
               `AWS SDK Call ${trace.clientName}: ${trace.commandName}`,
               LogLevel.DEBUG
@@ -187,6 +148,48 @@ export class AmplifyEventLogger {
         this.printer.log(msg.message);
       }
     }
+
+    // CFN Outputs we care about. CDK_TOOLKIT_I5900 code represents outputs message.
+    // We save it so we can display at the end of the deployment.
+    if (msg.code === 'CDK_TOOLKIT_I5900') {
+      if (
+        msg.data &&
+        typeof msg.data === 'object' &&
+        'outputs' in msg.data &&
+        msg.data.outputs &&
+        typeof msg.data.outputs === 'object'
+      ) {
+        this.outputs = msg.data.outputs;
+      }
+    }
+
+    // Successful deployment or destruction.
+    if (msg.code === 'CDK_TOOLKIT_I5000' || msg.code === 'CDK_TOOLKIT_I7000') {
+      if (
+        msg.data &&
+        typeof msg.data === 'object' &&
+        'duration' in msg.data &&
+        msg.data.duration &&
+        typeof msg.data.duration === 'number'
+      ) {
+        this.printer.log(
+          `${format.success('✔')} Deployment completed in ${
+            msg.data.duration / 1000
+          } seconds`
+        );
+        if (
+          this.outputs &&
+          'awsAppsyncApiEndpoint' in this.outputs &&
+          this.outputs.awsAppsyncApiEndpoint
+        ) {
+          this.printer.log(
+            `AppSync API endpoint = ${format.link(
+              this.outputs.awsAppsyncApiEndpoint as string
+            )}`
+          );
+        }
+      }
+    }
   };
 
   /**
@@ -204,7 +207,6 @@ export class AmplifyEventLogger {
       !this.cfnDeploymentProgressLogger
     ) {
       this.cfnDeploymentProgressLogger = new CfnDeploymentProgressLogger({
-        resourceTypeColumnWidth: 30, // TBD
         getBlockWidth: () =>
           this.printer.stdout instanceof WriteStream
             ? this.printer.stdout.columns
@@ -222,53 +224,18 @@ export class AmplifyEventLogger {
     // Stop deployment progress display
     if (
       msg.code === 'CDK_TOOLKIT_I5503' ||
+      msg.code === 'CDK_TOOLKIT_I5000' ||
+      msg.code === 'CDK_TOOLKIT_I5900' ||
       msg.message.includes('Failed resources')
     ) {
-      // TBD: This will be replaced with a proper marker event with a unique code later
+      // TBD: This will be replaced with a proper marker event with a unique code later for failed resources
       if (this.cfnDeploymentProgressLogger) {
-        await this.cfnDeploymentProgressLogger.finalize();
         this.printer.stopSpinner();
         this.cfnDeploymentProgressLogger = undefined;
       }
-      if (
-        msg.data &&
-        typeof msg.data === 'object' &&
-        'duration' in msg.data &&
-        msg.data.duration &&
-        typeof msg.data.duration === 'number'
-      ) {
-        this.printer.log(
-          `${format.success('✔')} Deployment completed in ${
-            msg.data.duration / 1000
-          } seconds`
-        );
-      }
-      if (
-        this.outputs &&
-        'awsAppsyncApiEndpoint' in this.outputs &&
-        this.outputs.awsAppsyncApiEndpoint
-      ) {
-        this.printer.log(
-          `AppSync API endpoint = ${format.link(
-            this.outputs.awsAppsyncApiEndpoint as string
-          )}`
-        );
-      }
     }
 
-    // CFN Outputs we care about. CDK_TOOLKIT_I5900 code represents outputs message
-    if (msg.code === 'CDK_TOOLKIT_I5900') {
-      if (
-        msg.data &&
-        typeof msg.data === 'object' &&
-        'outputs' in msg.data &&
-        msg.data.outputs &&
-        typeof msg.data.outputs === 'object'
-      ) {
-        this.outputs = msg.data.outputs;
-      }
-    }
-
+    // CFN Deployment progress events information
     if (
       msg.code === 'CDK_TOOLKIT_I5502' &&
       msg.data &&
@@ -279,6 +246,8 @@ export class AmplifyEventLogger {
       this.cfnDeploymentProgressLogger?.addActivity(event);
     }
 
+    // CDK Marker that deployment is still in progress, we take this opportunity
+    // to display the aggregated events
     if (
       msg.code === 'CDK_TOOLKIT_I0000' &&
       msg.message.includes('has an ongoing operation in progress')
@@ -294,55 +263,9 @@ export class AmplifyEventLogger {
   nonTtyCfnDeploymentProgress = async <T>(
     msg: AmplifyIoHostEventMessage<T>
   ): Promise<void> => {
-    // TBD, remove this code duplication
-
-    // Stop deployment progress display
-    if (
-      msg.code === 'CDK_TOOLKIT_I5000' ||
-      msg.message.includes('Failed resources')
-    ) {
-      if (
-        msg.data &&
-        typeof msg.data === 'object' &&
-        'duration' in msg.data &&
-        msg.data.duration &&
-        typeof msg.data.duration === 'number'
-      ) {
-        this.printer.log(
-          `${format.success('✔')} Deployment completed in ${
-            msg.data.duration / 1000
-          } seconds`
-        );
-      }
-      if (
-        this.outputs &&
-        'awsAppsyncApiEndpoint' in this.outputs &&
-        this.outputs.awsAppsyncApiEndpoint
-      ) {
-        this.printer.log(
-          `AppSync API endpoint = ${format.link(
-            this.outputs.awsAppsyncApiEndpoint as string
-          )}`
-        );
-      }
-    }
-
-    // CFN Outputs we care about. CDK_TOOLKIT_I5900 code represents outputs message
-    if (msg.code === 'CDK_TOOLKIT_I5900') {
-      if (
-        msg.data &&
-        typeof msg.data === 'object' &&
-        'outputs' in msg.data &&
-        msg.data.outputs &&
-        typeof msg.data.outputs === 'object'
-      ) {
-        this.outputs = msg.data.outputs;
-      }
-    }
-
     if (msg.code === 'CDK_TOOLKIT_I5502') {
       // CDKs formatted cfn deployment progress
-      this.printer.log(msg.message);
+      this.printer.print(msg.message);
     }
   };
 }
