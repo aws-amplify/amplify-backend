@@ -21,7 +21,7 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
   ) {}
 
   /**
-   * Receive cdk events and fan out.
+   * Receive amplify events and fan out notifying anyone interested.
    */
   notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void> {
     if (!this.eventHandlers.notify) {
@@ -34,9 +34,9 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
   }
 
   /**
-   * Receive cdk events and fan out
+   * Receive amplify events and fan out asking everyone if they have a response for this request
    */
-  requestResponse<T, U>(
+  async requestResponse<T, U>(
     msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>
   ): Promise<U> {
     if (!this.eventHandlers.requestResponse) {
@@ -45,7 +45,8 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
     const promises: Promise<U>[] = this.eventHandlers.requestResponse.flatMap(
       (handler) => handler(msg)
     );
-    // TBD, return the first undefined response maybe
-    return Promise.any(promises);
+    // return the first undefined response if available, else the default response
+    const response = (await Promise.all(promises)).find((response) => response);
+    return response ?? msg.defaultResponse;
   }
 }
