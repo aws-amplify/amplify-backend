@@ -12,6 +12,7 @@ import { LocalNamespaceResolver } from '../../backend-identifier/local_namespace
 import { createSandboxSecretCommand } from './sandbox-secret/sandbox_secret_command_factory.js';
 import {
   PackageJsonReader,
+  TelemetryDataEmitterFactory,
   UsageDataEmitterFactory,
 } from '@aws-amplify/platform-core';
 import { SandboxEventHandlerFactory } from './sandbox_event_handler_factory.js';
@@ -67,6 +68,14 @@ export const createSandboxCommand = (): CommandModule<
         .tryGetDependencies();
       return await new UsageDataEmitterFactory().getInstance(
         libraryVersion,
+        dependencies
+      );
+    },
+    async () => {
+      const dependencies = await new PackageManagerControllerFactory()
+        .getPackageManagerController()
+        .tryGetDependencies();
+      return await new TelemetryDataEmitterFactory().getInstance(
         dependencies
       );
     }
