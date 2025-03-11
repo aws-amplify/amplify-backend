@@ -3,7 +3,7 @@ import { printer } from '@aws-amplify/cli-core';
 import { NoticesController } from '../../notices/notices_controller.js';
 
 /**
- * Notices command.
+ * Notices list command.
  */
 export class NoticesListCommand implements CommandModule<object> {
   /**
@@ -17,7 +17,7 @@ export class NoticesListCommand implements CommandModule<object> {
   readonly describe: string;
 
   /**
-   * Creates notices command
+   * Creates notices list command
    */
   constructor(private readonly noticesController: NoticesController) {
     this.command = 'list';

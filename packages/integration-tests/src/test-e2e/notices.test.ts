@@ -8,14 +8,18 @@ import {
 } from '../setup_test_directory.js';
 import { TestProjectBase } from '../test-project-setup/test_project_base.js';
 import { execa } from 'execa';
+import { configControllerFactory } from '@aws-amplify/platform-core';
 
 const betaEndpoint = 'https://beta.notices.cli.amplify.aws/notices.json';
 
 void describe('Notices', () => {
   const projectCreator = new MinimalWithTypescriptIdiomTestProjectCreator();
   let testProject: TestProjectBase;
+  const configurationController =
+    configControllerFactory.getInstance('notices.json');
 
   before(async () => {
+    await configurationController.clear();
     await createTestDirectory(rootTestDir);
     testProject = await projectCreator.createProject(rootTestDir);
   });
@@ -23,16 +27,33 @@ void describe('Notices', () => {
     await deleteTestDirectory(rootTestDir);
   });
 
-  void it('lists and acknowledges notice', async () => {
-    const { stdout } = await execa('npx', ['ampx', 'notices', 'list'], {
+  void it('displays, lists and acknowledges notice', async () => {
+    const execaOptions = {
       cwd: testProject.projectDirPath,
       env: {
         AMPLIFY_BACKEND_NOTICES_ENDPOINT: betaEndpoint,
       },
-    });
+    };
+    let stdout = (await execa('npx', ['ampx', 'notices', 'list'], execaOptions))
+      .stdout;
     assert.ok(
       stdout.includes('This is a test notice'),
       `${stdout} must include 'This is a test notice'`
+    );
+
+    stdout = (
+      await execa('npx', ['ampx', 'notices', 'acknowledge', '1'], execaOptions)
+    ).stdout;
+    assert.ok(
+      stdout.includes('has been acknowledged'),
+      `${stdout} must include 'has been acknowledged'`
+    );
+
+    stdout = (await execa('npx', ['ampx', 'notices', 'list'], execaOptions))
+      .stdout;
+    assert.ok(
+      !stdout.includes('This is a test notice'),
+      `${stdout} must not include 'This is a test notice'`
     );
   });
 });
