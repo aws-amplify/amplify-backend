@@ -158,10 +158,10 @@ export const noticeSchema: z.ZodObject<{
         osFamily: z.ZodEnum<["windows", "macos", "linux"]>;
     }, "strip", z.ZodTypeAny, {
         type: "osFamily";
-        osFamily: "windows" | "macos" | "linux";
+        osFamily: "linux" | "windows" | "macos";
     }, {
         type: "osFamily";
-        osFamily: "windows" | "macos" | "linux";
+        osFamily: "linux" | "windows" | "macos";
     }>, z.ZodObject<{
         type: z.ZodLiteral<"backendComponent">;
         backendComponent: z.ZodEnum<["data", "auth", "function", "storage", "ai"]>;
@@ -175,11 +175,11 @@ export const noticeSchema: z.ZodObject<{
         type: z.ZodLiteral<"command">;
         command: z.ZodEnum<["sandbox", "pipeline-deploy", "generate", "configure"]>;
     }, "strip", z.ZodTypeAny, {
-        type: "command";
         command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        type: "command";
     }, {
-        type: "command";
         command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        type: "command";
     }>, z.ZodObject<{
         type: z.ZodLiteral<"errorMessage">;
         errorMessage: z.ZodString;
@@ -194,10 +194,10 @@ export const noticeSchema: z.ZodObject<{
         frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
     }, "strip", z.ZodTypeAny, {
         type: "frequency";
-        frequency: "command" | "deployment" | "once" | "daily";
+        frequency: "once" | "command" | "deployment" | "daily";
     }, {
         type: "frequency";
-        frequency: "command" | "deployment" | "once" | "daily";
+        frequency: "once" | "command" | "deployment" | "daily";
     }>, z.ZodObject<{
         type: z.ZodLiteral<"validityPeriod">;
         from: z.ZodOptional<z.ZodNumber>;
@@ -212,9 +212,9 @@ export const noticeSchema: z.ZodObject<{
         to?: number | undefined;
     }>]>, "many">;
 }, "strip", z.ZodTypeAny, {
+    details: string;
     id: string;
     title: string;
-    details: string;
     predicates: ({
         type: "packageVersion";
         packageName: string;
@@ -224,19 +224,19 @@ export const noticeSchema: z.ZodObject<{
         versionRange: string;
     } | {
         type: "osFamily";
-        osFamily: "windows" | "macos" | "linux";
+        osFamily: "linux" | "windows" | "macos";
     } | {
         type: "backendComponent";
         backendComponent: "function" | "data" | "auth" | "storage" | "ai";
     } | {
-        type: "command";
         command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        type: "command";
     } | {
         type: "errorMessage";
         errorMessage: string;
     } | {
         type: "frequency";
-        frequency: "command" | "deployment" | "once" | "daily";
+        frequency: "once" | "command" | "deployment" | "daily";
     } | {
         type: "validityPeriod";
         from?: number | undefined;
@@ -244,9 +244,9 @@ export const noticeSchema: z.ZodObject<{
     })[];
     link?: string | undefined;
 }, {
+    details: string;
     id: string;
     title: string;
-    details: string;
     predicates: ({
         type: "packageVersion";
         packageName: string;
@@ -256,19 +256,19 @@ export const noticeSchema: z.ZodObject<{
         versionRange: string;
     } | {
         type: "osFamily";
-        osFamily: "windows" | "macos" | "linux";
+        osFamily: "linux" | "windows" | "macos";
     } | {
         type: "backendComponent";
         backendComponent: "function" | "data" | "auth" | "storage" | "ai";
     } | {
-        type: "command";
         command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+        type: "command";
     } | {
         type: "errorMessage";
         errorMessage: string;
     } | {
         type: "frequency";
-        frequency: "command" | "deployment" | "once" | "daily";
+        frequency: "once" | "command" | "deployment" | "daily";
     } | {
         type: "validityPeriod";
         from?: number | undefined;
@@ -313,10 +313,10 @@ export const noticesManifestSchema: z.ZodObject<{
             osFamily: z.ZodEnum<["windows", "macos", "linux"]>;
         }, "strip", z.ZodTypeAny, {
             type: "osFamily";
-            osFamily: "windows" | "macos" | "linux";
+            osFamily: "linux" | "windows" | "macos";
         }, {
             type: "osFamily";
-            osFamily: "windows" | "macos" | "linux";
+            osFamily: "linux" | "windows" | "macos";
         }>, z.ZodObject<{
             type: z.ZodLiteral<"backendComponent">;
             backendComponent: z.ZodEnum<["data", "auth", "function", "storage", "ai"]>;
@@ -330,11 +330,11 @@ export const noticesManifestSchema: z.ZodObject<{
             type: z.ZodLiteral<"command">;
             command: z.ZodEnum<["sandbox", "pipeline-deploy", "generate", "configure"]>;
         }, "strip", z.ZodTypeAny, {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         }, {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         }>, z.ZodObject<{
             type: z.ZodLiteral<"errorMessage">;
             errorMessage: z.ZodString;
@@ -349,10 +349,10 @@ export const noticesManifestSchema: z.ZodObject<{
             frequency: z.ZodEnum<["command", "deployment", "once", "daily"]>;
         }, "strip", z.ZodTypeAny, {
             type: "frequency";
-            frequency: "command" | "deployment" | "once" | "daily";
+            frequency: "once" | "command" | "deployment" | "daily";
         }, {
             type: "frequency";
-            frequency: "command" | "deployment" | "once" | "daily";
+            frequency: "once" | "command" | "deployment" | "daily";
         }>, z.ZodObject<{
             type: z.ZodLiteral<"validityPeriod">;
             from: z.ZodOptional<z.ZodNumber>;
@@ -367,9 +367,9 @@ export const noticesManifestSchema: z.ZodObject<{
             to?: number | undefined;
         }>]>, "many">;
     }, "strip", z.ZodTypeAny, {
+        details: string;
         id: string;
         title: string;
-        details: string;
         predicates: ({
             type: "packageVersion";
             packageName: string;
@@ -379,19 +379,19 @@ export const noticesManifestSchema: z.ZodObject<{
             versionRange: string;
         } | {
             type: "osFamily";
-            osFamily: "windows" | "macos" | "linux";
+            osFamily: "linux" | "windows" | "macos";
         } | {
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage" | "ai";
         } | {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         } | {
             type: "errorMessage";
             errorMessage: string;
         } | {
             type: "frequency";
-            frequency: "command" | "deployment" | "once" | "daily";
+            frequency: "once" | "command" | "deployment" | "daily";
         } | {
             type: "validityPeriod";
             from?: number | undefined;
@@ -399,9 +399,9 @@ export const noticesManifestSchema: z.ZodObject<{
         })[];
         link?: string | undefined;
     }, {
+        details: string;
         id: string;
         title: string;
-        details: string;
         predicates: ({
             type: "packageVersion";
             packageName: string;
@@ -411,19 +411,19 @@ export const noticesManifestSchema: z.ZodObject<{
             versionRange: string;
         } | {
             type: "osFamily";
-            osFamily: "windows" | "macos" | "linux";
+            osFamily: "linux" | "windows" | "macos";
         } | {
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage" | "ai";
         } | {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         } | {
             type: "errorMessage";
             errorMessage: string;
         } | {
             type: "frequency";
-            frequency: "command" | "deployment" | "once" | "daily";
+            frequency: "once" | "command" | "deployment" | "daily";
         } | {
             type: "validityPeriod";
             from?: number | undefined;
@@ -433,9 +433,9 @@ export const noticesManifestSchema: z.ZodObject<{
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
     notices: {
+        details: string;
         id: string;
         title: string;
-        details: string;
         predicates: ({
             type: "packageVersion";
             packageName: string;
@@ -445,19 +445,19 @@ export const noticesManifestSchema: z.ZodObject<{
             versionRange: string;
         } | {
             type: "osFamily";
-            osFamily: "windows" | "macos" | "linux";
+            osFamily: "linux" | "windows" | "macos";
         } | {
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage" | "ai";
         } | {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         } | {
             type: "errorMessage";
             errorMessage: string;
         } | {
             type: "frequency";
-            frequency: "command" | "deployment" | "once" | "daily";
+            frequency: "once" | "command" | "deployment" | "daily";
         } | {
             type: "validityPeriod";
             from?: number | undefined;
@@ -467,9 +467,9 @@ export const noticesManifestSchema: z.ZodObject<{
     }[];
 }, {
     notices: {
+        details: string;
         id: string;
         title: string;
-        details: string;
         predicates: ({
             type: "packageVersion";
             packageName: string;
@@ -479,19 +479,19 @@ export const noticesManifestSchema: z.ZodObject<{
             versionRange: string;
         } | {
             type: "osFamily";
-            osFamily: "windows" | "macos" | "linux";
+            osFamily: "linux" | "windows" | "macos";
         } | {
             type: "backendComponent";
             backendComponent: "function" | "data" | "auth" | "storage" | "ai";
         } | {
-            type: "command";
             command: "sandbox" | "pipeline-deploy" | "generate" | "configure";
+            type: "command";
         } | {
             type: "errorMessage";
             errorMessage: string;
         } | {
             type: "frequency";
-            frequency: "command" | "deployment" | "once" | "daily";
+            frequency: "once" | "command" | "deployment" | "daily";
         } | {
             type: "validityPeriod";
             from?: number | undefined;
