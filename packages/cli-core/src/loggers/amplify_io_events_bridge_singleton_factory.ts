@@ -7,19 +7,18 @@ import { AmplifyIOHost } from '@aws-amplify/plugin-types';
  * exist just one instance and used by all consumers.
  */
 export class AmplifyIOEventsBridgeSingletonFactory {
-  private instance: AmplifyIOEventsBridge | undefined;
+  private static instance: AmplifyIOEventsBridge | undefined;
 
   /**
    * Returns a singleton instance of a AmplifyIOEventsBridge
    */
   getInstance = (): AmplifyIOHost => {
-    if (!this.instance) {
+    if (!AmplifyIOEventsBridgeSingletonFactory.instance) {
       const cdkEventLogger = new AmplifyEventLogger();
-      this.instance = new AmplifyIOEventsBridge(
-        cdkEventLogger.getEventLoggers()
-      );
+      AmplifyIOEventsBridgeSingletonFactory.instance =
+        new AmplifyIOEventsBridge(cdkEventLogger.getEventLoggers());
     }
-    return this.instance;
+    return AmplifyIOEventsBridgeSingletonFactory.instance;
   };
 }
 

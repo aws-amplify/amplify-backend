@@ -21,7 +21,7 @@ import { SDKProfileResolver } from '@aws-amplify/plugin-types';
  * Factory to create a new sandbox
  */
 export class SandboxSingletonFactory {
-  private instance: Sandbox | undefined;
+  private static instance: Sandbox | undefined;
   /**
    * sandboxIdResolver allows sandbox to lazily load the sandbox backend id on demand
    */
@@ -36,7 +36,7 @@ export class SandboxSingletonFactory {
    * Returns a singleton instance of a Sandbox
    */
   getInstance = async (): Promise<Sandbox> => {
-    if (!this.instance) {
+    if (!SandboxSingletonFactory.instance) {
       const packageManagerControllerFactory =
         new PackageManagerControllerFactory(process.cwd(), this.printer);
       const cdkEventsBridgeIoHost = amplifyIOEventsBridgeFactory.getInstance();
@@ -47,7 +47,7 @@ export class SandboxSingletonFactory {
         cdkEventsBridgeIoHost,
         this.sdkProfileResolver
       );
-      this.instance = new FileWatchingSandbox(
+      SandboxSingletonFactory.instance = new FileWatchingSandbox(
         this.sandboxIdResolver,
         new AmplifySandboxExecutor(
           backendDeployerFactory.getInstance(),
@@ -64,6 +64,6 @@ export class SandboxSingletonFactory {
         this.printer
       );
     }
-    return this.instance;
+    return SandboxSingletonFactory.instance;
   };
 }

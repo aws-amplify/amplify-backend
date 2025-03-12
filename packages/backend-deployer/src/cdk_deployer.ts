@@ -35,7 +35,7 @@ import { pathToFileURL } from 'url';
  * Invokes CDK command via execa
  */
 export class CDKDeployer implements BackendDeployer {
-  private readonly relativeCloudAssemblyLocation = path.resolve(
+  private readonly absoluteCloudAssemblyLocation = path.resolve(
     process.cwd(),
     '.amplify/artifacts/cdk.out'
   );
@@ -61,7 +61,7 @@ export class CDKDeployer implements BackendDeployer {
       toolkit,
       deployProps?.secretLastUpdated?.getTime()
     );
-    // 3. Initiate synth for the cloud executable and send a message for display.
+    // Initiate synth for the cloud executable and send a message for display.
     const synthStartTime = Date.now();
     let synthAssembly,
       synthError: Error | undefined = undefined;
@@ -175,14 +175,11 @@ export class CDKDeployer implements BackendDeployer {
   ) => {
     const toolkit = this.getCdkToolkit(destroyProps?.profile);
     const deploymentStartTime = Date.now();
-    await this.getCdkToolkit(destroyProps?.profile).destroy(
-      await this.getCdkCloudAssembly(backendId, toolkit),
-      {
-        stacks: {
-          strategy: StackSelectionStrategy.ALL_STACKS,
-        },
-      }
-    );
+    await toolkit.destroy(await this.getCdkCloudAssembly(backendId, toolkit), {
+      stacks: {
+        strategy: StackSelectionStrategy.ALL_STACKS,
+      },
+    });
     return {
       deploymentTimes: {
         totalTime: Math.floor((Date.now() - deploymentStartTime) / 10) / 100,
@@ -292,9 +289,9 @@ export class CDKDeployer implements BackendDeployer {
           to the same process and catch it in backend package where App is initialized to explicitly perform synth
          */
         process.emit('message', 'amplifySynth', undefined);
-        return new CloudAssembly(this.relativeCloudAssemblyLocation);
+        return new CloudAssembly(this.absoluteCloudAssemblyLocation);
       },
-      { context: contextParams, outdir: this.relativeCloudAssemblyLocation }
+      { context: contextParams, outdir: this.absoluteCloudAssemblyLocation }
     );
   };
 
