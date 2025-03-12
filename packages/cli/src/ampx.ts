@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { verifyCommandName } from './verify_command_name.js';
 import { hideBin } from 'yargs/helpers';
 import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
+import { PostCommandNoticesProcessor } from './notices/post_command_notices_processor.js';
 
 const packageJson = new PackageJsonReader().read(
   fileURLToPath(new URL('../package.json', import.meta.url))
@@ -27,9 +28,9 @@ if (libraryVersion == undefined) {
   });
 }
 
-const dependencies = await new PackageManagerControllerFactory()
-  .getPackageManagerController()
-  .tryGetDependencies();
+const packageManagerController =
+  new PackageManagerControllerFactory().getPackageManagerController();
+const dependencies = await packageManagerController.tryGetDependencies();
 
 const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
   libraryVersion,
@@ -52,6 +53,9 @@ try {
     metricDimension.command = subCommands;
   }
 
+  await new PostCommandNoticesProcessor(
+    packageManagerController
+  ).tryFindAndPrintApplicableNotices();
   await usageDataEmitter.emitSuccess({}, metricDimension);
 } catch (e) {
   if (e instanceof Error) {

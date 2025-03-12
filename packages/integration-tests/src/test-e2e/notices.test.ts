@@ -34,6 +34,8 @@ void describe('Notices', () => {
         AMPLIFY_BACKEND_NOTICES_ENDPOINT: betaEndpoint,
       },
     };
+
+    // Prints unacknowledged notice in listing
     let stdout = (await execa('npx', ['ampx', 'notices', 'list'], execaOptions))
       .stdout;
     assert.ok(
@@ -41,6 +43,14 @@ void describe('Notices', () => {
       `${stdout} must include 'This is a test notice'`
     );
 
+    // Prints unacknowledged notice after random command
+    stdout = (await execa('npx', ['ampx', 'info'], execaOptions)).stdout;
+    assert.ok(
+      stdout.includes('This is a test notice'),
+      `${stdout} must include 'This is a test notice'`
+    );
+
+    // Acknowledges notice
     stdout = (
       await execa('npx', ['ampx', 'notices', 'acknowledge', '1'], execaOptions)
     ).stdout;
@@ -49,8 +59,16 @@ void describe('Notices', () => {
       `${stdout} must include 'has been acknowledged'`
     );
 
+    // Assert that acknowledged notices in not included in listing
     stdout = (await execa('npx', ['ampx', 'notices', 'list'], execaOptions))
       .stdout;
+    assert.ok(
+      !stdout.includes('This is a test notice'),
+      `${stdout} must not include 'This is a test notice'`
+    );
+
+    // Assert that acknowledged notices in not included after random command
+    stdout = (await execa('npx', ['ampx', 'info'], execaOptions)).stdout;
     assert.ok(
       !stdout.includes('This is a test notice'),
       `${stdout} must not include 'This is a test notice'`
