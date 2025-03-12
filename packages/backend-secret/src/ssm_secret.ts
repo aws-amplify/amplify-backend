@@ -145,4 +145,34 @@ export class SSMSecretClient implements SecretClient {
       throw SecretError.createInstance(err as Error);
     }
   };
+
+  /**
+   * Remove secrets from SSM parameter store.
+   */
+  public removeSecrets = async (
+    backendIdentifier: BackendIdentifier | AppId,
+    secretNames: string[]
+  ) => {
+    const names = secretNames.map((secretName) =>
+      ParameterPathConversions.toParameterFullPath(
+        backendIdentifier,
+        secretName
+      )
+    );
+    try {
+      const resp = await this.ssmClient.deleteParameters({
+        Names: names,
+      });
+      if (resp.InvalidParameters && resp.InvalidParameters.length > 0) {
+        throw new SecretError(
+          `Failed to remove secrets: ${resp.InvalidParameters.join(', ')}`
+        );
+      }
+    } catch (err) {
+      if (err instanceof SecretError) {
+        throw err;
+      }
+      throw SecretError.createInstance(err as Error);
+    }
+  };
 }

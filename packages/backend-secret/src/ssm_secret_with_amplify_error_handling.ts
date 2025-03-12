@@ -73,6 +73,23 @@ export class SSMSecretClientWithAmplifyErrorHandling implements SecretClient {
     }
   };
 
+  /**
+   * Remove secrets from SSM parameter store.
+   */
+  public removeSecrets = async (
+    backendIdentifier: BackendIdentifier | AppId,
+    secretNames: string[]
+  ) => {
+    try {
+      return await this.secretClient.removeSecrets(
+        backendIdentifier,
+        secretNames
+      );
+    } catch (e) {
+      throw this.translateToAmplifyError(e, 'Remove');
+    }
+  };
+
   private translateToAmplifyError = (
     error: unknown,
     apiName: string,

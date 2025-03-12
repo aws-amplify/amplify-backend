@@ -353,17 +353,36 @@ void describe('Sandbox using local project name resolver', () => {
       undefined,
       false
     ));
-    assert.strictEqual(printer.log.mock.callCount(), 7);
+    assert.strictEqual(printer.log.mock.callCount(), 8);
 
     assert.strictEqual(
       printer.log.mock.calls[1].arguments[0],
       format.indent(`${format.bold('Identifier:')} \ttestSandboxName`)
     );
     assert.strictEqual(
-      printer.log.mock.calls[3].arguments[0],
+      printer.log.mock.calls[4].arguments[0],
       `${format.indent(
         format.dim('\nTo specify a different sandbox identifier, use ')
       )}${format.bold('--identifier')}`
+    );
+  });
+
+  void it('correctly displays the region at the startup', async () => {
+    ({ sandboxInstance } = await setupAndStartSandbox(
+      {
+        executor: sandboxExecutor,
+        ssmClient: ssmClientMock,
+        functionsLogStreamer:
+          functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
+      },
+      undefined,
+      false
+    ));
+    assert.strictEqual(printer.log.mock.callCount(), 8);
+
+    assert.strictEqual(
+      printer.log.mock.calls[3].arguments[0],
+      format.indent(`${format.bold('Region:')} \ttest-region`)
     );
   });
 
