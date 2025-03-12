@@ -95,7 +95,7 @@ export const someFunction3 = (param1: string, param2: number = 1): string => {
 };
 export const someFunction4 = <T1, T2, T3>(
   param1: T1,
-  param2?: T2
+  param2?: T2,
 ): Promise<T3> => {
   throw new Error();
 };

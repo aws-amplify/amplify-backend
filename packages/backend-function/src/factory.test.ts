@@ -44,11 +44,11 @@ void describe('AmplifyFunctionFactory', () => {
     rootStack = createStackAndSetContext();
 
     const constructContainer = new ConstructContainerStub(
-      new StackResolverStub(rootStack)
+      new StackResolverStub(rootStack),
     );
 
     const outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      rootStack
+      rootStack,
     );
 
     resourceNameValidator = new ResourceNameValidatorStub();
@@ -91,7 +91,7 @@ void describe('AmplifyFunctionFactory', () => {
       Handler: 'index.handler',
     });
     const lambdaLogicalId = Object.keys(
-      template.findResources('AWS::Lambda::Function')
+      template.findResources('AWS::Lambda::Function'),
     )[0];
     // eslint-disable-next-line spellcheck/spell-checker
     assert.ok(lambdaLogicalId.includes('defaultlambda'));
@@ -108,7 +108,7 @@ void describe('AmplifyFunctionFactory', () => {
       Handler: 'index.handler',
     });
     const lambdaLogicalId = Object.keys(
-      template.findResources('AWS::Lambda::Function')
+      template.findResources('AWS::Lambda::Function'),
     )[0];
     assert.ok(lambdaLogicalId.includes('handler'));
   });
@@ -125,7 +125,7 @@ void describe('AmplifyFunctionFactory', () => {
       Handler: 'index.handler',
     });
     const lambdaLogicalId = Object.keys(
-      template.findResources('AWS::Lambda::Function')
+      template.findResources('AWS::Lambda::Function'),
     )[0];
     assert.ok(lambdaLogicalId.includes('myCoolLambda'));
   });
@@ -169,7 +169,7 @@ void describe('AmplifyFunctionFactory', () => {
       Handler: 'index.handler',
     });
     const lambdaLogicalId = Object.keys(
-      template.findResources('AWS::Lambda::Function')
+      template.findResources('AWS::Lambda::Function'),
     )[0];
     // eslint-disable-next-line spellcheck/spell-checker
     assert.ok(lambdaLogicalId.includes('lambdawithdependencies'));
@@ -217,7 +217,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidTimeoutError', {
           message: `Invalid function timeout of 0`,
           resolution: `timeoutSeconds must be a whole number between 1 and 900 inclusive`,
-        })
+        }),
       );
     });
 
@@ -231,7 +231,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidTimeoutError', {
           message: `Invalid function timeout of 901`,
           resolution: `timeoutSeconds must be a whole number between 1 and 900 inclusive`,
-        })
+        }),
       );
     });
 
@@ -245,7 +245,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidTimeoutError', {
           message: `Invalid function timeout of 10.5`,
           resolution: `timeoutSeconds must be a whole number between 1 and 900 inclusive`,
-        })
+        }),
       );
     });
   });
@@ -284,7 +284,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidMemoryMBError', {
           message: `Invalid function memoryMB of 127`,
           resolution: `memoryMB must be a whole number between 128 and 10240 inclusive`,
-        })
+        }),
       );
     });
 
@@ -298,7 +298,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidMemoryMBError', {
           message: `Invalid function memoryMB of 10241`,
           resolution: `memoryMB must be a whole number between 128 and 10240 inclusive`,
-        })
+        }),
       );
     });
 
@@ -312,7 +312,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidMemoryMBError', {
           message: `Invalid function memoryMB of 256.2`,
           resolution: `memoryMB must be a whole number between 128 and 10240 inclusive`,
-        })
+        }),
       );
     });
   });
@@ -367,7 +367,7 @@ void describe('AmplifyFunctionFactory', () => {
           message: `Invalid function environment key(s): this.is.wrong`,
           resolution:
             'Environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters',
-        })
+        }),
       );
     });
 
@@ -385,7 +385,7 @@ void describe('AmplifyFunctionFactory', () => {
           message: `Invalid function environment key(s): A`,
           resolution:
             'Environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters',
-        })
+        }),
       );
     });
 
@@ -405,7 +405,7 @@ void describe('AmplifyFunctionFactory', () => {
           message: `Invalid function environment key(s): A, this.is.wrong`,
           resolution:
             'Environment keys must match [a-zA-Z]([a-zA-Z0-9_])+ and be at least 2 characters',
-        })
+        }),
       );
     });
   });
@@ -444,7 +444,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidRuntimeError', {
           message: `Invalid function runtime of 14`,
           resolution: 'runtime must be one of the following: 16, 18, 20, 22',
-        })
+        }),
       );
     });
 
@@ -483,7 +483,7 @@ void describe('AmplifyFunctionFactory', () => {
       new AmplifyUserError('InvalidArchitectureError', {
         message: `Invalid function architecture of invalid`,
         resolution: 'architecture must be one of the following: arm64, x86_64',
-      })
+      }),
     );
   });
 
@@ -595,7 +595,7 @@ void describe('AmplifyFunctionFactory', () => {
       template.resourceCountIs('AWS::Lambda::Function', 2);
       const lambdas = template.findResources('AWS::Lambda::Function');
       assert.ok(
-        Object.keys(lambdas).some((key) => key.startsWith('LogRetention'))
+        Object.keys(lambdas).some((key) => key.startsWith('LogRetention')),
       );
       template.hasResourceProperties('Custom::LogRetention', {
         RetentionInDays: 400,
@@ -688,10 +688,10 @@ void describe('AmplifyFunctionFactory', () => {
       }).getInstance(getInstanceProps);
       lambda.resources.cfnResources.cfnFunction.addPropertyOverride(
         'MemorySize',
-        256
+        256,
       );
       const template = Template.fromStack(
-        Stack.of(lambda.resources.cfnResources.cfnFunction)
+        Stack.of(lambda.resources.cfnResources.cfnFunction),
       );
       template.hasResourceProperties('AWS::Lambda::Function', {
         MemorySize: 256,
@@ -713,7 +713,7 @@ void describe('AmplifyFunctionFactory', () => {
     const template = Template.fromStack(functionStack);
     assert.equal(
       JSON.parse(template.toJSON().Description).stackType,
-      'function-Lambda'
+      'function-Lambda',
     );
   });
 
@@ -751,7 +751,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
           message: `Invalid function ephemeralStorageSizeMB of 511`,
           resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
-        })
+        }),
       );
     });
 
@@ -765,7 +765,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
           message: `Invalid function ephemeralStorageSizeMB of 10241`,
           resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
-        })
+        }),
       );
     });
 
@@ -779,7 +779,7 @@ void describe('AmplifyFunctionFactory', () => {
         new AmplifyUserError('InvalidEphemeralStorageSizeMBError', {
           message: `Invalid function ephemeralStorageSizeMB of 512.5`,
           resolution: `ephemeralStorageSizeMB must be a whole number between 512 and 10240 inclusive`,
-        })
+        }),
       );
     });
   });

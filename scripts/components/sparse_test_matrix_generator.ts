@@ -38,7 +38,7 @@ export class SparseTestMatrixGenerator {
 
     for (const testPathsBatch of this.chunkArray(
       testPaths,
-      this.props.maxTestsPerJob
+      this.props.maxTestsPerJob,
     )) {
       const dimensionsIndexes: Record<string, number> = {};
       const dimensionCoverageComplete: Record<string, boolean> = {};
@@ -75,7 +75,7 @@ export class SparseTestMatrixGenerator {
           (acc, key) => {
             return acc && dimensionCoverageComplete[key];
           },
-          true
+          true,
         );
       } while (!allDimensionsComplete);
     }

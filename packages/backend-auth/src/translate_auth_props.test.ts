@@ -49,11 +49,11 @@ class TestBackendSecret implements BackendSecret {
     return {
       branchSecretPath: ParameterPathConversions.toParameterFullPath(
         testBackendIdentifier,
-        this.secretName
+        this.secretName,
       ),
       sharedSecretPath: ParameterPathConversions.toParameterFullPath(
         testBackendIdentifier.namespace,
-        this.secretName
+        this.secretName,
       ),
     };
   };
@@ -107,7 +107,7 @@ void describe('translateToAuthConstructLoginWith', () => {
 
     const translated = translateToAuthConstructLoginWith(
       loginWith,
-      backendResolver
+      backendResolver,
     );
 
     const expected: AuthProps['loginWith'] = {
@@ -156,7 +156,7 @@ void describe('translateToAuthConstructLoginWith', () => {
 
     const translated = translateToAuthConstructLoginWith(
       loginWith,
-      backendResolver
+      backendResolver,
     );
 
     const expected: AuthProps['loginWith'] = {
@@ -176,7 +176,7 @@ void describe('translateToAuthConstructLoginWith', () => {
 
     const translated = translateToAuthConstructLoginWith(
       loginWith,
-      backendResolver
+      backendResolver,
     );
 
     const expected: AuthProps['loginWith'] = {

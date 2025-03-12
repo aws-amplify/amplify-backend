@@ -52,7 +52,7 @@ void describe('invokeCDKCommand', () => {
   const invoker = new CDKDeployer(
     new CdkErrorMapper(formatterStub),
     backendLocator,
-    packageManagerControllerMock as never
+    packageManagerControllerMock as never,
   );
   const executeCommandMock = mock.method(
     invoker,
@@ -62,7 +62,7 @@ void describe('invokeCDKCommand', () => {
         return Promise.reject(new Error());
       }
       return Promise.resolve();
-    }
+    },
   );
 
   beforeEach(() => {
@@ -173,11 +173,11 @@ void describe('invokeCDKCommand', () => {
     await invoker.deploy(sandboxBackendId, { profile });
     assert.strictEqual(executeCommandMock.mock.callCount(), 2);
     assert.ok(
-      executeCommandMock.mock.calls[0].arguments[0].includes('--profile')
+      executeCommandMock.mock.calls[0].arguments[0].includes('--profile'),
     );
     assert.ok(executeCommandMock.mock.calls[0].arguments[0].includes(profile));
     assert.ok(
-      executeCommandMock.mock.calls[1].arguments[0].includes('--profile')
+      executeCommandMock.mock.calls[1].arguments[0].includes('--profile'),
     );
     assert.ok(executeCommandMock.mock.calls[1].arguments[0].includes(profile));
   });
@@ -262,7 +262,7 @@ void describe('invokeCDKCommand', () => {
     await invoker.destroy(sandboxBackendId, { profile });
     assert.strictEqual(executeCommandMock.mock.callCount(), 1);
     assert.ok(
-      executeCommandMock.mock.calls[0].arguments[0].includes('--profile')
+      executeCommandMock.mock.calls[0].arguments[0].includes('--profile'),
     );
     assert.ok(executeCommandMock.mock.calls[0].arguments[0].includes(profile));
   });
@@ -495,8 +495,8 @@ void describe('invokeCDKCommand', () => {
           resolution:
             'Fix the syntax and type errors in your backend definition.',
         },
-        new Error('some tsc error')
-      )
+        new Error('some tsc error'),
+      ),
     );
     assert.strictEqual(executeCommandMock.mock.callCount(), 3);
 
@@ -574,9 +574,9 @@ void describe('invokeCDKCommand', () => {
         new Error(
           `Error: some cdk synth error` +
             EOL +
-            `    at lookup (/some_random/path.js:1:3005)`
-        )
-      )
+            `    at lookup (/some_random/path.js:1:3005)`,
+        ),
+      ),
     );
     assert.strictEqual(executeCommandMock.mock.callCount(), 3);
 
@@ -659,9 +659,9 @@ void describe('invokeCDKCommand', () => {
         new Error(
           `Error: some cdk synth error` +
             EOL +
-            `    at lookup (/some_random/path.js:1:3005)`
-        )
-      )
+            `    at lookup (/some_random/path.js:1:3005)`,
+        ),
+      ),
     );
     assert.strictEqual(executeCommandMock.mock.callCount(), 3);
 
@@ -717,12 +717,12 @@ void describe('invokeCDKCommand', () => {
       (err: AmplifyError<CDKDeploymentError>) => {
         assert.equal(
           err.message,
-          'The deployment role does not have sufficient permissions to perform this deployment.'
+          'The deployment role does not have sufficient permissions to perform this deployment.',
         );
         assert.equal(err.name, 'AccessDeniedError');
         assert.equal(err.cause?.message, 'Access Denied');
         return true;
-      }
+      },
     );
   });
 });

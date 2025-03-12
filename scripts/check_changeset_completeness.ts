@@ -14,10 +14,10 @@ enum VersionTypeEnum {
 const checkForMissingChangesets = async (
   releasePlan: ReleasePlan,
   gitClient: GitClient,
-  baseRef: string
+  baseRef: string,
 ) => {
   const packagesWithChangeset = new Set(
-    releasePlan.releases.map((release) => release.name)
+    releasePlan.releases.map((release) => release.name),
   );
 
   const changedFiles = await gitClient.getChangedFiles(baseRef);
@@ -26,11 +26,11 @@ const checkForMissingChangesets = async (
   changedFiles
     .filter(
       (changedFile) =>
-        changedFile.startsWith('packages/') && !changedFile.endsWith('test.ts')
+        changedFile.startsWith('packages/') && !changedFile.endsWith('test.ts'),
     )
     .forEach((changedPackageFile) => {
       modifiedPackageDirs.add(
-        changedPackageFile.split('/').slice(0, 2).join('/')
+        changedPackageFile.split('/').slice(0, 2).join('/'),
       );
     });
 
@@ -49,8 +49,8 @@ const checkForMissingChangesets = async (
   if (packagesMissingChangesets.length > 0) {
     throw new Error(
       `The following packages have changes but are not included in any changeset:${EOL}${EOL}${packagesMissingChangesets.join(
-        EOL
-      )}${EOL}${EOL}Add a changeset using 'npx changeset add'.`
+        EOL,
+      )}${EOL}${EOL}Add a changeset using 'npx changeset add'.`,
     );
   }
 };
@@ -70,7 +70,7 @@ const convertVersionType = (version: VersionType): VersionTypeEnum => {
 
 const findEffectiveVersion = (
   releasePlan: ReleasePlan,
-  packageName: string
+  packageName: string,
 ): VersionTypeEnum => {
   let effectiveVersion: VersionTypeEnum = VersionTypeEnum.NONE;
 
@@ -90,23 +90,23 @@ const findEffectiveVersion = (
 const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
   const backendVersion: VersionTypeEnum = findEffectiveVersion(
     releasePlan,
-    '@aws-amplify/backend'
+    '@aws-amplify/backend',
   );
   const backendAuthVersion: VersionTypeEnum = findEffectiveVersion(
     releasePlan,
-    '@aws-amplify/backend-auth'
+    '@aws-amplify/backend-auth',
   );
   const backendDataVersion: VersionTypeEnum = findEffectiveVersion(
     releasePlan,
-    '@aws-amplify/backend-data'
+    '@aws-amplify/backend-data',
   );
   const backendFunctionVersion: VersionTypeEnum = findEffectiveVersion(
     releasePlan,
-    '@aws-amplify/backend-function'
+    '@aws-amplify/backend-function',
   );
   const backendStorageVersion: VersionTypeEnum = findEffectiveVersion(
     releasePlan,
-    '@aws-amplify/backend-storage'
+    '@aws-amplify/backend-storage',
   );
 
   if (
@@ -115,11 +115,11 @@ const checkBackendDependenciesVersion = (releasePlan: ReleasePlan) => {
       backendAuthVersion,
       backendDataVersion,
       backendFunctionVersion,
-      backendStorageVersion
+      backendStorageVersion,
     )
   ) {
     throw new Error(
-      `@aws-amplify/backend has a version bump of a different kind from its dependencies (@aws-amplify/backend-auth, @aws-amplify/backend-data, @aws-amplify/backend-function, or @aws-amplify/backend-storage) but is expected to have a version bump of the same kind.${EOL}`
+      `@aws-amplify/backend has a version bump of a different kind from its dependencies (@aws-amplify/backend-auth, @aws-amplify/backend-data, @aws-amplify/backend-function, or @aws-amplify/backend-storage) but is expected to have a version bump of the same kind.${EOL}`,
     );
   }
 };

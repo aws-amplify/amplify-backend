@@ -21,7 +21,7 @@ void describe('NpmLockFileReader', () => {
           version: '12.13.14',
         },
       },
-    })
+    }),
   );
   const npmLockFileReader = new NpmLockFileReader();
 
@@ -47,14 +47,14 @@ void describe('NpmLockFileReader', () => {
     assert.deepEqual(lockFileContents, expectedLockFileContents);
     assert.strictEqual(
       fspReadFileMock.mock.calls[0].arguments[0],
-      path.resolve(process.cwd(), 'package-lock.json')
+      path.resolve(process.cwd(), 'package-lock.json'),
     );
     assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
   });
 
   void it('returns undefined when package-lock.json is not present or parse-able', async () => {
     fspReadFileMock.mock.mockImplementationOnce(() =>
-      Promise.reject(new Error())
+      Promise.reject(new Error()),
     );
     const lockFileContents =
       await npmLockFileReader.getLockFileContentsFromCwd();
@@ -66,7 +66,7 @@ void describe('NpmLockFileReader', () => {
       JSON.stringify({
         name: 'test_project',
         version: '1.0.0',
-      })
+      }),
     );
     const lockFileContents =
       await npmLockFileReader.getLockFileContentsFromCwd();

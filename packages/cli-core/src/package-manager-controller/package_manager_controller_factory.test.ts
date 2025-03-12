@@ -48,7 +48,7 @@ void describe('packageManagerControllerFactory', () => {
         const packageManagerController =
           packageManagerControllerFactory.getPackageManagerController();
         assert.ok(
-          packageManagerController instanceof testCase.expectedInstanceOf
+          packageManagerController instanceof testCase.expectedInstanceOf,
         );
       });
     }
@@ -63,7 +63,7 @@ void describe('packageManagerControllerFactory', () => {
         () => packageManagerControllerFactory.getPackageManagerController(),
         {
           message: 'Package Manager unsupported is not supported.',
-        }
+        },
       );
     });
 
@@ -79,7 +79,7 @@ void describe('packageManagerControllerFactory', () => {
           message: 'Amplify does not support PNPM on Windows.',
           details:
             'Details: https://github.com/aws-amplify/amplify-backend/blob/main/packages/create-amplify/README.md',
-        }
+        },
       );
     });
   });

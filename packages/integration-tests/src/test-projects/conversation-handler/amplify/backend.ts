@@ -19,14 +19,14 @@ const defaultConversationHandler = new ConversationHandlerFunction(
         region: stack.region,
       },
     ],
-  }
+  },
 );
 
 defaultConversationHandler.resources.cfnResources.cfnFunction.addPropertyOverride(
   'LoggingConfig.ApplicationLogLevel',
-  'DEBUG'
+  'DEBUG',
 );
 backend.customConversationHandler.resources.cfnResources.cfnFunction.addPropertyOverride(
   'LoggingConfig.ApplicationLogLevel',
-  'DEBUG'
+  'DEBUG',
 );

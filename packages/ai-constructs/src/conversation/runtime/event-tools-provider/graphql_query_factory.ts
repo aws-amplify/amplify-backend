@@ -10,7 +10,7 @@ type InputSchemaJson = {
  */
 export class GraphQlQueryFactory {
   createQuery = (
-    toolDefinition: ConversationTurnEventToolConfiguration
+    toolDefinition: ConversationTurnEventToolConfiguration,
   ): string => {
     const { graphqlRequestInputDescriptor } = toolDefinition;
     const { selectionSet, queryName } = graphqlRequestInputDescriptor;
@@ -27,7 +27,7 @@ export class GraphQlQueryFactory {
   };
 
   private createQueryArgs = (
-    toolDefinition: ConversationTurnEventToolConfiguration
+    toolDefinition: ConversationTurnEventToolConfiguration,
   ): [string, string] => {
     const { inputSchema } = toolDefinition;
     if (!inputSchema?.json) {

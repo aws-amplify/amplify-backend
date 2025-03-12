@@ -79,20 +79,20 @@ export class ClientConfigLegacyConverter {
       if (clientConfig.auth.standard_required_attributes) {
         authClientConfig.aws_cognito_signup_attributes =
           clientConfig.auth.standard_required_attributes?.map((attribute) =>
-            attribute.toUpperCase()
+            attribute.toUpperCase(),
           );
       }
 
       if (clientConfig.auth.username_attributes) {
         authClientConfig.aws_cognito_username_attributes =
           clientConfig.auth.username_attributes?.map((attribute) =>
-            attribute.toUpperCase()
+            attribute.toUpperCase(),
           );
       }
 
       authClientConfig.aws_cognito_verification_mechanisms =
         clientConfig.auth.user_verification_types?.map((attribute) =>
-          attribute.toUpperCase()
+          attribute.toUpperCase(),
         );
 
       if (clientConfig.auth.password_policy) {
@@ -275,7 +275,7 @@ export class ClientConfigLegacyConverter {
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
   isClientConfigV1_3 = (
-    clientConfig: ClientConfig
+    clientConfig: ClientConfig,
   ): clientConfig is clientConfigTypesV1_3.AWSAmplifyBackendOutputs => {
     return clientConfig.version === '1.3';
   };

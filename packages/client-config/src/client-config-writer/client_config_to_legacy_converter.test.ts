@@ -27,7 +27,7 @@ void describe('ClientConfigLegacyConverter', () => {
         }),
       new AmplifyFault('UnsupportedClientConfigVersionFault', {
         message: 'Only version 1.3 of ClientConfig is supported.',
-      })
+      }),
     );
   });
 
@@ -114,7 +114,7 @@ void describe('ClientConfigLegacyConverter', () => {
 
       assert.deepStrictEqual(
         converter.convertToLegacyConfig(v1Config),
-        expectedLegacyConfig
+        expectedLegacyConfig,
       );
     });
 
@@ -124,7 +124,7 @@ void describe('ClientConfigLegacyConverter', () => {
 
       assert.deepStrictEqual(
         converter.convertToLegacyConfig(v1Config),
-        expectedLegacyConfig
+        expectedLegacyConfig,
       );
     });
   });
@@ -266,7 +266,7 @@ void describe('ClientConfigLegacyConverter', () => {
     };
     assert.deepStrictEqual(
       converter.convertToLegacyConfig(v1Config),
-      expectedLegacyConfig
+      expectedLegacyConfig,
     );
   });
 
@@ -288,7 +288,7 @@ void describe('ClientConfigLegacyConverter', () => {
     };
     assert.deepStrictEqual(
       converter.convertToLegacyConfig(v1Config),
-      expectedLegacyConfig
+      expectedLegacyConfig,
     );
   });
 
@@ -319,7 +319,7 @@ void describe('ClientConfigLegacyConverter', () => {
     };
     assert.deepStrictEqual(
       converter.convertToLegacyConfig(v1Config),
-      expectedLegacyConfig
+      expectedLegacyConfig,
     );
   });
 
@@ -348,7 +348,7 @@ void describe('ClientConfigLegacyConverter', () => {
     };
     assert.deepStrictEqual(
       converter.convertToLegacyConfig(v1Config),
-      expectedLegacyConfig
+      expectedLegacyConfig,
     );
   });
 
@@ -401,7 +401,7 @@ void describe('ClientConfigLegacyConverter', () => {
     };
     assert.deepStrictEqual(
       converter.convertToLegacyConfig(v1Config),
-      expectedLegacyConfig
+      expectedLegacyConfig,
     );
   });
 
@@ -447,7 +447,7 @@ void describe('ClientConfigLegacyConverter', () => {
     };
     assert.deepStrictEqual(
       converter.convertToLegacyConfig(v1Config),
-      expectedLegacyConfig
+      expectedLegacyConfig,
     );
 
     // both APNS and FCM cannot be specified together as they both map to Push.
@@ -472,7 +472,7 @@ void describe('ClientConfigLegacyConverter', () => {
     };
     assert.deepStrictEqual(
       converter.convertToLegacyConfig(v1Config),
-      expectedLegacyConfig
+      expectedLegacyConfig,
     );
   });
 });

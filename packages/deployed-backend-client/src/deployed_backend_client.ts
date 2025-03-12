@@ -54,14 +54,14 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     private readonly backendOutputClient: BackendOutputClient,
     private readonly deployedResourcesEnumerator: DeployedResourcesEnumerator,
     private readonly stackStatusMapper: StackStatusMapper,
-    private readonly arnParser: ArnParser
+    private readonly arnParser: ArnParser,
   ) {}
 
   /**
    * Deletes a sandbox with the specified id
    */
   deleteSandbox = async (
-    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>
+    sandboxBackendIdentifier: Omit<BackendIdentifier, 'type'>,
   ): Promise<void> => {
     const stackName = BackendIdentifierConversions.toStackName({
       ...sandboxBackendIdentifier,
@@ -73,14 +73,14 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * Fetches all backend metadata for a specified backend
    */
   getBackendMetadata = async (
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<BackendMetadata> => {
     const stackName = BackendIdentifierConversions.toStackName(backendId);
     return this.buildBackendMetadata(stackName);
   };
 
   listBackends = (
-    listBackendsRequest?: ListBackendsRequest
+    listBackendsRequest?: ListBackendsRequest,
   ): ListBackendsResponse => {
     const backends = this.listBackendsInternal(listBackendsRequest);
     return {
@@ -93,7 +93,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
    * @yields
    */
   private async *listBackendsInternal(
-    listBackendsRequest?: ListBackendsRequest
+    listBackendsRequest?: ListBackendsRequest,
   ) {
     const stackMetadata: BackendSummaryMetadata[] = [];
     let nextToken;
@@ -116,22 +116,22 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           return {
             name: stackSummary.StackName as string,
             backendId: BackendIdentifierConversions.fromStackName(
-              stackSummary.StackName
+              stackSummary.StackName,
             ),
             lastUpdated:
               stackSummary.LastUpdatedTime ?? stackSummary.CreationTime,
             status: this.stackStatusMapper.translateStackStatus(
-              stackSummary.StackStatus
+              stackSummary.StackStatus,
             ),
             deploymentType,
           };
         });
 
       const stackMetadataResolvedPromises = await Promise.all(
-        stackMetadataPromises
+        stackMetadataPromises,
       );
       const filteredMetadata = stackMetadataResolvedPromises.filter(
-        (stackMetadata) => stackMetadata.deploymentType === deploymentType
+        (stackMetadata) => stackMetadata.deploymentType === deploymentType,
       );
 
       stackMetadata.push(...filteredMetadata);
@@ -144,7 +144,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   }
 
   private getBackendStackType = (
-    stackName: string | undefined
+    stackName: string | undefined,
   ): string | undefined => {
     const backendIdentifier =
       BackendIdentifierConversions.fromStackName(stackName);
@@ -152,20 +152,20 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   };
 
   private tryGetDeploymentType = async (
-    stackSummary: StackSummary
+    stackSummary: StackSummary,
   ): Promise<DeploymentType | undefined> => {
     const stackDescription = await this.cfnClient.send(
-      new DescribeStacksCommand({ StackName: stackSummary.StackName })
+      new DescribeStacksCommand({ StackName: stackSummary.StackName }),
     );
 
     return stackDescription.Stacks?.[0].Tags?.find(
-      (tag) => tag.Key === 'amplify:deployment-type'
+      (tag) => tag.Key === 'amplify:deployment-type',
     )?.Value as DeploymentType;
   };
 
   private listStacks = async (
     nextToken: string | undefined,
-    stackStatusFilter: BackendStatus[]
+    stackStatusFilter: BackendStatus[],
   ): Promise<{
     stackSummaries: StackSummary[];
     nextToken: string | undefined;
@@ -177,16 +177,16 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           stackStatusFilter.length > 0
             ? stackStatusFilter
             : Object.values(StackStatus).filter(
-                (status) => status !== StackStatus.DELETE_COMPLETE
+                (status) => status !== StackStatus.DELETE_COMPLETE,
               ),
-      })
+      }),
     );
     nextToken = stacks.NextToken;
     return { stackSummaries: stacks.StackSummaries ?? [], nextToken };
   };
 
   private buildBackendMetadata = async (
-    stackName: string
+    stackName: string,
   ): Promise<BackendMetadata> => {
     const stackBackendIdentifier = {
       stackName,
@@ -195,18 +195,18 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     const backendOutput: BackendOutput =
       await this.backendOutputClient.getOutput(stackBackendIdentifier);
     const stackDescription = await this.cfnClient.send(
-      new DescribeStacksCommand({ StackName: stackName })
+      new DescribeStacksCommand({ StackName: stackName }),
     );
     const stack = stackDescription?.Stacks?.[0];
     const status = this.stackStatusMapper.translateStackStatus(
-      stack?.StackStatus
+      stack?.StackStatus,
     );
     const lastUpdated = stack?.LastUpdatedTime ?? stack?.CreationTime;
 
     const stackResources = await this.cfnClient.send(
       new ListStackResourcesCommand({
         StackName: stackName,
-      })
+      }),
     );
     const childStackPromises: Promise<Stack | undefined>[] =
       stackResources.StackResourceSummaries?.filter(
@@ -214,7 +214,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           return (
             stackResourceSummary.ResourceType === 'AWS::CloudFormation::Stack'
           );
-        }
+        },
       ).map(async (stackResourceSummary: StackResourceSummary) => {
         // arn:aws:{service}:{region}:{account}:stack/{stackName}/{additionalFields}
         const arnParts = stackResourceSummary.PhysicalResourceId?.split('/');
@@ -223,7 +223,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
           return;
         }
         const stackDescription = await this.cfnClient.send(
-          new DescribeStacksCommand({ StackName: childStackName })
+          new DescribeStacksCommand({ StackName: childStackName }),
         );
 
         const stack = stackDescription?.Stacks?.[0];
@@ -233,30 +233,30 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     const childStacks = await Promise.all(childStackPromises);
     const authStack = childStacks.find(
       (nestedStack: StackSummary | undefined) =>
-        nestedStack?.StackName?.includes('auth')
+        nestedStack?.StackName?.includes('auth'),
     );
     const storageStack = childStacks.find(
       (nestedStack: StackSummary | undefined) =>
-        nestedStack?.StackName?.includes('storage')
+        nestedStack?.StackName?.includes('storage'),
     );
     const apiStack = childStacks.find((nestedStack: StackSummary | undefined) =>
-      nestedStack?.StackName?.includes('data')
+      nestedStack?.StackName?.includes('data'),
     );
     const functionStack = childStacks.find(
       (nestedStack: StackSummary | undefined) =>
-        nestedStack?.StackName?.includes('function')
+        nestedStack?.StackName?.includes('function'),
     );
 
     // stack?.StackId is the ARN of the stack
     const { accountId, region } = this.arnParser.tryParseArn(
-      stack?.StackId as string
+      stack?.StackId as string,
     );
     const resources =
       await this.deployedResourcesEnumerator.listDeployedResources(
         this.cfnClient,
         stackName,
         accountId,
-        region
+        region,
       );
 
     const backendMetadataObject: BackendMetadata = {
@@ -271,7 +271,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     if (authStack) {
       backendMetadataObject.authConfiguration = {
         status: this.stackStatusMapper.translateStackStatus(
-          authStack.StackStatus
+          authStack.StackStatus,
         ),
         lastUpdated: authStack.LastUpdatedTime ?? authStack.CreationTime,
         userPoolId: backendOutput[authOutputKey]?.payload.userPoolId as string,
@@ -281,7 +281,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     if (storageStack) {
       backendMetadataObject.storageConfiguration = {
         status: this.stackStatusMapper.translateStackStatus(
-          storageStack.StackStatus
+          storageStack.StackStatus,
         ),
         lastUpdated: storageStack.LastUpdatedTime ?? storageStack.CreationTime,
         s3BucketName: backendOutput[storageOutputKey]?.payload
@@ -297,7 +297,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
         : [];
       backendMetadataObject.apiConfiguration = {
         status: this.stackStatusMapper.translateStackStatus(
-          apiStack.StackStatus
+          apiStack.StackStatus,
         ),
         lastUpdated: apiStack.LastUpdatedTime ?? apiStack.CreationTime,
         graphqlEndpoint: backendOutput[graphqlOutputKey]?.payload
@@ -316,7 +316,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
     if (functionStack) {
       const functionResources = resources.filter(
-        (resource) => resource.resourceType === 'AWS::Lambda::Function'
+        (resource) => resource.resourceType === 'AWS::Lambda::Function',
       );
       const functionConfigurations: FunctionConfiguration[] = [];
       const definedFunctionsString =
@@ -327,13 +327,13 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
 
       customerFunctionNames.forEach((functionName) => {
         const resource = functionResources.find(
-          (func) => func.physicalResourceId === functionName
+          (func) => func.physicalResourceId === functionName,
         );
 
         if (resource) {
           functionConfigurations.push({
             status: this.stackStatusMapper.translateStackStatus(
-              resource.resourceStatus
+              resource.resourceStatus,
             ),
             lastUpdated:
               resource.lastUpdated ??
@@ -351,7 +351,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
   };
 
   private fetchSchema = async (
-    schemaS3Uri: string | undefined
+    schemaS3Uri: string | undefined,
   ): Promise<string> => {
     if (!schemaS3Uri) {
       throw new Error('schemaS3Uri output is not available');
@@ -367,7 +367,7 @@ export class DefaultDeployedBackendClient implements DeployedBackendClient {
     }
 
     const s3Response = await this.s3Client.send(
-      new GetObjectCommand({ Bucket: bucketName, Key: objectPath })
+      new GetObjectCommand({ Bucket: bucketName, Key: objectPath }),
     );
 
     if (!s3Response.Body) {

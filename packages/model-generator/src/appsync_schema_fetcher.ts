@@ -17,7 +17,7 @@ export class AppSyncIntrospectionSchemaFetcher {
       new GetIntrospectionSchemaCommand({
         apiId: apiId,
         format: 'SDL',
-      })
+      }),
     );
     const decoder = new TextDecoder();
 

@@ -14,7 +14,7 @@ export class InitialProjectFileGenerator {
     private readonly projectRoot: string,
     private readonly packageManagerController: PackageManagerController,
     private readonly fsp = _fsp,
-    private readonly path = _path
+    private readonly path = _path,
   ) {}
 
   /**
@@ -26,13 +26,13 @@ export class InitialProjectFileGenerator {
     await this.fsp.cp(
       new URL('../templates/basic-auth-data/amplify', import.meta.url),
       targetDir,
-      { recursive: true }
+      { recursive: true },
     );
 
     const packageJsonContent = { type: 'module' };
     await this.fsp.writeFile(
       this.path.resolve(targetDir, 'package.json'),
-      JSON.stringify(packageJsonContent, null, 2)
+      JSON.stringify(packageJsonContent, null, 2),
     );
 
     await this.packageManagerController.initializeTsConfig(targetDir);

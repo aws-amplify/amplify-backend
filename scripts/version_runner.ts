@@ -5,7 +5,7 @@ import { execa } from 'execa';
  */
 export const runVersion = async (
   additionalArgs: string[] = [],
-  cwd?: string
+  cwd?: string,
 ) => {
   // changeset version has a bug where it gets stuck in an infinite loop if git fetch --deepen fails
   // https://github.com/changesets/changesets/issues/571
@@ -19,7 +19,7 @@ export const runVersion = async (
     });
   } catch {
     console.log(
-      'git fetch --unshallow failed. This likely means we already have an un-shallow repo'
+      'git fetch --unshallow failed. This likely means we already have an un-shallow repo',
     );
   }
 

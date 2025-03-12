@@ -12,6 +12,6 @@ export type ImportPathVerifier = {
   verify: (
     importStack: string | undefined,
     expectedImportingFile: string,
-    errorMessage: string
+    errorMessage: string,
   ) => void;
 };

@@ -25,32 +25,32 @@ export class AmplifyStorageFactory
    */
   constructor(
     private readonly props: AmplifyStorageFactoryProps,
-    private readonly importStack = new Error().stack
+    private readonly importStack = new Error().stack,
   ) {}
 
   /**
    * Get a singleton instance of the Bucket
    */
   getInstance = (
-    getInstanceProps: ConstructFactoryGetInstanceProps
+    getInstanceProps: ConstructFactoryGetInstanceProps,
   ): AmplifyStorage => {
     const { constructContainer, importPathVerifier, resourceNameValidator } =
       getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'storage', 'resource'),
-      'Amplify Storage must be defined in amplify/storage/resource.ts'
+      'Amplify Storage must be defined in amplify/storage/resource.ts',
     );
     resourceNameValidator?.validate(this.props.name);
 
     if (!this.generator) {
       this.generator = new StorageContainerEntryGenerator(
         this.props,
-        getInstanceProps
+        getInstanceProps,
       );
     }
     const amplifyStorage = constructContainer.getOrCompute(
-      this.generator
+      this.generator,
     ) as AmplifyStorage;
 
     /*
@@ -61,7 +61,7 @@ export class AmplifyStorageFactory
     const aspects = Aspects.of(Stack.of(amplifyStorage));
     if (!aspects.all.length) {
       aspects.add(
-        new StorageOutputsAspect(getInstanceProps.outputStorageStrategy)
+        new StorageOutputsAspect(getInstanceProps.outputStorageStrategy),
       );
     }
 
@@ -74,6 +74,6 @@ export class AmplifyStorageFactory
  * @see https://docs.amplify.aws/gen2/build-a-backend/storage/
  */
 export const defineStorage = (
-  props: AmplifyStorageFactoryProps
+  props: AmplifyStorageFactoryProps,
 ): ConstructFactory<ResourceProvider<StorageResources> & StackProvider> =>
   new AmplifyStorageFactory(props, new Error().stack);

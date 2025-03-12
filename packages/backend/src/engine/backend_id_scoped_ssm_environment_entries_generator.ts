@@ -20,7 +20,7 @@ export class BackendIdScopedSsmEnvironmentEntriesGenerator
    */
   constructor(
     private readonly scope: Construct,
-    private readonly backendId: BackendIdentifier
+    private readonly backendId: BackendIdentifier,
   ) {}
 
   /**
@@ -53,12 +53,12 @@ export class BackendIdScopedSsmEnvironmentEntriesGenerator
   generateSsmEnvironmentEntries = (scopeContext: Record<string, string>) =>
     Object.entries(scopeContext).map(([contextKey, contextValue]) => {
       const sanitizedContextKey = new NamingConverter().toScreamingSnakeCase(
-        contextKey
+        contextKey,
       );
       const parameterPath =
         ParameterPathConversions.toResourceReferenceFullPath(
           this.backendId,
-          sanitizedContextKey
+          sanitizedContextKey,
         );
       new StringParameter(this.scope, `${sanitizedContextKey}Parameter`, {
         parameterName: parameterPath,

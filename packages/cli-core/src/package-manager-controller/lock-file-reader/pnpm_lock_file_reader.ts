@@ -19,7 +19,7 @@ export class PnpmLockFileReader implements LockFileReader {
     try {
       const pnpmLockContents = await fsp.readFile(pnpmLockPath, 'utf-8');
       const pnpmLockContentsArray = pnpmLockContents.split(
-        new RegExp(`${eolRegex}${eolRegex}`)
+        new RegExp(`${eolRegex}${eolRegex}`),
       );
 
       const startOfPackagesIndex = pnpmLockContentsArray.indexOf('packages:');
@@ -27,7 +27,7 @@ export class PnpmLockFileReader implements LockFileReader {
         return { dependencies };
       }
       const pnpmLockPackages = pnpmLockContentsArray.slice(
-        startOfPackagesIndex + 1
+        startOfPackagesIndex + 1,
       );
 
       for (const pnpmDependencyBlock of pnpmLockPackages) {
@@ -38,10 +38,10 @@ export class PnpmLockFileReader implements LockFileReader {
           .replaceAll(/[':]/g, '');
         const dependencyName = pnpmDependencyLine.slice(
           0,
-          pnpmDependencyLine.lastIndexOf('@')
+          pnpmDependencyLine.lastIndexOf('@'),
         );
         const dependencyVersion = pnpmDependencyLine.slice(
-          pnpmDependencyLine.lastIndexOf('@') + 1
+          pnpmDependencyLine.lastIndexOf('@') + 1,
         );
 
         dependencies.push({ name: dependencyName, version: dependencyVersion });
@@ -49,7 +49,7 @@ export class PnpmLockFileReader implements LockFileReader {
     } catch {
       printer.log(
         `Failed to get lock file contents because ${pnpmLockPath} does not exist or is not parse-able`,
-        LogLevel.DEBUG
+        LogLevel.DEBUG,
       );
       return;
     }

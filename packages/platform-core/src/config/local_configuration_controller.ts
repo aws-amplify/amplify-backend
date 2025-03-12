@@ -16,7 +16,7 @@ export class LocalConfigurationController implements ConfigurationController {
    */
   constructor(
     private readonly projectName = 'amplify',
-    private readonly configFileName = 'config.json'
+    private readonly configFileName = 'config.json',
   ) {
     this.dirPath = this.getConfigDirPath(this.projectName);
     this.configFilePath = path.join(this.dirPath, this.configFileName);
@@ -26,11 +26,12 @@ export class LocalConfigurationController implements ConfigurationController {
    * Gets values from cached config by path.
    */
   async get<T>(path: string) {
-    return path
-      .split('.')
-      .reduce((acc: Record<string, unknown>, current: string) => {
+    return path.split('.').reduce(
+      (acc: Record<string, unknown>, current: string) => {
         return acc?.[current] as Record<string, unknown>;
-      }, await this.store()) as T;
+      },
+      await this.store(),
+    ) as T;
   }
 
   /**
@@ -87,7 +88,7 @@ export class LocalConfigurationController implements ConfigurationController {
       fd = await fs.open(
         this.configFilePath,
         fs.constants.F_OK,
-        fs.constants.O_RDWR
+        fs.constants.O_RDWR,
       );
       const fileContent = await fs.readFile(fd, 'utf-8');
       this._store = JSON.parse(fileContent);
@@ -118,13 +119,13 @@ export class LocalConfigurationController implements ConfigurationController {
       return path.join(
         process.env.APPDATA || path.join(homedir, 'AppData', 'Roaming'),
         name,
-        'Config'
+        'Config',
       );
     };
     const linux = () => {
       return path.join(
         process.env.XDG_STATE_HOME || path.join(homedir, '.local', 'state'),
-        name
+        name,
       );
     };
 

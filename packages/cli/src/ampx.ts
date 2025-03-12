@@ -16,7 +16,7 @@ import { hideBin } from 'yargs/helpers';
 import { PackageManagerControllerFactory, format } from '@aws-amplify/cli-core';
 
 const packageJson = new PackageJsonReader().read(
-  fileURLToPath(new URL('../package.json', import.meta.url))
+  fileURLToPath(new URL('../package.json', import.meta.url)),
 );
 const libraryVersion = packageJson.version;
 
@@ -33,7 +33,7 @@ const dependencies = await new PackageManagerControllerFactory()
 
 const usageDataEmitter = await new UsageDataEmitterFactory().getInstance(
   libraryVersion,
-  dependencies
+  dependencies,
 );
 
 attachUnhandledExceptionListeners(usageDataEmitter);

@@ -12,14 +12,14 @@ export type DocumentGenerationParameters = {
 };
 export type GenerationResult = {
   writeToDirectory: (
-    directoryPath: string
+    directoryPath: string,
   ) => Promise<GenerateGraphqlCodegenToFileResult>;
   getResults: () => Promise<Record<string, string>>;
 };
 
 export type GraphqlDocumentGenerator = {
   generateModels: (
-    params: DocumentGenerationParameters
+    params: DocumentGenerationParameters,
   ) => Promise<GenerationResult>;
 };
 
@@ -31,7 +31,7 @@ export type TypesGenerationParameters = {
 };
 export type GraphqlTypesGenerator = {
   generateTypes: (
-    params: TypesGenerationParameters
+    params: TypesGenerationParameters,
   ) => Promise<GenerationResult>;
 };
 
@@ -48,7 +48,7 @@ export type ModelsGenerationParameters = {
 };
 export type GraphqlModelsGenerator = {
   generateModels: (
-    params: ModelsGenerationParameters
+    params: ModelsGenerationParameters,
   ) => Promise<GenerationResult>;
 };
 export type GenerateGraphqlCodegenToFileResult = {

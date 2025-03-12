@@ -25,10 +25,10 @@ const aws = require('aws-sdk');
  * fetches values from SSM and places those values in the corresponding environment variables
  */
 export const internalAmplifyFunctionResolveSsmParams = async (
-  client = new aws.SSM() as SSM
+  client = new aws.SSM() as SSM,
 ) => {
   const envPathObject: SsmEnvVars = JSON.parse(
-    process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}'
+    process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}',
   );
   const paths = Object.keys(envPathObject);
 
@@ -54,28 +54,28 @@ export const internalAmplifyFunctionResolveSsmParams = async (
                 Names: chunkedPaths,
                 WithDecryption: true,
               })
-              .promise()
-        )
+              .promise(),
+        ),
       )
     ).reduce(
       (accumulator, response) => {
         accumulator.Parameters?.push(...(response.Parameters ?? []));
         accumulator.InvalidParameters?.push(
-          ...(response.InvalidParameters ?? [])
+          ...(response.InvalidParameters ?? []),
         );
         return accumulator;
       },
       {
         Parameters: [],
         InvalidParameters: [],
-      } as SSM.GetParametersResult
+      } as SSM.GetParametersResult,
     );
 
     if (response.Parameters && response.Parameters.length > 0) {
       for (const parameter of response.Parameters) {
         if (parameter.Name) {
           const envKey = Object.keys(envPathObject).find(
-            (key) => envPathObject[key].sharedPath === parameter.Name
+            (key) => envPathObject[key].sharedPath === parameter.Name,
           );
           const envName = envKey
             ? envPathObject[envKey].name

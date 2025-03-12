@@ -14,17 +14,17 @@ void describe('configure command', () => {
   const mockedConfigControllerSet = mock.fn();
   const logMock = mock.method(printer, 'log');
   const emitFailureMock = mock.fn<UsageDataEmitter['emitFailure']>(() =>
-    Promise.resolve()
+    Promise.resolve(),
   );
   const emitSuccessMock = mock.fn<UsageDataEmitter['emitSuccess']>(() =>
-    Promise.resolve()
+    Promise.resolve(),
   );
 
   mock.method(configControllerFactory, 'getInstance', () => ({
     set: mockedConfigControllerSet,
   }));
   const telemetryCommand = new ConfigureTelemetryCommand(
-    configControllerFactory.getInstance('usage_data_preferences.json')
+    configControllerFactory.getInstance('usage_data_preferences.json'),
   );
   const parser = yargs().command(telemetryCommand);
   const commandRunner = new TestCommandRunner(parser, {
@@ -43,15 +43,15 @@ void describe('configure command', () => {
     await commandRunner.runCommand(`telemetry enable`);
     assert.match(
       logMock.mock.calls[0].arguments[0],
-      /You have enabled telemetry data collection/
+      /You have enabled telemetry data collection/,
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[0],
-      USAGE_DATA_TRACKING_ENABLED
+      USAGE_DATA_TRACKING_ENABLED,
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[1],
-      true
+      true,
     );
     assert.equal(emitFailureMock.mock.callCount(), 0);
     assert.equal(emitSuccessMock.mock.callCount(), 1);
@@ -64,15 +64,15 @@ void describe('configure command', () => {
     await commandRunner.runCommand(`telemetry disable`);
     assert.match(
       logMock.mock.calls[0].arguments[0],
-      /You have disabled telemetry data collection/
+      /You have disabled telemetry data collection/,
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[0],
-      USAGE_DATA_TRACKING_ENABLED
+      USAGE_DATA_TRACKING_ENABLED,
     );
     assert.strictEqual(
       mockedConfigControllerSet.mock.calls[0].arguments[1],
-      false
+      false,
     );
     assert.equal(emitFailureMock.mock.callCount(), 0);
     assert.equal(emitSuccessMock.mock.callCount(), 1);
@@ -85,13 +85,13 @@ void describe('configure command', () => {
     const output = await commandRunner.runCommand(`telemetry`);
     assert.match(
       output,
-      /Not enough non-option arguments: got 0, need at least 1/
+      /Not enough non-option arguments: got 0, need at least 1/,
     );
     assert.strictEqual(mockedConfigControllerSet.mock.callCount(), 0);
     assert.equal(emitFailureMock.mock.callCount(), 1);
     assert.match(
       emitFailureMock.mock.calls[0].arguments[0].message,
-      /Not enough non-option arguments: got 0, need at least 1/
+      /Not enough non-option arguments: got 0, need at least 1/,
     );
     assert.deepStrictEqual(emitFailureMock.mock.calls[0].arguments[1], {
       command: 'telemetry',

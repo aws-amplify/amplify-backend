@@ -65,7 +65,7 @@ export class NpmProxyController {
         // Command must run outside 'amplify-backend' workspace.
         // Otherwise, workspace copy is found and npx cache is not hydrated.
         cwd: os.homedir(),
-      }
+      },
     );
 
     // Assert that above command printed help output.

@@ -6,7 +6,7 @@ void describe('NoAmplifyDirValidator', () => {
   void it('throws if test path already exists', async () => {
     const noAmplifyDirValidator = new ProjectRootValidator(
       'testRoot',
-      () => true
+      () => true,
     );
     await assert.rejects(noAmplifyDirValidator.validate);
   });
@@ -14,7 +14,7 @@ void describe('NoAmplifyDirValidator', () => {
   void it('does nothing if test path does not exist', async () => {
     const noAmplifyDirValidator = new ProjectRootValidator(
       'testRoot',
-      () => false
+      () => false,
     );
     await noAmplifyDirValidator.validate();
     // getting here means validation passed

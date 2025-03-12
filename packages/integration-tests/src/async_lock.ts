@@ -53,9 +53,9 @@ export class AsyncLock {
         queueItem.timeout = setTimeout(
           () =>
             reject(
-              new Error(`Unable to acquire async lock in ${timeoutMs}ms.`)
+              new Error(`Unable to acquire async lock in ${timeoutMs}ms.`),
             ),
-          timeoutMs
+          timeoutMs,
         );
       });
       return Promise.race<void>([lockPromise, timeoutPromise]);

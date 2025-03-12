@@ -1,6 +1,6 @@
 if (!process.env.E2E_TEST_ACCOUNTS) {
   throw new Error(
-    'E2E_TEST_ACCOUNTS environment variable must be defined and contain array of strings with account numbers'
+    'E2E_TEST_ACCOUNTS environment variable must be defined and contain array of strings with account numbers',
   );
 }
 

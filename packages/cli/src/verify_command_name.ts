@@ -20,10 +20,10 @@ export const verifyCommandName = () => {
   }
   throw new AmplifyUserError('InvalidCommandError', {
     message: `The Amplify Gen 2 CLI has been renamed to ${format.command(
-      expectedCommandName
+      expectedCommandName,
     )}`,
     resolution: `Rerun using the ${format.command(
-      expectedCommandName
+      expectedCommandName,
     )} command name:${EOL}${EOL}${format.normalizeAmpxCommand(command)}${EOL}`,
   });
 };

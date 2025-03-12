@@ -32,7 +32,7 @@ __metadata:
     sub-dep_3: "npm:~2.0.1"
   checksum: some-other-checksum
   languageName: node
-  linkType: hard`
+  linkType: hard`,
   );
   const yarnModernLockFileReader = new YarnModernLockFileReader();
 
@@ -58,14 +58,14 @@ __metadata:
     assert.deepEqual(lockFileContents, expectedLockFileContents);
     assert.strictEqual(
       fspReadFileMock.mock.calls[0].arguments[0],
-      path.resolve(process.cwd(), 'yarn.lock')
+      path.resolve(process.cwd(), 'yarn.lock'),
     );
     assert.strictEqual(fspReadFileMock.mock.callCount(), 1);
   });
 
   void it('returns undefined when yarn.lock is not present or parse-able', async () => {
     fspReadFileMock.mock.mockImplementationOnce(() =>
-      Promise.reject(new Error())
+      Promise.reject(new Error()),
     );
     const lockFileContents =
       await yarnModernLockFileReader.getLockFileContentsFromCwd();
@@ -88,7 +88,7 @@ __metadata:
   resolution: "testapp@workspace:."
   languageName: unknown
   linkType: soft
-`
+`,
     );
     const lockFileContents =
       await yarnModernLockFileReader.getLockFileContentsFromCwd();

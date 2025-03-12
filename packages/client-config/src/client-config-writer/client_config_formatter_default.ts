@@ -21,14 +21,14 @@ export class ClientConfigFormatterDefault implements ClientConfigFormatter {
         return `const amplifyConfig = r'''${JSON.stringify(
           clientConfig,
           null,
-          2
+          2,
         )}''';`;
       }
       case ClientConfigFormat.JSON:
         return JSON.stringify(clientConfig, null, 2);
       default:
         throw new Error(
-          `Unsupported client config format ${format} for client config`
+          `Unsupported client config format ${format} for client config`,
         );
     }
   };

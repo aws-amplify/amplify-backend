@@ -17,15 +17,15 @@ void describe('sandbox secret remove command', () => {
   const secretRemoveMock = mock.method(
     secretClient,
     'removeSecret',
-    (): Promise<void> => Promise.resolve()
+    (): Promise<void> => Promise.resolve(),
   );
   const secretsRemoveMock = mock.method(
     secretClient,
     'removeSecrets',
-    (): Promise<void> => Promise.resolve()
+    (): Promise<void> => Promise.resolve(),
   );
   const listSecretsMock = mock.method(secretClient, 'listSecrets', () =>
-    Promise.resolve([{ name: testSecretName }, { name: testSecretName2 }])
+    Promise.resolve([{ name: testSecretName }, { name: testSecretName2 }]),
   );
   const printMock = mock.method(printer, 'print');
 
@@ -40,11 +40,11 @@ void describe('sandbox secret remove command', () => {
 
   const sandboxSecretRemoveCmd = new SandboxSecretRemoveCommand(
     sandboxIdResolver,
-    secretClient
+    secretClient,
   );
 
   const parser = yargs().command(
-    sandboxSecretRemoveCmd as unknown as CommandModule
+    sandboxSecretRemoveCmd as unknown as CommandModule,
   );
 
   const commandRunner = new TestCommandRunner(parser);
@@ -67,13 +67,13 @@ void describe('sandbox secret remove command', () => {
     ]);
     assert.equal(
       printMock.mock.calls[0].arguments,
-      `Successfully removed secret ${testSecretName}`
+      `Successfully removed secret ${testSecretName}`,
     );
   });
 
   void it('removes secret from named sandbox', async () => {
     await commandRunner.runCommand(
-      `remove ${testSecretName} --identifier anotherName`
+      `remove ${testSecretName} --identifier anotherName`,
     );
     assert.equal(secretRemoveMock.mock.callCount(), 1);
     assert.deepStrictEqual(secretRemoveMock.mock.calls[0].arguments, [
@@ -108,7 +108,7 @@ void describe('sandbox secret remove command', () => {
     ]);
     assert.equal(
       printMock.mock.calls[0].arguments,
-      'Successfully removed all secrets'
+      'Successfully removed all secrets',
     );
   });
 
@@ -128,7 +128,7 @@ void describe('sandbox secret remove command', () => {
   void it('throws error if both --all flag and secret-name argument', async () => {
     assert.match(
       await commandRunner.runCommand(`remove ${testSecretName} --all`),
-      /Arguments all and secret-name are mutually exclusive/
+      /Arguments all and secret-name are mutually exclusive/,
     );
   });
 });

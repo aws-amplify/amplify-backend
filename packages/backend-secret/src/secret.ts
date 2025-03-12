@@ -36,14 +36,14 @@ export type SecretClient = {
    */
   getSecret: (
     backendIdentifier: BackendIdentifier | AppId,
-    secretIdentifier: SecretIdentifier
+    secretIdentifier: SecretIdentifier,
   ) => Promise<Secret>;
 
   /**
    * List secrets.
    */
   listSecrets: (
-    backendIdentifier: BackendIdentifier | AppId
+    backendIdentifier: BackendIdentifier | AppId,
   ) => Promise<SecretListItem[]>;
 
   /**
@@ -52,7 +52,7 @@ export type SecretClient = {
   setSecret: (
     backendIdentifier: BackendIdentifier | AppId,
     secretName: string,
-    secretValue: string
+    secretValue: string,
   ) => Promise<SecretIdentifier>;
 
   /**
@@ -60,7 +60,7 @@ export type SecretClient = {
    */
   removeSecret: (
     backendIdentifier: BackendIdentifier | AppId,
-    secretName: string
+    secretName: string,
   ) => Promise<void>;
 
   /**
@@ -68,7 +68,7 @@ export type SecretClient = {
    */
   removeSecrets: (
     backendIdentifier: BackendIdentifier | AppId,
-    secretNames: string[]
+    secretNames: string[],
   ) => Promise<void>;
 };
 
@@ -84,13 +84,13 @@ export type SecretClientOptions = {
  * Creates an Amplify secret client. Used in the backend lambda for fetching secrets
  */
 export const getSecretClient = (
-  secretClientOptions?: SecretClientOptions
+  secretClientOptions?: SecretClientOptions,
 ): SecretClient => {
   return new SSMSecretClient(
     new SSM({
       credentials: secretClientOptions?.credentials,
       region: secretClientOptions?.region,
-    })
+    }),
   );
 };
 
@@ -99,9 +99,9 @@ export const getSecretClient = (
  * Used in the amplify CLI commands such as sandbox and pipeline-deploy
  */
 export const getSecretClientWithAmplifyErrorHandling = (
-  secretClientOptions?: SecretClientOptions
+  secretClientOptions?: SecretClientOptions,
 ): SecretClient => {
   return new SSMSecretClientWithAmplifyErrorHandling(
-    getSecretClient(secretClientOptions)
+    getSecretClient(secretClientOptions),
   );
 };

@@ -28,7 +28,7 @@ export class ParameterPathConversions {
   // eslint-disable-next-line no-restricted-syntax
   static toParameterFullPath(
     backendId: BackendIdentifier | AppId,
-    parameterName: string
+    parameterName: string,
   ): string {
     if (typeof backendId === 'object') {
       return getBackendParameterFullPath(backendId, parameterName);
@@ -43,10 +43,10 @@ export class ParameterPathConversions {
   // eslint-disable-next-line no-restricted-syntax
   static toResourceReferenceFullPath(
     backendId: BackendIdentifier,
-    referenceName: string
+    referenceName: string,
   ): string {
     return `/amplify/${RESOURCE_REFERENCE}/${getBackendIdentifierPathPart(
-      backendId
+      backendId,
     )}/${referenceName}`;
   }
 }
@@ -61,7 +61,7 @@ const getBackendParameterPrefix = (parts: BackendIdentifier): string => {
 const getBackendIdentifierPathPart = (parts: BackendIdentifier): string => {
   // round trip the backend id through the stack name conversion to ensure we are applying the same sanitization to SSM paths
   const sanitizedBackendId = BackendIdentifierConversions.fromStackName(
-    BackendIdentifierConversions.toStackName(parts)
+    BackendIdentifierConversions.toStackName(parts),
   );
   if (!sanitizedBackendId || !sanitizedBackendId.hash) {
     // this *should* never happen
@@ -77,7 +77,7 @@ const getBackendIdentifierPathPart = (parts: BackendIdentifier): string => {
  */
 const getBackendParameterFullPath = (
   backendIdentifier: BackendIdentifier,
-  parameterName: string
+  parameterName: string,
 ): string => {
   return `${getBackendParameterPrefix(backendIdentifier)}/${parameterName}`;
 };
@@ -94,7 +94,7 @@ const getSharedParameterPrefix = (appId: AppId): string => {
  */
 const getSharedParameterFullPath = (
   appId: AppId,
-  parameterName: string
+  parameterName: string,
 ): string => {
   return `${getSharedParameterPrefix(appId)}/${parameterName}`;
 };

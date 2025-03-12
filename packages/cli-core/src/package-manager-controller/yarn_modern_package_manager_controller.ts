@@ -23,7 +23,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
     protected readonly execa = _execa,
     protected readonly executeWithDebugLogger = _executeWithDebugLogger,
     protected readonly existsSync = _existsSync,
-    protected readonly lockFileReader = new YarnModernLockFileReader()
+    protected readonly lockFileReader = new YarnModernLockFileReader(),
   ) {
     super(
       cwd,
@@ -35,7 +35,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
       path,
       execa,
       executeWithDebugLogger,
-      existsSync
+      existsSync,
     );
   }
 
@@ -55,14 +55,14 @@ export class YarnModernPackageManagerController extends PackageManagerController
       if (typeof error === 'string') {
         this.printer.log(
           format.error(`Error creating ${targetDir}/yarn.lock ${error}}`),
-          LogLevel.ERROR
+          LogLevel.ERROR,
         );
       } else if (error instanceof Error) {
         this.printer.log(
           format.error(
-            `Error creating ${targetDir}/yarn.lock ${error.message}}`
+            `Error creating ${targetDir}/yarn.lock ${error.message}}`,
           ),
-          LogLevel.ERROR
+          LogLevel.ERROR,
         );
       }
     }
@@ -73,7 +73,7 @@ export class YarnModernPackageManagerController extends PackageManagerController
       targetDir,
       'yarn',
       ['add', 'typescript@^5'],
-      this.execa
+      this.execa,
     );
   };
 }

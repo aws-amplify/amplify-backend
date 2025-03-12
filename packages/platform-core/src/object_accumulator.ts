@@ -11,7 +11,7 @@ export class ObjectAccumulatorPropertyAlreadyExistsError extends Error {
   constructor(
     readonly key: string,
     readonly existingValue: unknown,
-    readonly incomingValue: unknown
+    readonly incomingValue: unknown,
   ) {
     super(`Property ${key} already exists`);
   }
@@ -24,9 +24,12 @@ export class ObjectAccumulatorVersionMismatchError extends Error {
   /**
    * Creates property already exists error.
    */
-  constructor(readonly existingVersion: string, readonly newVersion: string) {
+  constructor(
+    readonly existingVersion: string,
+    readonly newVersion: string,
+  ) {
     super(
-      `Version mismatch: Cannot accumulate new objects with version ${newVersion} with existing accumulated object with version ${existingVersion}`
+      `Version mismatch: Cannot accumulate new objects with version ${newVersion} with existing accumulated object with version ${existingVersion}`,
     );
   }
 }
@@ -40,7 +43,7 @@ export class ObjectAccumulator<T> {
    */
   constructor(
     private readonly accumulator: DeepPartialAmplifyGeneratedConfigs<T>,
-    private readonly versionKey = 'version'
+    private readonly versionKey = 'version',
   ) {}
 
   /**
@@ -51,7 +54,7 @@ export class ObjectAccumulator<T> {
    * @returns the accumulator object for easy chaining
    */
   accumulate = (
-    part: DeepPartialAmplifyGeneratedConfigs<T>
+    part: DeepPartialAmplifyGeneratedConfigs<T>,
   ): ObjectAccumulator<T> => {
     mergeWith(this.accumulator, part, (existingValue, incomingValue, key) => {
       if (Array.isArray(existingValue)) {
@@ -66,7 +69,7 @@ export class ObjectAccumulator<T> {
             if (incomingVersion.major !== existingVersion.major) {
               throw new ObjectAccumulatorVersionMismatchError(
                 existingValue,
-                incomingValue
+                incomingValue,
               );
             } else {
               // We always get the max version to persist in the accumulated object
@@ -79,7 +82,7 @@ export class ObjectAccumulator<T> {
           throw new ObjectAccumulatorPropertyAlreadyExistsError(
             key,
             existingValue,
-            incomingValue
+            incomingValue,
           );
         }
       }

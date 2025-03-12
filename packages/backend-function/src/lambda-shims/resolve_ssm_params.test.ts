@@ -37,7 +37,7 @@ void describe('internalAmplifyFunctionResolveSsmParams', () => {
             Value: secretValue,
           },
         ],
-      })
+      }),
     );
     await internalAmplifyFunctionResolveSsmParams(client);
     assert.equal(mockGetParameters.mock.callCount(), 1);
@@ -73,7 +73,7 @@ void describe('internalAmplifyFunctionResolveSsmParams', () => {
         return Promise.resolve({
           Parameters: parameters,
         });
-      }
+      },
     );
     await internalAmplifyFunctionResolveSsmParams(client);
     assert.equal(mockGetParameters.mock.callCount(), 10);

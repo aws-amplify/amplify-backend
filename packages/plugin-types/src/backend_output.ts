@@ -1,5 +1,5 @@
 export type BackendOutputEntry<
-  T extends Record<string, string> = Record<string, string>
+  T extends Record<string, string> = Record<string, string>,
 > = {
   readonly version: string;
   readonly payload: T;

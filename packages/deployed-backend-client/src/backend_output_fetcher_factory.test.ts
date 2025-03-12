@@ -43,7 +43,7 @@ void describe('Backend Identifiers', () => {
     for (let i = 0; i < backendIdentifiers.length; i += 1) {
       assert.equal(
         isAppNameAndBranchIdentifier(backendIdentifiers[i]),
-        expected[i]
+        expected[i],
       );
     }
   });

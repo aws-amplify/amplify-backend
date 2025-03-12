@@ -7,7 +7,7 @@ import path from 'path';
 void describe('Package JSON reader', () => {
   const fsExistsSyncMock = mock.method(fs, 'existsSync', () => true);
   const fsReadFileSync = mock.method(fs, 'readFileSync', () =>
-    JSON.stringify({ name: 'test_name', version: '12.13.14', type: 'module' })
+    JSON.stringify({ name: 'test_name', version: '12.13.14', type: 'module' }),
   );
   const testPath = '/test_path';
   const packageJsonReader = new PackageJsonReader();
@@ -24,7 +24,7 @@ void describe('Package JSON reader', () => {
     assert.strictEqual(packageJson.type, 'module');
     assert.strictEqual(
       fsExistsSyncMock.mock.calls[0].arguments[0],
-      '/test_path'
+      '/test_path',
     );
     assert.strictEqual(1, fsReadFileSync.mock.callCount());
   });
@@ -36,7 +36,7 @@ void describe('Package JSON reader', () => {
     assert.strictEqual(packageJson.type, 'module');
     assert.strictEqual(
       fsExistsSyncMock.mock.calls[0].arguments[0],
-      path.resolve(process.cwd(), 'package.json')
+      path.resolve(process.cwd(), 'package.json'),
     );
     assert.strictEqual(1, fsReadFileSync.mock.callCount());
   });

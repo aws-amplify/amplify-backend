@@ -3,6 +3,6 @@ import { UnifiedBackendOutput } from '@aws-amplify/backend-output-schemas';
 
 export type ClientConfigContributor = {
   contribute: (
-    backendOutput: UnifiedBackendOutput
+    backendOutput: UnifiedBackendOutput,
   ) => Promise<Partial<ClientConfig>> | Partial<ClientConfig>;
 };

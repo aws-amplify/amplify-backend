@@ -49,9 +49,8 @@ export class FormGenerationHandler {
     const result = await localFormGenerator.generateForms({
       models: modelsFilter,
     });
-    const { filesWritten: uiFilesWritten } = await result.writeToDirectory(
-      uiOutDir
-    );
+    const { filesWritten: uiFilesWritten } =
+      await result.writeToDirectory(uiOutDir);
     this.logMessages(uiFilesWritten);
   };
 

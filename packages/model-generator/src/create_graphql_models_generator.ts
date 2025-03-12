@@ -36,7 +36,7 @@ export type GraphqlModelsGeneratorFactoryParams =
  * Factory function to compose a model generator.
  */
 export const createGraphqlModelsGenerator = (
-  params: GraphqlModelsGeneratorFactoryParams
+  params: GraphqlModelsGeneratorFactoryParams,
 ): GraphqlModelsGenerator => {
   if ('backendIdentifier' in params) {
     return createGraphqlModelsGeneratorFromBackendIdentifier(params);
@@ -71,7 +71,7 @@ const createGraphqlModelsGeneratorFromBackendIdentifier = ({
 
   return new StackMetadataGraphqlModelsGenerator(
     () => getModelSchema(backendIdentifier, awsClientProvider),
-    (fileMap) => new AppsyncGraphqlGenerationResult(fileMap)
+    (fileMap) => new AppsyncGraphqlGenerationResult(fileMap),
   );
 };
 
@@ -101,7 +101,7 @@ export const createGraphqlModelsFromS3UriGenerator = ({
   }
   return new StackMetadataGraphqlModelsGenerator(
     () => getModelSchemaFromS3Uri(modelSchemaS3Uri, awsClientProvider),
-    (fileMap) => new AppsyncGraphqlGenerationResult(fileMap)
+    (fileMap) => new AppsyncGraphqlGenerationResult(fileMap),
   );
 };
 
@@ -111,13 +111,13 @@ const getModelSchema = async (
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
-  }>
+  }>,
 ): Promise<string> => {
   const backendOutputClient =
     BackendOutputClientFactory.getInstance(awsClientProvider);
   const output = await getBackendOutputWithErrorHandling(
     backendOutputClient,
-    backendIdentifier
+    backendIdentifier,
   );
   const modelSchemaS3Uri =
     output[graphqlOutputKey]?.payload.amplifyApiModelSchemaS3Uri;
@@ -133,10 +133,10 @@ const getModelSchemaFromS3Uri = async (
   modelSchemaS3Uri: string,
   awsClientProvider: AWSClientProvider<{
     getS3Client: S3Client;
-  }>
+  }>,
 ): Promise<string> => {
   const schemaFetcher = new S3StringObjectFetcher(
-    awsClientProvider.getS3Client()
+    awsClientProvider.getS3Client(),
   );
   return await schemaFetcher.fetch(modelSchemaS3Uri);
 };

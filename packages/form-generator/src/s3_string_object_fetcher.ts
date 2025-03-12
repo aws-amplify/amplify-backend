@@ -15,7 +15,7 @@ export class S3StringObjectFetcher {
   fetch = async (uri: string) => {
     const { bucket, key } = this.parseS3Uri(uri);
     const getSchemaCommandResult = await this.s3Client.send(
-      new GetObjectCommand({ Bucket: bucket, Key: key })
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
     );
     const schema = await getSchemaCommandResult.Body?.transformToString();
     if (!schema) {

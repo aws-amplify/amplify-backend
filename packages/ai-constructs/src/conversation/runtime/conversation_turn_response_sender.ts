@@ -41,9 +41,9 @@ export class ConversationTurnResponseSender {
     private readonly graphqlRequestExecutor = new GraphqlRequestExecutor(
       event.graphqlApiEndpoint,
       event.request.headers.authorization,
-      userAgentProvider
+      userAgentProvider,
     ),
-    private readonly logger = console
+    private readonly logger = console,
   ) {}
 
   sendResponse = async (message: ContentBlock[]) => {
@@ -76,7 +76,7 @@ export class ConversationTurnResponseSender {
     const responseMutationRequest = this.createMutationErrorsRequest(errors);
     this.logger.debug(
       'Sending errors response mutation:',
-      responseMutationRequest
+      responseMutationRequest,
     );
     await this.graphqlRequestExecutor.executeGraphql<
       MutationErrorsResponseInput,
@@ -136,7 +136,7 @@ export class ConversationTurnResponseSender {
     chunk = {
       ...chunk,
       accumulatedTurnContent: this.serializeContent(
-        chunk.accumulatedTurnContent
+        chunk.accumulatedTurnContent,
       ),
     };
     const variables: MutationStreamingResponseInput = {

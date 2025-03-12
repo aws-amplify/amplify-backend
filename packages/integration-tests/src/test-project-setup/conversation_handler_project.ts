@@ -126,18 +126,18 @@ export class ConversationHandlerTestProjectCreator
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly lambdaClient: LambdaClient = new LambdaClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
-    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -152,14 +152,14 @@ export class ConversationHandlerTestProjectCreator
       this.amplifyClient,
       this.lambdaClient,
       this.cognitoIdentityProviderClient,
-      this.resourceFinder
+      this.resourceFinder,
     );
     await fs.cp(
       project.sourceProjectAmplifyDirURL,
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
     return project;
   };
@@ -176,7 +176,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
-    import.meta.url
+    import.meta.url,
   );
 
   /**
@@ -189,24 +189,24 @@ class ConversationHandlerTestProject extends TestProjectBase {
     cfnClient: CloudFormationClient,
     amplifyClient: AmplifyClient,
     private readonly lambdaClient: LambdaClient = new LambdaClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
-    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
   }
 
   override async assertPostDeployment(
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
 
@@ -222,7 +222,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     const authenticatedUserCredentials =
       await new AmplifyAuthCredentialsFactory(
         this.cognitoIdentityProviderClient,
-        clientConfig.auth
+        clientConfig.auth,
       ).getNewAuthenticatedUserCredentials();
 
     const httpLink = new HttpLink({ uri: clientConfig.data.url });
@@ -249,8 +249,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        false
-      )
+        false,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -259,8 +259,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        true
-      )
+        true,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -271,8 +271,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         apolloClient,
         false,
         // Simulate eventual consistency
-        true
-      )
+        true,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -281,8 +281,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        false
-      )
+        false,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -291,8 +291,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        true
-      )
+        true,
+      ),
     );
 
     await this.executeWithRetry((attempt) =>
@@ -302,8 +302,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         dataUrl,
         apolloClient,
         true,
-        attempt
-      )
+        attempt,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -312,8 +312,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        false
-      )
+        false,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -322,8 +322,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        true
-      )
+        true,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -332,8 +332,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        false
-      )
+        false,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -342,8 +342,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        true
-      )
+        true,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -352,8 +352,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        false
-      )
+        false,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -362,8 +362,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        true
-      )
+        true,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -372,8 +372,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        false
-      )
+        false,
+      ),
     );
 
     await this.executeWithRetry(() =>
@@ -382,8 +382,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         authenticatedUserCredentials.accessToken,
         dataUrl,
         apolloClient,
-        true
-      )
+        true,
+      ),
     );
 
     await this.executeWithRetry((attempt) =>
@@ -393,8 +393,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         dataUrl,
         apolloClient,
         true,
-        attempt
-      )
+        attempt,
+      ),
     );
 
     await this.executeWithRetry((attempt) =>
@@ -404,8 +404,8 @@ class ConversationHandlerTestProject extends TestProjectBase {
         dataUrl,
         apolloClient,
         false,
-        attempt
-      )
+        attempt,
+      ),
     );
   }
 
@@ -415,13 +415,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
     streamResponse: boolean,
-    withoutMessageAvailableInTheMessageList = false
+    withoutMessageAvailableInTheMessageList = false,
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::Lambda::Function',
-        (name) => name.includes('default')
+        (name) => name.includes('default'),
       )
     )[0];
 
@@ -458,7 +458,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
-      apolloClient
+      apolloClient,
     );
     assert.match(response.content, /3\.14/);
   };
@@ -468,13 +468,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    streamResponse: boolean
+    streamResponse: boolean,
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::Lambda::Function',
-        (name) => name.includes('default')
+        (name) => name.includes('default'),
       )
     )[0];
 
@@ -487,7 +487,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       'test-projects',
       'conversation-handler',
       'resources',
-      'sample-image.png'
+      'sample-image.png',
     );
 
     const imageSource = await fs.readFile(imagePath, 'base64');
@@ -523,7 +523,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
-      apolloClient
+      apolloClient,
     );
     // The image contains a logo of AWS. Responses may vary, but they should always contain statements below.
     assert.match(response.content, /logo/);
@@ -535,13 +535,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    streamResponse: boolean
+    streamResponse: boolean,
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::Lambda::Function',
-        (name) => name.includes('default')
+        (name) => name.includes('default'),
       )
     )[0];
 
@@ -554,7 +554,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
       'test-projects',
       'conversation-handler',
       'resources',
-      'sample-document.docx'
+      'sample-document.docx',
     );
 
     const documentSource = await fs.readFile(documentPath, 'base64');
@@ -591,7 +591,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
-      apolloClient
+      apolloClient,
     );
     // The document contains a hello world string. Responses may vary, but they should always contain statements below.
     assert.match(response.content, /document/);
@@ -603,13 +603,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    streamResponse: boolean
+    streamResponse: boolean,
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::Lambda::Function',
-        (name) => name.includes('default')
+        (name) => name.includes('default'),
       )
     )[0];
 
@@ -665,12 +665,12 @@ class ConversationHandlerTestProject extends TestProjectBase {
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
-      apolloClient
+      apolloClient,
     );
     // Assert that tool was used. I.e. that LLM used value returned by the tool.
     assert.match(
       response.content,
-      new RegExp(expectedTemperatureInDataToolScenario.toString())
+      new RegExp(expectedTemperatureInDataToolScenario.toString()),
     );
   };
 
@@ -679,13 +679,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    streamResponse: boolean
+    streamResponse: boolean,
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::Lambda::Function',
-        (name) => name.includes('default')
+        (name) => name.includes('default'),
       )
     )[0];
 
@@ -734,7 +734,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
-      apolloClient
+      apolloClient,
     );
     // Assert that tool use content blocks are emitted in case LLM selects client tool.
     // The content blocks are string serialized, but not as a proper JSON,
@@ -748,19 +748,19 @@ class ConversationHandlerTestProject extends TestProjectBase {
   private executeConversationTurn = async (
     event: ConversationTurnEvent,
     functionName: string,
-    apolloClient: ApolloClient<NormalizedCacheObject>
+    apolloClient: ApolloClient<NormalizedCacheObject>,
   ): Promise<{
     content: string;
     errors?: Array<ConversationTurnError>;
   }> => {
     console.log(
-      `Sending event conversationId=${event.conversationId} currentMessageId=${event.currentMessageId}`
+      `Sending event conversationId=${event.conversationId} currentMessageId=${event.currentMessageId}`,
     );
     await this.lambdaClient.send(
       new InvokeCommand({
         FunctionName: functionName,
         Payload: Buffer.from(JSON.stringify(event)),
-      })
+      }),
     );
 
     // assert that response came back
@@ -823,7 +823,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
             .nextToken;
         chunks.push(
           ...queryResult.data.listConversationMessageAssistantStreamingResponses
-            .items
+            .items,
         );
       } while (nextToken);
 
@@ -853,7 +853,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
         if (current.contentBlockText) {
           assert.ok(
             current.p && current.p.length > 0,
-            'Text chunks must include padding'
+            'Text chunks must include padding',
           );
           accumulated += current.contentBlockText;
         }
@@ -903,7 +903,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
     });
     assert.strictEqual(
       1,
-      queryResult.data.listConversationMessageAssistantResponses.items.length
+      queryResult.data.listConversationMessageAssistantResponses.items.length,
     );
     const response =
       queryResult.data.listConversationMessageAssistantResponses.items[0];
@@ -924,13 +924,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     accessToken: string,
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    streamResponse: boolean
+    streamResponse: boolean,
   ): Promise<void> => {
     const customConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::Lambda::Function',
-        (name) => name.includes('custom')
+        (name) => name.includes('custom'),
       )
     )[0];
 
@@ -959,20 +959,20 @@ class ConversationHandlerTestProject extends TestProjectBase {
     const response = await this.executeConversationTurn(
       event,
       customConversationHandlerFunction,
-      apolloClient
+      apolloClient,
     );
     // Assert that tool was used. I.e. LLM used value provided by the tool.
     assert.match(
       response.content,
       new RegExp(
-        expectedTemperaturesInProgrammaticToolScenario.Seattle.toString()
-      )
+        expectedTemperaturesInProgrammaticToolScenario.Seattle.toString(),
+      ),
     );
     assert.match(
       response.content,
       new RegExp(
-        expectedTemperaturesInProgrammaticToolScenario.Boston.toString()
-      )
+        expectedTemperaturesInProgrammaticToolScenario.Boston.toString(),
+      ),
     );
   };
 
@@ -983,13 +983,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
       graphqlApiEndpoint: string,
       apolloClient: ApolloClient<NormalizedCacheObject>,
       streamResponse: boolean,
-      attempt: number
+      attempt: number,
     ): Promise<void> => {
       const customConversationHandlerFunction = (
         await this.resourceFinder.findByBackendIdentifier(
           backendId,
           'AWS::Lambda::Function',
-          (name) => name.includes('custom')
+          (name) => name.includes('custom'),
         )
       )[0];
 
@@ -1028,12 +1028,12 @@ class ConversationHandlerTestProject extends TestProjectBase {
       const response = await this.executeConversationTurn(
         event,
         customConversationHandlerFunction,
-        apolloClient
+        apolloClient,
       );
       // Assert that tool was used. I.e. LLM used value provided by the tool.
       assert.match(
         response.content,
-        new RegExp(expectedRandomNumber.toString())
+        new RegExp(expectedRandomNumber.toString()),
       );
     };
 
@@ -1043,13 +1043,13 @@ class ConversationHandlerTestProject extends TestProjectBase {
     graphqlApiEndpoint: string,
     apolloClient: ApolloClient<NormalizedCacheObject>,
     streamResponse: boolean,
-    attempt: number
+    attempt: number,
   ): Promise<void> => {
     const defaultConversationHandlerFunction = (
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::Lambda::Function',
-        (name) => name.includes('default')
+        (name) => name.includes('default'),
       )
     )[0];
 
@@ -1092,20 +1092,20 @@ class ConversationHandlerTestProject extends TestProjectBase {
     const response = await this.executeConversationTurn(
       event,
       defaultConversationHandlerFunction,
-      apolloClient
+      apolloClient,
     );
     assert.ok(response.errors);
     assert.ok(response.errors[0]);
     assert.strictEqual(response.errors[0].errorType, 'ValidationException');
     assert.match(
       response.errors[0].message,
-      /provided model identifier is invalid/
+      /provided model identifier is invalid/,
     );
   };
 
   private insertMessage = async (
     apolloClient: ApolloClient<NormalizedCacheObject>,
-    message: CreateConversationMessageChatInput
+    message: CreateConversationMessageChatInput,
   ): Promise<void> => {
     await apolloClient.mutate({
       mutation: gql`
@@ -1128,7 +1128,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
           inputTypeName:
             'CreateConversationMessageAssistantStreamingResponseInput',
           selectionSet: ['id', 'conversationId', 'createdAt', 'updatedAt'].join(
-            '\n'
+            '\n',
           ),
         }
       : {
@@ -1165,7 +1165,7 @@ class ConversationHandlerTestProject extends TestProjectBase {
    * Therefore, we wrap transactions in retry loop.
    */
   private executeWithRetry = async (
-    callable: (attempt: number) => Promise<void>
+    callable: (attempt: number) => Promise<void>,
   ) => {
     await runWithRetry(callable, () => true, 4);
   };

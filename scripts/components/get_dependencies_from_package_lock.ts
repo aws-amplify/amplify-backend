@@ -4,11 +4,11 @@ import fsp from 'fs/promises';
  * Get dependency names and versions from package-lock.json
  */
 export const getDependenciesFromPackageLock = async (
-  packageLockJsonPath: string
+  packageLockJsonPath: string,
 ): Promise<Dependency[]> => {
   const dependencies: Dependency[] = [];
   const packageLockContents = JSON.parse(
-    await fsp.readFile(packageLockJsonPath, 'utf-8')
+    await fsp.readFile(packageLockJsonPath, 'utf-8'),
   ) as PackageLockJson;
 
   for (const key in packageLockContents.packages) {

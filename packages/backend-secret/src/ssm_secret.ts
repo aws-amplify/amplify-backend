@@ -23,12 +23,12 @@ export class SSMSecretClient implements SecretClient {
    */
   public getSecret = async (
     backendIdentifier: BackendIdentifier | AppId,
-    secretIdentifier: SecretIdentifier
+    secretIdentifier: SecretIdentifier,
   ): Promise<Secret> => {
     let secret: Secret | undefined;
     const name: string = ParameterPathConversions.toParameterFullPath(
       backendIdentifier,
-      secretIdentifier.name
+      secretIdentifier.name,
     );
     try {
       const resp = await this.ssmClient.getParameter({
@@ -51,7 +51,7 @@ export class SSMSecretClient implements SecretClient {
 
     if (!secret) {
       throw new SecretError(
-        `The value of secret '${secretIdentifier.name}' is undefined`
+        `The value of secret '${secretIdentifier.name}' is undefined`,
       );
     }
 
@@ -62,7 +62,7 @@ export class SSMSecretClient implements SecretClient {
    * List secrets from SSM parameter store.
    */
   public listSecrets = async (
-    backendIdentifier: BackendIdentifier | AppId
+    backendIdentifier: BackendIdentifier | AppId,
   ): Promise<SecretListItem[]> => {
     const path = ParameterPathConversions.toParameterPrefix(backendIdentifier);
     const result: SecretListItem[] = [];
@@ -103,11 +103,11 @@ export class SSMSecretClient implements SecretClient {
   public setSecret = async (
     backendIdentifier: BackendIdentifier | AppId,
     secretName: string,
-    secretValue: string
+    secretValue: string,
   ): Promise<SecretIdentifier> => {
     const name = ParameterPathConversions.toParameterFullPath(
       backendIdentifier,
-      secretName
+      secretName,
     );
     try {
       const resp = await this.ssmClient.putParameter({
@@ -131,11 +131,11 @@ export class SSMSecretClient implements SecretClient {
    */
   public removeSecret = async (
     backendIdentifier: BackendIdentifier | AppId,
-    secretName: string
+    secretName: string,
   ) => {
     const name = ParameterPathConversions.toParameterFullPath(
       backendIdentifier,
-      secretName
+      secretName,
     );
     try {
       await this.ssmClient.deleteParameter({
@@ -151,13 +151,13 @@ export class SSMSecretClient implements SecretClient {
    */
   public removeSecrets = async (
     backendIdentifier: BackendIdentifier | AppId,
-    secretNames: string[]
+    secretNames: string[],
   ) => {
     const names = secretNames.map((secretName) =>
       ParameterPathConversions.toParameterFullPath(
         backendIdentifier,
-        secretName
-      )
+        secretName,
+      ),
     );
     try {
       const resp = await this.ssmClient.deleteParameters({
@@ -165,7 +165,7 @@ export class SSMSecretClient implements SecretClient {
       });
       if (resp.InvalidParameters && resp.InvalidParameters.length > 0) {
         throw new SecretError(
-          `Failed to remove secrets: ${resp.InvalidParameters.join(', ')}`
+          `Failed to remove secrets: ${resp.InvalidParameters.join(', ')}`,
         );
       }
     } catch (err) {

@@ -114,7 +114,7 @@ void describe('LogRetentionConverter', () => {
   testCases.forEach((testCase, index) => {
     void it(`converts log retention[${index}]`, () => {
       const convertedValue = new LogRetentionConverter().toCDKRetentionDays(
-        testCase.input
+        testCase.input,
       );
       assert.strictEqual(convertedValue, testCase.expectedOutput);
     });
@@ -193,7 +193,7 @@ void describe('Appsync FieldLogLevelConverter', () => {
   testCases.forEach((testCase, index) => {
     void it(`converts data log level[${index}]`, () => {
       const convertedValue = new LogLevelConverter().toCDKAppsyncFieldLogLevel(
-        testCase.input
+        testCase.input,
       );
       assert.strictEqual(convertedValue, testCase.expectedOutput);
     });

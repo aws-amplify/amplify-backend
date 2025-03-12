@@ -61,17 +61,17 @@ const createStackAndSetContext = (settings: {
   app.node.setContext('amplify-backend-namespace', 'testBackendId');
   app.node.setContext(
     'amplify-backend-type',
-    settings.isSandboxMode ? 'sandbox' : 'branch'
+    settings.isSandboxMode ? 'sandbox' : 'branch',
   );
   const stack = new Stack(app);
   return stack;
 };
 
 const createConstructContainerWithUserPoolAuthRegistered = (
-  stack: Stack
+  stack: Stack,
 ): ConstructContainer => {
   const constructContainer = new ConstructContainerStub(
-    new StackResolverStub(stack)
+    new StackResolverStub(stack),
   );
   const sampleUserPool = new UserPool(stack, 'UserPool');
   constructContainer.registerConstructFactory('AuthResources', {
@@ -99,7 +99,7 @@ const createConstructContainerWithUserPoolAuthRegistered = (
           cfnIdentityPoolRoleAttachment: new CfnIdentityPoolRoleAttachment(
             stack,
             'identityPoolRoleAttachment',
-            { identityPoolId: 'identityPool' }
+            { identityPoolId: 'identityPool' },
           ),
         },
         groups: {},
@@ -146,7 +146,7 @@ void describe('DataFactory', () => {
     constructContainer =
       createConstructContainerWithUserPoolAuthRegistered(stack);
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
+      stack,
     );
     importPathVerifier = new ImportPathVerifierStub();
 
@@ -170,7 +170,7 @@ void describe('DataFactory', () => {
   void it('adds construct to stack', () => {
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
     const template = Template.fromStack(
-      Stack.of(dataConstruct.resources.graphqlApi)
+      Stack.of(dataConstruct.resources.graphqlApi),
     );
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
   });
@@ -180,7 +180,7 @@ void describe('DataFactory', () => {
     const dataFactory = defineData({ schema: testSchema, name: 'testNameFoo' });
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
     const template = Template.fromStack(
-      Stack.of(dataConstruct.resources.graphqlApi)
+      Stack.of(dataConstruct.resources.graphqlApi),
     );
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
     template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
@@ -223,15 +223,15 @@ void describe('DataFactory', () => {
 
     assert.ok(
       (importPathVerifier.verify.mock.calls[0].arguments[0] as string).includes(
-        'defineData'
-      )
+        'defineData',
+      ),
     );
   });
 
   void it('sets a default api name if none is specified', () => {
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
     const template = Template.fromStack(
-      Stack.of(dataConstruct.resources.graphqlApi)
+      Stack.of(dataConstruct.resources.graphqlApi),
     );
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
     template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
@@ -247,7 +247,7 @@ void describe('DataFactory', () => {
     });
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
     const template = Template.fromStack(
-      Stack.of(dataConstruct.resources.graphqlApi)
+      Stack.of(dataConstruct.resources.graphqlApi),
     );
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
     template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
@@ -263,7 +263,7 @@ void describe('DataFactory', () => {
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
 
     const template = Template.fromStack(
-      Stack.of(dataConstruct.resources.graphqlApi)
+      Stack.of(dataConstruct.resources.graphqlApi),
     );
     template.resourceCountIs('AWS::AppSync::GraphQLApi', 1);
     template.hasResourceProperties('AWS::AppSync::GraphQLApi', {
@@ -283,7 +283,7 @@ void describe('DataFactory', () => {
     });
 
     constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(stack),
     );
     getInstanceProps = {
       constructContainer,
@@ -297,7 +297,7 @@ void describe('DataFactory', () => {
     const myEchoFn = new Function(stack, 'MyEchoFn', {
       runtime: Runtime.NODEJS_18_X,
       code: Code.fromInline(
-        'module.handler = async () => console.log("Hello");'
+        'module.handler = async () => console.log("Hello");',
       ),
       handler: 'index.handler',
     });
@@ -322,7 +322,7 @@ void describe('DataFactory', () => {
     });
 
     constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(stack),
     );
     getInstanceProps = {
       constructContainer,
@@ -347,7 +347,7 @@ void describe('DataFactory', () => {
     });
 
     constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(stack),
     );
     getInstanceProps = {
       constructContainer,
@@ -364,7 +364,7 @@ void describe('DataFactory', () => {
     });
 
     constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(stack),
     );
     getInstanceProps = {
       constructContainer,
@@ -390,7 +390,7 @@ void describe('DataFactory', () => {
     });
 
     constructContainer = new ConstructContainerStub(
-      new StackResolverStub(stack)
+      new StackResolverStub(stack),
     );
     getInstanceProps = {
       constructContainer,
@@ -403,14 +403,14 @@ void describe('DataFactory', () => {
         assert.strictEqual(err.name, 'DefineDataConfigurationError');
         assert.strictEqual(
           err.message,
-          'A defaultAuthorizationMode is required if multiple authorization modes are configured'
+          'A defaultAuthorizationMode is required if multiple authorization modes are configured',
         );
         assert.strictEqual(
           err.resolution,
-          "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'"
+          "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'",
         );
         return true;
-      }
+      },
     );
   });
 
@@ -419,7 +419,7 @@ void describe('DataFactory', () => {
     const myEchoFn = new Function(stack, 'MyEchoFn', {
       runtime: Runtime.NODEJS_18_X,
       code: Code.fromInline(
-        'module.handler = async () => console.log("Hello");'
+        'module.handler = async () => console.log("Hello");',
       ),
       handler: 'index.handler',
     });
@@ -449,14 +449,14 @@ void describe('DataFactory', () => {
     // Validate that the api resources are created for the function
     assert('FunctionDirectiveStack' in dataConstruct.resources.nestedStacks);
     const functionDirectiveStackTemplate = Template.fromStack(
-      dataConstruct.resources.nestedStacks.FunctionDirectiveStack
+      dataConstruct.resources.nestedStacks.FunctionDirectiveStack,
     );
     functionDirectiveStackTemplate.hasResourceProperties(
       'AWS::AppSync::DataSource',
       {
         Name: 'EchoLambdaDataSource',
         Type: 'AWS_LAMBDA',
-      }
+      },
     );
   });
 
@@ -470,7 +470,7 @@ void describe('DataFactory', () => {
         message:
           'Multiple `defineData` calls are not allowed within an Amplify backend',
         resolution: 'Remove all but one `defineData` call',
-      })
+      }),
     );
   });
 
@@ -783,7 +783,7 @@ void describe('Destructive Schema Updates & Replace tables upon GSI updates', ()
     });
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
     const amplifyTableStackTemplate = Template.fromStack(
-      Stack.of(dataConstruct.resources.nestedStacks['Todo'])
+      Stack.of(dataConstruct.resources.nestedStacks['Todo']),
     );
     amplifyTableStackTemplate.hasResourceProperties(CUSTOM_DDB_CFN_TYPE, {
       allowDestructiveGraphqlSchemaUpdates: true,
@@ -796,7 +796,7 @@ void describe('Destructive Schema Updates & Replace tables upon GSI updates', ()
     });
     const dataConstruct = dataFactory.getInstance(getInstanceProps);
     const amplifyTableStackTemplate = Template.fromStack(
-      Stack.of(dataConstruct.resources.nestedStacks['Todo'])
+      Stack.of(dataConstruct.resources.nestedStacks['Todo']),
     );
     amplifyTableStackTemplate.hasResourceProperties(CUSTOM_DDB_CFN_TYPE, {
       allowDestructiveGraphqlSchemaUpdates: true,
@@ -887,7 +887,7 @@ void describe('Logging Options', () => {
     constructContainer =
       createConstructContainerWithUserPoolAuthRegistered(stack);
     outputStorageStrategy = new StackMetadataBackendOutputStorageStrategy(
-      stack
+      stack,
     );
     importPathVerifier = new ImportPathVerifierStub();
     resourceNameValidator = new ResourceNameValidatorStub();
@@ -909,7 +909,7 @@ void describe('Logging Options', () => {
       });
       const dataConstruct = dataFactory.getInstance(getInstanceProps);
       const template = Template.fromStack(
-        Stack.of(dataConstruct.resources.graphqlApi)
+        Stack.of(dataConstruct.resources.graphqlApi),
       );
 
       if (testCase.expectedOutput) {
@@ -918,11 +918,11 @@ void describe('Logging Options', () => {
         assert.ok(createdLogConfig, 'logConfig should be defined');
         assert.strictEqual(
           createdLogConfig.fieldLogLevel,
-          testCase.expectedOutput.fieldLogLevel
+          testCase.expectedOutput.fieldLogLevel,
         );
         assert.strictEqual(
           createdLogConfig.excludeVerboseContent,
-          testCase.expectedOutput.excludeVerboseContent
+          testCase.expectedOutput.excludeVerboseContent,
         );
 
         template.hasResourceProperties('Custom::LogRetention', {
@@ -936,7 +936,7 @@ void describe('Logging Options', () => {
         template.resourcePropertiesCountIs(
           'Custom::LogRetention',
           'LogRetention',
-          0
+          0,
         );
       }
     });

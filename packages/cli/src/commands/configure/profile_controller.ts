@@ -63,7 +63,7 @@ export class ProfileController {
   };
 
   private createOrAppendAWSConfigFile = async (
-    options: ConfigProfileOptions
+    options: ConfigProfileOptions,
   ) => {
     const filePath =
       process.env.AWS_CONFIG_FILE ?? path.join(getHomeDir(), '.aws', 'config');
@@ -93,7 +93,7 @@ export class ProfileController {
             message: `You do not have the permissions to write to this file: ${filePath}`,
             resolution: `Ensure that you have the right permissions to write to ${filePath}.`,
           },
-          error
+          error,
         );
       } else {
         throw error;
@@ -111,7 +111,7 @@ export class ProfileController {
   };
 
   private createOrAppendAWSCredentialFile = async (
-    options: CredentialProfileOptions
+    options: CredentialProfileOptions,
   ) => {
     const filePath =
       process.env.AWS_SHARED_CREDENTIALS_FILE ??
@@ -163,7 +163,7 @@ export class ProfileController {
             message: `You do not have the permissions to read this file: ${filePath}.`,
             resolution: `Ensure that you have the right permissions to read from ${filePath}.`,
           },
-          error
+          error,
         );
       } else {
         throw err;

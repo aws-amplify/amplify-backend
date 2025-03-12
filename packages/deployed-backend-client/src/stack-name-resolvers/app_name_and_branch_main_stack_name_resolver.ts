@@ -21,7 +21,7 @@ export class AppNameAndBranchMainStackNameResolver
    */
   constructor(
     private readonly amplifyClient: AmplifyClient,
-    private readonly appNameAndBranch: AppNameAndBranchBackendIdentifier
+    private readonly appNameAndBranch: AppNameAndBranchBackendIdentifier,
   ) {}
 
   /**
@@ -31,19 +31,19 @@ export class AppNameAndBranchMainStackNameResolver
   resolveMainStackName = async (): Promise<string> => {
     const listAppsResult = await this.amplifyClient.send(
       // 100 is the max page size. It is also the hard limit for how many Amplify apps you can have so no pagination is necessary
-      new ListAppsCommand({ maxResults: 100 })
+      new ListAppsCommand({ maxResults: 100 }),
     );
     const appMatches = (listAppsResult?.apps || []).filter(
-      (app) => app.name === this.appNameAndBranch.appName
+      (app) => app.name === this.appNameAndBranch.appName,
     );
     const region = await this.amplifyClient.config.region();
     if (appMatches.length === 0) {
       throw new Error(
-        `No apps found with name ${this.appNameAndBranch.appName} in region ${region}`
+        `No apps found with name ${this.appNameAndBranch.appName} in region ${region}`,
       );
     } else if (appMatches.length >= 2) {
       throw new Error(
-        `Multiple apps found with name ${this.appNameAndBranch.appName} in region ${region}. Use AppId instead of AppName to specify which Amplify App to use.`
+        `Multiple apps found with name ${this.appNameAndBranch.appName} in region ${region}. Use AppId instead of AppName to specify which Amplify App to use.`,
       );
     }
     // if we get here, appMatches has one and only one entry
@@ -51,7 +51,7 @@ export class AppNameAndBranchMainStackNameResolver
     if (typeof appId !== 'string') {
       // if this happens something has gone seriously wrong. It's probably an Amplify service issue.
       throw new Error(
-        `Could not determine appId from app name ${this.appNameAndBranch.appName}. Try using AppId instead.`
+        `Could not determine appId from app name ${this.appNameAndBranch.appName}. Try using AppId instead.`,
       );
     }
     return BackendIdentifierConversions.toStackName({

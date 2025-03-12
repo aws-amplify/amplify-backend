@@ -12,12 +12,12 @@ import { Construct } from 'constructs';
 export const assertExpectedLogicalIds = (
   template: Template,
   resourceType: string,
-  expectedLogicalIds: string[]
+  expectedLogicalIds: string[],
 ) => {
   const resources = template.findResources(resourceType);
   assert.deepStrictEqual(
     Object.keys(resources).sort(),
-    expectedLogicalIds.sort()
+    expectedLogicalIds.sort(),
   );
 };
 
@@ -27,9 +27,9 @@ export const assertExpectedLogicalIds = (
  * Supplies stable CDK context values to the synth process for deterministic synth output
  */
 export const synthesizeBackendTemplates: SynthesizeBackendTemplates = <
-  T extends Record<string, ConstructFactory<ResourceProvider>>
+  T extends Record<string, ConstructFactory<ResourceProvider>>,
 >(
-  constructFactories: T
+  constructFactories: T,
 ) => {
   try {
     process.env.CDK_CONTEXT_JSON = JSON.stringify({
@@ -45,9 +45,9 @@ export const synthesizeBackendTemplates: SynthesizeBackendTemplates = <
 };
 
 const backendTemplatesCollector: SynthesizeBackendTemplates = <
-  T extends Record<string, ConstructFactory<ResourceProvider>>
+  T extends Record<string, ConstructFactory<ResourceProvider>>,
 >(
-  constructFactories: T
+  constructFactories: T,
 ) => {
   if (Object.keys(constructFactories).length === 0) {
     throw new Error('constructFactories must have at least one entry');
@@ -57,7 +57,7 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
   // find some construct in the backend to compute the root stack from (doesn't matter what construct it is)
   const firstResourceProvider = backend[Object.keys(constructFactories)[0]];
   const firstConstruct = Object.values(firstResourceProvider.resources).find(
-    (value) => value instanceof Construct
+    (value) => value instanceof Construct,
   );
 
   const result = {
@@ -76,17 +76,17 @@ const backendTemplatesCollector: SynthesizeBackendTemplates = <
     }
     // find some construct in the resources exposed by the resourceRecord
     const firstConstruct = Object.values(resourceRecord.resources).find(
-      (value) => value instanceof Construct
+      (value) => value instanceof Construct,
     );
     result[key as keyof T] = Template.fromStack(
-      Stack.of(firstConstruct)
+      Stack.of(firstConstruct),
     ) as never; // TS can't figure out which "K in keyof T" "name" corresponds to here but this assignment is safe
   }
   return result as { [K in keyof T]: Template } & { root: Template };
 };
 
 type SynthesizeBackendTemplates = <
-  T extends Record<string, ConstructFactory<ResourceProvider>>
+  T extends Record<string, ConstructFactory<ResourceProvider>>,
 >(
-  constructFactories: T
+  constructFactories: T,
 ) => { [K in keyof T]: Template } & { root: Template };

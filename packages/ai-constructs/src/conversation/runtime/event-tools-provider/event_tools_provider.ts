@@ -12,7 +12,7 @@ export class ConversationTurnEventToolsProvider {
    */
   constructor(
     private readonly event: ConversationTurnEvent,
-    private readonly graphQlQueryFactory: GraphQlQueryFactory = new GraphQlQueryFactory()
+    private readonly graphQlQueryFactory: GraphQlQueryFactory = new GraphQlQueryFactory(),
   ) {}
 
   getEventTools = (): Array<ExecutableTool> => {
@@ -30,7 +30,7 @@ export class ConversationTurnEventToolsProvider {
         graphqlApiEndpoint,
         query,
         this.event.request.headers.authorization,
-        new UserAgentProvider(this.event)
+        new UserAgentProvider(this.event),
       );
     });
     return tools ?? [];

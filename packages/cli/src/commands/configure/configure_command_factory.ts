@@ -11,10 +11,10 @@ export const createConfigureCommand = (): CommandModule<object> => {
   const profileController = new ProfileController();
 
   const configureProfileCommand = new ConfigureProfileCommand(
-    profileController
+    profileController,
   );
   const configureTelemetryCommand = new ConfigureTelemetryCommand(
-    configControllerFactory.getInstance('usage_data_preferences.json')
+    configControllerFactory.getInstance('usage_data_preferences.json'),
   );
 
   return new ConfigureCommand([

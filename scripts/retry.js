@@ -54,18 +54,18 @@ for (
 ) {
   try {
     console.log(
-      `Attempting '${retryOptions.command}', attempt number ${attemptNumber}.`
+      `Attempting '${retryOptions.command}', attempt number ${attemptNumber}.`,
     );
     childProcess.execSync(retryOptions.command, {
       stdio: 'inherit',
     });
     console.log(
-      `'${retryOptions.command}' was successful at attempt number ${attemptNumber}.`
+      `'${retryOptions.command}' was successful at attempt number ${attemptNumber}.`,
     );
     process.exit(0);
   } catch (error) {
     console.log(
-      `'${retryOptions.command}' was not successful at attempt number ${attemptNumber}.`
+      `'${retryOptions.command}' was not successful at attempt number ${attemptNumber}.`,
     );
     console.log(error);
   }

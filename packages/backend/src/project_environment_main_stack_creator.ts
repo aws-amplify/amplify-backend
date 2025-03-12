@@ -13,7 +13,7 @@ export class ProjectEnvironmentMainStackCreator implements MainStackCreator {
    */
   constructor(
     private readonly scope: Construct,
-    private readonly backendId: BackendIdentifier
+    private readonly backendId: BackendIdentifier,
   ) {}
 
   /**

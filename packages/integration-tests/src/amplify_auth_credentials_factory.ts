@@ -33,7 +33,7 @@ export class AmplifyAuthCredentialsFactory {
    */
   constructor(
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient,
-    authConfig: NonNullable<ClientConfigVersionTemplateType<'1.3'>['auth']>
+    authConfig: NonNullable<ClientConfigVersionTemplateType<'1.3'>['auth']>,
   ) {
     if (!authConfig.identity_pool_id) {
       throw new Error('Client config must have identity pool id.');
@@ -59,7 +59,7 @@ export class AmplifyAuthCredentialsFactory {
           TemporaryPassword: temporaryPassword,
           UserPoolId: this.userPoolId,
           MessageAction: 'SUPPRESS',
-        })
+        }),
       );
 
       Amplify.configure({
@@ -83,7 +83,7 @@ export class AmplifyAuthCredentialsFactory {
 
       assert.strictEqual(
         signInResult.nextStep.signInStep,
-        'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
+        'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED',
       );
 
       await auth.confirmSignIn({

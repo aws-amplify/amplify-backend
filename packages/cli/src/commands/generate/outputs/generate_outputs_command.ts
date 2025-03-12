@@ -43,7 +43,7 @@ export class GenerateOutputsCommand
    */
   constructor(
     private readonly clientConfigGenerator: ClientConfigGeneratorAdapter,
-    private readonly backendIdentifierResolver: BackendIdentifierResolver
+    private readonly backendIdentifierResolver: BackendIdentifierResolver,
   ) {
     this.command = 'outputs';
     this.describe = 'Generates Amplify backend outputs';
@@ -53,11 +53,11 @@ export class GenerateOutputsCommand
    * @inheritDoc
    */
   handler = async (
-    args: ArgumentsCamelCase<GenerateOutputsCommandOptions>
+    args: ArgumentsCamelCase<GenerateOutputsCommandOptions>,
   ): Promise<void> => {
     const backendIdentifier =
       await this.backendIdentifierResolver.resolveDeployedBackendIdentifier(
-        args
+        args,
       );
 
     if (!backendIdentifier) {
@@ -72,7 +72,7 @@ export class GenerateOutputsCommand
       backendIdentifier,
       args.outputsVersion as ClientConfigVersion,
       args.outDir,
-      args.format
+      args.format,
     );
   };
 

@@ -108,7 +108,7 @@ export class CloudWatchLogEventMonitor {
         : path.resolve(process.cwd(), outputLocation);
       this.printer = new Printer(
         LogLevel.INFO,
-        fs.createWriteStream(targetPath, { flags: 'a', autoClose: true })
+        fs.createWriteStream(targetPath, { flags: 'a', autoClose: true }),
       );
       this.enableColors = false;
     }
@@ -177,9 +177,9 @@ export class CloudWatchLogEventMonitor {
     } catch (error) {
       printer.log(
         `${format.error(
-          'Error streaming logs from CloudWatch.'
+          'Error streaming logs from CloudWatch.',
         )} ${format.error(error)}`,
-        LogLevel.ERROR
+        LogLevel.ERROR,
       );
       printer.log('Logs streaming has been paused.');
       this.pause();
@@ -213,16 +213,16 @@ export class CloudWatchLogEventMonitor {
       this.printer.print(
         `[${format.color(
           cloudWatchEventDisplay.friendlyName,
-          cloudWatchEventDisplay.color
+          cloudWatchEventDisplay.color,
         )}] ${format.note(
-          event.timestamp.toLocaleTimeString()
-        )} ${event.message.trim()}`
+          event.timestamp.toLocaleTimeString(),
+        )} ${event.message.trim()}`,
       );
     } else {
       this.printer.print(
         `[${
           cloudWatchEventDisplay.friendlyName
-        }] ${event.timestamp.toLocaleTimeString()} ${event.message.trim()}`
+        }] ${event.timestamp.toLocaleTimeString()} ${event.message.trim()}`,
       );
     }
   };
@@ -233,7 +233,7 @@ export class CloudWatchLogEventMonitor {
    * when the last event was read on the previous tick
    */
   private readEventsFromLogGroup = async (
-    cloudWatchLogsToMonitor: LogGroupStreamingCursor
+    cloudWatchLogsToMonitor: LogGroupStreamingCursor,
   ): Promise<Array<CloudWatchLogEvent>> => {
     const events: CloudWatchLogEvent[] = [];
 
@@ -249,7 +249,7 @@ export class CloudWatchLogEventMonitor {
           logGroupName: cloudWatchLogsToMonitor.logGroupName,
           limit: 100,
           startTime,
-        })
+        }),
       );
       const filteredEvents = response.events ?? [];
 

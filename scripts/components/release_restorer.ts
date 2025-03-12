@@ -17,7 +17,7 @@ export class ReleaseRestorer {
     private readonly githubClient: GithubClient,
     private readonly gitClient: GitClient,
     private readonly npmClient: NpmClient,
-    private readonly distTagMover: DistTagMover
+    private readonly distTagMover: DistTagMover,
   ) {}
 
   /**
@@ -34,15 +34,15 @@ export class ReleaseRestorer {
 
     const releaseCommitHashToRestore =
       await this.gitClient.getNearestReleaseCommit(
-        this.gitRefToStartReleaseSearchFrom
+        this.gitRefToStartReleaseSearchFrom,
       );
 
     const releaseTagsToRestore = await this.gitClient.getTagsAtCommit(
-      releaseCommitHashToRestore
+      releaseCommitHashToRestore,
     );
 
     const previousReleaseTags = await this.gitClient.getPreviousReleaseTags(
-      releaseCommitHashToRestore
+      releaseCommitHashToRestore,
     );
 
     // first create the changeset restore PR
@@ -53,7 +53,7 @@ export class ReleaseRestorer {
     await this.gitClient.checkout(releaseCommitHashToRestore, ['.changeset']);
     await this.gitClient.status();
     await this.gitClient.commitAllChanges(
-      `Restoring updates to the .changeset directory made by release commit ${releaseCommitHashToRestore}`
+      `Restoring updates to the .changeset directory made by release commit ${releaseCommitHashToRestore}`,
     );
     await this.gitClient.push({ force: true });
 
@@ -62,7 +62,7 @@ export class ReleaseRestorer {
         head: prBranch,
         title: `Restore release ${releaseCommitHashToRestore}`,
         body: `Restoring updates to the .changeset directory made by release commit ${releaseCommitHashToRestore}`,
-      }
+      },
     );
 
     console.log(`Created release restoration PR at ${prUrl}`);
@@ -78,7 +78,7 @@ export class ReleaseRestorer {
 
     await this.distTagMover.moveDistTags(
       previousReleaseTags,
-      releaseTagsToRestore
+      releaseTagsToRestore,
     );
   };
 }

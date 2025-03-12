@@ -25,21 +25,21 @@ export class ReferenceAuthTestProjectCreator implements TestProjectCreator {
    */
   constructor(
     private readonly cfnClient: CloudFormationClient = new CloudFormationClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly amplifyClient: AmplifyClient = new AmplifyClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly cognitoIdentityProviderClient: CognitoIdentityProviderClient = new CognitoIdentityProviderClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly cognitoIdentityClient: CognitoIdentityClient = new CognitoIdentityClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
     private readonly iamClient: IAMClient = new IAMClient(
-      e2eToolingClientConfig
+      e2eToolingClientConfig,
     ),
-    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder()
+    private readonly resourceFinder: DeployedResourcesFinder = new DeployedResourcesFinder(),
   ) {}
 
   createProject = async (e2eProjectDir: string): Promise<TestProjectBase> => {
@@ -55,7 +55,7 @@ export class ReferenceAuthTestProjectCreator implements TestProjectCreator {
       this.cognitoIdentityProviderClient,
       this.cognitoIdentityClient,
       this.iamClient,
-      this.resourceFinder
+      this.resourceFinder,
     );
 
     await fsp.cp(
@@ -63,7 +63,7 @@ export class ReferenceAuthTestProjectCreator implements TestProjectCreator {
       project.projectAmplifyDirPath,
       {
         recursive: true,
-      }
+      },
     );
 
     // generate resources
@@ -94,7 +94,7 @@ export class ReferenceAuthTestProjectCreator implements TestProjectCreator {
           access: (allow) => [
               allow.resource(addUserToGroup).to(["addUserToGroup"])
           ],
-          })`
+          })`,
     );
     return project;
   };
@@ -110,7 +110,7 @@ class ReferenceAuthTestProject extends TestProjectBase {
 
   readonly sourceProjectAmplifyDirURL: URL = new URL(
     this.sourceProjectAmplifyDirSuffix,
-    import.meta.url
+    import.meta.url,
   );
 
   authResourceCreator: AuthResourceCreator;
@@ -127,19 +127,19 @@ class ReferenceAuthTestProject extends TestProjectBase {
     cognitoIdentityProviderClient: CognitoIdentityProviderClient,
     private cognitoIdentityClient: CognitoIdentityClient,
     iamClient: IAMClient,
-    private readonly resourceFinder: DeployedResourcesFinder
+    private readonly resourceFinder: DeployedResourcesFinder,
   ) {
     super(
       name,
       projectDirPath,
       projectAmplifyDirPath,
       cfnClient,
-      amplifyClient
+      amplifyClient,
     );
     this.authResourceCreator = new AuthResourceCreator(
       cognitoIdentityProviderClient,
       cognitoIdentityClient,
-      iamClient
+      iamClient,
     );
   }
 
@@ -317,14 +317,14 @@ class ReferenceAuthTestProject extends TestProjectBase {
         userPool.Id!,
         userPoolClient.ClientId!,
         identityPool.IdentityPoolId,
-        permissionBoundaryArn
+        permissionBoundaryArn,
       );
 
       const adminGroup = await this.authResourceCreator.setupUserPoolGroup(
         'ADMINS',
         userPool.Id!,
         identityPool.IdentityPoolId,
-        permissionBoundaryArn
+        permissionBoundaryArn,
       );
       return {
         userPool,
@@ -342,20 +342,20 @@ class ReferenceAuthTestProject extends TestProjectBase {
   };
 
   override async assertPostDeployment(
-    backendId: BackendIdentifier
+    backendId: BackendIdentifier,
   ): Promise<void> {
     await super.assertPostDeployment(backendId);
 
     // find storage access policy by stack name
     const sanitizedStackName = BackendIdentifierConversions.toStackName(
-      backendId
+      backendId,
     ).replaceAll('-', '');
     const storageAccessPolicy =
       await this.resourceFinder.findByBackendIdentifier(
         backendId,
         'AWS::IAM::Policy',
         undefined,
-        (name) => name.startsWith(`${sanitizedStackName}storageAccess`)
+        (name) => name.startsWith(`${sanitizedStackName}storageAccess`),
       );
 
     assert.ok(storageAccessPolicy.length);

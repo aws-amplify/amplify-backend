@@ -7,10 +7,10 @@ import { Dependency } from './get_dependencies_from_package_lock.js';
  */
 export const createAmplifyDepUpdater = async (
   dependencies: Dependency[],
-  createAmplifyDepsToFilter: string[] = ['aws-cdk', 'aws-cdk-lib']
+  createAmplifyDepsToFilter: string[] = ['aws-cdk', 'aws-cdk-lib'],
 ) => {
   const targetDependencies: Dependency[] = dependencies.filter((dependency) =>
-    createAmplifyDepsToFilter.includes(dependency.name)
+    createAmplifyDepsToFilter.includes(dependency.name),
   );
 
   if (targetDependencies.length === 0) {
@@ -19,14 +19,14 @@ export const createAmplifyDepUpdater = async (
 
   const defaultPackagesPath = path.join(
     process.cwd(),
-    'packages/create-amplify/src/default_packages.json'
+    'packages/create-amplify/src/default_packages.json',
   );
 
   const dependenciesToUpdate = new Map(
-    targetDependencies.map((dep) => [dep.name, dep.version])
+    targetDependencies.map((dep) => [dep.name, dep.version]),
   );
   const defaultPackagesContent = JSON.parse(
-    await fsp.readFile(defaultPackagesPath, 'utf-8')
+    await fsp.readFile(defaultPackagesPath, 'utf-8'),
   );
   const defaultDevPackages: string[] =
     defaultPackagesContent.defaultDevPackages;
@@ -69,8 +69,8 @@ export const createAmplifyDepUpdater = async (
           defaultProdPackages: newProdPackages,
         },
         null,
-        2
-      )
+        2,
+      ),
     );
   }
 };

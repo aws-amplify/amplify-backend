@@ -38,7 +38,7 @@ void describe('client config formatter', () => {
   void it('formats config as json', () => {
     const formattedConfig = clientConfigFormatter.format(
       clientConfig,
-      ClientConfigFormat.JSON
+      ClientConfigFormat.JSON,
     );
 
     assert.deepEqual(JSON.parse(formattedConfig), expectedConfigReturned);
@@ -47,19 +47,19 @@ void describe('client config formatter', () => {
   void it('formats config as dart', () => {
     const formattedConfig = clientConfigFormatter.format(
       clientConfig,
-      ClientConfigFormat.DART
+      ClientConfigFormat.DART,
     );
 
     assert.ok(formattedConfig.startsWith("const amplifyConfig = r'''"));
     assert.ok(
-      formattedConfig.includes(JSON.stringify(expectedConfigReturned, null, 2))
+      formattedConfig.includes(JSON.stringify(expectedConfigReturned, null, 2)),
     );
   });
 
   void it('throws error for non-supported format', () => {
     assert.throws(
       () => clientConfigFormatter.format(clientConfig, ClientConfigFormat.TS),
-      new Error('Unsupported client config format ts for client config')
+      new Error('Unsupported client config format ts for client config'),
     );
   });
 });

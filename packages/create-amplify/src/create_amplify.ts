@@ -22,7 +22,7 @@ import { InitialProjectFileGenerator } from './initial_project_file_generator.js
 const projectRoot = await getProjectRoot();
 
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
-  projectRoot
+  projectRoot,
 );
 
 const packageManagerController =
@@ -33,7 +33,7 @@ const amplifyProjectCreator = new AmplifyProjectCreator(
   packageManagerController,
   new ProjectRootValidator(projectRoot),
   new GitIgnoreInitializer(projectRoot),
-  new InitialProjectFileGenerator(projectRoot, packageManagerController)
+  new InitialProjectFileGenerator(projectRoot, packageManagerController),
 );
 
 try {

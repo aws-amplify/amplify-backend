@@ -19,7 +19,7 @@ export class DeployedResourcesEnumerator {
   constructor(
     private readonly stackStatusMapper: StackStatusMapper,
     private readonly arnGenerator: ArnGenerator,
-    private readonly arnParser: ArnParser
+    private readonly arnParser: ArnParser,
   ) {}
 
   /**
@@ -29,7 +29,7 @@ export class DeployedResourcesEnumerator {
     cfnClient: CloudFormationClient,
     stackName: string,
     accountId: string | undefined,
-    region: string | undefined
+    region: string | undefined,
   ): Promise<DeployedBackendResource[]> => {
     const deployedBackendResources: DeployedBackendResource[] = [];
     const stackResourceSummaries: StackResourceSummary[] = [];
@@ -40,12 +40,12 @@ export class DeployedResourcesEnumerator {
           new ListStackResourcesCommand({
             StackName: stackName,
             NextToken: nextToken,
-          })
+          }),
         );
 
       nextToken = stackResources.NextToken;
       stackResourceSummaries.push(
-        ...(stackResources.StackResourceSummaries ?? [])
+        ...(stackResources.StackResourceSummaries ?? []),
       );
     } while (nextToken);
 
@@ -72,7 +72,7 @@ export class DeployedResourcesEnumerator {
         cfnClient,
         childStackName,
         parsedArn.accountId,
-        parsedArn.region
+        parsedArn.region,
       );
     });
     const deployedResourcesPerChildStack = await Promise.all(promises);
@@ -84,7 +84,7 @@ export class DeployedResourcesEnumerator {
           return (
             stackResourceSummary.ResourceType !== 'AWS::CloudFormation::Stack'
           );
-        }
+        },
       ) ?? [];
 
     const parentDeployedNonStackResources = parentStackNonStackResources.map(
@@ -92,7 +92,7 @@ export class DeployedResourcesEnumerator {
         logicalResourceId: stackResourceSummary.LogicalResourceId,
         lastUpdated: stackResourceSummary.LastUpdatedTimestamp,
         resourceStatus: this.stackStatusMapper.translateStackStatus(
-          stackResourceSummary.ResourceStatus
+          stackResourceSummary.ResourceStatus,
         ),
         resourceStatusReason: stackResourceSummary.ResourceStatusReason,
         resourceType: stackResourceSummary.ResourceType,
@@ -100,9 +100,9 @@ export class DeployedResourcesEnumerator {
         arn: this.arnGenerator.generateArn(
           stackResourceSummary,
           region,
-          accountId
+          accountId,
         ),
-      })
+      }),
     );
 
     deployedBackendResources.push(...parentDeployedNonStackResources);

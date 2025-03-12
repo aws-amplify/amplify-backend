@@ -16,7 +16,7 @@ import semver from 'semver';
 const targetDependencyNames = new Set(['aws-cdk', 'aws-cdk-lib']);
 
 const setBaselineDependencyVersions = async (
-  packagePath: string
+  packagePath: string,
 ): Promise<void> => {
   const packageJson = await readPackageJson(packagePath);
   const dependencyManifests: Array<Record<string, string>> = [];

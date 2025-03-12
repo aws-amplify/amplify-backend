@@ -14,7 +14,7 @@ type MockFieldOptions = { required?: boolean; readOnly?: boolean };
 
 const createMockField = (
   dataType: MockDataType,
-  options?: MockFieldOptions
+  options?: MockFieldOptions,
 ) => {
   const { required = false, readOnly = false } = options ?? {};
   return {
@@ -47,7 +47,7 @@ const createMockSchema = (fields: string[]): GenericDataSchema => {
         },
       },
     }),
-    {}
+    {},
   );
   return {
     models,
@@ -68,7 +68,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         },
         (map) => {
           return new CodegenGraphqlFormGeneratorResult(map);
-        }
+        },
       );
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
@@ -102,19 +102,19 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       const { filesWritten } = await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) => c.arguments[0]);
       const writeFileArgs = writeFileMock.mock.calls.flatMap(
-        (c) => c.arguments[0]
+        (c) => c.arguments[0],
       );
 
       assert(
         writeFileArgs.some((fileContent) =>
           fileContent.includes(
-            'import { fetchUserAttributes, signOut } from "aws-amplify/auth'
-          )
-        )
+            'import { fetchUserAttributes, signOut } from "aws-amplify/auth',
+          ),
+        ),
       );
 
       const utilFSWriteArgs = writeArgs.filter((e) =>
-        /utils\.[jt]s[x]?/.test(e.toString())
+        /utils\.[jt]s[x]?/.test(e.toString()),
       );
 
       assert(utilFSWriteArgs.length > 0);
@@ -122,8 +122,8 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       utilFSWriteArgs.forEach((fileName) => {
         assert(
           filesWritten.some((file) =>
-            new RegExp(`${fileName as string}`).test(file)
-          )
+            new RegExp(`${fileName as string}`).test(file),
+          ),
         );
       });
     });
@@ -137,7 +137,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         },
         (map) => {
           return new CodegenGraphqlFormGeneratorResult(map);
-        }
+        },
       );
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
@@ -181,7 +181,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         },
         (map) => {
           return new CodegenGraphqlFormGeneratorResult(map);
-        }
+        },
       );
       await assert.rejects(() => l.generateForms({ models: ['Author'] }));
     });
@@ -195,7 +195,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         },
         (map) => {
           return new CodegenGraphqlFormGeneratorResult(map);
-        }
+        },
       );
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
@@ -227,13 +227,13 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       assert(
         models.every((m) => {
           const didWriteFile = writeArgs.some((arg) =>
-            new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString())
+            new RegExp(`${m}(Update|Create)Form.d.ts`).test(arg.toString()),
           );
           const didLogMessage = filesWritten.some((file) =>
-            new RegExp(`^${m}(Update|Create)Form.d.ts$`).test(file.toString())
+            new RegExp(`^${m}(Update|Create)Form.d.ts$`).test(file.toString()),
           );
           return didWriteFile && didLogMessage;
-        })
+        }),
       );
     });
     void it('when an undefined filter is passed, all models are generated', async () => {
@@ -246,7 +246,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         },
         (map) => {
           return new CodegenGraphqlFormGeneratorResult(map);
-        }
+        },
       );
       const output = await l.generateForms();
       const fsMock = mock.method(fs, 'open');
@@ -278,7 +278,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       assert(
         models.every((m) => {
           return writeArgs.some((arg) => (arg as string).includes(m));
-        })
+        }),
       );
     });
     void it('when an empty filter is passed, all models are generated', async () => {
@@ -291,7 +291,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         },
         (map) => {
           return new CodegenGraphqlFormGeneratorResult(map);
-        }
+        },
       );
       const output = await l.generateForms({ models: [] });
       const fsMock = mock.method(fs, 'open');
@@ -323,7 +323,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       assert(
         models.every((m) => {
           return writeArgs.some((arg) => (arg as string).includes(m));
-        })
+        }),
       );
     });
     void it('generates each model in filter', async () => {
@@ -335,7 +335,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         },
         (map) => {
           return new CodegenGraphqlFormGeneratorResult(map);
-        }
+        },
       );
       const models = ['Author', 'Post'];
       const output = await l.generateForms({ models });
@@ -368,7 +368,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       assert(
         models.every((m) => {
           return writeArgs.some((arg) => (arg as string).includes(m));
-        })
+        }),
       );
     });
     void it('only generates forms specified in the filter', async () => {
@@ -380,7 +380,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         },
         (map) => {
           return new CodegenGraphqlFormGeneratorResult(map);
-        }
+        },
       );
       const output = await l.generateForms({ models: ['Author'] });
       const fsMock = mock.method(fs, 'open');
@@ -409,7 +409,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       }));
       await output.writeToDirectory('./');
       const writeArgs = fsMock.mock.calls.flatMap((c) =>
-        c.arguments[0].toString()
+        c.arguments[0].toString(),
       );
       assert(writeArgs.every((c) => !c.startsWith('Post')));
     });
@@ -421,7 +421,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       {
         graphqlDir: '../graphql',
       },
-      (map) => new CodegenGraphqlFormGeneratorResult(map)
+      (map) => new CodegenGraphqlFormGeneratorResult(map),
     );
     const forms = await l.generateForms();
     assert('writeToDirectory' in forms);
@@ -447,7 +447,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       {
         graphqlDir: './ui-components',
       },
-      resultGenerationSpy
+      resultGenerationSpy,
     );
 
     await l.generateForms();
@@ -472,7 +472,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
       {
         graphqlDir: './ui-components',
       },
-      resultGenerationSpy
+      resultGenerationSpy,
     );
 
     await l.generateForms();
@@ -498,7 +498,7 @@ void describe('LocalCodegenGraphqlFormGenerator', () => {
         {
           graphqlDir: directory,
         },
-        resultGenerationSpy
+        resultGenerationSpy,
       );
 
       await l.generateForms();

@@ -14,7 +14,7 @@ export const validateStorageAccessPaths = (storagePaths: string[]) => {
 const validateStoragePath = (
   path: string,
   index: number,
-  allPaths: string[]
+  allPaths: string[],
 ) => {
   if (path.startsWith('/')) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
@@ -57,7 +57,7 @@ const validateStoragePath = (
   if (otherPrefixes.length > 1) {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `For any given path, only one other path can be a prefix of it. Found [${path}] which has prefixes [${otherPrefixes.join(
-        ', '
+        ', ',
       )}].`,
       resolution: `Update the storage access paths such that any given path has at most one other path that is a prefix.`,
     });
@@ -79,7 +79,7 @@ const validateOwnerTokenRules = (path: string, otherPrefixes: string[]) => {
     throw new AmplifyUserError<StorageError>('InvalidStorageAccessPathError', {
       message: `A path cannot be a prefix of another path that contains the ${entityIdPathToken} token.`,
       details: `Found [${path}] which has prefixes [${otherPrefixes.join(
-        ', '
+        ', ',
       )}].`,
       resolution: `Update the storage access paths such that any given path has at most one other path that is a prefix.`,
     });
@@ -125,10 +125,10 @@ const validateOwnerTokenRules = (path: string, otherPrefixes: string[]) => {
 const getPrefixes = (
   path: string,
   paths: string[],
-  treatWildcardAsLiteral = false
+  treatWildcardAsLiteral = false,
 ): string[] =>
   paths.filter(
     (p) =>
       path !== p &&
-      path.startsWith(treatWildcardAsLiteral ? p : p.replaceAll('*', ''))
+      path.startsWith(treatWildcardAsLiteral ? p : p.replaceAll('*', '')),
   );

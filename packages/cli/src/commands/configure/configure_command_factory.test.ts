@@ -14,7 +14,7 @@ void describe('configure command factory', () => {
     const output = await commandRunner.runCommand('configure --help');
     assert.match(output, /Configure AWS Amplify/);
     ['configure profile'].forEach((cmd) =>
-      assert.match(output, new RegExp(cmd))
+      assert.match(output, new RegExp(cmd)),
     );
   });
 

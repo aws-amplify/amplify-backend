@@ -34,7 +34,7 @@ export abstract class AmplifyFunctionBase
   protected constructor(
     scope: Construct,
     id: string,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<FunctionOutput>,
   ) {
     super(scope, id);
 
@@ -43,7 +43,7 @@ export abstract class AmplifyFunctionBase
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       functionStackType,
-      fileURLToPath(new URL('../package.json', import.meta.url))
+      fileURLToPath(new URL('../package.json', import.meta.url)),
     );
   }
 

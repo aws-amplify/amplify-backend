@@ -10,14 +10,14 @@ export class ApiReportParser {
     const apiReportTypeScriptContent = apiReportContent.substring(
       apiReportContent.indexOf(codeSnippetStartToken) +
         codeSnippetStartToken.length,
-      apiReportContent.lastIndexOf(codeSnippetEndToken)
+      apiReportContent.lastIndexOf(codeSnippetEndToken),
     );
     return ts.createSourceFile(
       'API.md',
       apiReportTypeScriptContent,
       ts.ScriptTarget.ES2022,
       true,
-      ts.ScriptKind.TS
+      ts.ScriptKind.TS,
     );
   };
 }

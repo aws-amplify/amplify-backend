@@ -23,7 +23,7 @@ export class InfoCommand implements CommandModule<object> {
    */
   constructor(
     private readonly environmentInfoProvider: EnvironmentInfoProvider,
-    private readonly cdkInfoProvider: CdkInfoProvider
+    private readonly cdkInfoProvider: CdkInfoProvider,
   ) {
     this.command = 'info';
     this.describe = 'Generates information for Amplify troubleshooting';

@@ -26,7 +26,7 @@ export class StackResolverStub implements StackResolver {
     if (!this.stacks[resourceGroupName]) {
       this.stacks[resourceGroupName] = new NestedStack(
         this.rootStack,
-        resourceGroupName
+        resourceGroupName,
       );
     }
     return this.stacks[resourceGroupName];

@@ -42,7 +42,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
     // and attempts to clean up branches created in this session.
     process.once(
       'beforeExit',
-      () => void this.tryCleanupBranchesCreatedByThisPool()
+      () => void this.tryCleanupBranchesCreatedByThisPool(),
     );
   }
 
@@ -53,12 +53,12 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
           new GetBranchCommand({
             appId: testBranch.appId,
             branchName: testBranch.branchName,
-          })
+          }),
         )
       ).branch;
       if (!branch) {
         throw new Error(
-          `Failed to retrieve ${testBranch.branchName} branch of app ${testBranch.appId}`
+          `Failed to retrieve ${testBranch.branchName} branch of app ${testBranch.appId}`,
         );
       }
       return branch;
@@ -73,7 +73,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
           new CreateBranchCommand({
             branchName: `${this.testBranchPrefix}${shortUuid()}`,
             appId: app.appId,
-          })
+          }),
         )
       ).branch;
       if (app.appId && branch?.branchName) {
@@ -98,7 +98,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
           new ListAppsCommand({
             maxResults: 100,
             nextToken,
-          })
+          }),
         );
       nextToken = listAppsCommandOutput.nextToken;
       listAppsCommandOutput.apps
@@ -120,7 +120,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
             appId,
             maxResults: 50,
             nextToken,
-          })
+          }),
         );
       nextToken = listBranchesCommandOutput.nextToken;
       if (listBranchesCommandOutput.branches) {
@@ -148,7 +148,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
         await this.amplifyClient.send(
           new CreateAppCommand({
             name: `${this.testAppPrefix}-${shortUuid()}`,
-          })
+          }),
         )
       ).app;
       if (newApp) {
@@ -157,7 +157,7 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
     }
 
     throw new Error(
-      'Unable to get Amplify App that has capacity to create branch'
+      'Unable to get Amplify App that has capacity to create branch',
     );
   };
 
@@ -168,12 +168,12 @@ class DefaultAmplifyAppPool implements AmplifyAppPool {
           new DeleteBranchCommand({
             appId: testBranch.appId,
             branchName: testBranch.branchName,
-          })
+          }),
         );
       } catch (e) {
         const errorMessage = e instanceof Error ? e.message : '';
         console.log(
-          `Failed to delete ${testBranch.branchName} branch of app ${testBranch.appId}. ${errorMessage}`
+          `Failed to delete ${testBranch.branchName} branch of app ${testBranch.appId}. ${errorMessage}`,
         );
       }
     }
@@ -194,5 +194,5 @@ export const amplifyAppPool: AmplifyAppPool = new DefaultAmplifyAppPool(
   new AmplifyClient({
     ...e2eToolingClientConfig,
     maxAttempts: 5,
-  })
+  }),
 );

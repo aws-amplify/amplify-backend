@@ -28,12 +28,12 @@ void describe('client config backwards compatibility', () => {
   before(async () => {
     assert.ok(
       process.env.BASELINE_DIR,
-      'BASELINE_DIR environment variable must be set and point to amplify-backend repo at baseline version'
+      'BASELINE_DIR environment variable must be set and point to amplify-backend repo at baseline version',
     );
     baselineDir = process.env.BASELINE_DIR;
 
     tempDir = await fsp.mkdtemp(
-      path.join(os.tmpdir(), 'test-amplify-outputs-backwards-compatibility')
+      path.join(os.tmpdir(), 'test-amplify-outputs-backwards-compatibility'),
     );
 
     console.log(`Temp dir is ${tempDir}`);
@@ -53,9 +53,9 @@ void describe('client config backwards compatibility', () => {
     await cfnClient.send(
       new DeleteStackCommand({
         StackName: BackendIdentifierConversions.toStackName(
-          branchBackendIdentifier
+          branchBackendIdentifier,
         ),
-      })
+      }),
     );
     await fsp.rm(tempDir, { recursive: true });
 
@@ -80,7 +80,7 @@ void describe('client config backwards compatibility', () => {
         env: {
           CI: 'true',
         },
-      }
+      },
     );
   };
 
@@ -98,38 +98,38 @@ void describe('client config backwards compatibility', () => {
   };
 
   const assertGenerateClientConfigAPI = async (
-    type: 'baseline' | 'current'
+    type: 'baseline' | 'current',
   ) => {
     try {
       assert.ok(
         await generateClientConfig(branchBackendIdentifier, '1'),
-        `outputs v1 failed to be generated for an app created with ${type} library version`
+        `outputs v1 failed to be generated for an app created with ${type} library version`,
       );
     } catch (e) {
       throw new Error(
         `outputs v1 failed to be generated for an app created with ${type} library version. Error: ${JSON.stringify(
-          e
+          e,
         )}`,
-        { cause: e }
+        { cause: e },
       );
     }
     try {
       assert.ok(
         await generateClientConfig(branchBackendIdentifier, '1.1'),
-        `outputs v1.1 failed to be generated for an app created with ${type} library version`
+        `outputs v1.1 failed to be generated for an app created with ${type} library version`,
       );
     } catch (e) {
       throw new Error(
         `outputs v1.1 failed to be generated for an app created with ${type} library version. Error: ${JSON.stringify(
-          e
+          e,
         )}`,
-        { cause: e }
+        { cause: e },
       );
     }
   };
 
   const assertGenerateClientConfigCommand = async (
-    type: 'baseline' | 'current'
+    type: 'baseline' | 'current',
   ) => {
     await execa(
       'npx',
@@ -143,7 +143,7 @@ void describe('client config backwards compatibility', () => {
       {
         cwd: tempDir,
         stdio: 'inherit',
-      }
+      },
     );
 
     const fileSize = (
@@ -153,7 +153,7 @@ void describe('client config backwards compatibility', () => {
       fileSize > 100, // Validate that it's not just a shim
       `outputs file should not be empty when generating for a ${
         type === 'baseline' ? 'new' : 'old'
-      } new app with the ${type} version`
+      } new app with the ${type} version`,
     );
   };
 
@@ -182,7 +182,7 @@ backend.addOutput({
     someCustomOutput: 'someCustomOutputValue',
   },
 });
-`
+`,
     );
     await deploy();
     await baselineNpmProxyController.tearDown();

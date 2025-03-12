@@ -41,11 +41,11 @@ class TestBackendSecret implements BackendSecret {
     return {
       branchSecretPath: ParameterPathConversions.toParameterFullPath(
         testBackendIdentifier,
-        this.secretName
+        this.secretName,
       ),
       sharedSecretPath: ParameterPathConversions.toParameterFullPath(
         testBackendIdentifier.namespace,
-        this.secretName
+        this.secretName,
       ),
     };
   };
@@ -83,7 +83,7 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       graphqlSchema,
       secretResolver,
-      stableBackendIdentifiers
+      stableBackendIdentifiers,
     );
     assert.deepEqual(convertedDefinition.schema, graphqlSchema);
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
@@ -110,11 +110,11 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       typedSchema,
       secretResolver,
-      stableBackendIdentifiers
+      stableBackendIdentifiers,
     );
     assert.deepEqual(
       removeWhiteSpaceForComparison(convertedDefinition.schema),
-      removeWhiteSpaceForComparison(expectedGraphqlSchema)
+      removeWhiteSpaceForComparison(expectedGraphqlSchema),
     );
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
@@ -138,7 +138,7 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       typedSchema,
       secretResolver,
-      stableBackendIdentifiers
+      stableBackendIdentifiers,
     );
     assert.deepEqual(convertedDefinition.dataSourceStrategies, {
       Todo: {
@@ -156,11 +156,11 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       'type Todo @model @auth(rules: { allow: public }) { id: ID! }',
       secretResolver,
-      stableBackendIdentifiers
+      stableBackendIdentifiers,
     );
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
-      1
+      1,
     );
     assert.deepEqual(
       Object.values(convertedDefinition.dataSourceStrategies)[0],
@@ -168,7 +168,7 @@ void describe('convertSchemaToCDK', () => {
         dbType: 'DYNAMODB',
         provisionStrategy: 'AMPLIFY_TABLE',
       },
-      'dbType should ALWAYS be set to DYNAMODB, and provisionStrategy should ALWAYS be AMPLIFY_TABLE, changing these values will trigger db re-provisioning'
+      'dbType should ALWAYS be set to DYNAMODB, and provisionStrategy should ALWAYS be AMPLIFY_TABLE, changing these values will trigger db re-provisioning',
     );
   });
 
@@ -192,7 +192,7 @@ void describe('convertSchemaToCDK', () => {
       oddList: a
         .query()
         .handler(
-          a.handler.sqlReference('../test-assets/test-sql-handler/oddList.sql')
+          a.handler.sqlReference('../test-assets/test-sql-handler/oddList.sql'),
         )
         .returns(a.ref('post'))
         .authorization((allow) => allow.publicApiKey()),
@@ -201,12 +201,12 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       modified,
       secretResolver,
-      stableBackendIdentifiers
+      stableBackendIdentifiers,
     );
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
-      1
+      1,
     );
     assert.deepEqual(
       Object.values(convertedDefinition.dataSourceStrategies)[0],
@@ -225,7 +225,7 @@ void describe('convertSchemaToCDK', () => {
             'SELECT * from post where id % 2 = 1;',
         },
         vpcConfiguration: undefined,
-      }
+      },
     );
   });
 
@@ -256,12 +256,12 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       modified,
       secretResolver,
-      stableBackendIdentifiers
+      stableBackendIdentifiers,
     );
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
-      1
+      1,
     );
     assert.deepEqual(
       Object.values(convertedDefinition.dataSourceStrategies)[0],
@@ -277,7 +277,7 @@ void describe('convertSchemaToCDK', () => {
         },
         customSqlStatements: {},
         vpcConfiguration: undefined,
-      }
+      },
     );
   });
 
@@ -340,12 +340,12 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       modified,
       secretResolver,
-      stableBackendIdentifiers
+      stableBackendIdentifiers,
     );
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
-      1
+      1,
     );
     assert.deepEqual(
       Object.values(convertedDefinition.dataSourceStrategies)[0],
@@ -391,7 +391,7 @@ void describe('convertSchemaToCDK', () => {
           ],
         },
         /* eslint-enable spellcheck/spell-checker */
-      }
+      },
     );
   });
 
@@ -423,12 +423,12 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       modified,
       secretResolver,
-      stableBackendIdentifiers
+      stableBackendIdentifiers,
     );
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
-      1
+      1,
     );
     assert.deepEqual(
       Object.values(convertedDefinition.dataSourceStrategies)[0],
@@ -451,7 +451,7 @@ void describe('convertSchemaToCDK', () => {
         name: '00034dcf3444861c3ca5mysql',
         vpcConfiguration: undefined,
         /* eslint-enable spellcheck/spell-checker */
-      }
+      },
     );
   });
 
@@ -483,12 +483,12 @@ void describe('convertSchemaToCDK', () => {
     const convertedDefinition = convertSchemaToCDK(
       modified,
       secretResolver,
-      stableBackendIdentifiers
+      stableBackendIdentifiers,
     );
 
     assert.equal(
       Object.values(convertedDefinition.dataSourceStrategies).length,
-      1
+      1,
     );
     assert.deepEqual(
       Object.values(convertedDefinition.dataSourceStrategies)[0],
@@ -511,7 +511,7 @@ void describe('convertSchemaToCDK', () => {
         name: '00034dcf3444861c3ca5postgresql',
         vpcConfiguration: undefined,
         /* eslint-enable spellcheck/spell-checker */
-      }
+      },
     );
   });
 });

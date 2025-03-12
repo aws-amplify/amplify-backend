@@ -19,7 +19,7 @@ export class StorageOutputsAspect implements IAspect {
    * Constructs a new instance of the StorageValidator class.
    */
   constructor(
-    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput>
+    outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput>,
   ) {
     this.outputStorageStrategy = outputStorageStrategy;
   }
@@ -40,7 +40,7 @@ export class StorageOutputsAspect implements IAspect {
     this.isStorageProcessed = true;
 
     const storageInstances = Stack.of(node).node.children.filter(
-      (el) => el instanceof AmplifyStorage
+      (el) => el instanceof AmplifyStorage,
     );
     const storageCount = storageInstances.length;
 
@@ -85,7 +85,7 @@ export class StorageOutputsAspect implements IAspect {
   private storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<StorageOutput>,
     isDefault: boolean = false,
-    node: AmplifyStorage
+    node: AmplifyStorage,
   ): void => {
     if (isDefault) {
       outputStorageStrategy.addBackendOutputEntry(storageOutputKey, {
