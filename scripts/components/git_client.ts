@@ -44,7 +44,7 @@ export class GitClient {
     const isDirty = stdout.trim();
     if (isDirty) {
       throw new Error(
-        'Dirty working tree detected. Commit or stash changes to continue.'
+        'Dirty working tree detected. Commit or stash changes to continue.',
       );
     }
   };
@@ -134,7 +134,7 @@ export class GitClient {
    */
   getNearestReleaseCommit = async (
     commitHash: string = 'HEAD',
-    { inclusive }: { inclusive: boolean } = { inclusive: true }
+    { inclusive }: { inclusive: boolean } = { inclusive: true },
   ) => {
     // get the most recent tag before (or at if inclusive=false) the current release tag
     const { stdout: previousReleaseTag } = await this
@@ -167,7 +167,7 @@ export class GitClient {
     const packageNamesRemaining = new Set(
       releaseTags
         .map(releaseTagToNameAndVersion)
-        .map((nameAndVersion) => nameAndVersion.packageName)
+        .map((nameAndVersion) => nameAndVersion.packageName),
     );
 
     let releaseCommitCursor = releaseCommitHash;
@@ -178,11 +178,10 @@ export class GitClient {
     while (packageNamesRemaining.size > 0) {
       releaseCommitCursor = await this.getNearestReleaseCommit(
         releaseCommitCursor,
-        { inclusive: false }
+        { inclusive: false },
       );
-      const releaseTagsAtCursor = await this.getTagsAtCommit(
-        releaseCommitCursor
-      );
+      const releaseTagsAtCursor =
+        await this.getTagsAtCommit(releaseCommitCursor);
       releaseTagsAtCursor.forEach((releaseTag) => {
         const { packageName } = releaseTagToNameAndVersion(releaseTag);
         if (packageNamesRemaining.has(packageName)) {
@@ -211,7 +210,7 @@ export class GitClient {
       .exec`git cat-file -t ${releaseCommitHash}`;
     if (hashType !== 'commit') {
       throw new Error(
-        `Hash ${releaseCommitHash} does not point to a commit in the git tree`
+        `Hash ${releaseCommitHash} does not point to a commit in the git tree`,
       );
     }
 
@@ -263,9 +262,8 @@ export class GitClient {
 
     const originalEmail = await this.getConfigSafe(userEmailKey);
     const originalName = await this.getConfigSafe(userNameKey);
-    const originalAutoSetupRemote = await this.getConfigSafe(
-      autoSetupRemoteKey
-    );
+    const originalAutoSetupRemote =
+      await this.getConfigSafe(autoSetupRemoteKey);
 
     await this
       .exec`git config --replace-all ${userEmailKey} "github-actions[bot]@users.noreply.github.com"`;

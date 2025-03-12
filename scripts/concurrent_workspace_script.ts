@@ -20,7 +20,7 @@ import { createHash } from 'crypto';
  */
 const cacheFile = new URL(
   './concurrent_workspace_script_cache.json',
-  import.meta.url
+  import.meta.url,
 );
 
 // get the existing cache, or initialize an empty cache

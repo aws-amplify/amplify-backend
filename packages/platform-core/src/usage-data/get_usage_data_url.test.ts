@@ -12,7 +12,7 @@ void describe('getUrl', () => {
     const { getUrl } = require('./get_usage_data_url');
     assert.equal(
       url.format(getUrl()),
-      'https://api.cli.amplify.aws/v1.0/metrics'
+      'https://api.cli.amplify.aws/v1.0/metrics',
     );
   });
 

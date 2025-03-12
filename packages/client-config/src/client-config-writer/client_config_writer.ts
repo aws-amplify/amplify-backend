@@ -13,11 +13,11 @@ import { AmplifyUserError } from '@aws-amplify/platform-core';
 export type ClientConfigPathResolver = (
   fileName: ClientConfigFileBaseName,
   outDir?: string,
-  format?: ClientConfigFormat
+  format?: ClientConfigFormat,
 ) => Promise<string>;
 
 export type ClientConfigNameResolver = (
-  version: ClientConfigVersion
+  version: ClientConfigVersion,
 ) => ClientConfigFileBaseName;
 
 /**
@@ -31,7 +31,7 @@ export class ClientConfigWriter {
     private readonly pathResolver: ClientConfigPathResolver,
     private readonly nameResolver: ClientConfigNameResolver,
     private readonly formatter: ClientConfigFormatter,
-    private readonly fsp = _fsp
+    private readonly fsp = _fsp,
   ) {}
   /**
    * Persists provided client config as json file to target path.
@@ -40,12 +40,12 @@ export class ClientConfigWriter {
     clientConfig: ClientConfig,
     version: ClientConfigVersion,
     outDir?: string,
-    format: ClientConfigFormat = ClientConfigFormat.JSON
+    format: ClientConfigFormat = ClientConfigFormat.JSON,
   ): Promise<GenerateClientConfigToFileResult> => {
     const targetPath = await this.pathResolver(
       this.nameResolver(version),
       outDir,
-      format
+      format,
     );
     const fileContent = this.formatter.format(clientConfig, format);
 
@@ -60,7 +60,7 @@ export class ClientConfigWriter {
             message: `You do not have the permissions to write to this file: ${targetPath}`,
             resolution: `Ensure that you have the right permissions to write to ${targetPath}.`,
           },
-          error
+          error,
         );
       } else {
         throw error;

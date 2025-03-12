@@ -13,9 +13,9 @@ export class SandboxEventHandlerFactory {
    */
   constructor(
     private readonly getBackendIdentifier: (
-      sandboxIdentifier?: string
+      sandboxIdentifier?: string,
     ) => Promise<BackendIdentifier>,
-    private readonly getUsageDataEmitter: () => Promise<UsageDataEmitter>
+    private readonly getUsageDataEmitter: () => Promise<UsageDataEmitter>,
   ) {}
 
   getSandboxEventHandlers: SandboxEventHandlerCreator = ({
@@ -25,20 +25,19 @@ export class SandboxEventHandlerFactory {
     return {
       successfulDeployment: [
         async (...args: unknown[]) => {
-          const backendIdentifier = await this.getBackendIdentifier(
-            sandboxIdentifier
-          );
+          const backendIdentifier =
+            await this.getBackendIdentifier(sandboxIdentifier);
           const usageDataEmitter = await this.getUsageDataEmitter();
           try {
             await clientConfigLifecycleHandler.generateClientConfigFile(
-              backendIdentifier
+              backendIdentifier,
             );
             if (args && args[0]) {
               const deployResult = args[0] as DeployResult;
               if (deployResult && deployResult.deploymentTimes) {
                 await usageDataEmitter.emitSuccess(
                   deployResult.deploymentTimes,
-                  { command: 'Sandbox' }
+                  { command: 'Sandbox' },
                 );
               }
             }
@@ -46,8 +45,8 @@ export class SandboxEventHandlerFactory {
             // Don't crash sandbox if config cannot be generated, but print the error message
             printer.print(
               `${format.error(
-                'Amplify outputs could not be generated.'
-              )} ${format.error(error)}`
+                'Amplify outputs could not be generated.',
+              )} ${format.error(error)}`,
             );
           }
         },
@@ -73,7 +72,7 @@ export class SandboxEventHandlerFactory {
               AmplifyError.fromError(deployError),
               {
                 command: 'Sandbox',
-              }
+              },
             );
           }
         },

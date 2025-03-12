@@ -15,11 +15,11 @@ export type PackageJson = {
  * Reads content of package.json file.
  */
 export const readPackageJson = async (
-  packageDirectoryPath: string
+  packageDirectoryPath: string,
 ): Promise<PackageJson> => {
   const packageJsonPath = path.join(packageDirectoryPath, 'package.json');
   return JSON.parse(
-    await fsp.readFile(packageJsonPath, 'utf-8')
+    await fsp.readFile(packageJsonPath, 'utf-8'),
   ) as PackageJson;
 };
 
@@ -28,11 +28,11 @@ export const readPackageJson = async (
  */
 export const writePackageJson = async (
   packageDirectoryPath: string,
-  packageJson: PackageJson
+  packageJson: PackageJson,
 ): Promise<void> => {
   const packageJsonPath = path.join(packageDirectoryPath, 'package.json');
   await fsp.writeFile(
     packageJsonPath,
-    `${JSON.stringify(packageJson, null, 2)}\n`
+    `${JSON.stringify(packageJson, null, 2)}\n`,
   );
 };

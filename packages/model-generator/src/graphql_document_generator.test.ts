@@ -9,10 +9,10 @@ void describe('client generator', () => {
       () => ({
         writeToDirectory: () => Promise.resolve({ filesWritten: [] }),
         getResults: async () => ({}),
-      })
+      }),
     );
     await assert.rejects(() =>
-      generator.generateModels({ targetFormat: 'typescript' })
+      generator.generateModels({ targetFormat: 'typescript' }),
     );
   });
 });

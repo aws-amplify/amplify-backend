@@ -15,7 +15,7 @@ let baseRef = process.argv[2];
 if (baseRef === undefined) {
   console.log('No base ref specified. Defaulting to "main"');
   console.log(
-    'To specify a different base, pass a git ref (tag, branch name, commit sha) as the first and only argument to the script'
+    'To specify a different base, pass a git ref (tag, branch name, commit sha) as the first and only argument to the script',
   );
   baseRef = 'main';
 }
@@ -24,7 +24,7 @@ if (baseRef === undefined) {
 const gitClient = new GitClient();
 const diffFileList = await gitClient.getChangedFiles(baseRef);
 const filteredList = diffFileList.filter(
-  (file) => !EXCLUDE.find((e) => file.includes(e))
+  (file) => !EXCLUDE.find((e) => file.includes(e)),
 );
 
 if (filteredList.length === 0) {
@@ -53,7 +53,7 @@ if (shortStatOutputString.includes('insertion')) {
   const insertionsCount = shortStatOutputString.match(/(\d+)\s+insertion/)?.[1];
   if (!insertionsCount) {
     throw new Error(
-      `Unable to parse insertion count from ${shortStatOutputString}`
+      `Unable to parse insertion count from ${shortStatOutputString}`,
     );
   }
   linesAdded = parseInt(insertionsCount);
@@ -62,7 +62,7 @@ if (shortStatOutputString.includes('deletion')) {
   const deletionsCount = shortStatOutputString.match(/(\d+)\s+deletion/)?.[1];
   if (!deletionsCount) {
     throw new Error(
-      `Unable to parse deletions count from ${shortStatOutputString}`
+      `Unable to parse deletions count from ${shortStatOutputString}`,
     );
   }
   linesRemoved = parseInt(deletionsCount);

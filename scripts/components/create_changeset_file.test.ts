@@ -33,11 +33,11 @@ void describe('createChangesetFile', () => {
     assert.strictEqual(mockedFspWriteFile.mock.callCount(), 1);
     assert.strictEqual(
       mockedFspWriteFile.mock.calls[0].arguments[0],
-      testFileName
+      testFileName,
     );
     assert.deepStrictEqual(
       mockedFspWriteFile.mock.calls[0].arguments[1],
-      expectedContent
+      expectedContent,
     );
   });
 
@@ -48,11 +48,11 @@ void describe('createChangesetFile', () => {
     assert.strictEqual(mockedFspWriteFile.mock.callCount(), 1);
     assert.strictEqual(
       mockedFspWriteFile.mock.calls[0].arguments[0],
-      testFileName
+      testFileName,
     );
     assert.deepStrictEqual(
       mockedFspWriteFile.mock.calls[0].arguments[1],
-      expectedContent
+      expectedContent,
     );
   });
 
@@ -73,11 +73,11 @@ void describe('createChangesetFile', () => {
     assert.strictEqual(mockedFspWriteFile.mock.callCount(), 1);
     assert.strictEqual(
       mockedFspWriteFile.mock.calls[0].arguments[0],
-      testFileName
+      testFileName,
     );
     assert.deepStrictEqual(
       mockedFspWriteFile.mock.calls[0].arguments[1],
-      expectedContent
+      expectedContent,
     );
   });
 });

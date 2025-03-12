@@ -8,7 +8,7 @@ export const noAmplifyErrors = ESLintUtils.RuleCreator.withoutDocs({
       NewExpression(node) {
         const checkNode = (
           errorType: string,
-          messageId: 'useOfAmplifyErrorDetected' | 'useOfFaultDetected'
+          messageId: 'useOfAmplifyErrorDetected' | 'useOfFaultDetected',
         ) => {
           if (
             node.callee.type === 'Identifier' &&

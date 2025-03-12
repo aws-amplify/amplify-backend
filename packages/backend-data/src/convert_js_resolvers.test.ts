@@ -38,7 +38,7 @@ void describe('defaultJsResolverCode', () => {
     const code = defaultJsResolverCode('testApiId', 'testEnvName');
     assert(code.includes("ctx.stash.awsAppsyncApiId = 'testApiId';"));
     assert(
-      code.includes("ctx.stash.amplifyApiEnvironmentName = 'testEnvName';")
+      code.includes("ctx.stash.amplifyApiEnvironmentName = 'testEnvName';"),
     );
 
     const tempDir = tmpdir();
@@ -76,10 +76,10 @@ void describe('convertJsResolverDefinition', () => {
 
   void it('handles empty array / undefined param', () => {
     assert.doesNotThrow(() =>
-      convertJsResolverDefinition(stack, amplifyApi, undefined)
+      convertJsResolverDefinition(stack, amplifyApi, undefined),
     );
     assert.doesNotThrow(() =>
-      convertJsResolverDefinition(stack, amplifyApi, [])
+      convertJsResolverDefinition(stack, amplifyApi, []),
     );
   });
 
@@ -87,7 +87,7 @@ void describe('convertJsResolverDefinition', () => {
     const absolutePath = resolve(
       fileURLToPath(import.meta.url),
       '../../lib/assets',
-      'js_resolver_handler.js'
+      'js_resolver_handler.js',
     );
 
     const schema = a.schema({
@@ -98,7 +98,7 @@ void describe('convertJsResolverDefinition', () => {
         .handler(
           a.handler.custom({
             entry: absolutePath,
-          })
+          }),
         ),
     });
     const { jsFunctions } = schema.transform();
@@ -118,7 +118,7 @@ void describe('convertJsResolverDefinition', () => {
     const expectedFnCount = 1;
     template.resourceCountIs(
       'AWS::AppSync::FunctionConfiguration',
-      expectedFnCount
+      expectedFnCount,
     );
 
     template.hasResourceProperties('AWS::AppSync::Resolver', {
@@ -138,7 +138,7 @@ void describe('convertJsResolverDefinition', () => {
     const absolutePath = resolve(
       fileURLToPath(import.meta.url),
       '../../lib/assets',
-      'js_resolver_handler.js'
+      'js_resolver_handler.js',
     );
 
     const schema = a.schema({
@@ -175,7 +175,7 @@ void describe('convertJsResolverDefinition', () => {
     const expectedFnCount = 3;
     template.resourceCountIs(
       'AWS::AppSync::FunctionConfiguration',
-      expectedFnCount
+      expectedFnCount,
     );
 
     template.hasResourceProperties('AWS::AppSync::Resolver', {
@@ -195,7 +195,7 @@ void describe('convertJsResolverDefinition', () => {
     const absolutePath = resolve(
       fileURLToPath(import.meta.url),
       '../../lib/assets',
-      'js_resolver_handler.js'
+      'js_resolver_handler.js',
     );
 
     const schema = a.schema({
@@ -206,7 +206,7 @@ void describe('convertJsResolverDefinition', () => {
         .handler(
           a.handler.custom({
             entry: absolutePath,
-          })
+          }),
         ),
     });
     const { jsFunctions } = schema.transform();

@@ -14,7 +14,7 @@ export class ImportStatementsRenderer {
   constructor(
     private readonly generatorOutputs: Array<UsageStatementsGeneratorOutput>,
     private readonly namespaceDefinitions: NamespaceDefinitions,
-    private readonly packageName: string
+    private readonly packageName: string,
   ) {}
   render = (): string => {
     const importStatements: Array<string> = [];
@@ -24,11 +24,11 @@ export class ImportStatementsRenderer {
       } else if (generatorOutput.symbolDescriptor) {
         if (
           !this.namespaceDefinitions.namespaceBySymbol.has(
-            generatorOutput.symbolDescriptor.symbolName
+            generatorOutput.symbolDescriptor.symbolName,
           )
         ) {
           importStatements.push(
-            `import { ${generatorOutput.symbolDescriptor.symbolName} } from '${this.packageName}';`
+            `import { ${generatorOutput.symbolDescriptor.symbolName} } from '${this.packageName}';`,
           );
         }
       }
@@ -55,11 +55,11 @@ export class ImportStatementsRenderer {
           .replace('__export__', '') // strip prefix
           .replaceAll('__', '/'); // replace __ with /
         importStatements.push(
-          `import * as ${namespaceName} from '${this.packageName}/${entryPointPath}';`
+          `import * as ${namespaceName} from '${this.packageName}/${entryPointPath}';`,
         );
       } else {
         importStatements.push(
-          `import { ${namespaceName} } from '${this.packageName}';`
+          `import { ${namespaceName} } from '${this.packageName}';`,
         );
       }
     }

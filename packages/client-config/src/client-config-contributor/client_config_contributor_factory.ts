@@ -32,7 +32,7 @@ export class ClientConfigContributorFactory {
    * Creates a list of all contributors available and caches it.
    */
   constructor(
-    private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter
+    private readonly modelIntrospectionSchemaAdapter: ModelIntrospectionSchemaAdapter,
   ) {
     this.versionedClientConfigContributors = {
       [ClientConfigVersionOption.V1_3]: [

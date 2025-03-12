@@ -9,10 +9,10 @@ void describe('types generator', () => {
       () => ({
         writeToDirectory: () => Promise.resolve({ filesWritten: [] }),
         getResults: async () => ({}),
-      })
+      }),
     );
     await assert.rejects(() =>
-      generator.generateTypes({ target: 'typescript' })
+      generator.generateTypes({ target: 'typescript' }),
     );
   });
 
@@ -47,7 +47,7 @@ void describe('types generator', () => {
     }));
     const generator = new AppSyncGraphqlTypesGenerator(
       async () => schema,
-      mockResultBuilder
+      mockResultBuilder,
     );
     await generator.generateTypes({
       target: 'swift',
@@ -56,9 +56,9 @@ void describe('types generator', () => {
     const fileNames = Object.keys(
       (
         mockResultBuilder.mock.calls[0].arguments as unknown as [
-          Record<string, string>
+          Record<string, string>,
         ]
-      )[0]
+      )[0],
     );
     assert.deepEqual(fileNames, [
       'Types.graphql.swift',

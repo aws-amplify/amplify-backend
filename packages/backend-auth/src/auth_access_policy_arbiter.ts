@@ -16,7 +16,7 @@ export class AuthAccessPolicyArbiter {
     private readonly accessDefinition: AuthAccessDefinition[],
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly ssmEnvironmentEntries: SsmEnvironmentEntry[],
-    private readonly userPoolAccessPolicyFactory: UserPoolAccessPolicyFactory
+    private readonly userPoolAccessPolicyFactory: UserPoolAccessPolicyFactory,
   ) {}
 
   /**
@@ -29,10 +29,10 @@ export class AuthAccessPolicyArbiter {
 
   acceptResourceAccess = (accessDefinition: AuthAccessDefinition) => {
     const accessAcceptor = accessDefinition.getResourceAccessAcceptor(
-      this.getInstanceProps
+      this.getInstanceProps,
     );
     const policy = this.userPoolAccessPolicyFactory.createPolicy(
-      accessDefinition.actions
+      accessDefinition.actions,
     );
 
     accessAcceptor.acceptResourceAccess(policy, this.ssmEnvironmentEntries);
@@ -47,12 +47,12 @@ export class AuthAccessPolicyArbiterFactory {
     accessDefinition: AuthAccessDefinition[],
     getInstanceProps: ConstructFactoryGetInstanceProps,
     ssmEnvironmentEntries: SsmEnvironmentEntry[],
-    userpoolAccessPolicyFactory: UserPoolAccessPolicyFactory
+    userpoolAccessPolicyFactory: UserPoolAccessPolicyFactory,
   ) =>
     new AuthAccessPolicyArbiter(
       accessDefinition,
       getInstanceProps,
       ssmEnvironmentEntries,
-      userpoolAccessPolicyFactory
+      userpoolAccessPolicyFactory,
     );
 }

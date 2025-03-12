@@ -44,7 +44,7 @@ export const roleAccessBuilder: StorageAccessBuilder = {
     to: (actions) => ({
       getResourceAccessAcceptors: groupNames.map(
         (groupName) => (getInstanceProps) =>
-          getUserRoleResourceAccessAcceptor(getInstanceProps, groupName)
+          getUserRoleResourceAccessAcceptor(getInstanceProps, groupName),
       ),
       uniqueDefinitionIdValidations: groupNames.map((groupName) => ({
         uniqueDefinitionId: `groups${groupName}`,
@@ -87,24 +87,24 @@ export const roleAccessBuilder: StorageAccessBuilder = {
 };
 
 const getAuthRoleResourceAccessAcceptor = (
-  getInstanceProps: ConstructFactoryGetInstanceProps
+  getInstanceProps: ConstructFactoryGetInstanceProps,
 ) =>
   getUserRoleResourceAccessAcceptor(
     getInstanceProps,
-    'authenticatedUserIamRole'
+    'authenticatedUserIamRole',
   );
 
 const getUnauthRoleResourceAccessAcceptor = (
-  getInstanceProps: ConstructFactoryGetInstanceProps
+  getInstanceProps: ConstructFactoryGetInstanceProps,
 ) =>
   getUserRoleResourceAccessAcceptor(
     getInstanceProps,
-    'unauthenticatedUserIamRole'
+    'unauthenticatedUserIamRole',
   );
 
 const getUserRoleResourceAccessAcceptor = (
   getInstanceProps: ConstructFactoryGetInstanceProps,
-  roleName: AuthRoleName | string
+  roleName: AuthRoleName | string,
 ) => {
   const resourceAccessAcceptor = getInstanceProps.constructContainer
     .getConstructFactory<
@@ -116,7 +116,7 @@ const getUserRoleResourceAccessAcceptor = (
     throw new Error(
       `Cannot specify auth access for ${
         roleName as string
-      } users without defining auth. See https://docs.amplify.aws/gen2/build-a-backend/auth/set-up-auth/ for more information.`
+      } users without defining auth. See https://docs.amplify.aws/gen2/build-a-backend/auth/set-up-auth/ for more information.`,
     );
   }
   return resourceAccessAcceptor;

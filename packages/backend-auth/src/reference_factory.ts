@@ -93,7 +93,7 @@ export class AmplifyReferenceAuthFactory
   constructor(
     private readonly props: AmplifyReferenceAuthProps,
     // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-    private readonly importStack = new Error().stack
+    private readonly importStack = new Error().stack,
   ) {
     if (AmplifyAuthFactory.factoryCount > 0) {
       throw new AmplifyUserError('MultipleSingletonResourcesError', {
@@ -108,22 +108,22 @@ export class AmplifyReferenceAuthFactory
    * Get a singleton instance of AmplifyReferenceAuth
    */
   getInstance = (
-    getInstanceProps: ConstructFactoryGetInstanceProps
+    getInstanceProps: ConstructFactoryGetInstanceProps,
   ): BackendReferenceAuth => {
     const { constructContainer, importPathVerifier } = getInstanceProps;
     importPathVerifier?.verify(
       this.importStack,
       path.join('amplify', 'auth', 'resource'),
-      'Amplify Auth must be defined in amplify/auth/resource.ts'
+      'Amplify Auth must be defined in amplify/auth/resource.ts',
     );
     if (!this.generator) {
       this.generator = new AmplifyReferenceAuthGenerator(
         this.props,
-        getInstanceProps
+        getInstanceProps,
       );
     }
     return constructContainer.getOrCompute(
-      this.generator
+      this.generator,
     ) as BackendReferenceAuth;
   };
 }
@@ -137,7 +137,7 @@ class AmplifyReferenceAuthGenerator
     private readonly props: AmplifyReferenceAuthProps,
     private readonly getInstanceProps: ConstructFactoryGetInstanceProps,
     private readonly authAccessBuilder = _authAccessBuilder,
-    private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory()
+    private readonly authAccessPolicyArbiterFactory = new AuthAccessPolicyArbiterFactory(),
   ) {
     this.name = 'amplifyAuth';
   }
@@ -161,7 +161,7 @@ class AmplifyReferenceAuthGenerator
           message: 'Failed to instantiate reference auth construct',
           resolution: 'See the underlying error message for more details.',
         },
-        error as Error
+        error as Error,
       );
     }
 
@@ -174,7 +174,7 @@ class AmplifyReferenceAuthGenerator
        * @param roleIdentifier Either the auth or unauth role name or the name of a UserPool group
        */
       getResourceAccessAcceptor: (
-        roleIdentifier: AuthRoleName | string
+        roleIdentifier: AuthRoleName | string,
       ): ResourceAccessAcceptor => ({
         identifier: `${roleIdentifier}ResourceAccessAcceptor`,
         acceptResourceAccess: (policy: Policy) => {
@@ -210,7 +210,7 @@ class AmplifyReferenceAuthGenerator
       accessDefinition,
       this.getInstanceProps,
       ssmEnvironmentEntries,
-      new UserPoolAccessPolicyFactory(authConstruct.resources.userPool)
+      new UserPoolAccessPolicyFactory(authConstruct.resources.userPool),
     );
 
     authPolicyArbiter.arbitratePolicies();
@@ -230,11 +230,11 @@ const roleNameIsAuthRoleName = (roleName: string): roleName is AuthRoleName => {
  * Provide references to existing auth resources.
  */
 export const referenceAuth = (
-  props: AmplifyReferenceAuthProps
+  props: AmplifyReferenceAuthProps,
 ): ConstructFactory<BackendReferenceAuth> => {
   return new AmplifyReferenceAuthFactory(
     props,
     // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
-    new Error().stack
+    new Error().stack,
   );
 };

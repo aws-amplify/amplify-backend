@@ -755,16 +755,16 @@ void describe('invokeCDKCommand', { concurrency: 1 }, () => {
     }) => {
       void it(`handles ${errorMessage} error`, () => {
         const humanReadableError = cdkErrorMapper.getAmplifyError(
-          new Error(errorMessage)
+          new Error(errorMessage),
         );
         assert.equal(humanReadableError.name, expectedErrorName);
         assert.equal(humanReadableError.message, expectedTopLevelErrorMessage);
         expectedDownstreamErrorMessage &&
           assert.equal(
             humanReadableError.cause?.message,
-            expectedDownstreamErrorMessage
+            expectedDownstreamErrorMessage,
           );
       });
-    }
+    },
   );
 });

@@ -30,7 +30,7 @@ void describe('getProjectRoot', () => {
     process.env.npm_config_yes = 'false';
     const defaultProjectRoot = '.';
     mock.method(AmplifyPrompter, 'input', () =>
-      Promise.resolve(defaultProjectRoot)
+      Promise.resolve(defaultProjectRoot),
     );
     const projectRoot = await getProjectRoot();
 
@@ -68,7 +68,7 @@ void describe('getProjectRoot', () => {
     assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
     assert.equal(
       fsMkDirSyncMock.mock.calls[0].arguments[0],
-      path.resolve(userInput)
+      path.resolve(userInput),
     );
     assert.equal(projectRoot, path.resolve(userInput));
   });
@@ -80,11 +80,11 @@ void describe('getProjectRoot', () => {
     const expectedError = new AmplifyUserError('ProjectDirectoryCreateError', {
       message: `Failed to create project directory`,
       resolution: `Ensure that ${path.resolve(
-        userInput
+        userInput,
       )} is the correct path and you have write permissions to this location.`,
     });
     fsMkDirSyncMock.mock.mockImplementationOnce(() =>
-      Promise.reject(expectedError)
+      Promise.reject(expectedError),
     );
 
     await assert.rejects(getProjectRoot, (error: AmplifyUserError) => {
@@ -96,7 +96,7 @@ void describe('getProjectRoot', () => {
     assert.equal(fsMkDirSyncMock.mock.callCount(), 1);
     assert.equal(
       fsMkDirSyncMock.mock.calls[0].arguments[0],
-      path.resolve(userInput)
+      path.resolve(userInput),
     );
   });
 

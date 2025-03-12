@@ -12,7 +12,7 @@ export class ProjectRootValidator {
    */
   constructor(
     private readonly projectRoot: string,
-    private readonly exists = existsSync
+    private readonly exists = existsSync,
   ) {}
 
   /**
@@ -24,7 +24,7 @@ export class ProjectRootValidator {
     if (this.exists(testPath)) {
       // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
       throw new Error(
-        `An amplify directory already exists at ${testPath}. If you are trying to run an Amplify Gen 2 command inside an Amplify Gen 1 project we recommend creating the project in another directory. Learn more about AWS Amplify Gen 2: ${amplifyLearnMoreUrl}`
+        `An amplify directory already exists at ${testPath}. If you are trying to run an Amplify Gen 2 command inside an Amplify Gen 1 project we recommend creating the project in another directory. Learn more about AWS Amplify Gen 2: ${amplifyLearnMoreUrl}`,
       );
     }
   };

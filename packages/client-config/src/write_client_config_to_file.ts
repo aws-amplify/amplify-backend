@@ -21,7 +21,7 @@ export const writeClientConfigToFile = async (
   clientConfig: ClientConfig,
   version: ClientConfigVersion,
   outDir?: string,
-  format?: ClientConfigFormat
+  format?: ClientConfigFormat,
 ): Promise<GenerateClientConfigToFileResult> => {
   const packageJson = await readPackageJson();
 
@@ -32,16 +32,19 @@ export const writeClientConfigToFile = async (
     getClientConfigFileName,
     isLegacyConfig
       ? new ClientConfigFormatterLegacy(
-          new ClientConfigMobileConverter(packageJson.name, packageJson.version)
+          new ClientConfigMobileConverter(
+            packageJson.name,
+            packageJson.version,
+          ),
         )
-      : new ClientConfigFormatterDefault()
+      : new ClientConfigFormatterDefault(),
   );
 
   return await clientConfigWriter.writeClientConfig(
     clientConfig,
     version,
     outDir,
-    format
+    format,
   );
 };
 
@@ -50,7 +53,7 @@ const readPackageJson = async (): Promise<{
   version: string;
 }> => {
   const packageJsonPath = fileURLToPath(
-    new URL('../package.json', import.meta.url)
+    new URL('../package.json', import.meta.url),
   );
   return JSON.parse(await fsp.readFile(packageJsonPath, 'utf-8'));
 };

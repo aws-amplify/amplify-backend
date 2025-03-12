@@ -30,7 +30,7 @@ void describe('SingletonConstructContainer', () => {
     });
     void it('calls initializer to create resource instance', () => {
       const container = new SingletonConstructContainer(
-        new NestedStackResolver(stack, new AttributionMetadataStorage())
+        new NestedStackResolver(stack, new AttributionMetadataStorage()),
       );
       const instance = container.getOrCompute({
         resourceGroupName: 'testGroup',
@@ -45,7 +45,7 @@ void describe('SingletonConstructContainer', () => {
 
     void it('returns cached instance if initializer has been seen before', () => {
       const container = new SingletonConstructContainer(
-        new NestedStackResolver(stack, new AttributionMetadataStorage())
+        new NestedStackResolver(stack, new AttributionMetadataStorage()),
       );
       const initializer: ConstructContainerEntryGenerator = {
         resourceGroupName: 'testGroup',
@@ -63,7 +63,7 @@ void describe('SingletonConstructContainer', () => {
 
     void it('returns correct cached value for each initializer', () => {
       const container = new SingletonConstructContainer(
-        new NestedStackResolver(stack, new AttributionMetadataStorage())
+        new NestedStackResolver(stack, new AttributionMetadataStorage()),
       );
       const bucketInitializer: ConstructContainerEntryGenerator<{
         bucket: IBucket;
@@ -86,10 +86,10 @@ void describe('SingletonConstructContainer', () => {
         }),
       };
       const bucketResources = container.getOrCompute(
-        bucketInitializer
+        bucketInitializer,
       ) as ResourceProvider<{ bucket: IBucket }>;
       const queueResources = container.getOrCompute(
-        queueInitializer
+        queueInitializer,
       ) as ResourceProvider<{ queue: IQueue }>;
 
       const cachedBucketResources = container.getOrCompute(bucketInitializer);
@@ -114,8 +114,8 @@ void describe('SingletonConstructContainer', () => {
       container = new SingletonConstructContainer(
         new NestedStackResolver(
           createStackAndSetContext(),
-          new AttributionMetadataStorage()
-        )
+          new AttributionMetadataStorage(),
+        ),
       );
     });
 
@@ -123,14 +123,14 @@ void describe('SingletonConstructContainer', () => {
       container.registerConstructFactory(testFactoryToken, testFactory);
       assert.deepStrictEqual(
         container.getConstructFactory(testFactoryToken),
-        testFactory
+        testFactory,
       );
     });
 
     void it('returns undefined for unregistered factory', () => {
       assert.deepStrictEqual(
         container.getConstructFactory(testFactoryToken),
-        undefined
+        undefined,
       );
     });
   });

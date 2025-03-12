@@ -72,7 +72,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         await cfnClient.send(
           new DeleteStackCommand({
             StackName: stackName,
-          })
+          }),
         );
       } catch (e) {
         console.log(`Failed to delete ${stackName}`);
@@ -97,11 +97,11 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         tempDir,
         {
           env: { CI: 'true' },
-        }
+        },
       ).run();
 
       const clientConfigStats = await fs.stat(
-        path.join(tempDir, 'amplify_outputs.json')
+        path.join(tempDir, 'amplify_outputs.json'),
       );
       assert.ok(clientConfigStats.isFile());
     });
@@ -129,7 +129,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
         .run();
 
       const clientConfigStats = await fs.stat(
-        path.join(tempDir, 'amplify_outputs.json')
+        path.join(tempDir, 'amplify_outputs.json'),
       );
       assert.ok(clientConfigStats.isFile());
 
@@ -164,7 +164,7 @@ void describe('Live dependency health checks', { concurrency: true }, () => {
 
       const processController = ampxCli(
         ['sandbox', '--dirToWatch', 'amplify'],
-        testProject.projectDirPath
+        testProject.projectDirPath,
       );
       const updates = await testProject.getUpdates();
       for (const update of updates) {

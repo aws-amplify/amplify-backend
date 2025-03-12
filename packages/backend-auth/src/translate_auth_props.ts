@@ -29,7 +29,7 @@ import { AmplifyAuthProps } from './factory.js';
  */
 export const translateToAuthConstructLoginWith = (
   authFactoryLoginWith: AuthLoginWithFactoryProps,
-  backendSecretResolver: BackendSecretResolver
+  backendSecretResolver: BackendSecretResolver,
 ): AuthProps['loginWith'] => {
   const result: AuthProps['loginWith'] =
     authFactoryLoginWith as AuthProps['loginWith'];
@@ -44,7 +44,7 @@ export const translateToAuthConstructLoginWith = (
 
   const amazonProps = translateAmazonProps(
     backendSecretResolver,
-    externalProviders.loginWithAmazon
+    externalProviders.loginWithAmazon,
   );
   if (amazonProps) {
     result.externalProviders.loginWithAmazon = amazonProps;
@@ -52,7 +52,7 @@ export const translateToAuthConstructLoginWith = (
 
   const appleProps = translateAppleProps(
     backendSecretResolver,
-    externalProviders.signInWithApple
+    externalProviders.signInWithApple,
   );
   if (appleProps) {
     result.externalProviders.signInWithApple = appleProps;
@@ -60,7 +60,7 @@ export const translateToAuthConstructLoginWith = (
 
   const facebookProps = translateFacebookProps(
     backendSecretResolver,
-    externalProviders.facebook
+    externalProviders.facebook,
   );
   if (facebookProps) {
     result.externalProviders.facebook = facebookProps;
@@ -68,7 +68,7 @@ export const translateToAuthConstructLoginWith = (
 
   const oidcProps = translateOidcProps(
     backendSecretResolver,
-    externalProviders.oidc
+    externalProviders.oidc,
   );
   if (oidcProps) {
     result.externalProviders.oidc = oidcProps;
@@ -76,7 +76,7 @@ export const translateToAuthConstructLoginWith = (
 
   const googleProps = translateGoogleProps(
     backendSecretResolver,
-    externalProviders.google
+    externalProviders.google,
   );
   if (googleProps) {
     result.externalProviders.google = googleProps;
@@ -97,7 +97,7 @@ export const translateToAuthConstructLoginWith = (
  */
 export const translateToAuthConstructSenders = (
   senders: AmplifyAuthProps['senders'] | undefined,
-  getInstanceProps: ConstructFactoryGetInstanceProps
+  getInstanceProps: ConstructFactoryGetInstanceProps,
 ): AuthProps['senders'] | undefined => {
   if (!senders || !(senders.email || senders.sms)) {
     return undefined;
@@ -141,7 +141,7 @@ export const translateToAuthConstructSenders = (
 
 const translateAmazonProps = (
   backendSecretResolver: BackendSecretResolver,
-  amazonProviderProps?: AmazonProviderFactoryProps
+  amazonProviderProps?: AmazonProviderFactoryProps,
 ): AmazonProviderProps | undefined => {
   if (!amazonProviderProps) {
     return undefined;
@@ -159,7 +159,7 @@ const translateAmazonProps = (
 
 const translateAppleProps = (
   backendSecretResolver: BackendSecretResolver,
-  amazonProviderProps?: AppleProviderFactoryProps
+  amazonProviderProps?: AppleProviderFactoryProps,
 ): AppleProviderProps | undefined => {
   if (!amazonProviderProps) {
     return undefined;
@@ -178,7 +178,7 @@ const translateAppleProps = (
 
 const translateFacebookProps = (
   backendSecretResolver: BackendSecretResolver,
-  facebookProviderProps?: FacebookProviderFactoryProps
+  facebookProviderProps?: FacebookProviderFactoryProps,
 ): FacebookProviderProps | undefined => {
   if (!facebookProviderProps) {
     return undefined;
@@ -196,7 +196,7 @@ const translateFacebookProps = (
 
 const translateOidcProps = (
   backendSecretResolver: BackendSecretResolver,
-  oidcProviderProps?: OidcProviderFactoryProps[]
+  oidcProviderProps?: OidcProviderFactoryProps[],
 ): OidcProviderProps[] | undefined => {
   if (!oidcProviderProps || oidcProviderProps.length === 0) {
     return undefined;
@@ -219,7 +219,7 @@ const translateOidcProps = (
 
 const translateGoogleProps = (
   backendSecretResolver: BackendSecretResolver,
-  googleProviderProps?: GoogleProviderFactoryProps
+  googleProviderProps?: GoogleProviderFactoryProps,
 ): GoogleProviderProps | undefined => {
   if (!googleProviderProps) {
     return undefined;

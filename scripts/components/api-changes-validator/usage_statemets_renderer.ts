@@ -13,7 +13,7 @@ export class UsageStatementsRenderer {
    */
   constructor(
     private readonly generatorOutputs: Array<UsageStatementsGeneratorOutput>,
-    private readonly namespaceDefinitions: NamespaceDefinitions
+    private readonly namespaceDefinitions: NamespaceDefinitions,
   ) {}
   render = (): string => {
     let usageStatements = this.renderCombinedUsageStatements();
@@ -64,7 +64,7 @@ export class UsageStatementsRenderer {
         actualSymbolName = symbolAlias;
       }
       const symbolWithNamespace = `${namespaceHierarchy.join(
-        '.'
+        '.',
       )}.${actualSymbolName}`;
 
       // characters that can be found before or after symbol
@@ -73,11 +73,11 @@ export class UsageStatementsRenderer {
       const possibleSymbolSuffix = '[\\s\\,\\(\\)<>;\\.]';
       const regex = new RegExp(
         `(${possibleSymbolPrefix})(${symbolName})(${possibleSymbolSuffix})`,
-        'g'
+        'g',
       );
       usageStatements = usageStatements.replaceAll(
         regex,
-        `$1${symbolWithNamespace}$3`
+        `$1${symbolWithNamespace}$3`,
       );
     }
 

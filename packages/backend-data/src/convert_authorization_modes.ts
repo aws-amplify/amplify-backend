@@ -41,7 +41,7 @@ export type ProvidedAuthConfig = {
 export const buildConstructFactoryProvidedAuthConfig = (
   authResourceProvider:
     | ResourceProvider<AuthResources | ReferenceAuthResources>
-    | undefined
+    | undefined,
 ): ProvidedAuthConfig | undefined => {
   if (!authResourceProvider) return;
   return {
@@ -73,7 +73,7 @@ const convertLambdaAuthorizationConfigToCDK = (
   {
     function: authFn,
     timeToLiveInSeconds = DEFAULT_LAMBDA_AUTH_TIME_TO_LIVE_SECONDS,
-  }: LambdaAuthorizationModeProps
+  }: LambdaAuthorizationModeProps,
 ): CDKLambdaAuthorizationConfig => ({
   function: authFn.getInstance(getInstanceProps).resources.lambda,
   ttl: Duration.seconds(timeToLiveInSeconds),
@@ -105,7 +105,7 @@ const convertOIDCAuthConfigToCDK = ({
  */
 const computeDefaultAuthorizationMode = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined
+  authModes: AuthorizationModes | undefined,
 ): DefaultAuthorizationMode | undefined => {
   if (isUsingDefaultApiKeyAuth(providedAuthConfig, authModes)) {
     return 'apiKey';
@@ -137,7 +137,7 @@ const computeDefaultAuthorizationMode = (
  * @returns a user pool auth config, if relevant
  */
 const computeUserPoolAuthFromResource = (
-  providedAuthConfig: ProvidedAuthConfig | undefined
+  providedAuthConfig: ProvidedAuthConfig | undefined,
 ): CDKUserPoolAuthorizationConfig | undefined => {
   if (providedAuthConfig) {
     return { userPool: providedAuthConfig.userPool };
@@ -150,7 +150,7 @@ const computeUserPoolAuthFromResource = (
  * @returns an iam auth config, if relevant
  */
 const computeIdentityPoolAuthFromResource = (
-  providedAuthConfig: ProvidedAuthConfig | undefined
+  providedAuthConfig: ProvidedAuthConfig | undefined,
 ): CDKIdentityPoolAuthorizationConfig | undefined => {
   if (providedAuthConfig) {
     return {
@@ -168,7 +168,7 @@ const computeIdentityPoolAuthFromResource = (
  */
 const computeApiKeyAuthFromResource = (
   providedAuthConfig: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined
+  authModes: AuthorizationModes | undefined,
 ): CDKApiKeyAuthorizationConfig | undefined => {
   if (isUsingDefaultApiKeyAuth(providedAuthConfig, authModes)) {
     return {
@@ -199,13 +199,13 @@ const convertAuthorizationModeToCDK = (mode?: DefaultAuthorizationMode) => {
 export const convertAuthorizationModesToCDK = (
   getInstanceProps: ConstructFactoryGetInstanceProps,
   authResources: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined
+  authModes: AuthorizationModes | undefined,
 ): CDKAuthorizationModes => {
   const defaultAuthorizationMode =
     authModes?.defaultAuthorizationMode ??
     computeDefaultAuthorizationMode(authResources, authModes);
   const cdkAuthorizationMode = convertAuthorizationModeToCDK(
-    defaultAuthorizationMode
+    defaultAuthorizationMode,
   );
   const apiKeyConfig =
     authModes?.apiKeyAuthorizationMode ||
@@ -218,7 +218,7 @@ export const convertAuthorizationModesToCDK = (
   const lambdaConfig = authModes?.lambdaAuthorizationMode
     ? convertLambdaAuthorizationConfigToCDK(
         getInstanceProps,
-        authModes.lambdaAuthorizationMode
+        authModes.lambdaAuthorizationMode,
       )
     : undefined;
   const oidcConfig = authModes?.oidcAuthorizationMode
@@ -248,7 +248,7 @@ export const convertAuthorizationModesToCDK = (
  */
 export const isUsingDefaultApiKeyAuth = (
   authResources: ProvidedAuthConfig | undefined,
-  authModes: AuthorizationModes | undefined
+  authModes: AuthorizationModes | undefined,
 ): boolean => {
   return authModes === undefined && authResources === undefined;
 };

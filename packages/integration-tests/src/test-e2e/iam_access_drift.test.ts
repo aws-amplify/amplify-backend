@@ -50,12 +50,12 @@ void describe('iam access drift', () => {
   before(async () => {
     assert.ok(
       process.env.BASELINE_DIR,
-      'BASELINE_DIR environment variable must be set and point to amplify-backend repo at baseline version'
+      'BASELINE_DIR environment variable must be set and point to amplify-backend repo at baseline version',
     );
     baselineDir = process.env.BASELINE_DIR;
 
     tempDir = await fsp.mkdtemp(
-      path.join(os.tmpdir(), 'test-iam-access-drift')
+      path.join(os.tmpdir(), 'test-iam-access-drift'),
     );
 
     iamClient = new IAMClient(e2eToolingClientConfig);
@@ -76,9 +76,9 @@ void describe('iam access drift', () => {
     await cfnClient.send(
       new DeleteStackCommand({
         StackName: BackendIdentifierConversions.toStackName(
-          branchBackendIdentifier
+          branchBackendIdentifier,
         ),
-      })
+      }),
     );
     await fsp.rm(tempDir, { recursive: true });
 
@@ -103,7 +103,7 @@ void describe('iam access drift', () => {
         env: {
           CI: 'true',
         },
-      }
+      },
     );
   };
 
@@ -147,27 +147,27 @@ void describe('iam access drift', () => {
     const policies: Array<ManagedIamPolicy> = [];
     const policyArns = await deployedResourcesFinder.findByBackendIdentifier(
       branchBackendIdentifier,
-      'AWS::IAM::ManagedPolicy'
+      'AWS::IAM::ManagedPolicy',
     );
 
     for (const policyArn of policyArns) {
       const getPolicyResponse: GetPolicyCommandOutput = await iamClient.send(
         new GetPolicyCommand({
           PolicyArn: policyArn,
-        })
+        }),
       );
       const getPolicyVersionResponse: GetPolicyVersionCommandOutput =
         await iamClient.send(
           new GetPolicyVersionCommand({
             PolicyArn: policyArn,
             VersionId: getPolicyResponse.Policy?.DefaultVersionId,
-          })
+          }),
         );
       if (getPolicyVersionResponse.PolicyVersion?.Document) {
         policies.push({
           policyArn,
           policyStatement: decodeURIComponent(
-            getPolicyVersionResponse.PolicyVersion.Document
+            getPolicyVersionResponse.PolicyVersion.Document,
           ),
         });
       }
@@ -179,19 +179,19 @@ void describe('iam access drift', () => {
     const policies: Array<RoleTrustPolicy> = [];
     const roleNames = await deployedResourcesFinder.findByBackendIdentifier(
       branchBackendIdentifier,
-      'AWS::IAM::Role'
+      'AWS::IAM::Role',
     );
     for (const roleName of roleNames) {
       const getRoleResponse: GetRoleCommandOutput = await iamClient.send(
         new GetRoleCommand({
           RoleName: roleName,
-        })
+        }),
       );
       if (getRoleResponse.Role?.AssumeRolePolicyDocument) {
         policies.push({
           roleName,
           policyStatement: decodeURIComponent(
-            getRoleResponse.Role.AssumeRolePolicyDocument
+            getRoleResponse.Role.AssumeRolePolicyDocument,
           ),
         });
       }
@@ -203,7 +203,7 @@ void describe('iam access drift', () => {
     const policies: Array<RoleInlinePolicy> = [];
     const roleNames = await deployedResourcesFinder.findByBackendIdentifier(
       branchBackendIdentifier,
-      'AWS::IAM::Role'
+      'AWS::IAM::Role',
     );
     for (const roleName of roleNames) {
       let nextToken: string | undefined;
@@ -213,7 +213,7 @@ void describe('iam access drift', () => {
             new ListRolePoliciesCommand({
               RoleName: roleName,
               Marker: nextToken,
-            })
+            }),
           );
         nextToken = listRolePoliciesResponse.Marker;
         if (listRolePoliciesResponse.PolicyNames) {
@@ -223,14 +223,14 @@ void describe('iam access drift', () => {
                 new GetRolePolicyCommand({
                   RoleName: roleName,
                   PolicyName: policyName,
-                })
+                }),
               );
             if (getRolePolicyResponse.PolicyDocument) {
               policies.push({
                 roleName,
                 policyName,
                 policyStatement: decodeURIComponent(
-                  getRolePolicyResponse.PolicyDocument
+                  getRolePolicyResponse.PolicyDocument,
                 ),
               });
             }
@@ -255,7 +255,7 @@ void describe('iam access drift', () => {
   };
 
   const comparePolicy = async (
-    policyComparisonParams: PolicyComparisonParams
+    policyComparisonParams: PolicyComparisonParams,
   ): Promise<Omit<CheckNoNewAccessCommandOutput, '$metadata'>> => {
     if (
       !policyComparisonParams.baselinePolicy &&
@@ -283,17 +283,17 @@ void describe('iam access drift', () => {
           policyComparisonParams.baselinePolicy.policyStatement,
         newPolicyDocument: policyComparisonParams.currentPolicy.policyStatement,
         policyType: policyComparisonParams.policyType,
-      })
+      }),
     );
   };
 
   const matchBaselineAndCurrentPolicies = <
-    T extends ManagedIamPolicy | RoleTrustPolicy | RoleInlinePolicy
+    T extends ManagedIamPolicy | RoleTrustPolicy | RoleInlinePolicy,
   >(
     baselinePolicies: Array<T>,
     currentPolicies: Array<T>,
     uniqueKeyProvider: (policy: T) => string,
-    policyType: AccessCheckPolicyType
+    policyType: AccessCheckPolicyType,
   ): IterableIterator<PolicyComparisonParams> => {
     const policyComparisonParamsMap = new Map<string, PolicyComparisonParams>();
     baselinePolicies.forEach((policy) => {
@@ -351,8 +351,8 @@ void describe('iam access drift', () => {
         baselineManagedIamPolicies,
         currentManagedIamPolicies,
         (policy) => policy.policyArn,
-        'IDENTITY_POLICY'
-      )
+        'IDENTITY_POLICY',
+      ),
     );
 
     allPolicyComparisonParams.push(
@@ -360,8 +360,8 @@ void describe('iam access drift', () => {
         baselineRoleTrustPolicies,
         currentRoleTrustPolicies,
         (policy) => policy.roleName,
-        'RESOURCE_POLICY'
-      )
+        'RESOURCE_POLICY',
+      ),
     );
 
     allPolicyComparisonParams.push(
@@ -369,8 +369,8 @@ void describe('iam access drift', () => {
         baselineRoleInlinePolicies,
         currentRoleInlinePolicies,
         (policy) => `${policy.roleName}-${policy.policyName}`,
-        'IDENTITY_POLICY'
-      )
+        'IDENTITY_POLICY',
+      ),
     );
 
     const comparisonResults: Array<PolicyComparisonResult> = [];
@@ -383,7 +383,7 @@ void describe('iam access drift', () => {
     }
 
     const policiesWithNewAccess = comparisonResults.filter(
-      (result) => result.comparisonResult.result === 'FAIL'
+      (result) => result.comparisonResult.result === 'FAIL',
     );
 
     assert.strictEqual(
@@ -392,7 +392,7 @@ void describe('iam access drift', () => {
       `
     One of policies gained new access. Review the following results:
     ${JSON.stringify(policiesWithNewAccess, null, 2)}
-    `
+    `,
     );
   });
 });

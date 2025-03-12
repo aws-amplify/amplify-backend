@@ -57,7 +57,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
         };
       }
       throw request;
-    }
+    },
   );
   let deployedBackendClient: DefaultDeployedBackendClient;
   const listStacksMockFn = mock.fn((input) => {
@@ -77,7 +77,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
   });
   const mockBackendOutputClient = new DefaultBackendOutputClient(
     mockCfnClient,
-    new AmplifyClient()
+    new AmplifyClient(),
   );
 
   const returnedSandboxes = [
@@ -101,7 +101,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     const deployedResourcesEnumerator = new DeployedResourcesEnumerator(
       new StackStatusMapper(),
       new ArnGenerator(),
-      new ArnParser()
+      new ArnParser(),
     );
     mock.method(deployedResourcesEnumerator, 'listDeployedResources', () => []);
     deployedBackendClient = new DefaultDeployedBackendClient(
@@ -110,7 +110,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
       mockBackendOutputClient,
       deployedResourcesEnumerator,
       new StackStatusMapper(),
-      new ArnParser()
+      new ArnParser(),
     );
   });
 
@@ -120,7 +120,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(
       (await sandboxes.getBackendSummaryByPage().next()).value,
-      returnedSandboxes
+      returnedSandboxes,
     );
 
     assert.equal(listStacksMockFn.mock.callCount(), 1);
@@ -138,7 +138,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(
       (await sandboxes.getBackendSummaryByPage().next()).value,
-      returnedSandboxes
+      returnedSandboxes,
     );
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
@@ -156,7 +156,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(
       (await sandboxes.getBackendSummaryByPage().next()).value,
-      returnedSandboxes
+      returnedSandboxes,
     );
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
@@ -181,7 +181,7 @@ void describe('Deployed Backend Client list sandboxes', () => {
     });
     assert.deepEqual(
       (await sandboxes.getBackendSummaryByPage().next()).value,
-      returnedSandboxes
+      returnedSandboxes,
     );
 
     assert.equal(listStacksMockFn.mock.callCount(), 2);
@@ -207,14 +207,14 @@ void describe('Deployed Backend Client list sandboxes', () => {
           };
         }
         throw request;
-      }
+      },
     );
     const sandboxes = deployedBackendClient.listBackends({
       deploymentType: 'sandbox',
     });
     assert.deepEqual(
       (await sandboxes.getBackendSummaryByPage().next()).done,
-      true
+      true,
     );
 
     assert.equal(listStacksMockFn.mock.callCount(), 1);

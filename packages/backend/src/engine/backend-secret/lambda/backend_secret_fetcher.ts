@@ -16,7 +16,7 @@ const secretClient = getSecretClient();
  * Entry point for the lambda-backend custom resource to retrieve a backend secret.
  */
 export const handler = async (
-  event: CloudFormationCustomResourceEvent
+  event: CloudFormationCustomResourceEvent,
 ): Promise<CloudFormationCustomResourceSuccessResponse> => {
   console.info(`Received '${event.RequestType}' event`);
 
@@ -46,7 +46,7 @@ export const handler = async (
  */
 export const handleCreateUpdateEvent = async (
   secretClient: SecretClient,
-  event: CloudFormationCustomResourceEvent
+  event: CloudFormationCustomResourceEvent,
 ): Promise<Record<string, string>> => {
   const props = event.ResourceProperties as unknown as SecretResourceProps;
   const secretMap: Record<string, string> = {};
@@ -61,7 +61,7 @@ export const handleCreateUpdateEvent = async (
         },
         {
           name: secretName,
-        }
+        },
       );
       secretValue = resp.value;
     } catch (err) {
@@ -71,7 +71,7 @@ export const handleCreateUpdateEvent = async (
           `Failed to retrieve backend secret '${secretName}' for '${
             props.namespace
           }/${props.name}'. Reason: ${JSON.stringify(err)}`,
-          { cause: secretErr }
+          { cause: secretErr },
         );
       }
     }
@@ -88,14 +88,14 @@ export const handleCreateUpdateEvent = async (
           `Failed to retrieve backend secret '${secretName}' for '${
             props.namespace
           }'. Reason: ${JSON.stringify(err)}`,
-          { cause: err }
+          { cause: err },
         );
       }
     }
 
     if (!secretValue) {
       throw new Error(
-        `Unable to find backend secret for backend '${props.namespace}', branch '${props.name}', name '${secretName}'`
+        `Unable to find backend secret for backend '${props.namespace}', branch '${props.name}', name '${secretName}'`,
       );
     }
 

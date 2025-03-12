@@ -15,7 +15,7 @@ export class SecretError extends Error {
     options?: {
       cause?: Error;
       httpStatusCode?: number;
-    }
+    },
   ) {
     super(message);
     this.name = 'SecretError';
@@ -37,7 +37,7 @@ export class SecretError extends Error {
    * Creates a secret error from an SSM exception.
    */
   private static fromSSMException = (
-    ssmException: SSMServiceException
+    ssmException: SSMServiceException,
   ): SecretError => {
     // the SSM error message is wrong/misleading, like 'UnknownError'. We will stringify the
     // whole err object instead.

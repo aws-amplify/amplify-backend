@@ -28,5 +28,5 @@ ruleTester.run(
         ],
       },
     ],
-  }
+  },
 );

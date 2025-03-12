@@ -10,7 +10,7 @@ const testBackendIdentifier: BackendIdentifier = {
 };
 
 const backendHashGetter = new BackendIdScopedStableBackendIdentifiers(
-  testBackendIdentifier
+  testBackendIdentifier,
 );
 
 void describe('convertSchemaToCDK', () => {

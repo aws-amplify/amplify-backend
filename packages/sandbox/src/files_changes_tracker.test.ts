@@ -21,7 +21,7 @@ void describe('File changes tracker', () => {
     assert.strictEqual(snapshot.didAnyFileChangeSinceStart, true);
     assert.strictEqual(
       snapshot.didAnyTypeScriptFileChangeSinceLastSnapshot,
-      false
+      false,
     );
   });
 
@@ -34,7 +34,7 @@ void describe('File changes tracker', () => {
     assert.strictEqual(snapshot.didAnyFileChangeSinceStart, true);
     assert.strictEqual(
       snapshot.didAnyTypeScriptFileChangeSinceLastSnapshot,
-      true
+      true,
     );
   });
 
@@ -47,7 +47,7 @@ void describe('File changes tracker', () => {
     assert.strictEqual(snapshot.didAnyFileChangeSinceStart, true);
     assert.strictEqual(
       snapshot.didAnyTypeScriptFileChangeSinceLastSnapshot,
-      true
+      true,
     );
   });
 
@@ -64,7 +64,7 @@ void describe('File changes tracker', () => {
     assert.strictEqual(snapshot.didAnyFileChangeSinceStart, true);
     assert.strictEqual(
       snapshot.didAnyTypeScriptFileChangeSinceLastSnapshot,
-      true
+      true,
     );
   });
 
@@ -80,7 +80,7 @@ void describe('File changes tracker', () => {
     assert.strictEqual(snapshot.didAnyFileChangeSinceStart, true);
     assert.strictEqual(
       snapshot.didAnyTypeScriptFileChangeSinceLastSnapshot,
-      false
+      false,
     );
   });
 });

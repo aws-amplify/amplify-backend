@@ -22,9 +22,9 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
           (filePath: string) => {
             filesWritten.push(path.relative(process.cwd(), filePath));
             return;
-          }
+          },
         );
-      })
+      }),
     );
 
     return { filesWritten };
@@ -37,7 +37,7 @@ export class AppsyncGraphqlGenerationResult implements GenerationResult {
   private writeSchemaToFile = async (
     basePath: string,
     filePath: string,
-    contents: string
+    contents: string,
   ): Promise<string> => {
     const absFilePath = path.resolve(path.join(basePath, filePath));
     await fs.mkdir(path.dirname(absFilePath), { recursive: true });

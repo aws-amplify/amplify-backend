@@ -25,18 +25,18 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
     private readonly dependencies?: Array<Dependency>,
     private readonly sessionUuid = uuid(),
     private readonly url = getUrl(),
-    private readonly accountIdFetcher = new AccountIdFetcher()
+    private readonly accountIdFetcher = new AccountIdFetcher(),
   ) {
     const targetDependencies = ['aws-cdk', 'aws-cdk-lib'];
 
     this.dependenciesToReport = this.dependencies?.filter((dependency) =>
-      targetDependencies.includes(dependency.name)
+      targetDependencies.includes(dependency.name),
     );
   }
 
   emitSuccess = async (
     metrics?: Record<string, number>,
-    dimensions?: Record<string, string>
+    dimensions?: Record<string, string>,
   ) => {
     try {
       const data = await this.getUsageData({
@@ -53,7 +53,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
 
   emitFailure = async (
     error: AmplifyError,
-    dimensions?: Record<string, string>
+    dimensions?: Record<string, string>,
   ) => {
     try {
       const data = await this.getUsageData({
@@ -144,7 +144,7 @@ export class DefaultUsageDataEmitter implements UsageDataEmitter {
   };
 
   private translateDimensionsToUsageData = (
-    dimensions?: Record<string, string>
+    dimensions?: Record<string, string>,
   ) => {
     let command = '';
     if (dimensions) {

@@ -21,12 +21,12 @@ void describe('getOrCreate', () => {
     providerFactory.getOrCreateInstance(
       stack,
       testProviderId1,
-      backendIdentifier
+      backendIdentifier,
     );
     providerFactory.getOrCreateInstance(
       stack,
       testProviderId2,
-      backendIdentifier
+      backendIdentifier,
     );
     const template = Template.fromStack(stack);
 
@@ -36,11 +36,11 @@ void describe('getOrCreate', () => {
     assert.equal(Object.keys(names).length, 4);
     assert.equal(
       names.filter((name) => name.startsWith(testProviderId1)).length,
-      2
+      2,
     );
     assert.equal(
       names.filter((name) => name.startsWith(testProviderId2)).length,
-      2
+      2,
     );
   });
 
@@ -50,12 +50,12 @@ void describe('getOrCreate', () => {
     providerFactory.getOrCreateInstance(
       stack,
       testProviderId1,
-      backendIdentifier
+      backendIdentifier,
     );
     providerFactory.getOrCreateInstance(
       stack,
       testProviderId1,
-      backendIdentifier
+      backendIdentifier,
     );
     const template = Template.fromStack(stack);
 

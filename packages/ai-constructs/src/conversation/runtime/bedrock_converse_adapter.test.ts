@@ -66,14 +66,14 @@ void describe('Bedrock converse adapter', () => {
     },
   ];
   const messageHistoryRetriever = new ConversationMessageHistoryRetriever(
-    commonEvent
+    commonEvent,
   );
   const messageHistoryRetrieverMockGetEventMessages = mock.method(
     messageHistoryRetriever,
     'getMessageHistory',
     () => {
       return Promise.resolve(messages);
-    }
+    },
   );
 
   [false, true].forEach((streamResponse) => {
@@ -88,7 +88,7 @@ void describe('Bedrock converse adapter', () => {
         const content = [{ text: 'block1' }, { text: 'block2' }];
         const bedrockResponse = mockBedrockResponse(content, streamResponse);
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
-          Promise.resolve(bedrockResponse)
+          Promise.resolve(bedrockResponse),
         );
 
         const adapter = new BedrockConverseAdapter(
@@ -96,7 +96,7 @@ void describe('Bedrock converse adapter', () => {
           [],
           bedrockClient,
           undefined,
-          messageHistoryRetriever
+          messageHistoryRetriever,
         );
 
         if (streamResponse) {
@@ -280,7 +280,7 @@ void describe('Bedrock converse adapter', () => {
               toolUse: additionalToolUse2,
             },
           ],
-          streamResponse
+          streamResponse,
         );
         bedrockResponseQueue.push(additionalToolUseBedrockResponse);
         const eventToolUse1 = {
@@ -302,7 +302,7 @@ void describe('Bedrock converse adapter', () => {
               toolUse: eventToolUse2,
             },
           ],
-          streamResponse
+          streamResponse,
         );
         bedrockResponseQueue.push(eventToolUseBedrockResponse);
         const content = [
@@ -312,16 +312,16 @@ void describe('Bedrock converse adapter', () => {
         ];
         const finalBedrockResponse = mockBedrockResponse(
           content,
-          streamResponse
+          streamResponse,
         );
         bedrockResponseQueue.push(finalBedrockResponse);
 
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
-          Promise.resolve(bedrockResponseQueue.shift())
+          Promise.resolve(bedrockResponseQueue.shift()),
         );
 
         const eventToolsProvider = new ConversationTurnEventToolsProvider(
-          event
+          event,
         );
         mock.method(eventToolsProvider, 'getEventTools', () => [eventTool]);
 
@@ -330,7 +330,7 @@ void describe('Bedrock converse adapter', () => {
           [additionalTool],
           bedrockClient,
           eventToolsProvider,
-          messageHistoryRetriever
+          messageHistoryRetriever,
         );
         if (streamResponse) {
           const chunks: Array<StreamingResponseChunk> =
@@ -482,18 +482,18 @@ void describe('Bedrock converse adapter', () => {
               toolUse,
             },
           ],
-          streamResponse
+          streamResponse,
         );
         bedrockResponseQueue.push(toolUseBedrockResponse);
         const content = [{ text: 'finalResponse' }];
         const finalBedrockResponse = mockBedrockResponse(
           content,
-          streamResponse
+          streamResponse,
         );
         bedrockResponseQueue.push(finalBedrockResponse);
 
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
-          Promise.resolve(bedrockResponseQueue.shift())
+          Promise.resolve(bedrockResponseQueue.shift()),
         );
 
         const adapter = new BedrockConverseAdapter(
@@ -501,7 +501,7 @@ void describe('Bedrock converse adapter', () => {
           [tool],
           bedrockClient,
           undefined,
-          messageHistoryRetriever
+          messageHistoryRetriever,
         );
         if (streamResponse) {
           const chunks: Array<StreamingResponseChunk> =
@@ -570,18 +570,18 @@ void describe('Bedrock converse adapter', () => {
               toolUse,
             },
           ],
-          streamResponse
+          streamResponse,
         );
         bedrockResponseQueue.push(toolUseBedrockResponse);
         const content = [{ text: 'finalResponse' }];
         const finalBedrockResponse = mockBedrockResponse(
           content,
-          streamResponse
+          streamResponse,
         );
         bedrockResponseQueue.push(finalBedrockResponse);
 
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
-          Promise.resolve(bedrockResponseQueue.shift())
+          Promise.resolve(bedrockResponseQueue.shift()),
         );
 
         const adapter = new BedrockConverseAdapter(
@@ -589,7 +589,7 @@ void describe('Bedrock converse adapter', () => {
           [tool],
           bedrockClient,
           undefined,
-          messageHistoryRetriever
+          messageHistoryRetriever,
         );
         if (streamResponse) {
           const chunks: Array<StreamingResponseChunk> =
@@ -679,12 +679,12 @@ void describe('Bedrock converse adapter', () => {
             },
             { toolUse: clientToolUse },
           ],
-          streamResponse
+          streamResponse,
         );
         bedrockResponseQueue.push(toolUseBedrockResponse);
 
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
-          Promise.resolve(bedrockResponseQueue.shift())
+          Promise.resolve(bedrockResponseQueue.shift()),
         );
 
         const adapter = new BedrockConverseAdapter(
@@ -692,7 +692,7 @@ void describe('Bedrock converse adapter', () => {
           [additionalTool],
           bedrockClient,
           undefined,
-          messageHistoryRetriever
+          messageHistoryRetriever,
         );
 
         if (streamResponse) {
@@ -787,14 +787,14 @@ void describe('Bedrock converse adapter', () => {
                 ],
               },
             ]);
-          }
+          },
         );
 
         const bedrockClient = new BedrockRuntimeClient();
         const content = [{ text: 'block1' }, { text: 'block2' }];
         const bedrockResponse = mockBedrockResponse(content, streamResponse);
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
-          Promise.resolve(bedrockResponse)
+          Promise.resolve(bedrockResponse),
         );
 
         await new BedrockConverseAdapter(
@@ -802,7 +802,7 @@ void describe('Bedrock converse adapter', () => {
           [],
           bedrockClient,
           undefined,
-          messageHistoryRetriever
+          messageHistoryRetriever,
         ).askBedrock();
 
         assert.strictEqual(bedrockClientSendMock.mock.calls.length, 1);
@@ -852,14 +852,14 @@ void describe('Bedrock converse adapter', () => {
                 ],
               },
             ]);
-          }
+          },
         );
 
         const bedrockClient = new BedrockRuntimeClient();
         const content = [{ text: 'block1' }, { text: 'block2' }];
         const bedrockResponse = mockBedrockResponse(content, streamResponse);
         const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
-          Promise.resolve(bedrockResponse)
+          Promise.resolve(bedrockResponse),
         );
 
         await new BedrockConverseAdapter(
@@ -867,7 +867,7 @@ void describe('Bedrock converse adapter', () => {
           [],
           bedrockClient,
           undefined,
-          messageHistoryRetriever
+          messageHistoryRetriever,
         ).askBedrock();
 
         assert.strictEqual(bedrockClientSendMock.mock.calls.length, 1);
@@ -936,7 +936,7 @@ void describe('Bedrock converse adapter', () => {
           toolUse: toolUse2,
         },
       ],
-      true
+      true,
     );
     bedrockResponseQueue.push(toolUseBedrockResponse);
     const content = [
@@ -948,7 +948,7 @@ void describe('Bedrock converse adapter', () => {
     bedrockResponseQueue.push(finalBedrockResponse);
 
     mock.method(bedrockClient, 'send', () =>
-      Promise.resolve(bedrockResponseQueue.shift())
+      Promise.resolve(bedrockResponseQueue.shift()),
     );
 
     const adapter = new BedrockConverseAdapter(
@@ -956,12 +956,11 @@ void describe('Bedrock converse adapter', () => {
       [tool],
       bedrockClient,
       undefined,
-      messageHistoryRetriever
+      messageHistoryRetriever,
     );
 
-    const chunks: Array<StreamingResponseChunk> = await askBedrockWithStreaming(
-      adapter
-    );
+    const chunks: Array<StreamingResponseChunk> =
+      await askBedrockWithStreaming(adapter);
     const responseText = chunks.reduce((acc, next) => {
       if (next.contentBlockText) {
         acc += next.contentBlockText;
@@ -995,7 +994,7 @@ void describe('Bedrock converse adapter', () => {
     bedrockResponseQueue.push(bedrockResponse);
 
     mock.method(bedrockClient, 'send', () =>
-      Promise.resolve(bedrockResponseQueue.shift())
+      Promise.resolve(bedrockResponseQueue.shift()),
     );
 
     const consoleInfoMock = mock.fn<(data: string) => void>();
@@ -1015,28 +1014,30 @@ void describe('Bedrock converse adapter', () => {
       undefined,
       messageHistoryRetriever,
       undefined,
-      consoleMock
+      consoleMock,
     );
 
     await askBedrockWithStreaming(adapter);
 
     const progressCalls = consoleInfoMock.mock.calls.filter((call) =>
-      call.arguments[0].includes('chunks from Bedrock Converse Stream response')
+      call.arguments[0].includes(
+        'chunks from Bedrock Converse Stream response',
+      ),
     );
     assert.strictEqual(progressCalls.length, 3);
     assert.strictEqual(
       progressCalls[0].arguments[0],
-      'Processed 1000 chunks from Bedrock Converse Stream response, requestId=testRequestId'
+      'Processed 1000 chunks from Bedrock Converse Stream response, requestId=testRequestId',
     );
     assert.strictEqual(
       progressCalls[1].arguments[0],
-      'Processed 2000 chunks from Bedrock Converse Stream response, requestId=testRequestId'
+      'Processed 2000 chunks from Bedrock Converse Stream response, requestId=testRequestId',
     );
     // each block is decomposed into 4 chunks + start and stop of whole message.
     const expectedNumberOfAllChunks = numberOfBlocks * 4 + 2;
     assert.strictEqual(
       progressCalls[2].arguments[0],
-      `Completed processing ${expectedNumberOfAllChunks.toString()} chunks from Bedrock Converse Stream response, requestId=testRequestId`
+      `Completed processing ${expectedNumberOfAllChunks.toString()} chunks from Bedrock Converse Stream response, requestId=testRequestId`,
     );
   });
 
@@ -1098,15 +1099,15 @@ void describe('Bedrock converse adapter', () => {
               inputSchema: { json: {} },
               execute: () => Promise.reject(new Error()),
             },
-          ]
+          ],
         ),
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Tools must have unique names. Duplicate tools: duplicateName1, duplicateName2, duplicateName3, duplicateName4.'
+          'Tools must have unique names. Duplicate tools: duplicateName1, duplicateName2, duplicateName3, duplicateName4.',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -1118,7 +1119,7 @@ void describe('Bedrock converse adapter', () => {
     const bedrockClient = new BedrockRuntimeClient();
     const addMiddlewareMock = mock.method(bedrockClient.middlewareStack, 'add');
     const userAgentProvider = new UserAgentProvider(
-      {} as unknown as ConversationTurnEvent
+      {} as unknown as ConversationTurnEvent,
     );
     mock.method(userAgentProvider, 'getUserAgent', () => 'testUserAgent');
 
@@ -1128,7 +1129,7 @@ void describe('Bedrock converse adapter', () => {
       bedrockClient,
       undefined,
       messageHistoryRetriever,
-      userAgentProvider
+      userAgentProvider,
     );
 
     assert.strictEqual(addMiddlewareMock.mock.calls.length, 1);
@@ -1148,13 +1149,13 @@ void describe('Bedrock converse adapter', () => {
     await middlewareHandler(mock.fn(), {})(args);
     assert.strictEqual(
       args.request.headers['x-amz-user-agent'],
-      'testUserAgent'
+      'testUserAgent',
     );
   });
 });
 
 const askBedrockWithStreaming = async (
-  adapter: BedrockConverseAdapter
+  adapter: BedrockConverseAdapter,
 ): Promise<Array<StreamingResponseChunk>> => {
   const chunks: Array<StreamingResponseChunk> = [];
   for await (const chunk of adapter.askBedrockStreaming()) {
@@ -1167,7 +1168,7 @@ const mockBedrockResponse = (
   contentBlocks:
     | Array<ContentBlock.TextMember>
     | Array<ContentBlock.ToolUseMember>,
-  streamResponse: boolean
+  streamResponse: boolean,
 ): ConverseStreamCommandOutput | ConverseCommandOutput => {
   if (streamResponse) {
     return mockConverseStreamCommandOutput(contentBlocks);
@@ -1177,7 +1178,7 @@ const mockBedrockResponse = (
 const mockConverseCommandOutput = (
   contentBlocks:
     | Array<ContentBlock.TextMember>
-    | Array<ContentBlock.ToolUseMember>
+    | Array<ContentBlock.ToolUseMember>,
 ): ConverseCommandOutput => {
   let stopReason: StopReason = 'end_turn';
   if (contentBlocks.find((block) => block.toolUse)) {
@@ -1200,7 +1201,7 @@ const mockConverseCommandOutput = (
 const mockConverseStreamCommandOutput = (
   contentBlocks:
     | Array<ContentBlock.TextMember>
-    | Array<ContentBlock.ToolUseMember>
+    | Array<ContentBlock.ToolUseMember>,
 ): ConverseStreamCommandOutput => {
   const streamItems: Array<ConverseStreamOutput> = [];
   let stopReason: StopReason | undefined;

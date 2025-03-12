@@ -20,7 +20,7 @@ void describe('GitIgnoreInitializer', () => {
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
       existsSyncMock,
-      fsMock as never
+      fsMock as never,
     );
     const expectedGitIgnoreContents = [
       `# amplify${os.EOL}`,
@@ -32,7 +32,7 @@ void describe('GitIgnoreInitializer', () => {
     await gitIgnoreInitializer.ensureInitialized();
     assert.equal(
       logMock.mock.calls[0].arguments[0],
-      'No .gitignore file found in the working directory. Creating .gitignore...'
+      'No .gitignore file found in the working directory. Creating .gitignore...',
     );
     assert.deepStrictEqual(fsMock.appendFile.mock.calls[0].arguments, [
       path.join(process.cwd(), 'testProjectRoot', '.gitignore'),
@@ -50,7 +50,7 @@ void describe('GitIgnoreInitializer', () => {
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
       existsSyncMock,
-      fsMock as never
+      fsMock as never,
     );
     const expectedGitIgnoreContents = [
       os.EOL + os.EOL,
@@ -76,7 +76,7 @@ void describe('GitIgnoreInitializer', () => {
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
       existsSyncMock,
-      fsMock as never
+      fsMock as never,
     );
     const expectedGitIgnoreContents = [
       os.EOL,
@@ -102,7 +102,7 @@ void describe('GitIgnoreInitializer', () => {
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
       existsSyncMock,
-      fsMock as never
+      fsMock as never,
     );
     const expectedGitIgnoreContents = [
       `${os.EOL}${os.EOL}`,
@@ -128,7 +128,7 @@ void describe('GitIgnoreInitializer', () => {
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
       existsSyncMock,
-      fsMock as never
+      fsMock as never,
     );
     const expectedGitIgnoreContents = [
       `${os.EOL}${os.EOL}`,
@@ -154,7 +154,7 @@ void describe('GitIgnoreInitializer', () => {
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
       existsSyncMock,
-      fsMock as never
+      fsMock as never,
     );
     const expectedGitIgnoreContents = [
       `${os.EOL}${os.EOL}`,
@@ -188,7 +188,7 @@ void describe('GitIgnoreInitializer', () => {
     const gitIgnoreInitializer = new GitIgnoreInitializer(
       path.join(process.cwd(), 'testProjectRoot'),
       existsSyncMock,
-      fsMock as never
+      fsMock as never,
     );
     const expectedGitIgnoreContents = [
       `${os.EOL}${os.EOL}`,

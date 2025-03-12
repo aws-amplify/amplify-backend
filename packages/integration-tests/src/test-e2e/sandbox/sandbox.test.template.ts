@@ -72,7 +72,7 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
             testProject.projectDirPath,
             {
               env: sharedSecretsEnv,
-            }
+            },
           );
           await processController
             .do(waitForConfigUpdateAfterDeployment())
@@ -97,7 +97,7 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
                   testProject.projectDirPath,
                   {
                     env: sharedSecretsEnv,
-                  }
+                  },
                 );
 
                 for (const update of updates) {
@@ -106,7 +106,7 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
                     .do(waitForSandboxToBeginHotswappingResources());
                   if (update.deployThresholdSec) {
                     processController.do(
-                      ensureDeploymentTimeLessThan(update.deployThresholdSec)
+                      ensureDeploymentTimeLessThan(update.deployThresholdSec),
                     );
                   }
                 }
@@ -114,7 +114,7 @@ export const defineSandboxTest = (testProjectCreator: TestProjectCreator) => {
                 // Execute the process.
                 await processController.do(interruptSandbox()).run();
               },
-              (error) => error.message.includes('Deployment time')
+              (error) => error.message.includes('Deployment time'),
             );
 
             await testProject.assertPostDeployment(sandboxBackendIdentifier);

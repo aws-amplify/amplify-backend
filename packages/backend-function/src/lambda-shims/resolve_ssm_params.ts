@@ -11,7 +11,7 @@ import type { SsmEnvVars } from '../function_env_translator.js';
  */
 export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
   const envPathObject: SsmEnvVars = JSON.parse(
-    process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}'
+    process.env.AMPLIFY_SSM_ENV_CONFIG ?? '{}',
   );
   const paths = Object.keys(envPathObject);
 
@@ -43,8 +43,8 @@ export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
             await actualSsmClient.getParameters({
               Names: chunkedPaths,
               WithDecryption: true,
-            })
-        )
+            }),
+        ),
       )
     ).reduce(
       (accumulator, res: GetParametersCommandOutput) => {
@@ -55,14 +55,14 @@ export const internalAmplifyFunctionResolveSsmParams = async (client?: SSM) => {
       {
         Parameters: [],
         InvalidParameters: [],
-      } as Partial<GetParametersCommandOutput>
+      } as Partial<GetParametersCommandOutput>,
     );
 
     if (response.Parameters && response.Parameters.length > 0) {
       for (const parameter of response.Parameters) {
         if (parameter.Name) {
           const envKey = Object.keys(envPathObject).find(
-            (key) => envPathObject[key].sharedPath === parameter.Name
+            (key) => envPathObject[key].sharedPath === parameter.Name,
           );
           const envName = envKey
             ? envPathObject[envKey].name

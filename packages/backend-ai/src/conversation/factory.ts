@@ -35,7 +35,7 @@ class ConversationHandlerFunctionGenerator
 
   constructor(
     private readonly props: DefineConversationHandlerFunctionProps,
-    private readonly outputStorageStrategy: BackendOutputStorageStrategy<AIConversationOutput>
+    private readonly outputStorageStrategy: BackendOutputStorageStrategy<AIConversationOutput>,
   ) {}
 
   generateContainerEntry = ({ scope }: GenerateContainerEntryProps) => {
@@ -60,12 +60,12 @@ class ConversationHandlerFunctionGenerator
     const logging: typeof constructProps.logging = {};
     if (this.props.logging?.level) {
       logging.level = new LogLevelConverter().toCDKLambdaApplicationLogLevel(
-        this.props.logging.level
+        this.props.logging.level,
       );
     }
     if (this.props.logging?.retention) {
       logging.retention = new LogRetentionConverter().toCDKRetentionDays(
-        this.props.logging.retention
+        this.props.logging.retention,
       );
     }
     constructProps.logging = logging;
@@ -73,7 +73,7 @@ class ConversationHandlerFunctionGenerator
       return new ConversationHandlerFunction(
         scope,
         this.props.name,
-        constructProps
+        constructProps,
       );
     } catch (e) {
       throw this.mapConstructErrors(e);
@@ -115,7 +115,7 @@ class DefaultConversationHandlerFunctionFactory
 
   constructor(
     private readonly props: DefineConversationHandlerFunctionProps,
-    private readonly callerStack: string | undefined
+    private readonly callerStack: string | undefined,
   ) {}
 
   getInstance = ({
@@ -129,11 +129,11 @@ class DefaultConversationHandlerFunctionFactory
       props.entry = this.resolveEntry();
       this.generator = new ConversationHandlerFunctionGenerator(
         props,
-        outputStorageStrategy
+        outputStorageStrategy,
       );
     }
     return constructContainer.getOrCompute(
-      this.generator
+      this.generator,
     ) as ConversationHandlerFunction;
   };
 
@@ -142,7 +142,7 @@ class DefaultConversationHandlerFunctionFactory
     if (!this.props.entry) {
       return path.join(
         new CallerDirectoryExtractor(this.callerStack).extract(),
-        'handler.ts'
+        'handler.ts',
       );
     }
 
@@ -154,7 +154,7 @@ class DefaultConversationHandlerFunctionFactory
     // if entry is relative, compute with respect to the caller directory
     return path.join(
       new CallerDirectoryExtractor(this.callerStack).extract(),
-      this.props.entry
+      this.props.entry,
     );
   };
 }
@@ -197,7 +197,7 @@ export type DefineConversationHandlerFunctionProps = {
  * Entry point for defining a conversation handler function in the Amplify ecosystem
  */
 export const defineConversationHandlerFunction = (
-  props: DefineConversationHandlerFunctionProps
+  props: DefineConversationHandlerFunctionProps,
 ): ConversationHandlerFunctionFactory =>
   // eslint-disable-next-line amplify-backend-rules/prefer-amplify-errors
   new DefaultConversationHandlerFunctionFactory(props, new Error().stack);

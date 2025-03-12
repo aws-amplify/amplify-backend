@@ -40,7 +40,7 @@ const dirname = path.dirname(filename);
 const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
 const refAuthLambdaFilePath = path.join(
   resourcesRoot,
-  'reference_auth_initializer.js'
+  'reference_auth_initializer.js',
 );
 
 const authStackType = 'auth-Cognito';
@@ -88,22 +88,22 @@ export class AmplifyReferenceAuth
       userPool: aws_cognito.UserPool.fromUserPoolId(
         this,
         'UserPool',
-        props.userPoolId
+        props.userPoolId,
       ),
       userPoolClient: aws_cognito.UserPoolClient.fromUserPoolClientId(
         this,
         'UserPoolClient',
-        props.userPoolClientId
+        props.userPoolClientId,
       ),
       authenticatedUserIamRole: aws_iam.Role.fromRoleArn(
         this,
         'authenticatedUserRole',
-        props.authRoleArn
+        props.authRoleArn,
       ),
       unauthenticatedUserIamRole: aws_iam.Role.fromRoleArn(
         this,
         'unauthenticatedUserRole',
-        props.unauthRoleArn
+        props.unauthRoleArn,
       ),
       identityPoolId: props.identityPoolId,
       groups: {},
@@ -127,7 +127,7 @@ export class AmplifyReferenceAuth
         timeout: Duration.seconds(10),
         entry: refAuthLambdaFilePath,
         handler: 'handler',
-      }
+      },
     );
     // UserPool & UserPoolClient specific permissions
     refAuthLambda.grantPrincipal.addToPrincipalPolicy(
@@ -141,7 +141,7 @@ export class AmplifyReferenceAuth
           'cognito-idp:DescribeUserPoolClient',
         ],
         resources: [this.resources.userPool.userPoolArn],
-      })
+      }),
     );
     // IdentityPool specific permissions
     const stack = Stack.of(this);
@@ -155,14 +155,14 @@ export class AmplifyReferenceAuth
         resources: [
           `arn:aws:cognito-identity:${stack.region}:${stack.account}:identitypool/${this.resources.identityPoolId}`,
         ],
-      })
+      }),
     );
     const provider = new Provider(
       scope,
       REFERENCE_AUTH_CUSTOM_RESOURCE_PROVIDER_ID,
       {
         onEventHandler: refAuthLambda,
-      }
+      },
     );
     const initializerProps: ReferenceAuthInitializerProps = {
       userPoolId: props.userPoolId,
@@ -183,14 +183,14 @@ export class AmplifyReferenceAuth
           ...initializerProps,
         },
         resourceType: RESOURCE_TYPE,
-      }
+      },
     );
 
     this.storeOutput(props.outputStorageStrategy);
     new AttributionMetadataStorage().storeAttributionMetadata(
       Stack.of(this),
       authStackType,
-      fileURLToPath(new URL('../package.json', import.meta.url))
+      fileURLToPath(new URL('../package.json', import.meta.url)),
     );
   }
 
@@ -199,8 +199,8 @@ export class AmplifyReferenceAuth
    */
   private storeOutput = (
     outputStorageStrategy: BackendOutputStorageStrategy<AuthOutput> = new StackMetadataBackendOutputStorageStrategy(
-      Stack.of(this)
-    )
+      Stack.of(this),
+    ),
   ): void => {
     // these properties cannot be overwritten
     const output: AuthOutput['payload'] = {

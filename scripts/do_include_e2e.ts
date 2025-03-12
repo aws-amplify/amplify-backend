@@ -12,10 +12,10 @@ const prHasRunE2ELabel = async () => {
     return false;
   }
   const prInfo = await gitHubClient.fetchPullRequest(
-    ghContext.payload.pull_request.number
+    ghContext.payload.pull_request.number,
   );
   const hasRunE2ELabel = prInfo.labels.some(
-    (label) => label.name === 'run-e2e'
+    (label) => label.name === 'run-e2e',
   );
   return hasRunE2ELabel;
 };

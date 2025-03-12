@@ -24,7 +24,7 @@ export class CodegenGraphqlFormGeneratorResult
       await fs.mkdir(directoryPath);
     }
     for (const [fileName, content] of Object.entries(
-      this.fileNameComponentMap
+      this.fileNameComponentMap,
     )) {
       if (content) {
         const filePath = path.join(directoryPath, fileName);

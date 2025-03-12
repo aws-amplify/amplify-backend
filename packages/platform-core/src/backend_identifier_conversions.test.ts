@@ -22,7 +22,7 @@ void describe('toStackName', () => {
     });
     assert.equal(
       actual,
-      'amplify-reasonableName-InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox-25ed708259'
+      'amplify-reasonableName-InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox-25ed708259',
     );
   });
 
@@ -35,7 +35,7 @@ void describe('toStackName', () => {
     });
     assert.equal(
       actual,
-      'amplify-InsanelyLongNamespaceProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGre-userName-sandbox-119c592989'
+      'amplify-InsanelyLongNamespaceProvidedByCustomerDoNotKnowWhatCustomersAreThinkingWhenChoosingThisGre-userName-sandbox-119c592989',
     );
     assert.ok(actual.length <= 128);
   });
@@ -51,7 +51,7 @@ void describe('toStackName', () => {
     assert.equal(
       actual,
       // eslint-disable-next-line spellcheck/spell-checker
-      'amplify-InsanelyLongNameProvidedByCustomerDoNotKnowWhatCu-InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox-4abbed907b'
+      'amplify-InsanelyLongNameProvidedByCustomerDoNotKnowWhatCu-InsanelyLongUserNameProvidedByCustomerDoNotKnowWha-sandbox-4abbed907b',
     );
     assert.ok(actual.length <= 128);
   });
@@ -75,28 +75,28 @@ void describe('fromStackName', () => {
 
   void it('returns undefined if stack name does not have 5 parts', () => {
     const actual = BackendIdentifierConversions.fromStackName(
-      'amplify-missing-sandbox-testHash'
+      'amplify-missing-sandbox-testHash',
     );
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack does not start with amplify prefix', () => {
     const actual = BackendIdentifierConversions.fromStackName(
-      'wrong-name-for-amplify-stack'
+      'wrong-name-for-amplify-stack',
     );
     assert.equal(actual, undefined);
   });
 
   void it('returns undefined if stack does not include known type suffix', () => {
     const actual = BackendIdentifierConversions.fromStackName(
-      'amplify-wrong-suffix-thing-testHash'
+      'amplify-wrong-suffix-thing-testHash',
     );
     assert.equal(actual, undefined);
   });
 
   void it('parses valid stack name into parts', () => {
     const actual = BackendIdentifierConversions.fromStackName(
-      'amplify-reasonableName-userName-sandbox-testHash'
+      'amplify-reasonableName-userName-sandbox-testHash',
     );
     assert.deepStrictEqual(actual, {
       namespace: 'reasonableName',
@@ -117,12 +117,12 @@ void it('stack name round trips to same name even when replacements are required
   const roundTripStackName = BackendIdentifierConversions.toStackName(
     // if this conversion returns undefined, the test will fail anyway
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    BackendIdentifierConversions.fromStackName(originalStackName)!
+    BackendIdentifierConversions.fromStackName(originalStackName)!,
   );
   assert.equal(
     originalStackName,
     // eslint-disable-next-line spellcheck/spell-checker
-    'amplify-testTHIS-thing123-branch-70899a9dd1'
+    'amplify-testTHIS-thing123-branch-70899a9dd1',
   );
   assert.equal(roundTripStackName, originalStackName);
 });

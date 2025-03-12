@@ -18,12 +18,12 @@ export type ResourceAccessAcceptor = {
   identifier: string;
   acceptResourceAccess: (
     policy: Policy,
-    ssmEnvironmentEntries: SsmEnvironmentEntry[]
+    ssmEnvironmentEntries: SsmEnvironmentEntry[],
   ) => void;
 };
 
 export type ResourceAccessAcceptorFactory<
-  RoleIdentifier extends string | undefined = undefined
+  RoleIdentifier extends string | undefined = undefined,
 > = {
   /**
    * This type is a little wonky but basically it's saying that if RoleIdentifier is undefined, then this is a function with no props

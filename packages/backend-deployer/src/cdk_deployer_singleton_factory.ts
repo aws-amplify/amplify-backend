@@ -36,11 +36,11 @@ export type DeploymentTimes = {
 export type BackendDeployer = {
   deploy: (
     backendId: BackendIdentifier,
-    deployProps?: DeployProps
+    deployProps?: DeployProps,
   ) => Promise<DeployResult>;
   destroy: (
     backendId: BackendIdentifier,
-    destroyProps?: DestroyProps
+    destroyProps?: DestroyProps,
   ) => Promise<DestroyResult>;
 };
 
@@ -55,7 +55,7 @@ export class BackendDeployerFactory {
    */
   constructor(
     private readonly packageManagerController: PackageManagerController,
-    private readonly formatter: BackendDeployerOutputFormatter
+    private readonly formatter: BackendDeployerOutputFormatter,
   ) {}
 
   /**
@@ -66,7 +66,7 @@ export class BackendDeployerFactory {
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(this.formatter),
         new BackendLocator(),
-        this.packageManagerController
+        this.packageManagerController,
       );
     }
     return BackendDeployerFactory.instance;

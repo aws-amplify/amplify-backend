@@ -14,7 +14,7 @@ const dirname = path.dirname(filename);
 const resourcesRoot = path.normalize(path.join(dirname, 'lambda'));
 const backendSecretLambdaFilePath = path.join(
   resourcesRoot,
-  'backend_secret_fetcher.js'
+  'backend_secret_fetcher.js',
 );
 
 /**
@@ -28,7 +28,7 @@ export class BackendSecretFetcherProviderFactory {
   getOrCreateInstance = (
     scope: Construct,
     providerId: string,
-    backendIdentifier: BackendIdentifier
+    backendIdentifier: BackendIdentifier,
   ) => {
     const provider = scope.node.tryFindChild(providerId) as Provider;
     if (provider) {
@@ -45,7 +45,7 @@ export class BackendSecretFetcherProviderFactory {
     const backendParameterPrefix =
       ParameterPathConversions.toParameterPrefix(backendIdentifier);
     const sharedParameterPrefix = ParameterPathConversions.toParameterPrefix(
-      backendIdentifier.namespace
+      backendIdentifier.namespace,
     );
 
     secretLambda.grantPrincipal.addToPrincipalPolicy(
@@ -56,7 +56,7 @@ export class BackendSecretFetcherProviderFactory {
           `arn:aws:ssm:*:*:parameter${backendParameterPrefix}/*`,
           `arn:aws:ssm:*:*:parameter${sharedParameterPrefix}/*`,
         ],
-      })
+      }),
     );
 
     return new Provider(scope, providerId, {

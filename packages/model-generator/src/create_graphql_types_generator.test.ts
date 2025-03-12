@@ -24,7 +24,7 @@ void describe('types generator factory', () => {
       createGraphqlTypesGenerator({
         backendIdentifier: null as unknown as BackendIdentifier,
         awsClientProvider,
-      })
+      }),
     );
   });
 
@@ -36,7 +36,7 @@ void describe('types generator factory', () => {
           getAmplifyClient: AmplifyClient;
           getCloudFormationClient: CloudFormationClient;
         }>,
-      })
+      }),
     );
   });
 
@@ -45,14 +45,14 @@ void describe('types generator factory', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
-          'deployment in progress'
+          'deployment in progress',
         );
       }),
     };
     mock.method(
       BackendOutputClientFactory,
       'getInstance',
-      () => fakeBackendOutputClient
+      () => fakeBackendOutputClient,
     );
     const generator = createGraphqlTypesGenerator({
       backendIdentifier: { stackName: 'foo' },
@@ -63,11 +63,11 @@ void describe('types generator factory', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          'Deployment is currently in progress.'
+          'Deployment is currently in progress.',
         );
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 
@@ -76,14 +76,14 @@ void describe('types generator factory', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.NO_STACK_FOUND,
-          'stack does not exist'
+          'stack does not exist',
         );
       }),
     };
     mock.method(
       BackendOutputClientFactory,
       'getInstance',
-      () => fakeBackendOutputClient
+      () => fakeBackendOutputClient,
     );
     const generator = createGraphqlTypesGenerator({
       backendIdentifier: { stackName: 'stackThatDoesNotExist' },
@@ -95,7 +95,7 @@ void describe('types generator factory', () => {
         assert.strictEqual(error.message, 'Stack does not exist.');
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 
@@ -104,14 +104,14 @@ void describe('types generator factory', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
-          'stack outputs are undefined'
+          'stack outputs are undefined',
         );
       }),
     };
     mock.method(
       BackendOutputClientFactory,
       'getInstance',
-      () => fakeBackendOutputClient
+      () => fakeBackendOutputClient,
     );
     const generator = createGraphqlTypesGenerator({
       backendIdentifier: { stackName: 'stackThatDoesNotHaveOutputs' },
@@ -122,11 +122,11 @@ void describe('types generator factory', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          'Amplify outputs not found in stack metadata'
+          'Amplify outputs not found in stack metadata',
         );
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 
@@ -135,14 +135,14 @@ void describe('types generator factory', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.CREDENTIALS_ERROR,
-          'token is expired'
+          'token is expired',
         );
       }),
     };
     mock.method(
       BackendOutputClientFactory,
       'getInstance',
-      () => fakeBackendOutputClient
+      () => fakeBackendOutputClient,
     );
     const generator = createGraphqlTypesGenerator({
       backendIdentifier: { stackName: 'randomStack' },
@@ -153,11 +153,11 @@ void describe('types generator factory', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          'Unable to get backend outputs due to invalid credentials.'
+          'Unable to get backend outputs due to invalid credentials.',
         );
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 
@@ -166,14 +166,14 @@ void describe('types generator factory', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.ACCESS_DENIED,
-          'access is denied'
+          'access is denied',
         );
       }),
     };
     mock.method(
       BackendOutputClientFactory,
       'getInstance',
-      () => fakeBackendOutputClient
+      () => fakeBackendOutputClient,
     );
     const generator = createGraphqlTypesGenerator({
       backendIdentifier: { stackName: 'randomStack' },
@@ -184,11 +184,11 @@ void describe('types generator factory', () => {
       (error: AmplifyUserError) => {
         assert.strictEqual(
           error.message,
-          'Unable to get backend outputs due to insufficient permissions.'
+          'Unable to get backend outputs due to insufficient permissions.',
         );
         assert.ok(error.resolution);
         return true;
-      }
+      },
     );
   });
 });

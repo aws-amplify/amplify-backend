@@ -18,14 +18,14 @@ export class GraphqlRequestExecutor {
     private readonly graphQlEndpoint: string,
     private readonly accessToken: string,
     private readonly userAgentProvider: UserAgentProvider,
-    private readonly _fetch = fetch
+    private readonly _fetch = fetch,
   ) {}
 
   executeGraphql = async <TVariables, TReturn>(
     request: GraphqlRequest<TVariables>,
     options?: {
       userAgent?: string;
-    }
+    },
   ): Promise<TReturn> => {
     const httpRequest = new Request(this.graphQlEndpoint, {
       method: 'POST',
@@ -48,16 +48,16 @@ export class GraphqlRequestExecutor {
       const body = await res.text();
       throw new Error(
         `GraphQL request failed, response headers=${JSON.stringify(
-          responseHeaders
-        )}, body=${body}`
+          responseHeaders,
+        )}, body=${body}`,
       );
     }
     const body = await res.json();
     if (body && typeof body === 'object' && 'errors' in body) {
       throw new Error(
         `GraphQL request failed, response headers=${JSON.stringify(
-          responseHeaders
-        )}, body=${JSON.stringify(body)}`
+          responseHeaders,
+        )}, body=${JSON.stringify(body)}`,
       );
     }
     return body as TReturn;

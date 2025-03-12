@@ -25,7 +25,7 @@ import { readFileSync } from 'fs';
  * @returns a boolean indicating whether the schema is a derived model schema, with type narrowing
  */
 export const isDataSchema = (
-  schema: DataSchema
+  schema: DataSchema,
 ): schema is DerivedDataSchema => {
   return (
     schema !== null &&
@@ -41,7 +41,7 @@ export const isDataSchema = (
  * @returns a boolean indicating whether the schema is a collection of derived model schema, with type narrowing
  */
 export const isCombinedSchema = (
-  schema: DataSchemaInput
+  schema: DataSchemaInput,
 ): schema is DerivedCombinedSchema => {
   return (
     schema !== null &&
@@ -75,7 +75,7 @@ const SQL_DB_TYPES = {
 export const convertSchemaToCDK = (
   schema: DataSchema,
   backendSecretResolver: BackendSecretResolver,
-  stableBackendIdentifiers: StableBackendIdentifiers
+  stableBackendIdentifiers: StableBackendIdentifiers,
 ): IAmplifyDataDefinition => {
   if (isDataSchema(schema)) {
     /**
@@ -98,12 +98,12 @@ export const convertSchemaToCDK = (
       schema.data.configuration.database,
       customSqlDataSourceStrategies,
       backendSecretResolver,
-      provisionStrategyName
+      provisionStrategyName,
     );
 
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
       transformedSchema,
-      dbStrategy
+      dbStrategy,
     ).dataSourceStrategies;
 
     if (dbStrategy.dbType === 'DYNAMODB') {
@@ -123,7 +123,7 @@ export const convertSchemaToCDK = (
           (existing: CustomSqlDataSourceStrategy) => ({
             ...existing,
             strategy: dbStrategy,
-          })
+          }),
         ) || [],
     };
   }
@@ -137,7 +137,7 @@ export const convertSchemaToCDK = (
  * @returns the cdk graphql definition interface
  */
 export const combineCDKSchemas = (
-  schemas: IAmplifyDataDefinition[]
+  schemas: IAmplifyDataDefinition[],
 ): IAmplifyDataDefinition => {
   return AmplifyDataDefinition.combine(schemas);
 };
@@ -151,7 +151,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
   configuration: DataSourceConfiguration,
   customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[] = [],
   backendSecretResolver: BackendSecretResolver,
-  provisionStrategyName: string
+  provisionStrategyName: string,
 ): ModelDataSourceStrategy => {
   if (configuration.engine === 'dynamodb') {
     return DYNAMO_DATA_SOURCE_STRATEGY;
@@ -170,7 +170,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
   }
 
   const customSqlStatements = customSqlStatementsFromStrategies(
-    customSqlDataSourceStrategies
+    customSqlDataSourceStrategies,
   );
 
   const { branchSecretPath, sharedSecretPath } =
@@ -206,18 +206,22 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
  * @returns an object mapping the file path to the sql statement
  */
 const customSqlStatementsFromStrategies = (
-  customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[]
+  customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[],
 ): Record<string, string> => {
   const customSqlStatements = customSqlDataSourceStrategies
     .filter((sqlStrategy) => sqlStrategy.entry !== undefined)
-    .reduce((acc, sqlStrategy) => {
-      const entry = sqlStrategy.entry!;
-      const reference = typeof entry === 'string' ? entry : entry.relativePath;
-      const resolvedPath = resolveEntryPath(entry);
+    .reduce(
+      (acc, sqlStrategy) => {
+        const entry = sqlStrategy.entry!;
+        const reference =
+          typeof entry === 'string' ? entry : entry.relativePath;
+        const resolvedPath = resolveEntryPath(entry);
 
-      acc[reference] = readFileSync(resolvedPath, 'utf8');
-      return acc;
-    }, {} as Record<string, string>);
+        acc[reference] = readFileSync(resolvedPath, 'utf8');
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
   return customSqlStatements;
 };

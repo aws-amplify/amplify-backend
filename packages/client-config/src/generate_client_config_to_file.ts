@@ -23,12 +23,12 @@ export const generateClientConfigToFile = async (
     getS3Client: S3Client;
     getAmplifyClient: AmplifyClient;
     getCloudFormationClient: CloudFormationClient;
-  }>
+  }>,
 ): Promise<GenerateClientConfigToFileResult> => {
   const clientConfig = await generateClientConfig(
     backendIdentifier,
     version,
-    awsClientProvider
+    awsClientProvider,
   );
 
   return await writeClientConfigToFile(clientConfig, version, outDir, format);

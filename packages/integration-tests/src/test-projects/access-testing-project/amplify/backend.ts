@@ -23,7 +23,7 @@ const simpleAuthUserPool = new cognito.UserPool(
   'SimpleAuthUserPool',
   {
     removalPolicy: RemovalPolicy.DESTROY,
-  }
+  },
 );
 
 const simpleAuthUserPoolClient = new cognito.UserPoolClient(
@@ -34,7 +34,7 @@ const simpleAuthUserPoolClient = new cognito.UserPoolClient(
     authFlows: {
       userPassword: true,
     },
-  }
+  },
 );
 
 const simpleAuthIdentityPool = new cognito.CfnIdentityPool(
@@ -42,7 +42,7 @@ const simpleAuthIdentityPool = new cognito.CfnIdentityPool(
   'SimpleAuthIdentityPool',
   {
     allowUnauthenticatedIdentities: false,
-  }
+  },
 );
 
 simpleAuthIdentityPool.cognitoIdentityProviders = [
@@ -79,7 +79,7 @@ roleWithAccessToData.addToPolicy(
     actions: ['appsync:GraphQL'],
     resources: [`${backend.data.resources.graphqlApi.arn}/*`],
     effect: Effect.ALLOW,
-  })
+  }),
 );
 
 const roleWithoutAccessToData = new Role(
@@ -103,7 +103,7 @@ const roleWithoutAccessToData = new Role(
         ],
       }),
     },
-  }
+  },
 );
 roleWithoutAccessToData.applyRemovalPolicy(RemovalPolicy.DESTROY);
 

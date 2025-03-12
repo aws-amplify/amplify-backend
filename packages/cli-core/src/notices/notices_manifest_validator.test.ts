@@ -8,11 +8,11 @@ void describe('Notices manifest validator', () => {
     fetch,
     (): Promise<Response> =>
       // Mock successful GitHub API response
-      Promise.resolve(new Response('{}', { status: 200 }))
+      Promise.resolve(new Response('{}', { status: 200 })),
   );
   const validator: NoticesManifestValidator = new NoticesManifestValidator(
     { checkLinksWithGitHubApi: true },
-    fetchMock
+    fetchMock,
   );
   void it('does not throw when manifest is valid', async () => {
     const validManifest: NoticesManifest = {
@@ -96,7 +96,7 @@ void describe('Notices manifest validator', () => {
       (error: Error) => {
         assert.ok(error.message.startsWith('Link must match'));
         return true;
-      }
+      },
     );
   });
 
@@ -116,7 +116,7 @@ void describe('Notices manifest validator', () => {
     fetchMock.mock.mockImplementationOnce(
       (): Promise<Response> =>
         // Mock failed GitHub API response
-        Promise.resolve(new Response('{}', { status: 404 }))
+        Promise.resolve(new Response('{}', { status: 404 })),
     );
 
     await assert.rejects(
@@ -124,10 +124,10 @@ void describe('Notices manifest validator', () => {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Notice link must point to valid notice'
+          'Notice link must point to valid notice',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -149,11 +149,11 @@ void describe('Notices manifest validator', () => {
       (error: Error) => {
         assert.ok(
           error.message.startsWith(
-            'Notice id must be equal to GitHub issue number if link is provided'
-          )
+            'Notice id must be equal to GitHub issue number if link is provided',
+          ),
         );
         return true;
-      }
+      },
     );
   });
 
@@ -180,10 +180,10 @@ void describe('Notices manifest validator', () => {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Package version predicate must have a valid version range'
+          'Package version predicate must have a valid version range',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -209,10 +209,10 @@ void describe('Notices manifest validator', () => {
       (error: Error) => {
         assert.strictEqual(
           error.message,
-          'Node version predicate must have a valid version range'
+          'Node version predicate must have a valid version range',
         );
         return true;
-      }
+      },
     );
   });
 });

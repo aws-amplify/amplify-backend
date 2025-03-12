@@ -13,7 +13,7 @@ void describe('getCallerDirectory', () => {
       const tooShortStack = `Error
     at AmplifyAuthFactory (/Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24)`;
       assert.throws(() =>
-        new CallerDirectoryExtractor(tooShortStack).extract()
+        new CallerDirectoryExtractor(tooShortStack).extract(),
       );
     });
 
@@ -23,7 +23,7 @@ void describe('getCallerDirectory', () => {
     at more garbage
     at Object.<anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:5:2)`;
       assert.throws(() =>
-        new CallerDirectoryExtractor(malformedStacktrace).extract()
+        new CallerDirectoryExtractor(malformedStacktrace).extract(),
       );
     });
 
@@ -34,7 +34,7 @@ void describe('getCallerDirectory', () => {
     at Object.<anonymous> (/Users/alias/sandboxes/install-test/backend/auth.ts:5:2)`;
       assert.strictEqual(
         new CallerDirectoryExtractor(validStackTrace).extract(),
-        '/Users/alias/sandboxes/install-test/backend'
+        '/Users/alias/sandboxes/install-test/backend',
       );
     });
   });
@@ -44,7 +44,7 @@ void describe('getCallerDirectory', () => {
       const tooShortStack = `Error
     at file:///Users/alias/sandboxes/install-test/node_modules/@aws-amplify/backend-auth/src/factory.ts:28:24`;
       assert.throws(() =>
-        new CallerDirectoryExtractor(tooShortStack).extract()
+        new CallerDirectoryExtractor(tooShortStack).extract(),
       );
     });
 
@@ -54,7 +54,7 @@ void describe('getCallerDirectory', () => {
     at more garbage
     at file:///Users/alias/sandboxes/install-test/backend/auth.ts:5:2`;
       assert.throws(() =>
-        new CallerDirectoryExtractor(malformedStacktrace).extract()
+        new CallerDirectoryExtractor(malformedStacktrace).extract(),
       );
     });
 
@@ -66,7 +66,7 @@ void describe('getCallerDirectory', () => {
     at file:///Users/alias/sandboxes/install-test/backend/auth.ts:5:2`;
       assert.strictEqual(
         new CallerDirectoryExtractor(validStackTrace).extract(),
-        fileURLToPath(someFileUrl)
+        fileURLToPath(someFileUrl),
       );
     });
   });

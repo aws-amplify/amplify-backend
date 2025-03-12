@@ -14,13 +14,13 @@ export type LocalGraphqlFormGeneratorParams = {
  * Creates a form generator given a config
  */
 export const createLocalGraphqlFormGenerator = (
-  generationParams: LocalGraphqlFormGeneratorParams
+  generationParams: LocalGraphqlFormGeneratorParams,
 ): GraphqlFormGenerator => {
   const client = new S3Client();
   const schemaFetcher = new S3StringObjectFetcher(client);
   const genericDataSchemaFetcher = async () => {
     const schema = await schemaFetcher.fetch(
-      generationParams.introspectionSchemaUrl
+      generationParams.introspectionSchemaUrl,
     );
     return transformIntrospectionSchema(schema);
   };
@@ -30,6 +30,6 @@ export const createLocalGraphqlFormGenerator = (
       graphqlDir: generationParams.graphqlModelDirectoryPath,
     },
     (fileMap: Record<string, string>) =>
-      new CodegenGraphqlFormGeneratorResult(fileMap)
+      new CodegenGraphqlFormGeneratorResult(fileMap),
   );
 };

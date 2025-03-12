@@ -14,11 +14,11 @@ export const findBaselineCdkVersion = async (): Promise<{
   cdkLib: string;
 }> => {
   const deployerPackageJsonPath = fileURLToPath(
-    new URL('../../backend-deployer/package.json', import.meta.url)
+    new URL('../../backend-deployer/package.json', import.meta.url),
   );
 
   const deployerPackageJson = JSON.parse(
-    await fsp.readFile(deployerPackageJsonPath, 'utf-8')
+    await fsp.readFile(deployerPackageJsonPath, 'utf-8'),
   );
   const cdkCliVersion = deployerPackageJson['peerDependencies']['aws-cdk'];
   const minCdkCliVersion = semver.minVersion(cdkCliVersion)?.version;
@@ -27,11 +27,11 @@ export const findBaselineCdkVersion = async (): Promise<{
   }
 
   const platformCorePackageJsonPath = fileURLToPath(
-    new URL('../../platform-core/package.json', import.meta.url)
+    new URL('../../platform-core/package.json', import.meta.url),
   );
 
   const platformCorePackageJson = JSON.parse(
-    await fsp.readFile(platformCorePackageJsonPath, 'utf-8')
+    await fsp.readFile(platformCorePackageJsonPath, 'utf-8'),
   );
   const cdkLibVersion =
     platformCorePackageJson['peerDependencies']['aws-cdk-lib'];

@@ -82,7 +82,7 @@ export type StorageAccessBuilder = {
    * `media/profile-pictures/*`.
    */
   resource: (
-    other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>
+    other: ConstructFactory<ResourceProvider & ResourceAccessAcceptorFactory>,
   ) => StorageActionBuilder;
 };
 
@@ -97,12 +97,12 @@ export type StorageActionBuilder = {
   to: (
     actions:
       | Exclude<StorageAction, 'get' | 'list'>[]
-      | Exclude<StorageAction, 'read'>[]
+      | Exclude<StorageAction, 'read'>[],
   ) => StorageAccessDefinition;
 };
 
 export type StorageAccessGenerator = (
-  allow: StorageAccessBuilder
+  allow: StorageAccessBuilder,
 ) => StorageAccessRecord;
 
 export type StorageAccessRecord = Record<
@@ -112,7 +112,7 @@ export type StorageAccessRecord = Record<
 
 export type StorageAccessDefinition = {
   getResourceAccessAcceptors: ((
-    getInstanceProps: ConstructFactoryGetInstanceProps
+    getInstanceProps: ConstructFactoryGetInstanceProps,
   ) => ResourceAccessAcceptor)[];
   /**
    * Actions to grant to this role on a specific prefix

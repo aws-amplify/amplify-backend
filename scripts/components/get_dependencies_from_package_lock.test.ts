@@ -9,17 +9,16 @@ import assert from 'assert';
 
 void describe('getDependenciesFromPackageLock', () => {
   const testResourcesPath = fileURLToPath(
-    new URL('./test-resources', import.meta.url)
+    new URL('./test-resources', import.meta.url),
   );
   const packageLockJsonPath = path.join(
     testResourcesPath,
-    'package_lock_valid.json'
+    'package_lock_valid.json',
   );
 
   void it('can get dependencies from package-lock.json', async () => {
-    const dependencies = await getDependenciesFromPackageLock(
-      packageLockJsonPath
-    );
+    const dependencies =
+      await getDependenciesFromPackageLock(packageLockJsonPath);
     /* eslint-disable spellcheck/spell-checker */
     const expectedDependencies: Dependency[] = [
       { name: 'ansi-regex', version: '5.0.1' },

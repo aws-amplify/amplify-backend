@@ -26,14 +26,14 @@ export class GenerateApiCodeAdapter {
       getAmplifyClient: AmplifyClient;
       getCloudFormationClient: CloudFormationClient;
       getS3Client: S3Client;
-    }>
+    }>,
   ) {}
 
   /**
    * Invoke the generateApiCode method, using the constructor injected credentialProvider, and remaining props.
    */
   invokeGenerateApiCode = (
-    props: InvokeGenerateApiCodeProps
+    props: InvokeGenerateApiCodeProps,
   ): Promise<GenerationResult> =>
     generateApiCode({
       ...props,

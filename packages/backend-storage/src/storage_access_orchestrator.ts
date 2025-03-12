@@ -68,7 +68,7 @@ export class StorageAccessOrchestrator {
     private readonly ssmEnvironmentEntries: SsmEnvironmentEntry[],
     private readonly policyFactory: StorageAccessPolicyFactory,
     private readonly validateStorageAccessPaths = _validateStorageAccessPaths,
-    private readonly roleAccessBuilder: StorageAccessBuilder = _roleAccessBuilder
+    private readonly roleAccessBuilder: StorageAccessBuilder = _roleAccessBuilder,
   ) {}
 
   /**
@@ -86,7 +86,7 @@ export class StorageAccessOrchestrator {
     // here we inject the roleAccessBuilder into the callback and run it
     // this produces the access definition that will be used to create the storage policies
     const storageAccessDefinition = this.storageAccessGenerator(
-      this.roleAccessBuilder
+      this.roleAccessBuilder,
     );
 
     // verify that the paths in the access definition are valid
@@ -104,12 +104,12 @@ export class StorageAccessOrchestrator {
           const accessConfig: StorageAccessConfig = {};
           // replace "read" with "get" and "list" in actions
           const replaceReadWithGetAndList = permission.actions.flatMap(
-            (action) => (action === 'read' ? ['get', 'list'] : [action])
+            (action) => (action === 'read' ? ['get', 'list'] : [action]),
           ) as InternalStorageAction[];
 
           // ensure the actions list has no duplicates
           const noDuplicateActions = Array.from(
-            new Set(replaceReadWithGetAndList)
+            new Set(replaceReadWithGetAndList),
           );
 
           // iterate over all uniqueDefinitionIdValidations and ensure uniqueness within this path prefix
@@ -118,19 +118,19 @@ export class StorageAccessOrchestrator {
               if (uniqueDefinitionIdSet.has(uniqueDefinitionId)) {
                 throw new AmplifyUserError<StorageError>(
                   'InvalidStorageAccessDefinitionError',
-                  validationErrorOptions
+                  validationErrorOptions,
                 );
               } else {
                 uniqueDefinitionIdSet.add(uniqueDefinitionId);
               }
 
               accessConfig[uniqueDefinitionId] = noDuplicateActions;
-            }
+            },
           );
           // make the owner placeholder substitution in the s3 prefix
           const prefix = placeholderSubstitution(
             s3Prefix,
-            permission.idSubstitution
+            permission.idSubstitution,
           );
 
           storageOutputAccessDefinition[prefix] = {
@@ -144,12 +144,12 @@ export class StorageAccessOrchestrator {
               this.addAccessDefinition(
                 getResourceAccessAcceptor(this.getInstanceProps),
                 noDuplicateActions,
-                prefix
+                prefix,
               );
-            }
+            },
           );
         });
-      }
+      },
     );
 
     // iterate over the access map entries and invoke each ResourceAccessAcceptor to accept the permissions
@@ -165,7 +165,7 @@ export class StorageAccessOrchestrator {
   private addAccessDefinition = (
     resourceAccessAcceptor: ResourceAccessAcceptor,
     actions: InternalStorageAction[],
-    s3Prefix: StoragePath
+    s3Prefix: StoragePath,
   ) => {
     const acceptorToken = resourceAccessAcceptor.identifier;
 
@@ -223,7 +223,7 @@ export class StorageAccessOrchestrator {
       this.prefixDenyMap
         .get(parent)
         ?.forEach((denyByDefaultCallback) =>
-          denyByDefaultCallback(storagePath)
+          denyByDefaultCallback(storagePath),
         );
     });
 
@@ -235,7 +235,7 @@ export class StorageAccessOrchestrator {
       });
       acceptor.acceptResourceAccess(
         this.policyFactory.createPolicy(accessMap),
-        ssmEnvironmentEntries
+        ssmEnvironmentEntries,
       );
     });
     this.acceptorAccessMap.clear();
@@ -245,7 +245,7 @@ export class StorageAccessOrchestrator {
   private setPrefixDenyMapEntry = (
     storagePath: StoragePath,
     allowPathSet: Set<StoragePath>,
-    denyPathSet: Set<StoragePath>
+    denyPathSet: Set<StoragePath>,
   ) => {
     // function that will add the denyPath to the denyPathSet unless the allowPathSet explicitly allows the path
     const setDenyByDefault = (denyPath: StoragePath) => {
@@ -269,13 +269,13 @@ export class StorageAccessOrchestratorFactory {
     storageAccessGenerator: StorageAccessGenerator,
     getInstanceProps: ConstructFactoryGetInstanceProps,
     ssmEnvironmentEntries: SsmEnvironmentEntry[],
-    policyFactory: StorageAccessPolicyFactory
+    policyFactory: StorageAccessPolicyFactory,
   ) =>
     new StorageAccessOrchestrator(
       storageAccessGenerator,
       getInstanceProps,
       ssmEnvironmentEntries,
-      policyFactory
+      policyFactory,
     );
 }
 
@@ -284,11 +284,11 @@ export class StorageAccessOrchestratorFactory {
  */
 const placeholderSubstitution = (
   s3Prefix: string,
-  idSubstitution: string
+  idSubstitution: string,
 ): StoragePath => {
   const prefix = s3Prefix.replaceAll(
     entityIdPathToken,
-    idSubstitution
+    idSubstitution,
   ) as StoragePath;
 
   // for owner paths where prefix ends with '/*/*' remove the last wildcard

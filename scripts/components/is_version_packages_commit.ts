@@ -10,13 +10,13 @@ import { readFile } from 'fs/promises';
  */
 export const isVersionPackagesCommit = async () => {
   const githubPushEventPayload = JSON.parse(
-    await readFile(process.env.GITHUB_EVENT_PATH!, 'utf-8')
+    await readFile(process.env.GITHUB_EVENT_PATH!, 'utf-8'),
   ) as PushEvent;
 
   const isVersionPackagesCommit =
     githubPushEventPayload.commits.length === 1 &&
     githubPushEventPayload.commits[0].author.name.includes(
-      'github-actions[bot]'
+      'github-actions[bot]',
     ) &&
     githubPushEventPayload.commits[0].message.includes('Version Packages');
   return isVersionPackagesCommit;

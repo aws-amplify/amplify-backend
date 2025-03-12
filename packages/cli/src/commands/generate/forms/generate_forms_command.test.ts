@@ -45,7 +45,7 @@ void describe('generate forms command', () => {
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
         () => fakedBackendOutputClient,
-        formGenerationHandler
+        formGenerationHandler,
       );
 
       const generationMock = mock.method(formGenerationHandler, 'generate');
@@ -65,17 +65,17 @@ void describe('generate forms command', () => {
           },
         }));
       const parser = yargs().command(
-        generateFormsCommand as unknown as CommandModule
+        generateFormsCommand as unknown as CommandModule,
       );
 
       const outPath = 'my-fake-models-path';
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
-        `forms --stack my_stack --out-dir ${outPath}`
+        `forms --stack my_stack --out-dir ${outPath}`,
       );
       assert.equal(
         path.join(generationMock.mock.calls[0].arguments[0].modelsOutDir),
-        path.join(`${outPath}/graphql`)
+        path.join(`${outPath}/graphql`),
       );
     });
     void it('out-dir path can be customized', async () => {
@@ -92,7 +92,7 @@ void describe('generate forms command', () => {
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
         () => fakedBackendOutputClient,
-        formGenerationHandler
+        formGenerationHandler,
       );
 
       const generationMock = mock.method(formGenerationHandler, 'generate');
@@ -112,17 +112,17 @@ void describe('generate forms command', () => {
           },
         }));
       const parser = yargs().command(
-        generateFormsCommand as unknown as CommandModule
+        generateFormsCommand as unknown as CommandModule,
       );
 
       const uiOutPath = './my-fake-ui-path';
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand(
-        `forms --stack my_stack --out-dir ${uiOutPath}`
+        `forms --stack my_stack --out-dir ${uiOutPath}`,
       );
       assert.equal(
         generationMock.mock.calls[0].arguments[0].uiOutDir,
-        uiOutPath
+        uiOutPath,
       );
     });
     void it('./ui-components is the default graphql model generation path', async () => {
@@ -139,7 +139,7 @@ void describe('generate forms command', () => {
       const generateFormsCommand = new GenerateFormsCommand(
         backendIdResolver,
         () => fakedBackendOutputClient,
-        formGenerationHandler
+        formGenerationHandler,
       );
 
       const generationMock = mock.method(formGenerationHandler, 'generate');
@@ -159,13 +159,13 @@ void describe('generate forms command', () => {
           },
         }));
       const parser = yargs().command(
-        generateFormsCommand as unknown as CommandModule
+        generateFormsCommand as unknown as CommandModule,
       );
       const commandRunner = new TestCommandRunner(parser);
       await commandRunner.runCommand('forms --stack my_stack');
       assert.equal(
         generationMock.mock.calls[0].arguments[0].uiOutDir,
-        './ui-components'
+        './ui-components',
       );
     });
   });
@@ -177,7 +177,7 @@ void describe('generate forms command', () => {
     const defaultResolver = new AppBackendIdentifierResolver(appNameResolver);
 
     const mockedSandboxIdResolver = new SandboxBackendIdResolver(
-      appNameResolver
+      appNameResolver,
     );
 
     const fakeSandboxId = 'my-fake-app-my-fake-username';
@@ -188,12 +188,12 @@ void describe('generate forms command', () => {
         namespace: fakeSandboxId,
         name: fakeSandboxId,
         type: 'sandbox',
-      })
+      }),
     );
 
     const backendIdResolver = new BackendIdentifierResolverWithFallback(
       defaultResolver,
-      mockedSandboxIdResolver
+      mockedSandboxIdResolver,
     );
     const formGenerationHandler = new FormGenerationHandler({
       awsClientProvider,
@@ -205,7 +205,7 @@ void describe('generate forms command', () => {
     const generateFormsCommand = new GenerateFormsCommand(
       backendIdResolver,
       () => fakedBackendOutputClient,
-      formGenerationHandler
+      formGenerationHandler,
     );
 
     const generationMock = mock.method(formGenerationHandler, 'generate');
@@ -225,7 +225,7 @@ void describe('generate forms command', () => {
         },
       }));
     const parser = yargs().command(
-      generateFormsCommand as unknown as CommandModule
+      generateFormsCommand as unknown as CommandModule,
     );
     const commandRunner = new TestCommandRunner(parser);
     await commandRunner.runCommand('forms');
@@ -235,7 +235,7 @@ void describe('generate forms command', () => {
         namespace: fakeSandboxId,
         name: fakeSandboxId,
         type: 'sandbox',
-      }
+      },
     );
   });
 
@@ -247,14 +247,14 @@ void describe('generate forms command', () => {
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
       resolveBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
     } as BackendIdentifierResolver;
     const formGenerationHandler = new FormGenerationHandler({
@@ -265,7 +265,7 @@ void describe('generate forms command', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.DEPLOYMENT_IN_PROGRESS,
-          'deployment in progress'
+          'deployment in progress',
         );
       }),
     };
@@ -273,11 +273,11 @@ void describe('generate forms command', () => {
     const generateFormsCommand = new GenerateFormsCommand(
       backendIdResolver,
       () => fakedBackendOutputClient,
-      formGenerationHandler
+      formGenerationHandler,
     );
 
     const parser = yargs().command(
-      generateFormsCommand as unknown as CommandModule
+      generateFormsCommand as unknown as CommandModule,
     );
     const commandRunner = new TestCommandRunner(parser);
     await assert.rejects(
@@ -286,10 +286,10 @@ void describe('generate forms command', () => {
         assert.strictEqual(error.error.name, 'DeploymentInProgressError');
         assert.strictEqual(
           error.error.message,
-          'Deployment is currently in progress.'
+          'Deployment is currently in progress.',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -301,14 +301,14 @@ void describe('generate forms command', () => {
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
       resolveBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
     } as BackendIdentifierResolver;
     const formGenerationHandler = new FormGenerationHandler({
@@ -319,7 +319,7 @@ void describe('generate forms command', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.NO_STACK_FOUND,
-          'Stack does not exist.'
+          'Stack does not exist.',
         );
       }),
     };
@@ -327,11 +327,11 @@ void describe('generate forms command', () => {
     const generateFormsCommand = new GenerateFormsCommand(
       backendIdResolver,
       () => fakedBackendOutputClient,
-      formGenerationHandler
+      formGenerationHandler,
     );
 
     const parser = yargs().command(
-      generateFormsCommand as unknown as CommandModule
+      generateFormsCommand as unknown as CommandModule,
     );
     const commandRunner = new TestCommandRunner(parser);
     await assert.rejects(
@@ -340,7 +340,7 @@ void describe('generate forms command', () => {
         assert.strictEqual(error.error.name, 'StackDoesNotExistError');
         assert.strictEqual(error.error.message, 'Stack does not exist.');
         return true;
-      }
+      },
     );
   });
 
@@ -352,14 +352,14 @@ void describe('generate forms command', () => {
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
       resolveBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
     } as BackendIdentifierResolver;
     const formGenerationHandler = new FormGenerationHandler({
@@ -370,7 +370,7 @@ void describe('generate forms command', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.NO_OUTPUTS_FOUND,
-          'stack outputs are undefined'
+          'stack outputs are undefined',
         );
       }),
     };
@@ -378,11 +378,11 @@ void describe('generate forms command', () => {
     const generateFormsCommand = new GenerateFormsCommand(
       backendIdResolver,
       () => fakedBackendOutputClient,
-      formGenerationHandler
+      formGenerationHandler,
     );
 
     const parser = yargs().command(
-      generateFormsCommand as unknown as CommandModule
+      generateFormsCommand as unknown as CommandModule,
     );
     const commandRunner = new TestCommandRunner(parser);
     await assert.rejects(
@@ -391,10 +391,10 @@ void describe('generate forms command', () => {
         assert.strictEqual(error.error.name, 'AmplifyOutputsNotFoundError');
         assert.strictEqual(
           error.error.message,
-          'Amplify outputs not found in stack metadata'
+          'Amplify outputs not found in stack metadata',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -406,14 +406,14 @@ void describe('generate forms command', () => {
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
       resolveBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
     } as BackendIdentifierResolver;
     const formGenerationHandler = new FormGenerationHandler({
@@ -424,7 +424,7 @@ void describe('generate forms command', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.CREDENTIALS_ERROR,
-          'token is expired'
+          'token is expired',
         );
       }),
     };
@@ -432,11 +432,11 @@ void describe('generate forms command', () => {
     const generateFormsCommand = new GenerateFormsCommand(
       backendIdResolver,
       () => fakedBackendOutputClient,
-      formGenerationHandler
+      formGenerationHandler,
     );
 
     const parser = yargs().command(
-      generateFormsCommand as unknown as CommandModule
+      generateFormsCommand as unknown as CommandModule,
     );
     const commandRunner = new TestCommandRunner(parser);
     await assert.rejects(
@@ -445,10 +445,10 @@ void describe('generate forms command', () => {
         assert.strictEqual(error.error.name, 'CredentialsError');
         assert.strictEqual(
           error.error.message,
-          'Unable to get backend outputs due to invalid credentials.'
+          'Unable to get backend outputs due to invalid credentials.',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -460,14 +460,14 @@ void describe('generate forms command', () => {
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
       resolveBackendIdentifier: mock.fn(() =>
         Promise.resolve({
           namespace: fakeSandboxId,
           name: fakeSandboxId,
           type: 'sandbox',
-        })
+        }),
       ),
     } as BackendIdentifierResolver;
     const formGenerationHandler = new FormGenerationHandler({
@@ -478,7 +478,7 @@ void describe('generate forms command', () => {
       getOutput: mock.fn(() => {
         throw new BackendOutputClientError(
           BackendOutputClientErrorType.ACCESS_DENIED,
-          'access is denied'
+          'access is denied',
         );
       }),
     };
@@ -486,11 +486,11 @@ void describe('generate forms command', () => {
     const generateFormsCommand = new GenerateFormsCommand(
       backendIdResolver,
       () => fakedBackendOutputClient,
-      formGenerationHandler
+      formGenerationHandler,
     );
 
     const parser = yargs().command(
-      generateFormsCommand as unknown as CommandModule
+      generateFormsCommand as unknown as CommandModule,
     );
     const commandRunner = new TestCommandRunner(parser);
     await assert.rejects(
@@ -499,10 +499,10 @@ void describe('generate forms command', () => {
         assert.strictEqual(error.error.name, 'AccessDeniedError');
         assert.strictEqual(
           error.error.message,
-          'Unable to get backend outputs due to insufficient permissions.'
+          'Unable to get backend outputs due to insufficient permissions.',
         );
         return true;
-      }
+      },
     );
   });
 
@@ -514,12 +514,12 @@ void describe('generate forms command', () => {
     const defaultResolver = new AppBackendIdentifierResolver(appNameResolver);
 
     const mockedSandboxIdResolver = new SandboxBackendIdResolver(
-      appNameResolver
+      appNameResolver,
     );
 
     const backendIdResolver = new BackendIdentifierResolverWithFallback(
       defaultResolver,
-      mockedSandboxIdResolver
+      mockedSandboxIdResolver,
     );
     const formGenerationHandler = new FormGenerationHandler({
       awsClientProvider,
@@ -531,14 +531,14 @@ void describe('generate forms command', () => {
     const generateFormsCommand = new GenerateFormsCommand(
       backendIdResolver,
       () => fakedBackendOutputClient,
-      formGenerationHandler
+      formGenerationHandler,
     );
     const parser = yargs().command(
-      generateFormsCommand as unknown as CommandModule
+      generateFormsCommand as unknown as CommandModule,
     );
     const commandRunner = new TestCommandRunner(parser);
     const output = await commandRunner.runCommand(
-      'forms --stack foo --branch baz'
+      'forms --stack foo --branch baz',
     );
     assert.match(output, /Arguments .* are mutually exclusive/);
   });
@@ -551,12 +551,12 @@ void describe('generate forms command', () => {
     const defaultResolver = new AppBackendIdentifierResolver(appNameResolver);
 
     const mockedSandboxIdResolver = new SandboxBackendIdResolver(
-      appNameResolver
+      appNameResolver,
     );
 
     const backendIdResolver = new BackendIdentifierResolverWithFallback(
       defaultResolver,
-      mockedSandboxIdResolver
+      mockedSandboxIdResolver,
     );
     const formGenerationHandler = new FormGenerationHandler({
       awsClientProvider,
@@ -568,10 +568,10 @@ void describe('generate forms command', () => {
     const generateFormsCommand = new GenerateFormsCommand(
       backendIdResolver,
       () => fakedBackendOutputClient,
-      formGenerationHandler
+      formGenerationHandler,
     );
     const parser = yargs().command(
-      generateFormsCommand as unknown as CommandModule
+      generateFormsCommand as unknown as CommandModule,
     );
     const commandRunner = new TestCommandRunner(parser);
     const output = await commandRunner.runCommand('forms --branch baz');

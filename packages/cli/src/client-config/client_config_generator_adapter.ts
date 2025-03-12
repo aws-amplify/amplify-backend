@@ -24,19 +24,19 @@ export class ClientConfigGeneratorAdapter {
       getS3Client: S3Client;
       getAmplifyClient: AmplifyClient;
       getCloudFormationClient: CloudFormationClient;
-    }>
+    }>,
   ) {}
   /**
    * Generates the client configuration for a given backend
    */
   generateClientConfig = async (
     backendIdentifier: DeployedBackendIdentifier,
-    version: ClientConfigVersion
+    version: ClientConfigVersion,
   ): Promise<ClientConfig> => {
     return generateClientConfig(
       backendIdentifier,
       version,
-      this.awsClientProvider
+      this.awsClientProvider,
     );
   };
 
@@ -48,14 +48,14 @@ export class ClientConfigGeneratorAdapter {
     backendIdentifier: DeployedBackendIdentifier,
     version: ClientConfigVersion,
     outDir?: string,
-    format?: ClientConfigFormat
+    format?: ClientConfigFormat,
   ): Promise<void> => {
     const { filesWritten } = await generateClientConfigToFile(
       backendIdentifier,
       version,
       outDir,
       format,
-      this.awsClientProvider
+      this.awsClientProvider,
     );
 
     filesWritten.forEach((file) => printer.log(`File written: ${file}`));

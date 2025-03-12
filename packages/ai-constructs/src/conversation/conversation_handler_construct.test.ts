@@ -64,7 +64,7 @@ void describe('Conversation Handler Function construct', () => {
           (
             result: { [x: string | number]: unknown },
             val: unknown,
-            key: string | number
+            key: string | number,
           ) => {
             if (typeof val === 'object') {
               val = keysToCamelCase(val as Record<string, unknown>);
@@ -73,15 +73,15 @@ void describe('Conversation Handler Function construct', () => {
               key = `${key.slice(0, 1).toLowerCase()}${key.slice(1)}`;
             }
             result[key] = val;
-          }
+          },
         );
       expectedDataProtectionPolicy = keysToCamelCase(
-        expectedDataProtectionPolicy
+        expectedDataProtectionPolicy,
       );
     }
     assert.deepStrictEqual(
       logGroup.Properties.DataProtectionPolicy,
-      expectedDataProtectionPolicy
+      expectedDataProtectionPolicy,
     );
     template.hasResourceProperties('AWS::Lambda::Function', {
       Handler: 'index.handler',
@@ -191,7 +191,7 @@ void describe('Conversation Handler Function construct', () => {
     });
     const template = Template.fromStack(stack);
     const output = template.findOutputs(
-      'definedConversationHandlers'
+      'definedConversationHandlers',
     ).definedConversationHandlers;
     assert.ok(!output);
   });
@@ -206,7 +206,7 @@ void describe('Conversation Handler Function construct', () => {
         },
       ],
       outputStorageStrategy: new StackMetadataBackendOutputStorageStrategy(
-        stack
+        stack,
       ),
     });
     const template = Template.fromStack(stack);

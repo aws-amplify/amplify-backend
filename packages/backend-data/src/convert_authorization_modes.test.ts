@@ -25,7 +25,7 @@ void describe('buildConstructFactoryProvidedAuthConfig', () => {
   void it('returns undefined if authResourceProvider is undefined', () => {
     assert.deepStrictEqual(
       buildConstructFactoryProvidedAuthConfig(undefined),
-      undefined
+      undefined,
     );
   });
 
@@ -50,7 +50,7 @@ void describe('buildConstructFactoryProvidedAuthConfig', () => {
         identityPoolId: 'us-fake-1:123123-123123',
         authenticatedUserRole: 'ThisIsAnAuthenticatedUserIamRole',
         unauthenticatedUserRole: 'ThisIsAnUnauthenticatedUserIamRole',
-      }
+      },
     );
   });
 });
@@ -72,7 +72,7 @@ void describe('convertAuthorizationModesToCDK', () => {
     unauthenticatedUserRole = Role.fromRoleName(
       stack,
       'UnauthRole',
-      'MyUnauthRole'
+      'MyUnauthRole',
     );
     providedAuthConfig = {
       userPool,
@@ -98,9 +98,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         getInstancePropsStub,
         undefined,
-        undefined
+        undefined,
       ),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -120,7 +120,7 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(getInstancePropsStub, undefined, {
         defaultAuthorizationMode: 'apiKey',
       }),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -142,9 +142,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         getInstancePropsStub,
         providedAuthConfig,
-        undefined
+        undefined,
       ),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -178,9 +178,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         getInstancePropsStub,
         undefined,
-        authModes
+        authModes,
       ),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -213,9 +213,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         getInstancePropsStub,
         undefined,
-        authModes
+        authModes,
       ),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -243,9 +243,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         getInstancePropsStub,
         undefined,
-        authModes
+        authModes,
       ),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -272,9 +272,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         getInstancePropsStub,
         undefined,
-        authModes
+        authModes,
       ),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -282,7 +282,7 @@ void describe('convertAuthorizationModesToCDK', () => {
     const authFn = new Function(stack, 'MyAuthFn', {
       runtime: Runtime.NODEJS_18_X,
       code: Code.fromInline(
-        'module.handler = async () => console.log("Hello");'
+        'module.handler = async () => console.log("Hello");',
       ),
       handler: 'index.handler',
     });
@@ -320,9 +320,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         getInstancePropsStub,
         undefined,
-        authModes
+        authModes,
       ),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -330,7 +330,7 @@ void describe('convertAuthorizationModesToCDK', () => {
     const authFn = new Function(stack, 'MyAuthFn', {
       runtime: Runtime.NODEJS_18_X,
       code: Code.fromInline(
-        'module.handler = async () => console.log("Hello");'
+        'module.handler = async () => console.log("Hello");',
       ),
       handler: 'index.handler',
     });
@@ -367,9 +367,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         getInstancePropsStub,
         undefined,
-        authModes
+        authModes,
       ),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -389,9 +389,9 @@ void describe('convertAuthorizationModesToCDK', () => {
       convertAuthorizationModesToCDK(
         getInstancePropsStub,
         undefined,
-        authModes
+        authModes,
       ),
-      expectedOutput
+      expectedOutput,
     );
   });
 
@@ -415,20 +415,20 @@ void describe('convertAuthorizationModesToCDK', () => {
         convertAuthorizationModesToCDK(
           getInstancePropsStub,
           undefined,
-          authModes
+          authModes,
         ),
       (err: AmplifyUserError<AmplifyDataError>) => {
         assert.strictEqual(err.name, 'DefineDataConfigurationError');
         assert.strictEqual(
           err.message,
-          'A defaultAuthorizationMode is required if multiple authorization modes are configured'
+          'A defaultAuthorizationMode is required if multiple authorization modes are configured',
         );
         assert.strictEqual(
           err.resolution,
-          "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'"
+          "When calling 'defineData' specify 'authorizationModes.defaultAuthorizationMode'",
         );
         return true;
-      }
+      },
     );
   });
 });
@@ -437,14 +437,14 @@ void describe('isUsingDefaultApiKeyAuth', () => {
   void it('returns false when auth modes are specified', () => {
     assert.equal(
       isUsingDefaultApiKeyAuth(undefined, { apiKeyAuthorizationMode: {} }),
-      false
+      false,
     );
   });
 
   void it('returns false when provided auth resources are present', () => {
     assert.equal(
       isUsingDefaultApiKeyAuth({} as unknown as ProvidedAuthConfig, undefined),
-      false
+      false,
     );
   });
 

@@ -22,7 +22,7 @@ void describe('ModelIntrospectionSchemaAdapter', () => {
 
   void it('returns undefined on undefined schema uri', async () => {
     const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter(
-      stubClientProvider
+      stubClientProvider,
     ).getModelIntrospectionSchemaFromS3Uri(undefined);
     assert.deepEqual(modelIntrospectionSchema, undefined);
   });
@@ -30,8 +30,8 @@ void describe('ModelIntrospectionSchemaAdapter', () => {
   void it('throws on invalid s3 location', async () => {
     await assert.rejects(() =>
       new ModelIntrospectionSchemaAdapter(
-        stubClientProvider
-      ).getModelIntrospectionSchemaFromS3Uri('s3://im_a_fake_bucket/i_swear')
+        stubClientProvider,
+      ).getModelIntrospectionSchemaFromS3Uri('s3://im_a_fake_bucket/i_swear'),
     );
   });
 
@@ -57,7 +57,7 @@ void describe('ModelIntrospectionSchemaAdapter', () => {
       });
 
     const modelIntrospectionSchema = await new ModelIntrospectionSchemaAdapter(
-      stubClientProvider
+      stubClientProvider,
     ).getModelIntrospectionSchemaFromS3Uri('s3://im_a_real_bucket/i_swear');
     assert.deepEqual(modelIntrospectionSchema, {
       version: 1,

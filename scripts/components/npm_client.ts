@@ -37,7 +37,7 @@ export class NpmClient {
    */
   constructor(
     private readonly npmToken: string | null,
-    private readonly cwd: string = process.cwd()
+    private readonly cwd: string = process.cwd(),
   ) {
     this.exec = chainableExeca({ cwd });
     this.execWithIO = this.exec({ stdio: 'inherit' });
@@ -45,7 +45,7 @@ export class NpmClient {
 
   deprecatePackage = async (
     packageVersionSpecifier: string,
-    deprecationMessage: string
+    deprecationMessage: string,
   ) => {
     await this
       .execWithIO`npm deprecate ${packageVersionSpecifier} ${deprecationMessage}`;
@@ -78,7 +78,7 @@ export class NpmClient {
 
   install = async (
     packageSpecifiers: string[],
-    options: { dev: boolean } = { dev: false }
+    options: { dev: boolean } = { dev: false },
   ) => {
     await this.execWithIO`npm install ${
       options.dev ? '-D' : ''
@@ -94,7 +94,7 @@ export class NpmClient {
       await writeFile(
         path.join(this.cwd, '.npmrc'),
         // eslint-disable-next-line spellcheck/spell-checker
-        `//registry.npmjs.org/:_authToken=${this.npmToken}${EOL}`
+        `//registry.npmjs.org/:_authToken=${this.npmToken}${EOL}`,
       );
     } else {
       // if there's no npm token, assume we are configuring for a local proxy

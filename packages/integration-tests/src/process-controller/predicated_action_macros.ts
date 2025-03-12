@@ -19,7 +19,7 @@ export const waitForSandboxDeploymentToPrintTotalTime = () =>
  */
 export const waitForConfigUpdateAfterDeployment = () =>
   new PredicatedActionBuilder().waitForLineIncludes(
-    'File written: amplify_outputs.json'
+    'File written: amplify_outputs.json',
   );
 
 /**
@@ -27,7 +27,7 @@ export const waitForConfigUpdateAfterDeployment = () =>
  */
 export const waitForSandboxToBecomeIdle = () =>
   new PredicatedActionBuilder().waitForLineIncludes(
-    'Watching for file changes...'
+    'Watching for file changes...',
   );
 
 /**
@@ -42,7 +42,7 @@ export const waitForSandboxToBeginHotswappingResources = () =>
 export const confirmDeleteSandbox = () =>
   new PredicatedActionBuilder()
     .waitForLineIncludes(
-      'Are you sure you want to delete all the resources in your sandbox environment'
+      'Are you sure you want to delete all the resources in your sandbox environment',
     )
     .sendYes();
 
@@ -65,11 +65,11 @@ export const interruptSandbox = () =>
  * than the threshold.
  */
 export const ensureDeploymentTimeLessThan = (
-  platformThresholds: PlatformDeploymentThresholds
+  platformThresholds: PlatformDeploymentThresholds,
 ) => {
   return waitForSandboxDeploymentToPrintTotalTime().ensureDeploymentTimeLessThan(
     process.platform.startsWith('win')
       ? platformThresholds.onWindows
-      : platformThresholds.onOther
+      : platformThresholds.onOther,
   );
 };
