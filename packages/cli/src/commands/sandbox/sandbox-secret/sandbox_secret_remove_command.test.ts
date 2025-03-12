@@ -1,15 +1,11 @@
 import { beforeEach, describe, it, mock } from 'node:test';
 import yargs, { CommandModule } from 'yargs';
-import {
-  TestCommandError,
-  TestCommandRunner,
-} from '../../../test-utils/command_runner.js';
+import { TestCommandRunner } from '../../../test-utils/command_runner.js';
 import assert from 'node:assert';
 import { SandboxBackendIdResolver } from '../sandbox_id_resolver.js';
 import { getSecretClientWithAmplifyErrorHandling } from '@aws-amplify/backend-secret';
 import { SandboxSecretRemoveCommand } from './sandbox_secret_remove_command.js';
 import { printer } from '@aws-amplify/cli-core';
-import { AmplifyError } from '@aws-amplify/platform-core';
 
 const testSecretName = 'testSecretName';
 const testSecretName2 = 'testSecretName2';
@@ -122,18 +118,11 @@ void describe('sandbox secret remove command', () => {
   });
 
   void it('throws error if no secret name argument and all flag', async () => {
-    await assert.rejects(
-      () => commandRunner.runCommand('remove'),
-      (err: TestCommandError) => {
-        assert.ok(AmplifyError.isAmplifyError(err.error));
-        assert.strictEqual(
-          err.error.message,
-          'Either secret-name or all flag must be provided'
-        );
-        assert.strictEqual(err.error.name, 'InvalidCommandInputError');
-        return true;
-      }
-    );
+    const output = await commandRunner.runCommand(`remove`);
+    [
+      /InvalidCommandInputError: Either secret-name or all flag must be provided/,
+      /Resolution: Provide either secret-name or all flag/,
+    ].forEach((cmd) => assert.match(output, new RegExp(cmd)));
   });
 
   void it('throws error if both --all flag and secret-name argument', async () => {

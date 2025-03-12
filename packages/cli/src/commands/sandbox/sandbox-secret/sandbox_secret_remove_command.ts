@@ -68,7 +68,12 @@ export class SandboxSecretRemoveCommand
         type: 'boolean',
         conflicts: ['secret-name'],
       })
-      .check(async (argv) => {
+      .positional('secret-name', {
+        describe: 'Name of the secret to remove',
+        type: 'string',
+        demandOption: false,
+      })
+      .check((argv) => {
         if (!argv.all && !argv['secret-name']) {
           throw new AmplifyUserError('InvalidCommandInputError', {
             message: 'Either secret-name or all flag must be provided',
@@ -82,7 +87,7 @@ export class SandboxSecretRemoveCommand
 
 type SecretRemoveCommandOptionsKebabCase = ArgumentsKebabCase<
   {
-    secretName?: string;
+    secretName: string | undefined;
     /**
      * Optional flag to remove all secrets.
      */
