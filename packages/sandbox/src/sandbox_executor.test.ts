@@ -88,7 +88,8 @@ void describe('Sandbox executor', () => {
         name: 'testSandboxName',
         type: 'sandbox',
       },
-      validateAppSourcesProvider
+      validateAppSourcesProvider,
+      undefined
     );
 
     const secondDeployPromise = sandboxExecutor.deploy(
@@ -97,7 +98,8 @@ void describe('Sandbox executor', () => {
         name: 'testSandboxName',
         type: 'sandbox',
       },
-      validateAppSourcesProvider
+      validateAppSourcesProvider,
+      undefined
     );
 
     await Promise.all([firstDeployPromise, secondDeployPromise]);
@@ -119,7 +121,8 @@ void describe('Sandbox executor', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         },
-        validateAppSourcesProvider
+        validateAppSourcesProvider,
+        undefined
       );
 
       assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
@@ -133,8 +136,43 @@ void describe('Sandbox executor', () => {
             type: 'sandbox',
           },
           {
+            profile: undefined,
             secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
             validateAppSources: shouldValidateSources,
+          },
+        ]
+      );
+    });
+  });
+
+  ['test_profile', undefined].forEach((profile) => {
+    void it(`calls deployer with correct profile=${
+      profile ?? 'undefined'
+    } setting`, async () => {
+      await sandboxExecutor.deploy(
+        {
+          namespace: 'testSandboxId',
+          name: 'testSandboxName',
+          type: 'sandbox',
+        },
+        validateAppSourcesProvider,
+        profile
+      );
+
+      assert.strictEqual(backendDeployerDeployMock.mock.callCount(), 1);
+      // BackendDeployer should be called with the right params
+      assert.deepStrictEqual(
+        backendDeployerDeployMock.mock.calls[0].arguments,
+        [
+          {
+            name: 'testSandboxName',
+            namespace: 'testSandboxId',
+            type: 'sandbox',
+          },
+          {
+            profile: profile,
+            secretLastUpdated: newlyUpdatedSecretItem.lastUpdated,
+            validateAppSources: true,
           },
         ]
       );

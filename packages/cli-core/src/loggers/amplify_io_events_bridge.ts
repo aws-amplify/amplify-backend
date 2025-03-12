@@ -9,14 +9,13 @@ import {
  */
 export class AmplifyIOEventsBridge implements AmplifyIOHost {
   /**
-   * a
+   * Constructor for AmplifyIOEventsBridge
+   * @param eventHandlers - event handlers to be called when events are received
+   * @param eventHandlers.notify - event handler for notify events
    */
   constructor(
     private readonly eventHandlers: {
       notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
-      requestResponse?: (<T, U>(
-        msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>
-      ) => Promise<U>)[];
     }
   ) {}
 
@@ -35,18 +34,11 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
 
   /**
    * Receive amplify events and fan out asking everyone if they have a response for this request
+   * Custom event handlers are currently not supported for this event type
    */
   async requestResponse<T, U>(
     msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>
   ): Promise<U> {
-    if (!this.eventHandlers.requestResponse) {
-      return Promise.resolve(msg.defaultResponse);
-    }
-    const promises: Promise<U>[] = this.eventHandlers.requestResponse.flatMap(
-      (handler) => handler(msg)
-    );
-    // return the first defined response if available, else the default response
-    const response = (await Promise.all(promises)).find((response) => response);
-    return response ?? msg.defaultResponse;
+    return Promise.resolve(msg.defaultResponse);
   }
 }

@@ -5,6 +5,7 @@ import {
   BackendDeployer,
   DeployProps,
   DeployResult,
+  DestroyProps,
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
@@ -52,10 +53,13 @@ export class CDKDeployer implements BackendDeployer {
 
   /**
    * Invokes cdk deploy command
+   * @deprecated @param deployProps.profile CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
    */
   deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
+    const toolkit = this.getCdkToolkit(deployProps?.profile);
     const cx = await this.getCdkCloudAssembly(
       backendId,
+      toolkit,
       deployProps?.secretLastUpdated?.getTime()
     );
     // 3. Initiate synth for the cloud executable and send a message for display.
@@ -71,7 +75,7 @@ export class CDKDeployer implements BackendDeployer {
     });
 
     try {
-      synthAssembly = await this.cdkToolkit.synth(cx, {
+      synthAssembly = await toolkit.synth(cx, {
         stacks: {
           strategy: StackSelectionStrategy.ALL_STACKS,
         },
@@ -137,7 +141,7 @@ export class CDKDeployer implements BackendDeployer {
     // Perform actual deployment. CFN or hotswap
     const deployStartTime = Date.now();
     try {
-      await this.cdkToolkit.deploy(synthAssembly!, {
+      await toolkit.deploy(synthAssembly!, {
         stacks: {
           strategy: StackSelectionStrategy.ALL_STACKS,
         },
@@ -165,14 +169,22 @@ export class CDKDeployer implements BackendDeployer {
 
   /**
    * Invokes cdk destroy command
+   * @deprecated @param destroyProps.profile CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
    */
-  destroy = async (backendId: BackendIdentifier) => {
+  destroy = async (
+    backendId: BackendIdentifier,
+    destroyProps?: DestroyProps
+  ) => {
+    const toolkit = this.getCdkToolkit(destroyProps?.profile);
     const deploymentStartTime = Date.now();
-    await this.cdkToolkit.destroy(await this.getCdkCloudAssembly(backendId), {
-      stacks: {
-        strategy: StackSelectionStrategy.ALL_STACKS,
-      },
-    });
+    await this.getCdkToolkit(destroyProps?.profile).destroy(
+      await this.getCdkCloudAssembly(backendId, toolkit),
+      {
+        stacks: {
+          strategy: StackSelectionStrategy.ALL_STACKS,
+        },
+      }
+    );
     return {
       deploymentTimes: {
         totalTime: Math.floor((Date.now() - deploymentStartTime) / 10) / 100,
@@ -254,6 +266,7 @@ export class CDKDeployer implements BackendDeployer {
    */
   private getCdkCloudAssembly = (
     backendId: BackendIdentifier,
+    toolkit: Toolkit,
     secretLastUpdated?: number
   ) => {
     const contextParams: {
@@ -269,7 +282,7 @@ export class CDKDeployer implements BackendDeployer {
     contextParams[CDKContextKey.BACKEND_NAMESPACE] = backendId.namespace;
     contextParams[CDKContextKey.BACKEND_NAME] = backendId.name;
     contextParams[CDKContextKey.DEPLOYMENT_TYPE] = backendId.type;
-    return this.cdkToolkit.fromAssemblyBuilder(
+    return toolkit.fromAssemblyBuilder(
       async () => {
         await tsImport(
           pathToFileURL(this.backendLocator.locate()).toString(),
@@ -285,6 +298,24 @@ export class CDKDeployer implements BackendDeployer {
       },
       { context: contextParams, outdir: this.relativeCloudAssemblyLocation }
     );
+  };
+
+  /**
+   * Get CDK toolkit instance for the given profile. If no profile is passed, it will use the default profile
+   * @deprecated This should be removed in next major version and the profile options from deploy/destroy APIs
+   */
+  private getCdkToolkit = (profile?: string) => {
+    if (!profile) {
+      return this.cdkToolkit;
+    }
+    return new Toolkit({
+      ioHost: this.ioHost,
+      emojis: false,
+      color: false,
+      sdkConfig: {
+        profile,
+      },
+    });
   };
 
   private truncateString = (str: string, size: number) => {

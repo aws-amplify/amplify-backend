@@ -48,6 +48,7 @@ export type SandboxFunctionStreamingOptions = {
 
 export type SandboxDeleteOptions = {
   identifier?: string;
+  profile?: string;
 };
 export type BackendIdSandboxResolver = (
   identifier?: string
