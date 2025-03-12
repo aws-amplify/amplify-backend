@@ -14,7 +14,10 @@ const backend = defineBackend({
 
 const seedRoleStack = backend.createStack('seed-policy');
 
-// this role has AdminAccess because the policies this role can assume are subset of the policies it initially has - it never directly uses AdminAccess
+/**
+ * This role has AdminAccess because the policies this role can assume are subset of the policies it initially has
+ * see: https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html#policies_session
+ */
 const seedRole = new Role(seedRoleStack, 'SeedRole', {
   assumedBy: new AccountPrincipal(seedRoleStack.account),
   path: '/',
