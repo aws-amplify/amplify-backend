@@ -10,6 +10,7 @@ import {
   AmplifyAuth,
   AuthProps,
   TriggerEvent,
+  UserPoolSnsOptions,
 } from '@aws-amplify/auth-construct';
 import {
   AmplifyResourceGroupName,
@@ -35,6 +36,7 @@ import {
   AuthAccessGenerator,
   AuthLoginWithFactoryProps,
   CustomEmailSender,
+  CustomSmsSender,
   Expand,
 } from './types.js';
 import { UserPoolAccessPolicyFactory } from './userpool_access_policy_factory.js';
@@ -73,9 +75,10 @@ export type AmplifyAuthProps = Expand<
      * Configure email sender options
      */
     senders?: {
-      email:
+      email?:
         | Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'>
         | CustomEmailSender;
+      sms?: UserPoolSnsOptions | CustomSmsSender;
     };
   }
 >;

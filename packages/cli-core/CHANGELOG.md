@@ -1,5 +1,50 @@
 # @aws-amplify/cli-core
 
+## 1.4.0
+
+### Minor Changes
+
+- af90a9b: Add notices schema
+
+### Patch Changes
+
+- Updated dependencies [dafb530]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+
+## 1.3.0
+
+### Minor Changes
+
+- 7348f29: Refactor printer to use ora and add two new APIs
+
+### Patch Changes
+
+- cdb5156: Bumps [@inquirer/prompts](https://github.com/SBoudrias/Inquirer.js) from 3.3.2 to 7.3.2.
+- f6171a2: update start spinner api to accept the id instead of generating a new
+
+## 1.2.4
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+- Updated dependencies [bc07307]
+  - @aws-amplify/platform-core@1.6.2
+
+## 1.2.3
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+
+## 1.2.2
+
+### Patch Changes
+
+- 2dab201: Report cdk versions
+- Updated dependencies [2dab201]
+  - @aws-amplify/platform-core@1.6.0
+
 ## 1.2.1
 
 ### Patch Changes

@@ -255,6 +255,20 @@ void describe('AmplifyError.fromError', async () => {
       );
     });
   });
+  void it('wraps request signature related errors in AmplifyUserError', () => {
+    const error = new Error(
+      'The request signature we calculated does not match the signature you provided.'
+    );
+    ['InvalidSignatureException', 'SignatureDoesNotMatch'].forEach((name) => {
+      error.name = name;
+      const actual = AmplifyError.fromError(error);
+      assert.ok(
+        AmplifyError.isAmplifyError(actual) &&
+          actual.name === 'RequestSignatureError',
+        `Failed the test while wrapping error ${name}`
+      );
+    });
+  });
   void it('wraps InsufficientDiskSpaceError in AmplifyUserError', () => {
     const insufficientDiskSpaceErrors = [
       new Error(
@@ -280,7 +294,7 @@ void describe('AmplifyError.fromError', async () => {
     assert.deepStrictEqual(error, actual);
     assert.strictEqual(actual.resolution, error.resolution);
   });
-  void it('wraps InsufficientMemorySpaceError in AmplifyUserError', () => {
+  void it('wraps InsufficientMemorySpaceError in AmplifyUserError when process runs out of memory', () => {
     const error = new Error(
       'FATAL ERROR: Zone Allocation failed - process out of memory.'
     );
@@ -288,6 +302,28 @@ void describe('AmplifyError.fromError', async () => {
     assert.ok(
       AmplifyError.isAmplifyError(actual) &&
         actual.name === 'InsufficientMemorySpaceError',
+      `Failed the test for error ${error.message}`
+    );
+  });
+  void it('wraps InsufficientMemorySpaceError in AmplifyUserError when connection cannot be established due to lack of memory', () => {
+    const error = new Error(
+      'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)'
+    );
+    const actual = AmplifyError.fromError(error);
+    assert.ok(
+      AmplifyError.isAmplifyError(actual) &&
+        actual.name === 'InsufficientMemorySpaceError',
+      `Failed the test for error ${error.message}`
+    );
+  });
+  void it('wraps InsufficientInotifyWatchersError in AmplifyUserError when system has reached the limit of inotify watchers', () => {
+    const error = new Error(
+      `Error: inotify_add_watch on '/some/path' failed: No space left on device`
+    );
+    const actual = AmplifyError.fromError(error);
+    assert.ok(
+      AmplifyError.isAmplifyError(actual) &&
+        actual.name === 'InsufficientInotifyWatchersError',
       `Failed the test for error ${error.message}`
     );
   });

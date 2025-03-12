@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, it, mock } from 'node:test';
 import path from 'path';
-import watcher from '@parcel/watcher';
+import watcher, { subscribe as _subscribe } from '@parcel/watcher';
 import {
   CDK_DEFAULT_BOOTSTRAP_VERSION_PARAMETER_NAME,
   FileWatchingSandbox,
@@ -36,10 +36,15 @@ import {
   SSMClient,
   SSMServiceException,
 } from '@aws-sdk/client-ssm';
+import { EOL } from 'os';
 
 // Watcher mocks
 const unsubscribeMockFn = mock.fn();
-const subscribeMock = mock.method(watcher, 'subscribe', async () => {
+const subscribeMock = mock.fn<
+  (
+    ...args: Parameters<typeof _subscribe>
+  ) => Promise<{ unsubscribe: typeof unsubscribeMockFn }>
+>(async () => {
   return { unsubscribe: unsubscribeMockFn };
 });
 const packageManagerControllerFactory = new PackageManagerControllerFactory(
@@ -147,7 +152,8 @@ void describe('Sandbox to check if region is bootstrapped', () => {
       ssmClientMock,
       functionsLogStreamerMock as unknown as LambdaFunctionLogStreamer,
       printer as unknown as Printer,
-      openMock as never
+      openMock as never,
+      subscribeMock as never
     );
 
     ssmClientSendMock.mock.resetCalls();
@@ -190,7 +196,11 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     assert.strictEqual(printer.log.mock.callCount(), 1);
     assert.strictEqual(
       printer.log.mock.calls[0].arguments[0],
-      'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.'
+      `The region ${format.highlight(
+        region
+      )} has not been bootstrapped. Sign in to the AWS console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use ${format.command(
+        '--profile <profile-name>'
+      )} to specify a profile with the correct region.`
     );
     assert.strictEqual(printer.log.mock.calls[0].arguments[1], undefined);
   });
@@ -221,7 +231,11 @@ void describe('Sandbox to check if region is bootstrapped', () => {
     assert.strictEqual(printer.log.mock.callCount(), 3);
     assert.strictEqual(
       printer.log.mock.calls[0].arguments[0],
-      'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.'
+      `The region ${format.highlight(
+        region
+      )} has not been bootstrapped. Sign in to the AWS console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use ${format.command(
+        '--profile <profile-name>'
+      )} to specify a profile with the correct region.`
     );
     assert.strictEqual(printer.log.mock.calls[0].arguments[1], undefined);
     assert.strictEqual(
@@ -1163,7 +1177,8 @@ const setupAndStartSandbox = async (
     testData.ssmClient,
     testData.functionsLogStreamer,
     printer as unknown as Printer,
-    testData.open ?? _open
+    testData.open ?? _open,
+    subscribeMock as never
   );
 
   await sandboxInstance.start(sandboxOptions);

@@ -101,6 +101,7 @@ export class GenerateOutputsCommand
         describe: 'A git branch of the Amplify project',
         type: 'string',
         array: false,
+        implies: 'app-id',
         group: 'Project identifier',
       })
       .option('format', {

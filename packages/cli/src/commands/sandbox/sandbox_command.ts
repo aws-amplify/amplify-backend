@@ -286,7 +286,7 @@ export class SandboxCommand
     try {
       stats = await fsp.stat(dir, {});
     } catch (e) {
-      throw new Error(`--${option} ${dir} does not exist`);
+      throw new Error(`--${option} ${dir} does not exist`, { cause: e });
     }
     if (!stats.isDirectory()) {
       throw new Error(`--${option} ${dir} is not a valid directory`);

@@ -48,7 +48,8 @@ export type AuthProps = {
         externalProviders?: ExternalProviderOptions;
     };
     senders?: {
-        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
+        email?: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
+        sms?: UserPoolSnsOptions | CustomSmsSender;
     };
     userAttributes?: UserAttributes;
     multifactor?: MFA;
@@ -87,6 +88,12 @@ export type CustomAttributeString = CustomAttributeBase & StringAttributeConstra
 
 // @public
 export type CustomEmailSender = {
+    handler: IFunction;
+    kmsKeyArn?: string;
+};
+
+// @public
+export type CustomSmsSender = {
     handler: IFunction;
     kmsKeyArn?: string;
 };
@@ -179,6 +186,13 @@ export const triggerEvents: readonly ["createAuthChallenge", "customMessage", "d
 
 // @public
 export type UserAttributes = StandardAttributes & Record<`custom:${string}`, CustomAttribute>;
+
+// @public
+export type UserPoolSnsOptions = {
+    readonly externalId?: string;
+    readonly snsCallerArn?: string;
+    readonly snsRegion?: string;
+};
 
 // @public (undocumented)
 export type VerificationEmailWithCode = {

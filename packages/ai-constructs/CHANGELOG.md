@@ -1,5 +1,25 @@
 # @aws-amplify/ai-constructs
 
+## 1.2.4
+
+### Patch Changes
+
+- 7d1415e: Adapt unit test to handle new cdk release
+
+## 1.2.3
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+- Updated dependencies [bc07307]
+  - @aws-amplify/platform-core@1.6.2
+
+## 1.2.2
+
+### Patch Changes
+
+- 3603cc7: Include padding from bedrock in AI chunked responses
+
 ## 1.2.1
 
 ### Patch Changes

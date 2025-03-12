@@ -28,6 +28,7 @@ import { ResourceProvider } from '@aws-amplify/plugin-types';
 import { StackProvider } from '@aws-amplify/plugin-types';
 import { TriggerEvent } from '@aws-amplify/auth-construct';
 import { UserPoolSESOptions } from 'aws-cdk-lib/aws-cognito';
+import { UserPoolSnsOptions } from '@aws-amplify/auth-construct';
 
 // @public
 export type ActionIam = 'addUserToGroup' | 'createGroup' | 'createUser' | 'deleteGroup' | 'deleteUser' | 'deleteUserAttributes' | 'disableUser' | 'enableUser' | 'forgetDevice' | 'getDevice' | 'getGroup' | 'getUser' | 'listUsers' | 'listUsersInGroup' | 'listGroups' | 'listDevices' | 'listGroupsForUser' | 'removeUserFromGroup' | 'resetUserPassword' | 'setUserMfaPreference' | 'setUserPassword' | 'setUserSettings' | 'updateDeviceStatus' | 'updateGroup' | 'updateUserAttributes';
@@ -47,7 +48,8 @@ export type AmplifyAuthProps = Expand<Omit<AuthProps, 'outputStorageStrategy' | 
     triggers?: Partial<Record<TriggerEvent, ConstructFactory<ResourceProvider<FunctionResources>>>>;
     access?: AuthAccessGenerator;
     senders?: {
-        email: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
+        email?: Pick<UserPoolSESOptions, 'fromEmail' | 'fromName' | 'replyTo'> | CustomEmailSender;
+        sms?: UserPoolSnsOptions | CustomSmsSender;
     };
 }>;
 
@@ -99,6 +101,12 @@ export type BackendReferenceAuth = ResourceProvider<ReferenceAuthResources> & Re
 
 // @public
 export type CustomEmailSender = {
+    handler: ConstructFactory<AmplifyFunction> | IFunction;
+    kmsKeyArn?: string;
+};
+
+// @public
+export type CustomSmsSender = {
     handler: ConstructFactory<AmplifyFunction> | IFunction;
     kmsKeyArn?: string;
 };

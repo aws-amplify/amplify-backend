@@ -400,10 +400,28 @@ const testErrorMappings = [
     expectedDownstreamErrorMessage: `error Command cdk not found. Did you mean cdl?`,
   },
   {
-    errorMessage: `[31m  amplify-some-stack failed: ValidationError: Stack:stack-arn is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
+    errorMessage: `[31mamplify-some-stack [34m failed: ValidationError: Stack:<stack-arn> is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
     expectedTopLevelErrorMessage:
       'The CloudFormation deployment failed due to amplify-some-stack being in UPDATE_ROLLBACK_FAILED state.',
     errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `[31mamplifysomestack [34m failed: ValidationError: Stack:<stack-arn> is in UPDATE_ROLLBACK_FAILED state and can not be updated.`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      'The CloudFormation deployment failed due to amplifysomestack being in UPDATE_ROLLBACK_FAILED state.',
+    errorName: 'CloudFormationDeploymentError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    // eslint-disable-next-line spellcheck/spell-checker
+    errorMessage: `[1mamplifysomebranch [22m failed: ValidationError: Stack [amplifysomebranch] cannot be deleted while TerminationProtection is enabled`,
+    expectedTopLevelErrorMessage:
+      // eslint-disable-next-line spellcheck/spell-checker
+      'amplifysomebranch cannot be deleted because it has termination deployment enabled.',
+    errorName: 'CloudFormationDeletionError',
     expectedDownstreamErrorMessage: undefined,
   },
   {
@@ -424,6 +442,13 @@ const testErrorMappings = [
     errorMessage: `User: <bootstrap-exec-role-arn> is not authorized to perform: lambda:GetLayerVersion on resource: <resource-arn> because no resource-based policy allows the lambda:GetLayerVersion action`,
     expectedTopLevelErrorMessage: 'Unable to get Lambda layer version',
     errorName: 'GetLambdaLayerVersionError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: `amplify-some-stack [22m failed: _ToolkitError: Found 2 problem(s) with the schema: The input value type 'string' is not present when resolving type 'TaskInput' [@78:1] The field type 'TaskInstanceStatus' is not present when resolving type 'Task' [@25:1]`,
+    expectedTopLevelErrorMessage:
+      '2 problem(s) have been found with your schema',
+    errorName: 'SchemaError',
     expectedDownstreamErrorMessage: undefined,
   },
   {
@@ -684,6 +709,37 @@ npm error enoent`,
     expectedTopLevelErrorMessage:
       'Backend failed to be deleted since the previous deployment is still in progress.',
     errorName: 'DeleteFailedWhileDeploymentInProgressError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage: 'connect ENOMEM 123.3.789.14:443 - Local (0.0.0.0:0)',
+    expectedTopLevelErrorMessage:
+      'Unable to connect to remote address 123.3.789.14 due to insufficient memory.',
+    errorName: 'InsufficientMemorySpaceError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      "ENOENT: no such file or directory, open '/Users/myUser/nonExistingFile'",
+    expectedTopLevelErrorMessage:
+      "Failed to open '/Users/myUser/nonExistingFile'",
+    errorName: 'FileNotFoundError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      "ENOENT: no such file or directory, open '/Users/myUser/.amplify/artifacts/cdk.out/manifest.json'",
+    expectedTopLevelErrorMessage:
+      'The Amplify backend definition is missing `defineBackend` call.',
+    errorName: 'MissingDefineBackendError',
+    expectedDownstreamErrorMessage: undefined,
+  },
+  {
+    errorMessage:
+      'Error: <escaped stack>: The request signature we calculated does not match the signature you provided. Check your AWS Secret Access Key and signing method. Consult the service documentation for details.',
+    expectedTopLevelErrorMessage:
+      'The request signature we calculated does not match the signature you provided.',
+    errorName: 'RequestSignatureError',
     expectedDownstreamErrorMessage: undefined,
   },
 ];

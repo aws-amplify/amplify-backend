@@ -22,6 +22,20 @@ export type ConversationMessage = {
 export type ConversationMessageContentBlock =
   | bedrock.ContentBlock
   | {
+      image?: never;
+      // These are needed so that union with other content block types works.
+      // See https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-bedrock-runtime/TypeAlias/ContentBlock/.
+      text?: never;
+      document: Omit<bedrock.DocumentBlock, 'source'> & {
+        // Upstream (Appsync) may send documents in a form of Base64 encoded strings
+        source: { bytes: string };
+      };
+      toolUse?: never;
+      toolResult?: never;
+      guardContent?: never;
+      $unknown?: never;
+    }
+  | {
       image: Omit<bedrock.ImageBlock, 'source'> & {
         // Upstream (Appsync) may send images in a form of Base64 encoded strings
         source: { bytes: string };
@@ -106,6 +120,11 @@ export type StreamingResponseChunk = {
   associatedUserMessageId: string;
   contentBlockIndex: number;
   accumulatedTurnContent: Array<bedrock.ContentBlock>;
+
+  // optional padding
+  // it is a random string included in text chunks,
+  // the value does not matter, but we need to pass it through to AppSync
+  p?: string;
 } & (
   | {
       // text chunk

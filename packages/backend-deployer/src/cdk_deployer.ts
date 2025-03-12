@@ -190,6 +190,7 @@ export class CDKDeployer implements BackendDeployer {
     try {
       await childProcess;
       return cdkOutput;
+      // eslint-disable-next-line amplify-backend-rules/propagate-error-cause
     } catch (error) {
       // swallow execa error if the cdk cli ran and produced some stderr.
       // Most of the time this error is noise(basically child exited with exit code...)
@@ -237,7 +238,7 @@ export class CDKDeployer implements BackendDeployer {
         ],
         { redirectStdoutToStderr: true } // TSC prints errors to stdout by default
       );
-    } catch (error) {
+    } catch {
       // If we cannot load ts config, turn off type checking
       return;
     }

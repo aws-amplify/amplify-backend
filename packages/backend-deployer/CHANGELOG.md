@@ -1,5 +1,53 @@
 # @aws-amplify/backend-deployer
 
+## 1.1.19
+
+### Patch Changes
+
+- ca9d732: added/updated ValidationError mappings
+- aec5e08: Handle signature mismatch error
+- Updated dependencies [dafb530]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+
+## 1.1.18
+
+### Patch Changes
+
+- 920f128: updated mapping with schema errors from toolkit
+
+## 1.1.17
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+- Updated dependencies [bc07307]
+  - @aws-amplify/platform-core@1.6.2
+
+## 1.1.16
+
+### Patch Changes
+
+- a7ae994: wrap more instances of ENOENT type errors
+- ec7826d: Handle connect ENOMEM error
+- Updated dependencies [ec7826d]
+  - @aws-amplify/platform-core@1.6.1
+
+## 1.1.15
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+
+## 1.1.14
+
+### Patch Changes
+
+- 2dab201: Report cdk versions
+- Updated dependencies [2dab201]
+  - @aws-amplify/platform-core@1.6.0
+  - @aws-amplify/plugin-types@1.8.0
+
 ## 1.1.13
 
 ### Patch Changes

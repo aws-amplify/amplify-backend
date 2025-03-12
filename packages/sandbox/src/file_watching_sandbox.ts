@@ -1,5 +1,5 @@
 import debounce from 'debounce-promise';
-import parcelWatcher, { subscribe } from '@parcel/watcher';
+import { subscribe as _subscribe } from '@parcel/watcher';
 import { AmplifySandboxExecutor } from './sandbox_executor.js';
 import {
   BackendIdSandboxResolver,
@@ -37,6 +37,7 @@ import {
   BackendIdentifierConversions,
 } from '@aws-amplify/platform-core';
 import { LambdaFunctionLogStreamer } from './lambda_function_log_streamer.js';
+import { EOL } from 'os';
 
 /**
  * CDK stores bootstrap version in parameter store. Example parameter name looks like /cdk-bootstrap/<qualifier>/version.
@@ -66,7 +67,7 @@ export const getBootstrapUrl = (region: string) =>
  * Runs a file watcher and deploys
  */
 export class FileWatchingSandbox extends EventEmitter implements Sandbox {
-  private watcherSubscription: Awaited<ReturnType<typeof subscribe>>;
+  private watcherSubscription: Awaited<ReturnType<typeof _subscribe>>;
   private outputFilesExcludedFromWatch = ['.amplify'];
   private filesChangesTracker: FilesChangesTracker;
 
@@ -79,7 +80,8 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     private readonly ssmClient: SSMClient,
     private readonly functionsLogStreamer: LambdaFunctionLogStreamer,
     private readonly printer: Printer,
-    private readonly open = _open
+    private readonly open = _open,
+    private readonly subscribe = _subscribe
   ) {
     process.once('SIGINT', () => void this.stop());
     process.once('SIGTERM', () => void this.stop());
@@ -120,12 +122,16 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
 
     this.filesChangesTracker = await createFilesChangesTracker(watchDir);
     const bootstrapped = await this.isBootstrapped();
+    // get region from an available sdk client;
+    const region = await this.ssmClient.config.region();
     if (!bootstrapped) {
       this.printer.log(
-        'The given region has not been bootstrapped. Sign in to console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.'
+        `The region ${format.highlight(
+          region
+        )} has not been bootstrapped. Sign in to the AWS console as a Root user or Admin to complete the bootstrap process, then restart the sandbox.${EOL}If this is not the region you are expecting to bootstrap, check for any AWS environment variables that may be set in your shell or use ${format.command(
+          '--profile <profile-name>'
+        )} to specify a profile with the correct region.`
       );
-      // get region from an available sdk client;
-      const region = await this.ssmClient.config.region();
       const bootstrapUrl = getBootstrapUrl(region);
       try {
         await this.open(bootstrapUrl);
@@ -197,7 +203,7 @@ export class FileWatchingSandbox extends EventEmitter implements Sandbox {
     });
 
     if (watchForChanges) {
-      this.watcherSubscription = await parcelWatcher.subscribe(
+      this.watcherSubscription = await this.subscribe(
         watchDir,
         async (_, events) => {
           // Log and track file changes.

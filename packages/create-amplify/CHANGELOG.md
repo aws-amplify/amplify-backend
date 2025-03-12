@@ -1,5 +1,46 @@
 # create-amplify
 
+## 1.0.11
+
+### Patch Changes
+
+- 80f0253: switch to using default_packages.json
+- d4e2f0e: unignore default_packages.json
+- Updated dependencies [dafb530]
+- Updated dependencies [af90a9b]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+  - @aws-amplify/cli-core@1.4.0
+
+## 1.0.10
+
+### Patch Changes
+
+- 7348f29: Refactor printer to use ora and add two new APIs
+- 858e418: add default_packages.json
+- Updated dependencies [cdb5156]
+- Updated dependencies [7348f29]
+- Updated dependencies [f6171a2]
+  - @aws-amplify/cli-core@1.3.0
+
+## 1.0.9
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- Updated dependencies [ff2f2ce]
+  - @aws-amplify/cli-core@1.2.3
+
+## 1.0.8
+
+### Patch Changes
+
+- 2dab201: Report cdk versions
+- Updated dependencies [2dab201]
+  - @aws-amplify/cli-core@1.2.2
+  - @aws-amplify/platform-core@1.6.0
+  - @aws-amplify/plugin-types@1.8.0
+
 ## 1.0.7
 
 ### Patch Changes

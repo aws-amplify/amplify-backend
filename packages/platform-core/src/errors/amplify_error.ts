@@ -78,7 +78,7 @@ export abstract class AmplifyError<T extends string = string> extends Error {
       return classification === 'ERROR'
         ? new AmplifyUserError(name, options, serializedCause)
         : new AmplifyFault(name, options, serializedCause);
-    } catch (error) {
+    } catch {
       // cannot deserialize
       return undefined;
     }
@@ -121,6 +121,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           message: errorMessage,
           resolution:
             'Ensure your AWS credentials are correctly set and refreshed.',
+        },
+        error
+      );
+    }
+    if (error instanceof Error && isRequestSignatureError(error)) {
+      return new AmplifyUserError(
+        'RequestSignatureError',
+        {
+          message: errorMessage,
+          resolution:
+            'You can retry your last request, check if your system time is synchronized (clock skew) or ensure your AWS credentials are correctly set and refreshed.',
         },
         error
       );
@@ -179,6 +190,17 @@ export abstract class AmplifyError<T extends string = string> extends Error {
           message: error.message,
           resolution:
             'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
+        },
+        error
+      );
+    }
+    if (error instanceof Error && isInotifyError(error)) {
+      return new AmplifyUserError(
+        'InsufficientInotifyWatchersError',
+        {
+          message: error.message,
+          resolution:
+            'There appears to be an insufficient number of inotify watchers. To increase the amount of inotify watchers, change the `fs.inotify.max_user_watches` setting in your system config files to a higher value.',
         },
         error
       );
@@ -268,6 +290,13 @@ const isCredentialsError = (err?: Error): boolean => {
   );
 };
 
+const isRequestSignatureError = (err?: Error): boolean => {
+  return (
+    !!err &&
+    ['InvalidSignatureException', 'SignatureDoesNotMatch'].includes(err.name)
+  );
+};
+
 // These validation messages are taken from https://github.com/yargs/yargs/blob/0c95f9c79e1810cf9c8964fbf7d139009412f7e7/lib/validation.ts
 const isYargsValidationError = (err?: Error): boolean => {
   return (
@@ -305,7 +334,15 @@ const isInsufficientDiskSpaceError = (err?: Error): boolean => {
 };
 
 const isOutOfMemoryError = (err?: Error): boolean => {
-  return !!err && err.message.includes('process out of memory');
+  return (
+    !!err &&
+    (err.message.includes('process out of memory') ||
+      err.message.includes('connect ENOMEM'))
+  );
+};
+
+const isInotifyError = (err?: Error): boolean => {
+  return !!err && err.message.includes('inotify_add_watch');
 };
 
 /**

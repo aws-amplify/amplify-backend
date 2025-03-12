@@ -1,10 +1,11 @@
 import path from 'node:path';
-import { after, before, beforeEach, describe, it } from 'node:test';
+import { after, before, beforeEach, describe, it, mock } from 'node:test';
 import fs from 'fs/promises';
 import { ProfileController } from './profile_controller.js';
 import assert from 'node:assert';
 import { loadSharedConfigFiles } from '@smithy/shared-ini-file-loader';
 import { EOL } from 'node:os';
+import { AmplifyUserError } from '@aws-amplify/platform-core';
 
 const testAccessKeyId = 'testAccessKeyId';
 const testSecretAccessKey = 'testSecretAccessKey';
@@ -292,6 +293,98 @@ void describe('profile controller', () => {
         'utf-8'
       );
       assert.equal(await profileController.profileExists(testProfile), true);
+    });
+  });
+
+  void describe('Missing permissions on config file', () => {
+    let testDir: string;
+    let configFilePath: string;
+    let credFilePath: string;
+
+    const fsMock = {
+      readFile: mock.fn<
+        (path: string, encoding: BufferEncoding) => Promise<void | string>
+      >(() => Promise.resolve()),
+      appendFile: mock.fn<() => Promise<void>>(() => Promise.resolve()),
+    };
+
+    const profileController = new ProfileController(
+      fsMock as unknown as typeof fs
+    );
+
+    before(async () => {
+      testDir = await fs.mkdtemp('amplify_cmd_test');
+      configFilePath = path.join(process.cwd(), testDir, 'config');
+      credFilePath = path.join(process.cwd(), testDir, 'credentials');
+
+      process.env.AWS_CONFIG_FILE = configFilePath;
+      process.env.AWS_SHARED_CREDENTIALS_FILE = credFilePath;
+
+      fsMock.readFile.mock.resetCalls();
+      fsMock.appendFile.mock.resetCalls();
+    });
+
+    after(async () => {
+      await fs.rm(testDir, { recursive: true, force: true });
+      delete process.env.AWS_CONFIG_FILE;
+      delete process.env.AWS_SHARED_CREDENTIALS_FILE;
+    });
+
+    void it('throws error if config file already exists and is missing read permissions', async () => {
+      const expectedErr = new AmplifyUserError('PermissionsError', {
+        message: `You do not have the permissions to read this file: ${configFilePath}.`,
+        resolution: `Ensure that you have the right permissions to read from ${configFilePath}.`,
+      });
+
+      fsMock.readFile.mock.mockImplementationOnce(() =>
+        Promise.reject(new Error('EACCES: Permission denied'))
+      );
+
+      await assert.rejects(
+        async () =>
+          profileController.createOrAppendAWSFiles({
+            profile: testProfile2,
+            region: testRegion2,
+            accessKeyId: testAccessKeyId2,
+            secretAccessKey: testSecretAccessKey2,
+          }),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(error.name, expectedErr.name);
+          assert.strictEqual(error.message, expectedErr.message);
+          assert.strictEqual(error.resolution, expectedErr.resolution);
+          return true;
+        }
+      );
+    });
+
+    void it('throws error if config file already exists and is missing write permissions', async () => {
+      const expectedErr = new AmplifyUserError('PermissionsError', {
+        message: `You do not have the permissions to write to this file: ${configFilePath}`,
+        resolution: `Ensure that you have the right permissions to write to ${configFilePath}.`,
+      });
+
+      fsMock.readFile.mock.mockImplementationOnce(
+        (path: string, encoding: BufferEncoding) => fs.readFile(path, encoding)
+      );
+      fsMock.appendFile.mock.mockImplementationOnce(() =>
+        Promise.reject(new Error('EACCES: Permission denied'))
+      );
+
+      await assert.rejects(
+        async () =>
+          profileController.createOrAppendAWSFiles({
+            profile: testProfile2,
+            region: testRegion2,
+            accessKeyId: testAccessKeyId2,
+            secretAccessKey: testSecretAccessKey2,
+          }),
+        (error: AmplifyUserError) => {
+          assert.strictEqual(error.name, expectedErr.name);
+          assert.strictEqual(error.message, expectedErr.message);
+          assert.strictEqual(error.resolution, expectedErr.resolution);
+          return true;
+        }
+      );
     });
   });
 });

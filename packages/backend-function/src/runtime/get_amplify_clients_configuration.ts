@@ -171,11 +171,13 @@ export const getAmplifyDataClientConfig = async (
   } catch (caught) {
     if (caught instanceof NoSuchKey) {
       throw new Error(
-        'Error retrieving the schema from S3. Please confirm that your project has a `defineData` included in the `defineBackend` definition.'
+        'Error retrieving the schema from S3. Please confirm that your project has a `defineData` included in the `defineBackend` definition.',
+        { cause: caught }
       );
     } else if (caught instanceof S3ServiceException) {
       throw new Error(
-        `Error retrieving the schema from S3. You may need to grant this function authorization on the schema. ${caught.name}: ${caught.message}.`
+        `Error retrieving the schema from S3. You may need to grant this function authorization on the schema. ${caught.name}: ${caught.message}.`,
+        { cause: caught }
       );
     } else {
       throw caught;

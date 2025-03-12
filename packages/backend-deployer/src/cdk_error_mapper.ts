@@ -108,6 +108,16 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex:
+        /The request signature we calculated does not match the signature you provided/,
+      humanReadableErrorMessage:
+        'The request signature we calculated does not match the signature you provided.',
+      resolutionMessage:
+        'You can retry your last request, check if your system time is synchronized (clock skew) or ensure your AWS credentials are correctly set and refreshed.',
+      errorName: 'RequestSignatureError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: /Access Denied/,
       humanReadableErrorMessage:
         'The deployment role does not have sufficient permissions to perform this deployment.',
@@ -304,6 +314,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /Found (?<number>.*) problem\(s\) with the schema:/,
+      humanReadableErrorMessage:
+        '{number} problem(s) have been found with your schema',
+      resolutionMessage:
+        'See the underlying error message for details about what the problems are and resolve them before attempting this action again',
+      errorName: 'SchemaError',
+      classification: 'ERROR',
+    },
+    {
       // Also extracts the first line in the stack where the error happened
       errorRegex: new RegExp(
         `\\[esbuild Error\\]: ((?:.|${this.multiLineEolRegex})*?at .*)`
@@ -388,6 +407,15 @@ export class CdkErrorMapper {
       classification: 'ERROR',
     },
     {
+      errorRegex: /connect ENOMEM (?<remoteAddress>\d+\.\d+\.\d+\.\d+).*/,
+      humanReadableErrorMessage:
+        'Unable to connect to remote address {remoteAddress} due to insufficient memory.',
+      resolutionMessage:
+        'There appears to be insufficient memory on your system to finish. Close other applications or restart your system and try again.',
+      errorName: 'InsufficientMemorySpaceError',
+      classification: 'ERROR',
+    },
+    {
       errorRegex: new RegExp(
         `npm error code EJSONPARSE${this.multiLineEolRegex}npm error path (?<filePath>.*/package\\.json)${this.multiLineEolRegex}(npm error (.*)${this.multiLineEolRegex})*`
       ),
@@ -425,12 +453,21 @@ export class CdkErrorMapper {
       // During 'cdk synth' CDK CLI attempts to read CDK assembly after calling customer's app.
       // But no files are rendered causing it to fail.
       errorRegex:
-        /ENOENT: no such file or directory, open '\.amplify.artifacts.cdk\.out.manifest\.json'/,
+        /ENOENT: no such file or directory, open '.*\.amplify.artifacts.cdk\.out.manifest\.json'/,
       humanReadableErrorMessage:
         'The Amplify backend definition is missing `defineBackend` call.',
       resolutionMessage:
         'Check your backend definition in the `amplify` folder. Ensure that `amplify/backend.ts` contains `defineBackend` call.',
       errorName: 'MissingDefineBackendError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /^ENOENT: no such file or directory, (?<action_and_filepath>.*)$/,
+      humanReadableErrorMessage: 'Failed to {action_and_filepath}',
+      resolutionMessage:
+        'File or directory not found. Failed to {action_and_filepath}',
+      errorName: 'FileNotFoundError',
       classification: 'ERROR',
     },
     {
@@ -523,12 +560,22 @@ If your circular dependency issue is not resolved with this workaround, please c
     },
     {
       errorRegex:
-        /(?<stackName>amplify-[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
+        /(?<stackName>amplify[a-z0-9-]+)(.*) failed: ValidationError: Stack:(.*) is in (?<state>.*) state and can not be updated/,
       humanReadableErrorMessage:
         'The CloudFormation deployment failed due to {stackName} being in {state} state.',
       resolutionMessage:
         'Find more information in the CloudFormation AWS Console for this stack.',
       errorName: 'CloudFormationDeploymentError',
+      classification: 'ERROR',
+    },
+    {
+      errorRegex:
+        /failed: ValidationError: Stack \[(?<stackName>amplify[a-z0-9-]+)(.*)\] cannot be deleted while TerminationProtection is enabled/,
+      humanReadableErrorMessage:
+        '{stackName} cannot be deleted because it has termination deployment enabled.',
+      resolutionMessage:
+        'If you are sure you want to delete {stackName}, you will need to disable TerminationProtection.',
+      errorName: 'CloudFormationDeletionError',
       classification: 'ERROR',
     },
     {
@@ -570,11 +617,15 @@ export type CDKDeploymentError =
   | 'ESBuildError'
   | 'ExpiredTokenError'
   | 'FileConventionError'
+  | 'FileNotFoundError'
   | 'ModuleNotFoundError'
+  | 'InsufficientMemorySpaceError'
   | 'InvalidOrCannotAssumeRoleError'
   | 'InvalidPackageJsonError'
+  | 'SchemaError'
   | 'SecretNotSetError'
   | 'SyntaxError'
   | 'GetLambdaLayerVersionError'
   | 'LambdaEmptyZipFault'
-  | 'LambdaMaxSizeExceededError';
+  | 'LambdaMaxSizeExceededError'
+  | 'RequestSignatureError';

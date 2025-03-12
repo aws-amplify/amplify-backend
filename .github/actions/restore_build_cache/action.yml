@@ -4,7 +4,9 @@ inputs:
   node-version:
     description: node version used to configure environment with
     required: true
-  cdk-version:
+  cdk-lib-version:
+    required: true
+  cdk-cli-version:
     required: true
 runs:
   using: composite
@@ -15,8 +17,12 @@ runs:
     - name: Validate input
       shell: bash
       run: |
-        if [ -z "${{ inputs.cdk-version }}" ]; then
-          echo "CDK version must be provided"
+        if [ -z "${{ inputs.cdk-lib-version }}" ]; then
+          echo "CDK Lib version must be provided"
+          exit 1;
+        fi
+        if [ -z "${{ inputs.cdk-cli-version }}" ]; then
+          echo "CDK CLI version must be provided"
           exit 1;
         fi
         if [ -z "${{ inputs.node-version }}" ]; then
@@ -26,12 +32,13 @@ runs:
     - uses: ./.github/actions/restore_install_cache
       with:
         node-version: ${{ inputs.node-version }}
-        cdk-version: ${{ inputs.cdk-version }}
+        cdk-lib-version: ${{ inputs.cdk-lib-version }}
+        cdk-cli-version: ${{ inputs.cdk-cli-version }}
     # restore build output from cache
-    - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # version 4.0.2
+    - uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # version 4.2.0
       id: build-cache
       with:
         path: '**/lib'
-        key: ${{ github.sha }}-node${{ inputs.node-version }}-cdk${{ inputs.cdk-version }}
+        key: ${{ github.sha }}-node${{ inputs.node-version }}-cdklib${{ inputs.cdk-lib-version }}-cdkcli${{ inputs.cdk-cli-version }}
         fail-on-cache-miss: true
         enableCrossOsArchive: true

@@ -52,8 +52,8 @@ for (const packagePath of packagePaths) {
   let tsconfigObject: Record<string, unknown>;
   try {
     tsconfigObject = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8'));
-  } catch {
-    throw new Error(`Failed to parse tsconfig ${tsconfigPath}`);
+  } catch (err) {
+    throw new Error(`Failed to parse tsconfig ${tsconfigPath}`, { cause: err });
   }
 
   repoPackagesInfoRecord[packageJson.name] = {

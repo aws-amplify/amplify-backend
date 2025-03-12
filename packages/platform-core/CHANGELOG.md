@@ -1,5 +1,42 @@
 # @aws-amplify/platform-core
 
+## 1.6.4
+
+### Patch Changes
+
+- dafb530: Bumps [is-ci](https://github.com/watson/is-ci) from 3.0.1 to 4.1.0.
+- aec5e08: Handle signature mismatch error
+
+## 1.6.3
+
+### Patch Changes
+
+- b5f785f: anonymize account id and file paths/stacks in error details for telemetry
+- ce8e4fc: improve anonymization for accountId
+
+## 1.6.2
+
+### Patch Changes
+
+- bc07307: Update code with Eslint@8 compliant
+
+## 1.6.1
+
+### Patch Changes
+
+- ec7826d: Handle connect ENOMEM error
+
+## 1.6.0
+
+### Minor Changes
+
+- 2dab201: Report cdk versions
+
+### Patch Changes
+
+- Updated dependencies [2dab201]
+  - @aws-amplify/plugin-types@1.8.0
+
 ## 1.5.1
 
 ### Patch Changes

@@ -1,5 +1,20 @@
 # @aws-amplify/backend-function
 
+## 1.12.2
+
+### Patch Changes
+
+- 44c3769: paginate getParameter call when there are more than 10 parameters
+- bc07307: Update code with Eslint@8 compliant
+
+## 1.12.1
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- ff2f2ce: catch errors during secret refreshes
+- 501ec56: remove the workaround for no-misused-promises as it broke lambdas execution
+
 ## 1.12.0
 
 ### Minor Changes

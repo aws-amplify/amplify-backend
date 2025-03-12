@@ -82,29 +82,6 @@ void describe('generate outputs command', () => {
     );
   });
 
-  void it('generates and writes config for branch', async () => {
-    await commandRunner.runCommand(
-      'outputs --branch branch_name --out-dir /foo/bar'
-    );
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(generateClientConfigMock.mock.calls[0].arguments[0], {
-      appName: 'testAppName',
-      branchName: 'branch_name',
-    });
-    // I can't find any open node:test or yargs issues that would explain why this is necessary
-    // but for some reason the mock call count does not update without this 0ms wait
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.equal(generateClientConfigMock.mock.callCount(), 1);
-    assert.deepEqual(
-      generateClientConfigMock.mock.calls[0].arguments[1],
-      '1.3' // default version
-    );
-    assert.deepStrictEqual(
-      generateClientConfigMock.mock.calls[0].arguments[2],
-      '/foo/bar'
-    );
-  });
-
   void it('generates and writes config for appID and branch', async () => {
     await commandRunner.runCommand(
       'outputs --branch branch_name --app-id app_id --out-dir /foo/bar'
@@ -247,5 +224,11 @@ void describe('generate outputs command', () => {
       'outputs --stack foo --branch baz'
     );
     assert.match(output, /Arguments .* mutually exclusive/);
+  });
+
+  void it('fails if branch is present but not app id', async () => {
+    const output = await commandRunner.runCommand('outputs --branch baz');
+    assert.match(output, /Missing dependent arguments:/);
+    assert.match(output, /branch -> app-id/);
   });
 });

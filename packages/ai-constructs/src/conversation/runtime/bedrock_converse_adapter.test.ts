@@ -116,6 +116,7 @@ void describe('Bedrock converse adapter', () => {
               contentBlockText: 'b',
               contentBlockIndex: 0,
               contentBlockDeltaIndex: 0,
+              p: 'testPadding',
             },
             {
               accumulatedTurnContent: [
@@ -128,6 +129,7 @@ void describe('Bedrock converse adapter', () => {
               contentBlockText: 'lock1',
               contentBlockIndex: 0,
               contentBlockDeltaIndex: 1,
+              p: 'testPadding',
             },
             {
               accumulatedTurnContent: [
@@ -154,6 +156,7 @@ void describe('Bedrock converse adapter', () => {
               contentBlockText: 'b',
               contentBlockIndex: 1,
               contentBlockDeltaIndex: 0,
+              p: 'testPadding',
             },
             {
               accumulatedTurnContent: [
@@ -169,6 +172,7 @@ void describe('Bedrock converse adapter', () => {
               contentBlockText: 'lock2',
               contentBlockIndex: 1,
               contentBlockDeltaIndex: 1,
+              p: 'testPadding',
             },
             {
               accumulatedTurnContent: [
@@ -820,6 +824,72 @@ void describe('Bedrock converse adapter', () => {
           },
         ]);
       });
+
+      void it('decodes base64 encoded documents', async () => {
+        const event: ConversationTurnEvent = {
+          ...commonEvent,
+        };
+
+        const fakeDocumentPayload = randomBytes(32);
+
+        messageHistoryRetrieverMockGetEventMessages.mock.mockImplementationOnce(
+          () => {
+            return Promise.resolve([
+              {
+                id: '',
+                conversationId: '',
+                role: 'user',
+                content: [
+                  {
+                    document: {
+                      name: 'test',
+                      format: 'doc',
+                      source: {
+                        bytes: fakeDocumentPayload.toString('base64'),
+                      },
+                    },
+                  },
+                ],
+              },
+            ]);
+          }
+        );
+
+        const bedrockClient = new BedrockRuntimeClient();
+        const content = [{ text: 'block1' }, { text: 'block2' }];
+        const bedrockResponse = mockBedrockResponse(content, streamResponse);
+        const bedrockClientSendMock = mock.method(bedrockClient, 'send', () =>
+          Promise.resolve(bedrockResponse)
+        );
+
+        await new BedrockConverseAdapter(
+          event,
+          [],
+          bedrockClient,
+          undefined,
+          messageHistoryRetriever
+        ).askBedrock();
+
+        assert.strictEqual(bedrockClientSendMock.mock.calls.length, 1);
+        const bedrockRequest = bedrockClientSendMock.mock.calls[0]
+          .arguments[0] as unknown as ConverseCommand;
+        assert.deepStrictEqual(bedrockRequest.input.messages, [
+          {
+            role: 'user',
+            content: [
+              {
+                document: {
+                  format: 'doc',
+                  name: 'test',
+                  source: {
+                    bytes: fakeDocumentPayload,
+                  },
+                },
+              },
+            ],
+          },
+        ]);
+      });
     });
   });
 
@@ -1202,6 +1272,8 @@ const mockConverseStreamCommandOutput = (
             // simulate chunked input
             text: input.substring(0, 1),
           },
+          // @ts-expect-error padding is sent by Bedrock but not in their API.
+          p: 'testPadding',
         },
       });
       if (input.length > 1) {
@@ -1212,6 +1284,8 @@ const mockConverseStreamCommandOutput = (
               // simulate chunked input
               text: input.substring(1),
             },
+            // @ts-expect-error padding is sent by Bedrock but not in their API.
+            p: 'testPadding',
           },
         });
       }

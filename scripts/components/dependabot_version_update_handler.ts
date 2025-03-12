@@ -1,11 +1,15 @@
 import { context as ghContext } from '@actions/github';
 import { Context } from '@actions/github/lib/context.js';
-import fsp from 'fs/promises';
 import { EOL } from 'os';
 import { GitClient } from './git_client.js';
 import { GithubClient } from './github_client.js';
 import { readPackageJson } from './package-json/package_json.js';
 import path from 'path';
+import {
+  BumpType,
+  ChangesetFrontMatterContent,
+  createChangesetFile,
+} from './create_changeset_file.js';
 
 /**
  * Handles the follow up processes of Dependabot opening a version update PR
@@ -75,44 +79,26 @@ export class DependabotVersionUpdateHandler {
       }
     }
 
-    // Create and commit the changeset file, then add the 'run-e2e' label and force push to the PR
+    // Create and commit the changeset file
     const fileName = path.join(
       this._rootDir,
       `.changeset/dependabot-${this._ghContext.payload.pull_request.head.sha}.md`
     );
-    const versionUpdates = await this.getVersionUpdates();
-    await this.createChangesetFile(fileName, versionUpdates, packageNames);
+    const frontMatterContents: ChangesetFrontMatterContent[] = [];
+    packageNames.forEach((name) =>
+      frontMatterContents.push({ packageName: name, bumpType: BumpType.PATCH })
+    );
+    const summary = (await this.getVersionUpdates()).join(EOL);
+    await createChangesetFile(fileName, frontMatterContents, summary);
     await this.gitClient.status();
     await this.gitClient.commitAllChanges('add changeset');
+
+    // add the 'run-e2e' label and force push to the PR
     await this.ghClient.labelPullRequest(
       this._ghContext.payload.pull_request.number,
       ['run-e2e']
     );
     await this.gitClient.push({ force: true });
-  };
-
-  private createChangesetFile = async (
-    fileName: string,
-    versionUpdates: string[],
-    packageNames: string[]
-  ) => {
-    let message = '';
-    let content = '';
-
-    for (const update of versionUpdates) {
-      message += `${update}${EOL}`;
-    }
-
-    const frontmatterContent = packageNames
-      .map((name) => `'${name}': patch`)
-      .join(EOL);
-
-    if (packageNames.length === 0 || versionUpdates.length === 0) {
-      content = `---${EOL}---${EOL}`;
-    } else {
-      content = `---${EOL}${frontmatterContent}${EOL}---${EOL}${EOL}${message.trim()}${EOL}`;
-    }
-    await fsp.writeFile(fileName, content);
   };
 
   private getVersionUpdates = async () => {

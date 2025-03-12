@@ -1,5 +1,45 @@
 # @aws-amplify/backend
 
+## 1.14.2
+
+### Patch Changes
+
+- 3298c3a: update naming of storage access policies to also use stack
+- Updated dependencies [dafb530]
+- Updated dependencies [3298c3a]
+- Updated dependencies [aec5e08]
+  - @aws-amplify/platform-core@1.6.4
+  - @aws-amplify/backend-storage@1.2.5
+
+## 1.14.1
+
+### Patch Changes
+
+- 44c3769: paginate getParameter call when there are more than 10 parameters
+- Updated dependencies [de90deb]
+- Updated dependencies [44c3769]
+- Updated dependencies [bc07307]
+  - @aws-amplify/client-config@1.5.7
+  - @aws-amplify/backend-function@1.12.2
+  - @aws-amplify/platform-core@1.6.2
+
+## 1.14.0
+
+### Minor Changes
+
+- ff2f2ce: add sms configuration and custom sms sender to auth
+
+### Patch Changes
+
+- ff2f2ce: fixed violations to cause propagation lint rule
+- 501ec56: remove the workaround for no-misused-promises as it broke lambdas execution
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [ff2f2ce]
+- Updated dependencies [501ec56]
+  - @aws-amplify/backend-function@1.12.1
+  - @aws-amplify/backend-auth@1.5.0
+
 ## 1.13.0
 
 ### Minor Changes

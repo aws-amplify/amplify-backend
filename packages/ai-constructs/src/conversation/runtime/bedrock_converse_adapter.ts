@@ -239,7 +239,7 @@ export class BedrockConverseAdapter {
               }
             } else if (chunk.contentBlockDelta.delta?.text) {
               text += chunk.contentBlockDelta.delta.text;
-              yield {
+              const amplifyChunk: StreamingResponseChunk = {
                 accumulatedTurnContent: [...accumulatedTurnContent, { text }],
                 conversationId: this.event.conversationId,
                 associatedUserMessageId: this.event.currentMessageId,
@@ -247,6 +247,14 @@ export class BedrockConverseAdapter {
                 contentBlockIndex: blockIndex,
                 contentBlockDeltaIndex: blockDeltaIndex,
               };
+              // padding is sent from Bedrock but not included in the API.
+              if ('p' in chunk.contentBlockDelta) {
+                const bedrockPadding = chunk.contentBlockDelta.p;
+                if (typeof bedrockPadding === 'string') {
+                  amplifyChunk.p = bedrockPadding;
+                }
+              }
+              yield amplifyChunk;
               lastBlockDeltaIndex = blockDeltaIndex;
               blockDeltaIndex++;
             }
@@ -374,6 +382,18 @@ export class BedrockConverseAdapter {
               format: contentElement.image.format,
               source: {
                 bytes: Buffer.from(contentElement.image.source.bytes, 'base64'),
+              },
+            },
+          });
+        } else if (typeof contentElement.document?.source?.bytes === 'string') {
+          messageContent.push({
+            document: {
+              ...contentElement.document,
+              source: {
+                bytes: Buffer.from(
+                  contentElement.document.source.bytes,
+                  'base64'
+                ),
               },
             },
           });
