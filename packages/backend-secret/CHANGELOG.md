@@ -1,5 +1,20 @@
 # @aws-amplify/backend-secret
 
+## 1.2.0
+
+### Minor Changes
+
+- cf79696: feat: add --all flag to remove all secrets in sandbox
+
+### Patch Changes
+
+- 99f5d0b: lint and format with new version of prettier
+- Updated dependencies [99f5d0b]
+- Updated dependencies [fad46a4]
+- Updated dependencies [2102071]
+  - @aws-amplify/platform-core@1.6.5
+  - @aws-amplify/plugin-types@1.8.1
+
 ## 1.1.6
 
 ### Patch Changes
