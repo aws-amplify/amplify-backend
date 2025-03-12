@@ -385,6 +385,18 @@ export class BedrockConverseAdapter {
               },
             },
           });
+        } else if (typeof contentElement.document?.source?.bytes === 'string') {
+          messageContent.push({
+            document: {
+              ...contentElement.document,
+              source: {
+                bytes: Buffer.from(
+                  contentElement.document.source.bytes,
+                  'base64'
+                ),
+              },
+            },
+          });
         } else {
           // Otherwise type conforms to Bedrock's type and it's safe to cast.
           messageContent.push(contentElement as ContentBlock);
