@@ -19,7 +19,7 @@ export class Printer {
     readonly stdout: WriteStream | NodeJS.WritableStream = process.stdout,
     readonly stderr: WriteStream | NodeJS.WritableStream = process.stderr,
     private readonly refreshRate: number = 100,
-    readonly enableTTY = process.env.CI
+    readonly ttyEnabled = process.env.CI
       ? false
       : stdout instanceof WriteStream
       ? stdout.isTTY
@@ -35,7 +35,7 @@ export class Printer {
     if (this.isSpinnerRunning()) {
       this.printNewLine();
     }
-    if (!this.enableTTY) {
+    if (!this.ttyEnabled) {
       message = stripANSI(message);
     }
     this.stdout.write(message);
@@ -88,7 +88,7 @@ export class Printer {
     message: string,
     options: { timeoutSeconds: number } = { timeoutSeconds: 60 }
   ): void => {
-    if (!this.enableTTY) {
+    if (!this.ttyEnabled) {
       // Ora prints messages with a preceding `-` in non-tty console. We avoid it
       this.log(message);
       return;
@@ -106,7 +106,7 @@ export class Printer {
         interval: this.refreshRate,
         discardStdin: false,
         hideCursor: false,
-        isEnabled: this.enableTTY,
+        isEnabled: this.ttyEnabled,
       }).start(),
       timeout: setTimeout(() => {
         this.stopSpinner();
@@ -123,7 +123,7 @@ export class Printer {
    */
   stopSpinner = (successMessage?: string): void => {
     if (this.currentSpinner.instance === undefined) {
-      if (!this.enableTTY && successMessage) {
+      if (!this.ttyEnabled && successMessage) {
         this.print(`${format.success('✔')} ${successMessage}`);
       }
       return;
@@ -146,7 +146,7 @@ export class Printer {
     message?: string;
     prefixText?: string;
   }): void => {
-    if (!this.enableTTY) {
+    if (!this.ttyEnabled) {
       // prefix texts are not displayed in non-tty console by Ora and regular messages have a preceding `-`
       options.prefixText && this.log(options.prefixText);
       options.message && this.log(options.message);
@@ -175,7 +175,7 @@ export class Printer {
    * Clears the console
    */
   clearConsole = () => {
-    if (this.enableTTY) {
+    if (this.ttyEnabled) {
       this.stdout.write('\n'.repeat(process.stdout.rows));
     }
   };

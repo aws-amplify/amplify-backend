@@ -7,44 +7,16 @@
 /// <reference types="node" />
 
 import { AmplifyIOHost } from '@aws-amplify/plugin-types';
-import { AmplifyIoHostEventMessage } from '@aws-amplify/plugin-types';
-import { AmplifyIoHostEventRequestMessageIoRequest } from '@aws-amplify/plugin-types';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { WriteStream } from 'node:tty';
 import z from 'zod';
-
-// @public
-export class AmplifyEventLogger {
-    constructor();
-    // (undocumented)
-    amplifyNotifications: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    // (undocumented)
-    cdkDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    debug: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    fancyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-    // (undocumented)
-    getEventLoggers: () => {
-        notify: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
-    };
-    nonTtyCfnDeploymentProgress: <T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>;
-}
-
-// @public
-export class AmplifyIOEventsBridge implements AmplifyIOHost {
-    constructor(eventHandlers: {
-        notify?: (<T>(msg: AmplifyIoHostEventMessage<T>) => Promise<void>)[];
-        requestResponse?: (<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>) => Promise<U>)[];
-    });
-    notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void>;
-    requestResponse<T, U>(msg: AmplifyIoHostEventRequestMessageIoRequest<T, U>): Promise<U>;
-}
 
 // @public (undocumented)
 export const amplifyIOEventsBridgeFactory: AmplifyIOEventsBridgeSingletonFactory;
 
 // @public
 export class AmplifyIOEventsBridgeSingletonFactory {
-    getInstance: () => AmplifyIOEventsBridge;
+    getInstance: () => AmplifyIOHost;
 }
 
 // @public
@@ -520,10 +492,8 @@ export class PackageManagerControllerFactory {
 
 // @public
 export class Printer {
-    constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, enableTTY?: boolean);
+    constructor(minimumLogLevel: LogLevel, stdout?: WriteStream | NodeJS.WritableStream, stderr?: WriteStream | NodeJS.WritableStream, refreshRate?: number, ttyEnabled?: boolean);
     clearConsole: () => void;
-    // (undocumented)
-    readonly enableTTY: boolean;
     indicateProgress: (message: string, callback: () => Promise<void>, successMessage?: string) => Promise<void>;
     // (undocumented)
     isSpinnerRunning: () => boolean;
@@ -538,6 +508,8 @@ export class Printer {
     // (undocumented)
     readonly stdout: WriteStream | NodeJS.WritableStream;
     stopSpinner: (successMessage?: string) => void;
+    // (undocumented)
+    readonly ttyEnabled: boolean;
     updateSpinner: (options: {
         message?: string;
         prefixText?: string;

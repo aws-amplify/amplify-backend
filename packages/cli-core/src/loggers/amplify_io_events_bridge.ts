@@ -23,14 +23,14 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
   /**
    * Receive amplify events and fan out notifying anyone interested.
    */
-  notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void> {
+  async notify<T>(msg: AmplifyIoHostEventMessage<T>): Promise<void> {
     if (!this.eventHandlers.notify) {
       return Promise.resolve();
     }
     const promises: Promise<void>[] = this.eventHandlers.notify?.flatMap(
       (handler) => handler(msg)
     );
-    return Promise.any(promises);
+    await Promise.all(promises);
   }
 
   /**
@@ -45,7 +45,7 @@ export class AmplifyIOEventsBridge implements AmplifyIOHost {
     const promises: Promise<U>[] = this.eventHandlers.requestResponse.flatMap(
       (handler) => handler(msg)
     );
-    // return the first undefined response if available, else the default response
+    // return the first defined response if available, else the default response
     const response = (await Promise.all(promises)).find((response) => response);
     return response ?? msg.defaultResponse;
   }

@@ -29,7 +29,7 @@ export class AmplifyEventLogger {
       };
     }
     const loggers = [this.amplifyNotifications, this.cdkDeploymentProgress];
-    if (this.printer.enableTTY) {
+    if (this.printer.ttyEnabled) {
       loggers.push(this.fancyCfnDeploymentProgress);
     } else {
       loggers.push(this.nonTtyCfnDeploymentProgress);

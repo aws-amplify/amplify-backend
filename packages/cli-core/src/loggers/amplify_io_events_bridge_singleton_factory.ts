@@ -1,5 +1,6 @@
 import { AmplifyIOEventsBridge } from './amplify_io_events_bridge.js';
 import { AmplifyEventLogger } from './amplify_event_loggers.js';
+import { AmplifyIOHost } from '@aws-amplify/plugin-types';
 
 /**
  * Create a singleton for the AmplifyIOEventsBridge. There should
@@ -11,7 +12,7 @@ export class AmplifyIOEventsBridgeSingletonFactory {
   /**
    * Returns a singleton instance of a AmplifyIOEventsBridge
    */
-  getInstance = (): AmplifyIOEventsBridge => {
+  getInstance = (): AmplifyIOHost => {
     if (!this.instance) {
       const cdkEventLogger = new AmplifyEventLogger();
       this.instance = new AmplifyIOEventsBridge(
