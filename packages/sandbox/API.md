@@ -11,6 +11,7 @@ import { ClientConfigFormat } from '@aws-amplify/client-config';
 import EventEmitter from 'events';
 import { Format } from '@aws-amplify/cli-core';
 import { Printer } from '@aws-amplify/cli-core';
+import { SDKProfileResolver } from '@aws-amplify/plugin-types';
 
 // @public (undocumented)
 export type BackendIdSandboxResolver = (identifier?: string) => Promise<BackendIdentifier>;
@@ -51,7 +52,7 @@ export type SandboxOptions = {
 
 // @public
 export class SandboxSingletonFactory {
-    constructor(sandboxIdResolver: BackendIdSandboxResolver, printer: Printer, format: Format);
+    constructor(sandboxIdResolver: BackendIdSandboxResolver, sdkProfileResolver: SDKProfileResolver, printer: Printer, format: Format);
     getInstance: () => Promise<Sandbox>;
 }
 

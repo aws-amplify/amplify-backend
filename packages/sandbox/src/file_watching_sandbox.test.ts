@@ -58,11 +58,13 @@ const mockIoHost: AmplifyIOHost = {
   notify: mock.fn(),
   requestResponse: mock.fn(),
 };
+const mockProfileResolver = mock.fn();
 
 const backendDeployerFactory = new BackendDeployerFactory(
   packageManagerControllerFactory.getPackageManagerController(),
   formatterStub,
-  mockIoHost
+  mockIoHost,
+  mockProfileResolver
 );
 const backendDeployer = backendDeployerFactory.getInstance();
 

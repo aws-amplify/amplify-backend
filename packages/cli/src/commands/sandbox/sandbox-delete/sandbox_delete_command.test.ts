@@ -20,6 +20,7 @@ void describe('sandbox delete command', () => {
     'ensureAwsCredentialAndRegion',
     () => null
   );
+  const mockProfileResolver = mock.fn();
 
   beforeEach(async () => {
     const sandboxFactory = new SandboxSingletonFactory(
@@ -29,6 +30,7 @@ void describe('sandbox delete command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
+      mockProfileResolver,
       printer,
       format
     );

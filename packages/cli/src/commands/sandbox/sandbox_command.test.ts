@@ -38,6 +38,7 @@ void describe('sandbox command', () => {
   let commandRunner: TestCommandRunner;
   let sandbox: Sandbox;
   let sandboxStartMock = mock.fn<typeof sandbox.start>();
+  const mockProfileResolver = mock.fn();
 
   const clientConfigGenerationMock = mock.fn<EventHandler>();
   const clientConfigDeletionMock = mock.fn<EventHandler>();
@@ -62,6 +63,7 @@ void describe('sandbox command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
+      mockProfileResolver,
       printer,
       format
     );
@@ -243,6 +245,7 @@ void describe('sandbox command', () => {
           name: 'testSandboxName',
           type: 'sandbox',
         }),
+      mockProfileResolver,
       printer,
       format
     );

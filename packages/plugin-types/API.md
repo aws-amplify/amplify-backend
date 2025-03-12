@@ -300,6 +300,9 @@ export type ResourceProvider<T extends object = object> = {
 export type SandboxName = string;
 
 // @public (undocumented)
+export type SDKProfileResolver = () => string | undefined;
+
+// @public (undocumented)
 export type SimpleSpread<L, R> = R & Pick<L, Exclude<keyof L, keyof R>>;
 
 // @public (undocumented)

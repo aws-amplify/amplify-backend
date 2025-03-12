@@ -44,6 +44,8 @@ void describe('deploy command', () => {
     notify: mock.fn(),
     requestResponse: mock.fn(),
   };
+  const mockProfileResolver = mock.fn();
+
   const packageManagerControllerFactory = new PackageManagerControllerFactory(
     process.cwd(),
     new Printer(LogLevel.DEBUG)
@@ -55,7 +57,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
-      mockIoHost
+      mockIoHost,
+      mockProfileResolver
     );
     const backendDeployer = backendDeployerFactory.getInstance();
     const deployCommand = new PipelineDeployCommand(
@@ -111,7 +114,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
-      mockIoHost
+      mockIoHost,
+      mockProfileResolver
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -139,7 +143,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
-      mockIoHost
+      mockIoHost,
+      mockProfileResolver
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -177,7 +182,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
-      mockIoHost
+      mockIoHost,
+      mockProfileResolver
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),
@@ -215,7 +221,8 @@ void describe('deploy command', () => {
     const backendDeployerFactory = new BackendDeployerFactory(
       packageManagerControllerFactory.getPackageManagerController(),
       formatterStub,
-      mockIoHost
+      mockIoHost,
+      mockProfileResolver
     );
     const mockDeploy = mock.method(
       backendDeployerFactory.getInstance(),

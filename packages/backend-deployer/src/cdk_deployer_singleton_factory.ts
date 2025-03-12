@@ -1,7 +1,8 @@
 import {
   AmplifyIOHost,
   BackendIdentifier,
-  type PackageManagerController,
+  PackageManagerController,
+  SDKProfileResolver,
 } from '@aws-amplify/plugin-types';
 import { CDKDeployer } from './cdk_deployer.js';
 import { CdkErrorMapper } from './cdk_error_mapper.js';
@@ -58,7 +59,8 @@ export class BackendDeployerFactory {
   constructor(
     private readonly packageManagerController: PackageManagerController,
     private readonly formatter: BackendDeployerOutputFormatter,
-    private readonly backendDeployerIOHost: AmplifyIOHost
+    private readonly backendDeployerIOHost: AmplifyIOHost,
+    private readonly sdkProfileResolver: SDKProfileResolver
   ) {}
 
   /**
@@ -66,15 +68,6 @@ export class BackendDeployerFactory {
    */
   getInstance(): BackendDeployer {
     if (!BackendDeployerFactory.instance) {
-      let profile = undefined;
-      if (process && process.argv) {
-        for (let i = 2; i < process.argv.length; i++) {
-          if (process.argv[i] == '--profile') {
-            profile = process.argv[i + 1];
-          }
-        }
-      }
-
       BackendDeployerFactory.instance = new CDKDeployer(
         new CdkErrorMapper(this.formatter),
         new BackendLocator(),
@@ -84,7 +77,7 @@ export class BackendDeployerFactory {
           emojis: false,
           color: false,
           sdkConfig: {
-            profile,
+            profile: this.sdkProfileResolver(),
           },
         }),
         this.backendDeployerIOHost
