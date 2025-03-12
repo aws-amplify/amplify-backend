@@ -13,10 +13,16 @@ import { Toolkit } from '@aws-cdk/toolkit-lib';
 export type DeployProps = {
   secretLastUpdated?: Date;
   validateAppSources?: boolean;
+  /**
+   * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+   */
   profile?: string;
 };
 
 export type DestroyProps = {
+  /**
+   * @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+   */
   profile?: string;
 };
 

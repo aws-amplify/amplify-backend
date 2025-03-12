@@ -52,8 +52,7 @@ export class CDKDeployer implements BackendDeployer {
   ) {}
 
   /**
-   * Invokes cdk deploy command
-   * @deprecated @param deployProps.profile CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+   * Invokes cdk deploy API
    */
   deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
     const toolkit = this.getCdkToolkit(deployProps?.profile);
@@ -168,8 +167,7 @@ export class CDKDeployer implements BackendDeployer {
   };
 
   /**
-   * Invokes cdk destroy command
-   * @deprecated @param destroyProps.profile CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+   * Invokes cdk destroy API
    */
   destroy = async (
     backendId: BackendIdentifier,

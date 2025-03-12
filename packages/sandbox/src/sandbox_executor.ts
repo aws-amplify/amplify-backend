@@ -34,11 +34,13 @@ export class AmplifySandboxExecutor {
 
   /**
    * Deploys sandbox
-   * @deprecated @param profile CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
    */
   deploy = async (
     backendId: BackendIdentifier,
     validateAppSourcesProvider: () => boolean,
+    /**
+     *  @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+     */
     profile: string | undefined
   ): Promise<DeployResult> => {
     this.printer.log('[Sandbox] Executing command `deploy`', LogLevel.DEBUG);
@@ -58,10 +60,12 @@ export class AmplifySandboxExecutor {
 
   /**
    * Destroy sandbox. Do not swallow errors
-   * @deprecated @param profile CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
    */
   destroy = (
     backendId: BackendIdentifier,
+    /**
+     *  @deprecated CDK toolkit now accepts profile only in the constructor instead of at runtime. This param will be removed in next MV
+     */
     profile: string | undefined
   ): Promise<DestroyResult> => {
     this.printer.log('[Sandbox] Executing command `destroy`', LogLevel.DEBUG);
