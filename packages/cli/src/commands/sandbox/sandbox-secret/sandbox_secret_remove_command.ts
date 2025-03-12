@@ -52,11 +52,8 @@ export class SandboxSecretRemoveCommand
       const secrets = await this.secretClient.listSecrets(
         sandboxBackendIdentifier
       );
-      await Promise.all(
-        secrets.map((secret) =>
-          this.secretClient.removeSecret(sandboxBackendIdentifier, secret.name)
-        )
-      );
+      const names = secrets.map((secret) => secret.name);
+      await this.secretClient.removeSecrets(sandboxBackendIdentifier, names);
       printer.print('Successfully removed all secrets');
     }
   };

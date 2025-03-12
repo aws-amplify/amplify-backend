@@ -12,6 +12,7 @@ import { printer } from '@aws-amplify/cli-core';
 import { AmplifyError } from '@aws-amplify/platform-core';
 
 const testSecretName = 'testSecretName';
+const testSecretName2 = 'testSecretName2';
 const testBackendId = 'testBackendId';
 const testSandboxName = 'testSandboxName';
 
@@ -22,8 +23,13 @@ void describe('sandbox secret remove command', () => {
     'removeSecret',
     (): Promise<void> => Promise.resolve()
   );
+  const secretsRemoveMock = mock.method(
+    secretClient,
+    'removeSecrets',
+    (): Promise<void> => Promise.resolve()
+  );
   const listSecretsMock = mock.method(secretClient, 'listSecrets', () =>
-    Promise.resolve([{ name: testSecretName }])
+    Promise.resolve([{ name: testSecretName }, { name: testSecretName2 }])
   );
   const printMock = mock.method(printer, 'print');
 
@@ -95,14 +101,14 @@ void describe('sandbox secret remove command', () => {
       },
     ]);
 
-    assert.equal(secretRemoveMock.mock.callCount(), 1);
-    assert.deepStrictEqual(secretRemoveMock.mock.calls[0].arguments, [
+    assert.equal(secretsRemoveMock.mock.callCount(), 1);
+    assert.deepStrictEqual(secretsRemoveMock.mock.calls[0].arguments, [
       {
         type: 'sandbox',
         namespace: testBackendId,
         name: testSandboxName,
       },
-      testSecretName,
+      [testSecretName, testSecretName2],
     ]);
     assert.equal(
       printMock.mock.calls[0].arguments,
