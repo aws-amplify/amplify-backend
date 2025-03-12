@@ -14,6 +14,7 @@
 '@aws-amplify/backend-ai': patch
 '@aws-amplify/backend': patch
 '@aws-amplify/sandbox': patch
+'create-amplify': patch
 ---
 
 Upgrade CDK version to 2.180.0
