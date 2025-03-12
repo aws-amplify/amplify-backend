@@ -62,6 +62,14 @@ export type SecretClient = {
     backendIdentifier: BackendIdentifier | AppId,
     secretName: string
   ) => Promise<void>;
+
+  /**
+   * Remove secrets.
+   */
+  removeSecrets: (
+    backendIdentifier: BackendIdentifier | AppId,
+    secretNames: string[]
+  ) => Promise<void>;
 };
 
 /**

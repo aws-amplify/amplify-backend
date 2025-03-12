@@ -262,6 +262,82 @@ void describe('SSMSecret', () => {
     });
   });
 
+  void describe('removeSecrets', () => {
+    const ssmClient = new SSM();
+    const ssmSecretClient = new SSMSecretClient(ssmClient);
+    const testSecretName2 = 'testSecretName2';
+    const testSecretFullNamePath2 = `${testBranchPath}/${testSecretName2}`;
+    const testSharedSecretFullNamePath2 = `${testSharedPath}/${testSecretName2}`;
+
+    void it('removes branch secrets', async () => {
+      const mockDeleteParameters = mock.method(
+        ssmClient,
+        'deleteParameters',
+        () =>
+          Promise.resolve({
+            DeletedParameters: [
+              testBranchSecretFullNamePath,
+              testSecretFullNamePath2,
+            ],
+          })
+      );
+
+      await ssmSecretClient.removeSecrets(testBackendIdentifier, [
+        testSecretName,
+        testSecretName2,
+      ]);
+      assert.deepStrictEqual(mockDeleteParameters.mock.calls[0].arguments[0], {
+        Names: [testBranchSecretFullNamePath, testSecretFullNamePath2],
+      });
+    });
+
+    void it('removes shared secrets', async () => {
+      const mockDeleteParameters = mock.method(
+        ssmClient,
+        'deleteParameters',
+        () =>
+          Promise.resolve({
+            DeletedParameters: [
+              testBranchSecretFullNamePath,
+              testSecretFullNamePath2,
+            ],
+          })
+      );
+
+      await ssmSecretClient.removeSecrets(testBackendId, [
+        testSecretName,
+        testSecretName2,
+      ]);
+      assert.deepStrictEqual(mockDeleteParameters.mock.calls[0].arguments[0], {
+        Names: [testSharedSecretFullNamePath, testSharedSecretFullNamePath2],
+      });
+    });
+
+    void it('does not remove invalid secrets', async () => {
+      const mockDeleteParameters = mock.method(
+        ssmClient,
+        'deleteParameters',
+        () =>
+          Promise.resolve({
+            DeletedParameters: [testBranchSecretFullNamePath],
+            InvalidParameters: [testSecretFullNamePath2],
+          })
+      );
+
+      await assert.rejects(
+        () =>
+          ssmSecretClient.removeSecrets(testBackendIdentifier, [
+            testSecretName,
+            testSecretName2,
+          ]),
+        new SecretError(`Failed to remove secrets: ${testSecretFullNamePath2}`)
+      );
+      assert.deepStrictEqual(mockDeleteParameters.mock.calls[0].arguments[0], {
+        Names: [testBranchSecretFullNamePath, testSecretFullNamePath2],
+      });
+    });
+  });
+
   void describe('listSecrets', () => {
     const ssmClient = new SSM();
     const ssmSecretClient = new SSMSecretClient(ssmClient);
