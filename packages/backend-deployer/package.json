@@ -26,7 +26,7 @@
     "strip-ansi": "^6.0.1"
   },
   "peerDependencies": {
-    "aws-cdk": "^2.168.0",
+    "aws-cdk": "^2.1000.0",
     "typescript": "^5.0.0"
   }
 }
