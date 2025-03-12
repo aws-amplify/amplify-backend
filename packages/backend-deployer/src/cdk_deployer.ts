@@ -5,7 +5,6 @@ import {
   BackendDeployer,
   DeployProps,
   DeployResult,
-  DestroyProps,
   DestroyResult,
 } from './cdk_deployer_singleton_factory.js';
 import { CDKDeploymentError, CdkErrorMapper } from './cdk_error_mapper.js';
@@ -39,6 +38,7 @@ export class CDKDeployer implements BackendDeployer {
     process.cwd(),
     '.amplify/artifacts/cdk.out'
   );
+
   /**
    * Instantiates instance of CDKDeployer
    */
@@ -49,43 +49,15 @@ export class CDKDeployer implements BackendDeployer {
     private readonly cdkToolkit: Toolkit,
     private readonly ioHost: AmplifyIOHost
   ) {}
+
   /**
    * Invokes cdk deploy command
    */
   deploy = async (backendId: BackendIdentifier, deployProps?: DeployProps) => {
-    const contextParams: {
-      [key: string]: unknown;
-    } = {};
-
-    // 1. Prepare context params for the CDK app
-    if (backendId.type === 'sandbox') {
-      if (deployProps?.secretLastUpdated) {
-        contextParams['secretLastUpdated'] =
-          deployProps.secretLastUpdated.getTime();
-      }
-    }
-    contextParams[CDKContextKey.BACKEND_NAMESPACE] = backendId.namespace;
-    contextParams[CDKContextKey.BACKEND_NAME] = backendId.name;
-    contextParams[CDKContextKey.DEPLOYMENT_TYPE] = backendId.type;
-
-    /**
-      2. Build cloud executable from dynamically importing the cdk ts file, i.e. backend.ts
-      2.1 By not having a child process in this case, the `process.on('beforeExit')` does not execute
-          on the CDK side resulting in the app not getting synthesized properly. So we send a signal/message
-          to the same process and catch it in backend package where App is initialized to explicitly perform synth
-     */
-    const cx = await this.cdkToolkit.fromAssemblyBuilder(
-      async () => {
-        await tsImport(
-          pathToFileURL(this.backendLocator.locate()).toString(),
-          import.meta.url
-        );
-        process.emit('message', 'amplifySynth', undefined);
-        return new CloudAssembly(this.relativeCloudAssemblyLocation);
-      },
-      { context: contextParams, outdir: this.relativeCloudAssemblyLocation }
+    const cx = await this.getCdkCloudAssembly(
+      backendId,
+      deployProps?.secretLastUpdated?.getTime()
     );
-
     // 3. Initiate synth for the cloud executable and send a message for display.
     const synthStartTime = Date.now();
     let synthAssembly,
@@ -119,7 +91,7 @@ export class CDKDeployer implements BackendDeployer {
       level: 'result',
     });
 
-    // 4. Typescript compilation. For type related errors, we prefer to show errors from TS to customers rather than synth
+    // Typescript compilation. For type related errors, we prefer to show errors from TS to customers rather than synth
     const typeCheckStartTime = Date.now();
     await this.ioHost.notify({
       message: `Backend type checks started`,
@@ -142,7 +114,7 @@ export class CDKDeployer implements BackendDeployer {
         // synth has failed and we don't have auto generated function environment definition files. This
         // resulted in the exception caught here, which is not very useful for the customers.
         // We instead throw the synth error for customers to fix what caused the synth to fail.
-        throw synthError;
+        throw this.cdkErrorMapper.getAmplifyError(synthError);
       }
       throw typeError;
     } finally {
@@ -157,12 +129,12 @@ export class CDKDeployer implements BackendDeployer {
       });
     }
 
-    // 4.1 If typescript compilation was successful but synth had failed, we throw synth error
+    // If typescript compilation was successful but synth had failed, we throw synth error
     if (synthError) {
       throw this.cdkErrorMapper.getAmplifyError(synthError);
     }
 
-    // 5. Perform actual deployment. CFN or hotswap
+    // Perform actual deployment. CFN or hotswap
     const deployStartTime = Date.now();
     try {
       await this.cdkToolkit.deploy(synthAssembly!, {
@@ -194,45 +166,9 @@ export class CDKDeployer implements BackendDeployer {
   /**
    * Invokes cdk destroy command
    */
-  destroy = async (
-    backendId: BackendIdentifier,
-    destroyProps?: DestroyProps
-  ) => {
-    // eslint-disable-next-line no-console
-    console.log(destroyProps?.profile);
-
-    let assembly;
-    try {
-      assembly = await this.cdkToolkit.fromAssemblyDirectory(
-        this.relativeCloudAssemblyLocation
-      );
-      // eslint-disable-next-line amplify-backend-rules/no-empty-catch
-    } catch {
-      // do nothing
-    }
-
-    if (!assembly) {
-      // Looks like the sandbox has not been deployed yet. Let's try to create a new one
-      const contextParams: {
-        [key: string]: unknown;
-      } = {};
-      contextParams[CDKContextKey.BACKEND_NAMESPACE] = backendId.namespace;
-      contextParams[CDKContextKey.BACKEND_NAME] = backendId.name;
-      contextParams[CDKContextKey.DEPLOYMENT_TYPE] = backendId.type;
-      assembly = await this.cdkToolkit.fromAssemblyBuilder(
-        async () => {
-          await tsImport(
-            pathToFileURL(this.backendLocator.locate()).toString(),
-            import.meta.url
-          );
-          return new CloudAssembly(this.relativeCloudAssemblyLocation);
-        },
-        { context: contextParams, outdir: this.relativeCloudAssemblyLocation }
-      );
-    }
-
+  destroy = async (backendId: BackendIdentifier) => {
     const deploymentStartTime = Date.now();
-    await this.cdkToolkit.destroy(assembly, {
+    await this.cdkToolkit.destroy(await this.getCdkCloudAssembly(backendId), {
       stacks: {
         strategy: StackSelectionStrategy.ALL_STACKS,
       },
@@ -311,6 +247,44 @@ export class CDKDeployer implements BackendDeployer {
         throw error;
       }
     }
+  };
+
+  /**
+   * Build cloud executable from dynamically importing the cdk ts file, i.e. backend.ts
+   */
+  private getCdkCloudAssembly = (
+    backendId: BackendIdentifier,
+    secretLastUpdated?: number
+  ) => {
+    const contextParams: {
+      [key: string]: unknown;
+    } = {};
+
+    if (backendId.type === 'sandbox') {
+      if (secretLastUpdated) {
+        contextParams['secretLastUpdated'] = secretLastUpdated;
+      }
+    }
+
+    contextParams[CDKContextKey.BACKEND_NAMESPACE] = backendId.namespace;
+    contextParams[CDKContextKey.BACKEND_NAME] = backendId.name;
+    contextParams[CDKContextKey.DEPLOYMENT_TYPE] = backendId.type;
+    return this.cdkToolkit.fromAssemblyBuilder(
+      async () => {
+        await tsImport(
+          pathToFileURL(this.backendLocator.locate()).toString(),
+          import.meta.url
+        );
+        /**
+          By not having a child process with toolkit lib, the `process.on('beforeExit')` does not execute
+          on the CDK side resulting in the app not getting synthesized properly. So we send a signal/message
+          to the same process and catch it in backend package where App is initialized to explicitly perform synth
+         */
+        process.emit('message', 'amplifySynth', undefined);
+        return new CloudAssembly(this.relativeCloudAssemblyLocation);
+      },
+      { context: contextParams, outdir: this.relativeCloudAssemblyLocation }
+    );
   };
 
   private truncateString = (str: string, size: number) => {

@@ -14,8 +14,8 @@ import {
   PackageManagerController,
 } from '@aws-amplify/plugin-types';
 import { BackendDeployerOutputFormatter } from './types.js';
-import { EOL } from 'os';
 import {
+  AssemblyError,
   AssemblySourceProps,
   DeployOptions,
   HotswapMode,
@@ -96,6 +96,7 @@ void describe('invokeCDKCommand', () => {
 
   beforeEach(() => {
     synthMock.mock.resetCalls();
+    synthMock.mock.restore();
     deployMock.mock.resetCalls();
     destroyMock.mock.resetCalls();
     fromAssemblyBuilderMock.mock.resetCalls();
@@ -150,41 +151,21 @@ void describe('invokeCDKCommand', () => {
     } as AssemblySourceProps);
   });
 
-  void it.skip('deploy handles profile', async () => {
-    const profile = 'test_profile';
-    await invoker.deploy(sandboxBackendId, { profile });
-    assert.strictEqual(executeCommandMock.mock.callCount(), 2);
-    assert.ok(
-      executeCommandMock.mock.calls[0].arguments[0].includes('--profile')
-    );
-    assert.ok(executeCommandMock.mock.calls[0].arguments[0].includes(profile));
-    assert.ok(
-      executeCommandMock.mock.calls[1].arguments[0].includes('--profile')
-    );
-    assert.ok(executeCommandMock.mock.calls[1].arguments[0].includes(profile));
-  });
-
   void it('handles destroy for sandbox', async () => {
     await invoker.destroy(sandboxBackendId);
-    assert.strictEqual(fromAssemblyDirectoryMock.mock.callCount(), 1);
+    assert.strictEqual(fromAssemblyBuilderMock.mock.callCount(), 1);
     assert.strictEqual(destroyMock.mock.callCount(), 1);
     assert.deepStrictEqual(destroyMock.mock.calls[0].arguments[1], {
       stacks: { strategy: StackSelectionStrategy.ALL_STACKS },
     } as DeployOptions);
-    assert.deepStrictEqual(
-      fromAssemblyDirectoryMock.mock.calls[0].arguments[0],
-      path.resolve(process.cwd(), '.amplify/artifacts/cdk.out')
-    );
-  });
-
-  void it.skip('destroy handles profile', async () => {
-    const profile = 'test_profile';
-    await invoker.destroy(sandboxBackendId, { profile });
-    assert.strictEqual(executeCommandMock.mock.callCount(), 1);
-    assert.ok(
-      executeCommandMock.mock.calls[0].arguments[0].includes('--profile')
-    );
-    assert.ok(executeCommandMock.mock.calls[0].arguments[0].includes(profile));
+    assert.deepStrictEqual(fromAssemblyBuilderMock.mock.calls[0].arguments[1], {
+      context: {
+        'amplify-backend-namespace': 'foo',
+        'amplify-backend-name': 'bar',
+        'amplify-backend-type': 'sandbox',
+      },
+      outdir: path.resolve(process.cwd(), '.amplify/artifacts/cdk.out'),
+    } as AssemblySourceProps);
   });
 
   void it('enables type checking for branch deployments', async () => {
@@ -370,83 +351,52 @@ void describe('invokeCDKCommand', () => {
     ]);
   });
 
-  void it.skip('throws the original synth error if the synth failed to generate function env declaration files', async () => {
-    // simulate first execa call for synth as throwing error
-    const synthErrorOnStderr =
-      `some rubbish before` +
-      EOL +
-      `Error: some cdk synth error` +
-      EOL +
-      `    at lookup (/some_random/path.js:1:3005)` +
-      EOL +
-      `    at lookup2 (/some_random/path2.js:2:3005)`;
+  void it('throws the original synth error if the synth failed to generate function env declaration files', async () => {
+    // simulate first toolkit call for synth as throwing error
+    const synthError = new AssemblyError('some error');
+    synthMock.mock.mockImplementationOnce(() => {
+      throw synthError;
+    });
     const typeScriptErrorOnStderr = `amplify/functions/handler.ts(1,21): error TS2307: Cannot find module '$amplify/env/myFunction' or its corresponding type declarations.`;
 
+    // typescript also throws
     executeCommandMock.mock.mockImplementation((commandArgs: string[]) => {
-      if (commandArgs.includes('synth')) {
-        return Promise.reject(new Error(synthErrorOnStderr));
-      }
       if (commandArgs.includes('tsc') && commandArgs.includes('--noEmit')) {
         return Promise.reject(new Error(typeScriptErrorOnStderr));
       }
       return Promise.resolve();
     });
 
+    // ensures that synth error took precedence when TS error is about function env declaration files
     await assert.rejects(
       () =>
         invoker.deploy(sandboxBackendId, {
           validateAppSources: true,
         }),
       new AmplifyUserError(
-        'BackendSynthError',
+        'BackendBuildError',
         {
-          message: 'Unable to build the Amplify backend definition.',
+          message: 'Unable to deploy due to CDK Assembly Error',
           resolution:
-            'Check your backend definition in the `amplify` folder for syntax and type errors.',
+            'Check the Caused by error and fix any issues in your backend code',
         },
-        new Error(
-          `Error: some cdk synth error` +
-            EOL +
-            `    at lookup (/some_random/path.js:1:3005)`
-        )
+        synthError
       )
     );
-    assert.strictEqual(executeCommandMock.mock.callCount(), 3);
+    assert.strictEqual(executeCommandMock.mock.callCount(), 2);
 
-    // Call 0 -> synth
-    assert.equal(executeCommandMock.mock.calls[0].arguments[0]?.length, 17);
+    // Call 0 -> tsc showConfig (ts checks are still run)
+    assert.equal(executeCommandMock.mock.calls[0].arguments[0]?.length, 4);
     assert.deepStrictEqual(executeCommandMock.mock.calls[0].arguments[0], [
-      'cdk',
-      'synth',
-      '--ci',
-      '--app',
-      "'npx tsx amplify/backend.ts'",
-      '--all',
-      '--output',
-      '.amplify/artifacts/cdk.out',
-      '--context',
-      'amplify-backend-namespace=foo',
-      '--context',
-      'amplify-backend-name=bar',
-      '--context',
-      'amplify-backend-type=sandbox',
-      '--hotswap-fallback',
-      '--method=direct',
-      '--quiet',
-    ]);
-
-    // Call 1 -> tsc showConfig (ts checks are still run)
-    assert.equal(executeCommandMock.mock.calls[1].arguments[0]?.length, 4);
-    assert.deepStrictEqual(executeCommandMock.mock.calls[1].arguments[0], [
       'tsc',
       '--showConfig',
       '--project',
       'amplify',
     ]);
 
-    // Call 2 -> tsc
-    assert.equal(executeCommandMock.mock.calls[2].arguments[0]?.length, 5);
-    assert.deepStrictEqual(executeCommandMock.mock.calls[2].arguments[0], [
+    // Call 1 -> tsc
+    assert.equal(executeCommandMock.mock.calls[1].arguments[0]?.length, 5);
+    assert.deepStrictEqual(executeCommandMock.mock.calls[1].arguments[0], [
       'tsc',
       '--noEmit',
       '--skipLibCheck',

@@ -26,7 +26,6 @@ export type Sandbox = {
 // @public (undocumented)
 export type SandboxDeleteOptions = {
     identifier?: string;
-    profile?: string;
 };
 
 // @public (undocumented)

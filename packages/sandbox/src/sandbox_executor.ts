@@ -37,8 +37,7 @@ export class AmplifySandboxExecutor {
    */
   deploy = async (
     backendId: BackendIdentifier,
-    validateAppSourcesProvider: () => boolean,
-    profile: string | undefined
+    validateAppSourcesProvider: () => boolean
   ): Promise<DeployResult> => {
     this.printer.log('[Sandbox] Executing command `deploy`', LogLevel.DEBUG);
     const secretLastUpdated = await this.getSecretLastUpdated(backendId);
@@ -50,7 +49,6 @@ export class AmplifySandboxExecutor {
       return this.backendDeployer.deploy(backendId, {
         secretLastUpdated,
         validateAppSources,
-        profile,
       });
     });
   };
@@ -58,16 +56,9 @@ export class AmplifySandboxExecutor {
   /**
    * Destroy sandbox. Do not swallow errors
    */
-  destroy = (
-    backendId: BackendIdentifier,
-    profile: string | undefined
-  ): Promise<DestroyResult> => {
+  destroy = (backendId: BackendIdentifier): Promise<DestroyResult> => {
     this.printer.log('[Sandbox] Executing command `destroy`', LogLevel.DEBUG);
-    return this.invoke(() =>
-      this.backendDeployer.destroy(backendId, {
-        profile,
-      })
-    );
+    return this.invoke(() => this.backendDeployer.destroy(backendId));
   };
 
   private getSecretLastUpdated = async (

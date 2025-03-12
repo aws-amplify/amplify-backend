@@ -64,31 +64,8 @@ void describe('sandbox delete command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
       identifier: undefined,
-      profile: undefined,
     });
     assert.equal(mockHandleProfile.mock.callCount(), 1);
-    assert.equal(
-      mockHandleProfile.mock.calls[0].arguments[0]?.profile,
-      undefined
-    );
-  });
-
-  void it('deletes sandbox with profile', async (contextual) => {
-    contextual.mock.method(AmplifyPrompter, 'yesOrNo', () =>
-      Promise.resolve(true)
-    );
-    await commandRunner.runCommand('sandbox delete --profile test_profile');
-
-    assert.equal(sandboxDeleteMock.mock.callCount(), 1);
-    assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
-      identifier: undefined,
-      profile: 'test_profile',
-    });
-    assert.equal(mockHandleProfile.mock.callCount(), 1);
-    assert.equal(
-      mockHandleProfile.mock.calls[0].arguments[0]?.profile,
-      'test_profile'
-    );
   });
 
   void it('deletes sandbox with user provided identifier', async (contextual) => {
@@ -100,7 +77,6 @@ void describe('sandbox delete command', () => {
     assert.equal(sandboxDeleteMock.mock.callCount(), 1);
     assert.deepStrictEqual(sandboxDeleteMock.mock.calls[0].arguments[0], {
       identifier: 'test-App-Name',
-      profile: undefined,
     });
   });
 
