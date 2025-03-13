@@ -41,11 +41,9 @@ attachUnhandledExceptionListeners(usageDataEmitter);
 
 verifyCommandName();
 
-const parser = createMainParser(libraryVersion);
+const noticesRenderer = new NoticesRenderer(packageManagerController);
+const parser = createMainParser(libraryVersion, noticesRenderer);
 const errorHandler = generateCommandFailureHandler(parser, usageDataEmitter);
-const postCommandNoticesProcessor = new NoticesRenderer(
-  packageManagerController,
-);
 
 try {
   await parser.parseAsync(hideBin(process.argv));
@@ -56,11 +54,11 @@ try {
     metricDimension.command = subCommands;
   }
 
-  await postCommandNoticesProcessor.tryFindAndPrintApplicableNotices();
+  await noticesRenderer.tryFindAndPrintApplicableNotices();
   await usageDataEmitter.emitSuccess({}, metricDimension);
 } catch (e) {
   if (e instanceof Error) {
-    await postCommandNoticesProcessor.tryFindAndPrintApplicableNotices({
+    await noticesRenderer.tryFindAndPrintApplicableNotices({
       error: e,
     });
     await errorHandler(format.error(e), e);
