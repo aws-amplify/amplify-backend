@@ -61,6 +61,7 @@
   "esbuild",
   "esnext",
   "execa",
+  "evaluator",
   "facebook",
   "filepath",
   "filesystem",

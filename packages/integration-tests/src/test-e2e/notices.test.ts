@@ -42,12 +42,26 @@ void describe('Notices', () => {
       stdout.includes('This is a test notice'),
       `${stdout} must include 'This is a test notice'`
     );
+    assert.strictEqual(
+      stdout.indexOf('https://github.com/aws-amplify/amplify-backend/issues/1'),
+      stdout.lastIndexOf(
+        'https://github.com/aws-amplify/amplify-backend/issues/1'
+      ),
+      'Single notice must be shown only once in the output'
+    );
 
     // Prints unacknowledged notice after random command
     stdout = (await execa('npx', ['ampx', 'info'], execaOptions)).stdout;
     assert.ok(
       stdout.includes('This is a test notice'),
       `${stdout} must include 'This is a test notice'`
+    );
+    assert.strictEqual(
+      stdout.indexOf('https://github.com/aws-amplify/amplify-backend/issues/1'),
+      stdout.lastIndexOf(
+        'https://github.com/aws-amplify/amplify-backend/issues/1'
+      ),
+      'Single notice must be shown only once in the output'
     );
 
     // Acknowledges notice

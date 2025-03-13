@@ -11,7 +11,7 @@ import { NoticesPrinter } from '../../notices/notices_printer.js';
 export const createNoticesCommand = (): NoticesCommand => {
   const packageManagerController =
     new PackageManagerControllerFactory().getPackageManagerController();
-  const noticesController = new NoticesController();
+  const noticesController = new NoticesController(packageManagerController);
   const noticesPrinter = new NoticesPrinter(packageManagerController);
   return new NoticesCommand(
     new NoticesListCommand(noticesController, noticesPrinter),

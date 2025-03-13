@@ -8,6 +8,8 @@ import {
   LocalNamespaceResolver,
   NamespaceResolver,
 } from '../backend-identifier/local_namespace_resolver.js';
+import { NoticePredicatesEvaluator } from './notice_predictes_evaluator.js';
+import { PackageManagerController } from '@aws-amplify/plugin-types';
 
 /**
  * A notices controller.
@@ -17,6 +19,7 @@ export class NoticesController {
    * Creates notices controller.
    */
   constructor(
+    private readonly packageManagerController: PackageManagerController,
     private readonly configurationController = configControllerFactory.getInstance(
       'notices.json'
     ),
@@ -25,6 +28,9 @@ export class NoticesController {
     ),
     private readonly noticesManifestFetcher = new NoticesManifestFetcher(
       configurationController
+    ),
+    private readonly noticePredicatesEvaluator = new NoticePredicatesEvaluator(
+      packageManagerController
     )
   ) {}
   getApplicableNotices = async (opts?: {
@@ -36,6 +42,7 @@ export class NoticesController {
     if (!opts?.includeAcknowledged) {
       notices = await this.filterAcknowledgedNotices(notices);
     }
+    notices = await this.applyPredicates(notices);
     return notices;
   };
 
@@ -54,6 +61,18 @@ export class NoticesController {
         path
       );
       if (!isAcknowledged) {
+        filteredNotices.push(notice);
+      }
+    }
+    return filteredNotices;
+  };
+
+  private applyPredicates = async (
+    notices: Array<Notice>
+  ): Promise<Array<Notice>> => {
+    const filteredNotices: Array<Notice> = [];
+    for (const notice of notices) {
+      if (await this.noticePredicatesEvaluator.evaluate(notice.predicates)) {
         filteredNotices.push(notice);
       }
     }
