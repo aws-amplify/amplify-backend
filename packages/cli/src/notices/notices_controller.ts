@@ -34,7 +34,8 @@ export class NoticesController {
     ),
   ) {}
   getApplicableNotices = async (opts?: {
-    includeAcknowledged: boolean;
+    includeAcknowledged?: boolean;
+    error?: Error;
   }): Promise<Array<Notice>> => {
     const noticesManifest =
       await this.noticesManifestFetcher.fetchNoticesManifest();
@@ -42,7 +43,7 @@ export class NoticesController {
     if (!opts?.includeAcknowledged) {
       notices = await this.filterAcknowledgedNotices(notices);
     }
-    notices = await this.applyPredicates(notices);
+    notices = await this.applyPredicates(notices, { error: opts?.error });
     return notices;
   };
 
@@ -68,10 +69,17 @@ export class NoticesController {
 
   private applyPredicates = async (
     notices: Array<Notice>,
+    opts?: {
+      error?: Error;
+    },
   ): Promise<Array<Notice>> => {
     const filteredNotices: Array<Notice> = [];
     for (const notice of notices) {
-      if (await this.noticePredicatesEvaluator.evaluate(notice.predicates)) {
+      if (
+        await this.noticePredicatesEvaluator.evaluate(notice.predicates, {
+          error: opts?.error,
+        })
+      ) {
         filteredNotices.push(notice);
       }
     }

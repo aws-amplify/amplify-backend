@@ -43,6 +43,9 @@ verifyCommandName();
 
 const parser = createMainParser(libraryVersion);
 const errorHandler = generateCommandFailureHandler(parser, usageDataEmitter);
+const postCommandNoticesProcessor = new PostCommandNoticesProcessor(
+  packageManagerController,
+);
 
 try {
   await parser.parseAsync(hideBin(process.argv));
@@ -53,12 +56,13 @@ try {
     metricDimension.command = subCommands;
   }
 
-  await new PostCommandNoticesProcessor(
-    packageManagerController,
-  ).tryFindAndPrintApplicableNotices(subCommands);
+  await postCommandNoticesProcessor.tryFindAndPrintApplicableNotices();
   await usageDataEmitter.emitSuccess({}, metricDimension);
 } catch (e) {
   if (e instanceof Error) {
+    await postCommandNoticesProcessor.tryFindAndPrintApplicableNotices({
+      error: e,
+    });
     await errorHandler(format.error(e), e);
   }
 }
