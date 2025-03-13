@@ -54,11 +54,14 @@ try {
     metricDimension.command = subCommands;
   }
 
-  await noticesRenderer.tryFindAndPrintApplicableNotices();
+  await noticesRenderer.tryFindAndPrintApplicableNotices({
+    event: 'postCommand',
+  });
   await usageDataEmitter.emitSuccess({}, metricDimension);
 } catch (e) {
   if (e instanceof Error) {
     await noticesRenderer.tryFindAndPrintApplicableNotices({
+      event: 'postCommand',
       error: e,
     });
     await errorHandler(format.error(e), e);

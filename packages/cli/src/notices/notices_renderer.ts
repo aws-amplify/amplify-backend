@@ -4,6 +4,11 @@ import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { printer } from '@aws-amplify/cli-core';
 import { hideBin } from 'yargs/helpers';
 
+export type NoticesRendererParams = {
+  event: 'postCommand' | 'postDeployment' | 'listing';
+  error?: Error;
+};
+
 /**
  * Renders notices.
  */
@@ -23,14 +28,14 @@ export class NoticesRenderer {
     private readonly _process = process,
   ) {}
 
-  tryFindAndPrintApplicableNotices = async (opts?: { error?: Error }) => {
+  tryFindAndPrintApplicableNotices = async (params: NoticesRendererParams) => {
     const command: string | undefined = hideBin(this._process.argv)[0];
     if (command?.startsWith('notices')) {
       return;
     }
     const notices = await this.noticesController.getApplicableNotices({
       includeAcknowledged: false,
-      error: opts?.error,
+      ...params,
     });
     if (notices.length > 0) {
       this._printer.printNewLine();

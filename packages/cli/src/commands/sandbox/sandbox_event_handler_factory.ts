@@ -51,7 +51,9 @@ export class SandboxEventHandlerFactory {
               )} ${format.error(error)}`,
             );
           }
-          await this.noticesRenderer.tryFindAndPrintApplicableNotices();
+          await this.noticesRenderer.tryFindAndPrintApplicableNotices({
+            event: 'postDeployment',
+          });
         },
       ],
       successfulDeletion: [
@@ -68,6 +70,7 @@ export class SandboxEventHandlerFactory {
           const deployError = args[0];
           if (deployError && AmplifyError.isAmplifyError(deployError)) {
             await this.noticesRenderer.tryFindAndPrintApplicableNotices({
+              event: 'postDeployment',
               error: deployError,
             });
             await usageDataEmitter.emitFailure(deployError, {
@@ -76,6 +79,7 @@ export class SandboxEventHandlerFactory {
           } else {
             const amplifyError = AmplifyError.fromError(deployError);
             await this.noticesRenderer.tryFindAndPrintApplicableNotices({
+              event: 'postDeployment',
               error: amplifyError,
             });
             await usageDataEmitter.emitFailure(amplifyError, {

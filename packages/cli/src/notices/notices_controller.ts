@@ -10,6 +10,7 @@ import {
 } from '../backend-identifier/local_namespace_resolver.js';
 import { NoticePredicatesEvaluator } from './notice_predictes_evaluator.js';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
+import { NoticesRendererParams } from './notices_renderer.js';
 
 /**
  * A notices controller.
@@ -19,7 +20,7 @@ export class NoticesController {
    * Creates notices controller.
    */
   constructor(
-    private readonly packageManagerController: PackageManagerController,
+    packageManagerController: PackageManagerController,
     private readonly configurationController = configControllerFactory.getInstance(
       'notices.json',
     ),
@@ -33,17 +34,18 @@ export class NoticesController {
       packageManagerController,
     ),
   ) {}
-  getApplicableNotices = async (opts?: {
-    includeAcknowledged?: boolean;
-    error?: Error;
-  }): Promise<Array<Notice>> => {
+  getApplicableNotices = async (
+    params: {
+      includeAcknowledged?: boolean;
+    } & NoticesRendererParams,
+  ): Promise<Array<Notice>> => {
     const noticesManifest =
       await this.noticesManifestFetcher.fetchNoticesManifest();
     let notices = noticesManifest.notices;
-    if (!opts?.includeAcknowledged) {
+    if (!params.includeAcknowledged) {
       notices = await this.filterAcknowledgedNotices(notices);
     }
-    notices = await this.applyPredicates(notices, { error: opts?.error });
+    notices = await this.applyPredicates(notices, params);
     return notices;
   };
 
@@ -69,16 +71,12 @@ export class NoticesController {
 
   private applyPredicates = async (
     notices: Array<Notice>,
-    opts?: {
-      error?: Error;
-    },
+    opts: NoticesRendererParams,
   ): Promise<Array<Notice>> => {
     const filteredNotices: Array<Notice> = [];
     for (const notice of notices) {
       if (
-        await this.noticePredicatesEvaluator.evaluate(notice.predicates, {
-          error: opts?.error,
-        })
+        await this.noticePredicatesEvaluator.evaluate(notice.predicates, opts)
       ) {
         filteredNotices.push(notice);
       }

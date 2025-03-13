@@ -31,7 +31,9 @@ export class NoticesListCommand implements CommandModule<object> {
    * @inheritDoc
    */
   handler = async (): Promise<void> => {
-    const notices = await this.noticesController.getApplicableNotices();
+    const notices = await this.noticesController.getApplicableNotices({
+      event: 'listing',
+    });
     this.noticesPrinter.print(notices);
   };
 

@@ -2,6 +2,7 @@ import { Notice } from '@aws-amplify/cli-core';
 import semver from 'semver';
 import { PackageManagerController } from '@aws-amplify/plugin-types';
 import { hideBin } from 'yargs/helpers';
+import { NoticesRendererParams } from './notices_renderer.js';
 
 /**
  * Evaluates notice predicates.
@@ -17,10 +18,11 @@ export class NoticePredicatesEvaluator {
 
   evaluate = async (
     predicates: Notice['predicates'],
-    opts?: {
-      error?: Error;
-    },
+    opts: NoticesRendererParams,
   ): Promise<boolean> => {
+    // If it's post deployment suppress notice by default. So that we show
+    // only notices that are allow listed for deployment.
+    let result = opts.event !== 'postDeployment';
     for (const predicate of predicates) {
       switch (predicate.type) {
         case 'nodeVersion':
@@ -62,7 +64,10 @@ export class NoticePredicatesEvaluator {
           }
           break;
         case 'frequency':
-          // TODO
+          if (!this.evaluateFrequency(predicate.frequency, opts.event)) {
+            return false;
+          }
+          result = true;
           break;
         case 'validityPeriod':
           if (!this.evaluateValidityPeriod(predicate.from, predicate.to)) {
@@ -72,7 +77,26 @@ export class NoticePredicatesEvaluator {
       }
     }
 
-    return true;
+    return result;
+  };
+
+  private evaluateFrequency = (
+    expectedFrequency: 'command' | 'deployment' | 'once' | 'daily',
+    event: NoticesRendererParams['event'],
+  ): boolean => {
+    switch (expectedFrequency) {
+      case 'command':
+        return event === 'postCommand' || event === 'listing';
+      case 'deployment':
+        return event === 'postDeployment';
+      case 'once':
+        // TODO
+        break;
+      case 'daily':
+        // TODO
+        break;
+    }
+    return false;
   };
 
   private evaluateValidityPeriod = (
