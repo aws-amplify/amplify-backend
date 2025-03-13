@@ -5,6 +5,10 @@ import { getResponse } from './response_generator.js';
 import fetch from 'node-fetch';
 global.fetch = fetch as never;
 
+// node 16 does not include Blob, so we need to polyfill it
+import { Blob } from 'node-fetch';
+global.Blob = Blob as never;
+
 /**
  * Dummy lambda handler to test building a function with a local import
  */
