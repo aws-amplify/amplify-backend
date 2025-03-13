@@ -147,6 +147,14 @@ void describe('sandbox command', () => {
     assert.equal(mockHandleProfile.mock.callCount(), 0);
   });
 
+  void it('dose not show logs streaming options in subcommand help output', async () => {
+    const output = await commandRunner.runCommand('sandbox secret --help');
+    assert.match(output, /Manage sandbox secret/);
+    assert.doesNotMatch(output, /stream-function-logs/);
+    assert.doesNotMatch(output, /logs-filter/);
+    assert.doesNotMatch(output, /logs-out-file/);
+  });
+
   void it('shows version should not call profile middleware', async () => {
     void commandRunner.runCommand('sandbox --version');
     assert.equal(mockHandleProfile.mock.callCount(), 0);
