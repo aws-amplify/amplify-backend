@@ -3,6 +3,7 @@ import type {
   DataSourceConfiguration,
   DerivedCombinedSchema,
   DerivedModelSchema as DerivedDataSchema,
+  DerivedModelSchema,
 } from '@aws-amplify/data-schema-types';
 import {
   AmplifyDataDefinition,
@@ -11,7 +12,11 @@ import {
   type SslCertSsmPathConfig,
   type VpcConfig,
 } from '@aws-amplify/data-construct';
-import type { DataSchema, DataSchemaInput } from './types.js';
+import type {
+  AmplifyGen1DynamoDbTableMap,
+  DataSchema,
+  DataSchemaInput,
+} from './types.js';
 import type {
   BackendSecretResolver,
   StableBackendIdentifiers,
@@ -26,7 +31,7 @@ import { ObjectTypeDefinitionNode, parse, print } from 'graphql';
  * @returns a boolean indicating whether the schema is a derived model schema, with type narrowing
  */
 export const isDataSchema = (
-  schema: DataSchema
+  schema: DataSchema,
 ): schema is DerivedDataSchema => {
   return (
     schema !== null &&
@@ -42,7 +47,7 @@ export const isDataSchema = (
  * @returns a boolean indicating whether the schema is a collection of derived model schema, with type narrowing
  */
 export const isCombinedSchema = (
-  schema: DataSchemaInput
+  schema: DataSchemaInput,
 ): schema is DerivedCombinedSchema => {
   return (
     schema !== null &&
@@ -85,7 +90,7 @@ export const convertSchemaToCDK = (
   schema: DataSchema,
   backendSecretResolver: BackendSecretResolver,
   stableBackendIdentifiers: StableBackendIdentifiers,
-  importedTableName?: string
+  importedTableName?: string,
 ): IAmplifyDataDefinition => {
   if (isDataSchema(schema)) {
     /**
@@ -109,12 +114,12 @@ export const convertSchemaToCDK = (
       customSqlDataSourceStrategies,
       backendSecretResolver,
       provisionStrategyName,
-      importedTableName
+      importedTableName,
     );
 
     const generatedModelDataSourceStrategies = AmplifyDataDefinition.fromString(
       transformedSchema,
-      dbStrategy
+      dbStrategy,
     ).dataSourceStrategies;
 
     if (dbStrategy.dbType === 'DYNAMODB') {
@@ -134,7 +139,7 @@ export const convertSchemaToCDK = (
           (existing: CustomSqlDataSourceStrategy) => ({
             ...existing,
             strategy: dbStrategy,
-          })
+          }),
         ) || [],
     };
   }
@@ -154,7 +159,7 @@ export const convertSchemaToCDK = (
  * @returns the cdk graphql definition interface
  */
 export const combineCDKSchemas = (
-  schemas: IAmplifyDataDefinition[]
+  schemas: IAmplifyDataDefinition[],
 ): IAmplifyDataDefinition => {
   return AmplifyDataDefinition.combine(schemas);
 };
@@ -169,7 +174,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
   customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[] = [],
   backendSecretResolver: BackendSecretResolver,
   provisionStrategyName: string,
-  importedTableName?: string
+  importedTableName?: string,
 ): ModelDataSourceStrategy => {
   if (configuration.engine === 'dynamodb') {
     if (importedTableName) {
@@ -194,7 +199,7 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
   }
 
   const customSqlStatements = customSqlStatementsFromStrategies(
-    customSqlDataSourceStrategies
+    customSqlDataSourceStrategies,
   );
 
   const { branchSecretPath, sharedSecretPath } =
@@ -230,20 +235,64 @@ const convertDatabaseConfigurationToDataSourceStrategy = (
  * @returns an object mapping the file path to the sql statement
  */
 const customSqlStatementsFromStrategies = (
-  customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[]
+  customSqlDataSourceStrategies: CustomSqlDataSourceStrategy[],
 ): Record<string, string> => {
   const customSqlStatements = customSqlDataSourceStrategies
     .filter((sqlStrategy) => sqlStrategy.entry !== undefined)
-    .reduce((acc, sqlStrategy) => {
-      const entry = sqlStrategy.entry!;
-      const reference = typeof entry === 'string' ? entry : entry.relativePath;
-      const resolvedPath = resolveEntryPath(entry);
+    .reduce(
+      (acc, sqlStrategy) => {
+        const entry = sqlStrategy.entry!;
+        const reference =
+          typeof entry === 'string' ? entry : entry.relativePath;
+        const resolvedPath = resolveEntryPath(entry);
 
-      acc[reference] = readFileSync(resolvedPath, 'utf8');
-      return acc;
-    }, {} as Record<string, string>);
+        acc[reference] = readFileSync(resolvedPath, 'utf8');
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
   return customSqlStatements;
+};
+
+/**
+ * Split the schema into multiple schemas based on the table map.
+ * If the model corresponds to an imported table then move that model to a separate schema and include the table name
+ * @param schemas GraphQL schemas
+ * @param amplifyGen1DynamoDbTableMap Table names for the models that should be imported.
+ * @returns an array of split schemas with the imported table name if applicable
+ */
+export const splitSchemasByTableMap = (
+  schemas: (string | DerivedModelSchema)[],
+  amplifyGen1DynamoDbTableMap: AmplifyGen1DynamoDbTableMap | undefined,
+): {
+  schema: string | DerivedModelSchema;
+  importedTableName?: string;
+}[] => {
+  const splitSchemas: {
+    schema: string | DerivedModelSchema;
+    importedTableName?: string;
+  }[] = schemas.flatMap((schema) => {
+    // data schema not supported for import
+    if (!isDataSchema(schema)) {
+      const { importedSchemas, nonImportedSchema } = extractImportedModels(
+        schema,
+        amplifyGen1DynamoDbTableMap?.modelTableNameMap,
+      );
+      if (importedSchemas.length > 0) {
+        return [
+          ...importedSchemas.map(({ schema, importedTableName }) => ({
+            schema,
+            importedTableName,
+          })),
+          ...(nonImportedSchema ? [{ schema: nonImportedSchema }] : []),
+        ];
+      }
+    }
+    return [{ schema }];
+  });
+
+  return splitSchemas;
 };
 
 /**
@@ -252,9 +301,9 @@ const customSqlStatementsFromStrategies = (
  * @param migratedAmplifyGen1DynamoDbTableMap Table names for the models that should be extracted.
  * @returns a schema split into imported models and non-imported models
  */
-export const extractImportedModels = (
+const extractImportedModels = (
   schema: string,
-  migratedAmplifyGen1DynamoDbTableMap: Record<string, string> | undefined
+  migratedAmplifyGen1DynamoDbTableMap: Record<string, string> | undefined,
 ): {
   importedSchemas: { schema: string; importedTableName: string }[];
   nonImportedSchema: string | undefined;
@@ -269,7 +318,7 @@ export const extractImportedModels = (
           definitionNode.kind === 'ObjectTypeDefinition' &&
           importedModels.includes(definitionNode.name.value)
         );
-      }
+      },
     );
     // ok to cast as ObjectTypeDefinitionNode because the type was checked in the partition function
     const importedObjectTypeDefinitionNodes =
@@ -278,7 +327,7 @@ export const extractImportedModels = (
     importedModels.forEach((modelName) => {
       if (
         !importedObjectTypeDefinitionNodes.some(
-          (definitionNode) => definitionNode.name.value === modelName
+          (definitionNode) => definitionNode.name.value === modelName,
         )
       ) {
         throw new Error(`Imported model not found in schema: ${modelName}`);
@@ -292,7 +341,7 @@ export const extractImportedModels = (
         ];
         if (!importedTableName) {
           throw new Error(
-            `No table found for imported model ${definitionNode.name.value}.`
+            `No table found for imported model ${definitionNode.name.value}.`,
           );
         }
         return {
@@ -302,7 +351,7 @@ export const extractImportedModels = (
           }),
           importedTableName,
         };
-      }
+      },
     );
 
     const nonImportedSchema = nonImportedDefinitionNodes.length
@@ -324,12 +373,12 @@ export const extractImportedModels = (
 
 const partition = <I>(
   array: readonly I[],
-  isLeft: (item: I) => boolean
+  isLeft: (item: I) => boolean,
 ): [I[], I[]] => {
   return array.reduce(
     ([left, right], item) => {
       return isLeft(item) ? [[...left, item], right] : [left, [...right, item]];
     },
-    [[], []] as [I[], I[]]
+    [[], []] as [I[], I[]],
   );
 };
