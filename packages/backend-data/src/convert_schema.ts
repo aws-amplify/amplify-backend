@@ -13,7 +13,7 @@ import {
   type VpcConfig,
 } from '@aws-amplify/data-construct';
 import type {
-  AmplifyGen1DynamoDbTableMap,
+  AmplifyGen1DynamoDbTableMapping,
   DataSchema,
   DataSchemaInput,
 } from './types.js';
@@ -259,12 +259,12 @@ const customSqlStatementsFromStrategies = (
  * Split the schema into multiple schemas based on the table map.
  * If the model corresponds to an imported table then move that model to a separate schema and include the table name
  * @param schemas GraphQL schemas
- * @param amplifyGen1DynamoDbTableMap Table names for the models that should be imported.
+ * @param amplifyGen1DynamoDbTableMapping Table names for the models that should be imported.
  * @returns an array of split schemas with the imported table name if applicable
  */
 export const splitSchemasByTableMap = (
   schemas: (string | DerivedModelSchema)[],
-  amplifyGen1DynamoDbTableMap: AmplifyGen1DynamoDbTableMap | undefined,
+  amplifyGen1DynamoDbTableMapping: AmplifyGen1DynamoDbTableMapping | undefined,
 ): {
   schema: string | DerivedModelSchema;
   importedTableName?: string;
@@ -277,7 +277,7 @@ export const splitSchemasByTableMap = (
     if (!isDataSchema(schema)) {
       const { importedSchemas, nonImportedSchema } = extractImportedModels(
         schema,
-        amplifyGen1DynamoDbTableMap?.modelTableNameMap,
+        amplifyGen1DynamoDbTableMapping?.modelTableNameMap,
       );
       if (importedSchemas.length > 0) {
         return [
@@ -298,17 +298,19 @@ export const splitSchemasByTableMap = (
 /**
  * Extracts the imported models from non-imported models in a single string schema.
  * @param schema String GraphQL schema
- * @param migratedAmplifyGen1DynamoDbTableMap Table names for the models that should be extracted.
+ * @param migratedAmplifyGen1DynamoDbTableMappings Table names for the models that should be extracted.
  * @returns a schema split into imported models and non-imported models
  */
 const extractImportedModels = (
   schema: string,
-  migratedAmplifyGen1DynamoDbTableMap: Record<string, string> | undefined,
+  migratedAmplifyGen1DynamoDbTableMappings: Record<string, string> | undefined,
 ): {
   importedSchemas: { schema: string; importedTableName: string }[];
   nonImportedSchema: string | undefined;
 } => {
-  const importedModels = Object.keys(migratedAmplifyGen1DynamoDbTableMap ?? {});
+  const importedModels = Object.keys(
+    migratedAmplifyGen1DynamoDbTableMappings ?? {},
+  );
   if (importedModels?.length) {
     const parsedSchema = parse(schema);
     const [importedDefinitionNodes, nonImportedDefinitionNodes] = partition(
@@ -336,9 +338,8 @@ const extractImportedModels = (
 
     const importedSchemas = importedObjectTypeDefinitionNodes.map(
       (definitionNode) => {
-        const importedTableName = (migratedAmplifyGen1DynamoDbTableMap ?? {})[
-          definitionNode.name.value
-        ];
+        const importedTableName = (migratedAmplifyGen1DynamoDbTableMappings ??
+          {})[definitionNode.name.value];
         if (!importedTableName) {
           throw new Error(
             `No table found for imported model ${definitionNode.name.value}.`,

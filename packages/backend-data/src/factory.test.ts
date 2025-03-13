@@ -970,7 +970,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: [
+      migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
           modelTableNameMap: {
@@ -1005,7 +1005,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: [
+      migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
           modelTableNameMap: {
@@ -1038,7 +1038,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: [
+      migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
           modelTableNameMap: {
@@ -1064,7 +1064,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: [
+      migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
           modelTableNameMap: {
@@ -1104,7 +1104,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: [
+      migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
           modelTableNameMap: {
@@ -1143,7 +1143,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: [
+      migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
           modelTableNameMap: {
@@ -1178,7 +1178,7 @@ void describe('Table Import', () => {
     `;
     const dataFactory = defineData({
       schema,
-      migratedAmplifyGen1DynamoDbTableMap: [
+      migratedAmplifyGen1DynamoDbTableMappings: [
         {
           branchName: 'dev',
           modelTableNameMap: {
@@ -1200,7 +1200,7 @@ void describe('Table Import', () => {
     });
     assert.throws(() => dataFactory.getInstance(getInstanceProps), {
       message:
-        'Branch names must be unique in the migratedAmplifyGen1DynamoDbTableMap',
+        'Branch names must be unique in the migratedAmplifyGen1DynamoDbTableMappings',
     });
   });
 });

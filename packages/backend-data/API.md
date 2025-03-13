@@ -13,7 +13,7 @@ import { LogLevel } from '@aws-amplify/plugin-types';
 import { LogRetention } from '@aws-amplify/plugin-types';
 
 // @public
-export type AmplifyGen1DynamoDbTableMap = {
+export type AmplifyGen1DynamoDbTableMapping = {
     branchName: string;
     modelTableNameMap?: ModelTableNameMap;
 };
@@ -52,7 +52,7 @@ export type DataProps = {
     authorizationModes?: AuthorizationModes;
     functions?: Record<string, ConstructFactory<AmplifyFunction>>;
     logging?: DataLoggingOptions;
-    migratedAmplifyGen1DynamoDbTableMap?: AmplifyGen1DynamoDbTableMap[];
+    migratedAmplifyGen1DynamoDbTableMappings?: AmplifyGen1DynamoDbTableMapping[];
 };
 
 // @public

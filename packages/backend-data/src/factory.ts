@@ -161,17 +161,18 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       const amplifyBranchName =
         scope.node.tryGetContext('amplifyEnvironmentName') ?? 'sandbox';
       // ensure all branch names are unique
-      if (this.props.migratedAmplifyGen1DynamoDbTableMap) {
+      if (this.props.migratedAmplifyGen1DynamoDbTableMappings) {
         // Remove this warning for GA
         Annotations.of(scope).addWarning(
-          'migratedAmplifyGen1DynamoDbTableMap is experimental and is not recommended for production use. This functionality may be changed or removed without warning.',
+          'migratedAmplifyGen1DynamoDbTableMappings is experimental and is not recommended for production use. This functionality may be changed or removed without warning.',
         );
         const branchNames = new Set<string>();
-        for (const tableMap of this.props.migratedAmplifyGen1DynamoDbTableMap) {
+        for (const tableMap of this.props
+          .migratedAmplifyGen1DynamoDbTableMappings) {
           if (branchNames.has(tableMap.branchName)) {
             throw new AmplifyUserError('DefineDataConfigurationError', {
               message:
-                'Branch names must be unique in the migratedAmplifyGen1DynamoDbTableMap',
+                'Branch names must be unique in the migratedAmplifyGen1DynamoDbTableMappings',
               resolution: 'Ensure all branch names are unique',
             });
           }
@@ -180,7 +181,7 @@ class DataGenerator implements ConstructContainerEntryGenerator {
       }
 
       const tableMapForCurrentBranch = (
-        this.props.migratedAmplifyGen1DynamoDbTableMap ?? []
+        this.props.migratedAmplifyGen1DynamoDbTableMappings ?? []
       ).find((tableMap) => tableMap.branchName === amplifyBranchName);
       const splitSchemas = splitSchemasByTableMap(
         schemas,
